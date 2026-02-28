@@ -2,6 +2,10 @@ package ddraig.net.entropica.api.fumes;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents a handler for managing Fumes within a machine or system.
+ * Provides methods to interact with, store, and manipulate Fumes.
+ */
 public interface IFumeHandler {
 
     /**

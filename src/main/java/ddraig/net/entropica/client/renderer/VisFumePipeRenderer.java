@@ -28,6 +28,15 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
+/**
+ * The VisFumePipeRenderer class serves as a custom renderer for the VisFumePipeBlockEntity.
+ * It handles rendering visual representations of Vis fume flow and associated states such as capacity,
+ * flow direction, and visual alerts for certain conditions (e.g., purging or low-pressure warnings).
+ *
+ * This renderer dynamically manages the appearance of Vis fume animation, attached pipe connections,
+ * one-way valve arrows, and diagnostic text readouts, providing a cohesive visual representation
+ * of the block entity's functionality within a game.
+ */
 public class VisFumePipeRenderer implements BlockEntityRenderer<VisFumePipeBlockEntity, VisFumePipeRenderer.VisFumePipeRenderState> {
 
     private static final ResourceLocation GAS_ANIM_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/misc/fume_gas_anim.png");

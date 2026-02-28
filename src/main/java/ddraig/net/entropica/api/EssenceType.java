@@ -4,6 +4,16 @@ import com.mojang.serialization.Codec;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The EssenceType enum represents various types of essence, each with associated color cycles
+ * and other properties. The enum includes regular essence, foundational base types, elemental and
+ * vital fusions, ethereal and paradox fusions, trinity fusions, quaternary fusions, conceptual fragment essences,
+ * resonance types, and catalysts. Each essence type has a defined set of RGB color values that
+ * describe its appearance and behavior over time.
+ *
+ * This enum implements the StringRepresentable interface to allow for string-based serialization.
+ * The color properties include dynamic color handling and cycling through multiple color stages.
+ */
 public enum EssenceType implements StringRepresentable {
     // Regular
     REGULAR(new int[][]{{160, 160, 160}}),

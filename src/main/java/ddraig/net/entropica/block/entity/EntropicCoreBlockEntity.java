@@ -33,6 +33,29 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+/**
+ * Represents the Entropic Core block entity that manages complex processing,
+ * mana and essence pooling, multiblock structure validation, and burn mode toggling.
+ * The Entropic Core acts as the central component of the multiblock structure
+ * for advanced crafting and resource management.
+ *
+ * Fields:
+ * - manaPool: Tracks the mana stored in the core by essence type.
+ * - essencePool: Tracks the raw essence stored in the core by essence type.
+ * - sharedReceptacleBuffer: Holds temporary inventory for sharing items between receptacles.
+ * - isActive: Indicates whether the core is currently active.
+ * - isFormed: Indicates whether the multiblock structure is correctly formed.
+ * - currentMode: Defines the current burn mode (e.g., Regular, Elemental, or Fusion).
+ * - tickCounter: Tracks the number of ticks elapsed in the core's lifecycle.
+ * - validationTimer: Countdown timer for periodically validating the multiblock structure.
+ * - receptacleCount: Number of receptacles connected to the core.
+ * - catalystCount: Number of catalysts in attached receptacles.
+ * - coreCount: Number of cores within the multiblock structure (should be one for the master block).
+ * - masterPos: Position of the master core within the multiblock structure.
+ * - renderHatchPos: Position of the active render hatch for interacting with players.
+ * - lastValidationError: Holds the last error message if the multiblock validation failed.
+ * - connectedPlumes: Tracks connected plumes for mana and essence transfer.
+ */
 public class EntropicCoreBlockEntity extends BlockEntity {
 
     public enum BurnMode {

@@ -29,6 +29,49 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The EntropicCoreRenderer is a custom renderer for `EntropicCoreBlockEntity` designed to visually represent
+ * the state and properties of the block entity, such as its essence and mana pools, as well as active state
+ * and UI overlays. It leverages the Minecraft rendering pipeline to draw 3D and 2D visual elements.
+ *
+ * Responsibilities:
+ * - Handles custom rendering logic for the `EntropicCoreBlockEntity`, including essence and mana display.
+ * - Manages the rendered state with a dedicated `CoreRenderState` object.
+ * - Dynamically adjusts rendering based on block's interaction state and proximity to the player camera.
+ *
+ * Interfaces:
+ * - Implements `BlockEntityRenderer`, which defines the hooks for rendering block entities.
+ *
+ * Core Features:
+ * 1. Essence Bars Rendering:
+ *    Visualizes essence levels using colored bars that represent different essence types. The length of
+ *    each bar corresponds to the relative fullness of each essence pool.
+ *
+ * 2. Mana Circles Rendering:
+ *    Displays circular graphical indicators around the block to show the state of mana stored. The circles
+ *    dynamically adjust radius and opacity based on mana type and fullness.
+ *
+ * 3. Tooltip Rendering:
+ *    Renders textual details such as the amounts and types of stored essence and mana when the player
+ *    is interacting/looking closely.
+ *
+ * Rendering Layers:
+ * - Layer 1: Draws essence bars in the background.
+ * - Layer 2: Displays mana pool circles on top of the essence bars.
+ * - Layer 3: Textual information (e.g., tooltip) appears in the foreground.
+ *
+ * Dependencies:
+ * - Requires `BlockEntityRendererProvider.Context` for font rendering context.
+ * - Utilizes Minecraft's `MultiBufferSource` for rendering dynamic graphical elements through different layers.
+ *
+ * Notes:
+ * - This renderer dynamically adapts to changes in the state of the block entity.
+ * - It handles occlusion and visibility checks to ensure smooth performance and relevance of rendered elements.
+ *
+ * Nested Class:
+ * - `CoreRenderState`: A dedicated state object encapsulating all dynamic render-related properties
+ *   of the `EntropicCoreBlockEntity`, such as formed state, world position, essence and mana pools.
+ */
 public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlockEntity, EntropicCoreRenderer.CoreRenderState> {
 
     private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");

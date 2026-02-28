@@ -7,6 +7,12 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+/**
+ * Represents a block entity for the Essence Receptacle in the game.
+ * This block entity is used as part of a multiblock structure centered around an
+ * Entropic Core. The Essence Receptacle interacts with this core and automates
+ * resource management tasks such as exposing buffers for automation.
+ */
 public class EssenceReceptacleBlockEntity extends BlockEntity {
     private BlockPos masterPos = null;
     // A dummy container to return when the multiblock is broken so pipes don't crash

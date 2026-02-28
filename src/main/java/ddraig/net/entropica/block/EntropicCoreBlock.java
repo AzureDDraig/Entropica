@@ -16,6 +16,13 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.redstone.Orientation;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * The EntropicCoreBlock class represents a block that interacts with redstone signals to control its behavior.
+ * It is designed to work with the EntropicCoreBlockEntity, enabling complex functionality via tile entities.
+ *
+ * This block can toggle its state (powered or not) based on neighboring redstone signals, perform block entity
+ * ticking, and provide analog output signals for interaction with comparators.
+ */
 public class EntropicCoreBlock extends Block implements EntityBlock {
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 

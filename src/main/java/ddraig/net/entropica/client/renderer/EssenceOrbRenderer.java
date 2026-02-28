@@ -16,6 +16,12 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 
+/**
+ * The EssenceOrbRenderer class is responsible for rendering the EssenceOrbEntity in the game world.
+ * It utilizes various rendering techniques to display the orb with its base texture, color, size, and
+ * additional flare effects, dependent on its tier and type. The renderer is specifically designed
+ * to provide a dynamic and visually appealing representation of the entity.
+ */
 public class EssenceOrbRenderer extends EntityRenderer<EssenceOrbEntity, EssenceOrbRenderer.EssenceOrbRenderState> {
     private static final ResourceLocation ORB_TEXTURE = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/orb_base.png");
     private static final ResourceLocation DEFAULT_FLARE = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/orb_flare.png");

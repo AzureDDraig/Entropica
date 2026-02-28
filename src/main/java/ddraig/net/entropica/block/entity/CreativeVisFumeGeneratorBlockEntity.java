@@ -16,6 +16,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
+/**
+ * Represents a special block entity for the Creative Vis Fume Generator.
+ * This block entity is responsible for generating and distributing vis fumes
+ * of a certain essence type in the Minecraft world. The essence type can be
+ * cycled through various predefined types.
+ *
+ * The Creative Vis Fume Generator allows interaction with other blocks
+ * or entities via a fume handling interface and supports saving and syncing
+ * its state both on the client and server side.
+ */
 public class CreativeVisFumeGeneratorBlockEntity extends BlockEntity {
 
     private EssenceType currentType = EssenceType.REGULAR;
