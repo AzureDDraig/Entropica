@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://via.placeholder.com/500x150.png?text=Entropica" alt="Entropica Logo">
+  <img src="https://github.com/AzureDDraig/Entropica/blob/master/image_2026-02-28_155722900.png?raw=true?text=Entropica" alt="Entropica Logo">
 </p>
 
 <h1 align="center"><b>Entropica</b></h1>
