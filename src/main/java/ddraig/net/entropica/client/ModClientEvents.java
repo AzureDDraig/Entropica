@@ -1,6 +1,7 @@
 package ddraig.net.entropica.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import ddraig.net.entropica.client.renderer.*;
 import net.minecraft.client.KeyMapping;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.item.ManaAmpouleItem;
@@ -8,13 +9,7 @@ import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModEntityTypes;
 import ddraig.net.entropica.block.entity.CreativeVisFumeGeneratorBlockEntity;
-
-import ddraig.net.entropica.client.renderer.ManaFurnaceRenderer;
-import ddraig.net.entropica.client.renderer.EntropicCoreRenderer;
-import ddraig.net.entropica.client.renderer.EssenceReadoutRenderer;
-import ddraig.net.entropica.client.renderer.ManaReadoutRenderer;
-import ddraig.net.entropica.client.renderer.VisFumePipeRenderer;
-import ddraig.net.entropica.client.renderer.EssenceOrbRenderer;
+import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -76,12 +71,17 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.VIS_FUME_ONE_WAY_VALVE_BE.get(), VisFumePipeRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.VIS_FUME_DIVERTER_BE.get(), VisFumePipeRenderer::new);
 
+        // --- VESSEL RENDERERS ---
+        event.registerBlockEntityRenderer(ModBlockEntities.VIS_FUME_VESSEL_CONTROLLER_BE.get(), VisFumeVesselControllerRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.MANA_ENRICHED_GLASS_BE.get(), ManaEnrichedGlassRenderer::new);
+
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
     }
 
-    // --- BLOCK COLORS (Still Event-Driven in modern versions) ---
+    // --- BLOCK COLORS ---
     @SubscribeEvent
     public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
+        // Generator Tint
         event.register((state, level, pos, tintIndex) -> {
             if (level != null && pos != null && tintIndex == 0) {
                 if (level.getBlockEntity(pos) instanceof CreativeVisFumeGeneratorBlockEntity generator) {
@@ -90,22 +90,36 @@ public class ModClientEvents {
             }
             return 0xFFFFFF;
         }, ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get());
+
+        // Glass Frame Tint
+        event.register((state, level, pos, tintIndex) -> {
+                    if (level != null && pos != null && tintIndex == 0) {
+                        if (level.getBlockEntity(pos) instanceof ManaEnrichedGlassBlockEntity glassBE) {
+                            EssenceType type = glassBE.getEssenceType();
+                            if (type != null) {
+                                return type.getColorInt();
+                            }
+                        }
+                    }
+                    return 0xFFFFFF; // Default white if empty
+                },
+                ModBlocks.FRAGMENT_LATTICE_GLASS.get(),
+                ModBlocks.VIS_ICHOR_ENRICHED_GLASS.get(),
+                ModBlocks.VIS_FUME_STRENGTHENED_GLASS.get(),
+                ModBlocks.ESSENCE_ENRICHED_GLASS.get());
     }
 
     // --- 1.21.2+ DATA-DRIVEN ITEM TINTING SYSTEM ---
 
-    // 1. Your Existing Ampoule Tint
     public record AmpouleTint() implements ItemTintSource {
         public static final MapCodec<AmpouleTint> MAP_CODEC = MapCodec.unit(new AmpouleTint());
 
         @Override
         public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
             EssenceType type = null;
-
             if (stack.getItem() instanceof ManaAmpouleItem) {
                 type = ManaAmpouleItem.getEssenceType(stack);
             }
-
             if (type == null) {
                 String itemName = net.minecraft.core.registries.BuiltInRegistries.ITEM
                         .getKey(stack.getItem()).getPath();
@@ -116,17 +130,13 @@ public class ModClientEvents {
                     }
                 }
             }
-
             return type != null ? (0xFF000000 | type.getColorInt()) : 0xFFFFFFFF;
         }
 
         @Override
-        public MapCodec<? extends ItemTintSource> type() {
-            return MAP_CODEC;
-        }
+        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
     }
 
-    // 2. NEW: The Creative Generator RGB Tint
     public record GeneratorTint() implements ItemTintSource {
         public static final MapCodec<GeneratorTint> MAP_CODEC = MapCodec.unit(new GeneratorTint());
 
@@ -134,20 +144,36 @@ public class ModClientEvents {
         public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
             EssenceType[] types = EssenceType.values();
             int index = (int) ((System.currentTimeMillis() / 1000) % types.length);
-            // Ensure fully opaque alpha channel (0xFF000000) is applied to the color
             return 0xFF000000 | types[index].getColorInt();
         }
 
         @Override
-        public MapCodec<? extends ItemTintSource> type() {
-            return MAP_CODEC;
-        }
+        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
     }
 
-    // 3. Registering the Tint Sources
+    // NEW: Glass Item Tint Source
+    public record FumeGlassTint() implements ItemTintSource {
+        public static final MapCodec<FumeGlassTint> MAP_CODEC = MapCodec.unit(new FumeGlassTint());
+
+        @Override
+        public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
+            String itemName = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+            for (EssenceType essence : EssenceType.values()) {
+                if (itemName.contains(essence.name().toLowerCase())) {
+                    return 0xFF000000 | essence.getColorInt();
+                }
+            }
+            return 0xFFFFFFFF;
+        }
+
+        @Override
+        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
+    }
+
     @SubscribeEvent
     public static void registerItemTintSources(RegisterColorHandlersEvent.ItemTintSources event) {
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "ampoule_tint"), AmpouleTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "generator_tint"), GeneratorTint.MAP_CODEC);
+        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "fume_glass_tint"), FumeGlassTint.MAP_CODEC);
     }
 }

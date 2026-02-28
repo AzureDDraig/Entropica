@@ -25,6 +25,14 @@ public class EntropicaConfig {
     public static final ModConfigSpec.IntValue VIS_FUME_DIVERTER_CAPACITY;
     public static final ModConfigSpec.IntValue VIS_FUME_OVERPRESSURE_LIMIT;
 
+    // Vis Fume Pressure Vessel Configs
+    public static final ModConfigSpec.IntValue VESSEL_GLASS_BASE_CAPACITY;
+    public static final ModConfigSpec.IntValue VESSEL_GLASS_STRENGTHENED_CAPACITY;
+    public static final ModConfigSpec.IntValue VESSEL_GLASS_ICHOR_CAPACITY;
+    public static final ModConfigSpec.IntValue VESSEL_GLASS_LATTICE_CAPACITY;
+    public static final ModConfigSpec.DoubleValue VESSEL_CAPACITY_DECAY_MULTIPLIER;
+    public static final ModConfigSpec.IntValue VESSEL_DECAY_STARTING_BLOCK;
+
     static {
         // --- BASE MANA FURNACE SETTINGS ---
         BUILDER.push("mana_furnace_settings");
@@ -91,6 +99,29 @@ public class EntropicaConfig {
         VIS_FUME_OVERPRESSURE_LIMIT = BUILDER.comment("The amount of Fumes inside a Diverter that will cause it to break from overpressure.")
                 .translation("entropica.configuration.vis_fume_network_settings.overpressureLimit")
                 .defineInRange("visFumeOverpressureLimit", 2000, 1, Integer.MAX_VALUE);
+
+        BUILDER.pop();
+
+        // --- VIS FUME PRESSURE VESSEL SETTINGS ---
+        BUILDER.push("vis_fume_vessel_settings");
+
+        VESSEL_GLASS_BASE_CAPACITY = BUILDER.comment("Capacity added by standard Base Essence Enriched Glass.")
+                .defineInRange("vesselGlassBaseCapacity", 1000, 1, Integer.MAX_VALUE);
+
+        VESSEL_GLASS_STRENGTHENED_CAPACITY = BUILDER.comment("Capacity added by Vis Fume Strengthened Glass.")
+                .defineInRange("vesselGlassStrengthenedCapacity", 2500, 1, Integer.MAX_VALUE);
+
+        VESSEL_GLASS_ICHOR_CAPACITY = BUILDER.comment("Capacity added by Vis Ichor Enriched Glass.")
+                .defineInRange("vesselGlassIchorCapacity", 5000, 1, Integer.MAX_VALUE);
+
+        VESSEL_GLASS_LATTICE_CAPACITY = BUILDER.comment("Capacity added by Fragment Lattice Glass.")
+                .defineInRange("vesselGlassLatticeCapacity", 10000, 1, Integer.MAX_VALUE);
+
+        VESSEL_CAPACITY_DECAY_MULTIPLIER = BUILDER.comment("The diminishing returns multiplier applied to each subsequent glass block. (0.95 = 5% loss per block).")
+                .defineInRange("vesselCapacityDecayMultiplier", 0.95, 0.01, 1.0);
+
+        VESSEL_DECAY_STARTING_BLOCK = BUILDER.comment("The amount of glass blocks placed before the diminishing returns multiplier starts applying. (0 = applies immediately to the 2nd block placed).")
+                .defineInRange("vesselDecayStartingBlock", 0, 0, Integer.MAX_VALUE);
 
         BUILDER.pop();
 

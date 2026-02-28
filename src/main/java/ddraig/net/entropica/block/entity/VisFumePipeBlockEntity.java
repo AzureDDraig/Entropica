@@ -196,16 +196,29 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
                 VisFumeStack neighborFumes = neighbor.getFumeInTank();
 
                 if (neighborFumes.isEmpty() || neighborFumes.getType() == type) {
-                    int diff = myAmount - neighborFumes.getAmount();
 
-                    if (diff >= 1) {
-                        int toTransfer;
-                        if (beingPurged) {
-                            toTransfer = Math.min(myAmount, EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
-                        } else {
-                            toTransfer = Math.min(Math.max(1, diff / 2), EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
+                    // --- NEW: BRANCHING LOGIC FOR PIPES VS TANKS ---
+                    if (be instanceof VisFumePipeBlockEntity) {
+                        // It is a pipe: We load-balance based on pressure.
+                        int diff = myAmount - neighborFumes.getAmount();
+                        if (diff >= 1) {
+                            int toTransfer;
+                            if (beingPurged) {
+                                toTransfer = Math.min(myAmount, EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
+                            } else {
+                                toTransfer = Math.min(Math.max(1, diff / 2), EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
+                            }
+
+                            int accepted = neighbor.fill(new VisFumeStack(type, toTransfer), false);
+                            if (accepted > 0) {
+                                this.storedFumes.shrink(accepted);
+                                myAmount -= accepted;
+                                changed = true;
+                            }
                         }
-
+                    } else {
+                        // It is a tank, machine, or port: Exempt from load balancing! Just fill it up.
+                        int toTransfer = Math.min(myAmount, EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
                         int accepted = neighbor.fill(new VisFumeStack(type, toTransfer), false);
                         if (accepted > 0) {
                             this.storedFumes.shrink(accepted);
@@ -256,14 +269,12 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
 
                         BlockEntity neighbor = level.getBlockEntity(worldPosition.relative(dir));
 
-                        // --- ANTI-BACKFLOW CHECK FOR FLUSHING ---
                         if (neighbor instanceof VisFumeOneWayValveBlockEntity oneWay) {
                             if (oneWay.getBlockState().hasProperty(VisFumeOneWayValveBlock.FACING) &&
                                     oneWay.getBlockState().getValue(VisFumeOneWayValveBlock.FACING) == dir.getOpposite()) {
                                 continue;
                             }
                         }
-                        // ----------------------------------------
 
                         if (neighbor instanceof IFumeHandler handler) {
                             int accepted = handler.fill(this.storedFumes, false);

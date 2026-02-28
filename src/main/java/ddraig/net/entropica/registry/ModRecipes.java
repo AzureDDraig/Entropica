@@ -5,18 +5,15 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.recipe.FusionRecipe;
+import ddraig.net.entropica.recipe.PressureChamberRecipe;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
-
-import java.util.Map;
 
 public class ModRecipes {
     public static final DeferredRegister<RecipeSerializer<?>> SERIALIZERS =
@@ -29,6 +26,12 @@ public class ModRecipes {
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<FusionRecipe>> FUSION_SERIALIZER =
             SERIALIZERS.register("fusion", () -> new FusionSerializer());
+
+    public static final DeferredHolder<RecipeType<?>, RecipeType<PressureChamberRecipe>> PRESSURE_CHAMBER_TYPE =
+            TYPES.register("pressure_chamber_enriching", () -> PressureChamberRecipe.Type.INSTANCE);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PressureChamberRecipe>> PRESSURE_CHAMBER_SERIALIZER =
+            SERIALIZERS.register("pressure_chamber_enriching", () -> PressureChamberRecipe.Serializer.INSTANCE);
 
     public static void register(IEventBus eventBus) {
         SERIALIZERS.register(eventBus);

@@ -175,6 +175,14 @@ public class ModItems {
     public static final DeferredItem<BlockItem> VIS_FUME_DIVERTER_ITEM = ITEMS.registerItem("vis_fume_diverter", properties -> new BlockItem(ModBlocks.VIS_FUME_DIVERTER.get(), properties));
     public static final DeferredItem<BlockItem> CREATIVE_VIS_FUME_GENERATOR_ITEM = ITEMS.registerItem("creative_vis_fume_generator", properties -> new BlockItem(ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get(), properties));
 
+    // --- NEW: Vis Fume Pressure Vessel Items ---
+    public static final DeferredItem<BlockItem> VIS_FUME_VESSEL_CONTROLLER_ITEM = ITEMS.registerItem("vis_fume_vessel_controller", properties -> new BlockItem(ModBlocks.VIS_FUME_VESSEL_CONTROLLER.get(), properties));
+    public static final DeferredItem<BlockItem> VIS_FUME_VESSEL_PORT_ITEM = ITEMS.registerItem("vis_fume_vessel_port", properties -> new BlockItem(ModBlocks.VIS_FUME_VESSEL_PORT.get(), properties));
+    public static final DeferredItem<BlockItem> ESSENCE_ENRICHED_GLASS_ITEM = ITEMS.registerItem("essence_enriched_glass", properties -> new BlockItem(ModBlocks.ESSENCE_ENRICHED_GLASS.get(), properties));
+    public static final DeferredItem<BlockItem> VIS_FUME_STRENGTHENED_GLASS_ITEM = ITEMS.registerItem("vis_fume_strengthened_glass", properties -> new BlockItem(ModBlocks.VIS_FUME_STRENGTHENED_GLASS.get(), properties));
+    public static final DeferredItem<BlockItem> VIS_ICHOR_ENRICHED_GLASS_ITEM = ITEMS.registerItem("vis_ichor_enriched_glass", properties -> new BlockItem(ModBlocks.VIS_ICHOR_ENRICHED_GLASS.get(), properties));
+    public static final DeferredItem<BlockItem> FRAGMENT_LATTICE_GLASS_ITEM = ITEMS.registerItem("fragment_lattice_glass", properties -> new BlockItem(ModBlocks.FRAGMENT_LATTICE_GLASS.get(), properties));
+
     //Others
     public static final DeferredItem<BlockItem> VIS_VITAE_ANCHOR_ITEM = ITEMS.registerItem("vis_vitae_anchor", properties -> new BlockItem(ModBlocks.VIS_VITAE_ANCHOR.get(), properties));
     public static final DeferredItem<BlockItem> VIS_VITAE_CONDENSER_ITEM = ITEMS.registerItem("vis_vitae_condenser", properties -> new BlockItem(ModBlocks.VIS_VITAE_CONDENSER.get(), properties));

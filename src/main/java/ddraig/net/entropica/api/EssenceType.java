@@ -1,6 +1,8 @@
 package ddraig.net.entropica.api;
 
 import com.mojang.serialization.Codec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
@@ -100,6 +102,8 @@ public enum EssenceType implements StringRepresentable {
     PRISMATIC(new int[][]{});
 
     public static final Codec<EssenceType> CODEC = StringRepresentable.fromEnum(EssenceType::values);
+    public static final StreamCodec<FriendlyByteBuf, EssenceType> STREAM_CODEC = StreamCodec.of((buf, type) -> buf.writeEnum(type), buf -> buf.readEnum(EssenceType.class));
+
     private final int[][] colorCycle;
 
     EssenceType(int[][] colorCycle) {

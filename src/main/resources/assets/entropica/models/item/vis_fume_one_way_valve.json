@@ -1,3 +1,6 @@
 {
-  "parent": "entropica:block/vis_fume_valve_open"
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:block/vis_fume_one_way_valve"
+  }
 }

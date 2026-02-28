@@ -162,7 +162,8 @@ public class VisFumePipeBlock extends Block implements SimpleWaterloggedBlock, E
                 || neighborState.is(ModBlocks.MANA_FURNACE.get()) // The standalone furnace
                 || neighborState.is(ModBlocks.VIS_VITAE_CONDENSER.get())
                 || neighborState.is(ModBlocks.ENTROPIC_CORE.get())
-                || neighborState.is(ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get());
+                || neighborState.is(ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get())
+                || neighborState.is(ModBlocks.VIS_FUME_VESSEL_PORT.get() );
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

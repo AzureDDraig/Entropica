@@ -48,7 +48,6 @@ public class ModBlockEntities {
                     new BlockEntityType<>(ManaFilterBlockEntity::new, ModBlocks.MANA_FILTER.get()));
 
     // --- VIS FUME NETWORK ---
-
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumePipeBlockEntity>> VIS_FUME_PIPE_BE =
             BLOCK_ENTITIES.register("vis_fume_pipe", () ->
                     new BlockEntityType<>(VisFumePipeBlockEntity::new, ModBlocks.VIS_FUME_PIPE.get()));
@@ -68,4 +67,23 @@ public class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreativeVisFumeGeneratorBlockEntity>> CREATIVE_VIS_FUME_GENERATOR_BE =
             BLOCK_ENTITIES.register("creative_vis_fume_generator", () ->
                     new BlockEntityType<>(CreativeVisFumeGeneratorBlockEntity::new, ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get()));
+
+    // --- NEW: VIS FUME PRESSURE VESSEL ---
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeVesselControllerBlockEntity>> VIS_FUME_VESSEL_CONTROLLER_BE =
+            BLOCK_ENTITIES.register("vis_fume_vessel_controller", () ->
+                    new BlockEntityType<>(VisFumeVesselControllerBlockEntity::new, ModBlocks.VIS_FUME_VESSEL_CONTROLLER.get()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeVesselPortBlockEntity>> VIS_FUME_VESSEL_PORT_BE =
+            BLOCK_ENTITIES.register("vis_fume_vessel_port", () ->
+                    new BlockEntityType<>(VisFumeVesselPortBlockEntity::new, ModBlocks.VIS_FUME_VESSEL_PORT.get()));
+
+    // Grouping all 4 glass tiers into a single Block Entity
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ManaEnrichedGlassBlockEntity>> MANA_ENRICHED_GLASS_BE =
+            BLOCK_ENTITIES.register("mana_enriched_glass", () ->
+                    new BlockEntityType<>(ManaEnrichedGlassBlockEntity::new,
+                            ModBlocks.ESSENCE_ENRICHED_GLASS.get(),
+                            ModBlocks.VIS_FUME_STRENGTHENED_GLASS.get(),
+                            ModBlocks.VIS_ICHOR_ENRICHED_GLASS.get(),
+                            ModBlocks.FRAGMENT_LATTICE_GLASS.get()
+                    ));
 }
