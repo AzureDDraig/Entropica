@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "vitae":  16,
+                   "undead":  16
+               },
+    "success":  "blood",
+    "failure":  "regular",
+    "chance":  0.6,
+    "yield":  2,
+    "requires_catalyst":  false
+}

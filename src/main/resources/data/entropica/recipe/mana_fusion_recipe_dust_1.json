@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "arid":  16,
+                   "air":  16
+               },
+    "success":  "dust",
+    "failure":  "regular",
+    "chance":  0.9,
+    "yield":  2,
+    "requires_catalyst":  false
+}

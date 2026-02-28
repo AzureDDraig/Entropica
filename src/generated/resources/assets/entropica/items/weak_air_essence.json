@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/weak_air_essence",
+    "tints": [
+      {
+        "type": "entropica:ampoule_tint"
+      }
+    ]
+  }
+}

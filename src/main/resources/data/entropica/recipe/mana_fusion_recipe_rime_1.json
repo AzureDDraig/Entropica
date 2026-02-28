@@ -1,0 +1,13 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "air":  16,
+                   "water":  16,
+                   "frozen":  16
+               },
+    "success":  "rime",
+    "failure":  "water",
+    "chance":  0.4,
+    "yield":  2,
+    "requires_catalyst":  false
+}

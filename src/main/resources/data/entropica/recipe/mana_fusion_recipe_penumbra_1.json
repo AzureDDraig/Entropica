@@ -1,0 +1,13 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "radiant":  16,
+                   "void":  16,
+                   "umbral":  16
+               },
+    "success":  "penumbra",
+    "failure":  "radiant",
+    "chance":  0.4,
+    "yield":  2,
+    "requires_catalyst":  false
+}

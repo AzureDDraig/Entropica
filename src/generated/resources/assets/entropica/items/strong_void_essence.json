@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/strong_void_essence",
+    "tints": [
+      {
+        "type": "entropica:ampoule_tint"
+      }
+    ]
+  }
+}

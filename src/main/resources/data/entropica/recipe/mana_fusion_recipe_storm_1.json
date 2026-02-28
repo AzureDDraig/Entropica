@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "air":  16,
+                   "lightning":  16
+               },
+    "success":  "storm",
+    "failure":  "regular",
+    "chance":  0.9,
+    "yield":  2,
+    "requires_catalyst":  false
+}

@@ -1,0 +1,15 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "air":  16,
+                   "earth":  16,
+                   "water":  16,
+                   "nether":  16,
+                   "chimera":  16
+               },
+    "success":  "aether",
+    "failure":  "radiant",
+    "chance":  0.15,
+    "yield":  2,
+    "requires_catalyst":  false
+}

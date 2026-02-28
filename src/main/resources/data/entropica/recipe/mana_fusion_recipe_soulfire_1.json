@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "nether":  16,
+                   "undead":  16
+               },
+    "success":  "soulfire",
+    "failure":  "regular",
+    "chance":  0.75,
+    "yield":  2,
+    "requires_catalyst":  false
+}

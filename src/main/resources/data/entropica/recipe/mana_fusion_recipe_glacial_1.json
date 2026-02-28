@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "water":  16,
+                   "frozen":  16
+               },
+    "success":  "glacial",
+    "failure":  "regular",
+    "chance":  0.9,
+    "yield":  2,
+    "requires_catalyst":  false
+}

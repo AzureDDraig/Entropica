@@ -1,0 +1,13 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "earth":  16,
+                   "nether":  16,
+                   "nature":  16
+               },
+    "success":  "pyre",
+    "failure":  "nature",
+    "chance":  0.4,
+    "yield":  2,
+    "requires_catalyst":  false
+}

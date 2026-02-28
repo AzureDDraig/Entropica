@@ -1,0 +1,11 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "chimera":  32
+               },
+    "success":  "prismatic",
+    "failure":  "regular",
+    "chance":  1,
+    "yield":  1,
+    "requires_catalyst":  true
+}

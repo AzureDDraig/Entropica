@@ -1,0 +1,15 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "void":  16,
+                   "umbral":  16,
+                   "undead":  16,
+                   "blood":  16,
+                   "chimera":  16
+               },
+    "success":  "entropic",
+    "failure":  "radiant",
+    "chance":  0.15,
+    "yield":  2,
+    "requires_catalyst":  false
+}

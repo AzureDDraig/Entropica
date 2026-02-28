@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/average_undead_essence",
+    "tints": [
+      {
+        "type": "entropica:ampoule_tint"
+      }
+    ]
+  }
+}
