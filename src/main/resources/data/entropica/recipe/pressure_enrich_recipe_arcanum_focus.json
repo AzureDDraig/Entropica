@@ -1,0 +1,12 @@
+{
+  "type": "entropica:pressure_chamber_enriching",
+  "input": "minecraft:iron_ingot",
+  "input_count": 1,
+  "requires_specific_fume": false,
+  "fume_amount": 64,
+  "processing_time": 100,
+  "output": {
+    "id": "entropica:arcanum_focus",
+    "count": 1
+  }
+}

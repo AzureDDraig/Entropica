@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.registry.ModRecipes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -12,13 +13,21 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
-public record PressureChamberRecipe(Ingredient inputItem, EssenceType requiredFume, int fumeAmount, ItemStack output, int processingTime) implements Recipe<PressureChamberRecipeInput> {
+import java.util.Optional;
+
+public record PressureChamberRecipe(
+        Ingredient inputItem,
+        int inputCount,
+        boolean requiresSpecificFume,
+        Optional<EssenceType> requiredFume,
+        int fumeAmount,
+        int processingTime,
+        ItemStack output
+) implements Recipe<PressureChamberRecipeInput> {
 
     @Override
     public boolean matches(PressureChamberRecipeInput input, Level level) {
-        if (!inputItem.test(input.item())) return false;
-        if (input.fume().isEmpty() || input.fume().getType() != requiredFume) return false;
-        return input.fume().getAmount() >= fumeAmount;
+        return inputItem.test(input.item()) && input.item().getCount() >= inputCount;
     }
 
     @Override
@@ -26,14 +35,16 @@ public record PressureChamberRecipe(Ingredient inputItem, EssenceType requiredFu
         return output.copy();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public RecipeSerializer<PressureChamberRecipe> getSerializer() {
-        return Serializer.INSTANCE;
+        return (RecipeSerializer<PressureChamberRecipe>) (Object) ModRecipes.PRESSURE_CHAMBER_SERIALIZER.get();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public RecipeType<PressureChamberRecipe> getType() {
-        return Type.INSTANCE;
+        return (RecipeType<PressureChamberRecipe>) (Object) ModRecipes.PRESSURE_CHAMBER_TYPE.get();
     }
 
     @Override
@@ -41,35 +52,45 @@ public record PressureChamberRecipe(Ingredient inputItem, EssenceType requiredFu
         return null;
     }
 
-    // FIXED: Required by 1.21.2+ for the vanilla recipe book.
-    // Since this is an in-world multiblock, we tell the game it cannot be auto-placed in a GUI grid.
     @Override
     public PlacementInfo placementInfo() {
         return PlacementInfo.NOT_PLACEABLE;
     }
 
+    // FIXED: Added the Type class and INSTANCE variable to satisfy ModRecipes.java
     public static class Type implements RecipeType<PressureChamberRecipe> {
         public static final Type INSTANCE = new Type();
-        public static final String ID = "pressure_chamber_enriching";
+        private Type() {}
+
+        @Override
+        public String toString() {
+            return "pressure_chamber_enriching";
+        }
     }
 
     public static class Serializer implements RecipeSerializer<PressureChamberRecipe> {
+
+        // FIXED: Added the INSTANCE variable to satisfy ModRecipes.java
         public static final Serializer INSTANCE = new Serializer();
 
         public static final MapCodec<PressureChamberRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
-                Ingredient.CODEC.fieldOf("ingredient").forGetter(PressureChamberRecipe::inputItem),
-                EssenceType.CODEC.fieldOf("fume_type").forGetter(PressureChamberRecipe::requiredFume),
-                Codec.INT.fieldOf("fume_amount").forGetter(PressureChamberRecipe::fumeAmount),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(PressureChamberRecipe::output),
-                Codec.INT.optionalFieldOf("processing_time", 100).forGetter(PressureChamberRecipe::processingTime)
+                Ingredient.CODEC.fieldOf("input").forGetter(PressureChamberRecipe::inputItem),
+                Codec.INT.optionalFieldOf("input_count", 1).forGetter(PressureChamberRecipe::inputCount),
+                Codec.BOOL.optionalFieldOf("requires_specific_fume", false).forGetter(PressureChamberRecipe::requiresSpecificFume),
+                Codec.STRING.xmap(EssenceType::valueOf, EssenceType::name).optionalFieldOf("fume_type").forGetter(PressureChamberRecipe::requiredFume),
+                Codec.INT.optionalFieldOf("fume_amount", 64).forGetter(PressureChamberRecipe::fumeAmount),
+                Codec.INT.optionalFieldOf("processing_time", 100).forGetter(PressureChamberRecipe::processingTime),
+                ItemStack.CODEC.fieldOf("output").forGetter(PressureChamberRecipe::output)
         ).apply(inst, PressureChamberRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, PressureChamberRecipe> STREAM_CODEC = StreamCodec.composite(
                 Ingredient.CONTENTS_STREAM_CODEC, PressureChamberRecipe::inputItem,
-                EssenceType.STREAM_CODEC, PressureChamberRecipe::requiredFume,
+                ByteBufCodecs.INT, PressureChamberRecipe::inputCount,
+                ByteBufCodecs.BOOL, PressureChamberRecipe::requiresSpecificFume,
+                ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8.map(EssenceType::valueOf, EssenceType::name)), PressureChamberRecipe::requiredFume,
                 ByteBufCodecs.INT, PressureChamberRecipe::fumeAmount,
-                ItemStack.STREAM_CODEC, PressureChamberRecipe::output,
                 ByteBufCodecs.INT, PressureChamberRecipe::processingTime,
+                ItemStack.STREAM_CODEC, PressureChamberRecipe::output,
                 PressureChamberRecipe::new
         );
 

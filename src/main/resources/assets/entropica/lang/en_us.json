@@ -213,6 +213,12 @@
   "block.entropica.vis_ichor_enriched_glass": "Vis Ichor Enriched Glass",
   "block.entropica.fragment_lattice_glass": "Fragment Lattice Glass",
 
+  "block.entropica.vis_fume_vessel_controller": "Vis Fume Pressure Chamber Controller",
+  "block.entropica.enrichment_table": "Enrichment Table",
+
+  "item.entropica.enrichment_table": "Enrichment Table",
+
+
   "entropica.configuration.mana_furnace_settings": "Mana Furnace Settings",
   "entropica.configuration.mana_furnace_settings.manaPerEssence": "Mana Per Essence",
   "entropica.configuration.mana_furnace_settings.manaFurnaceMaxMana": "Max Mana Storage",

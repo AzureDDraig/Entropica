@@ -1,6 +1,7 @@
 package ddraig.net.entropica.block.entity;
 
 import ddraig.net.entropica.api.fumes.IFumeHandler;
+import ddraig.net.entropica.api.fumes.IFumeMultiblockController;
 import ddraig.net.entropica.api.fumes.VisFumeStack;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -64,17 +65,21 @@ public class VisFumeVesselPortBlockEntity extends BlockEntity implements IFumeHa
     public void notifyControllerOfBreak() {
         if (this.level != null && this.controllerPos != null && !this.level.isClientSide()) {
             BlockEntity be = this.level.getBlockEntity(this.controllerPos);
-            if (be instanceof VisFumeVesselControllerBlockEntity controller) {
+            // Modular check: Tell any multiblock controller to invalidate
+            if (be instanceof IFumeMultiblockController controller) {
                 controller.invalidateMultiblock();
             }
         }
     }
 
-    private VisFumeVesselControllerBlockEntity getController() {
+    // Modular getter: Returns the handler only if the controller is fully formed
+    private IFumeHandler getControllerHandler() {
         if (this.level != null && this.controllerPos != null) {
             BlockEntity be = this.level.getBlockEntity(this.controllerPos);
-            if (be instanceof VisFumeVesselControllerBlockEntity controller && controller.isFormed()) {
-                return controller;
+            if (be instanceof IFumeMultiblockController controller && controller.isFormed()) {
+                if (be instanceof IFumeHandler handler) {
+                    return handler;
+                }
             }
         }
         return null;
@@ -84,9 +89,9 @@ public class VisFumeVesselPortBlockEntity extends BlockEntity implements IFumeHa
     @Override
     public int fill(VisFumeStack resource, boolean simulate) {
         if (this.mode != PortMode.INPUT) return 0; // Reject if we are an output port
-        VisFumeVesselControllerBlockEntity controller = getController();
-        if (controller != null) {
-            return controller.fill(resource, simulate);
+        IFumeHandler handler = getControllerHandler();
+        if (handler != null) {
+            return handler.fill(resource, simulate);
         }
         return 0;
     }
@@ -94,27 +99,27 @@ public class VisFumeVesselPortBlockEntity extends BlockEntity implements IFumeHa
     @Override
     public VisFumeStack drain(int maxDrain, boolean simulate) {
         if (this.mode != PortMode.OUTPUT) return VisFumeStack.EMPTY; // Reject if we are an input port
-        VisFumeVesselControllerBlockEntity controller = getController();
-        if (controller != null) {
-            return controller.drain(maxDrain, simulate);
+        IFumeHandler handler = getControllerHandler();
+        if (handler != null) {
+            return handler.drain(maxDrain, simulate);
         }
         return VisFumeStack.EMPTY;
     }
 
     @Override
     public VisFumeStack getFumeInTank() {
-        VisFumeVesselControllerBlockEntity controller = getController();
-        if (controller != null) {
-            return controller.getFumeInTank();
+        IFumeHandler handler = getControllerHandler();
+        if (handler != null) {
+            return handler.getFumeInTank();
         }
         return VisFumeStack.EMPTY;
     }
 
     @Override
     public int getCapacity() {
-        VisFumeVesselControllerBlockEntity controller = getController();
-        if (controller != null) {
-            return controller.getCapacity();
+        IFumeHandler handler = getControllerHandler();
+        if (handler != null) {
+            return handler.getCapacity();
         }
         return 0;
     }

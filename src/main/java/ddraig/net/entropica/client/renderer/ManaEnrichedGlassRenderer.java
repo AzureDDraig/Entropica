@@ -115,7 +115,7 @@ public class ManaEnrichedGlassRenderer implements BlockEntityRenderer<ManaEnrich
         renderCuboid(pose, consumer, minX, minY, minZ, maxX, maxY, maxZ, r, g, b, alpha, light, vMin, vMax);
 
         poseStack.popPose();
-        bufferSource.endBatch();
+
     }
 
     private void renderCuboid(PoseStack.Pose pose, VertexConsumer consumer,
