@@ -5,6 +5,7 @@ import ddraig.net.entropica.block.entity.VisFumePressureChamberControllerBlockEn
 import ddraig.net.entropica.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -48,11 +49,22 @@ public class VisFumePressureChamberControllerBlock extends BaseEntityBlock {
                     player.displayClientMessage(Component.literal("§aChamber Sealed. Ready to pressurize."), true);
                     level.setBlock(pos, state.setValue(FORMED, true), 3);
                 } else {
-                    // This is the crucial missing piece! It will now tell you if it fails to find the structure.
                     player.displayClientMessage(Component.literal("§cInvalid Chamber Structure."), true);
                 }
             } else {
-                controller.startPressurizing(player);
+                if (player.isShiftKeyDown()) {
+                    // SNEAK + CLICK (Empty Hand): Start pressurizing!
+                    controller.startPressurizing(player);
+                } else {
+                    // NORMAL CLICK: Insert or extract the item
+                    boolean swapped = controller.proxyInteractWithTable(player, InteractionHand.MAIN_HAND);
+                    if (!swapped) {
+                        // Helpful hint if they click an empty table with an empty hand
+                        if (player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
+                            player.displayClientMessage(Component.literal("§eSneak-Right-Click to begin pressurization!"), true);
+                        }
+                    }
+                }
             }
             return InteractionResult.SUCCESS;
         }
@@ -68,7 +80,6 @@ public class VisFumePressureChamberControllerBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide()) return null;
         return createTickerHelper(type, ModBlockEntities.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER_BE.get(),
                 (lvl, pos1, st, blockEntity) -> blockEntity.tick(lvl, pos1, st));
     }

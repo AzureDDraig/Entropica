@@ -69,7 +69,7 @@ public class EnrichmentTableRenderer implements BlockEntityRenderer<EnrichmentTa
 
         poseStack.pushPose();
 
-        poseStack.translate(0.5D, 1.4D, 0.5D);
+        poseStack.translate(0.502D, 1.4D, 0.502D);
 
         float bob = (float) Math.sin(state.renderTime / 10.0F) * 0.05F;
         poseStack.translate(0.0D, bob, 0.0D);

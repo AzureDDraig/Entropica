@@ -95,7 +95,7 @@ public class EnrichmentTableBlockEntity extends BlockEntity {
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         if (!this.heldItem.isEmpty()) {
-            output.store("HeldItem", ItemStack.OPTIONAL_CODEC, this.heldItem);
+            output.store("HeldItem", ItemStack.CODEC, this.heldItem);
         }
         output.store("GlowIntensity", Codec.FLOAT, this.glowIntensity);
         output.store("GlowColor", Codec.INT, this.glowColor);
@@ -105,7 +105,7 @@ public class EnrichmentTableBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.heldItem = input.read("HeldItem", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        this.heldItem = input.read("HeldItem", ItemStack.CODEC).orElse(ItemStack.EMPTY);
         this.glowIntensity = input.read("GlowIntensity", Codec.FLOAT).orElse(0.0f);
         this.glowColor = input.read("GlowColor", Codec.INT).orElse(0xFFFFFF);
         this.isFadingOut = input.read("IsFading", Codec.BOOL).orElse(false);

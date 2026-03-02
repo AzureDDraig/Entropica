@@ -1,7 +1,9 @@
 package ddraig.net.entropica.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import ddraig.net.entropica.client.particle.FumeParticle;
 import ddraig.net.entropica.client.renderer.*;
+import ddraig.net.entropica.registry.ModParticles;
 import net.minecraft.client.KeyMapping;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.item.ManaAmpouleItem;
@@ -20,6 +22,7 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -47,6 +50,8 @@ public class ModClientEvents {
         event.register(DEBUG_KEY);
     }
 
+    // Note: Key input usually needs to be on the FORGE bus, not the MOD bus,
+    // but leaving it here as it was in your original file.
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         if (DEBUG_KEY.consumeClick()) {
@@ -79,6 +84,12 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.ENRICHMENT_TABLE_BE.get(), EnrichmentTableRenderer::new);
 
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
+    }
+
+    // --- CUSTOM PARTICLE REGISTRATION ---
+    @SubscribeEvent
+    public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
+        event.registerSpriteSet(ModParticles.FUME_PARTICLE.get(), FumeParticle.Provider::new);
     }
 
     // --- BLOCK COLORS ---

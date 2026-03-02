@@ -6,12 +6,13 @@ import ddraig.net.entropica.api.fumes.IFumeHandler;
 import ddraig.net.entropica.api.fumes.IFumeMultiblockController;
 import ddraig.net.entropica.api.fumes.VisFumeStack;
 import ddraig.net.entropica.block.VisFumePressureChamberControllerBlock;
+import ddraig.net.entropica.client.particle.FumeParticleOption;
 import ddraig.net.entropica.config.EntropicaConfig;
 import ddraig.net.entropica.recipe.PressureChamberRecipe;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
-import ddraig.net.entropica.registry.ModRecipes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -19,6 +20,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -50,6 +52,7 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
 
     // Crafting State Machine
     private boolean isProcessing = false;
+    private boolean isAwaitingFumeType = false;
     private EssenceType targetFume = null;
     private boolean requiresSpecificFume = false;
     private int targetAmount = 0;
@@ -61,7 +64,15 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
-        if (level.isClientSide()) return;
+        if (level.isClientSide()) {
+            if (this.isFormed) {
+                if (this.isProcessing && this.tablePos != null) {
+                    spawnProcessingParticles();
+                }
+                spawnAmbientGlassParticles();
+            }
+            return;
+        }
 
         if (this.recheckDelay > 0) {
             this.recheckDelay--;
@@ -84,7 +95,6 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
                 processRecipe();
             }
 
-            // FIXED: Respects the configured tick rate for network transfers
             int fumeTickRate = Math.max(1, EntropicaConfig.VIS_FUME_TICK_RATE.get());
             if (!this.storedFume.isEmpty() && tickCounter % fumeTickRate == 0) {
                 autoExportFume();
@@ -92,18 +102,94 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
         }
     }
 
+    private void spawnProcessingParticles() {
+        if (this.level == null || this.connectedBlocks.isEmpty()) return;
+
+        double densityMult = EntropicaConfig.CHAMBER_PARTICLE_DENSITY.get();
+        int particlesToSpawn = (int) ((4 + this.level.random.nextInt(5)) * densityMult);
+        if (particlesToSpawn <= 0) return;
+
+        int activeColor = 0xBBBBFF;
+        if (this.requiresSpecificFume && this.targetFume != null) {
+            activeColor = this.targetFume.getColorInt();
+        } else if (!this.storedFume.isEmpty()) {
+            activeColor = this.storedFume.getType().getColorInt();
+        }
+
+        float r = ((activeColor >> 16) & 0xFF) / 255.0f;
+        float g = ((activeColor >> 8) & 0xFF) / 255.0f;
+        float b = (activeColor & 0xFF) / 255.0f;
+
+        double targetX = this.tablePos.getX() + 0.5D;
+        double targetY = this.tablePos.getY() + 1.2D;
+        double targetZ = this.tablePos.getZ() + 0.5D;
+
+        List<BlockPos> glassBlocks = new ArrayList<>(this.connectedBlocks);
+
+        for (int i = 0; i < particlesToSpawn; i++) {
+            BlockPos sourcePos = glassBlocks.get(this.level.random.nextInt(glassBlocks.size()));
+
+            double startX = sourcePos.getX() + 0.5D + (this.level.random.nextDouble() - 0.5D) * 0.8D;
+            double startY = sourcePos.getY() + 0.5D + (this.level.random.nextDouble() - 0.5D) * 0.8D;
+            double startZ = sourcePos.getZ() + 0.5D + (this.level.random.nextDouble() - 0.5D) * 0.8D;
+
+            double velX = (targetX - startX) * 0.15D;
+            double velY = (targetY - startY) * 0.15D;
+            double velZ = (targetZ - startZ) * 0.15D;
+
+            this.level.addParticle(
+                    new FumeParticleOption(r, g, b),
+                    startX, startY, startZ,
+                    velX, velY, velZ
+            );
+        }
+    }
+
+    private void spawnAmbientGlassParticles() {
+        if (this.level == null || this.connectedBlocks.isEmpty() || this.storedFume.isEmpty()) return;
+
+        float fillRatio = (float) this.storedFume.getAmount() / this.maxCapacity;
+        if (fillRatio <= 0.01f) return;
+
+        double densityMult = EntropicaConfig.CHAMBER_PARTICLE_DENSITY.get();
+        int particlesToSpawn = (int) ((2 + this.level.random.nextInt((int)(13 * fillRatio) + 1)) * densityMult);
+        if (particlesToSpawn <= 0) return;
+
+        int activeColor = this.storedFume.getType().getColorInt();
+        float r = ((activeColor >> 16) & 0xFF) / 255.0f;
+        float g = ((activeColor >> 8) & 0xFF) / 255.0f;
+        float b = (activeColor & 0xFF) / 255.0f;
+
+        List<BlockPos> glassBlocks = new ArrayList<>(this.connectedBlocks);
+
+        for (int i = 0; i < particlesToSpawn; i++) {
+            BlockPos sourcePos = glassBlocks.get(this.level.random.nextInt(glassBlocks.size()));
+
+            double startX = sourcePos.getX() + this.level.random.nextDouble();
+            double startY = sourcePos.getY() + this.level.random.nextDouble();
+            double startZ = sourcePos.getZ() + this.level.random.nextDouble();
+
+            double velX = (this.level.random.nextDouble() - 0.5D) * 0.02D;
+            double velY = (this.level.random.nextDouble() - 0.2D) * 0.03D;
+            double velZ = (this.level.random.nextDouble() - 0.5D) * 0.02D;
+
+            this.level.addParticle(
+                    new FumeParticleOption(r, g, b),
+                    startX, startY, startZ,
+                    velX, velY, velZ
+            );
+        }
+    }
+
     private void autoExportFume() {
         if (this.level == null) return;
-
-        // FIXED: Pulls the transfer rate from your global config
         int transferRate = EntropicaConfig.VIS_FUME_TRANSFER_RATE.get();
 
         for (BlockPos connectedPos : this.connectedBlocks) {
             BlockEntity connectedBE = this.level.getBlockEntity(connectedPos);
 
             if (connectedBE instanceof VisFumeVesselPortBlockEntity port && port.getMode() == VisFumeVesselPortBlockEntity.PortMode.OUTPUT) {
-
-                for (net.minecraft.core.Direction dir : net.minecraft.core.Direction.values()) {
+                for (Direction dir : Direction.values()) {
                     BlockPos targetPos = connectedPos.relative(dir);
                     BlockEntity targetBE = this.level.getBlockEntity(targetPos);
 
@@ -114,17 +200,43 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
                         VisFumeStack pushAttempt = new VisFumeStack(this.storedFume.getType(), amountToPush);
 
                         int acceptedAmount = targetHandler.fill(pushAttempt, true);
-
                         if (acceptedAmount > 0) {
                             VisFumeStack drained = this.drain(acceptedAmount, false);
                             targetHandler.fill(drained, false);
-
                             if (this.storedFume.isEmpty()) return;
                         }
                     }
                 }
             }
         }
+    }
+
+    private List<PressureChamberRecipe> getValidRecipes(ItemStack inputItem) {
+        if (!(this.level instanceof ServerLevel serverLevel)) return new ArrayList<>();
+        return serverLevel.recipeAccess().getRecipes().stream()
+                .filter(h -> h.value() instanceof PressureChamberRecipe)
+                .map(h -> (RecipeHolder<PressureChamberRecipe>) (RecipeHolder<?>) h)
+                .map(RecipeHolder::value)
+                .filter(r -> r.matches(new ddraig.net.entropica.recipe.PressureChamberRecipeInput(inputItem, VisFumeStack.EMPTY), this.level))
+                .toList();
+    }
+
+    private void lockRecipe(PressureChamberRecipe recipe, EssenceType injectedFume) {
+        this.requiresSpecificFume = recipe.requiresSpecificFume();
+        this.targetFume = recipe.requiresSpecificFume() ? recipe.requiredFume().orElse(null) : injectedFume;
+
+        int crafts = 1;
+        if (this.level != null && this.tablePos != null) {
+            BlockEntity be = this.level.getBlockEntity(this.tablePos);
+            if (be instanceof EnrichmentTableBlockEntity table && !table.getHeldItem().isEmpty()) {
+                crafts = table.getHeldItem().getCount() / recipe.inputCount();
+            }
+        }
+
+        this.targetAmount = recipe.fumeAmount() * crafts;
+        this.maxProgress = recipe.processingTime();
+        this.isAwaitingFumeType = false;
+        this.setChanged();
     }
 
     public void startPressurizing(Player player) {
@@ -136,41 +248,37 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
             return;
         }
 
-        PressureChamberRecipe foundRecipe = null;
-        if (this.level instanceof ServerLevel serverLevel) {
-            for (RecipeHolder<PressureChamberRecipe> holder : serverLevel.recipeAccess().getRecipes().stream()
-                    .filter(h -> h.value() instanceof PressureChamberRecipe)
-                    .map(h -> (RecipeHolder<PressureChamberRecipe>) (RecipeHolder<?>) h)
-                    .toList()) {
-                if (holder.value().matches(new ddraig.net.entropica.recipe.PressureChamberRecipeInput(table.getHeldItem(), VisFumeStack.EMPTY), level)) {
-                    foundRecipe = holder.value();
-                    break;
-                }
-            }
-        }
+        List<PressureChamberRecipe> validRecipes = getValidRecipes(table.getHeldItem());
 
-        if (foundRecipe != null) {
-            if (table.getHeldItem().getCount() % foundRecipe.inputCount() != 0) {
-                player.displayClientMessage(Component.literal("§cItem stack must be an exact multiple of " + foundRecipe.inputCount() + " for this recipe."), true);
-                return;
-            }
-
-            this.isProcessing = true;
-            this.requiresSpecificFume = foundRecipe.requiresSpecificFume();
-            this.targetFume = foundRecipe.requiresSpecificFume() ? foundRecipe.requiredFume().orElse(null) : null;
-
-            int crafts = table.getHeldItem().getCount() / foundRecipe.inputCount();
-            this.targetAmount = foundRecipe.fumeAmount() * crafts;
-            this.maxProgress = foundRecipe.processingTime();
-            this.progress = 0;
-
-            player.displayClientMessage(Component.literal("§aPressurizing chamber... awaiting exact gas input."), true);
-            this.setChanged();
-
-            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
-        } else {
+        if (validRecipes.isEmpty()) {
             player.displayClientMessage(Component.literal("§cNo valid enrichment recipe for this item. Chamber refuses to pressurize."), true);
+            return;
         }
+
+        if (table.getHeldItem().getCount() % validRecipes.get(0).inputCount() != 0) {
+            player.displayClientMessage(Component.literal("§cItem stack must be an exact multiple of the recipe requirement."), true);
+            return;
+        }
+
+        this.isProcessing = true;
+        this.progress = 0;
+
+        if (validRecipes.size() == 1) {
+            PressureChamberRecipe r = validRecipes.get(0);
+            if (r.requiresSpecificFume()) {
+                lockRecipe(r, r.requiredFume().orElse(null));
+                player.displayClientMessage(Component.literal("§aPressurizing chamber... awaiting exact gas input."), true);
+            } else {
+                this.isAwaitingFumeType = true;
+                player.displayClientMessage(Component.literal("§aPressurizing chamber... awaiting ANY gas to define recipe."), true);
+            }
+        } else {
+            this.isAwaitingFumeType = true;
+            player.displayClientMessage(Component.literal("§eMultiple recipes found... awaiting gas type to disambiguate."), true);
+        }
+
+        this.setChanged();
+        this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
     }
 
     private void processRecipe() {
@@ -181,8 +289,10 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
             return;
         }
 
+        if (this.isAwaitingFumeType) return;
+
         if (!this.storedFume.isEmpty() && this.requiresSpecificFume && this.targetFume != null && this.storedFume.getType() != this.targetFume) {
-            if (this.tickCounter % 20 == 0) table.setProcessingGlow(0.6f, 0xFF0000);
+            if (this.tickCounter % 20 == 0) table.setProcessingGlow(0.8f, 0xFF0000);
             return;
         }
 
@@ -196,20 +306,43 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
 
         this.progress++;
 
-        if (this.progress % 10 == 0) {
-            float intensity = 0.2f + (0.8f * ((float) this.progress / this.maxProgress));
-            int activeColor = (this.requiresSpecificFume && this.targetFume != null) ? this.targetFume.getColorInt() : this.storedFume.getType().getColorInt();
-            table.setProcessingGlow(intensity, activeColor);
+        if (this.progress % 2 == 0) {
+            float pc = (float) this.progress / this.maxProgress;
+            float finalIntensity = 0.0f;
+            int finalColor = 0xFFFFFF;
+
+            int targetColor = (this.requiresSpecificFume && this.targetFume != null) ? this.targetFume.getColorInt() : 0xBBBBFF;
+            float targetR = ((targetColor >> 16) & 0xFF);
+            float targetG = ((targetColor >> 8) & 0xFF);
+            float targetB = (targetColor & 0xFF);
+
+            float pivot = 0.50f;
+
+            if (pc < pivot) {
+                // Phase 1: 0% to 50% -> Fade strictly to Pure White
+                float phasePc = pc / pivot;
+                finalIntensity = phasePc; // Lerps from 0.0 to 1.0
+                finalColor = 0xFFFFFF;
+            } else {
+                // Phase 2: 50% to 100% -> Tint from White to target Gas Color
+                float phasePc = (pc - pivot) / (1.0f - pivot);
+                finalIntensity = 1.0f; // Keeps it fully bright/saturated
+                float r = net.minecraft.util.Mth.lerp(phasePc, 255.0f, targetR);
+                float g = net.minecraft.util.Mth.lerp(phasePc, 255.0f, targetG);
+                float b = net.minecraft.util.Mth.lerp(phasePc, 255.0f, targetB);
+                finalColor = ((int)r << 16) | ((int)g << 8) | (int)b;
+            }
+
+            table.setProcessingGlow(finalIntensity, finalColor);
         }
 
         if (this.progress >= this.maxProgress) {
+            List<PressureChamberRecipe> recipes = getValidRecipes(table.getHeldItem());
             PressureChamberRecipe activeRecipe = null;
-            for (RecipeHolder<PressureChamberRecipe> holder : serverLevel.recipeAccess().getRecipes().stream()
-                    .filter(h -> h.value() instanceof PressureChamberRecipe)
-                    .map(h -> (RecipeHolder<PressureChamberRecipe>) (RecipeHolder<?>) h)
-                    .toList()) {
-                if (holder.value().matches(new ddraig.net.entropica.recipe.PressureChamberRecipeInput(table.getHeldItem(), VisFumeStack.EMPTY), level)) {
-                    activeRecipe = holder.value();
+
+            for (PressureChamberRecipe r : recipes) {
+                if (!r.requiresSpecificFume() || r.requiredFume().orElse(null) == this.targetFume) {
+                    activeRecipe = r;
                     break;
                 }
             }
@@ -222,13 +355,17 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
 
                 ItemStack result = activeRecipe.output().copy();
                 result.setCount(activeRecipe.output().getCount() * crafts);
+
+                // Directly set the table item instead of popping it into the world
                 table.setHeldItem(result);
+                table.triggerCompletionGlow((this.requiresSpecificFume && this.targetFume != null) ? this.targetFume.getColorInt() : 0xBBBBFF);
 
-                int completionColor = (this.requiresSpecificFume && this.targetFume != null) ? this.targetFume.getColorInt() : 0xBBBBFF;
-                table.triggerCompletionGlow(completionColor);
-
-                BlockState tableState = serverLevel.getBlockState(this.tablePos);
-                serverLevel.sendBlockUpdated(this.tablePos, tableState, tableState, 3);
+                for (BlockPos connectedPos : this.connectedBlocks) {
+                    BlockEntity connectedBE = this.level.getBlockEntity(connectedPos);
+                    if (connectedBE instanceof VisFumeVesselPortBlockEntity port && port.getMode() == VisFumeVesselPortBlockEntity.PortMode.INPUT) {
+                        port.toggleMode();
+                    }
+                }
             }
             cancelProcessing();
         }
@@ -236,6 +373,7 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
 
     private void cancelProcessing() {
         this.isProcessing = false;
+        this.isAwaitingFumeType = false;
         this.progress = 0;
         this.targetAmount = 0;
         this.requiresSpecificFume = false;
@@ -244,6 +382,31 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
         if (this.level != null && !this.level.isClientSide()) {
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
+    }
+
+    public boolean proxyInteractWithTable(Player player, InteractionHand hand) {
+        if (this.level == null || this.level.isClientSide() || this.tablePos == null) return false;
+        BlockEntity be = this.level.getBlockEntity(this.tablePos);
+        if (!(be instanceof EnrichmentTableBlockEntity table)) return false;
+
+        if (this.isProcessing) {
+            player.displayClientMessage(Component.literal("§cChamber is currently pressurized and locked!"), true);
+            return true;
+        }
+
+        ItemStack handStack = player.getItemInHand(hand);
+        ItemStack tableStack = table.getHeldItem();
+
+        if (tableStack.isEmpty() && !handStack.isEmpty()) {
+            table.setHeldItem(handStack.copy());
+            handStack.setCount(0);
+            return true;
+        } else if (!tableStack.isEmpty() && handStack.isEmpty()) {
+            player.setItemInHand(hand, tableStack.copy());
+            table.setHeldItem(ItemStack.EMPTY);
+            return true;
+        }
+        return false;
     }
 
     public boolean attemptFormMultiblock() {
@@ -414,10 +577,7 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
                 power += 2.0F * ((float) this.storedFume.getAmount() / this.maxCapacity);
             }
 
-            List<Player> players = this.level.getEntitiesOfClass(
-                    Player.class,
-                    new AABB(this.worldPosition).inflate(6.0D)
-            );
+            List<Player> players = this.level.getEntitiesOfClass(Player.class, new AABB(this.worldPosition).inflate(6.0D));
 
             for (Player p : players) {
                 Vec3 dir = p.position().subtract(this.worldPosition.getCenter()).normalize();
@@ -430,7 +590,6 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
         this.isFormed = false;
         this.maxCapacity = 0;
         this.tablePos = null;
-
         this.storedFume = VisFumeStack.EMPTY;
 
         cancelProcessing();
@@ -446,11 +605,8 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
         if (this.level != null) {
             for (BlockPos pos : this.connectedBlocks) {
                 BlockEntity be = this.level.getBlockEntity(pos);
-                if (be instanceof ManaEnrichedGlassBlockEntity glass) {
-                    glass.setControllerPos(null);
-                } else if (be instanceof VisFumeVesselPortBlockEntity port) {
-                    port.setControllerPos(null);
-                }
+                if (be instanceof ManaEnrichedGlassBlockEntity glass) glass.setControllerPos(null);
+                else if (be instanceof VisFumeVesselPortBlockEntity port) port.setControllerPos(null);
             }
         }
         this.connectedBlocks.clear();
@@ -473,9 +629,30 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
     public int fill(VisFumeStack resource, boolean simulate) {
         if (!isFormed || resource.isEmpty()) return 0;
 
+        if (!isProcessing) return 0;
+
+        if (this.isAwaitingFumeType && this.tablePos != null && this.level != null) {
+            BlockEntity be = this.level.getBlockEntity(this.tablePos);
+            if (be instanceof EnrichmentTableBlockEntity table) {
+                PressureChamberRecipe matched = null;
+                for (PressureChamberRecipe r : getValidRecipes(table.getHeldItem())) {
+                    if (r.requiresSpecificFume() && r.requiredFume().orElse(null) == resource.getType()) {
+                        matched = r; break;
+                    } else if (!r.requiresSpecificFume()) {
+                        matched = r; break;
+                    }
+                }
+                if (matched != null) {
+                    lockRecipe(matched, resource.getType());
+                } else {
+                    return 0;
+                }
+            }
+        }
+
         if (!this.storedFume.isEmpty() && this.storedFume.getType() != resource.getType()) return 0;
 
-        int availableSpace = this.maxCapacity - this.storedFume.getAmount();
+        int availableSpace = this.targetAmount - this.storedFume.getAmount();
         if (availableSpace <= 0) return 0;
 
         int amountToFill = Math.min(resource.getAmount(), availableSpace);
@@ -503,10 +680,7 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
 
         if (!simulate) {
             this.storedFume.shrink(amountToDrain);
-
-            if (this.storedFume.getAmount() <= 0) {
-                this.storedFume = VisFumeStack.EMPTY;
-            }
+            if (this.storedFume.getAmount() <= 0) this.storedFume = VisFumeStack.EMPTY;
 
             this.setChanged();
             if (this.level != null && !this.level.isClientSide()) {
@@ -533,23 +707,20 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
         output.store("MaxCapacity", Codec.INT, this.maxCapacity);
 
         output.store("IsProcessing", Codec.BOOL, this.isProcessing);
+        output.store("IsAwaitingFumeType", Codec.BOOL, this.isAwaitingFumeType);
         output.store("RequiresSpecificFume", Codec.BOOL, this.requiresSpecificFume);
         output.store("Progress", Codec.INT, this.progress);
         output.store("MaxProgress", Codec.INT, this.maxProgress);
         output.store("TargetAmount", Codec.INT, this.targetAmount);
 
-        if (this.targetFume != null) {
-            output.store("TargetFume", Codec.STRING, this.targetFume.name());
-        }
+        if (this.targetFume != null) output.store("TargetFume", Codec.STRING, this.targetFume.name());
 
         if (!this.storedFume.isEmpty()) {
             output.store("FumeType", Codec.STRING, this.storedFume.getType().name());
             output.store("FumeAmount", Codec.INT, this.storedFume.getAmount());
         }
 
-        if (this.tablePos != null) {
-            output.store("TablePos", Codec.LONG, this.tablePos.asLong());
-        }
+        if (this.tablePos != null) output.store("TablePos", Codec.LONG, this.tablePos.asLong());
 
         output.store("ConnectedBlockCount", Codec.INT, this.connectedBlocks.size());
         int i = 0;
@@ -566,6 +737,7 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
         this.maxCapacity = input.read("MaxCapacity", Codec.INT).orElse(0);
 
         this.isProcessing = input.read("IsProcessing", Codec.BOOL).orElse(false);
+        this.isAwaitingFumeType = input.read("IsAwaitingFumeType", Codec.BOOL).orElse(false);
         this.requiresSpecificFume = input.read("RequiresSpecificFume", Codec.BOOL).orElse(false);
         this.progress = input.read("Progress", Codec.INT).orElse(0);
         this.maxProgress = input.read("MaxProgress", Codec.INT).orElse(0);
@@ -573,41 +745,26 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
 
         String targetFumeStr = input.read("TargetFume", Codec.STRING).orElse("");
         if (!targetFumeStr.isEmpty()) {
-            try {
-                this.targetFume = EssenceType.valueOf(targetFumeStr);
-            } catch (IllegalArgumentException e) {
-                this.targetFume = null;
-            }
-        } else {
-            this.targetFume = null;
-        }
+            try { this.targetFume = EssenceType.valueOf(targetFumeStr); }
+            catch (IllegalArgumentException e) { this.targetFume = null; }
+        } else { this.targetFume = null; }
 
         String fumeTypeStr = input.read("FumeType", Codec.STRING).orElse("");
         int fumeAmt = input.read("FumeAmount", Codec.INT).orElse(0);
         if (!fumeTypeStr.isEmpty() && fumeAmt > 0) {
-            try {
-                this.storedFume = new VisFumeStack(EssenceType.valueOf(fumeTypeStr), fumeAmt);
-            } catch (IllegalArgumentException e) {
-                this.storedFume = VisFumeStack.EMPTY;
-            }
-        } else {
-            this.storedFume = VisFumeStack.EMPTY;
-        }
+            try { this.storedFume = new VisFumeStack(EssenceType.valueOf(fumeTypeStr), fumeAmt); }
+            catch (IllegalArgumentException e) { this.storedFume = VisFumeStack.EMPTY; }
+        } else { this.storedFume = VisFumeStack.EMPTY; }
 
         long tPos = input.read("TablePos", Codec.LONG).orElse(-1L);
-        if (tPos != -1L) {
-            this.tablePos = BlockPos.of(tPos);
-        } else {
-            this.tablePos = null;
-        }
+        if (tPos != -1L) this.tablePos = BlockPos.of(tPos);
+        else this.tablePos = null;
 
         this.connectedBlocks.clear();
         int count = input.read("ConnectedBlockCount", Codec.INT).orElse(0);
         for (int i = 0; i < count; i++) {
             long cPos = input.read("ConnectedBlock_" + i, Codec.LONG).orElse(-1L);
-            if(cPos != -1L) {
-                this.connectedBlocks.add(BlockPos.of(cPos));
-            }
+            if(cPos != -1L) this.connectedBlocks.add(BlockPos.of(cPos));
         }
     }
 

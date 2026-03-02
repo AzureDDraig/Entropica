@@ -33,6 +33,9 @@ public class EntropicaConfig {
     public static final ModConfigSpec.DoubleValue VESSEL_CAPACITY_DECAY_MULTIPLIER;
     public static final ModConfigSpec.IntValue VESSEL_DECAY_STARTING_BLOCK;
 
+    // Vis Fume Pressure Chamber Configs
+    public static final ModConfigSpec.DoubleValue CHAMBER_PARTICLE_DENSITY;
+
     static {
         // --- BASE MANA FURNACE SETTINGS ---
         BUILDER.push("mana_furnace_settings");
@@ -122,6 +125,15 @@ public class EntropicaConfig {
 
         VESSEL_DECAY_STARTING_BLOCK = BUILDER.comment("The amount of glass blocks placed before the diminishing returns multiplier starts applying. (0 = applies immediately to the 2nd block placed).")
                 .defineInRange("vesselDecayStartingBlock", 0, 0, Integer.MAX_VALUE);
+
+        BUILDER.pop();
+
+        // --- VIS FUME PRESSURE CHAMBER SETTINGS ---
+        BUILDER.push("vis_fume_pressure_chamber_settings");
+
+        CHAMBER_PARTICLE_DENSITY = BUILDER.comment("(COSMETIC) Multiplier for the amount of gas particles inside the Pressure Chamber. 0.0 turns them off. (Default: 1.0)")
+                .translation("entropica.configuration.vis_fume_pressure_chamber_settings.chamberParticleDensity")
+                .defineInRange("chamberParticleDensity", 1.0, 0.0, 10.0);
 
         BUILDER.pop();
 

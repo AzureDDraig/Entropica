@@ -80,6 +80,7 @@ public class Entropica {
         ModItems.ITEMS.register(modEventBus);
         ModBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
+        ModParticles.PARTICLES.register(modEventBus);
         ModRecipes.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
 

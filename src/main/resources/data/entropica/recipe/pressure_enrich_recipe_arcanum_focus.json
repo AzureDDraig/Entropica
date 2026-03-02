@@ -4,7 +4,7 @@
   "input_count": 1,
   "requires_specific_fume": false,
   "fume_amount": 64,
-  "processing_time": 100,
+  "processing_time": 400,
   "output": {
     "id": "entropica:arcanum_focus",
     "count": 1

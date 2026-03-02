@@ -6,7 +6,7 @@ import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.api.fumes.IFumeMultiblockController;
 import ddraig.net.entropica.api.fumes.VisFumeStack;
 import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
-import ddraig.net.entropica.block.entity.VisFumeVesselControllerBlockEntity;
+import ddraig.net.entropica.registry.ModBlocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -22,11 +22,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 public class ManaEnrichedGlassRenderer implements BlockEntityRenderer<ManaEnrichedGlassBlockEntity, ManaEnrichedGlassRenderer.GlassRenderState> {
 
+    // FIXED: Standard syntax for ResourceLocation in 1.21.x
     private static final ResourceLocation GAS_ANIM_TEXTURE = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/misc/fume_gas_anim.png");
 
     public ManaEnrichedGlassRenderer(BlockEntityRendererProvider.Context context) {}
@@ -48,6 +50,14 @@ public class ManaEnrichedGlassRenderer implements BlockEntityRenderer<ManaEnrich
         BlockPos controllerPos = be.getControllerPos();
 
         if (level != null && controllerPos != null) {
+            BlockState controllerState = level.getBlockState(controllerPos);
+
+            // NEW: Abort rendering entirely if the glass is part of a Pressure Chamber!
+            // This leaves the glass perfectly clear so the custom particles can do the visual work.
+            if (controllerState.is(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get())) {
+                return;
+            }
+
             BlockEntity controllerBE = level.getBlockEntity(controllerPos);
 
             if (controllerBE instanceof IFumeMultiblockController controller && controller.isFormed()) {
@@ -80,6 +90,8 @@ public class ManaEnrichedGlassRenderer implements BlockEntityRenderer<ManaEnrich
 
     @Override
     public void submit(GlassRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState cameraRenderState) {
+        // Because we hit 'return' during extraction for the Pressure Chamber,
+        // hasFume will be strictly false here, naturally aborting the render pass!
         if (!renderState.hasFume || renderState.fillRatio <= 0.0f) return;
 
         Minecraft mc = Minecraft.getInstance();
@@ -115,7 +127,6 @@ public class ManaEnrichedGlassRenderer implements BlockEntityRenderer<ManaEnrich
         renderCuboid(pose, consumer, minX, minY, minZ, maxX, maxY, maxZ, r, g, b, alpha, light, vMin, vMax);
 
         poseStack.popPose();
-
     }
 
     private void renderCuboid(PoseStack.Pose pose, VertexConsumer consumer,
@@ -139,7 +150,6 @@ public class ManaEnrichedGlassRenderer implements BlockEntityRenderer<ManaEnrich
         float ny = normal.getStepY();
         float nz = normal.getStepZ();
 
-        // FIXED: Removed the Y-axis override. All faces now correctly use vMin and vMax to slice a single frame.
         consumer.addVertex(pose, x1, y1, z1).setColor(r, g, b, a).setUv(0, vMin).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
         consumer.addVertex(pose, x2, y2, z2).setColor(r, g, b, a).setUv(1, vMin).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
         consumer.addVertex(pose, x3, y3, z3).setColor(r, g, b, a).setUv(1, vMax).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
