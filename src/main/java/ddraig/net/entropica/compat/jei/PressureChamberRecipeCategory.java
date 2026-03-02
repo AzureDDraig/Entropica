@@ -84,12 +84,15 @@ public class PressureChamberRecipeCategory implements IRecipeCategory<PressureCh
         Font font = Minecraft.getInstance().font;
 
         boolean requiresSpecific = recipe.requiresSpecificFume();
+
+        // Formats the gas name correctly
         String gasName = (requiresSpecific && recipe.requiredFume().isPresent())
                 ? recipe.requiredFume().get().name()
-                : "Any Fume";
+                : "Any Type";
 
-        String costText = recipe.fumeAmount() + " mB " + gasName;
-        String timeText = recipe.processingTime() + " Ticks";
+        // Applies the requested string structure
+        String costText = recipe.fumeAmount() + " Vis Fume of " + gasName;
+        String timeText = recipe.processingTime()/20 + " seconds";
 
         int textColor = 0xFF888888;
         if (requiresSpecific && recipe.requiredFume().isPresent()) {

@@ -7,6 +7,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.Items;
 
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems("entropica");
@@ -202,4 +204,7 @@ public class ModItems {
     public static final DeferredItem<BlockItem> ARCANE_LOOM_ITEM = ITEMS.registerItem("arcane_loom", properties -> new BlockItem(ModBlocks.ARCANE_LOOM.get(), properties));
     public static final DeferredItem<BlockItem> ESSENCE_FORGE_ITEM = ITEMS.registerItem("essence_forge", properties -> new BlockItem(ModBlocks.ESSENCE_FORGE.get(), properties));
     public static final DeferredItem<BlockItem> ARCANE_ANVIL_ITEM = ITEMS.registerItem("arcane_anvil", properties -> new BlockItem(ModBlocks.ARCANE_ANVIL.get(), properties));
+
+    // NEW: Diluted Essence Bucket
+    public static final DeferredItem<BucketItem> DILUTED_ESSENCE_BUCKET = ITEMS.registerItem("diluted_essence_bucket", properties -> new BucketItem(ModFluids.DILUTED_ESSENCE_FLUID.get(), properties.craftRemainder(Items.BUCKET).stacksTo(1)));
 }

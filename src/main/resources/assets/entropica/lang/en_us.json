@@ -245,5 +245,10 @@
   "entropica.configuration.vis_fume_vessel_settings.vesselGlassIchorCapacity": "Ichor Glass Capacity",
   "entropica.configuration.vis_fume_vessel_settings.vesselGlassLatticeCapacity": "Lattice Glass Capacity",
   "entropica.configuration.vis_fume_vessel_settings.vesselCapacityDecayMultiplier": "Capacity Decay Multiplier",
-  "entropica.configuration.vis_fume_vessel_settings.vesselDecayStartingBlock": "Decay Starting Block"
+  "entropica.configuration.vis_fume_vessel_settings.vesselDecayStartingBlock": "Decay Starting Block",
+
+
+  "tooltip.entropica.any_fume": "Any Type",
+  "jei.entropica.pressure_chamber.fume_cost": "%s Vis Fume of %s",
+  "jei.entropica.pressure_chamber.time": "Processing: %s Ticks"
 }

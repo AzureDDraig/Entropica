@@ -8,9 +8,16 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.FlowingFluid;
 
 public class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks("entropica");
+
+    // Liquids
+    public static final DeferredBlock<LiquidBlock> DILUTED_ESSENCE_FLUID_BLOCK = BLOCKS.register("diluted_essence_fluid_block",
+            name -> new LiquidBlock(ModFluids.DILUTED_ESSENCE_FLUID.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER).setId(ResourceKey.create(Registries.BLOCK, name)).noLootTable().liquid()));
 
     // Ores
     public static final DeferredBlock<Block> ENTROPIC_ORE = BLOCKS.register("entropic_ore", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.STONE).destroyTime(3.0f).requiresCorrectToolForDrops()));
@@ -47,7 +54,7 @@ public class ModBlocks {
     public static final DeferredBlock<VisFumeDiverterBlock> VIS_FUME_DIVERTER = BLOCKS.register("vis_fume_diverter", name -> new VisFumeDiverterBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(2.0f).requiresCorrectToolForDrops().noOcclusion()));
     public static final DeferredBlock<CreativeVisFumeGeneratorBlock> CREATIVE_VIS_FUME_GENERATOR = BLOCKS.register("creative_vis_fume_generator", name -> new CreativeVisFumeGeneratorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(1.5f).requiresCorrectToolForDrops()));
 
-    // --- NEW: Vis Fume Pressure Vessel ---
+    // ---  Vis Fume Pressure Vessel ---
     public static final DeferredBlock<VisFumeVesselControllerBlock> VIS_FUME_VESSEL_CONTROLLER = BLOCKS.register("vis_fume_vessel_controller", name -> new VisFumeVesselControllerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<VisFumeVesselPortBlock> VIS_FUME_VESSEL_PORT = BLOCKS.register("vis_fume_vessel_port", name -> new VisFumeVesselPortBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<ManaEnrichedGlassBlock> ESSENCE_ENRICHED_GLASS = BLOCKS.register("essence_enriched_glass", name -> new ManaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(1.5f).requiresCorrectToolForDrops().noOcclusion()));
@@ -58,6 +65,7 @@ public class ModBlocks {
     // --- Vis Fume Pressure Chamber ---
     public static final DeferredBlock<Block> VIS_FUME_PRESSURE_CHAMBER_CONTROLLER = BLOCKS.register("vis_fume_pressure_chamber_controller", name -> new VisFumePressureChamberControllerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> ENRICHMENT_TABLE = BLOCKS.register("enrichment_table", name -> new EnrichmentTableBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(2.0f).requiresCorrectToolForDrops()));
+
     //Vis Vitae Contraptions
     public static final DeferredBlock<Block> VIS_VITAE_ANCHOR = BLOCKS.register("vis_vitae_anchor", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> VIS_VITAE_CONDENSER = BLOCKS.register("vis_vitae_condenser", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
