@@ -22,7 +22,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
@@ -46,7 +45,7 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
     }
 
     @Override
-    public void extractRenderState(EntropicCoreBlockEntity blockEntity, CoreRenderState renderState, float partialTick, Vec3 cameraPos, @Nullable ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
+    public void extractRenderState(EntropicCoreBlockEntity blockEntity, CoreRenderState renderState, float partialTick, net.minecraft.world.phys.Vec3 cameraPos, @Nullable ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
         BlockEntityRenderState.extractBase(blockEntity, renderState, crumblingOverlay);
 
         renderState.isFormed = blockEntity.isFormed();
@@ -55,11 +54,9 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
         BlockPos activeHatchPos = blockEntity.getActiveRenderPos();
         renderState.shouldRenderUI = false;
 
-        // Ensure we have a valid hatch pos and level before extracting
         if (renderState.isFormed && activeHatchPos != null && blockEntity.getLevel() != null) {
             BlockState hatchState = blockEntity.getLevel().getBlockState(activeHatchPos);
 
-            // Look for the universal FACING property on the hatch instead of calculating adjacency
             if (hatchState.hasProperty(BlockStateProperties.FACING)) {
                 renderState.shouldRenderUI = true;
                 renderState.hatchPos = activeHatchPos;
@@ -73,6 +70,10 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
                 renderState.manaPool.clear();
                 renderState.essencePool.putAll(blockEntity.getEssencePool());
                 renderState.manaPool.putAll(blockEntity.getManaPool());
+
+                renderState.isOverloaded = blockEntity.isOverloaded();
+                renderState.overloadTicks = blockEntity.getOverloadTicks();
+                renderState.maxOverloadTicks = blockEntity.getMaxOverloadTicks();
             }
         }
     }
@@ -89,7 +90,6 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
         boolean isLookingAtFurnace = false;
         if (mc.hitResult != null && mc.hitResult.getType() == HitResult.Type.BLOCK) {
             BlockPos hitPos = ((BlockHitResult) mc.hitResult).getBlockPos();
-            // Look range is 3 blocks
             if (hitPos.closerThan(coreRenderState.hatchPos, 3.0)) {
                 isLookingAtFurnace = true;
             }
@@ -97,15 +97,12 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
 
         poseStack.pushPose();
 
-        // Calculate the exact 3D distance between the Core block and the Hatch block
         double offsetX = coreRenderState.hatchPos.getX() - coreRenderState.worldPosition.getX();
         double offsetY = coreRenderState.hatchPos.getY() - coreRenderState.worldPosition.getY();
         double offsetZ = coreRenderState.hatchPos.getZ() - coreRenderState.worldPosition.getZ();
 
-        // Translate the render matrix directly into the absolute center of the Hatch block
         poseStack.translate(offsetX + 0.5, offsetY + 0.5, offsetZ + 0.5);
 
-        // Move EXACTLY 0.51 blocks outside the face of the hatch based on its rotation
         float offset = 0.51f;
         poseStack.translate(
                 coreRenderState.hatchFacing.getStepX() * offset,
@@ -113,23 +110,21 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
                 coreRenderState.hatchFacing.getStepZ() * offset
         );
 
-        // Rotate the matrix so Z points directly OUT of the face, Y points UP, and X points RIGHT
         switch (coreRenderState.hatchFacing) {
             case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(0));
             case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180));
-            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
-            case EAST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-90));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270));
+            case EAST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
             case UP -> poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-90));
             case DOWN -> poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90));
         }
 
         Matrix4f matrix = poseStack.last().pose();
 
-        // SCALED DOWN FOR 1x1 BLOCK (bounds are -0.5 to +0.5)
         float currentY = -0.45f, barHeight = 0.04f, barSpacing = 0.01f, barWidth = 0.80f, startX = -0.40f;
         boolean hasAnyEssence = false;
 
-        // LAYER 1: ESSENCE BARS (Deepest: Z = 0.000)
+        // LAYER 1: ESSENCE BARS
         VertexConsumer quadConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(WHITE_TEXTURE));
         float tempY = currentY;
         for (EssenceType type : EssenceType.values()) {
@@ -148,28 +143,30 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
             }
         }
 
-        // Draw an idle background bar if empty so the UI isn't fully invisible
         if (!hasAnyEssence) {
             drawQuad(matrix, quadConsumer, startX, startX + barWidth, tempY, tempY + barHeight, 0.000f, 0, 0, 0, 100, light, overlay);
             tempY += (barHeight + barSpacing);
         }
         bufferSource.endBatch();
 
-        // LAYER 2: MANA CIRCLES (Middle: Z = 0.005)
+        // LAYER 2: MANA CIRCLES (Now using Weighted Volume Logic)
         List<EssenceType> activeManaTypes = new ArrayList<>();
         for (EssenceType type : EssenceType.values()) {
             if (coreRenderState.manaPool.getOrDefault(type, 0) > 0) activeManaTypes.add(type);
         }
 
         if (!activeManaTypes.isEmpty()) {
-            // SCALED DOWN FOR 1x1 BLOCK
             float totalInner = 0.20f, totalOuter = 0.40f;
             float ringThickness = (totalOuter - totalInner) / activeManaTypes.size();
             VertexConsumer circleConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(WHITE_TEXTURE));
 
             for (int i = 0; i < activeManaTypes.size(); i++) {
                 EssenceType type = activeManaTypes.get(i);
-                float fillPct = Math.min(1.0f, (float) coreRenderState.manaPool.get(type) / Math.max(1, coreRenderState.maxMana));
+                int weight = EntropicCoreBlockEntity.getEssenceWeight(type);
+
+                // Calculates the ring fill based on the ACTUAL space the density is taking up!
+                float fillPct = Math.min(1.0f, (float) (coreRenderState.manaPool.get(type) * weight) / Math.max(1, coreRenderState.maxMana));
+
                 float innerR = totalInner + (i * ringThickness);
                 float outerR = innerR + ringThickness - 0.005f;
                 int[] rgb = getVibrantColor(type);
@@ -192,33 +189,56 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
         }
         bufferSource.endBatch();
 
-        // LAYER 3: TEXT (Foremost: Z = 0.010)
+        // LAYER 3: TEXT
         if (isLookingAtFurnace) {
             float textY = currentY;
 
-            if (!hasAnyEssence) {
+            if (coreRenderState.isOverloaded) {
                 poseStack.pushPose();
-                poseStack.translate(0.0f, textY + (barHeight / 2.0f), 0.010f);
-                // SCALED DOWN TEXT
+                poseStack.translate(0.0f, 0.0f, 0.020f);
+                poseStack.scale(0.018f, -0.018f, 0.018f);
+
+                long time = System.currentTimeMillis();
+                boolean showExclamation = (time % 1000) < 500;
+
+                int secondsRemaining = Math.max(0, (coreRenderState.maxOverloadTicks - coreRenderState.overloadTicks) / 20);
+                String warningText = showExclamation ? "§l!" : "§l" + secondsRemaining;
+
+                int colorHex = 0xFFFF3333;
+                if (secondsRemaining <= 5 && (time % 200) < 100) {
+                    colorHex = 0xFFFFFF33;
+                }
+
+                float textWidth = this.font.width(warningText);
+                this.font.drawInBatch(warningText, -textWidth / 2f, -this.font.lineHeight / 2f, colorHex, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+                poseStack.popPose();
+
+            } else if (!hasAnyEssence) {
+                poseStack.pushPose();
+                poseStack.translate(0.0f, textY + (barHeight / 2.0f), 0.015f);
                 poseStack.scale(0.005f, -0.005f, 0.005f);
+
                 String label = "Core Idle - Insert Essence";
                 float textWidth = this.font.width(label);
                 this.font.drawInBatch(label, -textWidth / 2f, -this.font.lineHeight / 2f, 0xFFAAAAAA, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
                 poseStack.popPose();
+
             } else {
                 for (EssenceType type : EssenceType.values()) {
                     int amount = coreRenderState.essencePool.getOrDefault(type, 0);
                     if (amount > 0) {
                         poseStack.pushPose();
 
-                        // Push the text to Z = 0.010 so it perfectly overlaps the circles/bars without clipping
-                        poseStack.translate(0.0f, textY + (barHeight / 2.0f), 0.010f);
-                        // SCALED DOWN TEXT
+                        poseStack.translate(0.0f, textY + (barHeight / 2.0f), 0.015f);
                         poseStack.scale(0.005f, -0.005f, 0.005f);
 
                         String label = type.getDisplayName() + ": " + amount + " / " + coreRenderState.maxEssence;
                         float textWidth = this.font.width(label);
-                        this.font.drawInBatch(label, -textWidth / 2f, -this.font.lineHeight / 2f, 0xFFFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+
+                        int[] rgb = getVibrantColor(type);
+                        int colorHex = (0xFF << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+
+                        this.font.drawInBatch(label, -textWidth / 2f, -this.font.lineHeight / 2f, colorHex, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
 
                         poseStack.popPose();
                         textY += (barHeight + barSpacing);
@@ -257,5 +277,9 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
         public final Map<EssenceType, Integer> essencePool = new EnumMap<>(EssenceType.class);
         public final Map<EssenceType, Integer> manaPool = new EnumMap<>(EssenceType.class);
         public Direction hatchFacing = Direction.NORTH;
+
+        public boolean isOverloaded;
+        public int overloadTicks;
+        public int maxOverloadTicks;
     }
 }

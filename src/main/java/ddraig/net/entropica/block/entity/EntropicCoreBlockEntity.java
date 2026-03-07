@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class EntropicCoreBlockEntity extends BlockEntity {
+public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler {
 
     public enum BurnMode {
         REGULAR("Regular Mana Production", "§d"),
@@ -78,11 +78,17 @@ public class EntropicCoreBlockEntity extends BlockEntity {
     private int catalystCount = 0;
     private int coreCount = 0;
 
+    // Overload System Variables
+    private boolean isOverloaded = false;
+    private int overloadTicks = 0;
+    private int maxOverloadTicks = 2400; // Default 120 seconds
+
     private BlockPos masterPos = null;
     private BlockPos renderHatchPos = null;
     private String lastValidationError = "Structure has not been validated yet.";
 
     private final List<BlockPos> connectedPlumes = new ArrayList<>();
+    private final List<BlockPos> connectedCores = new ArrayList<>();
 
     public EntropicCoreBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.ENTROPIC_CORE_BE.get(), pos, state);
@@ -104,6 +110,11 @@ public class EntropicCoreBlockEntity extends BlockEntity {
         return this;
     }
 
+    // Accessors for the renderer to read Overload State from the master core
+    public boolean isOverloaded() { return getMaster().isOverloaded; }
+    public int getOverloadTicks() { return getMaster().overloadTicks; }
+    public int getMaxOverloadTicks() { return getMaster().maxOverloadTicks; }
+
     public void updateLastInteractedHatch(BlockPos pos) {
         EntropicCoreBlockEntity master = getMaster();
         if (level != null && level.getBlockState(pos).is(ModBlocks.FURNACE_HATCH.get())) {
@@ -119,9 +130,13 @@ public class EntropicCoreBlockEntity extends BlockEntity {
         EntropicCoreBlockEntity master = getMaster();
         if (!master.isFormed) return;
         master.isActive = !master.isActive;
-        if (master.isActive && (master.getTotalEssence() < 10 || master.getTotalMana() >= master.getMaxMana())) {
-            master.isActive = false;
+
+        if (master.isActive) {
+            if (master.getTotalEssence() < 10 || (!EntropicaConfig.ENABLE_CORE_OVERLOAD.get() && master.getWeightedTotalMana() >= master.getMaxMana())) {
+                master.isActive = false;
+            }
         }
+
         master.setChanged();
         if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
@@ -133,7 +148,7 @@ public class EntropicCoreBlockEntity extends BlockEntity {
         if (!master.isFormed) return 0;
         int maxMana = master.getMaxMana();
         if (maxMana == 0) return 0;
-        return Math.max(0, (int) Math.floor(((double) master.getTotalMana() / maxMana) * 15.0));
+        return Math.max(0, (int) Math.floor(((double) master.getWeightedTotalMana() / maxMana) * 15.0));
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
@@ -148,16 +163,122 @@ public class EntropicCoreBlockEntity extends BlockEntity {
             processSharedBuffer();
 
             if (this.isActive) {
-                this.tickCounter++;
-                if (this.tickCounter >= EntropicaConfig.CORE_PROCESS_TICK_RATE.get()) {
-                    this.tickCounter = 0;
-                    processProcessing(level, pos, state);
+
+                // --- OVERLOAD LOGIC ---
+                if (EntropicaConfig.ENABLE_CORE_OVERLOAD.get()) {
+                    if (this.getWeightedTotalMana() >= this.getMaxMana()) {
+                        if (!this.isOverloaded) {
+                            this.isOverloaded = true;
+                            this.recalculateOverloadTime();
+                        }
+
+                        this.overloadTicks++;
+
+                        if (this.overloadTicks >= this.maxOverloadTicks) {
+                            this.triggerExplosion();
+                        }
+
+                        // Sync to client frequently for the rendering UI timer
+                        if (this.overloadTicks % 10 == 0) {
+                            this.setChanged();
+                            level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+                        }
+                    } else if (this.isOverloaded) {
+                        this.isOverloaded = false;
+                        this.overloadTicks = 0;
+                        this.setChanged();
+                        level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+                    }
+                } else {
+                    // Safe behavior fallback: shut off immediately if full, clear overload states if toggled off in config
+                    if (this.isOverloaded) {
+                        this.isOverloaded = false;
+                        this.overloadTicks = 0;
+                        this.setChanged();
+                        level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+                    }
+                    if (this.getWeightedTotalMana() >= this.getMaxMana()) {
+                        this.isActive = false;
+                        this.setChanged();
+                        level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+                    }
                 }
+                // ----------------------
+
+                // Proceed with processing only if still active
+                if (this.isActive) {
+                    this.tickCounter++;
+                    if (this.tickCounter >= EntropicaConfig.CORE_PROCESS_TICK_RATE.get()) {
+                        this.tickCounter = 0;
+                        processProcessing(level, pos, state);
+                    }
+                }
+            } else if (this.isOverloaded) {
+                // If the player deactivates the core in time, reset the overload
+                this.isOverloaded = false;
+                this.overloadTicks = 0;
+                this.setChanged();
+                level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
             }
 
             if (level.getGameTime() % EntropicaConfig.VIS_FUME_TICK_RATE.get() == 0) {
                 pushManaToPipes(level);
             }
+        }
+    }
+
+    private void recalculateOverloadTime() {
+        int baseSeconds = 120 * Math.max(1, this.coreCount);
+
+        int activeManaTypes = (int) this.manaPool.values().stream().filter(v -> v > 0).count();
+        int activeEssenceTypes = (int) this.essencePool.values().stream().filter(v -> v > 0).count();
+
+        // Halves per extra type above 1 (Mana) and 2 (Essence)
+        int extraManaTypes = Math.max(0, activeManaTypes - 1);
+        int extraEssenceTypes = Math.max(0, activeEssenceTypes - 2);
+
+        double manaDivisor = Math.pow(2, extraManaTypes);
+        double essenceDivisor = Math.pow(2, extraEssenceTypes);
+        double totalDivisor = manaDivisor * essenceDivisor;
+
+        int explosionSeconds = (int) Math.ceil(baseSeconds / totalDivisor);
+        this.maxOverloadTicks = explosionSeconds * 20; // Convert back to ticks
+    }
+
+    private void triggerExplosion() {
+        if (this.level instanceof ServerLevel serverLevel) {
+            // Base radius 4, caps at 8 based on how many cores exist in the multiblock
+            float explosionRadius = Math.min(8.0f, 4.0f + (this.coreCount - 1));
+
+            for (BlockPos corePos : this.connectedCores) {
+                serverLevel.explode(
+                        null,
+                        corePos.getX() + 0.5D, corePos.getY() + 0.5D, corePos.getZ() + 0.5D,
+                        explosionRadius,
+                        Level.ExplosionInteraction.BLOCK
+                );
+            }
+        }
+
+        // Destroy 90% of the stored essence in the UI
+        for (Map.Entry<EssenceType, Integer> entry : this.essencePool.entrySet()) {
+            int current = entry.getValue();
+            int remaining = (int) Math.floor(current * 0.10f);
+            entry.setValue(remaining);
+        }
+
+        // Clear the mana entirely so it doesn't instantly re-blow up if rebuilt
+        for (Map.Entry<EssenceType, Integer> entry : this.manaPool.entrySet()) {
+            entry.setValue(0);
+        }
+
+        this.isOverloaded = false;
+        this.overloadTicks = 0;
+        this.isActive = false;
+
+        this.setChanged();
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
 
@@ -285,6 +406,7 @@ public class EntropicCoreBlockEntity extends BlockEntity {
         boolean stateChanged = false;
         int maxMana = getMaxMana();
         int operations = this.coreCount;
+        boolean overloadEnabled = EntropicaConfig.ENABLE_CORE_OVERLOAD.get();
 
         for (int i = 0; i < operations; i++) {
             int activeTypes = getActiveEssenceTypes();
@@ -302,17 +424,24 @@ public class EntropicCoreBlockEntity extends BlockEntity {
                     if (essenceAmount > 0) {
                         EssenceType targetType = (this.currentMode == BurnMode.REGULAR) ? EssenceType.REGULAR : type;
 
-                        if (getTotalMana() + generated <= maxMana) {
+                        int weight = getEssenceWeight(targetType);
+                        int spaceWeighted = maxMana - getWeightedTotalMana();
+                        int spaceRaw = Math.max(0, spaceWeighted / weight);
+
+                        if (overloadEnabled || spaceRaw >= generated) {
                             this.essencePool.put(type, essenceAmount - 1);
-                            this.manaPool.put(targetType, this.manaPool.getOrDefault(targetType, 0) + generated);
+                            int actualAdded = Math.min(generated, spaceRaw);
+                            this.manaPool.put(targetType, this.manaPool.getOrDefault(targetType, 0) + actualAdded);
                             stateChanged = true;
                             performedOp = true;
                         } else {
                             this.isActive = false;
+                            stateChanged = true;
+                            break;
                         }
                     }
                 }
-                if (!performedOp) break;
+                if (!performedOp || !this.isActive) break;
             } else if (this.currentMode == BurnMode.FUSION) {
                 if (activeTypes < 2) {
                     this.currentMode = BurnMode.ELEMENTAL;
@@ -330,19 +459,26 @@ public class EntropicCoreBlockEntity extends BlockEntity {
                             EssenceType out = (level.random.nextFloat() < recipe.chance()) ? recipe.success() : recipe.failure();
                             if (out == null) out = EssenceType.REGULAR;
 
-                            if (getTotalMana() + recipe.yield() <= maxMana) {
+                            int weight = getEssenceWeight(out);
+                            int spaceWeighted = maxMana - getWeightedTotalMana();
+                            int spaceRaw = Math.max(0, spaceWeighted / weight);
+
+                            if (overloadEnabled || spaceRaw >= recipe.yield()) {
                                 recipe.inputs().forEach((t, amt) -> this.essencePool.put(t, this.essencePool.get(t) - amt));
-                                this.manaPool.put(out, this.manaPool.getOrDefault(out, 0) + recipe.yield());
+                                int actualAdded = Math.min(recipe.yield(), spaceRaw);
+                                this.manaPool.put(out, this.manaPool.getOrDefault(out, 0) + actualAdded);
                                 stateChanged = true;
                                 fusionSuccess = true;
                                 break;
                             } else {
                                 this.isActive = false;
+                                stateChanged = true;
+                                break;
                             }
                         }
                     }
                 }
-                if (!fusionSuccess) break;
+                if (!fusionSuccess || !this.isActive) break;
             }
         }
         if (stateChanged) {
@@ -456,6 +592,9 @@ public class EntropicCoreBlockEntity extends BlockEntity {
 
                     core.connectedPlumes.clear();
                     core.connectedPlumes.addAll(foundPlumes);
+
+                    core.connectedCores.clear();
+                    core.connectedCores.addAll(foundCores);
                 }
                 core.setChanged();
                 level.sendBlockUpdated(corePos, core.getBlockState(), core.getBlockState(), 3);
@@ -485,6 +624,109 @@ public class EntropicCoreBlockEntity extends BlockEntity {
                 block == ModBlocks.CATALYST_RECEPTACLE.get() || block == ModBlocks.ARCANE_BRICK.get() ||
                 block == ModBlocks.ARCANE_PLATING.get() || block == ModBlocks.MANA_READOUT.get() ||
                 block == ModBlocks.ESSENCE_READOUT.get() || block == ModBlocks.MANA_FILTER.get();
+    }
+
+    // ==========================================
+    // ESSENCE WEIGHTING & COMPRESSION MATH
+    // ==========================================
+
+    public static int getEssenceWeight(EssenceType type) {
+        String name = type.name();
+        if (Set.of("EMPYREAN", "CATACLYSM", "TERMINUS", "ESCHATON", "APOTHEOSIS", "ENTROPICA").contains(name)) return 32;
+        if (Set.of("AETHER", "ENTROPIC", "CELESTIAL", "PRISMATIC").contains(name)) return 16;
+        if (Set.of("PYRE", "PENUMBRA", "RIME", "SPRING", "STATIC", "SYLVAN", "MIASMA", "GENESIS", "OBLIVION").contains(name)) return 8;
+        if (Set.of("LIGHTNING", "STORM", "DUST", "BLOOD", "ASTRAL", "OASIS", "MIRAGE", "AURA", "AMBER", "WRAITH", "BARROW").contains(name)) return 4;
+        if (Set.of("MAGMA", "GLACIAL", "OVERGROWTH", "VITAE", "ECLIPSE", "BLIGHT", "SOULFIRE", "VAPOR", "NULL_R", "NULL_U", "SPORE", "TAIGA", "DAWN", "ABYSS", "AEGIS", "AURORA").contains(name)) return 2;
+
+        // Default Tier 1 (Base Elements + Regular)
+        return 1;
+    }
+
+    public int getWeightedTotalMana() {
+        return getMaster().manaPool.entrySet().stream()
+                .mapToInt(e -> e.getValue() * getEssenceWeight(e.getKey()))
+                .sum();
+    }
+
+
+    // ==========================================
+    // FUME HANDLER IMPLEMENTATION
+    // ==========================================
+
+    @Override
+    public int fill(VisFumeStack resource, boolean simulate) {
+        EntropicCoreBlockEntity master = getMaster();
+        if (!master.isFormed || resource.isEmpty()) return 0;
+
+        int weight = getEssenceWeight(resource.getType());
+        int currentWeighted = master.getWeightedTotalMana();
+        int spaceWeighted = master.getMaxMana() - currentWeighted;
+
+        if (spaceWeighted <= 0) return 0;
+
+        int spaceRaw = spaceWeighted / weight;
+        int amountToFill = Math.min(resource.getAmount(), spaceRaw);
+
+        if (!simulate && amountToFill > 0) {
+            master.manaPool.put(resource.getType(), master.manaPool.getOrDefault(resource.getType(), 0) + amountToFill);
+            master.setChanged();
+            if (master.level != null && !master.level.isClientSide()) {
+                master.level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
+            }
+        }
+        return amountToFill;
+    }
+
+    @Override
+    public VisFumeStack drain(int maxDrain, boolean simulate) {
+        EntropicCoreBlockEntity master = getMaster();
+        if (!master.isFormed || maxDrain <= 0) return VisFumeStack.EMPTY;
+
+        EssenceType bestType = null;
+        int maxFound = 0;
+
+        for (Map.Entry<EssenceType, Integer> entry : master.manaPool.entrySet()) {
+            if (entry.getValue() > maxFound) {
+                maxFound = entry.getValue();
+                bestType = entry.getKey();
+            }
+        }
+
+        if (bestType == null || maxFound <= 0) return VisFumeStack.EMPTY;
+
+        int amountToDrain = Math.min(maxFound, maxDrain);
+
+        if (!simulate && amountToDrain > 0) {
+            master.manaPool.put(bestType, maxFound - amountToDrain);
+            master.setChanged();
+            if (master.level != null && !master.level.isClientSide()) {
+                master.level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
+            }
+        }
+
+        return new VisFumeStack(bestType, amountToDrain);
+    }
+
+    @Override
+    public VisFumeStack getFumeInTank() {
+        EntropicCoreBlockEntity master = getMaster();
+        EssenceType bestType = null;
+        int maxFound = 0;
+
+        for (Map.Entry<EssenceType, Integer> entry : master.manaPool.entrySet()) {
+            if (entry.getValue() > maxFound) {
+                maxFound = entry.getValue();
+                bestType = entry.getKey();
+            }
+        }
+
+        if (bestType == null || maxFound <= 0) return VisFumeStack.EMPTY;
+        return new VisFumeStack(bestType, maxFound);
+    }
+
+    @Override
+    public int getCapacity() {
+        return getMaster().getMaxMana();
     }
 
     public int extractMana(EssenceType type, int maxExtract) {
@@ -552,7 +794,9 @@ public class EntropicCoreBlockEntity extends BlockEntity {
             if (type == null) return false;
 
             int capacity = ampoule.getCapacity();
-            if (master.getTotalMana() + capacity <= master.getMaxMana()) {
+            int weight = getEssenceWeight(type);
+
+            if (master.getWeightedTotalMana() + (capacity * weight) <= master.getMaxMana()) {
                 master.manaPool.put(type, master.manaPool.getOrDefault(type, 0) + capacity);
                 master.setChanged();
 
@@ -568,7 +812,7 @@ public class EntropicCoreBlockEntity extends BlockEntity {
                 if (level != null && !level.isClientSide()) level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
                 return true;
             } else {
-                player.displayClientMessage(Component.literal("§cCore mana capacity is full."), true);
+                player.displayClientMessage(Component.literal("§cCore mana capacity is full. Too much density."), true);
                 return true;
             }
         }
@@ -585,7 +829,8 @@ public class EntropicCoreBlockEntity extends BlockEntity {
         updateLastInteractedHatch(interactPos);
 
         if (!master.isActive) {
-            if (master.getTotalMana() >= master.getMaxMana()) {
+            // Respect Config for toggling activation
+            if (!EntropicaConfig.ENABLE_CORE_OVERLOAD.get() && master.getWeightedTotalMana() >= master.getMaxMana()) {
                 player.displayClientMessage(Component.literal("§cCannot activate: Mana capacity is full."), true);
                 return;
             }
@@ -618,17 +863,26 @@ public class EntropicCoreBlockEntity extends BlockEntity {
         if (level != null && !level.isClientSide()) level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
     }
 
+    // ==========================================
+    // NBT DATA EXTRACTION (Updated for generic items)
+    // ==========================================
+
     @Nullable public EssenceType getEssenceTypeFromItem(ItemStack stack) {
-        String name = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-        for (EssenceType type : EssenceType.values()) if (name.contains(type.name().toLowerCase())) return type;
+        if (stack.getItem() instanceof ddraig.net.entropica.item.EssenceItem) {
+            return ddraig.net.entropica.item.EssenceItem.getEssenceType(stack);
+        } else if (stack.getItem() instanceof ddraig.net.entropica.item.EssenceAmpouleItem) {
+            return ddraig.net.entropica.item.EssenceAmpouleItem.getEssenceType(stack);
+        }
         return null;
     }
 
     private int getEssenceValue(ItemStack stack) {
-        String name = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-        if (name.contains("strong") || name.contains("large")) return 16;
-        if (name.contains("average") || name.contains("medium")) return 4;
-        return 1;
+        if (stack.getItem() instanceof ddraig.net.entropica.item.EssenceItem essenceItem) {
+            return essenceItem.getTier() == 3 ? 16 : (essenceItem.getTier() == 2 ? 4 : 1);
+        } else if (stack.getItem() instanceof ddraig.net.entropica.item.EssenceAmpouleItem ampouleItem) {
+            return ampouleItem.getTier() == 3 ? 16 : (ampouleItem.getTier() == 2 ? 4 : 1);
+        }
+        return 0;
     }
 
     public boolean isActive() { return getMaster().isActive; }
@@ -658,6 +912,18 @@ public class EntropicCoreBlockEntity extends BlockEntity {
         output.putInt("ReceptacleCount", this.receptacleCount);
         output.putInt("CatalystCount", this.catalystCount);
         output.putString("LastError", this.lastValidationError);
+
+        // Save Overload States
+        output.putBoolean("IsOverloaded", this.isOverloaded);
+        output.putInt("OverloadTicks", this.overloadTicks);
+        output.putInt("MaxOverloadTicks", this.maxOverloadTicks);
+
+        // Save Connected Cores for explosions
+        output.putInt("ConnectedCoreCount", this.connectedCores.size());
+        for (int i = 0; i < this.connectedCores.size(); i++) {
+            output.putLong("ConnectedCore_" + i, this.connectedCores.get(i).asLong());
+        }
+
         for (EssenceType type : EssenceType.values()) {
             output.putInt(type.name() + "_Mana", this.manaPool.getOrDefault(type, 0));
             output.putInt(type.name() + "_Essence", this.essencePool.getOrDefault(type, 0));
@@ -681,6 +947,18 @@ public class EntropicCoreBlockEntity extends BlockEntity {
         this.receptacleCount = input.getIntOr("ReceptacleCount", 0);
         this.catalystCount = input.getIntOr("CatalystCount", 0);
         this.lastValidationError = input.getStringOr("LastError", "No error.");
+
+        this.isOverloaded = input.getBooleanOr("IsOverloaded", false);
+        this.overloadTicks = input.getIntOr("OverloadTicks", 0);
+        this.maxOverloadTicks = input.getIntOr("MaxOverloadTicks", 2400);
+
+        this.connectedCores.clear();
+        int coreCt = input.getIntOr("ConnectedCoreCount", 0);
+        for (int i = 0; i < coreCt; i++) {
+            long cPos = input.getLongOr("ConnectedCore_" + i, -1L);
+            if (cPos != -1L) this.connectedCores.add(BlockPos.of(cPos));
+        }
+
         for (EssenceType type : EssenceType.values()) {
             this.manaPool.put(type, input.getIntOr(type.name() + "_Mana", 0));
             this.essencePool.put(type, input.getIntOr(type.name() + "_Essence", 0));

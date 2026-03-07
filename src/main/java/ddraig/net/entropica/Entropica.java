@@ -8,6 +8,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.ModContainer;
@@ -29,7 +30,7 @@ public class Entropica {
             .displayItems((parameters, output) -> {
                 ModBlocks.BLOCKS.getEntries().forEach(blockHolder -> {
                     Item blockItem = blockHolder.get().asItem();
-                    if (blockItem != net.minecraft.world.item.Items.AIR) {
+                    if (blockItem != Items.AIR) {
                         output.accept(blockItem);
                     }
                 });
@@ -37,11 +38,10 @@ public class Entropica {
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ITEMS_TAB = CREATIVE_MODE_TABS.register("items_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.entropica.items"))
-            .icon(() -> ModItems.MEDIUM_CHIMERA_AMPOULE.get().getDefaultInstance())
+            .icon(() -> ModItems.SMALL_ESSENCE_AMPOULE.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
-                output.accept(ModItems.MEDIUM_CHIMERA_AMPOULE.get());
+                output.accept(ModItems.SMALL_ESSENCE_AMPOULE.get());
                 output.accept(ModItems.ARCANUM_FOCUS.get());
-                // Also adding the Detector here for general visibility
                 output.accept(ModItems.VIS_VALUE_DETECTOR.get());
 
                 ModItems.ITEMS.getEntries().forEach(itemRegistryObject -> {
@@ -60,7 +60,6 @@ public class Entropica {
                 output.accept(ModItems.BASALT_PICKAXE.get());
                 output.accept(ModItems.WHISPERWOOD_WAND.get());
                 output.accept(ModItems.SHIMMERING_FOCUS.get());
-                // NEW: Added Vis Value Detector to the Tools tab
                 output.accept(ModItems.VIS_VALUE_DETECTOR.get());
             }).build());
 
@@ -71,10 +70,14 @@ public class Entropica {
                 output.accept(ModItems.SOULBOUND_BLADE.get());
                 output.accept(ModItems.OBLIVION_BLADE.get());
                 output.accept(ModItems.TIDAL_TRIDENT.get());
+                output.accept(ModItems.VOID_SWORD.get());
             }).build());
 
     public Entropica(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
+
+        // --- NEW: Registering the Data Components before Items! ---
+        ModDataComponents.COMPONENTS.register(modEventBus);
 
         ModFluids.FLUID_TYPES.register(modEventBus);
         ModFluids.FLUIDS.register(modEventBus);

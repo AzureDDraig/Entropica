@@ -14,6 +14,7 @@ public class EntropicaConfig {
     public static final ModConfigSpec.IntValue ENTROPIC_CORE_MAX_MANA;
     public static final ModConfigSpec.IntValue RECEPTACLE_MAX_ESSENCE;
     public static final ModConfigSpec.IntValue CORE_PROCESS_TICK_RATE;
+    public static final ModConfigSpec.BooleanValue ENABLE_CORE_OVERLOAD;
 
     // Vis Vitae Network Configs
     public static final ModConfigSpec.IntValue ORBIS_CELL_MAX_MANA;
@@ -72,6 +73,10 @@ public class EntropicaConfig {
         CORE_PROCESS_TICK_RATE = BUILDER.comment("How many ticks between each processing operation of the furnace (20 = 1 second, 5 = 1/4th second).")
                 .translation("entropica.configuration.entropic_mana_furnace_settings.coreProcessTickRate")
                 .defineInRange("coreProcessTickRate", 5, 1, 200);
+
+        ENABLE_CORE_OVERLOAD = BUILDER.comment("If true, the Entropic Core will eventually explode if left active while its Mana Buffer is 100% full.")
+                .translation("entropica.configuration.entropic_mana_furnace_settings.enableCoreOverload")
+                .define("enableCoreOverload", true);
 
         BUILDER.pop();
 

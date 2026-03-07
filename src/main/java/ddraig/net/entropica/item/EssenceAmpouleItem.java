@@ -1,25 +1,19 @@
 package ddraig.net.entropica.item;
 
 import ddraig.net.entropica.api.EssenceType;
-import ddraig.net.entropica.entity.EssenceOrbEntity;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class EssenceItem extends Item {
+public class EssenceAmpouleItem extends Item {
     private final int tier;
 
-    public EssenceItem(Properties properties, int tier) {
+    public EssenceAmpouleItem(Properties properties, int tier) {
         super(properties);
         this.tier = tier;
     }
@@ -56,32 +50,9 @@ public class EssenceItem extends Item {
     public Component getName(ItemStack stack) {
         EssenceType type = getEssenceType(stack);
         if (type != null) {
-            String tierPrefix = tier == 1 ? "Weak " : tier == 2 ? "Average " : "Strong ";
-            return Component.literal(type.getColorCode() + tierPrefix + type.getDisplayName() + " Essence");
+            String tierPrefix = tier == 1 ? "Small " : tier == 2 ? "Medium " : "Large ";
+            return Component.literal(type.getColorCode() + tierPrefix + type.getDisplayName() + " Ampoule");
         }
         return super.getName(stack);
-    }
-
-    @Override
-    public boolean hasCustomEntity(ItemStack stack) {
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public Entity createEntity(Level level, Entity location, ItemStack stack) {
-        if (location instanceof ItemEntity vanillaEntity) {
-            EssenceOrbEntity orb = new EssenceOrbEntity(level, vanillaEntity.getX(), vanillaEntity.getY(), vanillaEntity.getZ(), stack);
-
-            orb.setDeltaMovement(vanillaEntity.getDeltaMovement());
-            orb.setPickUpDelay(40);
-
-            if (vanillaEntity.getOwner() instanceof Player) {
-                orb.markThrownByPlayer();
-            }
-
-            return orb;
-        }
-        return null;
     }
 }

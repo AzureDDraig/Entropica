@@ -2,6 +2,7 @@ package ddraig.net.entropica.compat.jei;
 
 import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.recipe.DilutedEssenceRecipe;
+import ddraig.net.entropica.recipe.FusionRecipe;
 import ddraig.net.entropica.recipe.PressureChamberRecipe;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModFluids;
@@ -32,6 +33,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new PressureChamberRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
         registration.addRecipeCategories(new DilutedEssenceRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new VisFusionRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
@@ -39,6 +41,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
     public void registerRecipes(IRecipeRegistration registration) {
         List<PressureChamberRecipe> pcRecipes = Collections.emptyList();
         List<DilutedEssenceRecipe> deRecipes = Collections.emptyList();
+        List<FusionRecipe> fusionRecipes = Collections.emptyList();
 
         var server = ServerLifecycleHooks.getCurrentServer();
         if (server != null) {
@@ -51,15 +54,20 @@ public class EntropicaJEIPlugin implements IModPlugin {
                     .filter(holder -> holder.value() instanceof DilutedEssenceRecipe)
                     .map(holder -> (DilutedEssenceRecipe) holder.value())
                     .toList();
+
+            fusionRecipes = server.getRecipeManager().getRecipes().stream()
+                    .filter(holder -> holder.value() instanceof FusionRecipe)
+                    .map(holder -> (FusionRecipe) holder.value())
+                    .toList();
         }
 
         registration.addRecipes(PressureChamberRecipeCategory.TYPE, pcRecipes);
         registration.addRecipes(DilutedEssenceRecipeCategory.TYPE, deRecipes);
+        registration.addRecipes(VisFusionRecipeCategory.TYPE, fusionRecipes);
 
         // ==========================================
         // JEI INFORMATION TABS
         // ==========================================
-        // CHANGED: Attaches the Info Tab directly to the actual Fluid Stack
         registration.addIngredientInfo(
                 new FluidStack(ModFluids.DILUTED_ESSENCE_FLUID.get(), 1000),
                 NeoForgeTypes.FLUID_STACK,
@@ -71,8 +79,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
     @SuppressWarnings("removal")
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get()), PressureChamberRecipeCategory.TYPE);
-
-        // CHANGED: Sets the Fluid Stack itself as the catalyst for the recipe category!
         registration.addRecipeCatalyst(NeoForgeTypes.FLUID_STACK, new FluidStack(ModFluids.DILUTED_ESSENCE_FLUID.get(), 1000), DilutedEssenceRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.ENTROPIC_CORE.get()), VisFusionRecipeCategory.TYPE);
     }
 }

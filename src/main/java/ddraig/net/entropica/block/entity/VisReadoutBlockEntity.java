@@ -19,8 +19,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * block model in world space. The data displayed typically originates from linked or
  * nearby blocks capable of storing or interacting with mana.
  */
-public class ManaReadoutBlockEntity extends BlockEntity {
-    public ManaReadoutBlockEntity(BlockPos pos, BlockState state) {
+public class VisReadoutBlockEntity extends BlockEntity {
+    public VisReadoutBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.MANA_READOUT_BE.get(), pos, state);
     }
 }

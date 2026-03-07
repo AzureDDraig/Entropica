@@ -9,9 +9,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The EssenceType enum represents various types of essence, each with associated color cycles
  * and other properties. The enum includes regular essence, foundational base types, elemental and
- * vital fusions, ethereal and paradox fusions, trinity fusions, quaternary fusions, conceptual fragment essences,
- * resonance types, and catalysts. Each essence type has a defined set of RGB color values that
- * describe its appearance and behavior over time.
+ * vital fusions, ethereal and paradox fusions, trinity fusions, quaternary fusions, eschaton, singularity,
+ * conceptual fragment essences, resonance types, and catalysts.
  *
  * This enum implements the StringRepresentable interface to allow for string-based serialization.
  * The color properties include dynamic color handling and cycling through multiple color stages.
@@ -34,7 +33,7 @@ public enum EssenceType implements StringRepresentable {
     ARID(new int[][]{{194, 178, 143}}),
     LIGHTNING(new int[][]{{255, 230, 0}}),
 
-    // Elemental Fusions
+    // Elemental Fusions (Tier 1)
     MAGMA(new int[][]{{184, 60, 8}}),
     STORM(new int[][]{{66, 155, 163}}),
     GLACIAL(new int[][]{{152, 220, 242}}),
@@ -44,13 +43,13 @@ public enum EssenceType implements StringRepresentable {
     TAIGA(new int[][]{{26, 89, 35}, {152, 220, 242}}),
     OASIS(new int[][]{{26, 89, 35}, {194, 178, 143}}),
 
-    // Vital Fusions
+    // Vital Fusions (Tier 1 & 2)
     VITAE(new int[][]{{255, 107, 157}}),
     BLOOD(new int[][]{{138, 3, 3}}),
     AURA(new int[][]{{255, 107, 157}, {168, 134, 84}}),
     AMBER(new int[][]{{255, 107, 157}, {119, 50, 20}}),
 
-    // Ethereal & Paradox Fusions
+    // Ethereal & Paradox Fusions (Tier 1 & 2)
     ECLIPSE(new int[][]{{255, 234, 120}, {33, 26, 33}}),
     BLIGHT(new int[][]{{77, 100, 83}, {52, 204, 72}}),
     ASTRAL(new int[][]{{65, 48, 78}, {255, 230, 0}}),
@@ -66,7 +65,7 @@ public enum EssenceType implements StringRepresentable {
     WRAITH(new int[][]{{65, 48, 78}, {77, 100, 83}}),
     BARROW(new int[][]{{119, 50, 20}, {77, 100, 83}}),
 
-    // Trinity Fusions
+    // Trinity Fusions (Tier 3)
     PYRE(new int[][]{{119, 50, 20}, {255, 69, 0}}),
     PENUMBRA(new int[][]{{255, 234, 120}, {40, 30, 60}}),
     RIME(new int[][]{{99, 149, 177}, {220, 240, 255}}),
@@ -77,10 +76,20 @@ public enum EssenceType implements StringRepresentable {
     GENESIS(new int[][]{{255, 107, 157}, {255, 234, 120}, {34, 92, 124}}),
     OBLIVION(new int[][]{{184, 60, 8}, {33, 26, 33}, {77, 100, 83}}),
 
-    // Quaternary Fusions
+    // Apex Fusions (Tier 4)
     AETHER(new int[][]{{168, 134, 84}, {119, 50, 20}, {34, 92, 124}, {184, 60, 8}}),
     ENTROPIC(new int[][]{{65, 48, 78}, {33, 26, 33}, {77, 100, 83}, {138, 3, 3}}),
     CELESTIAL(new int[][]{{255, 234, 120}, {255, 107, 157}, {26, 89, 35}, {168, 134, 84}}),
+
+    // Eschaton Fusions (Tier 5)
+    EMPYREAN(new int[][]{{255, 234, 120}, {255, 107, 157}, {26, 89, 35}}), // Radiant + Vitae + Nature
+    CATACLYSM(new int[][]{{65, 48, 78}, {33, 26, 33}, {184, 60, 8}}),      // Void + Umbral + Nether
+    TERMINUS(new int[][]{{168, 134, 84}, {152, 220, 242}, {34, 92, 124}}), // Air + Frozen + Water
+
+    // Singularity Fusions (Tier 6)
+    ESCHATON(new int[][]{{0, 0, 0}, {33, 26, 33}, {184, 60, 8}, {65, 48, 78}}), // Apocalyptic Dark Cycle
+    APOTHEOSIS(new int[][]{{255, 255, 255}, {255, 234, 120}, {255, 107, 157}, {152, 220, 242}}), // Rebirth Light Cycle
+    ENTROPICA(new int[][]{}), // True Equilibrium - Empty array triggers isDynamic() for full prismatic shifting!
 
     // Sub-Mana (Conceptual Fragments)
     ETHER(new int[][]{{168, 134, 84}}),
@@ -175,9 +184,9 @@ public enum EssenceType implements StringRepresentable {
             // Pinks / Magentas
             case REGULAR, VITAE, SPRING, AURA, GENESIS -> "§d";
             // Yellows
-            case AIR, STATIC, LIGHTNING, ETHER, KINETIC, VOLT, DAWN -> "§e";
+            case AIR, STATIC, LIGHTNING, ETHER, KINETIC, VOLT, DAWN, EMPYREAN -> "§e";
             // Aquas / Cyans
-            case WATER, FROZEN, GLACIAL, STORM, FLOW, STASIS, TAIGA, AURORA -> "§b";
+            case WATER, FROZEN, GLACIAL, STORM, FLOW, STASIS, TAIGA, AURORA, TERMINUS -> "§b";
             // Greens
             case NATURE, OVERGROWTH, GROWTH, MEMORY, ECTO, SPORE, OASIS, SYLVAN -> "§a";
             // Dark Greens
@@ -185,13 +194,13 @@ public enum EssenceType implements StringRepresentable {
             // Golds / Oranges
             case EARTH, ARID, DUST, GRAVITY, FERVOR, HEAT, AEGIS, MIRAGE, AMBER -> "§6";
             // Reds
-            case NETHER, MAGMA, BLOOD, PYRE, IGNIS -> "§c";
+            case NETHER, MAGMA, BLOOD, PYRE, IGNIS, CATACLYSM -> "§c";
             // Whites / Light Grays
-            case RADIANT, CELESTIAL, COHESION, FROST -> "§f";
+            case RADIANT, CELESTIAL, COHESION, FROST, APOTHEOSIS -> "§f";
             // Dark Grays / Blacks
-            case UMBRAL, VOID, ENTROPIC, ECLIPSE, DENSITY, OBLIVION, VACUUM, SILENCE, SHADOW, CONCEALMENT, DESOLATION, ABYSS, WRAITH -> "§8";
+            case UMBRAL, VOID, ENTROPIC, ECLIPSE, DENSITY, OBLIVION, VACUUM, SILENCE, SHADOW, CONCEALMENT, DESOLATION, ABYSS, WRAITH, OBLIVIATE, ESCHATON -> "§8";
             // Purples
-            case ASTRAL, PENUMBRA, AETHER, AXIOM, ECHO, CHRONOS, SINGULARITY, PHOTON -> "§5";
+            case ASTRAL, PENUMBRA, AETHER, AXIOM, ECHO, CHRONOS, SINGULARITY, PHOTON, ENTROPICA -> "§5";
             default -> "§r";
         };
     }

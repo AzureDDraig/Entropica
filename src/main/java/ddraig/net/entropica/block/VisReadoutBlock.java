@@ -1,6 +1,6 @@
 package ddraig.net.entropica.block;
 
-import ddraig.net.entropica.block.entity.ManaReadoutBlockEntity;
+import ddraig.net.entropica.block.entity.VisReadoutBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -13,12 +13,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jetbrains.annotations.Nullable;
 
-public class ManaReadoutBlock extends Block implements EntityBlock {
+public class VisReadoutBlock extends Block implements EntityBlock {
 
     // CHANGED: Upgraded from HORIZONTAL_FACING to full 6-axis FACING
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
-    public ManaReadoutBlock(Properties properties) {
+    public VisReadoutBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
@@ -38,6 +38,6 @@ public class ManaReadoutBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ManaReadoutBlockEntity(pos, state);
+        return new VisReadoutBlockEntity(pos, state);
     }
 }
