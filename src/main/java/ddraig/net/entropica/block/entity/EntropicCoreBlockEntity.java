@@ -29,33 +29,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-/**
- * Represents the Entropic Core block entity that manages complex processing,
- * mana and essence pooling, multiblock structure validation, and burn mode toggling.
- * The Entropic Core acts as the central component of the multiblock structure
- * for advanced crafting and resource management.
- *
- * Fields:
- * - manaPool: Tracks the mana stored in the core by essence type.
- * - essencePool: Tracks the raw essence stored in the core by essence type.
- * - sharedReceptacleBuffer: Holds temporary inventory for sharing items between receptacles.
- * - isActive: Indicates whether the core is currently active.
- * - isFormed: Indicates whether the multiblock structure is correctly formed.
- * - currentMode: Defines the current burn mode (e.g., Regular, Elemental, or Fusion).
- * - tickCounter: Tracks the number of ticks elapsed in the core's lifecycle.
- * - validationTimer: Countdown timer for periodically validating the multiblock structure.
- * - receptacleCount: Number of receptacles connected to the core.
- * - catalystCount: Number of catalysts in attached receptacles.
- * - coreCount: Number of cores within the multiblock structure (should be one for the master block).
- * - masterPos: Position of the master core within the multiblock structure.
- * - renderHatchPos: Position of the active render hatch for interacting with players.
- * - lastValidationError: Holds the last error message if the multiblock validation failed.
- * - connectedPlumes: Tracks connected plumes for mana and essence transfer.
- */
 public class EntropicCoreBlockEntity extends BlockEntity {
 
     public enum BurnMode {
@@ -104,7 +82,6 @@ public class EntropicCoreBlockEntity extends BlockEntity {
     private BlockPos renderHatchPos = null;
     private String lastValidationError = "Structure has not been validated yet.";
 
-    // --- NEW: Plume Location Cache ---
     private final List<BlockPos> connectedPlumes = new ArrayList<>();
 
     public EntropicCoreBlockEntity(BlockPos pos, BlockState state) {
@@ -178,18 +155,17 @@ public class EntropicCoreBlockEntity extends BlockEntity {
                 }
             }
 
-            // --- NEW: Auto-push Gas into Pipes ---
             if (level.getGameTime() % EntropicaConfig.VIS_FUME_TICK_RATE.get() == 0) {
                 pushManaToPipes(level);
             }
         }
     }
 
-    // --- NEW: Gas Extractor Logic ---
     private void pushManaToPipes(Level level) {
         EssenceType typeToPush = null;
         int maxMana = 0;
 
+        // Find the most abundant mana type
         for (Map.Entry<EssenceType, Integer> entry : this.manaPool.entrySet()) {
             if (entry.getValue() > maxMana) {
                 maxMana = entry.getValue();
@@ -201,30 +177,54 @@ public class EntropicCoreBlockEntity extends BlockEntity {
 
         int amountLeftToPush = Math.min(maxMana, EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
 
+        // Gather all UNIQUE fume handlers attached to the top of all plumes
+        Set<IFumeHandler> handlersSet = new HashSet<>();
         for (BlockPos plumePos : this.connectedPlumes) {
-            if (amountLeftToPush <= 0) break;
-
             if (level.getBlockState(plumePos).is(ModBlocks.MANA_PLUME.get())) {
-                for (Direction dir : Direction.values()) {
-                    if (amountLeftToPush <= 0) break;
+                BlockPos targetPos = plumePos.above(); // Only check directly above
+                BlockEntity targetBE = level.getBlockEntity(targetPos);
 
-                    BlockPos targetPos = plumePos.relative(dir);
-                    BlockEntity targetBE = level.getBlockEntity(targetPos);
-
-                    if (targetBE instanceof IFumeHandler handler) {
-                        VisFumeStack pushStack = new VisFumeStack(typeToPush, amountLeftToPush);
-
-                        int accepted = handler.fill(pushStack, false);
-
-                        if (accepted > 0) {
-                            this.extractMana(typeToPush, accepted);
-                            amountLeftToPush -= accepted;
-                            this.setChanged();
-                        }
-                    }
+                if (targetBE instanceof IFumeHandler handler && !(targetBE instanceof ManaPlumeBlockEntity) && !(targetBE instanceof EntropicCoreBlockEntity)) {
+                    handlersSet.add(handler);
                 }
             }
         }
+
+        List<IFumeHandler> validHandlers = new ArrayList<>(handlersSet);
+
+        // Iteratively distribute the mana evenly across all valid handlers
+        boolean pushedAny;
+        do {
+            pushedAny = false;
+            if (validHandlers.isEmpty() || amountLeftToPush <= 0) break;
+
+            int splitAmount = amountLeftToPush / validHandlers.size();
+            int remainder = amountLeftToPush % validHandlers.size();
+
+            Iterator<IFumeHandler> it = validHandlers.iterator();
+            while (it.hasNext()) {
+                IFumeHandler handler = it.next();
+
+                int amountToTry = splitAmount + (remainder > 0 ? 1 : 0);
+                if (amountToTry == 0) amountToTry = 1;
+
+                amountToTry = Math.min(amountToTry, amountLeftToPush);
+
+                VisFumeStack pushStack = new VisFumeStack(typeToPush, amountToTry);
+                int accepted = handler.fill(pushStack, false);
+
+                if (accepted > 0) {
+                    this.extractMana(typeToPush, accepted);
+                    amountLeftToPush -= accepted;
+                    if (remainder > 0) remainder--;
+                    pushedAny = true;
+                } else {
+                    it.remove();
+                }
+
+                if (amountLeftToPush <= 0) break;
+            }
+        } while (pushedAny && amountLeftToPush > 0);
     }
 
     private void processSharedBuffer() {
@@ -354,6 +354,7 @@ public class EntropicCoreBlockEntity extends BlockEntity {
 
     private boolean checkMultiblock() {
         if (this.level == null) return false;
+
         Set<BlockPos> visited = new HashSet<>();
         Queue<BlockPos> toVisit = new LinkedList<>();
         toVisit.add(this.worldPosition);
@@ -381,7 +382,7 @@ public class EntropicCoreBlockEntity extends BlockEntity {
                     toVisit.add(neighbor);
                 }
             }
-            if (visited.size() > 128) break;
+            if (visited.size() > 256) break;
         }
 
         foundCores.sort(Comparator.comparingLong(BlockPos::asLong));
@@ -389,18 +390,57 @@ public class EntropicCoreBlockEntity extends BlockEntity {
 
         String error = "Structure is valid.";
         boolean formed = true;
+
         if (foundCores.isEmpty()) {
             error = "No Entropic Cores found.";
             formed = false;
         } else if (foundPlumes.size() < foundCores.size()) {
             error = "Missing Mana Plumes (Need " + foundCores.size() + ")";
             formed = false;
-        } else if (foundHatches.size() < foundCores.size()) {
-            error = "Missing Furnace Hatches";
+        } else if (foundHatches.isEmpty()) {
+            error = "Missing Furnace Hatch (At least 1 required)";
             formed = false;
-        } else if (foundReceptacles.size() < foundCores.size()) {
-            error = "Missing Essence Receptacles";
+        } else if (foundReceptacles.isEmpty()) {
+            error = "Missing Essence Receptacle (At least 1 required)";
             formed = false;
+        }
+
+        if (formed) {
+            coreValidationLoop:
+            for (BlockPos corePos : foundCores) {
+                if (!isFurnaceComponent(level.getBlockState(corePos.above()).getBlock())) {
+                    error = "Missing valid furnace component directly above the Entropic Core.";
+                    formed = false;
+                    break;
+                }
+
+                Direction[] surroundingDirs = {Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+                for (Direction dir : surroundingDirs) {
+                    Block neighbor = level.getBlockState(corePos.relative(dir)).getBlock();
+                    if (neighbor != ModBlocks.ARCANE_PLATING.get() &&
+                            neighbor != ModBlocks.ARCANE_BRICK.get() &&
+                            neighbor != ModBlocks.FURNACE_HATCH.get()) {
+                        error = "Core must be directly surrounded by Arcane Plating, Bricks, or Hatches.";
+                        formed = false;
+                        break coreValidationLoop;
+                    }
+                }
+
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        if (level.getBlockState(corePos.offset(dx, 0, dz)).isAir()) {
+                            error = "Layer 2 (Core layer) cannot contain air directly around the core.";
+                            formed = false;
+                            break coreValidationLoop;
+                        }
+                        if (level.getBlockState(corePos.offset(dx, -1, dz)).isAir()) {
+                            error = "Layer 1 (Bottom layer) cannot contain air directly below the core.";
+                            formed = false;
+                            break coreValidationLoop;
+                        }
+                    }
+                }
+            }
         }
 
         for (BlockPos corePos : foundCores) {
@@ -414,7 +454,6 @@ public class EntropicCoreBlockEntity extends BlockEntity {
                     core.catalystCount = catalysts;
                     if (core.renderHatchPos == null && !foundHatches.isEmpty()) core.renderHatchPos = foundHatches.get(0);
 
-                    // --- NEW: Plume Cache Storage ---
                     core.connectedPlumes.clear();
                     core.connectedPlumes.addAll(foundPlumes);
                 }
@@ -657,6 +696,8 @@ public class EntropicCoreBlockEntity extends BlockEntity {
                             sharedReceptacleBuffer.setItem(index, new ItemStack(holder, count))
                     );
                 }
+            } else {
+                sharedReceptacleBuffer.setItem(i, ItemStack.EMPTY);
             }
         }
     }

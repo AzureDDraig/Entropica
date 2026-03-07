@@ -6,15 +6,29 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class ManaPlumeBlock extends BaseEntityBlock {
     public static final MapCodec<ManaPlumeBlock> CODEC = simpleCodec(ManaPlumeBlock::new);
+
+    // Combined VoxelShape generated perfectly from your Blockbench elements
+    private static final VoxelShape SHAPE = Shapes.or(
+            Block.box(0, 0, 0, 16, 3, 16),   // Base layer
+            Block.box(2, 3, 2, 14, 5, 14),   // Second layer
+            Block.box(4, 5, 4, 12, 7, 12),   // Third layer
+            Block.box(6, 7, 6, 10, 10, 10),  // Stem
+            Block.box(5, 10, 5, 11, 16, 11)  // Top crystal/plume
+    );
 
     public ManaPlumeBlock(Properties properties) {
         super(properties);
@@ -23,6 +37,12 @@ public class ManaPlumeBlock extends BaseEntityBlock {
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
+    }
+
+    // Applies the custom hitbox
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPE;
     }
 
     @Override

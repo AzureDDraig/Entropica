@@ -1,12 +1,12 @@
 ﻿{
     "type":  "entropica:fusion",
     "inputs":  {
-                   "void":  16,
-                   "lightning":  16
+                   "void":  21,
+                   "lightning":  11
                },
     "success":  "astral",
     "failure":  "regular",
     "chance":  0.75,
-    "yield":  2,
+    "yield":  8,
     "requires_catalyst":  false
 }

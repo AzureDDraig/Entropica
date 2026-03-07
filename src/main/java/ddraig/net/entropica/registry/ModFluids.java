@@ -29,17 +29,27 @@ public class ModFluids {
                     .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY)
                     .sound(SoundActions.FLUID_VAPORIZE, SoundEvents.FIRE_EXTINGUISH)));
 
-    // Change Supplier<Fluid> to Supplier<FlowingFluid>
-    public static final Supplier<FlowingFluid> DILUTED_ESSENCE_FLUID = FLUIDS.register("diluted_essence_fluid",
-            () -> new BaseFlowingFluid.Source(ModFluids.DILUTED_ESSENCE_PROPERTIES));
+    // --- LAZY INITIALIZATION FIX ---
+    // These hold the raw instances so ModBlocks can access them before the fluid registry fires!
+    private static FlowingFluid SOURCE_INSTANCE;
+    private static FlowingFluid FLOWING_INSTANCE;
 
-    public static final Supplier<FlowingFluid> DILUTED_ESSENCE_FLUID_FLOWING = FLUIDS.register("flowing_diluted_essence_fluid",
-            () -> new BaseFlowingFluid.Flowing(ModFluids.DILUTED_ESSENCE_PROPERTIES));
+    public static FlowingFluid getSource() {
+        if (SOURCE_INSTANCE == null) SOURCE_INSTANCE = new BaseFlowingFluid.Source(DILUTED_ESSENCE_PROPERTIES);
+        return SOURCE_INSTANCE;
+    }
+
+    public static FlowingFluid getFlowing() {
+        if (FLOWING_INSTANCE == null) FLOWING_INSTANCE = new BaseFlowingFluid.Flowing(DILUTED_ESSENCE_PROPERTIES);
+        return FLOWING_INSTANCE;
+    }
+
+    public static final Supplier<FlowingFluid> DILUTED_ESSENCE_FLUID = FLUIDS.register("diluted_essence_fluid", ModFluids::getSource);
+    public static final Supplier<FlowingFluid> DILUTED_ESSENCE_FLUID_FLOWING = FLUIDS.register("flowing_diluted_essence_fluid", ModFluids::getFlowing);
 
     public static final BaseFlowingFluid.Properties DILUTED_ESSENCE_PROPERTIES = new BaseFlowingFluid.Properties(
-            DILUTED_ESSENCE_FLUID_TYPE, DILUTED_ESSENCE_FLUID, DILUTED_ESSENCE_FLUID_FLOWING)
+            DILUTED_ESSENCE_FLUID_TYPE, ModFluids::getSource, ModFluids::getFlowing)
             .slopeFindDistance(2)
             .levelDecreasePerBlock(1)
-            .block(ModBlocks.DILUTED_ESSENCE_FLUID_BLOCK)
-            .bucket(ModItems.DILUTED_ESSENCE_BUCKET);
+            .block(ModBlocks.DILUTED_ESSENCE_FLUID_BLOCK);
 }

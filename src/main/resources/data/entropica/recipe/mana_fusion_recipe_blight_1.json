@@ -1,12 +1,12 @@
 ﻿{
     "type":  "entropica:fusion",
     "inputs":  {
-                   "undead":  16,
-                   "nature":  16
+                   "undead":  20,
+                   "nature":  9
                },
     "success":  "blight",
     "failure":  "regular",
     "chance":  0.75,
-    "yield":  2,
+    "yield":  8,
     "requires_catalyst":  false
 }

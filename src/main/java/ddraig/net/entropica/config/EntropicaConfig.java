@@ -36,6 +36,10 @@ public class EntropicaConfig {
     // Vis Fume Pressure Chamber Configs
     public static final ModConfigSpec.DoubleValue CHAMBER_PARTICLE_DENSITY;
 
+    // Diluted Essence Configs
+    public static final ModConfigSpec.IntValue DILUTED_ESSENCE_BATCH_LIMIT;
+    public static final ModConfigSpec.IntValue DILUTED_ESSENCE_MAX_CHARGE;
+
     static {
         // --- BASE MANA FURNACE SETTINGS ---
         BUILDER.push("mana_furnace_settings");
@@ -134,6 +138,19 @@ public class EntropicaConfig {
         CHAMBER_PARTICLE_DENSITY = BUILDER.comment("(COSMETIC) Multiplier for the amount of gas particles inside the Pressure Chamber. 0.0 turns them off. (Default: 1.0)")
                 .translation("entropica.configuration.vis_fume_pressure_chamber_settings.chamberParticleDensity")
                 .defineInRange("chamberParticleDensity", 1.0, 0.0, 10.0);
+
+        BUILDER.pop();
+
+        // --- NEW: DILUTED ESSENCE FLUID SETTINGS ---
+        BUILDER.push("diluted_essence_fluid_settings");
+
+        DILUTED_ESSENCE_BATCH_LIMIT = BUILDER.comment("The maximum number of items the Diluted Essence fluid can process at one time. (Default: 4)")
+                .translation("entropica.configuration.diluted_essence_settings.batchLimit")
+                .defineInRange("dilutedEssenceBatchLimit", 4, 1, 16);
+
+        DILUTED_ESSENCE_MAX_CHARGE = BUILDER.comment("The maximum amount of charge a Diluted Essence fluid block can hold. (Default: 32)")
+                .translation("entropica.configuration.diluted_essence_settings.maxCharge")
+                .defineInRange("dilutedEssenceMaxCharge", 32, 1, 128);
 
         BUILDER.pop();
 

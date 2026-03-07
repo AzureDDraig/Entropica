@@ -1,12 +1,12 @@
 ﻿{
     "type":  "entropica:fusion",
     "inputs":  {
-                   "water":  16,
-                   "nether":  16
+                   "water":  22,
+                   "nether":  12
                },
     "success":  "vapor",
     "failure":  "regular",
     "chance":  0.75,
-    "yield":  2,
+    "yield":  8,
     "requires_catalyst":  false
 }

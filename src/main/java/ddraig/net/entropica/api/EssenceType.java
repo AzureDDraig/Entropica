@@ -40,10 +40,15 @@ public enum EssenceType implements StringRepresentable {
     GLACIAL(new int[][]{{152, 220, 242}}),
     OVERGROWTH(new int[][]{{26, 89, 35}}),
     DUST(new int[][]{{194, 178, 143}}),
+    SPORE(new int[][]{{26, 89, 35}, {168, 134, 84}}),
+    TAIGA(new int[][]{{26, 89, 35}, {152, 220, 242}}),
+    OASIS(new int[][]{{26, 89, 35}, {194, 178, 143}}),
 
     // Vital Fusions
     VITAE(new int[][]{{255, 107, 157}}),
     BLOOD(new int[][]{{138, 3, 3}}),
+    AURA(new int[][]{{255, 107, 157}, {168, 134, 84}}),
+    AMBER(new int[][]{{255, 107, 157}, {119, 50, 20}}),
 
     // Ethereal & Paradox Fusions
     ECLIPSE(new int[][]{{255, 234, 120}, {33, 26, 33}}),
@@ -51,7 +56,15 @@ public enum EssenceType implements StringRepresentable {
     ASTRAL(new int[][]{{65, 48, 78}, {255, 230, 0}}),
     SOULFIRE(new int[][]{{119, 50, 20}, {77, 100, 83}}),
     VAPOR(new int[][]{{34, 92, 124}, {119, 50, 20}}),
-    NULL(new int[][]{{255, 234, 120}, {65, 48, 78}}),
+    NULL_R(new int[][]{{255, 234, 120}, {65, 48, 78}}),
+    NULL_U(new int[][]{{65, 48, 78}, {33, 26, 33}}),
+    DAWN(new int[][]{{255, 234, 120}, {168, 134, 84}}),
+    ABYSS(new int[][]{{33, 26, 33}, {34, 92, 124}}),
+    AEGIS(new int[][]{{255, 234, 120}, {119, 50, 20}}),
+    AURORA(new int[][]{{255, 234, 120}, {152, 220, 242}}),
+    MIRAGE(new int[][]{{255, 234, 120}, {194, 178, 143}}),
+    WRAITH(new int[][]{{65, 48, 78}, {77, 100, 83}}),
+    BARROW(new int[][]{{119, 50, 20}, {77, 100, 83}}),
 
     // Trinity Fusions
     PYRE(new int[][]{{119, 50, 20}, {255, 69, 0}}),
@@ -59,6 +72,10 @@ public enum EssenceType implements StringRepresentable {
     RIME(new int[][]{{99, 149, 177}, {220, 240, 255}}),
     SPRING(new int[][]{{255, 107, 157}, {100, 200, 255}}),
     STATIC(new int[][]{{255, 230, 0}, {135, 141, 162}}),
+    SYLVAN(new int[][]{{26, 89, 35}, {119, 50, 20}, {255, 234, 120}}),
+    MIASMA(new int[][]{{26, 89, 35}, {77, 100, 83}, {34, 92, 124}}),
+    GENESIS(new int[][]{{255, 107, 157}, {255, 234, 120}, {34, 92, 124}}),
+    OBLIVION(new int[][]{{184, 60, 8}, {33, 26, 33}, {77, 100, 83}}),
 
     // Quaternary Fusions
     AETHER(new int[][]{{168, 134, 84}, {119, 50, 20}, {34, 92, 124}, {184, 60, 8}}),
@@ -74,11 +91,11 @@ public enum EssenceType implements StringRepresentable {
     COHESION(new int[][]{{200, 200, 200}}),
     IGNIS(new int[][]{{184, 60, 8}}),
     FERVOR(new int[][]{{255, 100, 0}}),
-    OBLIVION(new int[][]{{0, 0, 0}}),
     VACUUM(new int[][]{{50, 50, 50}}),
     GROWTH(new int[][]{{26, 89, 35}}),
     PRIMAL(new int[][]{{50, 120, 50}}),
     SILENCE(new int[][]{{33, 26, 33}}),
+    OBLIVIATE(new int[][]{{0,0,0}}),
     SHADOW(new int[][]{{10, 10, 20}}),
     CONCEALMENT(new int[][]{{40, 40, 40}}),
     MEMORY(new int[][]{{77, 100, 83}}),
@@ -156,23 +173,23 @@ public enum EssenceType implements StringRepresentable {
     public String getColorCode() {
         return switch (this) {
             // Pinks / Magentas
-            case REGULAR, VITAE, SPRING -> "§d";
+            case REGULAR, VITAE, SPRING, AURA, GENESIS -> "§d";
             // Yellows
-            case AIR, STATIC, LIGHTNING, ETHER, KINETIC, VOLT -> "§e";
+            case AIR, STATIC, LIGHTNING, ETHER, KINETIC, VOLT, DAWN -> "§e";
             // Aquas / Cyans
-            case WATER, FROZEN, GLACIAL, STORM, FLOW, STASIS -> "§b";
+            case WATER, FROZEN, GLACIAL, STORM, FLOW, STASIS, TAIGA, AURORA -> "§b";
             // Greens
-            case NATURE, OVERGROWTH, GROWTH, MEMORY, ECTO -> "§a";
+            case NATURE, OVERGROWTH, GROWTH, MEMORY, ECTO, SPORE, OASIS, SYLVAN -> "§a";
             // Dark Greens
-            case UNDEAD, BLIGHT, SOULFIRE, PRIMAL -> "§2";
+            case UNDEAD, BLIGHT, SOULFIRE, PRIMAL, BARROW, MIASMA -> "§2";
             // Golds / Oranges
-            case EARTH, ARID, DUST, GRAVITY, FERVOR, HEAT -> "§6";
+            case EARTH, ARID, DUST, GRAVITY, FERVOR, HEAT, AEGIS, MIRAGE, AMBER -> "§6";
             // Reds
             case NETHER, MAGMA, BLOOD, PYRE, IGNIS -> "§c";
             // Whites / Light Grays
             case RADIANT, CELESTIAL, COHESION, FROST -> "§f";
             // Dark Grays / Blacks
-            case UMBRAL, VOID, ENTROPIC, ECLIPSE, DENSITY, OBLIVION, VACUUM, SILENCE, SHADOW, CONCEALMENT, DESOLATION -> "§8";
+            case UMBRAL, VOID, ENTROPIC, ECLIPSE, DENSITY, OBLIVION, VACUUM, SILENCE, SHADOW, CONCEALMENT, DESOLATION, ABYSS, WRAITH -> "§8";
             // Purples
             case ASTRAL, PENUMBRA, AETHER, AXIOM, ECHO, CHRONOS, SINGULARITY, PHOTON -> "§5";
             default -> "§r";

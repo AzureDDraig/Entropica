@@ -13,26 +13,10 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Represents a block that displays essence-related information in the world. This block is capable of interfacing with
- * essence systems and related mechanics, typically via a connected block entity. Its facing direction can be adjusted
- * based on its placement in the world.
- *
- * Key Features:
- * - Supports directional placement, determined by the player's facing direction when the block is placed.
- * - Associates with an EssenceReadoutBlockEntity, which manages the logic and state related to essence visualization.
- * - Implements BlockState properties, allowing interaction with block-specific states like facing direction.
- *
- * Constructor:
- * - Initializes the block with its properties and sets a default facing direction.
- *
- * Methods:
- * - createBlockStateDefinition: Registers the block's state properties to enable dynamic configuration.
- * - getStateForPlacement: Determines the block's initial state based on the placement context, including its facing direction.
- * - newBlockEntity: Generates a new instance of EssenceReadoutBlockEntity to manage the block's backend logic and state.
- */
 public class EssenceReadoutBlock extends Block implements EntityBlock {
-    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+
+    // CHANGED: Upgraded from HORIZONTAL_FACING to full 6-axis FACING
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
     public EssenceReadoutBlock(Properties properties) {
         super(properties);
@@ -47,7 +31,8 @@ public class EssenceReadoutBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        // CHANGED: Uses 3D looking direction instead of just horizontal
+        return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
     }
 
     @Nullable

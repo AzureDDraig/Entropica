@@ -156,14 +156,19 @@ public class VisFumePipeBlock extends Block implements SimpleWaterloggedBlock, E
             return true;
         }
 
+        // CHANGED: Specific direction check for the Mana Plume.
+        // The pipe must be pointing DOWN into the plume for it to connect.
+        if (neighborState.is(ModBlocks.MANA_PLUME.get())) {
+            return dirToNeighbor == Direction.DOWN;
+        }
+
         // Connect to machines capable of pushing/pulling fumes
-        return neighborState.is(ModBlocks.MANA_PLUME.get())
-                || neighborState.is(ModBlocks.MANA_FILTER.get())
+        return neighborState.is(ModBlocks.MANA_FILTER.get())
                 || neighborState.is(ModBlocks.MANA_FURNACE.get()) // The standalone furnace
                 || neighborState.is(ModBlocks.VIS_VITAE_CONDENSER.get())
                 || neighborState.is(ModBlocks.ENTROPIC_CORE.get())
                 || neighborState.is(ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get())
-                || neighborState.is(ModBlocks.VIS_FUME_VESSEL_PORT.get() );
+                || neighborState.is(ModBlocks.VIS_FUME_VESSEL_PORT.get());
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

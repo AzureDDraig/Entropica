@@ -1,12 +1,12 @@
 ﻿{
     "type":  "entropica:fusion",
     "inputs":  {
-                   "radiant":  16,
-                   "umbral":  16
+                   "radiant":  10,
+                   "umbral":  22
                },
     "success":  "eclipse",
     "failure":  "regular",
     "chance":  0.75,
-    "yield":  2,
+    "yield":  8,
     "requires_catalyst":  false
 }

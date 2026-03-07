@@ -10,9 +10,11 @@ import ddraig.net.entropica.item.ManaAmpouleItem;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModEntityTypes;
+import ddraig.net.entropica.registry.ModFluids; // NEW
 import ddraig.net.entropica.block.entity.CreativeVisFumeGeneratorBlockEntity;
 import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
-
+import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity; // NEW
+import ddraig.net.entropica.Entropica;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
@@ -23,7 +25,13 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+// NEW CLIENT EXTENSION IMPORTS
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
+import net.minecraft.core.BlockPos; // NEW
+import net.minecraft.world.level.BlockAndTintGetter; // NEW
+import net.minecraft.world.level.material.FluidState; // NEW
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
@@ -50,8 +58,6 @@ public class ModClientEvents {
         event.register(DEBUG_KEY);
     }
 
-    // Note: Key input usually needs to be on the FORGE bus, not the MOD bus,
-    // but leaving it here as it was in your original file.
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         if (DEBUG_KEY.consumeClick()) {
@@ -123,6 +129,50 @@ public class ModClientEvents {
                 ModBlocks.ESSENCE_ENRICHED_GLASS.get());
     }
 
+    // =========================================================
+    // --- CUSTOM FLUID TEXTURES & DYNAMIC TINTING ---
+    // =========================================================
+    @SubscribeEvent
+    public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerFluidType(new IClientFluidTypeExtensions() {
+
+            // CHANGED: Now pointing to your mod's custom textures!
+            private static final ResourceLocation STILL = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "block/diluted_essence_still");
+            private static final ResourceLocation FLOW = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "block/diluted_essence_flow");
+
+            @Override
+            public ResourceLocation getStillTexture() { return STILL; }
+            @Override
+            public ResourceLocation getFlowingTexture() { return FLOW; }
+
+            @Override
+            public int getTintColor(FluidState state, BlockAndTintGetter getter, BlockPos pos) {
+                if (getter != null && pos != null) {
+                    if (getter.getBlockEntity(pos) instanceof DilutedEssenceFluidBlockEntity be) {
+                        return be.getTintColor();
+                    }
+                    for (int x = -1; x <= 1; x++) {
+                        for (int y = 0; y <= 1; y++) {
+                            for (int z = -1; z <= 1; z++) {
+                                if (getter.getBlockEntity(pos.offset(x, y, z)) instanceof DilutedEssenceFluidBlockEntity be) {
+                                    return be.getTintColor();
+                                }
+                            }
+                        }
+                    }
+                }
+                return 0xFFB200FF;
+            }
+
+            @Override
+            public int getTintColor() {
+                return 0xFFB200FF;
+            }
+
+        }, ModFluids.DILUTED_ESSENCE_FLUID_TYPE.get());
+    }
+    // =========================================================
+
     // --- 1.21.2+ DATA-DRIVEN ITEM TINTING SYSTEM ---
 
     public record AmpouleTint() implements ItemTintSource {
@@ -165,7 +215,6 @@ public class ModClientEvents {
         public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
     }
 
-    // NEW: Glass Item Tint Source
     public record FumeGlassTint() implements ItemTintSource {
         public static final MapCodec<FumeGlassTint> MAP_CODEC = MapCodec.unit(new FumeGlassTint());
 

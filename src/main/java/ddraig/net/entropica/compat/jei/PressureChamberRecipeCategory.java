@@ -28,11 +28,15 @@ public class PressureChamberRecipeCategory implements IRecipeCategory<PressureCh
 
     private final IDrawable background;
     private final IDrawable icon;
+    private final IDrawable slotDrawable; // Stores the vanilla gray slot graphic
 
     public PressureChamberRecipeCategory(IGuiHelper helper) {
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/gui/jei/pressure_chamber.png");
         this.background = helper.createDrawable(texture, 0, 0, 150, 60);
         this.icon = helper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get()));
+
+        // Grab the default vanilla gray slot graphic from JEI
+        this.slotDrawable = helper.getSlotDrawable();
     }
 
     @Override
@@ -69,10 +73,14 @@ public class PressureChamberRecipeCategory implements IRecipeCategory<PressureCh
             inputs.add(copy);
         });
 
+        // Add the gray slot background to the input
         builder.addSlot(RecipeIngredientRole.INPUT, 10, 20)
+                .setBackground(this.slotDrawable, -1, -1)
                 .addItemStacks(inputs);
 
+        // Add the gray slot background to the output
         builder.addSlot(RecipeIngredientRole.OUTPUT, 120, 20)
+                .setBackground(this.slotDrawable, -1, -1)
                 .addItemStacks(List.of(recipe.output()));
     }
 

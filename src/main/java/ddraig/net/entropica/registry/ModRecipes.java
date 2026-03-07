@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.recipe.DilutedEssenceRecipe;
 import ddraig.net.entropica.recipe.FusionRecipe;
 import ddraig.net.entropica.recipe.PressureChamberRecipe;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -21,17 +22,26 @@ public class ModRecipes {
     public static final DeferredRegister<RecipeType<?>> TYPES =
             DeferredRegister.create(BuiltInRegistries.RECIPE_TYPE, "entropica");
 
+    // --- Fusion Recipes ---
     public static final DeferredHolder<RecipeType<?>, RecipeType<FusionRecipe>> FUSION_TYPE =
             TYPES.register("fusion", () -> new RecipeType<>() {});
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<FusionRecipe>> FUSION_SERIALIZER =
             SERIALIZERS.register("fusion", () -> new FusionSerializer());
 
+    // --- Pressure Chamber Recipes ---
     public static final DeferredHolder<RecipeType<?>, RecipeType<PressureChamberRecipe>> PRESSURE_CHAMBER_TYPE =
             TYPES.register("pressure_chamber_enriching", () -> PressureChamberRecipe.Type.INSTANCE);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PressureChamberRecipe>> PRESSURE_CHAMBER_SERIALIZER =
             SERIALIZERS.register("pressure_chamber_enriching", () -> PressureChamberRecipe.Serializer.INSTANCE);
+
+    // --- NEW: Diluted Essence Recipes ---
+    public static final DeferredHolder<RecipeType<?>, RecipeType<DilutedEssenceRecipe>> DILUTED_ESSENCE_FLUID_TYPE =
+            TYPES.register("diluted_essence", () -> new RecipeType<>() {});
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<DilutedEssenceRecipe>> DILUTED_ESSENCE_FLUID_SERIALIZER =
+            SERIALIZERS.register("diluted_essence", DilutedEssenceRecipe.Serializer::new);
 
     public static void register(IEventBus eventBus) {
         SERIALIZERS.register(eventBus);

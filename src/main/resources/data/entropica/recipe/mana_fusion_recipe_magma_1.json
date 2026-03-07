@@ -1,12 +1,12 @@
 ﻿{
     "type":  "entropica:fusion",
     "inputs":  {
-                   "earth":  16,
-                   "nether":  16
+                   "earth":  9,
+                   "nether":  20
                },
     "success":  "magma",
     "failure":  "regular",
     "chance":  0.9,
-    "yield":  2,
+    "yield":  8,
     "requires_catalyst":  false
 }

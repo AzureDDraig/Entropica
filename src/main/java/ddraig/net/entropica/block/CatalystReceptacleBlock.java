@@ -3,6 +3,7 @@ package ddraig.net.entropica.block;
 import com.mojang.serialization.MapCodec;
 import ddraig.net.entropica.block.entity.CatalystReceptacleBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -51,12 +52,13 @@ public class CatalystReceptacleBlock extends BaseEntityBlock {
     }
 
     // Handles Inserting the Catalyst
-    // ItemInteractionResult was removed in 1.21.1 - useItemOn now returns InteractionResult
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (level.getBlockEntity(pos) instanceof CatalystReceptacleBlockEntity be) {
             if (!state.getValue(HAS_CATALYST) && !stack.isEmpty()) {
-                String itemName = stack.getItem().toString().toLowerCase();
+
+                // Safely fetch the item's registry path name instead of relying on toString()
+                String itemName = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().toLowerCase();
 
                 if (itemName.contains("chimera") || itemName.contains("prismatic")) {
                     if (!level.isClientSide()) {
@@ -66,7 +68,6 @@ public class CatalystReceptacleBlock extends BaseEntityBlock {
                         stack.shrink(1);
                         level.setBlock(pos, state.setValue(HAS_CATALYST, true), 3);
                     }
-                    // level.isClientSide is now accessed via isClientSide() method
                     return InteractionResult.SUCCESS;
                 }
             }

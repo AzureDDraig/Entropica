@@ -1,12 +1,12 @@
 ﻿{
     "type":  "entropica:fusion",
     "inputs":  {
-                   "vitae":  16,
-                   "nether":  16
+                   "vitae":  12,
+                   "nether":  19
                },
     "success":  "blood",
     "failure":  "regular",
     "chance":  0.6,
-    "yield":  2,
+    "yield":  8,
     "requires_catalyst":  false
 }
