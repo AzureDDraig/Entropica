@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": { "model": "entropica:block/essence_readout" },
+    "facing=east":  { "model": "entropica:block/essence_readout", "y": 90 },
+    "facing=south": { "model": "entropica:block/essence_readout", "y": 180 },
+    "facing=west":  { "model": "entropica:block/essence_readout", "y": 270 },
+    "facing=up":    { "model": "entropica:block/essence_readout", "x": -90 },
+    "facing=down":  { "model": "entropica:block/essence_readout", "x": 90 }
+  }
+}
