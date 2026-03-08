@@ -2,9 +2,9 @@
 	"format_version": "1.21.6",
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "item/aetheric_monocle",
+		"0": "entropica:item/aetheric_monocle",
 		"1": "entropica:block/glass_vis_fragment_lattice",
-		"particle": "block/aetheric_monocle"
+		"particle": "entropica:item/aetheric_monocle"
 	},
 	"elements": [
 		{

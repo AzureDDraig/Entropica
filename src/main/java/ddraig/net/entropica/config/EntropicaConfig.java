@@ -41,6 +41,16 @@ public class EntropicaConfig {
     public static final ModConfigSpec.IntValue DILUTED_ESSENCE_BATCH_LIMIT;
     public static final ModConfigSpec.IntValue DILUTED_ESSENCE_MAX_CHARGE;
 
+    // Essence Node Configs
+    public static final ModConfigSpec.BooleanValue NODE_LIFETIME_ENABLED;
+    public static final ModConfigSpec.IntValue NODE_LIFETIME_TICKS;
+    public static final ModConfigSpec.BooleanValue NODE_RESPAWN_ENABLED;
+    public static final ModConfigSpec.IntValue NODE_MIN_CAPACITY;
+    public static final ModConfigSpec.IntValue NODE_MAX_CAPACITY;
+    public static final ModConfigSpec.BooleanValue NODE_INFINITE_CAPACITY;
+    public static final ModConfigSpec.IntValue NODE_SPAWN_SPACING;
+    public static final ModConfigSpec.IntValue NODE_MAX_PER_AREA;
+
     static {
         // --- BASE MANA FURNACE SETTINGS ---
         BUILDER.push("mana_furnace_settings");
@@ -156,6 +166,43 @@ public class EntropicaConfig {
         DILUTED_ESSENCE_MAX_CHARGE = BUILDER.comment("The maximum amount of charge a Diluted Essence fluid block can hold. (Default: 32)")
                 .translation("entropica.configuration.diluted_essence_settings.maxCharge")
                 .defineInRange("dilutedEssenceMaxCharge", 32, 1, 128);
+
+        BUILDER.pop();
+
+        // --- ESSENCE NODE SETTINGS ---
+        BUILDER.push("essence_node_settings");
+
+        NODE_LIFETIME_ENABLED = BUILDER.comment("Should natural Essence Nodes fizzle out after a certain amount of time? (Ritual/Artificial ones might bypass this based on your logic)")
+                .translation("entropica.configuration.essence_node_settings.lifetimeEnabled")
+                .define("nodeLifetimeEnabled", true);
+
+        NODE_LIFETIME_TICKS = BUILDER.comment("How long (in ticks) should a natural Essence Node live before fizzling? (Default: 24000 = 1 in-game day)")
+                .translation("entropica.configuration.essence_node_settings.lifetimeTicks")
+                .defineInRange("nodeLifetimeTicks", 24000, 20, Integer.MAX_VALUE);
+
+        NODE_RESPAWN_ENABLED = BUILDER.comment("Should a new Essence Node naturally spawn in the same chunk when an old one fizzles out?")
+                .translation("entropica.configuration.essence_node_settings.respawnEnabled")
+                .define("nodeRespawnEnabled", true);
+
+        NODE_MIN_CAPACITY = BUILDER.comment("Minimum amount of essence a natural node can spawn with.")
+                .translation("entropica.configuration.essence_node_settings.minCapacity")
+                .defineInRange("nodeMinCapacity", 50, 1, Integer.MAX_VALUE);
+
+        NODE_MAX_CAPACITY = BUILDER.comment("Maximum amount of essence a natural node can spawn with.")
+                .translation("entropica.configuration.essence_node_settings.maxCapacity")
+                .defineInRange("nodeMaxCapacity", 500, 1, Integer.MAX_VALUE);
+
+        NODE_INFINITE_CAPACITY = BUILDER.comment("If true, Essence Nodes never run out of essence from extraction.")
+                .translation("entropica.configuration.essence_node_settings.infiniteCapacity")
+                .define("nodeInfiniteCapacity", false);
+
+        NODE_SPAWN_SPACING = BUILDER.comment("Minimum chunk distance between naturally spawning nodes.")
+                .translation("entropica.configuration.essence_node_settings.spawnSpacing")
+                .defineInRange("nodeSpawnSpacing", 6, 1, 100);
+
+        NODE_MAX_PER_AREA = BUILDER.comment("Maximum number of nodes allowed in a 10x10 chunk area.")
+                .translation("entropica.configuration.essence_node_settings.maxPerArea")
+                .defineInRange("nodeMaxPerArea", 10, 1, 100);
 
         BUILDER.pop();
 
