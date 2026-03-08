@@ -134,10 +134,9 @@ public class ModModelProvider extends ModelProvider {
         generateFlatItem(itemModels, ModItems.SHIMMERING_FOCUS.get());
 
         // Skip datagen for Monocle as it has a custom handwritten JSON
-        // Pointing to aetheric_monocle_3d avoids the circular reference loop!
         itemModels.itemModelOutput.accept(
                 ModItems.AETHERIC_MONOCLE.get(),
-                new BlockModelWrapper.Unbaked(ResourceLocation.fromNamespaceAndPath("entropica", "item/aetheric_monocle_3d"), Collections.emptyList())
+                new BlockModelWrapper.Unbaked(ResourceLocation.fromNamespaceAndPath("entropica", "item/custom/aetheric_monocle"), Collections.emptyList())
         );
 
         generateFlatItemWithTexture(itemModels, ModItems.SMALL_AMPOULE_BASE.get(), "small_ampoule");
