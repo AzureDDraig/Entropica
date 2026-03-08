@@ -60,6 +60,11 @@ public class EssenceNodeEntity extends Entity {
     }
 
     @Override
+    public boolean shouldBeSaved() {
+        return true; // Crucial for making sure the node persists through world reloads!
+    }
+
+    @Override
     public void tick() {
         super.tick();
 

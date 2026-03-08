@@ -1,7 +1,7 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/medium_mana_ampoule",
+    "model": "entropica:item/medium_vis_fume_ampoule",
     "tints": [
       {
         "type": "minecraft:constant",
