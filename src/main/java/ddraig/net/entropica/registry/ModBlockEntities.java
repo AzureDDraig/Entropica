@@ -64,6 +64,11 @@ public class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumePressureChamberControllerBlockEntity>> VIS_FUME_PRESSURE_CHAMBER_CONTROLLER_BE = BLOCK_ENTITIES.register("vis_fume_pressure_chamber_controller", () -> new BlockEntityType<>(VisFumePressureChamberControllerBlockEntity::new, ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnrichmentTableBlockEntity>> ENRICHMENT_TABLE_BE = BLOCK_ENTITIES.register("enrichment_table", () -> new BlockEntityType<>(EnrichmentTableBlockEntity::new, ModBlocks.ENRICHMENT_TABLE.get()));
 
+    // --- AETHERIC SYNTHESIZER ---
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AethericSynthesizerBlockEntity>> AETHERIC_SYNTHESIZER_BE =
+            BLOCK_ENTITIES.register("aetheric_synthesizer", () ->
+                    new BlockEntityType<>(AethericSynthesizerBlockEntity::new, ModBlocks.AETHERIC_SYNTHESIZER.get()));
+
     // --- NEW: DILUTED ESSENCE FLUID ---
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DilutedEssenceFluidBlockEntity>> DILUTED_ESSENCE_FLUID_BE =
             BLOCK_ENTITIES.register("diluted_essence_fluid", () ->

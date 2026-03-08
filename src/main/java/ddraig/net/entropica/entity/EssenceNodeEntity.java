@@ -3,22 +3,33 @@ package ddraig.net.entropica.entity;
 import com.mojang.serialization.Codec;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.config.EntropicaConfig;
+import ddraig.net.entropica.item.AethericVisionItem;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.level.BlockEvent;
+
+import java.util.List;
 
 public class EssenceNodeEntity extends Entity {
 
@@ -274,5 +285,43 @@ public class EssenceNodeEntity extends Entity {
         output.store("AgeTicks", Codec.INT, this.ageTicks);
         output.store("IsFizzling", Codec.BOOL, this.isFizzling);
         output.store("FizzleTicks", Codec.INT, this.fizzleTicks);
+    }
+
+    // ==========================================
+    // EVENT LISTENER FOR PLACEMENT PROTECTION
+    // ==========================================
+
+    @EventBusSubscriber(modid = "entropica")
+    public static class NodeProtectionEvents {
+
+        @SubscribeEvent
+        public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
+            // Check if the entity placing the block is a player
+            if (event.getEntity() instanceof Player player) {
+                // Check if they are wearing the Monocle / Goggles
+                if (player.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof AethericVisionItem) {
+
+                    if (event.getLevel() instanceof Level level) {
+                        // Create a bounding box for the block they are trying to place
+                        AABB placementBox = new AABB(event.getPos());
+
+                        // Check if an Essence Node exists in that exact space
+                        List<EssenceNodeEntity> nodes = level.getEntitiesOfClass(EssenceNodeEntity.class, placementBox);
+
+                        if (!nodes.isEmpty()) {
+                            // Cancel the block placement!
+                            event.setCanceled(true);
+
+                            // Send a small message to the action bar (above the hotbar)
+                            if (player instanceof ServerPlayer serverPlayer) {
+                                serverPlayer.displayClientMessage(
+                                        Component.literal("§cThe dense arcane energy repels the block!"), true
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

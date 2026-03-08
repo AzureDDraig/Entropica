@@ -84,6 +84,9 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.MANA_ENRICHED_GLASS_BE.get(), ManaEnrichedGlassRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENRICHMENT_TABLE_BE.get(), EnrichmentTableRenderer::new);
 
+        // Registering the new Synthesizer Renderer
+        event.registerBlockEntityRenderer(ModBlockEntities.AETHERIC_SYNTHESIZER_BE.get(), AethericSynthesizerRenderer::new);
+
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
     }
