@@ -67,6 +67,19 @@ public class EssenceNodeEntity extends Entity {
             return;
         }
 
+        // ==========================================
+        // OBSTRUCTION CHECK
+        // If a block is placed over the node, or a fluid flows into it,
+        // it instantly collapses and respawns somewhere else.
+        // ==========================================
+        if (!this.level().getBlockState(this.blockPosition()).isAir()) {
+            if (!this.isArtificial() && EntropicaConfig.NODE_RESPAWN_ENABLED.get()) {
+                this.respawnInChunk();
+            }
+            this.discard();
+            return;
+        }
+
         if (this.isFizzling) {
             this.fizzleTicks++;
             if (this.fizzleTicks > 40) {
