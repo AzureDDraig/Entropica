@@ -208,4 +208,33 @@ public enum EssenceType implements StringRepresentable {
     public String getFormattedName() {
         return getColorCode() + getDisplayName();
     }
+    public boolean isFragment() {
+        // Captures all conceptual fragments from ETHER through PHOTON
+        return this.ordinal() >= ETHER.ordinal() && this.ordinal() <= PHOTON.ordinal();
+    }
+
+    /**
+     * Calculates the perceived brightness (luminance) of the color.
+     * If the color is too dark to be readable against a standard Minecraft tooltip background,
+     * it safely boosts the brightness while preserving the original hue/tint.
+     */
+    public int getTextColorInt() {
+        int r = getR();
+        int g = getG();
+        int b = getB();
+
+        // Standard perceived luminance formula
+        double luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+
+        // 85 is roughly the brightness of standard Minecraft Dark Gray (§8).
+        // Anything lower than this is extremely hard to read on a tooltip.
+        if (luminance < 85) {
+            int add = (int) (85 - luminance);
+            r = Math.min(255, r + add);
+            g = Math.min(255, g + add);
+            b = Math.min(255, b + add);
+        }
+
+        return (r << 16) | (g << 8) | b;
+    }
 }

@@ -9,17 +9,24 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 
 import java.util.List;
+import java.util.function.Supplier;
 
-public class EssenceAmpouleItem extends Item {
-    private final int tier;
+public class VisFumeAmpouleItem extends Item {
+    private final int capacity;
+    private final Supplier<Item> baseItem;
 
-    public EssenceAmpouleItem(Properties properties, int tier) {
+    public VisFumeAmpouleItem(Properties properties, int capacity, Supplier<Item> baseItem) {
         super(properties);
-        this.tier = tier;
+        this.capacity = capacity;
+        this.baseItem = baseItem;
     }
 
-    public int getTier() {
-        return tier;
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public Item getBaseItem() {
+        return baseItem.get();
     }
 
     public static void setEssenceType(ItemStack stack, EssenceType type) {
@@ -45,14 +52,17 @@ public class EssenceAmpouleItem extends Item {
         if (type != null) {
             tooltipComponents.add(Component.literal("Type: " + type.getDisplayName())
                     .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(type.getTextColorInt())));
+            tooltipComponents.add(Component.literal("§7Contains: §b" + capacity + " Mana"));
+        } else {
+            tooltipComponents.add(Component.literal("Corrupted Mana")
+                    .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(0xFF5555)));
         }
     }
 
     public Component getName(ItemStack stack) {
         EssenceType type = getEssenceType(stack);
         if (type != null) {
-            String tierPrefix = tier == 1 ? "Small " : tier == 2 ? "Medium " : "Large ";
-            return Component.literal(tierPrefix + type.getDisplayName() + " Ampoule")
+            return Component.literal(type.getDisplayName() + " Ampoule")
                     .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(type.getTextColorInt()));
         }
         return super.getName(stack);

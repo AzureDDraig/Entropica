@@ -4,7 +4,7 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.fumes.IFumeHandler;
 import ddraig.net.entropica.api.fumes.VisFumeStack;
 import ddraig.net.entropica.config.EntropicaConfig;
-import ddraig.net.entropica.item.ManaAmpouleItem;
+import ddraig.net.entropica.item.VisFumeAmpouleItem;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModItems;
 import net.minecraft.core.BlockPos;
@@ -138,9 +138,9 @@ public class ManaFilterBlockEntity extends BlockEntity {
             int capacity = handStack.is(ModItems.SMALL_AMPOULE_BASE.get()) ? 4 :
                     handStack.is(ModItems.MEDIUM_AMPOULE_BASE.get()) ? 16 : 64;
 
-            ManaAmpouleItem targetFilledItem = (ManaAmpouleItem) (
-                    (capacity == 4) ? ModItems.SMALL_MANA_AMPOULE.get() :
-                            (capacity == 16) ? ModItems.MEDIUM_MANA_AMPOULE.get() : ModItems.LARGE_MANA_AMPOULE.get());
+            VisFumeAmpouleItem targetFilledItem = (VisFumeAmpouleItem) (
+                    (capacity == 4) ? ModItems.SMALL_VIS_FUME_AMPOULE.get() :
+                            (capacity == 16) ? ModItems.MEDIUM_VIS_FUME_AMPOULE.get() : ModItems.LARGE_VIS_FUME_AMPOULE.get());
 
             int currentMana = master.getManaPool().getOrDefault(this.filterType, 0);
 
@@ -148,7 +148,7 @@ public class ManaFilterBlockEntity extends BlockEntity {
                 master.extractMana(this.filterType, capacity);
 
                 ItemStack filled = new ItemStack(targetFilledItem);
-                ManaAmpouleItem.setEssenceType(filled, this.filterType);
+                VisFumeAmpouleItem.setEssenceType(filled, this.filterType);
 
                 handStack.shrink(1);
                 if (handStack.isEmpty()) {

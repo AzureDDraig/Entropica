@@ -4,6 +4,7 @@
   "itemGroup.entropica.items": "Entropica: Items",
   "itemGroup.entropica.tools": "Entropica: Tools",
   "itemGroup.entropica.weapons": "Entropica: Weapons",
+  "itemGroup.entropica.vis_items": "Entropica: Vis Items",
   "key.entropica.debug": "Entropica Debug",
   "key.categories.entropica": "Entropica",
   "tooltip.entropica.any_fume": "Any Type",
@@ -14,11 +15,13 @@
   "jei.entropica.pressure_chamber.fume_cost": "%s Vis Fume of %s",
   "jei.entropica.pressure_chamber.time": "Processing: %s Ticks",
 
+
   "_comment_enchants": "================ ENCHANTMENTS ================",
   "enchantment.entropica.augment_slot_expansion": "Augment Slot Expansion",
+  "enchantment.entropica.essence_reap": "Essence Reap",
+
 
   "_comment_equipment": "================ TOOLS, WEAPONS & ENCHANTS ================",
-  "enchantment.entropica.essence_reap": "Essence Reap",
   "item.entropica.arcanum_focus": "Arcanum Focus",
   "item.entropica.vis_value_detector": "Vis Value Detector",
   "item.entropica.essence_harvesting_blade": "Essence Harvesting Blade",

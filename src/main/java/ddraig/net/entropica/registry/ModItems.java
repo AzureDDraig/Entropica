@@ -5,7 +5,7 @@ import ddraig.net.entropica.component.VisWeaponState;
 import ddraig.net.entropica.item.EssenceAmpouleItem;
 import ddraig.net.entropica.item.EssenceHarvestingBladeItem;
 import ddraig.net.entropica.item.EssenceItem;
-import ddraig.net.entropica.item.ManaAmpouleItem;
+import ddraig.net.entropica.item.VisFumeAmpouleItem;
 import ddraig.net.entropica.item.OrbisCellItem;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -24,6 +24,11 @@ public class ModItems {
     // --- Standalone Items ---
     public static final DeferredItem<Item> ARCANUM_FOCUS = ITEMS.registerItem("arcanum_focus", Item::new);
     public static final DeferredItem<Item> VIS_VALUE_DETECTOR = ITEMS.registerItem("vis_value_detector", Item::new);
+
+    // --- Aetheric Vision Equipment ---
+    public static final DeferredItem<Item> AETHERIC_MONOCLE = ITEMS.registerItem("aetheric_monocle", properties -> new ddraig.net.entropica.item.AethericVisionItem(
+            properties.stacksTo(1).equippable(net.minecraft.world.entity.EquipmentSlot.HEAD)
+    ));
 
     public static final DeferredItem<Item> ARCANE_BRICK_PIECE = ITEMS.registerItem("arcane_brick_piece", Item::new);
     public static final DeferredItem<Item> ARCANE_PLATE = ITEMS.registerItem("arcane_plate", Item::new);
@@ -74,6 +79,8 @@ public class ModItems {
     // ==========================================
     // DYNAMIC ESSENCE ORBS & ESSENCE AMPOULES
     // ==========================================
+    public static final DeferredItem<EssenceItem> FRAGMENT_ESSENCE = ITEMS.registerItem("fragment_essence", properties -> new EssenceItem(properties, 0));
+
     public static final DeferredItem<EssenceItem> WEAK_ESSENCE = ITEMS.registerItem("weak_essence", properties -> new EssenceItem(properties, 1));
     public static final DeferredItem<EssenceItem> AVERAGE_ESSENCE = ITEMS.registerItem("average_essence", properties -> new EssenceItem(properties, 2));
     public static final DeferredItem<EssenceItem> STRONG_ESSENCE = ITEMS.registerItem("strong_essence", properties -> new EssenceItem(properties, 3));
@@ -111,10 +118,10 @@ public class ModItems {
     public static final DeferredItem<Item> MEDIUM_AMPOULE_BASE = ITEMS.registerItem("medium_ampoule_base", properties -> new Item(properties.stacksTo(64)));
     public static final DeferredItem<Item> LARGE_AMPOULE_BASE = ITEMS.registerItem("large_ampoule_base", properties -> new Item(properties.stacksTo(64)));
 
-    // Mana Ampoules (Filled - Vis Fumes)
-    public static final DeferredItem<ManaAmpouleItem> SMALL_MANA_AMPOULE = ITEMS.registerItem("small_mana_ampoule", properties -> new ManaAmpouleItem(properties.stacksTo(16), 4, SMALL_AMPOULE_BASE));
-    public static final DeferredItem<ManaAmpouleItem> MEDIUM_MANA_AMPOULE = ITEMS.registerItem("medium_mana_ampoule", properties -> new ManaAmpouleItem(properties.stacksTo(16), 16, MEDIUM_AMPOULE_BASE));
-    public static final DeferredItem<ManaAmpouleItem> LARGE_MANA_AMPOULE = ITEMS.registerItem("large_mana_ampoule", properties -> new ManaAmpouleItem(properties.stacksTo(16), 64, LARGE_AMPOULE_BASE));
+    // Vis Fume Ampoules (Filled) - RENAMED FROM MANA_AMPOULE
+    public static final DeferredItem<VisFumeAmpouleItem> SMALL_VIS_FUME_AMPOULE = ITEMS.registerItem("small_vis_fume_ampoule", properties -> new VisFumeAmpouleItem(properties.stacksTo(16), 4, SMALL_AMPOULE_BASE));
+    public static final DeferredItem<VisFumeAmpouleItem> MEDIUM_VIS_FUME_AMPOULE = ITEMS.registerItem("medium_vis_fume_ampoule", properties -> new VisFumeAmpouleItem(properties.stacksTo(16), 16, MEDIUM_AMPOULE_BASE));
+    public static final DeferredItem<VisFumeAmpouleItem> LARGE_VIS_FUME_AMPOULE = ITEMS.registerItem("large_vis_fume_ampoule", properties -> new VisFumeAmpouleItem(properties.stacksTo(16), 64, LARGE_AMPOULE_BASE));
 
     // Vis Fume Network Items
     public static final DeferredItem<BlockItem> VIS_FUME_PIPE_ITEM = ITEMS.registerItem("vis_fume_pipe", properties -> new BlockItem(ModBlocks.VIS_FUME_PIPE.get(), properties));

@@ -4,7 +4,7 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.fumes.IFumeHandler;
 import ddraig.net.entropica.api.fumes.VisFumeStack;
 import ddraig.net.entropica.config.EntropicaConfig;
-import ddraig.net.entropica.item.ManaAmpouleItem;
+import ddraig.net.entropica.item.VisFumeAmpouleItem;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModItems;
@@ -29,7 +29,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -752,9 +751,9 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
             int capacity = (handStack.getItem() == ModItems.SMALL_AMPOULE_BASE.get()) ? 4 :
                     (handStack.getItem() == ModItems.MEDIUM_AMPOULE_BASE.get()) ? 16 : 64;
 
-            ManaAmpouleItem targetFilledItem = (ManaAmpouleItem) (
-                    (capacity == 4) ? ModItems.SMALL_MANA_AMPOULE.get() :
-                            (capacity == 16) ? ModItems.MEDIUM_MANA_AMPOULE.get() : ModItems.LARGE_MANA_AMPOULE.get());
+            VisFumeAmpouleItem targetFilledItem = (VisFumeAmpouleItem) (
+                    (capacity == 4) ? ModItems.SMALL_VIS_FUME_AMPOULE.get() :
+                            (capacity == 16) ? ModItems.MEDIUM_VIS_FUME_AMPOULE.get() : ModItems.LARGE_VIS_FUME_AMPOULE.get());
 
             EssenceType bestType = null;
             int maxFound = -1;
@@ -771,7 +770,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
                 master.setChanged();
 
                 ItemStack filled = new ItemStack(targetFilledItem);
-                ManaAmpouleItem.setEssenceType(filled, bestType);
+                VisFumeAmpouleItem.setEssenceType(filled, bestType);
 
                 handStack.shrink(1);
                 if (handStack.isEmpty()) {
@@ -789,8 +788,8 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
             }
         }
 
-        if (handStack.getItem() instanceof ManaAmpouleItem ampoule) {
-            EssenceType type = ManaAmpouleItem.getEssenceType(handStack);
+        if (handStack.getItem() instanceof VisFumeAmpouleItem ampoule) {
+            EssenceType type = VisFumeAmpouleItem.getEssenceType(handStack);
             if (type == null) return false;
 
             int capacity = ampoule.getCapacity();

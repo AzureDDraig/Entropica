@@ -49,15 +49,22 @@ public class EssenceItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         EssenceType type = getEssenceType(stack);
         if (type != null) {
-            tooltipComponents.add(Component.literal("§7Type: ").append(Component.literal(type.getFormattedName())));
+            tooltipComponents.add(Component.literal("Type: " + type.getDisplayName())
+                    .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(type.getTextColorInt())));
         }
     }
 
     public Component getName(ItemStack stack) {
         EssenceType type = getEssenceType(stack);
         if (type != null) {
-            String tierPrefix = tier == 1 ? "Weak " : tier == 2 ? "Average " : "Strong ";
-            return Component.literal(type.getColorCode() + tierPrefix + type.getDisplayName() + " Essence");
+            if (this.tier == 0) {
+                return Component.literal("Vis Fragment: " + type.getDisplayName())
+                        .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(type.getTextColorInt()));
+            } else {
+                String tierPrefix = tier == 1 ? "Weak " : tier == 2 ? "Average " : "Strong ";
+                return Component.literal(tierPrefix + type.getDisplayName() + " Essence")
+                        .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(type.getTextColorInt()));
+            }
         }
         return super.getName(stack);
     }

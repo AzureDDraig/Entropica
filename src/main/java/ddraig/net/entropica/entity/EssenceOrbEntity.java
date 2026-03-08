@@ -3,11 +3,11 @@ package ddraig.net.entropica.entity;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity;
 import ddraig.net.entropica.config.EntropicaConfig;
+import ddraig.net.entropica.item.EssenceItem;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -50,25 +50,25 @@ public class EssenceOrbEntity extends ItemEntity {
         return switch (tier) {
             case 3 -> 32;
             case 2 -> 8;
-            default -> 2;
+            case 0 -> 1;  // Fragment Yield
+            default -> 2; // Weak Yield
         };
     }
 
-    // --- NEW: Gets an ARGB Hex color based on the type of essence ---
     public int getEssenceColor() {
         return switch (getEssenceType()) {
-            case UNDEAD -> 0xFF2B4A2B;    // Dark Green
-            case WATER -> 0xFF3366FF;     // Blue
-            case CHIMERA -> 0xFF8B4513;   // Brown
-            case ARID -> 0xFFEEDD82;      // Sand/Gold
-            case VOID -> 0xFF220044;      // Deep Purple/Black
-            case AIR -> 0xFFAADDFF;       // Light Blue/Cyan
-            case EARTH -> 0xFF556B2F;     // Earth Green
-            case NATURE -> 0xFF32CD32;    // Bright Green
-            case LIGHTNING -> 0xFFEEEE00; // Yellow
-            case RADIANT -> 0xFFFFFFCC;   // Bright White
-            case UMBRAL -> 0xFF1A1A1A;    // Near Black
-            default -> 0xFFB200FF;        // Magic Purple
+            case UNDEAD -> 0xFF2B4A2B;
+            case WATER -> 0xFF3366FF;
+            case CHIMERA -> 0xFF8B4513;
+            case ARID -> 0xFFEEDD82;
+            case VOID -> 0xFF220044;
+            case AIR -> 0xFFAADDFF;
+            case EARTH -> 0xFF556B2F;
+            case NATURE -> 0xFF32CD32;
+            case LIGHTNING -> 0xFFEEEE00;
+            case RADIANT -> 0xFFFFFFCC;
+            case UMBRAL -> 0xFF1A1A1A;
+            default -> 0xFFB200FF;
         };
     }
 
@@ -141,7 +141,6 @@ public class EssenceOrbEntity extends ItemEntity {
                 BlockState targetState = this.level().getBlockState(pos);
                 EssenceType type = this.getEssenceType();
 
-                // --- SCENARIO 1: RECHARGING AN EXISTING POOL ---
                 if (targetState.is(ModBlocks.DILUTED_ESSENCE_FLUID_BLOCK.get()) && targetState.getFluidState().isSource()) {
                     if (this.level().getBlockEntity(pos) instanceof DilutedEssenceFluidBlockEntity be) {
 
@@ -154,7 +153,7 @@ public class EssenceOrbEntity extends ItemEntity {
 
                         if (this.rejectCooldown == 0) {
                             be.addCharge(this.getChargeAmount());
-                            be.setTintColor(this.getEssenceColor()); // Update the pool's color!
+                            be.setTintColor(this.getEssenceColor());
 
                             this.level().playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.0F);
                             if (this.level() instanceof ServerLevel serverLevel) {
@@ -166,7 +165,6 @@ public class EssenceOrbEntity extends ItemEntity {
                     return;
                 }
 
-                // --- SCENARIO 2: CONVERTING PLAIN WATER ---
                 if (targetState.is(Blocks.WATER) && targetState.getFluidState().isSource()) {
                     this.waterTimer++;
 
@@ -221,7 +219,7 @@ public class EssenceOrbEntity extends ItemEntity {
                         if (resultState.is(ModBlocks.DILUTED_ESSENCE_FLUID_BLOCK.get())) {
                             if (this.level().getBlockEntity(pos) instanceof DilutedEssenceFluidBlockEntity be) {
                                 be.addCharge(this.getChargeAmount());
-                                be.setTintColor(this.getEssenceColor()); // Set initial color!
+                                be.setTintColor(this.getEssenceColor());
                             }
                         }
 
@@ -267,18 +265,16 @@ public class EssenceOrbEntity extends ItemEntity {
     }
 
     public int getTier() {
-        String name = BuiltInRegistries.ITEM.getKey(this.getItem().getItem()).getPath();
-        if (name.contains("strong")) return 3;
-        if (name.contains("average")) return 2;
+        if (this.getItem().getItem() instanceof EssenceItem essenceItem) {
+            return essenceItem.getTier();
+        }
         return 1;
     }
 
     public EssenceType getEssenceType() {
-        String name = BuiltInRegistries.ITEM.getKey(this.getItem().getItem()).getPath().toUpperCase();
-        for (EssenceType type : EssenceType.values()) {
-            if (name.contains(type.name())) {
-                return type;
-            }
+        if (this.getItem().getItem() instanceof EssenceItem) {
+            EssenceType type = EssenceItem.getEssenceType(this.getItem());
+            return type != null ? type : EssenceType.REGULAR;
         }
         return EssenceType.REGULAR;
     }

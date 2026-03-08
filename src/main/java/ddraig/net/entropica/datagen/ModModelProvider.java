@@ -31,11 +31,12 @@ public class ModModelProvider extends ModelProvider {
     protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
 
         // ==========================================
-        // BLOCK MODELS - Simple full-cube blocks
+        // BLOCK MODELS
         // ==========================================
         createSimpleBlock(blockModels, ModBlocks.ENTROPIC_ORE.get());
         createSimpleBlock(blockModels, ModBlocks.ARCANE_BRICK.get());
         createSimpleBlock(blockModels, ModBlocks.ARCANE_PLATING.get());
+        createSimpleBlock(blockModels, ModBlocks.ARCANE_CLAY_BLOCK.get());
         createSimpleBlock(blockModels, ModBlocks.MANA_PLUME.get());
         createSimpleBlock(blockModels, ModBlocks.VIS_VITAE_ANCHOR.get());
         createSimpleBlock(blockModels, ModBlocks.VIS_VITAE_CONDENSER.get());
@@ -53,7 +54,7 @@ public class ModModelProvider extends ModelProvider {
         createSimpleBlock(blockModels, ModBlocks.ARCANE_ANVIL.get());
         createSimpleBlock(blockModels, ModBlocks.MANA_EXHAUST.get());
 
-        // Blocks with custom models already in resources
+        // Inform Datagen to skip these blocks as they have manually created JSON files
         blockModels.createNonTemplateModelBlock(ModBlocks.MANA_FURNACE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.SOLAR_POWERED_FURNACE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_AUTO_SMELTER.get());
@@ -63,12 +64,29 @@ public class ModModelProvider extends ModelProvider {
         blockModels.createNonTemplateModelBlock(ModBlocks.ESSENCE_RECEPTACLE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ORBIS_CELL.get());
 
-        // Tell Datagen to look for our handwritten blockstates exactly ONCE!
+        // Vis Fume Network Blocks
         blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_DIVERTER.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_PIPE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_VALVE.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_ONE_WAY_VALVE.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get());
 
-        // Directional blocks with front/side textures
+        // Pressure Vessel & Chamber Blocks
+        blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_VESSEL_CONTROLLER.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_VESSEL_PORT.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.ENRICHMENT_TABLE.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.ARCANE_FORGE_BASE.get());
+
+        // Custom Glass Blocks
+        blockModels.createNonTemplateModelBlock(ModBlocks.ESSENCE_ENRICHED_GLASS.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_STRENGTHENED_GLASS.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.VIS_ICHOR_ENRICHED_GLASS.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.FRAGMENT_LATTICE_GLASS.get());
+
+        // Fluids
+        blockModels.createNonTemplateModelBlock(ModBlocks.DILUTED_ESSENCE_FLUID_BLOCK.get());
+
         createFrontSideBlock(blockModels, ModBlocks.FURNACE_HATCH.get(),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/furnace_hatch"),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/arcane_plating"));
@@ -81,26 +99,14 @@ public class ModModelProvider extends ModelProvider {
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/mana_readout"),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/arcane_plating"));
 
-        // ==========================================
-        // ---> GENERATE 3D MODELS FOR GAS NETWORK <---
-        // ==========================================
-
-        // Generates the base Pipe
         createVisFumePipeModels(blockModels, ModBlocks.VIS_FUME_PIPE.get(), "vis_fume_pipe");
-        // Generates the Open Valve (Updated to match your exact texture name!)
         createVisFumePipeModels(blockModels, ModBlocks.VIS_FUME_VALVE.get(), "vis_fume_valve_open");
-        // Generates the Closed Valve
         createVisFumePipeModels(blockModels, ModBlocks.VIS_FUME_VALVE.get(), "vis_fume_valve_closed");
 
-        // 3D Items for the Gas Network
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_PIPE_ITEM.get(), "vis_fume_pipe_core");
-        // Updated to use the open state for the inventory item!
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_VALVE_ITEM.get(), "vis_fume_valve_open_core");
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_DIVERTER_ITEM.get(), "vis_fume_diverter_closed");
 
-        // ==========================================
-        // SHARED TEMPLATES
-        // ==========================================
         ModelTemplate twoLayerTemplate = new ModelTemplate(
                 Optional.of(ResourceLocation.withDefaultNamespace("item/generated")),
                 Optional.empty(),
@@ -111,124 +117,61 @@ public class ModModelProvider extends ModelProvider {
         // ITEM MODELS - Standalone items
         // ==========================================
         generateFlatItem(itemModels, ModItems.ARCANUM_FOCUS.get());
+        generateFlatItem(itemModels, ModItems.VIS_VALUE_DETECTOR.get());
+        generateFlatItem(itemModels, ModItems.ARCANE_BRICK_PIECE.get());
+        generateFlatItem(itemModels, ModItems.ARCANE_PLATE.get());
+        generateFlatItem(itemModels, ModItems.ARCANE_CLAY.get());
         generateFlatItem(itemModels, ModItems.SMALL_AMPOULE.get());
         generateFlatItem(itemModels, ModItems.MEDIUM_AMPOULE.get());
         generateFlatItem(itemModels, ModItems.LARGE_AMPOULE.get());
+        generateFlatItem(itemModels, ModItems.ESSENCE_HARVESTING_BLADE.get());
         generateFlatItem(itemModels, ModItems.SOULBOUND_BLADE.get());
         generateFlatItem(itemModels, ModItems.OBLIVION_BLADE.get());
+        generateFlatItem(itemModels, ModItems.VOID_SWORD.get());
         generateFlatItem(itemModels, ModItems.TIDAL_TRIDENT.get());
         generateFlatItem(itemModels, ModItems.BASALT_PICKAXE.get());
         generateFlatItem(itemModels, ModItems.WHISPERWOOD_WAND.get());
         generateFlatItem(itemModels, ModItems.SHIMMERING_FOCUS.get());
 
-        // Empty Ampoule Bases
+        // Skip datagen for Monocle as it has a custom handwritten JSON
+        // Pointing to aetheric_monocle_3d avoids the circular reference loop!
+        itemModels.itemModelOutput.accept(
+                ModItems.AETHERIC_MONOCLE.get(),
+                new BlockModelWrapper.Unbaked(ResourceLocation.fromNamespaceAndPath("entropica", "item/aetheric_monocle_3d"), Collections.emptyList())
+        );
+
         generateFlatItemWithTexture(itemModels, ModItems.SMALL_AMPOULE_BASE.get(), "small_ampoule");
         generateFlatItemWithTexture(itemModels, ModItems.MEDIUM_AMPOULE_BASE.get(), "medium_ampoule");
         generateFlatItemWithTexture(itemModels, ModItems.LARGE_AMPOULE_BASE.get(), "large_ampoule");
 
-        // Mana Ampoules (2-layer: glass + gas)
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_MANA_AMPOULE.get(), "small_ampoule", "small_ampoule_gas");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_MANA_AMPOULE.get(), "medium_ampoule", "medium_ampoule_gas");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_MANA_AMPOULE.get(), "large_ampoule", "large_ampoule_gas");
+        // Vis Fume Ampoules
+        createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.SMALL_VIS_FUME_AMPOULE.get(), "small_ampoule", "small_ampoule_gas", new ddraig.net.entropica.client.ModClientEvents.AmpouleTint());
+        createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.MEDIUM_VIS_FUME_AMPOULE.get(), "medium_ampoule", "medium_ampoule_gas", new ddraig.net.entropica.client.ModClientEvents.AmpouleTint());
+        createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.LARGE_VIS_FUME_AMPOULE.get(), "large_ampoule", "large_ampoule_gas", new ddraig.net.entropica.client.ModClientEvents.AmpouleTint());
 
-        // Orbis Cell
         generateFlatItem(itemModels, ModItems.ORBIS_CELL_ITEM.get());
 
         // ==========================================
-        // ESSENCES
+        // DYNAMIC ESSENCES & AMPOULES
         // ==========================================
-        createEssenceItem(itemModels, ModItems.WEAK_UNDEAD_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_WATER_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_NETHER_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_CHIMERA_ESSENCE.get(), "weak", true);
-        createEssenceItem(itemModels, ModItems.WEAK_ARID_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_FROZEN_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_VOID_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_AIR_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_EARTH_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_NATURE_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_LIGHTNING_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_RADIANT_ESSENCE.get(), "weak", false);
-        createEssenceItem(itemModels, ModItems.WEAK_UMBRAL_ESSENCE.get(), "weak", false);
 
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_UNDEAD_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_WATER_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_NETHER_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_CHIMERA_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_ARID_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_FROZEN_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_VOID_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_AIR_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_EARTH_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_NATURE_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_LIGHTNING_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_RADIANT_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.SMALL_UMBRAL_AMPOULE.get(), "small_ampoule", "small_ampoule_essence");
+        // Fragment Orbs (Tier 0)
+        createSingleLayerTintedItem(itemModels, ModItems.FRAGMENT_ESSENCE.get(), "fragment_essence", new ddraig.net.entropica.client.ModClientEvents.EssenceTint());
 
-        createEssenceItem(itemModels, ModItems.AVERAGE_UNDEAD_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_WATER_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_NETHER_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_CHIMERA_ESSENCE.get(), "average", true);
-        createEssenceItem(itemModels, ModItems.AVERAGE_ARID_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_FROZEN_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_VOID_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_AIR_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_EARTH_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_NATURE_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_LIGHTNING_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_RADIANT_ESSENCE.get(), "average", false);
-        createEssenceItem(itemModels, ModItems.AVERAGE_UMBRAL_ESSENCE.get(), "average", false);
+        // Standard Essence Orbs (Tier 1-3)
+        createSingleLayerTintedItem(itemModels, ModItems.WEAK_ESSENCE.get(), "weak_essence", new ddraig.net.entropica.client.ModClientEvents.EssenceTint());
+        createSingleLayerTintedItem(itemModels, ModItems.AVERAGE_ESSENCE.get(), "average_essence", new ddraig.net.entropica.client.ModClientEvents.EssenceTint());
+        createSingleLayerTintedItem(itemModels, ModItems.STRONG_ESSENCE.get(), "strong_essence", new ddraig.net.entropica.client.ModClientEvents.EssenceTint());
 
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_UNDEAD_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_WATER_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_NETHER_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_CHIMERA_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_ARID_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_FROZEN_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_VOID_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_AIR_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_EARTH_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_NATURE_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_LIGHTNING_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_RADIANT_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.MEDIUM_UMBRAL_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence");
-
-        createEssenceItem(itemModels, ModItems.STRONG_UNDEAD_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_WATER_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_NETHER_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_CHIMERA_ESSENCE.get(), "strong", true);
-        createEssenceItem(itemModels, ModItems.STRONG_ARID_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_FROZEN_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_VOID_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_AIR_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_EARTH_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_NATURE_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_LIGHTNING_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_RADIANT_ESSENCE.get(), "strong", false);
-        createEssenceItem(itemModels, ModItems.STRONG_UMBRAL_ESSENCE.get(), "strong", false);
-
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_UNDEAD_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_WATER_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_NETHER_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_CHIMERA_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_ARID_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_FROZEN_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_VOID_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_AIR_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_EARTH_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_NATURE_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_LIGHTNING_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_RADIANT_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
-        createTintedAmpoule(itemModels, twoLayerTemplate, ModItems.LARGE_UMBRAL_AMPOULE.get(), "large_ampoule", "large_ampoule_essence");
+        // Essence Ampoules
+        createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.SMALL_ESSENCE_AMPOULE.get(), "small_ampoule", "small_ampoule_essence", new ddraig.net.entropica.client.ModClientEvents.EssenceTint());
+        createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.MEDIUM_ESSENCE_AMPOULE.get(), "medium_ampoule", "medium_ampoule_essence", new ddraig.net.entropica.client.ModClientEvents.EssenceTint());
+        createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.LARGE_ESSENCE_AMPOULE.get(), "large_ampoule", "large_ampoule_essence", new ddraig.net.entropica.client.ModClientEvents.EssenceTint());
     }
 
-    // ==========================================
-    // BULLETPROOF 3D MODEL GENERATOR (1.21.10)
-    // ==========================================
     private void createVisFumePipeModels(BlockModelGenerators blockModels, Block block, String textureName) {
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath("entropica", "block/" + textureName);
 
-        // 1. Generate 6x6x6 Core Model using the strict 3-parameter signature
         ModelTemplate coreTemplate = new ModelTemplate(Optional.empty(), Optional.empty(), TextureSlot.PARTICLE, TextureSlot.TEXTURE);
         coreTemplate.create(
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/" + textureName + "_core"),
@@ -236,7 +179,6 @@ public class ModModelProvider extends ModelProvider {
                 blockModels.modelOutput
         );
 
-        // 2. Generate Arm Model using the strict 3-parameter signature
         ModelTemplate armTemplate = new ModelTemplate(Optional.empty(), Optional.empty(), TextureSlot.PARTICLE, TextureSlot.TEXTURE);
         armTemplate.create(
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/" + textureName + "_arm"),
@@ -245,9 +187,6 @@ public class ModModelProvider extends ModelProvider {
         );
     }
 
-    // ==========================================
-    // HELPERS
-    // ==========================================
     private void generate3DBlockItem(ItemModelGenerators itemModels, Item item, String blockModelName) {
         ResourceLocation modelLocation = ResourceLocation.fromNamespaceAndPath("entropica", "block/" + blockModelName);
         itemModels.itemModelOutput.accept(
@@ -293,51 +232,31 @@ public class ModModelProvider extends ModelProvider {
         );
     }
 
-    private void createTintedAmpoule(ItemModelGenerators itemModels, ModelTemplate template, Item item,
-                                     String glassTexture, String overlayTexture) {
+    private void createSingleLayerTintedItem(ItemModelGenerators itemModels, Item item, String textureName, net.minecraft.client.color.item.ItemTintSource tint) {
         ResourceLocation modelLocation = ModelLocationUtils.getModelLocation(item);
         TextureMapping mapping = new TextureMapping()
-                .put(TextureSlot.LAYER0, ResourceLocation.fromNamespaceAndPath("entropica", "item/" + glassTexture))
-                .put(TextureSlot.LAYER1, ResourceLocation.fromNamespaceAndPath("entropica", "item/" + overlayTexture));
+                .put(TextureSlot.LAYER0, ResourceLocation.fromNamespaceAndPath("entropica", "item/" + textureName));
+        ModelTemplates.FLAT_ITEM.create(modelLocation, mapping, itemModels.modelOutput);
+
+        itemModels.itemModelOutput.accept(
+                item,
+                new BlockModelWrapper.Unbaked(modelLocation, java.util.List.of(tint))
+        );
+    }
+
+    private void createTwoLayerTintedItem(ItemModelGenerators itemModels, ModelTemplate template, Item item, String layer0Texture, String layer1Texture, net.minecraft.client.color.item.ItemTintSource tintLayer1) {
+        ResourceLocation modelLocation = ModelLocationUtils.getModelLocation(item);
+        TextureMapping mapping = new TextureMapping()
+                .put(TextureSlot.LAYER0, ResourceLocation.fromNamespaceAndPath("entropica", "item/" + layer0Texture))
+                .put(TextureSlot.LAYER1, ResourceLocation.fromNamespaceAndPath("entropica", "item/" + layer1Texture));
         template.create(modelLocation, mapping, itemModels.modelOutput);
 
         itemModels.itemModelOutput.accept(
                 item,
                 new BlockModelWrapper.Unbaked(modelLocation, java.util.List.of(
                         new net.minecraft.client.color.item.Constant(-1),
-                        new ddraig.net.entropica.client.ModClientEvents.AmpouleTint()
+                        tintLayer1
                 ))
         );
-    }
-
-    private void createEssenceItem(ItemModelGenerators itemModels, Item item, String tier, boolean isChimera) {
-        ResourceLocation modelLocation = ModelLocationUtils.getModelLocation(item);
-        String textureName;
-
-        if (isChimera) {
-            String chimeraPrefix = tier.equals("weak") ? "small" : tier.equals("average") ? "medium" : "large";
-            textureName = chimeraPrefix + "_chimera_essence";
-        } else {
-            textureName = tier + "_essence";
-        }
-
-        TextureMapping mapping = new TextureMapping()
-                .put(TextureSlot.LAYER0, ResourceLocation.fromNamespaceAndPath("entropica", "item/" + textureName));
-
-        ModelTemplates.FLAT_ITEM.create(modelLocation, mapping, itemModels.modelOutput);
-
-        if (!isChimera) {
-            itemModels.itemModelOutput.accept(
-                    item,
-                    new BlockModelWrapper.Unbaked(modelLocation, java.util.List.of(
-                            new ddraig.net.entropica.client.ModClientEvents.AmpouleTint()
-                    ))
-            );
-        } else {
-            itemModels.itemModelOutput.accept(
-                    item,
-                    new BlockModelWrapper.Unbaked(modelLocation, Collections.emptyList())
-            );
-        }
     }
 }

@@ -34,7 +34,7 @@ public class EssenceOrbRenderer extends EntityRenderer<EssenceOrbEntity, Essence
         return switch (type) {
             case AIR -> ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/flare_air.png");
             case ARID -> ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/flare_arid.png");
-            case CHIMERA -> ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/flare_chimera.png"); // Added Chimera!
+            case CHIMERA -> ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/flare_chimera.png");
             case EARTH -> ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/flare_earth.png");
             case FROZEN -> ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/flare_frozen.png");
             case LIGHTNING -> ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/flare_lightning.png");
@@ -74,18 +74,25 @@ public class EssenceOrbRenderer extends EntityRenderer<EssenceOrbEntity, Essence
         int tier = state.tier;
         EssenceType type = state.essenceType;
 
-        float rRaw = type.getR() / 255.0F;
-        float gRaw = type.getG() / 255.0F;
-        float bRaw = type.getB() / 255.0F;
+        float rRaw, gRaw, bRaw;
 
-        if (type.name().equals("CHIMERA")) {
+        // 1. Fully Dynamic Rainbow Types (Chimera, Prismatic, Entropica)
+        if (type.isDynamic()) {
             float speed = 0.05f;
             float cycle = (state.time + state.randomOffset) * speed;
             rRaw = (float) (Math.sin(cycle) * 0.5f + 0.5f);
             gRaw = (float) (Math.sin(cycle + 2.094f) * 0.5f + 0.5f); // Offset by 120 degrees
             bRaw = (float) (Math.sin(cycle + 4.188f) * 0.5f + 0.5f); // Offset by 240 degrees
         }
+        // 2. Standard and Fusion Types
+        else {
+            int[] rgb = type.getCurrentRGB(System.currentTimeMillis() / 50);
+            rRaw = rgb[0] / 255.0F;
+            gRaw = rgb[1] / 255.0F;
+            bRaw = rgb[2] / 255.0F;
+        }
 
+        // Normalize colors to keep them bright and emissive
         float maxChannel = Math.max(rRaw, Math.max(gRaw, bRaw));
         final float r = (maxChannel > 0) ? rRaw / maxChannel : 0;
         final float g = (maxChannel > 0) ? gRaw / maxChannel : 0;
@@ -93,11 +100,14 @@ public class EssenceOrbRenderer extends EntityRenderer<EssenceOrbEntity, Essence
 
         float baseScale = 0.2f + (tier * 0.2f);
         poseStack.scale(baseScale, baseScale, baseScale);
+
+        // Inner Core Quad
         collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(ORB_TEXTURE), (pose, consumer) -> {
             Matrix4f matrix4f = pose.pose();
             drawQuad(consumer, matrix4f, r, g, b, 1.0f);
         });
 
+        // White Sparkle Overlay Quad
         poseStack.pushPose();
         poseStack.scale(0.5f, 0.5f, 0.5f);
         poseStack.translate(0.0f, 0.0f, -0.001f);
@@ -107,26 +117,52 @@ public class EssenceOrbRenderer extends EntityRenderer<EssenceOrbEntity, Essence
         });
         poseStack.popPose();
 
+        // Pulsing Flares for Higher Tiers
         if (tier > 1) {
-            float pulseThreshold = (tier == 3) ? 0.2f : 0.8f;
-            float flareAlpha = (float) Math.sin((state.time + state.randomOffset) * 0.1f);
+            float pulseThreshold = (tier >= 3) ? 0.2f : 0.8f;
+            float timeFactor = (state.time + state.randomOffset) * 0.1f;
 
-            if (flareAlpha > pulseThreshold) {
-                flareAlpha = (flareAlpha - pulseThreshold) / (1.0f - pulseThreshold);
+            // --- FIRST FLARE ---
+            float flareAlpha1 = (float) Math.sin(timeFactor);
+            if (flareAlpha1 > pulseThreshold) {
+                float finalFlareAlpha1 = (flareAlpha1 - pulseThreshold) / (1.0f - pulseThreshold);
 
                 poseStack.pushPose();
                 poseStack.translate(0.0f, 0.0f, -0.002f);
                 poseStack.mulPose(Axis.ZP.rotationDegrees(state.time * 2.0f));
                 poseStack.scale(1.5f, 1.5f, 1.5f);
 
-                final float finalFlareAlpha = flareAlpha;
-
                 collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(state.flareTexture), (pose, consumer) -> {
                     Matrix4f flareMatrix = pose.pose();
-                    drawQuad(consumer, flareMatrix, r, g, b, finalFlareAlpha);
+                    drawQuad(consumer, flareMatrix, r, g, b, finalFlareAlpha1);
                 });
 
                 poseStack.popPose();
+            }
+
+            // --- SECOND FLARE (Tiers 5 and 6) ---
+            if (tier >= 5) {
+                // By adding Math.PI (180 degrees), this sine wave is perfectly out-of-phase with the first one.
+                // It fades in exactly as the first one fades out!
+                float flareAlpha2 = (float) Math.sin(timeFactor + Math.PI);
+
+                if (flareAlpha2 > pulseThreshold) {
+                    float finalFlareAlpha2 = (flareAlpha2 - pulseThreshold) / (1.0f - pulseThreshold);
+
+                    poseStack.pushPose();
+                    // Shift slightly further back on the Z axis to prevent Z-fighting with Flare 1
+                    poseStack.translate(0.0f, 0.0f, -0.003f);
+                    // Rotate opposite direction and offset by 45 degrees
+                    poseStack.mulPose(Axis.ZP.rotationDegrees(-state.time * 2.0f + 45.0f));
+                    poseStack.scale(1.5f, 1.5f, 1.5f);
+
+                    collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(state.flareTexture), (pose, consumer) -> {
+                        Matrix4f flareMatrix = pose.pose();
+                        drawQuad(consumer, flareMatrix, r, g, b, finalFlareAlpha2);
+                    });
+
+                    poseStack.popPose();
+                }
             }
         }
 

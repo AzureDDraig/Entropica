@@ -8,7 +8,7 @@ import net.minecraft.client.KeyMapping;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.item.EssenceAmpouleItem;
 import ddraig.net.entropica.item.EssenceItem;
-import ddraig.net.entropica.item.ManaAmpouleItem;
+import ddraig.net.entropica.item.VisFumeAmpouleItem;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModEntityTypes;
@@ -166,10 +166,15 @@ public class ModClientEvents {
         @Override
         public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
             EssenceType type = null;
-            if (stack.getItem() instanceof ManaAmpouleItem) {
-                type = ManaAmpouleItem.getEssenceType(stack);
+            if (stack.getItem() instanceof VisFumeAmpouleItem) {
+                type = VisFumeAmpouleItem.getEssenceType(stack);
             }
-            return type != null ? (0xFF000000 | type.getColorInt()) : 0xFFFFFFFF;
+            if (type != null) {
+                // Dynamically animates the colors for cycling fusions
+                int[] rgb = type.getCurrentRGB(System.currentTimeMillis() / 50);
+                return (0xFF << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+            }
+            return 0xFFFFFFFF;
         }
 
         @Override
@@ -187,7 +192,12 @@ public class ModClientEvents {
             } else if (stack.getItem() instanceof EssenceAmpouleItem) {
                 type = EssenceAmpouleItem.getEssenceType(stack);
             }
-            return type != null ? (0xFF000000 | type.getColorInt()) : 0xFFFFFFFF;
+            if (type != null) {
+                // Dynamically animates the colors for cycling fusions
+                int[] rgb = type.getCurrentRGB(System.currentTimeMillis() / 50);
+                return (0xFF << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+            }
+            return 0xFFFFFFFF;
         }
 
         @Override
@@ -225,7 +235,6 @@ public class ModClientEvents {
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "ampoule_tint"), AmpouleTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "generator_tint"), GeneratorTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "fume_glass_tint"), FumeGlassTint.MAP_CODEC);
-        // Register the new Essence Tint
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "essence_tint"), EssenceTint.MAP_CODEC);
     }
 }

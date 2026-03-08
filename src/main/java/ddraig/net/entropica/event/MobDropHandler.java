@@ -159,10 +159,10 @@ public class MobDropHandler {
     @SubscribeEvent
     public static void onEntityJoin(EntityJoinLevelEvent event) {
         if (event.getLevel().isClientSide()) return;
+
+        // Only apply floating physics to the physical Orbs!
         if (event.getEntity() instanceof ItemEntity itemEntity) {
-            String itemName = itemEntity.getItem().getItem().toString();
-            // Fallback for custom NBT rendering
-            if (itemName.contains("_essence") || itemEntity.getItem().getItem() instanceof ddraig.net.entropica.item.EssenceItem) {
+            if (itemEntity.getItem().getItem() instanceof ddraig.net.entropica.item.EssenceItem) {
                 itemEntity.setNoGravity(true);
                 itemEntity.setInvulnerable(true);
                 itemEntity.setGlowingTag(true);
