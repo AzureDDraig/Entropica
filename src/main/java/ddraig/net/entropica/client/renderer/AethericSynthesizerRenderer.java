@@ -56,8 +56,9 @@ public class AethericSynthesizerRenderer implements BlockEntityRenderer<Aetheric
 
         // 2. Output Item (Changed to FIXED to match inputs)
         ItemStack output = blockEntity.inventory.getItem(25);
-        renderState.hasOutputItem = !output.isEmpty();
-        if (!output.isEmpty()) {
+        // Do not render the item here if the Automator's mechanical hand has grabbed it!
+        renderState.hasOutputItem = !output.isEmpty() && !blockEntity.isOutputBeingGrabbed;
+        if (renderState.hasOutputItem) {
             this.itemModelResolver.updateForTopItem(renderState.outputItem, output, ItemDisplayContext.FIXED, level, null, seed + 25);
         } else {
             renderState.outputItem.clear();

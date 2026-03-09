@@ -35,6 +35,9 @@ public class AethericSynthesizerBlockEntity extends BlockEntity {
     public int maxCraftingProgress = 80; // 4 Seconds
     public ItemStack craftingResult = ItemStack.EMPTY;
 
+    // Transient client state for the Automator hand
+    public boolean isOutputBeingGrabbed = false;
+
     public AethericSynthesizerBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.AETHERIC_SYNTHESIZER_BE.get(), pos, state);
     }

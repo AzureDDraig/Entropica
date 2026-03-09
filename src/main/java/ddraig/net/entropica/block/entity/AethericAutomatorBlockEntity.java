@@ -1,12 +1,10 @@
 package ddraig.net.entropica.block.entity;
 
 import ddraig.net.entropica.registry.ModBlockEntities;
-import ddraig.net.entropica.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -32,8 +30,12 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
     public int state = 0;
     public int actionTimer = 0;
 
+    // Client-side animation tracking for the mechanical hand
+    public int animationTick = 0;
+    private int lastState = 0;
+
     public AethericAutomatorBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.AETHERIC_AUTOMATOR_BE.get(), pos, state); // Make sure to register this!
+        super(ModBlockEntities.AETHERIC_AUTOMATOR_BE.get(), pos, state);
     }
 
     public void saveRecipeFromSynthesizer(Player player) {
@@ -57,17 +59,34 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
+        // Both Client and Server should find the synthesizer if it's missing
+        if (linkedSynthesizer == null) {
+            if (level.getGameTime() % 40 == 0) findSynthesizer();
+        }
+
         if (level.isClientSide()) {
+            // Track state changes to reset the animation tick
+            if (this.state != this.lastState) {
+                this.animationTick = 0;
+                this.lastState = this.state;
+            }
+
+            // Advance animation if it's currently performing an action
             if (this.state == 1 || this.state == 3) {
-                spawnArchParticles();
+                this.animationTick++;
+            } else {
+                this.animationTick = 0; // Hand rests while idle or waiting
+            }
+
+            // Tell the Synthesizer to hide the output item if we are pinching it!
+            if (linkedSynthesizer != null && level.getBlockEntity(linkedSynthesizer) instanceof AethericSynthesizerBlockEntity synth) {
+                // state 3 = PULLING. It pinches at t=0.2f (16 ticks out of 80)
+                synth.isOutputBeingGrabbed = (this.state == 3 && this.animationTick >= 16);
             }
             return;
         }
 
-        if (linkedSynthesizer == null) {
-            if (level.getGameTime() % 40 == 0) findSynthesizer();
-            return;
-        }
+        if (linkedSynthesizer == null) return;
 
         AethericSynthesizerBlockEntity synth = (AethericSynthesizerBlockEntity) level.getBlockEntity(linkedSynthesizer);
         if (synth == null) {
@@ -81,20 +100,21 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
             if (adjInv != null && isPatternSaved() && isSynthesizerEmpty(synth)) {
                 if (hasRequiredItems(adjInv)) {
                     this.state = 1; // Start pushing
-                    this.actionTimer = 40; // 2 seconds of particle streaming
+                    this.actionTimer = 80; // 4 seconds for the hand to reach, grab like dice, and slap
                     sync();
                 }
             }
             // Catch edge case: Finished crafting but state got reset
             if (!synth.inventory.getItem(25).isEmpty() && !synth.isCrafting) {
                 this.state = 3;
-                this.actionTimer = 40;
+                this.actionTimer = 80; // 4 seconds to reach, pinch, and pull the item back
                 sync();
             }
         } else if (this.state == 1) { // PUSHING
             actionTimer--;
             if (actionTimer <= 0) {
                 if (extractRequiredItems(adjInv)) {
+                    // This is the moment the hand "slaps" the table
                     pushItemsToSynthesizer(synth);
                     synth.attemptCrafting();
                 }
@@ -104,7 +124,7 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
         } else if (this.state == 2) { // WAITING FOR CRAFT
             if (!synth.isCrafting && !synth.inventory.getItem(25).isEmpty()) {
                 this.state = 3; // Finished! Start pulling
-                this.actionTimer = 40;
+                this.actionTimer = 80; // 4 seconds to pull the item back
                 sync();
             } else if (!synth.isCrafting && synth.inventory.getItem(25).isEmpty()) {
                 // Craft failed or was manually stolen by player
@@ -130,45 +150,6 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
                     sync();
                 }
             }
-        }
-    }
-
-    private void spawnArchParticles() {
-        if (linkedSynthesizer == null) return;
-
-        // Streams 3 particles per tick for a thick, continuous beam
-        for (int i = 0; i < 3; i++) {
-            float t = (level.getGameTime() % 20 + (i / 3.0f)) / 20.0f;
-
-            // Reverse particle flow when pulling the completed item
-            if (this.state == 3) {
-                t = 1.0f - t;
-            }
-
-            double startX = worldPosition.getX() + 0.5;
-            double startY = worldPosition.getY() + 0.8;
-            double startZ = worldPosition.getZ() + 0.5;
-
-            double endX = linkedSynthesizer.getX() + 0.5;
-            double endY = linkedSynthesizer.getY() + 1.2;
-            double endZ = linkedSynthesizer.getZ() + 0.5;
-
-            // Calculates a parabolic arch between the Automator and Synthesizer
-            double midX = (startX + endX) / 2.0;
-            double midY = Math.max(startY, endY) + 1.5;
-            double midZ = (startZ + endZ) / 2.0;
-
-            double u = 1.0 - t;
-            double px = u * u * startX + 2 * u * t * midX + t * t * endX;
-            double py = u * u * startY + 2 * u * t * midY + t * t * endY;
-            double pz = u * u * startZ + 2 * u * t * midZ + t * t * endZ;
-
-            level.addParticle(ParticleTypes.ENCHANT, px, py, pz, 0, 0, 0);
-
-            // Replaced FUME_PARTICLE with WITCH to resolve the compilation error.
-            // If you wish to use the custom fume particle, instantiate its option like:
-            // new FumeParticleOption(...)
-            level.addParticle(ParticleTypes.WITCH, px, py, pz, 0, -0.05, 0);
         }
     }
 
