@@ -69,6 +69,9 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("aetheric_synthesizer", () ->
                     new BlockEntityType<>(AethericSynthesizerBlockEntity::new, ModBlocks.AETHERIC_SYNTHESIZER.get()));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AethericAutomatorBlockEntity>> AETHERIC_AUTOMATOR_BE = BLOCK_ENTITIES.register("aetheric_automator", () -> new BlockEntityType<>(AethericAutomatorBlockEntity::new, ModBlocks.AETHERIC_AUTOMATOR.get()));
+
+
     // --- NEW: DILUTED ESSENCE FLUID ---
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DilutedEssenceFluidBlockEntity>> DILUTED_ESSENCE_FLUID_BE =
             BLOCK_ENTITIES.register("diluted_essence_fluid", () ->

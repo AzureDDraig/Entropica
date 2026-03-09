@@ -154,6 +154,8 @@ public class ModItems {
     public static final DeferredItem<BlockItem> MANA_CRAFTER_ITEM = ITEMS.registerItem("mana_crafter", properties -> new BlockItem(ModBlocks.MANA_CRAFTER.get(), properties));
     public static final DeferredItem<BlockItem> ENTROPIC_ENCHANTER_ITEM = ITEMS.registerItem("entropic_enchanter", properties -> new BlockItem(ModBlocks.ENTROPIC_ENCHANTER.get(), properties));
     public static final DeferredItem<BlockItem> AETHERIC_SYNTHESIZER_ITEM = ITEMS.registerItem("aetheric_synthesizer", properties -> new BlockItem(ModBlocks.AETHERIC_SYNTHESIZER.get(), properties));
+    public static final DeferredItem<BlockItem> AETHERIC_AUTOMATOR_ITEM = ITEMS.registerItem("aetheric_automator", properties -> new BlockItem(ModBlocks.AETHERIC_AUTOMATOR.get(), properties));
+
     public static final DeferredItem<BlockItem> SOLAR_ESSENCE_RECHARGE_STATION_ITEM = ITEMS.registerItem("solar_essence_recharge_station", properties -> new BlockItem(ModBlocks.SOLAR_ESSENCE_RECHARGE_STATION.get(), properties));
     public static final DeferredItem<BlockItem> ARCANE_LOOM_ITEM = ITEMS.registerItem("arcane_loom", properties -> new BlockItem(ModBlocks.ARCANE_LOOM.get(), properties));
     public static final DeferredItem<BlockItem> ESSENCE_FORGE_ITEM = ITEMS.registerItem("essence_forge", properties -> new BlockItem(ModBlocks.ESSENCE_FORGE.get(), properties));
