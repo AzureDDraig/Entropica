@@ -77,8 +77,11 @@ public class ModBlocks {
     // Crafting & Magic Stations
     public static final DeferredBlock<Block> MANA_CRAFTER = BLOCKS.register("mana_crafter", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.5f)));
     public static final DeferredBlock<Block> ENTROPIC_ENCHANTER = BLOCKS.register("entropic_enchanter", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(3.0f).requiresCorrectToolForDrops()));
+
+    // --- Synthesizer & Automator ---
     public static final DeferredBlock<AethericSynthesizerBlock> AETHERIC_SYNTHESIZER = BLOCKS.register("aetheric_synthesizer", name -> new AethericSynthesizerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
     public static final DeferredBlock<AethericAutomatorBlock> AETHERIC_AUTOMATOR = BLOCKS.register("aetheric_automator", name -> new AethericAutomatorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
+
     public static final DeferredBlock<Block> SOLAR_ESSENCE_RECHARGE_STATION = BLOCKS.register("solar_essence_recharge_station", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> ARCANE_LOOM = BLOCKS.register("arcane_loom", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.5f)));
     public static final DeferredBlock<Block> ESSENCE_FORGE = BLOCKS.register("essence_forge", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
@@ -87,4 +90,18 @@ public class ModBlocks {
     // Readout Blocks
     public static final DeferredBlock<VisReadoutBlock> MANA_READOUT = BLOCKS.register("mana_readout", name -> new VisReadoutBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<EssenceReadoutBlock> ESSENCE_READOUT = BLOCKS.register("essence_readout", name -> new EssenceReadoutBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+
+    // --- Extraction Multiblock & Machines ---
+    public static final DeferredBlock<VisSimpleMachineBlock> VIS_SIMPLE_MACHINE_BLOCK = BLOCKS.register("vis_simple_machine_block", name -> new VisSimpleMachineBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<VisComplexMachineBlock> VIS_COMPLEX_MACHINE_BLOCK = BLOCKS.register("vis_complex_machine_block", name -> new VisComplexMachineBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<VisFumeInputPortBlock> VIS_FUME_INPUT_PORT = BLOCKS.register("vis_fume_input_port", name -> new VisFumeInputPortBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<VisIchorInputPortBlock> VIS_ICHOR_INPUT_PORT = BLOCKS.register("vis_ichor_input_port", name -> new VisIchorInputPortBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<ExtractorOutputPortBlock> EXTRACTOR_OUTPUT_PORT = BLOCKS.register("extractor_output_port", name -> new ExtractorOutputPortBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<EssenceNodeIdentifierBlock> ESSENCE_NODE_IDENTIFIER_BLOCK = BLOCKS.register("essence_node_identifier_block", name -> new EssenceNodeIdentifierBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(4.0f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<VisExtractionApparatusBlock> VIS_EXTRACTION_APPARATUS = BLOCKS.register("vis_extraction_apparatus", name -> new VisExtractionApparatusBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(4.0f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<VisExtractorBaseBlock> VIS_EXTRACTOR_BASE = BLOCKS.register("vis_extractor_base", name -> new VisExtractorBaseBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(4.0f).requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<VisMotorBlock> VIS_MOTOR = BLOCKS.register("vis_motor", name -> new VisMotorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
 }

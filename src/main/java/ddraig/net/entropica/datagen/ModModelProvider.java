@@ -54,6 +54,17 @@ public class ModModelProvider extends ModelProvider {
         createSimpleBlock(blockModels, ModBlocks.ARCANE_ANVIL.get());
         createSimpleBlock(blockModels, ModBlocks.MANA_EXHAUST.get());
 
+        // --- NEW: Extraction Multiblock & Machines ---
+        createSimpleBlock(blockModels, ModBlocks.VIS_SIMPLE_MACHINE_BLOCK.get());
+        createSimpleBlock(blockModels, ModBlocks.VIS_COMPLEX_MACHINE_BLOCK.get());
+        createSimpleBlock(blockModels, ModBlocks.VIS_FUME_INPUT_PORT.get());
+        createSimpleBlock(blockModels, ModBlocks.VIS_ICHOR_INPUT_PORT.get());
+        createSimpleBlock(blockModels, ModBlocks.EXTRACTOR_OUTPUT_PORT.get());
+        createSimpleBlock(blockModels, ModBlocks.ESSENCE_NODE_IDENTIFIER_BLOCK.get());
+        createSimpleBlock(blockModels, ModBlocks.VIS_EXTRACTION_APPARATUS.get());
+        createSimpleBlock(blockModels, ModBlocks.VIS_EXTRACTOR_BASE.get());
+        createSimpleBlock(blockModels, ModBlocks.VIS_MOTOR.get());
+
         // Inform Datagen to skip these blocks as they have manually created JSON files
         blockModels.createNonTemplateModelBlock(ModBlocks.MANA_FURNACE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.SOLAR_POWERED_FURNACE.get());
@@ -106,6 +117,17 @@ public class ModModelProvider extends ModelProvider {
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_PIPE_ITEM.get(), "vis_fume_pipe_core");
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_VALVE_ITEM.get(), "vis_fume_valve_open_core");
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_DIVERTER_ITEM.get(), "vis_fume_diverter_closed");
+
+        // --- NEW: Extraction Multiblock & Machine Block Items ---
+        generate3DBlockItem(itemModels, ModItems.VIS_SIMPLE_MACHINE_BLOCK_ITEM.get(), "vis_simple_machine_block");
+        generate3DBlockItem(itemModels, ModItems.VIS_COMPLEX_MACHINE_BLOCK_ITEM.get(), "vis_complex_machine_block");
+        generate3DBlockItem(itemModels, ModItems.VIS_FUME_INPUT_PORT_ITEM.get(), "vis_fume_input_port");
+        generate3DBlockItem(itemModels, ModItems.VIS_ICHOR_INPUT_PORT_ITEM.get(), "vis_ichor_input_port");
+        generate3DBlockItem(itemModels, ModItems.EXTRACTOR_OUTPUT_PORT_ITEM.get(), "extractor_output_port");
+        generate3DBlockItem(itemModels, ModItems.ESSENCE_NODE_IDENTIFIER_BLOCK_ITEM.get(), "essence_node_identifier_block");
+        generate3DBlockItem(itemModels, ModItems.VIS_EXTRACTION_APPARATUS_ITEM.get(), "vis_extraction_apparatus");
+        generate3DBlockItem(itemModels, ModItems.VIS_EXTRACTOR_BASE_ITEM.get(), "vis_extractor_base");
+        generate3DBlockItem(itemModels, ModItems.VIS_MOTOR_ITEM.get(), "vis_motor");
 
         ModelTemplate twoLayerTemplate = new ModelTemplate(
                 Optional.of(ResourceLocation.withDefaultNamespace("item/generated")),
