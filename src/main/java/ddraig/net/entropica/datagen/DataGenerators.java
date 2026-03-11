@@ -10,10 +10,19 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 public class DataGenerators {
 
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent.Client event) {
+    public static void gatherDataClient(GatherDataEvent.Client event) {
         DataGenerator generator = event.getGenerator();
         PackOutput packOutput = generator.getPackOutput();
 
         event.addProvider(new ModModelProvider(packOutput, event.getLookupProvider()));
+    }
+
+    @SubscribeEvent
+    public static void gatherDataServer(GatherDataEvent.Server event) {
+        DataGenerator generator = event.getGenerator();
+        PackOutput packOutput = generator.getPackOutput();
+
+        // Add Curios Item Tags directly (No ExistingFileHelper or BlockTag dependencies needed!)
+        event.addProvider(new CuriosTagProvider(packOutput, event.getLookupProvider()));
     }
 }

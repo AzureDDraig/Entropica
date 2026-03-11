@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/aetheric_monocle_3d"
+    "model": "entropica:item/custom/aetheric_monocle"
   }
 }

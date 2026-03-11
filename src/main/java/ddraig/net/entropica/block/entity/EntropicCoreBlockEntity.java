@@ -552,7 +552,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
                 Direction[] surroundingDirs = {Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
                 for (Direction dir : surroundingDirs) {
                     Block neighbor = level.getBlockState(corePos.relative(dir)).getBlock();
-                    if (neighbor != ModBlocks.ARCANE_PLATING.get() &&
+                    if (neighbor != ModBlocks.ARCANITE_PLATING.get() &&
                             neighbor != ModBlocks.ARCANE_BRICK.get() &&
                             neighbor != ModBlocks.FURNACE_HATCH.get()) {
                         error = "Core must be directly surrounded by Arcane Plating, Bricks, or Hatches.";
@@ -621,7 +621,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
         return block == ModBlocks.ENTROPIC_CORE.get() || block == ModBlocks.MANA_PLUME.get() ||
                 block == ModBlocks.FURNACE_HATCH.get() || block == ModBlocks.ESSENCE_RECEPTACLE.get() ||
                 block == ModBlocks.CATALYST_RECEPTACLE.get() || block == ModBlocks.ARCANE_BRICK.get() ||
-                block == ModBlocks.ARCANE_PLATING.get() || block == ModBlocks.MANA_READOUT.get() ||
+                block == ModBlocks.ARCANITE_PLATING.get() || block == ModBlocks.VIS_READOUT.get() ||
                 block == ModBlocks.ESSENCE_READOUT.get() || block == ModBlocks.MANA_FILTER.get();
     }
 

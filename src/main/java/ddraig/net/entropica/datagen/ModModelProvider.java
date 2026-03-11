@@ -31,40 +31,24 @@ public class ModModelProvider extends ModelProvider {
     protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
 
         // ==========================================
-        // BLOCK MODELS
+        // AUTO-GENERATE SIMPLE BLOCKS
+        // Iterates through the master list in ModBlocks
         // ==========================================
-        createSimpleBlock(blockModels, ModBlocks.ENTROPIC_ORE.get());
-        createSimpleBlock(blockModels, ModBlocks.ARCANE_BRICK.get());
-        createSimpleBlock(blockModels, ModBlocks.ARCANE_PLATING.get());
-        createSimpleBlock(blockModels, ModBlocks.ARCANE_CLAY_BLOCK.get());
-        createSimpleBlock(blockModels, ModBlocks.MANA_PLUME.get());
-        createSimpleBlock(blockModels, ModBlocks.VIS_VITAE_ANCHOR.get());
-        createSimpleBlock(blockModels, ModBlocks.VIS_VITAE_CONDENSER.get());
-        createSimpleBlock(blockModels, ModBlocks.VIS_VITAE_VACUUM.get());
-        createSimpleBlock(blockModels, ModBlocks.VITAE_BARREL.get());
-        createSimpleBlock(blockModels, ModBlocks.MANA_VACUUM.get());
-        createSimpleBlock(blockModels, ModBlocks.MANA_CABLE.get());
-        createSimpleBlock(blockModels, ModBlocks.MANA_FILTER.get());
-        createSimpleBlock(blockModels, ModBlocks.MANA_POWERED_LIGHTING.get());
-        createSimpleBlock(blockModels, ModBlocks.MANA_CRAFTER.get());
-        createSimpleBlock(blockModels, ModBlocks.ENTROPIC_ENCHANTER.get());
-        createSimpleBlock(blockModels, ModBlocks.SOLAR_ESSENCE_RECHARGE_STATION.get());
-        createSimpleBlock(blockModels, ModBlocks.ARCANE_LOOM.get());
-        createSimpleBlock(blockModels, ModBlocks.ESSENCE_FORGE.get());
-        createSimpleBlock(blockModels, ModBlocks.ARCANE_ANVIL.get());
-        createSimpleBlock(blockModels, ModBlocks.MANA_EXHAUST.get());
+        for (var blockHolder : ModBlocks.SIMPLE_BLOCKS) {
+            createSimpleBlock(blockModels, (Block) blockHolder.get());
+        }
 
-        // --- NEW: Extraction Multiblock & Machines ---
-        createSimpleBlock(blockModels, ModBlocks.VIS_SIMPLE_MACHINE_BLOCK.get());
-        createSimpleBlock(blockModels, ModBlocks.VIS_COMPLEX_MACHINE_BLOCK.get());
-        createSimpleBlock(blockModels, ModBlocks.VIS_FUME_INPUT_PORT.get());
-        createSimpleBlock(blockModels, ModBlocks.VIS_ICHOR_INPUT_PORT.get());
-        createSimpleBlock(blockModels, ModBlocks.EXTRACTOR_OUTPUT_PORT.get());
-        createSimpleBlock(blockModels, ModBlocks.ESSENCE_NODE_IDENTIFIER_BLOCK.get());
-        createSimpleBlock(blockModels, ModBlocks.VIS_EXTRACTION_APPARATUS.get());
-        createSimpleBlock(blockModels, ModBlocks.VIS_EXTRACTOR_BASE.get());
-        createSimpleBlock(blockModels, ModBlocks.VIS_MOTOR.get());
+        // ==========================================
+        // AUTO-GENERATE FLAT ITEMS
+        // Iterates through the master list in ModItems
+        // ==========================================
+        for (var itemHolder : ModItems.SIMPLE_ITEMS) {
+            generateFlatItem(itemModels, itemHolder.get());
+        }
 
+        // ==========================================
+        // MANUAL: CUSTOM BLOCK MODELS
+        // ==========================================
         // Inform Datagen to skip these blocks as they have manually created JSON files
         blockModels.createNonTemplateModelBlock(ModBlocks.MANA_FURNACE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.SOLAR_POWERED_FURNACE.get());
@@ -74,6 +58,10 @@ public class ModModelProvider extends ModelProvider {
         blockModels.createNonTemplateModelBlock(ModBlocks.CATALYST_RECEPTACLE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ESSENCE_RECEPTACLE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ORBIS_CELL.get());
+
+        // Custom 3D Crafters
+        blockModels.createNonTemplateModelBlock(ModBlocks.AETHERIC_SYNTHESIZER.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.AETHERIC_AUTOMATOR.get());
 
         // Vis Fume Network Blocks
         blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_DIVERTER.get());
@@ -98,11 +86,12 @@ public class ModModelProvider extends ModelProvider {
         // Fluids
         blockModels.createNonTemplateModelBlock(ModBlocks.DILUTED_ESSENCE_FLUID_BLOCK.get());
 
+        // Orientable Blocks (Front/Side textures)
         createFrontSideBlock(blockModels, ModBlocks.FURNACE_HATCH.get(),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/furnace_hatch"),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/arcane_plating"));
 
-        createFrontSideBlock(blockModels, ModBlocks.MANA_READOUT.get(),
+        createFrontSideBlock(blockModels, ModBlocks.VIS_READOUT.get(),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/mana_readout"),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/arcane_plating"));
 
@@ -110,15 +99,19 @@ public class ModModelProvider extends ModelProvider {
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/mana_readout"),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/arcane_plating"));
 
+        // Pipe Models
         createVisFumePipeModels(blockModels, ModBlocks.VIS_FUME_PIPE.get(), "vis_fume_pipe");
         createVisFumePipeModels(blockModels, ModBlocks.VIS_FUME_VALVE.get(), "vis_fume_valve_open");
         createVisFumePipeModels(blockModels, ModBlocks.VIS_FUME_VALVE.get(), "vis_fume_valve_closed");
 
+        // ==========================================
+        // MANUAL BLOCK ITEM REGISTRATION
+        // ==========================================
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_PIPE_ITEM.get(), "vis_fume_pipe_core");
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_VALVE_ITEM.get(), "vis_fume_valve_open_core");
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_DIVERTER_ITEM.get(), "vis_fume_diverter_closed");
 
-        // --- NEW: Extraction Multiblock & Machine Block Items ---
+        // Extraction Multiblock & Machine Block Items
         generate3DBlockItem(itemModels, ModItems.VIS_SIMPLE_MACHINE_BLOCK_ITEM.get(), "vis_simple_machine_block");
         generate3DBlockItem(itemModels, ModItems.VIS_COMPLEX_MACHINE_BLOCK_ITEM.get(), "vis_complex_machine_block");
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_INPUT_PORT_ITEM.get(), "vis_fume_input_port");
@@ -129,31 +122,16 @@ public class ModModelProvider extends ModelProvider {
         generate3DBlockItem(itemModels, ModItems.VIS_EXTRACTOR_BASE_ITEM.get(), "vis_extractor_base");
         generate3DBlockItem(itemModels, ModItems.VIS_MOTOR_ITEM.get(), "vis_motor");
 
-        ModelTemplate twoLayerTemplate = new ModelTemplate(
-                Optional.of(ResourceLocation.withDefaultNamespace("item/generated")),
-                Optional.empty(),
-                TextureSlot.LAYER0, TextureSlot.LAYER1
-        );
+        // Custom 3D Crafter Block Items
+        generate3DBlockItem(itemModels, ModItems.AETHERIC_SYNTHESIZER_ITEM.get(), "aetheric_synthesizer");
+        generate3DBlockItem(itemModels, ModItems.AETHERIC_AUTOMATOR_ITEM.get(), "aetheric_automator");
 
         // ==========================================
-        // ITEM MODELS - Standalone items
+        // MANUAL: CUSTOM ITEM MODELS
         // ==========================================
-        generateFlatItem(itemModels, ModItems.ARCANUM_FOCUS.get());
-        generateFlatItem(itemModels, ModItems.VIS_VALUE_DETECTOR.get());
-        generateFlatItem(itemModels, ModItems.ARCANE_BRICK_PIECE.get());
-        generateFlatItem(itemModels, ModItems.ARCANE_PLATE.get());
-        generateFlatItem(itemModels, ModItems.ARCANE_CLAY.get());
-        generateFlatItem(itemModels, ModItems.SMALL_AMPOULE.get());
-        generateFlatItem(itemModels, ModItems.MEDIUM_AMPOULE.get());
-        generateFlatItem(itemModels, ModItems.LARGE_AMPOULE.get());
-        generateFlatItem(itemModels, ModItems.ESSENCE_HARVESTING_BLADE.get());
-        generateFlatItem(itemModels, ModItems.SOULBOUND_BLADE.get());
-        generateFlatItem(itemModels, ModItems.OBLIVION_BLADE.get());
-        generateFlatItem(itemModels, ModItems.VOID_SWORD.get());
-        generateFlatItem(itemModels, ModItems.TIDAL_TRIDENT.get());
-        generateFlatItem(itemModels, ModItems.BASALT_PICKAXE.get());
-        generateFlatItem(itemModels, ModItems.WHISPERWOOD_WAND.get());
-        generateFlatItem(itemModels, ModItems.SHIMMERING_FOCUS.get());
+
+        // This is a BlockItem that looks flat in the inventory
+        generateFlatItem(itemModels, ModItems.ORBIS_CELL_ITEM.get());
 
         // Skip datagen for Monocle as it has a custom handwritten JSON
         itemModels.itemModelOutput.accept(
@@ -161,20 +139,21 @@ public class ModModelProvider extends ModelProvider {
                 new BlockModelWrapper.Unbaked(ResourceLocation.fromNamespaceAndPath("entropica", "item/custom/aetheric_monocle"), Collections.emptyList())
         );
 
+        // Ampoule Bases
         generateFlatItemWithTexture(itemModels, ModItems.SMALL_AMPOULE_BASE.get(), "small_ampoule");
         generateFlatItemWithTexture(itemModels, ModItems.MEDIUM_AMPOULE_BASE.get(), "medium_ampoule");
         generateFlatItemWithTexture(itemModels, ModItems.LARGE_AMPOULE_BASE.get(), "large_ampoule");
+
+        ModelTemplate twoLayerTemplate = new ModelTemplate(
+                Optional.of(ResourceLocation.withDefaultNamespace("item/generated")),
+                Optional.empty(),
+                TextureSlot.LAYER0, TextureSlot.LAYER1
+        );
 
         // Vis Fume Ampoules
         createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.SMALL_VIS_FUME_AMPOULE.get(), "small_ampoule", "small_ampoule_gas", new ddraig.net.entropica.client.ModClientEvents.AmpouleTint());
         createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.MEDIUM_VIS_FUME_AMPOULE.get(), "medium_ampoule", "medium_ampoule_gas", new ddraig.net.entropica.client.ModClientEvents.AmpouleTint());
         createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.LARGE_VIS_FUME_AMPOULE.get(), "large_ampoule", "large_ampoule_gas", new ddraig.net.entropica.client.ModClientEvents.AmpouleTint());
-
-        generateFlatItem(itemModels, ModItems.ORBIS_CELL_ITEM.get());
-
-        // ==========================================
-        // DYNAMIC ESSENCES & AMPOULES
-        // ==========================================
 
         // Fragment Orbs (Tier 0)
         createSingleLayerTintedItem(itemModels, ModItems.FRAGMENT_ESSENCE.get(), "fragment_essence", new ddraig.net.entropica.client.ModClientEvents.EssenceTint());

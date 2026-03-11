@@ -33,7 +33,7 @@ public class ModBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisReadoutBlockEntity>> MANA_READOUT_BE =
             BLOCK_ENTITIES.register("mana_readout", () ->
-                    new BlockEntityType<>(VisReadoutBlockEntity::new, ModBlocks.MANA_READOUT.get()));
+                    new BlockEntityType<>(VisReadoutBlockEntity::new, ModBlocks.VIS_READOUT.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EssenceReadoutBlockEntity>> ESSENCE_READOUT_BE =
             BLOCK_ENTITIES.register("essence_readout", () ->

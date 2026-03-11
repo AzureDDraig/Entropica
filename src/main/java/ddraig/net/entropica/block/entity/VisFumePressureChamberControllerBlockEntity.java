@@ -446,7 +446,7 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
                     Block block = state.getBlock();
 
                     if (y == 0) {
-                        if (!state.is(ModBlocks.ARCANE_PLATING.get())) return failFormationAndExplode();
+                        if (!state.is(ModBlocks.ARCANITE_PLATING.get())) return failFormationAndExplode();
                         validStructureBlocks.add(scanPos);
                     } else if (y == 1) {
                         if (x == 0 && z == 0) {

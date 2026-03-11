@@ -10,6 +10,8 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.minecraft.world.level.block.Blocks;
 
+import java.util.List;
+
 public class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks("entropica");
 
@@ -25,10 +27,10 @@ public class ModBlocks {
     public static final DeferredBlock<Block> ENTROPIC_AUTO_SMELTER = BLOCKS.register("entropic_auto_smelter", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> VITAE_INCINERATOR = BLOCKS.register("vitae_incinerator", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
 
-    // Mana Furnace Multiblock Components & Arcane Blocks (REVERTED TO SAFE IDs)
+    // Mana Furnace Multiblock Components & Arcane Blocks
     public static final DeferredBlock<EntropicCoreBlock> ENTROPIC_CORE = BLOCKS.register("entropic_core", name -> new EntropicCoreBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> ARCANE_BRICK = BLOCKS.register("arcane_brick", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.STONE).destroyTime(2.0f).requiresCorrectToolForDrops()));
-    public static final DeferredBlock<Block> ARCANE_PLATING = BLOCKS.register("arcane_plating", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<Block> ARCANITE_PLATING = BLOCKS.register("arcane_plating", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> ARCANE_CLAY_BLOCK = BLOCKS.register("arcane_clay_block", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.CLAY).destroyTime(0.6f)));
     public static final DeferredBlock<Block> ARCANE_FORGE_BASE = BLOCKS.register("arcane_forge_base", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.STONE).destroyTime(1.5f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<ManaPlumeBlock> MANA_PLUME = BLOCKS.register("mana_plume", name -> new ManaPlumeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
@@ -77,18 +79,15 @@ public class ModBlocks {
     // Crafting & Magic Stations
     public static final DeferredBlock<Block> MANA_CRAFTER = BLOCKS.register("mana_crafter", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.5f)));
     public static final DeferredBlock<Block> ENTROPIC_ENCHANTER = BLOCKS.register("entropic_enchanter", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(3.0f).requiresCorrectToolForDrops()));
-
-    // --- Synthesizer & Automator ---
     public static final DeferredBlock<AethericSynthesizerBlock> AETHERIC_SYNTHESIZER = BLOCKS.register("aetheric_synthesizer", name -> new AethericSynthesizerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
     public static final DeferredBlock<AethericAutomatorBlock> AETHERIC_AUTOMATOR = BLOCKS.register("aetheric_automator", name -> new AethericAutomatorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
-
     public static final DeferredBlock<Block> SOLAR_ESSENCE_RECHARGE_STATION = BLOCKS.register("solar_essence_recharge_station", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> ARCANE_LOOM = BLOCKS.register("arcane_loom", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.5f)));
     public static final DeferredBlock<Block> ESSENCE_FORGE = BLOCKS.register("essence_forge", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> ARCANE_ANVIL = BLOCKS.register("arcane_anvil", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(5.0f).requiresCorrectToolForDrops()));
 
     // Readout Blocks
-    public static final DeferredBlock<VisReadoutBlock> MANA_READOUT = BLOCKS.register("mana_readout", name -> new VisReadoutBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<VisReadoutBlock> VIS_READOUT = BLOCKS.register("mana_readout", name -> new VisReadoutBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<EssenceReadoutBlock> ESSENCE_READOUT = BLOCKS.register("essence_readout", name -> new EssenceReadoutBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
 
     // --- Extraction Multiblock & Machines ---
@@ -104,4 +103,18 @@ public class ModBlocks {
     public static final DeferredBlock<VisExtractorBaseBlock> VIS_EXTRACTOR_BASE = BLOCKS.register("vis_extractor_base", name -> new VisExtractorBaseBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(4.0f).requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<VisMotorBlock> VIS_MOTOR = BLOCKS.register("vis_motor", name -> new VisMotorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
+
+    // ==========================================
+    // DATAGEN BLOCK LIST
+    // Any basic block added to this list will automatically have a cube model generated.
+    // ==========================================
+    public static final List<DeferredBlock<?>> SIMPLE_BLOCKS = List.of(
+            ENTROPIC_ORE, ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MANA_PLUME,
+            VIS_VITAE_ANCHOR, VIS_VITAE_CONDENSER, VIS_VITAE_VACUUM, VITAE_BARREL,
+            MANA_VACUUM, MANA_CABLE, MANA_FILTER, MANA_POWERED_LIGHTING, MANA_CRAFTER,
+            ENTROPIC_ENCHANTER, SOLAR_ESSENCE_RECHARGE_STATION, ARCANE_LOOM, ESSENCE_FORGE,
+            ARCANE_ANVIL, MANA_EXHAUST, VIS_SIMPLE_MACHINE_BLOCK, VIS_COMPLEX_MACHINE_BLOCK,
+            VIS_FUME_INPUT_PORT, VIS_ICHOR_INPUT_PORT, EXTRACTOR_OUTPUT_PORT,
+            ESSENCE_NODE_IDENTIFIER_BLOCK, VIS_EXTRACTION_APPARATUS, VIS_EXTRACTOR_BASE, VIS_MOTOR
+    );
 }

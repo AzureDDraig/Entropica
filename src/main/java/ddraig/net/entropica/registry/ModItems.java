@@ -8,6 +8,7 @@ import ddraig.net.entropica.item.EssenceItem;
 import ddraig.net.entropica.item.EntropicaComponentItem;
 import ddraig.net.entropica.item.VisFumeAmpouleItem;
 import ddraig.net.entropica.item.OrbisCellItem;
+import ddraig.net.entropica.item.SpoolItem;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -18,6 +19,8 @@ import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.List;
 
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems("entropica");
@@ -32,7 +35,7 @@ public class ModItems {
     ));
 
     public static final DeferredItem<Item> ARCANE_BRICK_PIECE = ITEMS.registerItem("arcane_brick_piece", Item::new);
-    public static final DeferredItem<Item> ARCANE_PLATE = ITEMS.registerItem("arcane_plate", Item::new);
+    public static final DeferredItem<Item> ARCANITE_PLATE = ITEMS.registerItem("arcane_plate", Item::new);
     public static final DeferredItem<Item> ARCANE_CLAY = ITEMS.registerItem("arcane_clay", Item::new);
 
     // --- Empty Ampoules ---
@@ -84,22 +87,59 @@ public class ModItems {
     public static final DeferredItem<Item> RESONITE_INGOT = ITEMS.registerItem("resonite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_ingot"));
     public static final DeferredItem<Item> CHARGED_ARCANITE_INGOT = ITEMS.registerItem("charged_arcanite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_arcanite_ingot"));
     public static final DeferredItem<Item> CHARGED_VISCANITE_INGOT = ITEMS.registerItem("charged_viscanite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_viscanite_ingot"));
+    public static final DeferredItem<Item> CHARGED_RESONITE_INGOT = ITEMS.registerItem("charged_resonite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_resonite_ingot"));
 
     public static final DeferredItem<Item> ARCANITE_NUGGET = ITEMS.registerItem("arcanite_nugget", Item::new);
     public static final DeferredItem<Item> VISCANITE_NUGGET = ITEMS.registerItem("viscanite_nugget", Item::new);
     public static final DeferredItem<Item> RESONITE_NUGGET = ITEMS.registerItem("resonite_nugget", Item::new);
+    public static final DeferredItem<Item> CHARGED_ARCANITE_NUGGET = ITEMS.registerItem("charged_arcanite_nugget", Item::new);
+    public static final DeferredItem<Item> CHARGED_VISCANITE_NUGGET = ITEMS.registerItem("charged_viscanite_nugget", Item::new);
+    public static final DeferredItem<Item> CHARGED_RESONITE_NUGGET = ITEMS.registerItem("charged_resonite_nugget", Item::new);
 
-    // Wires & Circuits
+    // Wires, Filaments & Spools
+    public static final DeferredItem<Item> ARCANITE_WIRE = ITEMS.registerItem("arcanite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_wire"));
+    public static final DeferredItem<Item> VISCANITE_WIRE = ITEMS.registerItem("viscanite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_wire"));
+    public static final DeferredItem<Item> RESONITE_WIRE = ITEMS.registerItem("resonite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_wire"));
+
     public static final DeferredItem<Item> ARCANITE_FILAMENT = ITEMS.registerItem("arcanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_filament"));
     public static final DeferredItem<Item> VISCANITE_FILAMENT = ITEMS.registerItem("viscanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_filament"));
     public static final DeferredItem<Item> RESONITE_FILAMENT = ITEMS.registerItem("resonite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_filament"));
+
+    public static final DeferredItem<Item> ARCANITE_SPOOL = ITEMS.registerItem("arcanite_spool", properties -> new SpoolItem(properties.stacksTo(1), "tooltip.entropica.arcanite_spool", ARCANITE_WIRE, ARCANITE_FILAMENT));
+    public static final DeferredItem<Item> VISCANITE_SPOOL = ITEMS.registerItem("viscanite_spool", properties -> new SpoolItem(properties.stacksTo(1), "tooltip.entropica.viscanite_spool", VISCANITE_WIRE, VISCANITE_FILAMENT));
+    public static final DeferredItem<Item> RESONITE_SPOOL = ITEMS.registerItem("resonite_spool", properties -> new SpoolItem(properties.stacksTo(1), "tooltip.entropica.resonite_spool", RESONITE_WIRE, RESONITE_FILAMENT));
+
+    public static final DeferredItem<Item> CHARGED_ARCANITE_FILAMENT = ITEMS.registerItem("charged_arcanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_arcanite_filament"));
+    public static final DeferredItem<Item> CHARGED_VISCANITE_FILAMENT = ITEMS.registerItem("charged_viscanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_viscanite_filament"));
+    public static final DeferredItem<Item> CHARGED_RESONITE_FILAMENT = ITEMS.registerItem("charged_resonite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_resonite_filament"));
     public static final DeferredItem<Item> COATED_ARCANITE_FILAMENT = ITEMS.registerItem("coated_arcanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_arcanite_filament"));
     public static final DeferredItem<Item> COATED_VISCANITE_FILAMENT = ITEMS.registerItem("coated_viscanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_viscanite_filament"));
     public static final DeferredItem<Item> COATED_RESONITE_FILAMENT = ITEMS.registerItem("coated_resonite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_resonite_filament"));
 
     // Mechanical Parts
-    public static final DeferredItem<Item> REINFORCED_ARCANITE_FRAME = ITEMS.registerItem("reinforced_arcanite_frame", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.reinforced_arcanite_frame"));
+    public static final DeferredItem<Item> ARCANITE_FRAME = ITEMS.registerItem("arcanite_frame", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.reinforced_arcanite_frame"));
+
+    // Gearsets
     public static final DeferredItem<Item> ARCANITE_GEARSET = ITEMS.registerItem("arcanite_gearset", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_gearset"));
+    public static final DeferredItem<Item> VISCANITE_GEARSET = ITEMS.registerItem("viscanite_gearset", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_gearset"));
+    public static final DeferredItem<Item> RESONITE_GEARSET = ITEMS.registerItem("resonite_gearset", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_gearset"));
+
+    // Large Gears
+    public static final DeferredItem<Item> ARCANITE_LARGE_GEAR = ITEMS.registerItem("arcanite_large_gear", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_large_gear"));
+    public static final DeferredItem<Item> VISCANITE_LARGE_GEAR = ITEMS.registerItem("viscanite_large_gear", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_large_gear"));
+    public static final DeferredItem<Item> RESONITE_LARGE_GEAR = ITEMS.registerItem("resonite_large_gear", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_large_gear"));
+
+    // Small Gears
+    public static final DeferredItem<Item> ARCANITE_SMALL_GEAR = ITEMS.registerItem("arcanite_small_gear", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_small_gear"));
+    public static final DeferredItem<Item> VISCANITE_SMALL_GEAR = ITEMS.registerItem("viscanite_small_gear", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_small_gear"));
+    public static final DeferredItem<Item> RESONITE_SMALL_GEAR = ITEMS.registerItem("resonite_small_gear", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_small_gear"));
+
+    // Plates & Pistons
+    public static final DeferredItem<Item> VISCANITE_PLATE = ITEMS.registerItem("viscanite_plate", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_plate"));
+    public static final DeferredItem<Item> RESONITE_PLATE = ITEMS.registerItem("resonite_plate", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_plate"));
+    public static final DeferredItem<Item> VISCANITE_PISTON = ITEMS.registerItem("viscanite_piston", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_piston"));
+    public static final DeferredItem<Item> RESONITE_PISTON = ITEMS.registerItem("resonite_piston", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_piston"));
+
     public static final DeferredItem<Item> BELLOWS_CRANK_ASSEMBLY = ITEMS.registerItem("bellows_crank_assembly", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.bellows_crank_assembly"));
     public static final DeferredItem<Item> PRESSURE_GRADED_GASKET = ITEMS.registerItem("pressure_graded_gasket", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.pressure_graded_gasket"));
     public static final DeferredItem<Item> ENTROPIC_HEAT_SINK = ITEMS.registerItem("entropic_heat_sink", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.entropic_heat_sink"));
@@ -143,14 +183,14 @@ public class ModItems {
     // Multiblock Components
     public static final DeferredItem<BlockItem> ENTROPIC_CORE_ITEM = ITEMS.registerItem("entropic_core", properties -> new BlockItem(ModBlocks.ENTROPIC_CORE.get(), properties));
     public static final DeferredItem<BlockItem> ARCANE_BRICK_ITEM = ITEMS.registerItem("arcane_brick", properties -> new BlockItem(ModBlocks.ARCANE_BRICK.get(), properties));
-    public static final DeferredItem<BlockItem> ARCANE_PLATING_ITEM = ITEMS.registerItem("arcane_plating", properties -> new BlockItem(ModBlocks.ARCANE_PLATING.get(), properties));
+    public static final DeferredItem<BlockItem> ARCANE_PLATING_ITEM = ITEMS.registerItem("arcane_plating", properties -> new BlockItem(ModBlocks.ARCANITE_PLATING.get(), properties));
     public static final DeferredItem<BlockItem> ARCANE_CLAY_BLOCK_ITEM = ITEMS.registerItem("arcane_clay_block", properties -> new BlockItem(ModBlocks.ARCANE_CLAY_BLOCK.get(), properties));
     public static final DeferredItem<BlockItem> ARCANE_FORGE_BASE_ITEM = ITEMS.registerItem("arcane_forge_base", properties -> new BlockItem(ModBlocks.ARCANE_FORGE_BASE.get(), properties));
 
     public static final DeferredItem<BlockItem> MANA_PLUME_ITEM = ITEMS.registerItem("mana_plume", properties -> new BlockItem(ModBlocks.MANA_PLUME.get(), properties));
     public static final DeferredItem<BlockItem> ESSENCE_RECEPTACLE_ITEM = ITEMS.registerItem("essence_receptacle", properties -> new BlockItem(ModBlocks.ESSENCE_RECEPTACLE.get(), properties));
     public static final DeferredItem<BlockItem> FURNACE_HATCH_ITEM = ITEMS.registerItem("furnace_hatch", properties -> new BlockItem(ModBlocks.FURNACE_HATCH.get(), properties));
-    public static final DeferredItem<BlockItem> MANA_READOUT_ITEM = ITEMS.registerItem("mana_readout", properties -> new BlockItem(ModBlocks.MANA_READOUT.get(), properties));
+    public static final DeferredItem<BlockItem> VIS_READOUT_ITEM = ITEMS.registerItem("vis_readout", properties -> new BlockItem(ModBlocks.VIS_READOUT.get(), properties));
     public static final DeferredItem<BlockItem> MANA_EXHAUST = ITEMS.registerItem("mana_exhaust", properties -> new BlockItem(ModBlocks.MANA_EXHAUST.get(), properties));
     public static final DeferredItem<BlockItem> ESSENCE_READOUT_ITEM = ITEMS.registerItem("essence_readout", properties -> new BlockItem(ModBlocks.ESSENCE_READOUT.get(), properties));
     public static final DeferredItem<BlockItem> CATALYST_RECEPTACLE_ITEM = ITEMS.registerItem("catalyst_receptacle", properties -> new BlockItem(ModBlocks.CATALYST_RECEPTACLE.get(), properties));
@@ -215,4 +255,23 @@ public class ModItems {
     public static final DeferredItem<BlockItem> ARCANE_LOOM_ITEM = ITEMS.registerItem("arcane_loom", properties -> new BlockItem(ModBlocks.ARCANE_LOOM.get(), properties));
     public static final DeferredItem<BlockItem> ESSENCE_FORGE_ITEM = ITEMS.registerItem("essence_forge", properties -> new BlockItem(ModBlocks.ESSENCE_FORGE.get(), properties));
     public static final DeferredItem<BlockItem> ARCANE_ANVIL_ITEM = ITEMS.registerItem("arcane_anvil", properties -> new BlockItem(ModBlocks.ARCANE_ANVIL.get(), properties));
+
+    // ==========================================
+    // DATAGEN ITEM LIST
+    // Any basic item added to this list will automatically have a flat model generated.
+    // ==========================================
+    public static final List<DeferredItem<Item>> SIMPLE_ITEMS = List.of(
+            ARCANUM_FOCUS, VIS_VALUE_DETECTOR, ARCANE_BRICK_PIECE, ARCANITE_PLATE, ARCANE_CLAY,
+            SMALL_AMPOULE, MEDIUM_AMPOULE, LARGE_AMPOULE, ESSENCE_HARVESTING_BLADE, SOULBOUND_BLADE,
+            OBLIVION_BLADE, TIDAL_TRIDENT, VOID_SWORD, BASALT_PICKAXE, WHISPERWOOD_WAND, SHIMMERING_FOCUS,
+            ARCANITE_INGOT, VISCANITE_INGOT, RESONITE_INGOT, CHARGED_ARCANITE_INGOT, CHARGED_VISCANITE_INGOT, CHARGED_RESONITE_INGOT,
+            ARCANITE_NUGGET, VISCANITE_NUGGET, RESONITE_NUGGET, CHARGED_ARCANITE_NUGGET, CHARGED_VISCANITE_NUGGET, CHARGED_RESONITE_NUGGET,
+            ARCANITE_WIRE, VISCANITE_WIRE, RESONITE_WIRE, ARCANITE_SPOOL, VISCANITE_SPOOL, RESONITE_SPOOL,
+            ARCANITE_FILAMENT, VISCANITE_FILAMENT, RESONITE_FILAMENT, CHARGED_ARCANITE_FILAMENT, CHARGED_VISCANITE_FILAMENT, CHARGED_RESONITE_FILAMENT, COATED_ARCANITE_FILAMENT, COATED_VISCANITE_FILAMENT, COATED_RESONITE_FILAMENT,
+            ARCANITE_FRAME, ARCANITE_GEARSET, VISCANITE_GEARSET, RESONITE_GEARSET,
+            ARCANITE_LARGE_GEAR, VISCANITE_LARGE_GEAR, RESONITE_LARGE_GEAR, ARCANITE_SMALL_GEAR, VISCANITE_SMALL_GEAR, RESONITE_SMALL_GEAR,
+            VISCANITE_PLATE, RESONITE_PLATE, VISCANITE_PISTON, RESONITE_PISTON,
+            BELLOWS_CRANK_ASSEMBLY, PRESSURE_GRADED_GASKET, ENTROPIC_HEAT_SINK, VISCANITE_WEAPON_CORE, SOUL_BOUND_COMMUTATOR, VISCANITE_STATOR,
+            FOCAL_LENS_ASSEMBLY, AETHERIC_LOGIC_GATE, REFRACTION_GRID_MESH, ICHOR_CAPILLARY_TUBE, VIS_CAPACITOR_PLATE, HARMONIC_FEEDBACK_LOOP, AETHERIC_PITCH_PIPE, FREQUENCY_SPLITTER_PRISM, VOID_RESONANT_TUNING_FORK, SPECTRAL_GLYPH_PLATE, TETHER_ANCHOR_PIN
+    );
 }
