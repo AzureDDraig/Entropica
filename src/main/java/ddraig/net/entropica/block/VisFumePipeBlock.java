@@ -132,9 +132,9 @@ public class VisFumePipeBlock extends Block implements SimpleWaterloggedBlock, E
                 VisFumeStack stack = pipe.getFumeInTank();
 
                 if (stack.isEmpty()) {
-                    player.displayClientMessage(Component.literal("§7Pipe is Empty (0 / " + pipe.getCapacity() + "mb)"), true);
+                    player.displayClientMessage(Component.literal("§7Pipe is Empty (0 / " + pipe.getSafeCapacity() + " Vf)"), true);
                 } else {
-                    player.displayClientMessage(Component.literal("§aPipe contains: " + stack.getAmount() + " / " + pipe.getCapacity() + "mb of " + stack.getType().getFormattedName()), true);
+                    player.displayClientMessage(Component.literal("§aPipe contains: " + stack.getAmount() + " / " + pipe.getSafeCapacity() + " Vf of " + stack.getType().getFormattedName() + " §c[Max: " + pipe.getAbsoluteCapacity() + "]"), true);
                 }
             }
         }
@@ -156,7 +156,7 @@ public class VisFumePipeBlock extends Block implements SimpleWaterloggedBlock, E
             return true;
         }
 
-        // CHANGED: Specific direction check for the Mana Plume.
+        // Specific direction check for the Mana Plume.
         // The pipe must be pointing DOWN into the plume for it to connect.
         if (neighborState.is(ModBlocks.MANA_PLUME.get())) {
             return dirToNeighbor == Direction.DOWN;

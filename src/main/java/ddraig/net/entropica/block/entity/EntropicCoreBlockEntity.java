@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -724,8 +725,15 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
     }
 
     @Override
-    public int getCapacity() {
+    public int getSafeCapacity() {
         return getMaster().getMaxMana();
+    }
+
+    @Override
+    public int getAbsoluteCapacity() {
+        // We set the absolute structural limit to 3x the safe capacity,
+        // mirroring the standard 3.0 pressure breaking point of other tanks.
+        return getMaster().getMaxMana() * 3;
     }
 
     public int extractMana(EssenceType type, int maxExtract) {

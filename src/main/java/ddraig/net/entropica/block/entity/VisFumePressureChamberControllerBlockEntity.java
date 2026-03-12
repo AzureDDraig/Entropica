@@ -622,7 +622,12 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
     }
 
     @Override public boolean isFormed() { return isFormed; }
-    @Override public int getMaxCapacity() { return maxCapacity; }
+
+    // --- PRESSURE LIMITS (Hard Capped) ---
+    @Override public int getSafeCapacity() { return this.maxCapacity; }
+    @Override public int getAbsoluteCapacity() { return this.maxCapacity; }
+    public int getMaxCapacity() { return this.maxCapacity; } // Retained for Block interaction
+
     @Override public VisFumeStack getStoredFume() { return storedFume; }
 
     @Override
@@ -693,11 +698,6 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
     @Override
     public VisFumeStack getFumeInTank() {
         return this.storedFume != null ? this.storedFume : VisFumeStack.EMPTY;
-    }
-
-    @Override
-    public int getCapacity() {
-        return this.maxCapacity;
     }
 
     @Override

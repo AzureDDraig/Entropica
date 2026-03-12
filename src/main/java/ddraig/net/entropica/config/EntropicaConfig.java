@@ -20,7 +20,23 @@ public class EntropicaConfig {
     public static final ModConfigSpec.IntValue ORBIS_CELL_MAX_MANA;
 
     // Vis Fume Network Configs
-    public static final ModConfigSpec.IntValue VIS_FUME_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue COPPER_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue COPPER_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue IRON_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue IRON_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue DIAMOND_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue DIAMOND_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue ARCANITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue ARCANITE_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue RESONITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue RESONITE_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue VISCANITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue VISCANITE_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue CHARGED_ARCANITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue CHARGED_ARCANITE_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue CHARGED_VISCANITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue CHARGED_VISCANITE_PIPE_TRANSFER_RATE;
+
     public static final ModConfigSpec.IntValue VIS_FUME_TRANSFER_RATE;
     public static final ModConfigSpec.IntValue VIS_FUME_TICK_RATE;
     public static final ModConfigSpec.IntValue VIS_FUME_DIVERTER_CAPACITY;
@@ -102,13 +118,33 @@ public class EntropicaConfig {
         // --- VIS FUME NETWORK SETTINGS ---
         BUILDER.push("vis_fume_network_settings");
 
-        VIS_FUME_PIPE_CAPACITY = BUILDER.comment("Maximum amount of Vis Fumes a single pipe or valve can hold.")
-                .translation("entropica.configuration.vis_fume_network_settings.pipeCapacity")
-                .defineInRange("visFumePipeCapacity", 200, 1, Integer.MAX_VALUE);
+        COPPER_PIPE_CAPACITY = BUILDER.comment("Safe capacity (1.0 Pressure) for Copper Fume Pipes.").defineInRange("copperPipeCapacity", 20, 1, Integer.MAX_VALUE);
+        COPPER_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Copper Fume Pipes.").defineInRange("copperPipeTransferRate", 5, 1, Integer.MAX_VALUE);
 
-        VIS_FUME_TRANSFER_RATE = BUILDER.comment("How many Vis Fumes are moved per transfer tick.")
+        IRON_PIPE_CAPACITY = BUILDER.comment("Safe capacity (1.0 Pressure) for Iron Fume Pipes.").defineInRange("ironPipeCapacity", 40, 1, Integer.MAX_VALUE);
+        IRON_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Iron Fume Pipes.").defineInRange("ironPipeTransferRate", 10, 1, Integer.MAX_VALUE);
+
+        DIAMOND_PIPE_CAPACITY = BUILDER.comment("Safe capacity (1.0 Pressure) for Diamond Fume Pipes.").defineInRange("diamondPipeCapacity", 80, 1, Integer.MAX_VALUE);
+        DIAMOND_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Diamond Fume Pipes.").defineInRange("diamondPipeTransferRate", 20, 1, Integer.MAX_VALUE);
+
+        ARCANITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity (1.0 Pressure) for Arcanite Fume Pipes.").defineInRange("arcanitePipeCapacity", 100, 1, Integer.MAX_VALUE);
+        ARCANITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Arcanite Fume Pipes.").defineInRange("arcanitePipeTransferRate", 25, 1, Integer.MAX_VALUE);
+
+        RESONITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity (1.0 Pressure) for Resonite Fume Pipes.").defineInRange("resonitePipeCapacity", 300, 1, Integer.MAX_VALUE);
+        RESONITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Resonite Fume Pipes.").defineInRange("resonitePipeTransferRate", 50, 1, Integer.MAX_VALUE);
+
+        VISCANITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity (1.0 Pressure) for Viscanite Fume Pipes.").defineInRange("viscanitePipeCapacity", 500, 1, Integer.MAX_VALUE);
+        VISCANITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Viscanite Fume Pipes.").defineInRange("viscanitePipeTransferRate", 100, 1, Integer.MAX_VALUE);
+
+        CHARGED_ARCANITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity (1.0 Pressure) for Charged Arcanite Fume Pipes.").defineInRange("chargedArcanitePipeCapacity", 200, 1, Integer.MAX_VALUE);
+        CHARGED_ARCANITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Charged Arcanite Fume Pipes.").defineInRange("chargedArcanitePipeTransferRate", 500, 1, Integer.MAX_VALUE);
+
+        CHARGED_VISCANITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity (1.0 Pressure) for Charged Viscanite Fume Pipes.").defineInRange("chargedViscanitePipeCapacity", 1000, 1, Integer.MAX_VALUE);
+        CHARGED_VISCANITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Charged Viscanite Fume Pipes.").defineInRange("chargedViscanitePipeTransferRate", 1000, 1, Integer.MAX_VALUE);
+
+        VIS_FUME_TRANSFER_RATE = BUILDER.comment("Base transfer rate for generators and machines pushing Fumes into the network.")
                 .translation("entropica.configuration.vis_fume_network_settings.transferRate")
-                .defineInRange("visFumeTransferRate", 20, 1, Integer.MAX_VALUE);
+                .defineInRange("visFumeTransferRate", 100, 1, Integer.MAX_VALUE);
 
         VIS_FUME_TICK_RATE = BUILDER.comment("How many ticks between each gas transfer operation in the pipe network.")
                 .translation("entropica.configuration.vis_fume_network_settings.tickRate")

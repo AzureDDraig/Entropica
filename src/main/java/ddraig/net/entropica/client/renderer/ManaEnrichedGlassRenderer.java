@@ -66,7 +66,8 @@ public class ManaEnrichedGlassRenderer implements BlockEntityRenderer<ManaEnrich
                 if (!stored.isEmpty()) {
                     renderState.hasFume = true;
                     renderState.colorInt = stored.getType().getColorInt();
-                    renderState.fillRatio = Math.min(1.0f, Math.max(0.0f, (float) stored.getAmount() / controller.getMaxCapacity()));
+                    // Changed to getSafeCapacity() to match the updated IFumeMultiblockController interface
+                    renderState.fillRatio = Math.min(1.0f, Math.max(0.0f, (float) stored.getAmount() / controller.getSafeCapacity()));
 
                     BlockPos myPos = be.getBlockPos();
                     renderState.connectNorth = isConnected(level, controllerPos, myPos.north());

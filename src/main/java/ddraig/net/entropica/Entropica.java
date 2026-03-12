@@ -20,6 +20,7 @@ public class Entropica {
 
         ModDataComponents.COMPONENTS.register(modEventBus);
 
+        ModEffects.EFFECTS.register(modEventBus); // <-- Added Effects Registry here!
         ModFluids.FLUID_TYPES.register(modEventBus);
         ModFluids.FLUIDS.register(modEventBus);
         ModBlocks.BLOCKS.register(modEventBus);

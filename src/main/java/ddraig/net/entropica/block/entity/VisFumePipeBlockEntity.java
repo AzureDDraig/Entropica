@@ -7,21 +7,26 @@ import ddraig.net.entropica.block.VisFumeOneWayValveBlock;
 import ddraig.net.entropica.block.VisFumePipeBlock;
 import ddraig.net.entropica.config.EntropicaConfig;
 import ddraig.net.entropica.registry.ModBlockEntities;
+import ddraig.net.entropica.registry.ModEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -31,8 +36,39 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
     protected VisFumeStack storedFumes = VisFumeStack.EMPTY;
     private int lastSyncedAmount = -1;
     private EssenceType lastSyncedType = null;
-
     private boolean isFlushing = false;
+
+    public enum PipeTier {
+        COPPER, IRON, DIAMOND, ARCANITE, RESONITE, VISCANITE, CHARGED_ARCANITE, CHARGED_VISCANITE, DEFAULT;
+
+        public int getCapacity() {
+            return switch (this) {
+                case COPPER -> EntropicaConfig.COPPER_PIPE_CAPACITY.get();
+                case IRON -> EntropicaConfig.IRON_PIPE_CAPACITY.get();
+                case DIAMOND -> EntropicaConfig.DIAMOND_PIPE_CAPACITY.get();
+                case ARCANITE -> EntropicaConfig.ARCANITE_PIPE_CAPACITY.get();
+                case RESONITE -> EntropicaConfig.RESONITE_PIPE_CAPACITY.get();
+                case VISCANITE -> EntropicaConfig.VISCANITE_PIPE_CAPACITY.get();
+                case CHARGED_ARCANITE -> EntropicaConfig.CHARGED_ARCANITE_PIPE_CAPACITY.get();
+                case CHARGED_VISCANITE -> EntropicaConfig.CHARGED_VISCANITE_PIPE_CAPACITY.get();
+                default -> 200; // Fallback
+            };
+        }
+
+        public int getTransferRate() {
+            return switch (this) {
+                case COPPER -> EntropicaConfig.COPPER_PIPE_TRANSFER_RATE.get();
+                case IRON -> EntropicaConfig.IRON_PIPE_TRANSFER_RATE.get();
+                case DIAMOND -> EntropicaConfig.DIAMOND_PIPE_TRANSFER_RATE.get();
+                case ARCANITE -> EntropicaConfig.ARCANITE_PIPE_TRANSFER_RATE.get();
+                case RESONITE -> EntropicaConfig.RESONITE_PIPE_TRANSFER_RATE.get();
+                case VISCANITE -> EntropicaConfig.VISCANITE_PIPE_TRANSFER_RATE.get();
+                case CHARGED_ARCANITE -> EntropicaConfig.CHARGED_ARCANITE_PIPE_TRANSFER_RATE.get();
+                case CHARGED_VISCANITE -> EntropicaConfig.CHARGED_VISCANITE_PIPE_TRANSFER_RATE.get();
+                default -> 20; // Fallback
+            };
+        }
+    }
 
     public VisFumePipeBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.VIS_FUME_PIPE_BE.get(), pos, state);
@@ -40,6 +76,35 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
 
     public VisFumePipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+    }
+
+    public PipeTier getTier() {
+        if (this.getBlockState() == null) return PipeTier.DEFAULT;
+        String path = BuiltInRegistries.BLOCK.getKey(this.getBlockState().getBlock()).getPath();
+
+        if (path.contains("charged_viscanite")) return PipeTier.CHARGED_VISCANITE;
+        if (path.contains("charged_arcanite")) return PipeTier.CHARGED_ARCANITE;
+        if (path.contains("viscanite")) return PipeTier.VISCANITE;
+        if (path.contains("resonite")) return PipeTier.RESONITE;
+        if (path.contains("arcanite")) return PipeTier.ARCANITE;
+        if (path.contains("diamond")) return PipeTier.DIAMOND;
+        if (path.contains("iron")) return PipeTier.IRON;
+        if (path.contains("copper")) return PipeTier.COPPER;
+        return PipeTier.DEFAULT;
+    }
+
+    public int getTransferRate() {
+        return getTier().getTransferRate();
+    }
+
+    @Override
+    public int getSafeCapacity() {
+        return getTier().getCapacity();
+    }
+
+    @Override
+    public int getAbsoluteCapacity() {
+        return getSafeCapacity() * 3;
     }
 
     protected List<Direction> getActiveConnections(BlockState state) {
@@ -52,6 +117,10 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
         }
         return active;
     }
+
+    // ==========================================
+    // PURGE SYSTEM LOGIC
+    // ==========================================
 
     public Optional<Direction> findNearestExit(Level level, BlockPos startPos, int maxRange) {
         Queue<PathNode> queue = new LinkedList<>();
@@ -134,6 +203,8 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
         return false;
     }
 
+    // ==========================================
+
     protected void syncIfNeeded(Level level, BlockPos pos, BlockState state) {
         int currentAmount = storedFumes.isEmpty() ? 0 : storedFumes.getAmount();
         EssenceType currentType = storedFumes.isEmpty() ? null : storedFumes.getType();
@@ -147,15 +218,33 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
-        if (level.isClientSide()) {
-            return;
-        }
+        if (level.isClientSide()) return;
 
         syncIfNeeded(level, pos, state);
 
-        if (this.storedFumes.getAmount() > 200) {
+        int myAmount = this.storedFumes.getAmount();
+        int safeCap = getSafeCapacity();
+        int absoluteCap = getAbsoluteCapacity();
+
+        // 1. CATASTROPHIC FAILURE
+        if (myAmount > absoluteCap) {
             exhaustBreakBlock((ServerLevel) level, pos);
             return;
+        }
+
+        // 2. OVERPRESSURE LEAKING (Vis Toxicity)
+        if (myAmount > safeCap) {
+            float overpressureRatio = (float)(myAmount - safeCap) / (absoluteCap - safeCap);
+            // Up to 15% chance to vent every single tick depending on severity
+            if (level.random.nextFloat() < overpressureRatio * 0.15f) {
+                int leakAmount = Math.max(1, (int)(getTransferRate() * 0.2f));
+                ventGasIntoAir((ServerLevel) level, pos, Direction.UP, this.storedFumes, leakAmount);
+                applyVisToxicity((ServerLevel) level, pos);
+                this.storedFumes.shrink(leakAmount);
+                myAmount = this.storedFumes.getAmount();
+                this.setChanged();
+                level.sendBlockUpdated(pos, state, state, 3);
+            }
         }
 
         if (storedFumes.isEmpty() || level.getGameTime() % EntropicaConfig.VIS_FUME_TICK_RATE.get() != 0) {
@@ -163,84 +252,108 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
         }
 
         List<Direction> activeConnections = getActiveConnections(state);
-
-        if (activeConnections.isEmpty()) {
-            return;
-        }
+        if (activeConnections.isEmpty()) return;
 
         boolean changed = false;
-        int myAmount = this.storedFumes.getAmount();
         EssenceType type = this.storedFumes.getType();
-        boolean beingPurged = isBeingOverpowered();
+        float myPressure = this.getPressure();
 
+        // PURGE LOGIC INTEGRATION
+        boolean beingPurged = isBeingOverpowered();
         Direction priorityDir = null;
         if (beingPurged && activeConnections.size() > 1) {
             priorityDir = findNearestExit(level, pos, 32).orElse(null);
         }
 
+        // 3. OPEN END VENTING
+        // FIXED: Only vent if the pipe has exactly ONE connection, meaning it is an open-ended pipe.
+        // It will vent out the exact opposite side of its only connection.
+        if (activeConnections.size() == 1 && myAmount > 0) {
+            Direction ventDir = activeConnections.get(0).getOpposite();
+
+            if (priorityDir == null || priorityDir == ventDir) {
+                BlockPos airPos = pos.relative(ventDir);
+                if (level.getBlockState(airPos).isAir()) {
+                    int ventAmount = Math.min(myAmount, getTransferRate());
+                    ventGasIntoAir((ServerLevel) level, pos, ventDir, this.storedFumes, ventAmount);
+                    this.storedFumes.shrink(ventAmount);
+                    myAmount -= ventAmount;
+                    myPressure = this.getPressure();
+                    changed = true;
+                }
+            }
+        }
+
+        if (myAmount <= 0) {
+            if (changed) { this.setChanged(); level.sendBlockUpdated(pos, state, state, 3); }
+            return;
+        }
+
+        // Sort connections by neighbor's pressure (lowest first) to flow into emptiest pipes first
+        activeConnections.sort((d1, d2) -> {
+            BlockEntity be1 = level.getBlockEntity(pos.relative(d1));
+            BlockEntity be2 = level.getBlockEntity(pos.relative(d2));
+            float p1 = (be1 instanceof IFumeHandler h1) ? h1.getPressure() : 1.0f;
+            float p2 = (be2 instanceof IFumeHandler h2) ? h2.getPressure() : 1.0f;
+            return Float.compare(p1, p2);
+        });
+
+        // 4. TRANSFER
         for (Direction dir : activeConnections) {
-            if (priorityDir != null && dir != priorityDir) continue;
+            if (priorityDir != null && dir != priorityDir) continue; // Respect purge target direction
 
             BlockEntity be = level.getBlockEntity(pos.relative(dir));
 
-            // --- ANTI-BACKFLOW CHECK ---
+            // Anti-Backflow check for One-Way Valves
             if (be instanceof VisFumeOneWayValveBlockEntity oneWay) {
                 if (oneWay.getBlockState().hasProperty(VisFumeOneWayValveBlock.FACING) &&
                         oneWay.getBlockState().getValue(VisFumeOneWayValveBlock.FACING) == dir.getOpposite()) {
-                    continue; // Do not push into the output side of a one-way valve
+                    continue;
                 }
             }
-            // ---------------------------
 
             if (be instanceof IFumeHandler neighbor) {
                 VisFumeStack neighborFumes = neighbor.getFumeInTank();
 
                 if (neighborFumes.isEmpty() || neighborFumes.getType() == type) {
+                    float nPressure = neighbor.getPressure();
 
-                    // --- NEW: BRANCHING LOGIC FOR PIPES VS TANKS ---
-                    if (be instanceof VisFumePipeBlockEntity) {
-                        // It is a pipe: We load-balance based on pressure.
-                        int diff = myAmount - neighborFumes.getAmount();
-                        if (diff >= 1) {
-                            int toTransfer;
-                            if (beingPurged) {
-                                toTransfer = Math.min(myAmount, EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
-                            } else {
-                                toTransfer = Math.min(Math.max(1, diff / 2), EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
-                            }
-
-                            int accepted = neighbor.fill(new VisFumeStack(type, toTransfer), false);
-                            if (accepted > 0) {
-                                this.storedFumes.shrink(accepted);
-                                myAmount -= accepted;
-                                changed = true;
-                            }
-                        }
-                    } else {
-                        // It is a tank, machine, or port: Exempt from load balancing! Just fill it up.
-                        int toTransfer = Math.min(myAmount, EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
+                    // OVERRIDE: If being purged, ignore pressure rules and violently force gas out
+                    if (beingPurged) {
+                        int toTransfer = Math.min(myAmount, getTransferRate());
                         int accepted = neighbor.fill(new VisFumeStack(type, toTransfer), false);
                         if (accepted > 0) {
                             this.storedFumes.shrink(accepted);
                             myAmount -= accepted;
+                            myPressure = this.getPressure();
                             changed = true;
+                        }
+                    }
+                    // STANDARD: Smooth Pressure Gradient
+                    else if (myPressure > nPressure) {
+                        int nSafeCap = neighbor.getSafeCapacity();
+
+                        // Calculate perfect equilibrium target
+                        float targetPressure = (float)(myAmount + neighborFumes.getAmount()) / (safeCap + nSafeCap);
+                        int desiredNeighborAmount = (int)(targetPressure * nSafeCap);
+                        int toTransfer = desiredNeighborAmount - neighborFumes.getAmount();
+
+                        toTransfer = Math.min(toTransfer, getTransferRate());
+                        toTransfer = Math.max(1, toTransfer); // Always move at least 1 to resolve rounding stalls
+
+                        if (toTransfer > 0) {
+                            int accepted = neighbor.fill(new VisFumeStack(type, toTransfer), false);
+                            if (accepted > 0) {
+                                this.storedFumes.shrink(accepted);
+                                myAmount -= accepted;
+                                myPressure = this.getPressure(); // Recalculate my pressure for the next iteration
+                                changed = true;
+                            }
                         }
                     }
                 }
             }
             if (myAmount <= 0) break;
-        }
-
-        if (activeConnections.size() == 1 && myAmount > 0) {
-            Direction ventDir = activeConnections.get(0).getOpposite();
-            BlockPos airPos = pos.relative(ventDir);
-
-            if (level.getBlockState(airPos).isAir()) {
-                int ventAmount = Math.min(myAmount, EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
-                ventGasIntoAir((ServerLevel) level, pos, ventDir, this.storedFumes, ventAmount);
-                this.storedFumes.shrink(ventAmount);
-                changed = true;
-            }
         }
 
         if (changed) {
@@ -251,10 +364,9 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
 
     @Override
     public int fill(VisFumeStack resource, boolean simulate) {
-        if (resource.isEmpty()) {
-            return 0;
-        }
+        if (resource.isEmpty()) return 0;
 
+        // Flushing Mechanics (If a different type of gas forcefully enters)
         if (!this.storedFumes.isEmpty() && !this.storedFumes.is(resource.getType())) {
             if (resource.getAmount() > this.storedFumes.getAmount()) {
                 if (simulate || this.isFlushing || this.level == null || this.level.isClientSide()) {
@@ -301,7 +413,7 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
         }
 
         int currentAmount = this.storedFumes.getAmount();
-        int space = Math.max(0, getCapacity() - currentAmount);
+        int space = Math.max(0, getAbsoluteCapacity() - currentAmount);
         int accepted = Math.min(space, resource.getAmount());
 
         if (!simulate && accepted > 0) {
@@ -311,15 +423,12 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
                 this.storedFumes.grow(accepted);
             }
             this.setChanged();
-            if (level != null && !level.isClientSide()) {
+            if (level != null && !this.level.isClientSide()) {
                 level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
             }
         }
         return accepted;
     }
-
-    @Override
-    public int getCapacity() { return EntropicaConfig.VIS_FUME_PIPE_CAPACITY.get(); }
 
     @Override
     public @NotNull VisFumeStack getFumeInTank() { return this.storedFumes; }
@@ -341,10 +450,18 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
         double pX = pos.getX() + 0.5 + (dir.getStepX() * 0.6);
         double pY = pos.getY() + 0.5 + (dir.getStepY() * 0.6);
         double pZ = pos.getZ() + 0.5 + (dir.getStepZ() * 0.6);
-        float pitch = 0.8F + (float)((double) amount / EntropicaConfig.VIS_FUME_TRANSFER_RATE.get() * 0.8F);
+        float pitch = 0.8F + (float)((double) amount / getTransferRate() * 0.8F);
         if (level.random.nextInt(3) == 0) level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.3F, pitch);
         DustParticleOptions dust = new DustParticleOptions(stack.getType().getColorInt(), 1.5F);
         level.sendParticles(dust, pX, pY, pZ, 10, dir.getStepX() * 0.2, dir.getStepY() * 0.2, dir.getStepZ() * 0.2, 0.1);
+    }
+
+    private void applyVisToxicity(ServerLevel level, BlockPos pos) {
+        AABB aabb = new AABB(pos).inflate(3.0);
+        List<Player> players = level.getEntitiesOfClass(Player.class, aabb);
+        for (Player player : players) {
+            player.addEffect(new MobEffectInstance(ModEffects.VIS_TOXICITY, 200, 0));
+        }
     }
 
     protected void exhaustBreakBlock(ServerLevel level, BlockPos pos) {
@@ -352,6 +469,7 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
         level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 0.7F, 0.8F + level.random.nextFloat() * 0.4F);
         int color = this.storedFumes.isEmpty() ? 0xFFFFFF : this.storedFumes.getType().getColorInt();
         level.sendParticles(new DustParticleOptions(color, 2.0F), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 30, 0.3, 0.3, 0.3, 0.2);
+        applyVisToxicity(level, pos); // Blast the room with toxicity when it explodes
     }
 
     @Override

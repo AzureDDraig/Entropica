@@ -23,7 +23,7 @@ public class VisFumeDiverterBlockEntity extends VisFumePipeBlockEntity {
     }
 
     @Override
-    public int getCapacity() { return EntropicaConfig.VIS_FUME_DIVERTER_CAPACITY.get(); }
+    public int getSafeCapacity() { return EntropicaConfig.VIS_FUME_DIVERTER_CAPACITY.get(); }
 
     @Override
     protected List<Direction> getActiveConnections(BlockState state) {
@@ -43,7 +43,7 @@ public class VisFumeDiverterBlockEntity extends VisFumePipeBlockEntity {
             rightFace = inputFace.getCounterClockWise();
         }
 
-        active.add(inputFace); // Ensures inherited logic sees the input
+        active.add(inputFace);
         if (state.getValue(VisFumeDiverterBlock.FORWARD_OPEN)) active.add(forwardFace);
         if (state.getValue(VisFumeDiverterBlock.LEFT_OPEN)) active.add(leftFace);
         if (state.getValue(VisFumeDiverterBlock.RIGHT_OPEN)) active.add(rightFace);
@@ -56,7 +56,7 @@ public class VisFumeDiverterBlockEntity extends VisFumePipeBlockEntity {
         if (level.isClientSide()) return;
         syncIfNeeded(level, pos, state);
 
-        if (this.storedFumes.getAmount() > 200) {
+        if (this.storedFumes.getAmount() > getAbsoluteCapacity()) {
             exhaustBreakBlock((ServerLevel) level, pos);
             return;
         }
@@ -122,7 +122,6 @@ public class VisFumeDiverterBlockEntity extends VisFumePipeBlockEntity {
                     }
                 }
             } else if (level.getBlockState(targetPos).isAir()) {
-                // EXCLUSIVELY vent out of configured outputs, not random holes.
                 int threshold = beingPurged ? 0 : 20;
                 if (myAmount > threshold) {
                     int ventAmount = Math.min(myAmount - threshold, EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());

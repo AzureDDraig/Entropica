@@ -51,9 +51,7 @@ public class ModModelProvider extends ModelProvider {
         // ==========================================
         // Inform Datagen to skip these blocks as they have manually created JSON files
         blockModels.createNonTemplateModelBlock(ModBlocks.MANA_FURNACE.get());
-        blockModels.createNonTemplateModelBlock(ModBlocks.SOLAR_POWERED_FURNACE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_AUTO_SMELTER.get());
-        blockModels.createNonTemplateModelBlock(ModBlocks.VITAE_INCINERATOR.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_CORE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.CATALYST_RECEPTACLE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ESSENCE_RECEPTACLE.get());

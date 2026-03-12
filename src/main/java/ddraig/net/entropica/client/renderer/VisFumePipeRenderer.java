@@ -63,7 +63,8 @@ public class VisFumePipeRenderer implements BlockEntityRenderer<VisFumePipeBlock
             state.amount = fumeStack.getAmount();
         }
 
-        state.maxCapacity = be.getCapacity();
+        // FIXED: Switched from getCapacity() to getSafeCapacity()
+        state.maxCapacity = be.getSafeCapacity();
         state.time = (be.getLevel() != null ? be.getLevel().getGameTime() : 0) + partialTick;
         state.isPurging = be.isBeingOverpowered();
 
@@ -137,7 +138,7 @@ public class VisFumePipeRenderer implements BlockEntityRenderer<VisFumePipeBlock
             float yShake = 0;
             float scaleModifier = 1.0f;
             int renderColor = colorInt | 0xFF000000;
-            String text = state.amount + "mb";
+            String text = state.amount + " Vf"; // Changed from mb to Vf
 
             if (state.isPurging) {
                 renderColor = 0xFFFF5555;
@@ -178,7 +179,6 @@ public class VisFumePipeRenderer implements BlockEntityRenderer<VisFumePipeBlock
             poseStack.translate(0, 0, 0.26);
             poseStack.mulPose(Axis.YP.rotationDegrees(180));
 
-            // FIXED: Rotated 180 degrees from the previous attempt (changed 90 to -90)
             poseStack.mulPose(Axis.ZP.rotationDegrees(-90));
 
             poseStack.scale(-0.03F, -0.03F, 0.03F);

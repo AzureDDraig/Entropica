@@ -2,11 +2,11 @@ package ddraig.net.entropica.compat.jei;
 
 import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.recipe.DilutedEssenceRecipe;
-import ddraig.net.entropica.registry.ModFluids; // Added ModFluids
+import ddraig.net.entropica.registry.ModFluids;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.neoforge.NeoForgeTypes; // Added NeoForge JEI Types
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
@@ -16,9 +16,11 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.neoforge.fluids.FluidStack; // Added FluidStack
+import net.neoforged.neoforge.fluids.FluidStack;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DilutedEssenceRecipeCategory implements IRecipeCategory<DilutedEssenceRecipe> {
@@ -33,10 +35,7 @@ public class DilutedEssenceRecipeCategory implements IRecipeCategory<DilutedEsse
     public DilutedEssenceRecipeCategory(IGuiHelper helper) {
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/gui/jei/jei_diluted_essence.png");
         this.background = helper.createDrawable(texture, 0, 0, 150, 60);
-
-        // CHANGED: Now renders the exact fluid texture natively instead of an ItemStack/Bucket!
         this.icon = helper.createDrawableIngredient(NeoForgeTypes.FLUID_STACK, new FluidStack(ModFluids.DILUTED_ESSENCE_FLUID.get(), 1000));
-
         this.slotDrawable = helper.getSlotDrawable();
     }
 
@@ -74,13 +73,16 @@ public class DilutedEssenceRecipeCategory implements IRecipeCategory<DilutedEsse
             Ingredient ingredient = recipe.inputs().get(i);
             int xPos = startX + (i * 18);
 
+            List<ItemStack> stacks = new ArrayList<>();
+            ingredient.items().forEach(holder -> stacks.add(new ItemStack(holder)));
+
             builder.addSlot(RecipeIngredientRole.INPUT, xPos, startY)
-                    .setBackground(this.slotDrawable, -1, -1) // Draw the gray slot exactly behind the item
-                    .addIngredients(ingredient);
+                    .setBackground(this.slotDrawable, -1, -1)
+                    .addItemStacks(stacks);
         }
 
         builder.addSlot(RecipeIngredientRole.OUTPUT, 120, 20)
-                .setBackground(this.slotDrawable, -1, -1) // Draw the gray slot behind the output too
+                .setBackground(this.slotDrawable, -1, -1)
                 .addItemStacks(List.of(recipe.output()));
     }
 

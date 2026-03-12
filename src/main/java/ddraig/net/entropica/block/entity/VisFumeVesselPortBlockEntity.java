@@ -116,10 +116,19 @@ public class VisFumeVesselPortBlockEntity extends BlockEntity implements IFumeHa
     }
 
     @Override
-    public int getCapacity() {
+    public int getSafeCapacity() {
         IFumeHandler handler = getControllerHandler();
         if (handler != null) {
-            return handler.getCapacity();
+            return handler.getSafeCapacity();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getAbsoluteCapacity() {
+        IFumeHandler handler = getControllerHandler();
+        if (handler != null) {
+            return handler.getAbsoluteCapacity();
         }
         return 0;
     }

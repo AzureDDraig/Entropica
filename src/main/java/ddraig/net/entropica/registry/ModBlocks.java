@@ -23,9 +23,7 @@ public class ModBlocks {
 
     // Core Machines
     public static final DeferredBlock<ManaFurnaceBlock> MANA_FURNACE = BLOCKS.register("mana_furnace", name -> new ManaFurnaceBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
-    public static final DeferredBlock<Block> SOLAR_POWERED_FURNACE = BLOCKS.register("solar_powered_furnace", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> ENTROPIC_AUTO_SMELTER = BLOCKS.register("entropic_auto_smelter", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops()));
-    public static final DeferredBlock<Block> VITAE_INCINERATOR = BLOCKS.register("vitae_incinerator", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
 
     // Mana Furnace Multiblock Components & Arcane Blocks
     public static final DeferredBlock<EntropicCoreBlock> ENTROPIC_CORE = BLOCKS.register("entropic_core", name -> new EntropicCoreBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(3.0f).requiresCorrectToolForDrops()));
@@ -71,17 +69,11 @@ public class ModBlocks {
     public static final DeferredBlock<Block> VITAE_BARREL = BLOCKS.register("vitae_barrel", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.5f)));
 
     // Mana Network
-    public static final DeferredBlock<Block> MANA_VACUUM = BLOCKS.register("mana_vacuum", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).destroyTime(2.5f).requiresCorrectToolForDrops()));
-    public static final DeferredBlock<Block> MANA_CABLE = BLOCKS.register("mana_cable", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).destroyTime(1.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<ManaFilterBlock> MANA_FILTER = BLOCKS.register("mana_filter", name -> new ManaFilterBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).destroyTime(1.5f).requiresCorrectToolForDrops().noOcclusion()));
-    public static final DeferredBlock<Block> MANA_POWERED_LIGHTING = BLOCKS.register("mana_powered_lighting", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_YELLOW).destroyTime(1.0f).lightLevel(state -> 15)));
 
     // Crafting & Magic Stations
-    public static final DeferredBlock<Block> MANA_CRAFTER = BLOCKS.register("mana_crafter", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.5f)));
-    public static final DeferredBlock<Block> ENTROPIC_ENCHANTER = BLOCKS.register("entropic_enchanter", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<AethericSynthesizerBlock> AETHERIC_SYNTHESIZER = BLOCKS.register("aetheric_synthesizer", name -> new AethericSynthesizerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
     public static final DeferredBlock<AethericAutomatorBlock> AETHERIC_AUTOMATOR = BLOCKS.register("aetheric_automator", name -> new AethericAutomatorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
-    public static final DeferredBlock<Block> SOLAR_ESSENCE_RECHARGE_STATION = BLOCKS.register("solar_essence_recharge_station", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> ARCANE_LOOM = BLOCKS.register("arcane_loom", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.5f)));
     public static final DeferredBlock<Block> ESSENCE_FORGE = BLOCKS.register("essence_forge", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> ARCANE_ANVIL = BLOCKS.register("arcane_anvil", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(5.0f).requiresCorrectToolForDrops()));
@@ -111,8 +103,7 @@ public class ModBlocks {
     public static final List<DeferredBlock<?>> SIMPLE_BLOCKS = List.of(
             ENTROPIC_ORE, ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MANA_PLUME,
             VIS_VITAE_ANCHOR, VIS_VITAE_CONDENSER, VIS_VITAE_VACUUM, VITAE_BARREL,
-            MANA_VACUUM, MANA_CABLE, MANA_FILTER, MANA_POWERED_LIGHTING, MANA_CRAFTER,
-            ENTROPIC_ENCHANTER, SOLAR_ESSENCE_RECHARGE_STATION, ARCANE_LOOM, ESSENCE_FORGE,
+            MANA_FILTER, ARCANE_LOOM, ESSENCE_FORGE,
             ARCANE_ANVIL, MANA_EXHAUST, VIS_SIMPLE_MACHINE_BLOCK, VIS_COMPLEX_MACHINE_BLOCK,
             VIS_FUME_INPUT_PORT, VIS_ICHOR_INPUT_PORT, EXTRACTOR_OUTPUT_PORT,
             ESSENCE_NODE_IDENTIFIER_BLOCK, VIS_EXTRACTION_APPARATUS, VIS_EXTRACTOR_BASE, VIS_MOTOR

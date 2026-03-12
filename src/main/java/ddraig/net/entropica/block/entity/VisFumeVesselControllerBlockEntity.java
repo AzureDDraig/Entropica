@@ -208,7 +208,6 @@ public class VisFumeVesselControllerBlockEntity extends BlockEntity implements I
             this.storedFume = VisFumeStack.EMPTY;
         }
 
-        // --- FIXED: Explicitly trigger block updates when confirming connection ---
         for (BlockPos pos : this.connectedBlocks) {
             BlockEntity be = this.level.getBlockEntity(pos);
             if (be instanceof ManaEnrichedGlassBlockEntity glass) {
@@ -248,7 +247,6 @@ public class VisFumeVesselControllerBlockEntity extends BlockEntity implements I
         if (this.level != null) {
             for (BlockPos pos : this.connectedBlocks) {
                 BlockEntity be = this.level.getBlockEntity(pos);
-                // --- FIXED: Explicitly trigger block updates when clearing connection ---
                 if (be instanceof ManaEnrichedGlassBlockEntity glass) {
                     glass.setControllerPos(null);
                     glass.setChanged();
@@ -295,9 +293,14 @@ public class VisFumeVesselControllerBlockEntity extends BlockEntity implements I
         return EntropicaConfig.VESSEL_GLASS_BASE_CAPACITY.get();
     }
 
-    public boolean isFormed() { return isFormed; }
-    public int getMaxCapacity() { return maxCapacity; }
-    public VisFumeStack getStoredFume() { return storedFume; }
+    @Override public boolean isFormed() { return isFormed; }
+
+    // --- PRESSURE LIMITS (Hard Capped) ---
+    @Override public int getSafeCapacity() { return this.maxCapacity; }
+    @Override public int getAbsoluteCapacity() { return this.maxCapacity; }
+    public int getMaxCapacity() { return this.maxCapacity; } // Retained for Block interaction
+
+    @Override public VisFumeStack getStoredFume() { return storedFume; }
 
     @Override
     public int fill(VisFumeStack resource, boolean simulate) {
@@ -349,11 +352,6 @@ public class VisFumeVesselControllerBlockEntity extends BlockEntity implements I
     @Override
     public VisFumeStack getFumeInTank() {
         return this.storedFume != null ? this.storedFume : VisFumeStack.EMPTY;
-    }
-
-    @Override
-    public int getCapacity() {
-        return this.maxCapacity;
     }
 
     @Override
