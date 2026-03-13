@@ -1,6 +1,7 @@
 package ddraig.net.entropica;
 
 import ddraig.net.entropica.config.EntropicaConfig;
+import ddraig.net.entropica.network.ModNetwork;
 import ddraig.net.entropica.registry.*;
 import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
@@ -17,6 +18,9 @@ public class Entropica {
 
     public Entropica(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
+
+        // --- Register the Network Packets ---
+        modEventBus.addListener(ModNetwork::register);
 
         ModDataComponents.COMPONENTS.register(modEventBus);
 

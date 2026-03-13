@@ -211,7 +211,7 @@ public class ModItems {
     public static final DeferredItem<BlockItem> ESSENCE_RECEPTACLE_ITEM = ITEMS.registerItem("essence_receptacle", properties -> new BlockItem(ModBlocks.ESSENCE_RECEPTACLE.get(), properties));
     public static final DeferredItem<BlockItem> FURNACE_HATCH_ITEM = ITEMS.registerItem("furnace_hatch", properties -> new BlockItem(ModBlocks.FURNACE_HATCH.get(), properties));
     public static final DeferredItem<BlockItem> VIS_READOUT_ITEM = ITEMS.registerItem("vis_readout", properties -> new BlockItem(ModBlocks.VIS_READOUT.get(), properties));
-    public static final DeferredItem<BlockItem> MANA_EXHAUST = ITEMS.registerItem("mana_exhaust", properties -> new BlockItem(ModBlocks.MANA_EXHAUST.get(), properties));
+    public static final DeferredItem<BlockItem> VIS_EXHAUST_ITEM = ITEMS.registerItem("vis_exhaust", properties -> new BlockItem(ModBlocks.VIS_EXHAUST.get(), properties));
     public static final DeferredItem<BlockItem> ESSENCE_READOUT_ITEM = ITEMS.registerItem("essence_readout", properties -> new BlockItem(ModBlocks.ESSENCE_READOUT.get(), properties));
     public static final DeferredItem<BlockItem> CATALYST_RECEPTACLE_ITEM = ITEMS.registerItem("catalyst_receptacle", properties -> new BlockItem(ModBlocks.CATALYST_RECEPTACLE.get(), properties));
 

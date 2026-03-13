@@ -23,11 +23,11 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 import java.util.Map;
 
-public class ManaExhaustBlock extends Block {
+public class VisExhaustBlock extends Block {
 
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
-    public ManaExhaustBlock(Properties properties) {
+    public VisExhaustBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(ACTIVE, false));
     }

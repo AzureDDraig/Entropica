@@ -149,10 +149,9 @@ public class AethericSynthesizerRenderer implements BlockEntityRenderer<Aetheric
                 poseStack.pushPose();
                 poseStack.translate(0.5f + currentXOffset, currentY, 0.5f + currentZOffset);
 
-                // Rotates them to spin like a coin on a table (Y), then pitches them down to lie flat (X)
+                // Rotates them to spin upright (Y axis)
                 float spinRotation = (time % 4000L) / 4000.0f * 360.0f;
                 poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(spinRotation));
-                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90));
 
                 poseStack.scale(0.12f, 0.12f, 0.12f);
 
@@ -191,7 +190,6 @@ public class AethericSynthesizerRenderer implements BlockEntityRenderer<Aetheric
 
                     float spinRotation = (time % 4000L) / 4000.0f * 360.0f;
                     poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(spinRotation));
-                    poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90)); // Spin flat
 
                     float resultScale = phase2 * 0.36f; // 3x the input item size (0.12f * 3)
                     poseStack.scale(resultScale, resultScale, resultScale);
@@ -209,7 +207,6 @@ public class AethericSynthesizerRenderer implements BlockEntityRenderer<Aetheric
 
             float spinRotation = (time % 4000L) / 4000.0f * 360.0f;
             poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(spinRotation));
-            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90)); // Spin flat
 
             poseStack.scale(0.36f, 0.36f, 0.36f); // 3x the input item size
 

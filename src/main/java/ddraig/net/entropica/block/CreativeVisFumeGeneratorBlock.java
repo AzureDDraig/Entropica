@@ -47,7 +47,6 @@ public class CreativeVisFumeGeneratorBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) return null;
 
-        // Updated registry reference!
         return createTickerHelper(type, ModBlockEntities.CREATIVE_VIS_FUME_GENERATOR_BE.get(),
                 (lvl, pos, st, be) -> be.tick(lvl, pos, st));
     }
@@ -58,9 +57,9 @@ public class CreativeVisFumeGeneratorBlock extends BaseEntityBlock {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof CreativeVisFumeGeneratorBlockEntity generator) {
 
-                generator.cycleType();
+                // Right click manually pushes it forward by 1
+                generator.cycleType(1);
 
-                // Updated the chat message string
                 player.displayClientMessage(
                         Component.literal("§dCreative Vis Fume: ").append(Component.literal(generator.getCurrentType().getFormattedName())),
                         true

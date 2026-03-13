@@ -142,6 +142,10 @@
 		"ground": {
 			"translation": [0, 4.75, 0]
 		},
+		"gui": {
+			"rotation": [21, 142, 7],
+			"translation": [0, 4.25, 0]
+		},
 		"head": {
 			"translation": [4.75, 5.5, -5.5]
 		}

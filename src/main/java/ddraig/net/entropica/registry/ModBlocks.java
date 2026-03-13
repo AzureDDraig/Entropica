@@ -33,7 +33,7 @@ public class ModBlocks {
     public static final DeferredBlock<Block> ARCANE_FORGE_BASE = BLOCKS.register("arcane_forge_base", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.STONE).destroyTime(1.5f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<ManaPlumeBlock> MANA_PLUME = BLOCKS.register("mana_plume", name -> new ManaPlumeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
 
-    public static final DeferredBlock<ManaExhaustBlock> MANA_EXHAUST = BLOCKS.register("mana_exhaust", name -> new ManaExhaustBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<VisExhaustBlock> VIS_EXHAUST = BLOCKS.register("vis_exhaust", name -> new VisExhaustBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<CatalystReceptacleBlock> CATALYST_RECEPTACLE = BLOCKS.register("catalyst_receptacle", name -> new CatalystReceptacleBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
 
     // Component Blocks
@@ -104,7 +104,7 @@ public class ModBlocks {
             ENTROPIC_ORE, ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MANA_PLUME,
             VIS_VITAE_ANCHOR, VIS_VITAE_CONDENSER, VIS_VITAE_VACUUM, VITAE_BARREL,
             MANA_FILTER, ARCANE_LOOM, ESSENCE_FORGE,
-            ARCANE_ANVIL, MANA_EXHAUST, VIS_SIMPLE_MACHINE_BLOCK, VIS_COMPLEX_MACHINE_BLOCK,
+            ARCANE_ANVIL, VIS_EXHAUST, VIS_SIMPLE_MACHINE_BLOCK, VIS_COMPLEX_MACHINE_BLOCK,
             VIS_FUME_INPUT_PORT, VIS_ICHOR_INPUT_PORT, EXTRACTOR_OUTPUT_PORT,
             ESSENCE_NODE_IDENTIFIER_BLOCK, VIS_EXTRACTION_APPARATUS, VIS_EXTRACTOR_BASE, VIS_MOTOR
     );

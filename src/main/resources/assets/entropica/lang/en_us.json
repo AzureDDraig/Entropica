@@ -215,7 +215,7 @@
   "item.entropica.catalyst_receptacle": "Catalyst Receptacle",
   "item.entropica.furnace_hatch": "Furnace Hatch",
   "item.entropica.vis_readout": "Vis Readout",
-  "item.entropica.mana_exhaust": "Mana Exhaust",
+  "item.entropica.vis_exhaust": "Vis Exhaust",
   "item.entropica.essence_readout": "Essence Readout",
   "item.entropica.orbis_cell": "Orbis Cell",
   "item.entropica.mana_filter": "Mana Filter",
@@ -261,6 +261,7 @@
   "_comment_machine_blocks": "================ BLOCKS ================",
   "block.entropica.aetheric_synthesizer": "Aetheric Synthesizer",
   "block.entropica.aetheric_automator": "Aetheric Automator",
+  "block.entropica.vis_exhaust": "Vis Exhaust",
 
   "_comment_fluids": "================ FLUIDS ================",
   "item.entropica.diluted_essence_bucket": "Diluted Essence Bucket",

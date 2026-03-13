@@ -16,19 +16,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-/**
- * Represents a special block entity for the Creative Vis Fume Generator.
- * This block entity is responsible for generating and distributing vis fumes
- * of a certain essence type in the Minecraft world. The essence type can be
- * cycled through various predefined types.
- *
- * The Creative Vis Fume Generator allows interaction with other blocks
- * or entities via a fume handling interface and supports saving and syncing
- * its state both on the client and server side.
- */
 public class CreativeVisFumeGeneratorBlockEntity extends BlockEntity {
 
-    private EssenceType currentType = EssenceType.REGULAR;
+    // Safely default to an existing Essence to prevent null crashes
+    private EssenceType currentType = EssenceType.values()[0];
 
     public CreativeVisFumeGeneratorBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CREATIVE_VIS_FUME_GENERATOR_BE.get(), pos, state);
@@ -39,8 +30,17 @@ public class CreativeVisFumeGeneratorBlockEntity extends BlockEntity {
     }
 
     public void cycleType() {
+        cycleType(1);
+    }
+
+    public void cycleType(int delta) {
         EssenceType[] types = EssenceType.values();
-        int nextOrdinal = (this.currentType.ordinal() + 1) % types.length;
+        int nextOrdinal = (this.currentType.ordinal() + delta) % types.length;
+
+        if (nextOrdinal < 0) {
+            nextOrdinal += types.length;
+        }
+
         this.currentType = types[nextOrdinal];
 
         this.setChanged();
@@ -52,7 +52,6 @@ public class CreativeVisFumeGeneratorBlockEntity extends BlockEntity {
     public void tick(Level level, BlockPos pos, BlockState state) {
         if (level.isClientSide()) return;
 
-        // Keep it synchronized with the rest of the Vis Fume network ticks
         if (level.getGameTime() % EntropicaConfig.VIS_FUME_TICK_RATE.get() != 0) return;
 
         int amountToPush = EntropicaConfig.VIS_FUME_TRANSFER_RATE.get();
@@ -62,13 +61,10 @@ public class CreativeVisFumeGeneratorBlockEntity extends BlockEntity {
 
             if (neighbor instanceof IFumeHandler handler) {
                 int currentAmount = handler.getFumeInTank().getAmount();
+                int safeLimit = handler.getSafeCapacity();
 
-                // Only push if the neighbor is safely under the 200 explosion limit
-                if (currentAmount < 200) {
-                    // Calculate exactly how much space is left up to 200
-                    int spaceToFill = 200 - currentAmount;
-
-                    // Push the smaller value: either the normal transfer rate, or the exact space left
+                if (currentAmount < safeLimit) {
+                    int spaceToFill = safeLimit - currentAmount;
                     int pushAmount = Math.min(spaceToFill, amountToPush);
 
                     if (pushAmount > 0) {
@@ -80,7 +76,7 @@ public class CreativeVisFumeGeneratorBlockEntity extends BlockEntity {
         }
     }
 
-    // --- SAVING & SYNCING ---
+    // --- RESTORED FLAWLESS VALUE INPUT/OUTPUT LOGIC ---
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
