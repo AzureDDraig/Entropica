@@ -44,20 +44,19 @@ public class AethericSynthesizerBlock extends Block implements EntityBlock {
 
             ItemStack heldItem = player.getMainHandItem();
 
-            // --- OUTPUT EXTRACTION ---
-            // If there is an item in the output slot, we force the player to extract it before doing anything else
-            ItemStack outputItem = be.inventory.getItem(25);
-            if (!outputItem.isEmpty()) {
-                if (heldItem.isEmpty()) {
+            // --- BATCH OUTPUT EXTRACTION ---
+            boolean extractedAny = false;
+            for (int i = 25; i < 29; i++) {
+                ItemStack outputItem = be.inventory.getItem(i);
+                if (!outputItem.isEmpty()) {
                     if (!level.isClientSide()) {
                         player.getInventory().placeItemBackInInventory(outputItem.copy());
-                        be.inventory.setItem(25, ItemStack.EMPTY);
+                        be.inventory.setItem(i, ItemStack.EMPTY);
                     }
-                    return InteractionResult.SUCCESS;
-                } else {
-                    return InteractionResult.CONSUME; // Hand is full, block further interaction
+                    extractedAny = true;
                 }
             }
+            if (extractedAny) return InteractionResult.SUCCESS;
 
             // Shift Right-Click
             if (player.isShiftKeyDown()) {
@@ -81,6 +80,7 @@ public class AethericSynthesizerBlock extends Block implements EntityBlock {
             }
 
             // Normal Right-Click on top face (Insert/Extract specific slots)
+            boolean didSlotAction = false;
             if (hitResult.getDirection() == Direction.UP) {
                 int slot = getClickedSlot(hitResult, pos);
 
@@ -94,7 +94,7 @@ public class AethericSynthesizerBlock extends Block implements EntityBlock {
                             be.inventory.setItem(slot, insert);
                             heldItem.shrink(1);
                         }
-                        return InteractionResult.SUCCESS;
+                        didSlotAction = true;
                     }
                     // Extract specific
                     else if (!slotItem.isEmpty() && heldItem.isEmpty()) {
@@ -102,14 +102,17 @@ public class AethericSynthesizerBlock extends Block implements EntityBlock {
                             player.getInventory().placeItemBackInInventory(slotItem);
                             be.inventory.setItem(slot, ItemStack.EMPTY);
                         }
-                        return InteractionResult.SUCCESS;
+                        didSlotAction = true;
                     }
                 }
             }
 
-            // If they didn't interact with a specific item on the grid, open the GUI
-            if (!level.isClientSide()) {
-                // TODO: Open GUI
+            // --- ATTEMPT CRAFTING (Fallback for Normal Right-Click) ---
+            // If they clicked an empty slot with an empty hand, or clicked the side of the block, try to craft!
+            if (!didSlotAction && heldItem.isEmpty()) {
+                if (be.attemptCrafting()) {
+                    return InteractionResult.SUCCESS;
+                }
             }
 
             return InteractionResult.SUCCESS;

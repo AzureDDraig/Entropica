@@ -266,6 +266,7 @@ public class ModItems {
 
     public static final DeferredItem<BlockItem> AETHERIC_SYNTHESIZER_ITEM = ITEMS.registerItem("aetheric_synthesizer", properties -> new BlockItem(ModBlocks.AETHERIC_SYNTHESIZER.get(), properties));
     public static final DeferredItem<BlockItem> AETHERIC_AUTOMATOR_ITEM = ITEMS.registerItem("aetheric_automator", properties -> new BlockItem(ModBlocks.AETHERIC_AUTOMATOR.get(), properties));
+    public static final DeferredItem<BlockItem> SYNTHESIZER_USER_INTERFACE_ITEM = ITEMS.registerItem("synthesizer_user_interface", properties -> new BlockItem(ModBlocks.SYNTHESIZER_USER_INTERFACE.get(), properties));
 
     public static final DeferredItem<BlockItem> ARCANE_LOOM_ITEM = ITEMS.registerItem("arcane_loom", properties -> new BlockItem(ModBlocks.ARCANE_LOOM.get(), properties));
     public static final DeferredItem<BlockItem> ESSENCE_FORGE_ITEM = ITEMS.registerItem("essence_forge", properties -> new BlockItem(ModBlocks.ESSENCE_FORGE.get(), properties));

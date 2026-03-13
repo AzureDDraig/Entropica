@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.recipe.AethericSynthesizerRecipe;
 import ddraig.net.entropica.recipe.DilutedEssenceRecipe;
 import ddraig.net.entropica.recipe.FusionRecipe;
 import ddraig.net.entropica.recipe.PressureChamberRecipe;
@@ -36,12 +37,19 @@ public class ModRecipes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PressureChamberRecipe>> PRESSURE_CHAMBER_SERIALIZER =
             SERIALIZERS.register("pressure_chamber_enriching", () -> PressureChamberRecipe.Serializer.INSTANCE);
 
-    // --- NEW: Diluted Essence Recipes ---
+    // --- Diluted Essence Recipes ---
     public static final DeferredHolder<RecipeType<?>, RecipeType<DilutedEssenceRecipe>> DILUTED_ESSENCE_FLUID_TYPE =
             TYPES.register("diluted_essence", () -> new RecipeType<>() {});
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<DilutedEssenceRecipe>> DILUTED_ESSENCE_FLUID_SERIALIZER =
             SERIALIZERS.register("diluted_essence", DilutedEssenceRecipe.Serializer::new);
+
+    // --- Aetheric Synthesizer Recipes ---
+    public static final DeferredHolder<RecipeType<?>, RecipeType<AethericSynthesizerRecipe>> AETHERIC_SYNTHESIZER_TYPE =
+            TYPES.register("aetheric_synthesis", () -> AethericSynthesizerRecipe.Type.INSTANCE);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AethericSynthesizerRecipe>> AETHERIC_SYNTHESIZER_SERIALIZER =
+            SERIALIZERS.register("aetheric_synthesis", () -> AethericSynthesizerRecipe.Serializer.INSTANCE);
 
     public static void register(IEventBus eventBus) {
         SERIALIZERS.register(eventBus);

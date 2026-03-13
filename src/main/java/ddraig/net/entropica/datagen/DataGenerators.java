@@ -24,5 +24,6 @@ public class DataGenerators {
 
         // Add Curios Item Tags directly (No ExistingFileHelper or BlockTag dependencies needed!)
         event.addProvider(new CuriosTagProvider(packOutput, event.getLookupProvider()));
+
     }
 }

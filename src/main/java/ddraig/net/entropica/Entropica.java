@@ -34,6 +34,9 @@ public class Entropica {
         ModParticles.PARTICLES.register(modEventBus);
         ModRecipes.register(modEventBus);
 
+        // --- Register Menu Types ---
+        ModMenuTypes.MENU_TYPES.register(modEventBus);
+
         // --- Register the new Creative Tabs Class ---
         ModCreativeTabs.CREATIVE_MODE_TABS.register(modEventBus);
 

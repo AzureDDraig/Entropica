@@ -20,17 +20,15 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class AethericAutomatorBlockEntity extends BlockEntity {
 
     public NonNullList<ItemStack> savedPattern = NonNullList.withSize(25, ItemStack.EMPTY);
     public BlockPos linkedSynthesizer = null;
 
-    // 0 = IDLE, 1 = PUSHING (Inputs), 2 = WAITING_FOR_CRAFT, 3 = PULLING (Output)
     public int state = 0;
     public int actionTimer = 0;
-
-    // Client-side animation tracking for the mechanical hand
     public int animationTick = 0;
     private int lastState = 0;
 
@@ -59,96 +57,87 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
-        // Both Client and Server should find the synthesizer if it's missing
         if (linkedSynthesizer == null) {
             if (level.getGameTime() % 40 == 0) findSynthesizer();
         }
 
         if (level.isClientSide()) {
-            // Track state changes to reset the animation tick
             if (this.state != this.lastState) {
                 this.animationTick = 0;
                 this.lastState = this.state;
             }
-
-            // Advance animation if it's currently performing an action
             if (this.state == 1 || this.state == 3) {
                 this.animationTick++;
             } else {
-                this.animationTick = 0; // Hand rests while idle or waiting
+                this.animationTick = 0;
             }
-
-            // Tell the Synthesizer to hide the output item if we are pinching it!
             if (linkedSynthesizer != null && level.getBlockEntity(linkedSynthesizer) instanceof AethericSynthesizerBlockEntity synth) {
-                // state 3 = PULLING. It pinches at t=0.2f (16 ticks out of 80)
                 synth.isOutputBeingGrabbed = (this.state == 3 && this.animationTick >= 16);
             }
             return;
         }
 
         if (linkedSynthesizer == null) return;
-
         AethericSynthesizerBlockEntity synth = (AethericSynthesizerBlockEntity) level.getBlockEntity(linkedSynthesizer);
-        if (synth == null) {
-            linkedSynthesizer = null;
-            return;
-        }
+        if (synth == null) { linkedSynthesizer = null; return; }
 
         Container adjInv = findAdjacentInventory();
 
-        if (this.state == 0) { // IDLE
+        if (this.state == 0) {
             if (adjInv != null && isPatternSaved() && isSynthesizerEmpty(synth)) {
                 if (hasRequiredItems(adjInv)) {
-                    this.state = 1; // Start pushing
-                    this.actionTimer = 80; // 4 seconds for the hand to reach, grab like dice, and slap
+                    this.state = 1;
+                    this.actionTimer = 80;
                     sync();
                 }
             }
-            // Catch edge case: Finished crafting but state got reset
-            if (!synth.inventory.getItem(25).isEmpty() && !synth.isCrafting) {
+            if (hasAnyOutput(synth) && !synth.isCrafting) {
                 this.state = 3;
-                this.actionTimer = 80; // 4 seconds to reach, pinch, and pull the item back
+                this.actionTimer = 80;
                 sync();
             }
-        } else if (this.state == 1) { // PUSHING
+        } else if (this.state == 1) {
             actionTimer--;
             if (actionTimer <= 0) {
                 if (extractRequiredItems(adjInv)) {
-                    // This is the moment the hand "slaps" the table
                     pushItemsToSynthesizer(synth);
                     synth.attemptCrafting();
                 }
-                this.state = 2; // Move to Wait
+                this.state = 2;
                 sync();
             }
-        } else if (this.state == 2) { // WAITING FOR CRAFT
-            if (!synth.isCrafting && !synth.inventory.getItem(25).isEmpty()) {
-                this.state = 3; // Finished! Start pulling
-                this.actionTimer = 80; // 4 seconds to pull the item back
+        } else if (this.state == 2) {
+            if (!synth.isCrafting && hasAnyOutput(synth)) {
+                this.state = 3;
+                this.actionTimer = 80;
                 sync();
-            } else if (!synth.isCrafting && synth.inventory.getItem(25).isEmpty()) {
-                // Craft failed or was manually stolen by player
+            } else if (!synth.isCrafting && !hasAnyOutput(synth)) {
                 this.state = 0;
                 sync();
             }
-        } else if (this.state == 3) { // PULLING
+        } else if (this.state == 3) {
             actionTimer--;
             if (actionTimer <= 0) {
-                ItemStack output = synth.inventory.getItem(25);
-                if (!output.isEmpty() && adjInv != null) {
-                    ItemStack remainder = insertIntoInventory(adjInv, output);
-                    synth.inventory.setItem(25, remainder);
-
-                    if (remainder.isEmpty()) {
-                        this.state = 0; // Successfully stored, ready to repeat
-                    } else {
-                        this.actionTimer = 20; // Chest is full! Retry in 1 second
+                boolean stillHasItems = false;
+                if (adjInv != null) {
+                    for (int i = 25; i < 29; i++) {
+                        ItemStack output = synth.inventory.getItem(i);
+                        if (!output.isEmpty()) {
+                            ItemStack remainder = insertIntoInventory(adjInv, output);
+                            synth.inventory.setItem(i, remainder);
+                            if (!remainder.isEmpty()) stillHasItems = true;
+                        }
                     }
-                    sync();
                 } else {
-                    this.state = 0;
-                    sync();
+                    stillHasItems = true; // Chest broken? Stall.
                 }
+
+                if (!stillHasItems) {
+                    this.state = 0;
+                } else {
+                    this.actionTimer = 20; // Chest is full! Retry in 1 second
+                }
+                sync();
             }
         }
     }
@@ -187,10 +176,17 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
     }
 
     private boolean isSynthesizerEmpty(AethericSynthesizerBlockEntity synth) {
-        for (int i = 0; i < 26; i++) {
+        for (int i = 0; i < 29; i++) {
             if (!synth.inventory.getItem(i).isEmpty()) return false;
         }
         return true;
+    }
+
+    private boolean hasAnyOutput(AethericSynthesizerBlockEntity synth) {
+        for (int i = 25; i < 29; i++) {
+            if (!synth.inventory.getItem(i).isEmpty()) return true;
+        }
+        return false;
     }
 
     private boolean hasRequiredItems(Container inv) {
@@ -282,12 +278,16 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         output.putInt("AutoState", this.state);
         output.putInt("ActionTimer", this.actionTimer);
-        if (linkedSynthesizer != null) output.putLong("LinkedSynth", linkedSynthesizer.asLong());
+
+        if (linkedSynthesizer != null) {
+            output.putLong("LinkedSynth", linkedSynthesizer.asLong());
+        } else {
+            output.putLong("LinkedSynth", -1L);
+        }
 
         for (int i = 0; i < 25; i++) {
             ItemStack stack = savedPattern.get(i);
-            output.putString("PatItem_" + i, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
-            output.putInt("PatCount_" + i, stack.getCount());
+            output.store("PatItemStack_" + i, ItemStack.OPTIONAL_CODEC, stack);
         }
     }
 
@@ -296,30 +296,44 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         this.state = input.getIntOr("AutoState", 0);
         this.actionTimer = input.getIntOr("ActionTimer", 0);
+
         long linked = input.getLongOr("LinkedSynth", -1L);
-        if (linked != -1L) this.linkedSynthesizer = BlockPos.of(linked);
-        else this.linkedSynthesizer = null;
+        if (linked != -1L) {
+            this.linkedSynthesizer = BlockPos.of(linked);
+        } else {
+            this.linkedSynthesizer = null;
+        }
 
         for (int i = 0; i < 25; i++) {
-            String itemStr = input.getStringOr("PatItem_" + i, "minecraft:air");
-            int count = input.getIntOr("PatCount_" + i, 0);
-            if (!itemStr.equals("minecraft:air") && count > 0) {
-                net.minecraft.resources.ResourceLocation rl = net.minecraft.resources.ResourceLocation.tryParse(itemStr);
-                if (rl != null) {
-                    int finalI = i;
-                    BuiltInRegistries.ITEM.getOptional(rl).ifPresent(holder ->
-                            savedPattern.set(finalI, new ItemStack(holder, count))
-                    );
-                }
+            Optional<ItemStack> optStack = input.read("PatItemStack_" + i, ItemStack.OPTIONAL_CODEC);
+            if (optStack.isPresent()) {
+                savedPattern.set(i, optStack.get());
             } else {
-                savedPattern.set(i, ItemStack.EMPTY);
+                // Fallback for older saves
+                String itemStr = input.getStringOr("PatItem_" + i, "minecraft:air");
+                int count = input.getIntOr("PatCount_" + i, 0);
+                if (!itemStr.equals("minecraft:air") && count > 0) {
+                    net.minecraft.resources.ResourceLocation rl = net.minecraft.resources.ResourceLocation.tryParse(itemStr);
+                    if (rl != null) {
+                        int finalI = i;
+                        BuiltInRegistries.ITEM.getOptional(rl).ifPresent(holder ->
+                                savedPattern.set(finalI, new ItemStack(holder, count))
+                        );
+                    }
+                } else {
+                    savedPattern.set(i, ItemStack.EMPTY);
+                }
             }
         }
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider p) { return this.saveWithoutMetadata(p); }
+    public CompoundTag getUpdateTag(HolderLookup.Provider p) {
+        return this.saveWithoutMetadata(p);
+    }
 
     @Override
-    public ClientboundBlockEntityDataPacket getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
 }

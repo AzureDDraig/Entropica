@@ -13,9 +13,11 @@ import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModEntityTypes;
 import ddraig.net.entropica.registry.ModFluids;
+import ddraig.net.entropica.registry.ModMenuTypes;
 import ddraig.net.entropica.block.entity.CreativeVisFumeGeneratorBlockEntity;
 import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
 import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity;
+import ddraig.net.entropica.client.gui.SynthesizerUserInterfaceScreen;
 import ddraig.net.entropica.Entropica;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -27,6 +29,7 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
@@ -66,6 +69,12 @@ public class ModClientEvents {
                     Component.literal("Entropica Debug: " + (debugMode ? "§aON" : "§cOFF")),
                     false);
         }
+    }
+
+    @SubscribeEvent
+    public static void registerScreens(RegisterMenuScreensEvent event) {
+        // Binds the "invisible" server-side Menu to the "visible" client-side Screen
+        event.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);
     }
 
     @SubscribeEvent
