@@ -99,6 +99,7 @@ public class ModClientEvents {
 
         // --- NEW: Eidolic Lathe Holograms! ---
         event.registerBlockEntityRenderer(ModBlockEntities.EIDOLIC_FOCAL_PEDESTAL_BE.get(), EidolicFocalPedestalRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ATTUNEMENT_PEDESTAL_BE.get(), AttunementPedestalRenderer::new);
 
         // Added the Creative Vis Fume Generator Hologram Renderer
         event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_VIS_FUME_GENERATOR_BE.get(), CreativeVisFumeGeneratorRenderer::new);

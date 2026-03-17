@@ -20,7 +20,7 @@ public interface IIchorHandler {
      * @param simulate If true, the action will only be simulated without mutating state.
      * @return A VisIchorStack representing the drained Ichor.
      */
-    VisIchorStack drain(int maxDrain, boolean simulate);
+    VisIchorStack drainIchor(int maxDrain, boolean simulate);
 
     /**
      * Gets the current Vis Ichor stored in the handler.

@@ -9,6 +9,7 @@ import ddraig.net.entropica.item.EntropicaComponentItem;
 import ddraig.net.entropica.item.VisFumeAmpouleItem;
 import ddraig.net.entropica.item.OrbisCellItem;
 import ddraig.net.entropica.item.SpoolItem;
+import ddraig.net.entropica.item.DynamicEidolicWeaponItem;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -304,6 +305,10 @@ public class ModItems {
     public static final DeferredItem<BlockItem> EIDOLIC_FOCAL_PEDESTAL_ITEM = ITEMS.registerItem("eidolic_focal_pedestal", properties -> new BlockItem(ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get(), properties));
     public static final DeferredItem<BlockItem> ATTUNEMENT_PEDESTAL_ITEM = ITEMS.registerItem("attunement_pedestal", properties -> new BlockItem(ModBlocks.ATTUNEMENT_PEDESTAL.get(), properties));
     public static final DeferredItem<BlockItem> MORPHIC_LOOM_ITEM = ITEMS.registerItem("morphic_loom", properties -> new BlockItem(ModBlocks.MORPHIC_LOOM.get(), properties));
+
+    // --- NEW: Test Dynamic Weapon ---
+    public static final DeferredItem<DynamicEidolicWeaponItem> TEST_EIDOLIC_WEAPON = ITEMS.registerItem("test_eidolic_weapon",
+            properties -> new DynamicEidolicWeaponItem(properties.sword(ToolMaterial.NETHERITE, 3, -2.4f)));
 
     public static final DeferredItem<Item> ORBIS_CELL_ITEM = ITEMS.registerItem("orbis_cell", properties -> new OrbisCellItem(ModBlocks.ORBIS_CELL.get(), properties));
 

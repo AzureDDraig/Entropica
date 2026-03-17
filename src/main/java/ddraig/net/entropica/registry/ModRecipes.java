@@ -51,6 +51,13 @@ public class ModRecipes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AethericSynthesizerRecipe>> AETHERIC_SYNTHESIZER_SERIALIZER =
             SERIALIZERS.register("aetheric_synthesis", () -> AethericSynthesizerRecipe.Serializer.INSTANCE);
 
+    // --- Eidolic Lathe Recipes ---
+    public static final DeferredHolder<RecipeType<?>, RecipeType<ddraig.net.entropica.recipe.EidolicLatheRecipe>> EIDOLIC_LATHE_TYPE =
+            TYPES.register("eidolic_lathe", () -> ddraig.net.entropica.recipe.EidolicLatheRecipe.Type.INSTANCE);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ddraig.net.entropica.recipe.EidolicLatheRecipe>> EIDOLIC_LATHE_SERIALIZER =
+            SERIALIZERS.register("eidolic_lathe", () -> ddraig.net.entropica.recipe.EidolicLatheRecipe.Serializer.INSTANCE);
+
     public static void register(IEventBus eventBus) {
         SERIALIZERS.register(eventBus);
         TYPES.register(eventBus);

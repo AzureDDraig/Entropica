@@ -2,6 +2,8 @@ package ddraig.net.entropica.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.block.VisIchorInputPortBlock;
 import ddraig.net.entropica.block.entity.EidolicLatheBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -21,6 +23,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -31,6 +34,9 @@ import java.util.List;
 public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<EidolicLatheBlockEntity, EidolicFocalPedestalRenderer.LatheRenderState> {
 
     private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
+    private static final ResourceLocation SMOKE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/particle/effect_0.png");
+    private static final ResourceLocation DRIP_TEXTURE = ResourceLocation.withDefaultNamespace("textures/particle/drip_fall.png");
+
     private final Font font;
     private final ItemModelResolver itemModelResolver;
 
@@ -49,7 +55,6 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         return 256;
     }
 
-    // Completely overrides the distance and frustum checks, forcing the rings to ALWAYS render if the chunk is loaded!
     @Override
     public boolean shouldRender(EidolicLatheBlockEntity blockEntity, Vec3 cameraPos) {
         return true;
@@ -67,19 +72,36 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         state.isFormed = be.isFormed();
         Level level = be.getLevel();
 
-        // FIXED: Added a modulo to the game time before applying the partial tick.
-        // This prevents massive numbers from destroying the float's decimal precision, restoring buttery-smooth animations!
         state.time = (level != null ? (level.getGameTime() % 360000L) : 0) + partialTick;
-
         state.pedestalOffsets.clear();
 
+        state.isCrafting = be.isCrafting;
+        state.craftingProgress = be.craftingProgress;
+        state.maxCraftingProgress = Math.max(1, be.maxCraftingProgress);
+        state.craftingEssenceType = be.craftingEssenceType;
+
+        if (state.isCrafting) {
+            state.smoothProg = Math.min(1.0f, (be.craftingProgress + partialTick) / state.maxCraftingProgress);
+        } else {
+            state.smoothProg = 0.0f;
+        }
+
+        BlockPos center = be.getBlockPos();
+
+        if (be.activePortPos != null && level != null) {
+            state.portOffset = new Vec3(be.activePortPos.getX() - center.getX(), be.activePortPos.getY() - center.getY(), be.activePortPos.getZ() - center.getZ());
+            Block portBlock = level.getBlockState(be.activePortPos).getBlock();
+            state.isIchorPort = (portBlock instanceof VisIchorInputPortBlock);
+        } else {
+            state.portOffset = null;
+            state.isIchorPort = false;
+        }
+
         if (state.isFormed) {
-            BlockPos center = be.getBlockPos();
             for (BlockPos p : be.connectedPedestals) {
                 state.pedestalOffsets.add(new Vec3(p.getX() - center.getX(), p.getY() - center.getY(), p.getZ() - center.getZ()));
             }
 
-            // Extract the 4 items from the pedestal's inventory
             int seed = (int) be.getBlockPos().asLong();
             for (int i = 0; i < 4; i++) {
                 ItemStack stack = be.inventory.getItem(i);
@@ -89,6 +111,20 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
                 } else {
                     state.items[i].clear();
                 }
+            }
+
+            // Extract the Output Slot (Assumes Slot 4 has been added to the BlockEntity!)
+            if (be.inventory.getContainerSize() > 4) {
+                ItemStack outStack = be.inventory.getItem(4);
+                state.hasOutputItem = !outStack.isEmpty();
+                if (state.hasOutputItem && level != null) {
+                    this.itemModelResolver.updateForTopItem(state.outputItem, outStack, ItemDisplayContext.FIXED, level, null, seed + 4);
+                } else {
+                    state.outputItem.clear();
+                }
+            } else {
+                state.hasOutputItem = false;
+                state.outputItem.clear();
             }
         }
     }
@@ -105,52 +141,153 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         float r = 0.2f, g = 0.8f, b = 1.0f;
         float a = 0.6f + (float) Math.sin(time * 0.05f) * 0.2f;
 
+        float cr = 1.0f, cg = 1.0f, cb = 1.0f;
+        float prog = state.smoothProg;
+
+        if (state.isCrafting && state.craftingEssenceType != null) {
+            int colorInt = state.craftingEssenceType.getColorInt();
+            cr = ((colorInt >> 16) & 0xFF) / 255.0f;
+            cg = ((colorInt >> 8) & 0xFF) / 255.0f;
+            cb = (colorInt & 0xFF) / 255.0f;
+        }
+
+        final float finalCr = cr;
+        final float finalCg = cg;
+        final float finalCb = cb;
+        final float finalProg = prog;
+
         poseStack.pushPose();
         poseStack.translate(0.5, 0, 0.5);
 
         // ==========================================
-        // 1. LOWER CORE HALO
+        // TIMING CONSTANTS FOR THE RITUAL PHASES
+        // ==========================================
+        final float P1_END = 0.30f; // Port -> Spiral & Beams
+        final float P2_END = 0.50f; // Distribute -> Nodes
+        final float P3_END = 0.80f; // Nodes Shake -> Apex
+
+        Vec3 apex = new Vec3(0, 4.5, 0);
+        Vec3 distPoint = new Vec3(0, 2.5, 0);
+        Vec3 focalTop = new Vec3(0, 1.2, 0);
+
+        // ==========================================
+        // 1. DYNAMIC CRAFTING RITUAL PARTICLES
+        // ==========================================
+        if (state.isCrafting) {
+            ResourceLocation particleTex = state.isIchorPort ? DRIP_TEXTURE : SMOKE_TEXTURE;
+
+            if (finalProg < P1_END && state.portOffset != null) {
+                Vec3 portLocalCenter = new Vec3(state.portOffset.x, state.portOffset.y + 0.5, state.portOffset.z);
+                Vec3 dirToCenter = new Vec3(-portLocalCenter.x, 0, -portLocalCenter.z);
+                if (dirToCenter.lengthSqr() > 0.001) {
+                    dirToCenter = dirToCenter.normalize();
+                }
+                Vec3 portLocalFace = portLocalCenter.add(dirToCenter.scale(0.5));
+
+                for(int i = 0; i < 40; i++) {
+                    float s = ((time * 0.03f) + (i / 40.0f)) % 1.0f;
+                    Vec3 p = getSpiralPos(s, portLocalFace, distPoint);
+
+                    poseStack.pushPose();
+                    poseStack.translate(p.x, p.y, p.z);
+                    poseStack.mulPose(cameraRenderState.orientation);
+                    poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+
+                    collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(particleTex), (pose, cons) -> {
+                        drawQuad(cons, pose.pose(), 0.65f, finalCr, finalCg, finalCb, 0.9f, light);
+                    });
+                    poseStack.popPose();
+                }
+            }
+
+            if (finalProg >= P1_END && finalProg < P2_END) {
+                for(Vec3 offset : state.pedestalOffsets) {
+                    Vec3 nodePos = new Vec3(offset.x / 2.0, (offset.y + 1.0 + apex.y) / 2.0, offset.z / 2.0);
+
+                    for(int i = 0; i < 15; i++) {
+                        float s = ((time * 0.04f) + (i / 15.0f)) % 1.0f;
+                        Vec3 p = distPoint.lerp(nodePos, s);
+
+                        poseStack.pushPose();
+                        poseStack.translate(p.x, p.y, p.z);
+                        poseStack.mulPose(cameraRenderState.orientation);
+                        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+
+                        collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(particleTex), (pose, cons) -> {
+                            drawQuad(cons, pose.pose(), 0.45f, finalCr, finalCg, finalCb, 0.8f, light);
+                        });
+                        poseStack.popPose();
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // 2. THE GRAND MAGIC CIRCLE
         // ==========================================
         poseStack.pushPose();
-        poseStack.translate(0, 2.2 + Math.sin(time * 0.03) * 0.1, 0);
-
-        // Spin the Torus Clockwise
+        poseStack.translate(0, 2.5 + Math.sin(time * 0.03) * 0.1, 0);
         poseStack.pushPose();
         poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(time * 2.0f));
+
         collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
-            drawTorus(cons, pose.pose(), 0.8f, 0.06f, 32, 12, r, g, b, a, light);
+            Matrix4f mat = pose.pose();
+
+            float y0 = 0.00f;
+            float y1 = 0.01f;
+            float y2 = 0.02f;
+
+            // Outer Rings
+            drawFlatRing(cons, mat, 0.8f, 0.015f, 64, r, g, b, a, light, y0);
+            drawFlatRing(cons, mat, 0.76f, 0.005f, 64, r, g, b, a, light, y0);
+
+            // Inner Rings
+            drawFlatRing(cons, mat, 0.56f, 0.015f, 64, r, g, b, a, light, y1);
+            drawFlatRing(cons, mat, 0.54f, 0.005f, 64, r, g, b, a, light, y1);
+
+            // Hexagram
+            drawStarPolygon(cons, mat, 0.54f, 0.01f, 3, 1, 0.0f, r, g, b, a, light, y1);
+            drawStarPolygon(cons, mat, 0.54f, 0.01f, 3, 1, (float)Math.PI, r, g, b, a, light, y1);
+
+            // Mid Rings
+            drawFlatRing(cons, mat, 0.32f, 0.01f, 48, r, g, b, a, light, y2);
+            drawFlatRing(cons, mat, 0.30f, 0.005f, 48, r, g, b, a, light, y2);
+
+            // Inner Pentagram
+            drawStarPolygon(cons, mat, 0.30f, 0.008f, 5, 2, 0.0f, r, g, b, a, light, y2);
+
+            // Center Ring
+            drawFlatRing(cons, mat, 0.08f, 0.01f, 16, r, g, b, a, light, y2);
+
+            // 5 Small Outer Boundary Circles
+            for (int i = 0; i < 5; i++) {
+                float angle = (float) (i * 2 * Math.PI / 5);
+                float cx = (float) Math.cos(angle) * 0.66f;
+                float cz = (float) Math.sin(angle) * 0.66f;
+                drawFlatRingOffset(cons, mat, cx, cz, 0.12f, 0.01f, 32, r, g, b, a, light, y0);
+            }
         });
-        poseStack.popPose();
 
-        // Spin the Runes Counter-Clockwise
+        // --- THE TEXT / RUNE LAYERS (Double-sided!) ---
+        drawFlatRunes(poseStack, bufferSource, this.font, 0.66f, 0.015f, light, time, r, g, b, a, 0.0f);
+
         poseStack.pushPose();
-        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-time * 2.0f));
-        drawTorusRunes(poseStack, bufferSource, this.font, 0.8f, 0.06f, 0.015f, light, time);
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-time * 4.0f));
+        drawFlatRunes(poseStack, bufferSource, this.font, 0.43f, 0.01f, light, time, r, g, b, a, 0.01f);
         poseStack.popPose();
 
-        poseStack.popPose();
+        for (int i = 0; i < 5; i++) {
+            poseStack.pushPose();
+            float angle = (float) (i * 2 * Math.PI / 5);
+            poseStack.translate(Math.cos(angle) * 0.66f, 0.0f, Math.sin(angle) * 0.66f);
 
-        // ==========================================
-        // 2. UPPER CORE HALO
-        // ==========================================
-        poseStack.pushPose();
-        poseStack.translate(0, 2.8 + Math.cos(time * 0.04) * 0.1, 0);
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(time * 3.0f));
+            drawSingleRune(poseStack, bufferSource, this.font, i, 0.02f, light, r, g, b, a);
+            poseStack.popPose();
+        }
 
-        // Spin the Torus Counter-Clockwise
-        poseStack.pushPose();
-        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-time * 3.0f));
-        collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
-            drawTorus(cons, pose.pose(), 0.45f, 0.04f, 32, 12, r, g, b, a, light);
-        });
-        poseStack.popPose();
-
-        // Spin the Runes Clockwise
-        poseStack.pushPose();
-        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(time * 3.0f));
-        drawTorusRunes(poseStack, bufferSource, this.font, 0.45f, 0.04f, 0.01f, light, time);
-        poseStack.popPose();
-
-        poseStack.popPose();
+        poseStack.popPose(); // End Spin
+        poseStack.popPose(); // End Translation
 
         // ==========================================
         // 3. FLOATING INVENTORY ITEMS
@@ -162,55 +299,182 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         for (int i = 0; i < 4; i++) {
             if (state.hasItem[i]) {
                 poseStack.pushPose();
-
-                // Space the 4 items evenly in a circle and spin them around the pedestal
                 float angle = (i * 90.0f) + (time * 3.0f);
                 float rads = (float) Math.toRadians(angle);
                 float xOffset = (float) Math.cos(rads) * itemRadius;
                 float zOffset = (float) Math.sin(rads) * itemRadius;
 
                 poseStack.translate(xOffset, hoverY, zOffset);
-
-                // Spin the item on its own axis for a nice magical effect
                 poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(time * 5.0f));
                 poseStack.scale(itemScale, itemScale, itemScale);
-
                 state.items[i].submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, 0);
-
                 poseStack.popPose();
             }
         }
 
         // ==========================================
-        // 4. ALIGNMENT RINGS
+        // 4. ALIGNMENT RINGS & LIGHTNING BEAMS
         // ==========================================
+        int pedIndex = 0;
         for (Vec3 offset : state.pedestalOffsets) {
             poseStack.pushPose();
 
-            double midX = offset.x / 2.0;
-            double midY = offset.y / 2.0 + 0.8 + Math.sin(time * 0.05 + offset.x) * 0.05;
-            double midZ = offset.z / 2.0;
+            Vec3 pedestalBase = new Vec3(offset.x, offset.y + 1.0, offset.z);
+            Vec3 nodePos = new Vec3(offset.x / 2.0, (offset.y + 1.0 + apex.y) / 2.0, offset.z / 2.0);
 
-            poseStack.translate(midX, midY, midZ);
+            double dx = -offset.x;
+            double dy = apex.y - (offset.y + 1.0);
+            double dz = -offset.z;
+            double distXZ = Math.sqrt(dx * dx + dz * dz);
 
-            float yaw = (float) Math.toDegrees(Math.atan2(offset.x, offset.z));
+            float yaw = (float) Math.toDegrees(Math.atan2(dx, dz));
+            float pitch = (float) Math.toDegrees(Math.atan2(dy, distXZ));
+
+            poseStack.translate(nodePos.x, nodePos.y, nodePos.z);
+
             poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(yaw));
-            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90));
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90 - pitch));
 
-            // Spin Torus
+            // Small 2D Flat Rings acting as Alignment Conduits
             poseStack.pushPose();
             poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(time * 6.0f));
             collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
-                drawTorus(cons, pose.pose(), 0.175f, 0.015f, 24, 8, r, g, b, a, light);
+                Matrix4f mat = pose.pose();
+                drawFlatRing(cons, mat, 0.175f, 0.015f, 24, r, g, b, a, light, 0.0f);
+                drawFlatRing(cons, mat, 0.15f, 0.005f, 24, r, g, b, a, light, 0.0f);
             });
             poseStack.popPose();
 
-            // Counter-Spin Runes
             poseStack.pushPose();
             poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-time * 6.0f));
-            drawTorusRunes(poseStack, bufferSource, this.font, 0.175f, 0.015f, 0.005f, light, time);
+            drawFlatRunes(poseStack, bufferSource, this.font, 0.1625f, 0.006f, light, time, r, g, b, a, 0.0f);
             poseStack.popPose();
 
+            poseStack.popPose();
+
+            // Handle Render state for the Channeled Lightning and Nodes
+            if (state.isCrafting) {
+                Vec3 renderNodePos = nodePos;
+
+                // PHASE 3 & 4: The nodes shake violently
+                if (finalProg >= P2_END) {
+                    float shakeStr = 0.06f * ((finalProg - P2_END) / (1.0f - P2_END));
+                    float rx = (float) Math.sin(time * 30.0 + pedIndex * 13) * shakeStr;
+                    float ry = (float) Math.cos(time * 27.0 + pedIndex * 7) * shakeStr;
+                    float rz = (float) Math.sin(time * 33.0 + pedIndex * 11) * shakeStr;
+                    renderNodePos = renderNodePos.add(rx, ry, rz);
+                }
+
+                final Vec3 finalRenderNodePos = renderNodePos;
+                final long jitterSeed = (long)(time * 0.8f) + pedIndex * 1337L;
+
+                collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
+                    Matrix4f matrix = pose.pose();
+
+                    // PHASE 1: Lightning streams FROM the Pedestals up to the Nodes (Instantaneous)
+                    if (finalProg < P1_END) {
+                        drawLightning(cons, matrix, pedestalBase, finalRenderNodePos, 4, 0.02f, finalCr, finalCg, finalCb, 0.8f, light, jitterSeed);
+                    }
+                    // PHASE 3: Lightning streams FROM the shaking Nodes up to the Apex (Instantaneous)
+                    else if (finalProg >= P2_END && finalProg < P3_END) {
+                        drawLightning(cons, matrix, finalRenderNodePos, apex, 6, 0.03f, finalCr, finalCg, finalCb, 0.8f, light, jitterSeed);
+                    }
+                });
+
+                // Draw the actual Orb inside the node
+                if (finalProg < P3_END) {
+                    float orbScale = 0.15f;
+                    if (finalProg > P3_END - 0.05f) {
+                        float fadeOut = (P3_END - finalProg) / 0.05f;
+                        orbScale *= fadeOut;
+                    }
+
+                    final float finalOrbScale = orbScale;
+                    if (finalOrbScale > 0.001f) {
+                        poseStack.pushPose();
+                        poseStack.translate(finalRenderNodePos.x, finalRenderNodePos.y, finalRenderNodePos.z);
+                        poseStack.scale(finalOrbScale, finalOrbScale, finalOrbScale);
+                        collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
+                            drawSphere(cons, pose.pose(), 1.0f, finalCr, finalCg, finalCb, 0.9f, light, Vec3.ZERO);
+                        });
+                        poseStack.popPose();
+                    }
+                }
+            }
+            pedIndex++;
+        }
+
+        // ==========================================
+        // 5. APEX SPHERE & FINAL CONE BLAST
+        // ==========================================
+        if (state.isCrafting && finalProg >= P2_END) {
+
+            // Draw the swelling Apex Orb (Starts growing in Phase 3!)
+            poseStack.pushPose();
+            poseStack.translate(apex.x, apex.y, apex.z);
+
+            float orbScale = 0;
+            float orbAlpha = 0;
+            float shrink = 0;
+
+            if (finalProg < P3_END) {
+                // Phase 3: Growing to catch the lightning
+                float phase3Prog = (finalProg - P2_END) / (P3_END - P2_END);
+                orbScale = 0.1f + phase3Prog * 0.2f;
+                orbAlpha = phase3Prog * 0.8f;
+            } else {
+                // Phase 4: Swelling and pulsing then shrinking out
+                float phase4Prog = (finalProg - P3_END) / (1.0f - P3_END);
+                shrink = Math.max(0.0f, (phase4Prog - 0.85f) / 0.15f);
+                float orbFade = 1.0f - shrink;
+                orbScale = (0.3f + phase4Prog * 0.4f + (float) Math.sin(time * 2.0f) * 0.05f) * orbFade;
+                orbAlpha = 0.8f + (0.2f * phase4Prog);
+            }
+
+            if (orbScale > 0.001f) {
+                final float finalOrbScale = orbScale;
+                final float finalOrbAlpha = orbAlpha;
+                poseStack.scale(finalOrbScale, finalOrbScale, finalOrbScale);
+                collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
+                    drawSphere(cons, pose.pose(), 1.0f, finalCr, finalCg, finalCb, finalOrbAlpha, light, Vec3.ZERO);
+                });
+            }
+            poseStack.popPose();
+
+            // Draw the massive, 16-sided geometric Cone Blast downwards (Phase 4 only)
+            if (finalProg >= P3_END) {
+                float phase4Prog = (finalProg - P3_END) / (1.0f - P3_END);
+                float grow = Math.min(1.0f, phase4Prog / 0.15f);
+
+                float clipTopY = net.minecraft.util.Mth.lerp(shrink, 4.5f, 1.2f);
+                float clipBottomY = net.minecraft.util.Mth.lerp(grow, 4.5f, 1.2f);
+
+                collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
+                    Matrix4f matrix = pose.pose();
+
+                    // Cone from apex (point) expanding to the magic circle center (0.8 radius to match the rings)
+                    drawClampedVerticalCone(cons, matrix, 4.5f, 2.5f, 0.0f, 0.8f, clipTopY, clipBottomY, finalCr, finalCg, finalCb, 0.9f, light);
+
+                    // Shrinks rapidly to a fine point on the focal pedestal
+                    drawClampedVerticalCone(cons, matrix, 2.5f, 1.2f, 0.8f, 0.05f, clipTopY, clipBottomY, finalCr, finalCg, finalCb, 0.9f, light);
+                });
+            }
+        }
+
+        // ==========================================
+        // 6. COMPLETED WEAPON / OUTPUT ITEM
+        // ==========================================
+        if (state.hasOutputItem) {
+            poseStack.pushPose();
+            // Hover safely above the focal pedestal
+            float outHoverY = 1.8f + (float) Math.sin(time * 0.05f) * 0.1f;
+            poseStack.translate(0, outHoverY, 0);
+
+            float spinRotation = (time % 4000L) / 4000.0f * 360.0f;
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(spinRotation));
+
+            poseStack.scale(0.6f, 0.6f, 0.6f);
+            state.outputItem.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, 0);
             poseStack.popPose();
         }
 
@@ -218,7 +482,102 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         bufferSource.endBatch();
     }
 
-    private void drawTorusRunes(PoseStack poseStack, MultiBufferSource bufferSource, Font font, float R, float r, float textScale, int light, float time) {
+    private Vec3 getSpiralPos(float s, Vec3 portLocal, Vec3 distPoint) {
+        Vec3 dirToCenter = new Vec3(-portLocal.x, 0, -portLocal.z);
+        if (dirToCenter.lengthSqr() < 0.001) {
+            return portLocal.lerp(distPoint, s);
+        }
+        dirToCenter = dirToCenter.normalize();
+
+        float straightSegment = 0.20f;
+        Vec3 straightEnd = portLocal.add(dirToCenter.scale(1.5));
+
+        if (s < straightSegment) {
+            float t = s / straightSegment;
+            return portLocal.lerp(straightEnd, t);
+        } else {
+            float t = (s - straightSegment) / (1.0f - straightSegment);
+            float radius = (float) Math.sqrt(straightEnd.x * straightEnd.x + straightEnd.z * straightEnd.z) * (1.0f - t);
+            float startAngle = (float) Math.atan2(straightEnd.z, straightEnd.x);
+
+            float rotDir = (portLocal.x > 0 || portLocal.z > 0) ? 1.0f : -1.0f;
+            float angle = startAngle + t * (float)Math.PI * 4.0f * rotDir;
+
+            float y = (float) (straightEnd.y + (distPoint.y - straightEnd.y) * t);
+            return new Vec3(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+        }
+    }
+
+    // ==========================================
+    // 2D PLANAR GEOMETRY HELPERS
+    // ==========================================
+
+    private void drawFlatLine(VertexConsumer consumer, Matrix4f matrix, float x1, float z1, float x2, float z2, float width, float r, float g, float b, float a, int light, float y) {
+        float dx = x2 - x1;
+        float dz = z2 - z1;
+        float len = (float) Math.sqrt(dx * dx + dz * dz);
+        if (len < 0.0001f) return;
+
+        float nx = -dz / len * (width / 2.0f);
+        float nz = dx / len * (width / 2.0f);
+
+        consumer.addVertex(matrix, x1 + nx, y, z1 + nz).setColor(r, g, b, a).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(matrix, x1 - nx, y, z1 - nz).setColor(r, g, b, a).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(matrix, x2 - nx, y, z2 - nz).setColor(r, g, b, a).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(matrix, x2 + nx, y, z2 + nz).setColor(r, g, b, a).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+    }
+
+    private void drawFlatRing(VertexConsumer consumer, Matrix4f matrix, float radius, float width, int segments, float r, float g, float b, float a, int light, float y) {
+        drawFlatRingOffset(consumer, matrix, 0, 0, radius, width, segments, r, g, b, a, light, y);
+    }
+
+    private void drawFlatRingOffset(VertexConsumer consumer, Matrix4f matrix, float cx, float cz, float radius, float width, int segments, float r, float g, float b, float a, int light, float y) {
+        float halfWidth = width / 2.0f;
+        for (int i = 0; i < segments; i++) {
+            float angle1 = (float) (i * 2 * Math.PI / segments);
+            float angle2 = (float) ((i + 1) * 2 * Math.PI / segments);
+
+            float c1 = (float) Math.cos(angle1);
+            float s1 = (float) Math.sin(angle1);
+            float c2 = (float) Math.cos(angle2);
+            float s2 = (float) Math.sin(angle2);
+
+            float x1_in = cx + c1 * (radius - halfWidth);
+            float z1_in = cz + s1 * (radius - halfWidth);
+            float x1_out = cx + c1 * (radius + halfWidth);
+            float z1_out = cz + s1 * (radius + halfWidth);
+
+            float x2_in = cx + c2 * (radius - halfWidth);
+            float z2_in = cz + s2 * (radius - halfWidth);
+            float x2_out = cx + c2 * (radius + halfWidth);
+            float z2_out = cz + s2 * (radius + halfWidth);
+
+            consumer.addVertex(matrix, x1_out, y, z1_out).setColor(r, g, b, a).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+            consumer.addVertex(matrix, x1_in, y, z1_in).setColor(r, g, b, a).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+            consumer.addVertex(matrix, x2_in, y, z2_in).setColor(r, g, b, a).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+            consumer.addVertex(matrix, x2_out, y, z2_out).setColor(r, g, b, a).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+        }
+    }
+
+    private void drawStarPolygon(VertexConsumer consumer, Matrix4f matrix, float radius, float width, int points, int step, float angleOffset, float r, float g, float b, float a, int light, float y) {
+        for (int i = 0; i < points; i++) {
+            float a1 = angleOffset + (float) (i * 2 * Math.PI / points);
+            float a2 = angleOffset + (float) (((i + step) % points) * 2 * Math.PI / points);
+
+            float x1 = (float) Math.cos(a1) * radius;
+            float z1 = (float) Math.sin(a1) * radius;
+            float x2 = (float) Math.cos(a2) * radius;
+            float z2 = (float) Math.sin(a2) * radius;
+
+            drawFlatLine(consumer, matrix, x1, z1, x2, z2, width, r, g, b, a, light, y);
+        }
+    }
+
+    // ==========================================
+    // FLAT TEXT RENDERERS
+    // ==========================================
+
+    private void drawFlatRunes(PoseStack poseStack, MultiBufferSource bufferSource, Font font, float radius, float textScale, int light, float time, float r, float g, float b, float a, float yOffset) {
         String RUNES = "ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ";
         int len = RUNES.length();
 
@@ -227,65 +586,205 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
 
             float angle = (i * 360.0f / len);
             poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-angle));
+            poseStack.translate(radius, yOffset, 0);
 
-            // Added the tube radius (r) + a safe gap so the text floats perfectly outside the geometry
-            poseStack.translate(R + r + (textScale * 8.0f), 0, 0);
+            // Orient perfectly flat on the XZ plane
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90));
+            poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90));
 
-            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-90));
             poseStack.scale(-textScale, -textScale, textScale);
 
-            float alphaPulse = 0.5f + (float) Math.sin(time * 0.1f + i) * 0.5f;
+            float alphaPulse = a * (0.5f + (float) Math.sin(time * 0.1f + i) * 0.5f);
             int alpha = (int) (alphaPulse * 255);
-            int color = (alpha << 24) | 0x33CCFF;
+            int color = (alpha << 24) | (((int)(r*255)) << 16) | (((int)(g*255)) << 8) | ((int)(b*255));
 
             String charStr = String.valueOf(RUNES.charAt(i));
             float width = font.width(charStr);
 
-            font.drawInBatch(charStr, -width / 2.0f, -font.lineHeight / 2.0f, color, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+            drawDoubleSidedText(poseStack, bufferSource, font, charStr, width, color, light);
 
             poseStack.popPose();
         }
     }
 
-    private void drawTorus(VertexConsumer consumer, Matrix4f matrix, float R, float r, int segmentsR, int segmentsTube, float red, float green, float blue, float alpha, int light) {
-        for (int i = 0; i < segmentsR; i++) {
-            float theta1 = (float) (i * 2 * Math.PI / segmentsR);
-            float theta2 = (float) ((i + 1) * 2 * Math.PI / segmentsR);
+    private void drawSingleRune(PoseStack poseStack, MultiBufferSource bufferSource, Font font, int index, float textScale, int light, float r, float g, float b, float a) {
+        String RUNES = "ᚠᚢᚦᚨᚱ";
+        float alphaPulse = a * (0.8f + (float) Math.sin(System.currentTimeMillis() / 200.0) * 0.2f);
+        int alpha = (int) (alphaPulse * 255);
+        int color = (alpha << 24) | (((int)(r*255)) << 16) | (((int)(g*255)) << 8) | ((int)(b*255));
 
-            float qR, qG, qB;
-            if ((i / (segmentsR / 4)) % 2 == 0) {
-                qR = 1.0f; qG = 1.0f; qB = 1.0f;
+        poseStack.pushPose();
+        poseStack.translate(0, 0.01f, 0);
+        poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90));
+        poseStack.scale(-textScale, -textScale, textScale);
+
+        String charStr = String.valueOf(RUNES.charAt(index % RUNES.length()));
+        float width = font.width(charStr);
+
+        drawDoubleSidedText(poseStack, bufferSource, font, charStr, width, color, light);
+
+        poseStack.popPose();
+    }
+
+    private void drawDoubleSidedText(PoseStack poseStack, MultiBufferSource bufferSource, Font font, String text, float width, int color, int light) {
+        // Draw Normal (Facing up)
+        font.drawInBatch(text, -width / 2.0f, -font.lineHeight / 2.0f, color, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+
+        // Draw Inverted (Facing down, perfectly mirroring the text so it reads correctly from underneath)
+        poseStack.pushPose();
+        poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(180));
+        font.drawInBatch(text, -width / 2.0f, -font.lineHeight / 2.0f, color, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+        poseStack.popPose();
+    }
+
+    // ==========================================
+    // 3D GEOMETRY HELPERS
+    // ==========================================
+
+    private void drawQuad(VertexConsumer consumer, Matrix4f matrix, float size, float r, float g, float b, float a, int light) {
+        float half = size / 2.0f;
+        consumer.addVertex(matrix, -half, -half, 0.0F).setColor(r, g, b, a).setUv(0.0F, 1.0F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 1.0F, 0.0F);
+        consumer.addVertex(matrix, half, -half, 0.0F).setColor(r, g, b, a).setUv(1.0F, 1.0F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 1.0F, 0.0F);
+        consumer.addVertex(matrix, half, half, 0.0F).setColor(r, g, b, a).setUv(1.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 1.0F, 0.0F);
+        consumer.addVertex(matrix, -half, half, 0.0F).setColor(r, g, b, a).setUv(0.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 1.0F, 0.0F);
+    }
+
+    private void drawLightning(VertexConsumer consumer, Matrix4f matrix, Vec3 start, Vec3 end, int segments, float width, float r, float g, float b, float a, int light, long seed) {
+        java.util.Random rand = new java.util.Random(seed);
+        Vec3 dir = end.subtract(start);
+        float len = (float) dir.length();
+        if (len < 0.001) return;
+        Vec3 norm = dir.normalize();
+
+        Vec3 up = new Vec3(0, 1, 0);
+        if (Math.abs(norm.y) > 0.9) up = new Vec3(1, 0, 0);
+        Vec3 right = norm.cross(up).normalize();
+        Vec3 upOrth = right.cross(norm).normalize();
+
+        Vec3 current = start;
+        float step = len / segments;
+
+        for (int i = 0; i < segments; i++) {
+            Vec3 nextBase = start.add(norm.scale(step * (i + 1)));
+            Vec3 next;
+            if (i == segments - 1) {
+                next = end; // Guarantee we hit the exact target destination
             } else {
-                qR = 0.1f; qG = 0.8f; qB = 1.0f;
+                // Generates up to a 0.5 block visual offset jitter
+                float rx = (rand.nextFloat() - 0.5f) * 0.5f;
+                float ry = (rand.nextFloat() - 0.5f) * 0.5f;
+                next = nextBase.add(right.scale(rx)).add(upOrth.scale(ry));
             }
-
-            for (int j = 0; j < segmentsTube; j++) {
-                float phi1 = (float) (j * 2 * Math.PI / segmentsTube);
-                float phi2 = (float) ((j + 1) * 2 * Math.PI / segmentsTube);
-
-                addTorusVertex(consumer, matrix, R, r, theta1, phi1, qR, qG, qB, alpha, light);
-                addTorusVertex(consumer, matrix, R, r, theta2, phi1, qR, qG, qB, alpha, light);
-                addTorusVertex(consumer, matrix, R, r, theta2, phi2, qR, qG, qB, alpha, light);
-                addTorusVertex(consumer, matrix, R, r, theta1, phi2, qR, qG, qB, alpha, light);
-            }
+            drawBeam(consumer, matrix, current, next, width, width, r, g, b, a, light);
+            current = next;
         }
     }
 
-    private void addTorusVertex(VertexConsumer consumer, Matrix4f matrix, float R, float r, float theta, float phi, float red, float green, float blue, float alpha, int light) {
-        float cosTheta = (float) Math.cos(theta);
-        float sinTheta = (float) Math.sin(theta);
-        float cosPhi = (float) Math.cos(phi);
-        float sinPhi = (float) Math.sin(phi);
+    private void drawClampedVerticalCone(VertexConsumer consumer, Matrix4f matrix, float yTop, float yBottom, float rTop, float rBottom, float clipTop, float clipBottom, float r, float g, float b, float a, int light) {
+        float actualTop = Math.min(yTop, clipTop);
+        float actualBottom = Math.max(yBottom, clipBottom);
 
-        float x = (R + r * cosPhi) * cosTheta;
-        float y = r * sinPhi;
-        float z = (R + r * cosPhi) * sinTheta;
+        if (actualTop <= actualBottom) return; // Completely clipped out
 
-        float nx = cosPhi * cosTheta;
-        float ny = sinPhi;
-        float nz = cosPhi * sinTheta;
+        // Interpolate the radius based on where the beam currently is in this specific segment
+        float tTop = (actualTop - yBottom) / (yTop - yBottom);
+        float actualRTop = rBottom + (rTop - rBottom) * tTop;
 
-        consumer.addVertex(matrix, x, y, z).setColor(red, green, blue, alpha).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(nx, ny, nz);
+        float tBottom = (actualBottom - yBottom) / (yTop - yBottom);
+        float actualRBottom = rBottom + (rTop - rBottom) * tBottom;
+
+        drawCone(consumer, matrix, actualTop, actualBottom, actualRTop, actualRBottom, r, g, b, a, light);
+    }
+
+    private void drawCone(VertexConsumer consumer, Matrix4f matrix, float yTop, float yBottom, float rTop, float rBottom, float r, float g, float b, float a, int light) {
+        int segments = 16; // 16-sided perfectly round cone
+        for (int i = 0; i < segments; i++) {
+            float theta1 = (float) (i * 2 * Math.PI / segments);
+            float theta2 = (float) ((i + 1) * 2 * Math.PI / segments);
+
+            float x1Top = (float) Math.cos(theta1) * rTop;
+            float z1Top = (float) Math.sin(theta1) * rTop;
+            float x2Top = (float) Math.cos(theta2) * rTop;
+            float z2Top = (float) Math.sin(theta2) * rTop;
+
+            float x1Bot = (float) Math.cos(theta1) * rBottom;
+            float z1Bot = (float) Math.sin(theta1) * rBottom;
+            float x2Bot = (float) Math.cos(theta2) * rBottom;
+            float z2Bot = (float) Math.sin(theta2) * rBottom;
+
+            // Draw a quad mapping the curved segment
+            consumer.addVertex(matrix, x1Bot, yBottom, z1Bot).setColor(r, g, b, a).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+            consumer.addVertex(matrix, x2Bot, yBottom, z2Bot).setColor(r, g, b, a).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+            consumer.addVertex(matrix, x2Top, yTop, z2Top).setColor(r, g, b, a).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+            consumer.addVertex(matrix, x1Top, yTop, z1Top).setColor(r, g, b, a).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+        }
+    }
+
+    private void drawBeam(VertexConsumer consumer, Matrix4f matrix, Vec3 start, Vec3 end, float startWidth, float endWidth, float r, float g, float b, float a, int light) {
+        Vec3 dir = end.subtract(start);
+        if (dir.lengthSqr() < 0.0001) return;
+        dir = dir.normalize();
+
+        Vec3 up = new Vec3(0, 1, 0);
+        if (Math.abs(dir.y) > 0.9) up = new Vec3(1, 0, 0);
+
+        Vec3 right = dir.cross(up).normalize();
+        Vec3 upOrth = right.cross(dir).normalize();
+
+        Vec3[] startOffsets = {
+                right.scale(startWidth),
+                upOrth.scale(startWidth),
+                right.scale(-startWidth),
+                upOrth.scale(-startWidth)
+        };
+        Vec3[] endOffsets = {
+                right.scale(endWidth),
+                upOrth.scale(endWidth),
+                right.scale(-endWidth),
+                upOrth.scale(-endWidth)
+        };
+
+        for (int i = 0; i < 4; i++) {
+            Vec3 so1 = startOffsets[i];
+            Vec3 so2 = startOffsets[(i + 1) % 4];
+            Vec3 eo1 = endOffsets[i];
+            Vec3 eo2 = endOffsets[(i + 1) % 4];
+
+            consumer.addVertex(matrix, (float)(start.x + so1.x), (float)(start.y + so1.y), (float)(start.z + so1.z)).setColor(r, g, b, a).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0,1,0);
+            consumer.addVertex(matrix, (float)(end.x + eo1.x), (float)(end.y + eo1.y), (float)(end.z + eo1.z)).setColor(r, g, b, a).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0,1,0);
+            consumer.addVertex(matrix, (float)(end.x + eo2.x), (float)(end.y + eo2.y), (float)(end.z + eo2.z)).setColor(r, g, b, a).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0,1,0);
+            consumer.addVertex(matrix, (float)(start.x + so2.x), (float)(start.y + so2.y), (float)(start.z + so2.z)).setColor(r, g, b, a).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0,1,0);
+        }
+    }
+
+    private void drawSphere(VertexConsumer consumer, Matrix4f matrix, float radius, float r, float g, float b, float a, int light, Vec3 offset) {
+        int lats = 12;
+        int longs = 12;
+        int overlay = OverlayTexture.NO_OVERLAY;
+        for (int i = 0; i < lats; i++) {
+            float lat0 = (float) (Math.PI * (-0.5 + (double) i / lats));
+            float z0 = radius * (float) Math.sin(lat0);
+            float zr0 = radius * (float) Math.cos(lat0);
+
+            float lat1 = (float) (Math.PI * (-0.5 + (double) (i + 1) / lats));
+            float z1 = radius * (float) Math.sin(lat1);
+            float zr1 = radius * (float) Math.cos(lat1);
+
+            for (int j = 0; j < longs; j++) {
+                float lng = (float) (2 * Math.PI * (double) j / longs);
+                float x = (float) Math.cos(lng);
+                float y = (float) Math.sin(lng);
+
+                float lng1 = (float) (2 * Math.PI * (double) (j + 1) / longs);
+                float x1 = (float) Math.cos(lng1);
+                float y1 = (float) Math.sin(lng1);
+
+                consumer.addVertex(matrix, x * zr0 + (float)offset.x, z0 + (float)offset.y, y * zr0 + (float)offset.z).setColor(r, g, b, a).setUv(0, 0).setOverlay(overlay).setLight(light).setNormal(x, z0/radius, y);
+                consumer.addVertex(matrix, x1 * zr0 + (float)offset.x, z0 + (float)offset.y, y1 * zr0 + (float)offset.z).setColor(r, g, b, a).setUv(1, 0).setOverlay(overlay).setLight(light).setNormal(x1, z0/radius, y1);
+                consumer.addVertex(matrix, x1 * zr1 + (float)offset.x, z1 + (float)offset.y, y1 * zr1 + (float)offset.z).setColor(r, g, b, a).setUv(1, 1).setOverlay(overlay).setLight(light).setNormal(x1, z1/radius, y1);
+                consumer.addVertex(matrix, x * zr1 + (float)offset.x, z1 + (float)offset.y, y * zr1 + (float)offset.z).setColor(r, g, b, a).setUv(0, 1).setOverlay(overlay).setLight(light).setNormal(x, z1/radius, y);
+            }
+        }
     }
 
     public static class LatheRenderState extends BlockEntityRenderState {
@@ -294,6 +793,19 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         public final List<Vec3> pedestalOffsets = new ArrayList<>();
         public final ItemStackRenderState[] items = new ItemStackRenderState[4];
         public final boolean[] hasItem = new boolean[4];
+
+        public boolean isCrafting;
+        public int craftingProgress;
+        public int maxCraftingProgress;
+        public EssenceType craftingEssenceType;
+        public Vec3 portOffset;
+        public boolean isIchorPort;
+
+        public float smoothProg;
+
+        // Dedicated state for the completed output weapon (assumes Slot 4 in the block entity)
+        public final ItemStackRenderState outputItem = new ItemStackRenderState();
+        public boolean hasOutputItem = false;
 
         public LatheRenderState() {
             for (int i = 0; i < 4; i++) {

@@ -141,7 +141,7 @@ public class AethericSynthesizerBlockEntity extends BlockEntity {
                 }
             }
         }
-        for (AethericSynthesizerRecipe recipe : AethericSynthesizerRecipe.getHardcodedRecipes()) {
+        for (AethericSynthesizerRecipe recipe : ddraig.net.entropica.recipe.HardcodedRecipes.getSynthesizerRecipes()) {
             if (recipe.matchesGrid(this.inventory)) {
                 return recipe;
             }

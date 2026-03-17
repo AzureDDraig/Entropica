@@ -74,7 +74,7 @@ public class SynthesizerUserInterfaceScreen extends AbstractContainerScreen<Synt
         // Check Hardcoded Fallback Recipes
         // By bypassing the client RecipeManager entirely, we avoid all 1.21.4 mapping issues.
         // Because our hardcoded list mirrors the JSONs, the preview functions flawlessly!
-        for (AethericSynthesizerRecipe recipe : AethericSynthesizerRecipe.getHardcodedRecipes()) {
+        for (AethericSynthesizerRecipe recipe : ddraig.net.entropica.recipe.HardcodedRecipes.getSynthesizerRecipes()) {
             if (recipe.matchesGrid(grid)) {
                 if (!recipe.getResults().isEmpty()) {
                     currentPreview = recipe.getResults().get(0);

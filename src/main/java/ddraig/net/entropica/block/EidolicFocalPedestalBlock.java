@@ -70,9 +70,9 @@ public class EidolicFocalPedestalBlock extends BaseEntityBlock {
                     player.displayClientMessage(Component.literal("§cIncomplete Lathe Structure."), true);
                 }
             } else {
-                // SNEAK + CLICK to trigger crafting later
+                // Trigger the forging process if sneaking!
                 if (player.isShiftKeyDown()) {
-                    player.displayClientMessage(Component.literal("§5[DEBUG] Triggered Lathe Forge Sequence!"), true);
+                    lathe.attemptCraft(player);
                 } else {
                     boolean swapped = lathe.interactWithPlayer(player, InteractionHand.MAIN_HAND);
                     if (!swapped && player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {

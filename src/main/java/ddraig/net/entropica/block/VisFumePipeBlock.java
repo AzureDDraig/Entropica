@@ -168,7 +168,8 @@ public class VisFumePipeBlock extends Block implements SimpleWaterloggedBlock, E
                 || neighborState.is(ModBlocks.VIS_VITAE_CONDENSER.get())
                 || neighborState.is(ModBlocks.ENTROPIC_CORE.get())
                 || neighborState.is(ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get())
-                || neighborState.is(ModBlocks.VIS_FUME_VESSEL_PORT.get());
+                || neighborState.is(ModBlocks.VIS_FUME_VESSEL_PORT.get())
+                || neighborState.is(ModBlocks.VIS_FUME_INPUT_PORT.get()); // Now correctly interfaces with the Lathe Input Port!
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

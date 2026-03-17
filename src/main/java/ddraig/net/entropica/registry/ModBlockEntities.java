@@ -54,6 +54,8 @@ public class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeDiverterBlockEntity>> VIS_FUME_DIVERTER_BE = BLOCK_ENTITIES.register("vis_fume_diverter", () -> new BlockEntityType<>(VisFumeDiverterBlockEntity::new, ModBlocks.VIS_FUME_DIVERTER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreativeVisFumeGeneratorBlockEntity>> CREATIVE_VIS_FUME_GENERATOR_BE = BLOCK_ENTITIES.register("creative_vis_fume_generator", () -> new BlockEntityType<>(CreativeVisFumeGeneratorBlockEntity::new, ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get()));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeInputPortBlockEntity>> VIS_FUME_INPUT_PORT_BE = BLOCK_ENTITIES.register("vis_fume_input_port", () -> new BlockEntityType<>(VisFumeInputPortBlockEntity::new, ModBlocks.VIS_FUME_INPUT_PORT.get()));
+
     // ---  VIS FUME PRESSURE VESSEL ---
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeVesselControllerBlockEntity>> VIS_FUME_VESSEL_CONTROLLER_BE = BLOCK_ENTITIES.register("vis_fume_vessel_controller", () -> new BlockEntityType<>(VisFumeVesselControllerBlockEntity::new, ModBlocks.VIS_FUME_VESSEL_CONTROLLER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeVesselPortBlockEntity>> VIS_FUME_VESSEL_PORT_BE = BLOCK_ENTITIES.register("vis_fume_vessel_port", () -> new BlockEntityType<>(VisFumeVesselPortBlockEntity::new, ModBlocks.VIS_FUME_VESSEL_PORT.get()));
