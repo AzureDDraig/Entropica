@@ -62,6 +62,8 @@ public class ModModelProvider extends ModelProvider {
         // Custom 3D Crafters
         blockModels.createNonTemplateModelBlock(ModBlocks.AETHERIC_SYNTHESIZER.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.AETHERIC_AUTOMATOR.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.ATTUNEMENT_PEDESTAL.get());
 
         // Vis Fume Network Blocks
         blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_DIVERTER.get());

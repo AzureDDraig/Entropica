@@ -74,14 +74,21 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
 
         state.time = (level != null ? (level.getGameTime() % 360000L) : 0) + partialTick;
         state.pedestalOffsets.clear();
+        state.fuelPedestalOffsets.clear();
 
         state.isCrafting = be.isCrafting;
+        state.waitForClick = be.waitForClick;
         state.craftingProgress = be.craftingProgress;
         state.maxCraftingProgress = Math.max(1, be.maxCraftingProgress);
         state.craftingEssenceType = be.craftingEssenceType;
 
         if (state.isCrafting) {
-            state.smoothProg = Math.min(1.0f, (be.craftingProgress + partialTick) / state.maxCraftingProgress);
+            if (state.waitForClick) {
+                // If waiting for the player to click, pause interpolation completely
+                state.smoothProg = (float) be.craftingProgress / state.maxCraftingProgress;
+            } else {
+                state.smoothProg = Math.min(1.0f, (be.craftingProgress + partialTick) / state.maxCraftingProgress);
+            }
         } else {
             state.smoothProg = 0.0f;
         }
@@ -102,6 +109,11 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
                 state.pedestalOffsets.add(new Vec3(p.getX() - center.getX(), p.getY() - center.getY(), p.getZ() - center.getZ()));
             }
 
+            // Extract the newly added Ampoule Fuel Pedestals
+            for (BlockPos p : be.fuelPedestals) {
+                state.fuelPedestalOffsets.add(new Vec3(p.getX() - center.getX(), p.getY() - center.getY(), p.getZ() - center.getZ()));
+            }
+
             int seed = (int) be.getBlockPos().asLong();
             for (int i = 0; i < 4; i++) {
                 ItemStack stack = be.inventory.getItem(i);
@@ -113,7 +125,7 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
                 }
             }
 
-            // Extract the Output Slot (Assumes Slot 4 has been added to the BlockEntity!)
+            // Extract the Output Slot (Slot 4)
             if (be.inventory.getContainerSize() > 4) {
                 ItemStack outStack = be.inventory.getItem(4);
                 state.hasOutputItem = !outStack.isEmpty();
@@ -162,13 +174,48 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         // ==========================================
         // TIMING CONSTANTS FOR THE RITUAL PHASES
         // ==========================================
-        final float P1_END = 0.30f; // Port -> Spiral & Beams
-        final float P2_END = 0.50f; // Distribute -> Nodes
-        final float P3_END = 0.80f; // Nodes Shake -> Apex
+        // Mapped to 500 Ticks:
+        final float P_FEED_HOLD = 0.30f;   // 150 Ticks (Pause 1)
+        final float P_FEED_FADE = 0.40f;   // 200 Ticks
+        final float P_SPLIT_HOLD = 0.60f;  // 300 Ticks (Pause 2)
+        final float P_SPLIT_FADE = 0.70f;  // 350 Ticks
+        final float P_CHANNEL_HOLD = 0.85f;// 425 Ticks (Pause 3)
 
         Vec3 apex = new Vec3(0, 4.5, 0);
         Vec3 distPoint = new Vec3(0, 2.5, 0);
         Vec3 focalTop = new Vec3(0, 1.2, 0);
+
+        // Calculate Alpha States for Smooth Fades
+        float feedAlpha = 0f;
+        float centerMassScale = 0f;
+        float splitAlpha = 0f;
+        float light1Alpha = 0f;
+        float light2Alpha = 0f;
+
+        if (state.isCrafting) {
+            if (finalProg <= P_FEED_HOLD) {
+                feedAlpha = 1.0f;
+                centerMassScale = finalProg / P_FEED_HOLD;
+                light1Alpha = 1.0f;
+            } else if (finalProg <= P_FEED_FADE) {
+                feedAlpha = 1.0f - ((finalProg - P_FEED_HOLD) / (P_FEED_FADE - P_FEED_HOLD));
+                centerMassScale = 1.0f;
+                light1Alpha = 1.0f;
+                splitAlpha = 1.0f - feedAlpha; // Split starts as Feed ends
+            } else if (finalProg <= P_SPLIT_HOLD) {
+                splitAlpha = 1.0f;
+                centerMassScale = 1.0f - ((finalProg - P_FEED_FADE) / (P_SPLIT_HOLD - P_FEED_FADE));
+                light1Alpha = 1.0f;
+            } else if (finalProg <= P_SPLIT_FADE) {
+                splitAlpha = 1.0f - ((finalProg - P_SPLIT_HOLD) / (P_SPLIT_FADE - P_SPLIT_HOLD));
+                light1Alpha = splitAlpha;
+                light2Alpha = 1.0f - splitAlpha; // Apex Lightning starts as Split ends
+            } else if (finalProg <= P_CHANNEL_HOLD) {
+                light2Alpha = 1.0f;
+            } else {
+                light2Alpha = 1.0f - ((finalProg - P_CHANNEL_HOLD) / (1.0f - P_CHANNEL_HOLD)); // Fades out during blast
+            }
+        }
 
         // ==========================================
         // 1. DYNAMIC CRAFTING RITUAL PARTICLES
@@ -176,31 +223,73 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         if (state.isCrafting) {
             ResourceLocation particleTex = state.isIchorPort ? DRIP_TEXTURE : SMOKE_TEXTURE;
 
-            if (finalProg < P1_END && state.portOffset != null) {
-                Vec3 portLocalCenter = new Vec3(state.portOffset.x, state.portOffset.y + 0.5, state.portOffset.z);
-                Vec3 dirToCenter = new Vec3(-portLocalCenter.x, 0, -portLocalCenter.z);
-                if (dirToCenter.lengthSqr() > 0.001) {
-                    dirToCenter = dirToCenter.normalize();
+            // Phase 1: Feeding (Port OR Ampoules -> Center)
+            if (feedAlpha > 0.01f) {
+
+                // Draw Network Port Particles
+                if (state.portOffset != null) {
+                    Vec3 portLocalCenter = new Vec3(state.portOffset.x, state.portOffset.y + 0.5, state.portOffset.z);
+                    Vec3 dirToCenter = new Vec3(-portLocalCenter.x, 0, -portLocalCenter.z);
+                    if (dirToCenter.lengthSqr() > 0.001) {
+                        dirToCenter = dirToCenter.normalize();
+                    }
+                    Vec3 portLocalFace = portLocalCenter.add(dirToCenter.scale(0.5));
+
+                    for(int i = 0; i < 40; i++) {
+                        float s = ((time * 0.03f) + (i / 40.0f)) % 1.0f;
+                        Vec3 p = getSpiralPos(s, portLocalFace, distPoint);
+
+                        poseStack.pushPose();
+                        poseStack.translate(p.x, p.y, p.z);
+                        poseStack.mulPose(cameraRenderState.orientation);
+                        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+
+                        final float fA = feedAlpha;
+                        collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(particleTex), (pose, cons) -> {
+                            drawQuad(cons, pose.pose(), 0.65f, finalCr, finalCg, finalCb, 0.9f * fA, light);
+                        });
+                        poseStack.popPose();
+                    }
                 }
-                Vec3 portLocalFace = portLocalCenter.add(dirToCenter.scale(0.5));
 
-                for(int i = 0; i < 40; i++) {
-                    float s = ((time * 0.03f) + (i / 40.0f)) % 1.0f;
-                    Vec3 p = getSpiralPos(s, portLocalFace, distPoint);
+                // Draw Pedestal Ampoule Particles
+                if (!state.fuelPedestalOffsets.isEmpty()) {
+                    for (Vec3 offset : state.fuelPedestalOffsets) {
+                        Vec3 pedTop = new Vec3(offset.x, offset.y + 1.2, offset.z); // Rise from the top of the pedestal
 
-                    poseStack.pushPose();
-                    poseStack.translate(p.x, p.y, p.z);
-                    poseStack.mulPose(cameraRenderState.orientation);
-                    poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+                        for(int i = 0; i < 20; i++) {
+                            float s = ((time * 0.03f) + (i / 20.0f)) % 1.0f;
+                            Vec3 p = getPedestalSpiralPos(s, pedTop, distPoint);
 
-                    collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(particleTex), (pose, cons) -> {
-                        drawQuad(cons, pose.pose(), 0.65f, finalCr, finalCg, finalCb, 0.9f, light);
-                    });
-                    poseStack.popPose();
+                            poseStack.pushPose();
+                            poseStack.translate(p.x, p.y, p.z);
+                            poseStack.mulPose(cameraRenderState.orientation);
+                            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+
+                            final float fA = feedAlpha;
+                            collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(SMOKE_TEXTURE), (pose, cons) -> {
+                                drawQuad(cons, pose.pose(), 0.5f, finalCr, finalCg, finalCb, 0.9f * fA, light);
+                            });
+                            poseStack.popPose();
+                        }
+                    }
                 }
             }
 
-            if (finalProg >= P1_END && finalProg < P2_END) {
+            // Central Fume Accumulation Mass
+            if (centerMassScale > 0.01f) {
+                poseStack.pushPose();
+                poseStack.translate(distPoint.x, distPoint.y, distPoint.z);
+                float massScale = centerMassScale * 0.35f + (float) Math.sin(time * 0.1f) * 0.02f;
+                poseStack.scale(massScale, massScale, massScale);
+                collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
+                    drawSphere(cons, pose.pose(), 1.0f, finalCr, finalCg, finalCb, 0.9f, light, Vec3.ZERO);
+                });
+                poseStack.popPose();
+            }
+
+            // Phase 2: Splitting (Center -> Nodes)
+            if (splitAlpha > 0.01f) {
                 for(Vec3 offset : state.pedestalOffsets) {
                     Vec3 nodePos = new Vec3(offset.x / 2.0, (offset.y + 1.0 + apex.y) / 2.0, offset.z / 2.0);
 
@@ -213,8 +302,9 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
                         poseStack.mulPose(cameraRenderState.orientation);
                         poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
 
+                        final float sA = splitAlpha;
                         collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(particleTex), (pose, cons) -> {
-                            drawQuad(cons, pose.pose(), 0.45f, finalCr, finalCg, finalCb, 0.8f, light);
+                            drawQuad(cons, pose.pose(), 0.45f, finalCr, finalCg, finalCb, 0.8f * sA, light);
                         });
                         poseStack.popPose();
                     }
@@ -356,9 +446,9 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
             if (state.isCrafting) {
                 Vec3 renderNodePos = nodePos;
 
-                // PHASE 3 & 4: The nodes shake violently
-                if (finalProg >= P2_END) {
-                    float shakeStr = 0.06f * ((finalProg - P2_END) / (1.0f - P2_END));
+                // Shake violently during Splitting and Channeling
+                if (finalProg >= P_SPLIT_HOLD && finalProg <= P_CHANNEL_HOLD) {
+                    float shakeStr = 0.06f;
                     float rx = (float) Math.sin(time * 30.0 + pedIndex * 13) * shakeStr;
                     float ry = (float) Math.cos(time * 27.0 + pedIndex * 7) * shakeStr;
                     float rz = (float) Math.sin(time * 33.0 + pedIndex * 11) * shakeStr;
@@ -367,38 +457,40 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
 
                 final Vec3 finalRenderNodePos = renderNodePos;
                 final long jitterSeed = (long)(time * 0.8f) + pedIndex * 1337L;
+                final float l1A = light1Alpha;
+                final float l2A = light2Alpha;
 
                 collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
                     Matrix4f matrix = pose.pose();
 
                     // PHASE 1: Lightning streams FROM the Pedestals up to the Nodes (Instantaneous)
-                    if (finalProg < P1_END) {
-                        drawLightning(cons, matrix, pedestalBase, finalRenderNodePos, 4, 0.02f, finalCr, finalCg, finalCb, 0.8f, light, jitterSeed);
+                    if (l1A > 0.01f) {
+                        drawLightning(cons, matrix, pedestalBase, finalRenderNodePos, 4, 0.02f, finalCr, finalCg, finalCb, 0.8f * l1A, light, jitterSeed);
                     }
                     // PHASE 3: Lightning streams FROM the shaking Nodes up to the Apex (Instantaneous)
-                    else if (finalProg >= P2_END && finalProg < P3_END) {
-                        drawLightning(cons, matrix, finalRenderNodePos, apex, 6, 0.03f, finalCr, finalCg, finalCb, 0.8f, light, jitterSeed);
+                    if (l2A > 0.01f) {
+                        drawLightning(cons, matrix, finalRenderNodePos, apex, 6, 0.03f, finalCr, finalCg, finalCb, 0.8f * l2A, light, jitterSeed);
                     }
                 });
 
                 // Draw the actual Orb inside the node
-                if (finalProg < P3_END) {
-                    float orbScale = 0.15f;
-                    if (finalProg > P3_END - 0.05f) {
-                        float fadeOut = (P3_END - finalProg) / 0.05f;
-                        orbScale *= fadeOut;
-                    }
+                float nodeOrbScale = 0f;
+                if (finalProg <= P_FEED_HOLD) {
+                    nodeOrbScale = (finalProg / P_FEED_HOLD) * 0.15f; // Scales up slowly as fumes feed
+                } else if (finalProg <= P_SPLIT_FADE) {
+                    nodeOrbScale = 0.15f;
+                } else if (finalProg <= P_CHANNEL_HOLD) {
+                    nodeOrbScale = 0.15f - (((finalProg - P_SPLIT_FADE)/(P_CHANNEL_HOLD - P_SPLIT_FADE)) * 0.15f); // Transfers out
+                }
 
-                    final float finalOrbScale = orbScale;
-                    if (finalOrbScale > 0.001f) {
-                        poseStack.pushPose();
-                        poseStack.translate(finalRenderNodePos.x, finalRenderNodePos.y, finalRenderNodePos.z);
-                        poseStack.scale(finalOrbScale, finalOrbScale, finalOrbScale);
-                        collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
-                            drawSphere(cons, pose.pose(), 1.0f, finalCr, finalCg, finalCb, 0.9f, light, Vec3.ZERO);
-                        });
-                        poseStack.popPose();
-                    }
+                if (nodeOrbScale > 0.001f) {
+                    poseStack.pushPose();
+                    poseStack.translate(finalRenderNodePos.x, finalRenderNodePos.y, finalRenderNodePos.z);
+                    poseStack.scale(nodeOrbScale, nodeOrbScale, nodeOrbScale);
+                    collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
+                        drawSphere(cons, pose.pose(), 1.0f, finalCr, finalCg, finalCb, 0.9f, light, Vec3.ZERO);
+                    });
+                    poseStack.popPose();
                 }
             }
             pedIndex++;
@@ -407,55 +499,49 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         // ==========================================
         // 5. APEX SPHERE & FINAL CONE BLAST
         // ==========================================
-        if (state.isCrafting && finalProg >= P2_END) {
+        if (state.isCrafting && finalProg >= P_SPLIT_FADE) {
 
             // Draw the swelling Apex Orb (Starts growing in Phase 3!)
             poseStack.pushPose();
             poseStack.translate(apex.x, apex.y, apex.z);
 
-            float orbScale = 0;
-            float orbAlpha = 0;
-            float shrink = 0;
+            float apexScale = 0;
+            float apexAlpha = 0;
 
-            if (finalProg < P3_END) {
-                // Phase 3: Growing to catch the lightning
-                float phase3Prog = (finalProg - P2_END) / (P3_END - P2_END);
-                orbScale = 0.1f + phase3Prog * 0.2f;
-                orbAlpha = phase3Prog * 0.8f;
+            if (finalProg <= P_CHANNEL_HOLD) {
+                float phase3Prog = (finalProg - P_SPLIT_FADE) / (P_CHANNEL_HOLD - P_SPLIT_FADE);
+                apexScale = 0.1f + phase3Prog * 0.2f;
+                apexAlpha = phase3Prog * 0.8f;
             } else {
-                // Phase 4: Swelling and pulsing then shrinking out
-                float phase4Prog = (finalProg - P3_END) / (1.0f - P3_END);
-                shrink = Math.max(0.0f, (phase4Prog - 0.85f) / 0.15f);
+                float phase4Prog = (finalProg - P_CHANNEL_HOLD) / (1.0f - P_CHANNEL_HOLD);
+                float shrink = Math.max(0.0f, (phase4Prog - 0.85f) / 0.15f);
                 float orbFade = 1.0f - shrink;
-                orbScale = (0.3f + phase4Prog * 0.4f + (float) Math.sin(time * 2.0f) * 0.05f) * orbFade;
-                orbAlpha = 0.8f + (0.2f * phase4Prog);
+                apexScale = (0.3f + phase4Prog * 0.4f + (float) Math.sin(time * 2.0f) * 0.05f) * orbFade;
+                apexAlpha = (0.8f + (0.2f * phase4Prog)) * orbFade;
             }
 
-            if (orbScale > 0.001f) {
-                final float finalOrbScale = orbScale;
-                final float finalOrbAlpha = orbAlpha;
-                poseStack.scale(finalOrbScale, finalOrbScale, finalOrbScale);
+            if (apexScale > 0.001f) {
+                final float finalApexScale = apexScale;
+                final float finalApexAlpha = apexAlpha;
+                poseStack.scale(finalApexScale, finalApexScale, finalApexScale);
                 collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
-                    drawSphere(cons, pose.pose(), 1.0f, finalCr, finalCg, finalCb, finalOrbAlpha, light, Vec3.ZERO);
+                    drawSphere(cons, pose.pose(), 1.0f, finalCr, finalCg, finalCb, finalApexAlpha, light, Vec3.ZERO);
                 });
             }
             poseStack.popPose();
 
             // Draw the massive, 16-sided geometric Cone Blast downwards (Phase 4 only)
-            if (finalProg >= P3_END) {
-                float phase4Prog = (finalProg - P3_END) / (1.0f - P3_END);
+            if (finalProg > P_CHANNEL_HOLD) {
+                float phase4Prog = (finalProg - P_CHANNEL_HOLD) / (1.0f - P_CHANNEL_HOLD);
                 float grow = Math.min(1.0f, phase4Prog / 0.15f);
+                float shrink = Math.max(0.0f, (phase4Prog - 0.85f) / 0.15f);
 
                 float clipTopY = net.minecraft.util.Mth.lerp(shrink, 4.5f, 1.2f);
                 float clipBottomY = net.minecraft.util.Mth.lerp(grow, 4.5f, 1.2f);
 
                 collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, cons) -> {
                     Matrix4f matrix = pose.pose();
-
-                    // Cone from apex (point) expanding to the magic circle center (0.8 radius to match the rings)
                     drawClampedVerticalCone(cons, matrix, 4.5f, 2.5f, 0.0f, 0.8f, clipTopY, clipBottomY, finalCr, finalCg, finalCb, 0.9f, light);
-
-                    // Shrinks rapidly to a fine point on the focal pedestal
                     drawClampedVerticalCone(cons, matrix, 2.5f, 1.2f, 0.8f, 0.05f, clipTopY, clipBottomY, finalCr, finalCg, finalCb, 0.9f, light);
                 });
             }
@@ -502,6 +588,25 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
 
             float rotDir = (portLocal.x > 0 || portLocal.z > 0) ? 1.0f : -1.0f;
             float angle = startAngle + t * (float)Math.PI * 4.0f * rotDir;
+
+            float y = (float) (straightEnd.y + (distPoint.y - straightEnd.y) * t);
+            return new Vec3(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+        }
+    }
+
+    // Helper for Pedestal Ampoules to spiral upwards towards the center
+    private Vec3 getPedestalSpiralPos(float s, Vec3 start, Vec3 distPoint) {
+        float straightSegment = 0.20f;
+        Vec3 straightEnd = start.add(0, 1.0, 0); // Burst straight up from the glass bottle 1 block
+
+        if (s < straightSegment) {
+            float t = s / straightSegment;
+            return start.lerp(straightEnd, t);
+        } else {
+            float t = (s - straightSegment) / (1.0f - straightSegment);
+            float radius = (float) Math.sqrt(straightEnd.x * straightEnd.x + straightEnd.z * straightEnd.z) * (1.0f - t);
+            float startAngle = (float) Math.atan2(straightEnd.z, straightEnd.x);
+            float angle = startAngle + t * (float)Math.PI * 4.0f;
 
             float y = (float) (straightEnd.y + (distPoint.y - straightEnd.y) * t);
             return new Vec3(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
@@ -627,10 +732,8 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
     }
 
     private void drawDoubleSidedText(PoseStack poseStack, MultiBufferSource bufferSource, Font font, String text, float width, int color, int light) {
-        // Draw Normal (Facing up)
         font.drawInBatch(text, -width / 2.0f, -font.lineHeight / 2.0f, color, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
 
-        // Draw Inverted (Facing down, perfectly mirroring the text so it reads correctly from underneath)
         poseStack.pushPose();
         poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(180));
         font.drawInBatch(text, -width / 2.0f, -font.lineHeight / 2.0f, color, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
@@ -790,11 +893,15 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
     public static class LatheRenderState extends BlockEntityRenderState {
         public boolean isFormed;
         public float time;
+
         public final List<Vec3> pedestalOffsets = new ArrayList<>();
+        public final List<Vec3> fuelPedestalOffsets = new ArrayList<>();
+
         public final ItemStackRenderState[] items = new ItemStackRenderState[4];
         public final boolean[] hasItem = new boolean[4];
 
         public boolean isCrafting;
+        public boolean waitForClick;
         public int craftingProgress;
         public int maxCraftingProgress;
         public EssenceType craftingEssenceType;
@@ -803,7 +910,6 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
 
         public float smoothProg;
 
-        // Dedicated state for the completed output weapon (assumes Slot 4 in the block entity)
         public final ItemStackRenderState outputItem = new ItemStackRenderState();
         public boolean hasOutputItem = false;
 
