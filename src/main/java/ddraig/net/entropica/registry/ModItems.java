@@ -2,15 +2,10 @@ package ddraig.net.entropica.registry;
 
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.component.VisWeaponState;
-import ddraig.net.entropica.item.EssenceAmpouleItem;
-import ddraig.net.entropica.item.EssenceHarvestingBladeItem;
-import ddraig.net.entropica.item.EssenceItem;
-import ddraig.net.entropica.item.EntropicaComponentItem;
-import ddraig.net.entropica.item.VisFumeAmpouleItem;
-import ddraig.net.entropica.item.OrbisCellItem;
-import ddraig.net.entropica.item.SpoolItem;
-import ddraig.net.entropica.item.DynamicEidolicWeaponItem;
+import ddraig.net.entropica.item.*;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -306,9 +301,18 @@ public class ModItems {
     public static final DeferredItem<BlockItem> ATTUNEMENT_PEDESTAL_ITEM = ITEMS.registerItem("attunement_pedestal", properties -> new BlockItem(ModBlocks.ATTUNEMENT_PEDESTAL.get(), properties));
     public static final DeferredItem<BlockItem> MORPHIC_LOOM_ITEM = ITEMS.registerItem("morphic_loom", properties -> new BlockItem(ModBlocks.MORPHIC_LOOM.get(), properties));
 
-    // --- NEW: Test Dynamic Weapon ---
-    public static final DeferredItem<DynamicEidolicWeaponItem> TEST_EIDOLIC_WEAPON = ITEMS.registerItem("test_eidolic_weapon",
-            properties -> new DynamicEidolicWeaponItem(properties.sword(ToolMaterial.NETHERITE, 3, -2.4f)));
+    // ==========================================
+    // DYNAMIC EIDOLIC WEAPONS & TOOLS
+    // ==========================================
+
+    public static final DeferredItem<Item> DYNAMIC_SWORD = ITEMS.register("dynamic_sword",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_AXE = ITEMS.register("dynamic_axe",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_PICKAXE = ITEMS.register("dynamic_pickaxe",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
 
     public static final DeferredItem<Item> ORBIS_CELL_ITEM = ITEMS.registerItem("orbis_cell", properties -> new OrbisCellItem(ModBlocks.ORBIS_CELL.get(), properties));
 

@@ -27,18 +27,16 @@ public class HardcodedRecipes {
         if (LATHE_RECIPES == null) {
             LATHE_RECIPES = new ArrayList<>();
 
-            // Build the exact test recipe from the JSON
-            List<Ingredient> testModifiers = new ArrayList<>();
-            for (int i = 0; i < 4; i++) testModifiers.add(Ingredient.of(Items.DIAMOND));
-            for (int i = 0; i < 2; i++) testModifiers.add(Ingredient.of(ModItems.ENTROPIC_ORE_ITEM.get()));
-            for (int i = 0; i < 3; i++) testModifiers.add(Ingredient.of(Items.BLAZE_POWDER));
-            testModifiers.add(Ingredient.of(Items.ECHO_SHARD));
+            // A placeholder recipe that will eventually display in JEI showing players
+            // the "Concept + Core + Material = Dynamic Weapon" layout.
+            List<Ingredient> templateModifiers = new ArrayList<>();
+            templateModifiers.add(Ingredient.of(Items.AMETHYST_SHARD)); // Just a visual placeholder
 
             LATHE_RECIPES.add(new EidolicLatheRecipe(
-                    Ingredient.of(Items.PAPER), // Ethereal Shape
-                    Ingredient.of(Items.NETHER_STAR), // Core
-                    testModifiers, // 10 Modifiers
-                    new ItemStack(ModItems.TEST_EIDOLIC_WEAPON.get()) // Output
+                    Ingredient.of(Items.PAPER), // Ethereal Shape Placeholder
+                    Ingredient.of(Items.NETHER_STAR), // Core Placeholder
+                    templateModifiers, // Modifiers
+                    new ItemStack(ModItems.DYNAMIC_SWORD.get()) // Output
             ));
         }
         return LATHE_RECIPES;
