@@ -49,7 +49,9 @@ public class ModModelProvider extends ModelProvider {
         // ==========================================
         // MANUAL: CUSTOM BLOCK MODELS
         // ==========================================
-        // Inform Datagen to skip these blocks as they have manually created JSON files
+
+        // Generates a simple baseline BlockState mapping to satisfy the validation
+        // You can manually overwrite the resulting JSON files if you need directional facing!
         blockModels.createNonTemplateModelBlock(ModBlocks.MANA_FURNACE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_AUTO_SMELTER.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_CORE.get());
@@ -68,10 +70,10 @@ public class ModModelProvider extends ModelProvider {
         blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_ONE_WAY_VALVE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get());
 
-        // Pressure Vessel & Chamber Blocks
+        // Controllers & Ports
         blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_VESSEL_CONTROLLER.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_VESSEL_PORT.get());
-        blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get());
+
         blockModels.createNonTemplateModelBlock(ModBlocks.ENRICHMENT_TABLE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ARCANE_FORGE_BASE.get());
 
@@ -87,15 +89,23 @@ public class ModModelProvider extends ModelProvider {
         // Orientable Blocks (Front/Side textures)
         createFrontSideBlock(blockModels, ModBlocks.FURNACE_HATCH.get(),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/furnace_hatch"),
-                ResourceLocation.fromNamespaceAndPath("entropica", "block/arcane_plating"));
+                ResourceLocation.fromNamespaceAndPath("entropica", "block/arcanite_plating"));
 
         createFrontSideBlock(blockModels, ModBlocks.VIS_READOUT.get(),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/mana_readout"),
-                ResourceLocation.fromNamespaceAndPath("entropica", "block/arcane_plating"));
+                ResourceLocation.fromNamespaceAndPath("entropica", "block/arcanite_plating"));
 
         createFrontSideBlock(blockModels, ModBlocks.ESSENCE_READOUT.get(),
                 ResourceLocation.fromNamespaceAndPath("entropica", "block/mana_readout"),
-                ResourceLocation.fromNamespaceAndPath("entropica", "block/arcane_plating"));
+                ResourceLocation.fromNamespaceAndPath("entropica", "block/arcanite_plating"));
+
+        createFrontSideBlock(blockModels, ModBlocks.SYNTHESIZER_USER_INTERFACE.get(),
+                ResourceLocation.fromNamespaceAndPath("entropica", "block/synthesizer_user_interface_face"),
+                ResourceLocation.fromNamespaceAndPath("entropica", "block/synthesizer_user_interface_side"));
+
+        createFrontSideBlock(blockModels, ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get(),
+                ResourceLocation.fromNamespaceAndPath("entropica", "block/vis_fume_pressure_chamber_controller_face"),
+                ResourceLocation.fromNamespaceAndPath("entropica", "block/vis_fume_pressure_chamber_side"));
 
         // Pipe Models
         createVisFumePipeModels(blockModels, ModBlocks.VIS_FUME_PIPE.get(), "vis_fume_pipe");
@@ -123,6 +133,8 @@ public class ModModelProvider extends ModelProvider {
         // Custom 3D Crafter Block Items
         generate3DBlockItem(itemModels, ModItems.AETHERIC_SYNTHESIZER_ITEM.get(), "aetheric_synthesizer");
         generate3DBlockItem(itemModels, ModItems.AETHERIC_AUTOMATOR_ITEM.get(), "aetheric_automator");
+        generate3DBlockItem(itemModels, ModItems.SYNTHESIZER_USER_INTERFACE_ITEM.get(), "synthesizer_user_interface");
+        generate3DBlockItem(itemModels, ModItems.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER_ITEM.get(), "vis_fume_pressure_chamber_controller");
 
         // ==========================================
         // MANUAL: CUSTOM ITEM MODELS
@@ -197,6 +209,7 @@ public class ModModelProvider extends ModelProvider {
         blockModels.createTrivialCube(block);
     }
 
+    // Safely builds the model from textures and provides a simple baseline BlockState to bypass validation
     private void createFrontSideBlock(BlockModelGenerators blockModels, Block block,
                                       ResourceLocation frontTexture, ResourceLocation sideTexture) {
         ModelTemplate orientableTemplate = new ModelTemplate(
@@ -211,6 +224,8 @@ public class ModModelProvider extends ModelProvider {
                 .put(TextureSlot.TOP, sideTexture);
 
         orientableTemplate.create(block, mapping, blockModels.modelOutput);
+
+        // Fulfills the validation requirement cleanly!
         blockModels.createNonTemplateModelBlock(block);
     }
 

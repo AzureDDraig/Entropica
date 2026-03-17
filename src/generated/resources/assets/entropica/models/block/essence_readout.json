@@ -2,7 +2,7 @@
   "parent": "minecraft:block/orientable",
   "textures": {
     "front": "entropica:block/mana_readout",
-    "side": "entropica:block/arcane_plating",
-    "top": "entropica:block/arcane_plating"
+    "side": "entropica:block/arcanite_plating",
+    "top": "entropica:block/arcanite_plating"
   }
 }

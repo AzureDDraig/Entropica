@@ -64,13 +64,23 @@ public class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumePressureChamberControllerBlockEntity>> VIS_FUME_PRESSURE_CHAMBER_CONTROLLER_BE = BLOCK_ENTITIES.register("vis_fume_pressure_chamber_controller", () -> new BlockEntityType<>(VisFumePressureChamberControllerBlockEntity::new, ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnrichmentTableBlockEntity>> ENRICHMENT_TABLE_BE = BLOCK_ENTITIES.register("enrichment_table", () -> new BlockEntityType<>(EnrichmentTableBlockEntity::new, ModBlocks.ENRICHMENT_TABLE.get()));
 
-    // --- AETHERIC SYNTHESIZER ---
+    // --- AETHERIC SYNTHESIZER & AUTOMATOR ---
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AethericSynthesizerBlockEntity>> AETHERIC_SYNTHESIZER_BE =
             BLOCK_ENTITIES.register("aetheric_synthesizer", () ->
                     new BlockEntityType<>(AethericSynthesizerBlockEntity::new, ModBlocks.AETHERIC_SYNTHESIZER.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AethericAutomatorBlockEntity>> AETHERIC_AUTOMATOR_BE = BLOCK_ENTITIES.register("aetheric_automator", () -> new BlockEntityType<>(AethericAutomatorBlockEntity::new, ModBlocks.AETHERIC_AUTOMATOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AethericAutomatorBlockEntity>> AETHERIC_AUTOMATOR_BE =
+            BLOCK_ENTITIES.register("aetheric_automator", () ->
+                    new BlockEntityType<>(AethericAutomatorBlockEntity::new, ModBlocks.AETHERIC_AUTOMATOR.get()));
 
+    // --- EIDOLIC LATHE MULTIBLOCK ---
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EidolicLatheBlockEntity>> EIDOLIC_FOCAL_PEDESTAL_BE =
+            BLOCK_ENTITIES.register("eidolic_focal_pedestal", () ->
+                    new BlockEntityType<>(EidolicLatheBlockEntity::new, ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AttunementPedestalBlockEntity>> ATTUNEMENT_PEDESTAL_BE =
+            BLOCK_ENTITIES.register("attunement_pedestal", () ->
+                    new BlockEntityType<>(AttunementPedestalBlockEntity::new, ModBlocks.ATTUNEMENT_PEDESTAL.get()));
 
     // --- NEW: DILUTED ESSENCE FLUID ---
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DilutedEssenceFluidBlockEntity>> DILUTED_ESSENCE_FLUID_BE =

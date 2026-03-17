@@ -84,40 +84,52 @@ public class ModItems {
     public static final DeferredItem<Item> ARCANITE_INGOT = ITEMS.registerItem("arcanite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_ingot"));
     public static final DeferredItem<Item> VISCANITE_INGOT = ITEMS.registerItem("viscanite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_ingot"));
     public static final DeferredItem<Item> RESONITE_INGOT = ITEMS.registerItem("resonite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_ingot"));
+    public static final DeferredItem<Item> EIDOLITE_INGOT = ITEMS.registerItem("eidolite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.eidolite_ingot"));
+
     public static final DeferredItem<Item> CHARGED_ARCANITE_INGOT = ITEMS.registerItem("charged_arcanite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_arcanite_ingot"));
     public static final DeferredItem<Item> CHARGED_VISCANITE_INGOT = ITEMS.registerItem("charged_viscanite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_viscanite_ingot"));
     public static final DeferredItem<Item> CHARGED_RESONITE_INGOT = ITEMS.registerItem("charged_resonite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_resonite_ingot"));
+    public static final DeferredItem<Item> CHARGED_EIDOLITE_INGOT = ITEMS.registerItem("charged_eidolite_ingot", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_eidolite_ingot"));
 
     public static final DeferredItem<Item> ARCANITE_NUGGET = ITEMS.registerItem("arcanite_nugget", Item::new);
     public static final DeferredItem<Item> VISCANITE_NUGGET = ITEMS.registerItem("viscanite_nugget", Item::new);
     public static final DeferredItem<Item> RESONITE_NUGGET = ITEMS.registerItem("resonite_nugget", Item::new);
+    public static final DeferredItem<Item> EIDOLITE_NUGGET = ITEMS.registerItem("eidolite_nugget", Item::new);
+
     public static final DeferredItem<Item> CHARGED_ARCANITE_NUGGET = ITEMS.registerItem("charged_arcanite_nugget", Item::new);
     public static final DeferredItem<Item> CHARGED_VISCANITE_NUGGET = ITEMS.registerItem("charged_viscanite_nugget", Item::new);
     public static final DeferredItem<Item> CHARGED_RESONITE_NUGGET = ITEMS.registerItem("charged_resonite_nugget", Item::new);
+    public static final DeferredItem<Item> CHARGED_EIDOLITE_NUGGET = ITEMS.registerItem("charged_eidolite_nugget", Item::new);
 
     // Wires, Filaments & Spools
     public static final DeferredItem<Item> ARCANITE_WIRE = ITEMS.registerItem("arcanite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_wire"));
     public static final DeferredItem<Item> VISCANITE_WIRE = ITEMS.registerItem("viscanite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_wire"));
     public static final DeferredItem<Item> RESONITE_WIRE = ITEMS.registerItem("resonite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_wire"));
+    public static final DeferredItem<Item> EIDOLITE_WIRE = ITEMS.registerItem("eidolite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.eidolite_wire"));
 
     public static final DeferredItem<Item> COATED_ARCANITE_WIRE = ITEMS.registerItem("coated_arcanite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_arcanite_wire"));
     public static final DeferredItem<Item> COATED_VISCANITE_WIRE = ITEMS.registerItem("coated_viscanite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_viscanite_wire"));
     public static final DeferredItem<Item> COATED_RESONITE_WIRE = ITEMS.registerItem("coated_resonite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_resonite_wire"));
+    public static final DeferredItem<Item> COATED_EIDOLITE_WIRE = ITEMS.registerItem("coated_eidolite_wire", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_eidolite_wire"));
 
     public static final DeferredItem<Item> ARCANITE_FILAMENT = ITEMS.registerItem("arcanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_filament"));
     public static final DeferredItem<Item> VISCANITE_FILAMENT = ITEMS.registerItem("viscanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_filament"));
     public static final DeferredItem<Item> RESONITE_FILAMENT = ITEMS.registerItem("resonite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_filament"));
+    public static final DeferredItem<Item> EIDOLITE_FILAMENT = ITEMS.registerItem("eidolite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.eidolite_filament"));
 
     public static final DeferredItem<Item> ARCANITE_SPOOL = ITEMS.registerItem("arcanite_spool", properties -> new SpoolItem(properties.stacksTo(1), "tooltip.entropica.arcanite_spool", ARCANITE_WIRE, ARCANITE_FILAMENT));
     public static final DeferredItem<Item> VISCANITE_SPOOL = ITEMS.registerItem("viscanite_spool", properties -> new SpoolItem(properties.stacksTo(1), "tooltip.entropica.viscanite_spool", VISCANITE_WIRE, VISCANITE_FILAMENT));
     public static final DeferredItem<Item> RESONITE_SPOOL = ITEMS.registerItem("resonite_spool", properties -> new SpoolItem(properties.stacksTo(1), "tooltip.entropica.resonite_spool", RESONITE_WIRE, RESONITE_FILAMENT));
+    public static final DeferredItem<Item> EIDOLITE_SPOOL = ITEMS.registerItem("eidolite_spool", properties -> new SpoolItem(properties.stacksTo(1), "tooltip.entropica.eidolite_spool", EIDOLITE_WIRE, EIDOLITE_FILAMENT));
 
     public static final DeferredItem<Item> CHARGED_ARCANITE_FILAMENT = ITEMS.registerItem("charged_arcanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_arcanite_filament"));
     public static final DeferredItem<Item> CHARGED_VISCANITE_FILAMENT = ITEMS.registerItem("charged_viscanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_viscanite_filament"));
     public static final DeferredItem<Item> CHARGED_RESONITE_FILAMENT = ITEMS.registerItem("charged_resonite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_resonite_filament"));
+    public static final DeferredItem<Item> CHARGED_EIDOLITE_FILAMENT = ITEMS.registerItem("charged_eidolite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_eidolite_filament"));
     public static final DeferredItem<Item> COATED_ARCANITE_FILAMENT = ITEMS.registerItem("coated_arcanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_arcanite_filament"));
     public static final DeferredItem<Item> COATED_VISCANITE_FILAMENT = ITEMS.registerItem("coated_viscanite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_viscanite_filament"));
     public static final DeferredItem<Item> COATED_RESONITE_FILAMENT = ITEMS.registerItem("coated_resonite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_resonite_filament"));
+    public static final DeferredItem<Item> COATED_EIDOLITE_FILAMENT = ITEMS.registerItem("coated_eidolite_filament", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.coated_eidolite_filament"));
 
     // Mechanical Parts
     public static final DeferredItem<Item> ARCANITE_FRAME = ITEMS.registerItem("arcanite_frame", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.reinforced_arcanite_frame"));
@@ -159,13 +171,75 @@ public class ModItems {
     public static final DeferredItem<Item> FUME_CONDENSER_COIL = ITEMS.registerItem("fume_condenser_coil", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.fume_condenser_coil"));
     public static final DeferredItem<Item> ICHOR_EVAPORATOR_COIL = ITEMS.registerItem("ichor_evaporator_coil", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.ichor_evaporator_coil"));
 
-    // Weapon Cores & Components
+    // Standard Weapon & Tool Cores
     public static final DeferredItem<Item> ARCANITE_WEAPON_CORE = ITEMS.registerItem("arcanite_weapon_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_weapon_core"));
+    public static final DeferredItem<Item> CHARGED_ARCANITE_WEAPON_CORE = ITEMS.registerItem("charged_arcanite_weapon_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_arcanite_weapon_core"));
+    public static final DeferredItem<Item> ANCIENT_ARCANITE_WEAPON_CORE = ITEMS.registerItem("ancient_arcanite_weapon_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.ancient_arcanite_weapon_core"));
+
     public static final DeferredItem<Item> VISCANITE_WEAPON_CORE = ITEMS.registerItem("viscanite_weapon_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_weapon_core"));
+    public static final DeferredItem<Item> CHARGED_VISCANITE_WEAPON_CORE = ITEMS.registerItem("charged_viscanite_weapon_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_viscanite_weapon_core"));
+    public static final DeferredItem<Item> ANCIENT_VISCANITE_WEAPON_CORE = ITEMS.registerItem("ancient_viscanite_weapon_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.ancient_viscanite_weapon_core"));
+
     public static final DeferredItem<Item> RESONITE_WEAPON_CORE = ITEMS.registerItem("resonite_weapon_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_weapon_core"));
+    public static final DeferredItem<Item> CHARGED_RESONITE_WEAPON_CORE = ITEMS.registerItem("charged_resonite_weapon_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_resonite_weapon_core"));
+    public static final DeferredItem<Item> ANCIENT_RESONITE_WEAPON_CORE = ITEMS.registerItem("ancient_resonite_weapon_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.ancient_resonite_weapon_core"));
+
+    public static final DeferredItem<Item> ARCANITE_TOOL_CORE = ITEMS.registerItem("arcanite_tool_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_tool_core"));
+    public static final DeferredItem<Item> CHARGED_ARCANITE_TOOL_CORE = ITEMS.registerItem("charged_arcanite_tool_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_arcanite_tool_core"));
+    public static final DeferredItem<Item> ANCIENT_ARCANITE_TOOL_CORE = ITEMS.registerItem("ancient_arcanite_tool_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.ancient_arcanite_tool_core"));
+
+    public static final DeferredItem<Item> VISCANITE_TOOL_CORE = ITEMS.registerItem("viscanite_tool_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_tool_core"));
+    public static final DeferredItem<Item> CHARGED_VISCANITE_TOOL_CORE = ITEMS.registerItem("charged_viscanite_tool_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_viscanite_tool_core"));
+    public static final DeferredItem<Item> ANCIENT_VISCANITE_TOOL_CORE = ITEMS.registerItem("ancient_viscanite_tool_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.ancient_viscanite_tool_core"));
+
+    public static final DeferredItem<Item> RESONITE_TOOL_CORE = ITEMS.registerItem("resonite_tool_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_tool_core"));
+    public static final DeferredItem<Item> CHARGED_RESONITE_TOOL_CORE = ITEMS.registerItem("charged_resonite_tool_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_resonite_tool_core"));
+    public static final DeferredItem<Item> ANCIENT_RESONITE_TOOL_CORE = ITEMS.registerItem("ancient_resonite_tool_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.ancient_resonite_tool_core"));
+
+    // Eidolite Unified Cores (For Constructs/Weapons/Tools)
+    public static final DeferredItem<Item> EIDOLITE_CORE = ITEMS.registerItem("eidolite_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.eidolite_core"));
+    public static final DeferredItem<Item> CHARGED_EIDOLITE_CORE = ITEMS.registerItem("charged_eidolite_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.charged_eidolite_core"));
+    public static final DeferredItem<Item> ANCIENT_EIDOLITE_CORE = ITEMS.registerItem("ancient_eidolite_core", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.ancient_eidolite_core"));
+
     public static final DeferredItem<Item> SOUL_BOUND_COMMUTATOR = ITEMS.registerItem("soul_bound_commutator", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.soul_bound_commutator"));
     public static final DeferredItem<Item> VISCANITE_STATOR = ITEMS.registerItem("viscanite_stator", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_stator"));
     public static final DeferredItem<Item> RESONITE_STATOR = ITEMS.registerItem("resonite_stator", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_stator"));
+
+    // Shape Concepts (Swords)
+    public static final DeferredItem<Item> GLADIUS_SHAPE_CONCEPT = ITEMS.registerItem("gladius_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> LONGSWORD_SHAPE_CONCEPT = ITEMS.registerItem("longsword_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> SHORTSWORD_SHAPE_CONCEPT = ITEMS.registerItem("shortsword_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> AKRAFENA_SHAPE_CONCEPT = ITEMS.registerItem("akrafena_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+
+    // Shape Concepts (Axes)
+    public static final DeferredItem<Item> HAND_AXE_SHAPE_CONCEPT = ITEMS.registerItem("hand_axe_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> WAR_AXE_SHAPE_CONCEPT = ITEMS.registerItem("war_axe_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> POLE_AXE_SHAPE_CONCEPT = ITEMS.registerItem("pole_axe_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> HALBERD_SHAPE_CONCEPT = ITEMS.registerItem("halberd_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> BEARD_AXE_SHAPE_CONCEPT = ITEMS.registerItem("beard_axe_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+
+    // Shape Concepts (Bows)
+    public static final DeferredItem<Item> SHORTBOW_SHAPE_CONCEPT = ITEMS.registerItem("shortbow_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> LONGBOW_SHAPE_CONCEPT = ITEMS.registerItem("longbow_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> CROSSBOW_SHAPE_CONCEPT = ITEMS.registerItem("crossbow_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> REPEATER_SHAPE_CONCEPT = ITEMS.registerItem("repeater_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> WAR_BOW_SHAPE_CONCEPT = ITEMS.registerItem("war_bow_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+
+    // Shape Concepts (Tools)
+    public static final DeferredItem<Item> PICKAXE_SHAPE_CONCEPT = ITEMS.registerItem("pickaxe_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> SHOVEL_SHAPE_CONCEPT = ITEMS.registerItem("shovel_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> ADZE_SHAPE_CONCEPT = ITEMS.registerItem("adze_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> PAXEL_SHAPE_CONCEPT = ITEMS.registerItem("paxel_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+
+    // Shape Concepts (Others)
+    public static final DeferredItem<Item> SPEAR_SHAPE_CONCEPT = ITEMS.registerItem("spear_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> MACE_SHAPE_CONCEPT = ITEMS.registerItem("mace_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> MORNING_STAR_SHAPE_CONCEPT = ITEMS.registerItem("morning_star_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+    public static final DeferredItem<Item> WARHAMMER_SHAPE_CONCEPT = ITEMS.registerItem("warhammer_shape_concept", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.shape_concept"));
+
+    // Standalone Crafting Item
+    public static final DeferredItem<Item> ORBIS_ACCEPTOR = ITEMS.registerItem("orbis_acceptor", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.orbis_acceptor"));
+    public static final DeferredItem<Item> SPELL_GEM = ITEMS.registerItem("spell_gem", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.spell_gem"));
 
     // Optical & Arcane Internals
     public static final DeferredItem<Item> FOCAL_LENS_ASSEMBLY = ITEMS.registerItem("focal_lens_assembly", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.focal_lens_assembly"));
@@ -226,6 +300,11 @@ public class ModItems {
     public static final DeferredItem<BlockItem> VIS_EXTRACTOR_BASE_ITEM = ITEMS.registerItem("vis_extractor_base", properties -> new BlockItem(ModBlocks.VIS_EXTRACTOR_BASE.get(), properties));
     public static final DeferredItem<BlockItem> VIS_MOTOR_ITEM = ITEMS.registerItem("vis_motor", properties -> new BlockItem(ModBlocks.VIS_MOTOR.get(), properties));
 
+    // --- Dynamic Weapon Forging Blocks ---
+    public static final DeferredItem<BlockItem> EIDOLIC_FOCAL_PEDESTAL_ITEM = ITEMS.registerItem("eidolic_focal_pedestal", properties -> new BlockItem(ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get(), properties));
+    public static final DeferredItem<BlockItem> ATTUNEMENT_PEDESTAL_ITEM = ITEMS.registerItem("attunement_pedestal", properties -> new BlockItem(ModBlocks.ATTUNEMENT_PEDESTAL.get(), properties));
+    public static final DeferredItem<BlockItem> MORPHIC_LOOM_ITEM = ITEMS.registerItem("morphic_loom", properties -> new BlockItem(ModBlocks.MORPHIC_LOOM.get(), properties));
+
     public static final DeferredItem<Item> ORBIS_CELL_ITEM = ITEMS.registerItem("orbis_cell", properties -> new OrbisCellItem(ModBlocks.ORBIS_CELL.get(), properties));
 
     // Base Ampoules (Empty)
@@ -257,7 +336,7 @@ public class ModItems {
     public static final DeferredItem<BlockItem> VIS_FUME_PRESSURE_CHAMBER_CONTROLLER_ITEM = ITEMS.registerItem("vis_fume_pressure_chamber_controller", properties -> new BlockItem(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get(), properties));
     public static final DeferredItem<BlockItem> ENRICHMENT_TABLE_ITEM = ITEMS.registerItem("enrichment_table", properties -> new BlockItem(ModBlocks.ENRICHMENT_TABLE.get(), properties));
 
-    //Others
+    // Others
     public static final DeferredItem<BlockItem> VIS_VITAE_ANCHOR_ITEM = ITEMS.registerItem("vis_vitae_anchor", properties -> new BlockItem(ModBlocks.VIS_VITAE_ANCHOR.get(), properties));
     public static final DeferredItem<BlockItem> VIS_VITAE_CONDENSER_ITEM = ITEMS.registerItem("vis_vitae_condenser", properties -> new BlockItem(ModBlocks.VIS_VITAE_CONDENSER.get(), properties));
     public static final DeferredItem<BlockItem> VIS_VITAE_VACUUM_ITEM = ITEMS.registerItem("vis_vitae_vacuum", properties -> new BlockItem(ModBlocks.VIS_VITAE_VACUUM.get(), properties));
@@ -276,19 +355,34 @@ public class ModItems {
     // DATAGEN ITEM LIST
     // Any basic item added to this list will automatically have a flat model generated.
     // ==========================================
-    public static final List<DeferredItem<Item>> SIMPLE_ITEMS = List.of(
+    public static final List<DeferredItem<? extends Item>> SIMPLE_ITEMS = List.of(
             ARCANUM_FOCUS, VIS_VALUE_DETECTOR, ARCANE_BRICK_PIECE, ARCANE_CLAY,
             SMALL_AMPOULE, MEDIUM_AMPOULE, LARGE_AMPOULE, ESSENCE_HARVESTING_BLADE, SOULBOUND_BLADE,
             OBLIVION_BLADE, TIDAL_TRIDENT, VOID_SWORD, BASALT_PICKAXE, WHISPERWOOD_WAND, SHIMMERING_FOCUS,
-            ARCANITE_INGOT, VISCANITE_INGOT, RESONITE_INGOT, CHARGED_ARCANITE_INGOT, CHARGED_VISCANITE_INGOT, CHARGED_RESONITE_INGOT,
-            ARCANITE_NUGGET, VISCANITE_NUGGET, RESONITE_NUGGET, CHARGED_ARCANITE_NUGGET, CHARGED_VISCANITE_NUGGET, CHARGED_RESONITE_NUGGET,
-            ARCANITE_WIRE, VISCANITE_WIRE, RESONITE_WIRE, COATED_ARCANITE_WIRE, COATED_VISCANITE_WIRE, COATED_RESONITE_WIRE, ARCANITE_SPOOL, VISCANITE_SPOOL, RESONITE_SPOOL,
-            ARCANITE_FILAMENT, VISCANITE_FILAMENT, RESONITE_FILAMENT, CHARGED_ARCANITE_FILAMENT, CHARGED_VISCANITE_FILAMENT, CHARGED_RESONITE_FILAMENT, COATED_ARCANITE_FILAMENT, COATED_VISCANITE_FILAMENT, COATED_RESONITE_FILAMENT,
+            ARCANITE_INGOT, VISCANITE_INGOT, RESONITE_INGOT, EIDOLITE_INGOT, CHARGED_ARCANITE_INGOT, CHARGED_VISCANITE_INGOT, CHARGED_RESONITE_INGOT, CHARGED_EIDOLITE_INGOT,
+            ARCANITE_NUGGET, VISCANITE_NUGGET, RESONITE_NUGGET, EIDOLITE_NUGGET, CHARGED_ARCANITE_NUGGET, CHARGED_VISCANITE_NUGGET, CHARGED_RESONITE_NUGGET, CHARGED_EIDOLITE_NUGGET,
+            ARCANITE_WIRE, VISCANITE_WIRE, RESONITE_WIRE, EIDOLITE_WIRE, COATED_ARCANITE_WIRE, COATED_VISCANITE_WIRE, COATED_RESONITE_WIRE, COATED_EIDOLITE_WIRE, ARCANITE_SPOOL, VISCANITE_SPOOL, RESONITE_SPOOL, EIDOLITE_SPOOL,
+            ARCANITE_FILAMENT, VISCANITE_FILAMENT, RESONITE_FILAMENT, EIDOLITE_FILAMENT, CHARGED_ARCANITE_FILAMENT, CHARGED_VISCANITE_FILAMENT, CHARGED_RESONITE_FILAMENT, CHARGED_EIDOLITE_FILAMENT, COATED_ARCANITE_FILAMENT, COATED_VISCANITE_FILAMENT, COATED_RESONITE_FILAMENT, COATED_EIDOLITE_FILAMENT,
             ARCANITE_FRAME, VISCANITE_FRAME, ARCANITE_GEARSET, VISCANITE_GEARSET, RESONITE_GEARSET,
             ARCANITE_LARGE_GEAR, VISCANITE_LARGE_GEAR, RESONITE_LARGE_GEAR, ARCANITE_SMALL_GEAR, VISCANITE_SMALL_GEAR, RESONITE_SMALL_GEAR,
             ARCANITE_PLATE, VISCANITE_PLATE, RESONITE_PLATE, VISCANITE_PISTON, RESONITE_PISTON,
-            BELLOWS_CRANK_ASSEMBLY, PRESSURE_GRADED_GASKET, ENTROPIC_HEAT_SINK, ARCANITE_WEAPON_CORE, VISCANITE_WEAPON_CORE, RESONITE_WEAPON_CORE, SOUL_BOUND_COMMUTATOR, VISCANITE_STATOR, RESONITE_STATOR,
+            BELLOWS_CRANK_ASSEMBLY, PRESSURE_GRADED_GASKET, ENTROPIC_HEAT_SINK,
+            ARCANITE_WEAPON_CORE, CHARGED_ARCANITE_WEAPON_CORE, ANCIENT_ARCANITE_WEAPON_CORE,
+            VISCANITE_WEAPON_CORE, CHARGED_VISCANITE_WEAPON_CORE, ANCIENT_VISCANITE_WEAPON_CORE,
+            RESONITE_WEAPON_CORE, CHARGED_RESONITE_WEAPON_CORE, ANCIENT_RESONITE_WEAPON_CORE,
+            ARCANITE_TOOL_CORE, CHARGED_ARCANITE_TOOL_CORE, ANCIENT_ARCANITE_TOOL_CORE,
+            VISCANITE_TOOL_CORE, CHARGED_VISCANITE_TOOL_CORE, ANCIENT_VISCANITE_TOOL_CORE,
+            RESONITE_TOOL_CORE, CHARGED_RESONITE_TOOL_CORE, ANCIENT_RESONITE_TOOL_CORE,
+            EIDOLITE_CORE, CHARGED_EIDOLITE_CORE, ANCIENT_EIDOLITE_CORE,
+            SOUL_BOUND_COMMUTATOR, VISCANITE_STATOR, RESONITE_STATOR,
+            GLADIUS_SHAPE_CONCEPT, LONGSWORD_SHAPE_CONCEPT, SHORTSWORD_SHAPE_CONCEPT, AKRAFENA_SHAPE_CONCEPT,
+            HAND_AXE_SHAPE_CONCEPT, WAR_AXE_SHAPE_CONCEPT, POLE_AXE_SHAPE_CONCEPT, HALBERD_SHAPE_CONCEPT, BEARD_AXE_SHAPE_CONCEPT,
+            SHORTBOW_SHAPE_CONCEPT, LONGBOW_SHAPE_CONCEPT, CROSSBOW_SHAPE_CONCEPT, REPEATER_SHAPE_CONCEPT, WAR_BOW_SHAPE_CONCEPT,
+            PICKAXE_SHAPE_CONCEPT, SHOVEL_SHAPE_CONCEPT, ADZE_SHAPE_CONCEPT, PAXEL_SHAPE_CONCEPT,
+            SPEAR_SHAPE_CONCEPT, MACE_SHAPE_CONCEPT, MORNING_STAR_SHAPE_CONCEPT, WARHAMMER_SHAPE_CONCEPT,
+            ORBIS_ACCEPTOR, SPELL_GEM,
             FOCAL_LENS_ASSEMBLY, AETHERIC_LOGIC_GATE, REFRACTION_GRID_MESH, ICHOR_CAPILLARY_TUBE, VIS_CAPACITOR_PLATE, HARMONIC_FEEDBACK_LOOP, AETHERIC_PITCH_PIPE, FREQUENCY_SPLITTER_PRISM, TUNING_FORK, RESONITE_TUNING_FORK, VOID_RESONANT_TUNING_FORK, SPECTRAL_GLYPH_PLATE, TETHER_ANCHOR_PIN,
-            ARCANITE_ICHOR_VALVE, VISCANITE_ICHOR_VALVE, ARCANITE_FUME_VALVE, VISCANITE_FUME_VALVE, AETHERIC_FLOW_REGULATOR, VOID_SEALED_O_RING, FUME_CONDENSER_COIL, ICHOR_EVAPORATOR_COIL
+            ARCANITE_ICHOR_VALVE, VISCANITE_ICHOR_VALVE, ARCANITE_FUME_VALVE, VISCANITE_FUME_VALVE, AETHERIC_FLOW_REGULATOR, VOID_SEALED_O_RING, FUME_CONDENSER_COIL, ICHOR_EVAPORATOR_COIL,
+            MORPHIC_LOOM_ITEM
     );
 }

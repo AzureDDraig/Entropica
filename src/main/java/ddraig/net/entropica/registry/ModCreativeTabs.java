@@ -137,6 +137,83 @@ public class ModCreativeTabs {
                 output.accept(ModItems.ARCANUM_FOCUS.get());
             }).build());
 
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> WEAPON_CRAFTING_TAB = CREATIVE_MODE_TABS.register("weapon_crafting_tab", () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.entropica.weapon_crafting"))
+            .icon(() -> ModItems.ORBIS_ACCEPTOR.get().getDefaultInstance())
+            .displayItems((parameters, output) -> {
+                // Blocks
+                output.accept(ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get());
+                output.accept(ModBlocks.ATTUNEMENT_PEDESTAL.get());
+                output.accept(ModBlocks.MORPHIC_LOOM.get());
+
+                // Crafting Mechanics
+                output.accept(ModItems.ORBIS_ACCEPTOR.get());
+                output.accept(ModItems.SPELL_GEM.get());
+
+                // Weapon Cores
+                output.accept(ModItems.ARCANITE_WEAPON_CORE.get());
+                output.accept(ModItems.CHARGED_ARCANITE_WEAPON_CORE.get());
+                output.accept(ModItems.ANCIENT_ARCANITE_WEAPON_CORE.get());
+
+                output.accept(ModItems.VISCANITE_WEAPON_CORE.get());
+                output.accept(ModItems.CHARGED_VISCANITE_WEAPON_CORE.get());
+                output.accept(ModItems.ANCIENT_VISCANITE_WEAPON_CORE.get());
+
+                output.accept(ModItems.RESONITE_WEAPON_CORE.get());
+                output.accept(ModItems.CHARGED_RESONITE_WEAPON_CORE.get());
+                output.accept(ModItems.ANCIENT_RESONITE_WEAPON_CORE.get());
+
+                // Tool Cores
+                output.accept(ModItems.ARCANITE_TOOL_CORE.get());
+                output.accept(ModItems.CHARGED_ARCANITE_TOOL_CORE.get());
+                output.accept(ModItems.ANCIENT_ARCANITE_TOOL_CORE.get());
+
+                output.accept(ModItems.VISCANITE_TOOL_CORE.get());
+                output.accept(ModItems.CHARGED_VISCANITE_TOOL_CORE.get());
+                output.accept(ModItems.ANCIENT_VISCANITE_TOOL_CORE.get());
+
+                output.accept(ModItems.RESONITE_TOOL_CORE.get());
+                output.accept(ModItems.CHARGED_RESONITE_TOOL_CORE.get());
+                output.accept(ModItems.ANCIENT_RESONITE_TOOL_CORE.get());
+
+                // Eidolite Cores
+                output.accept(ModItems.EIDOLITE_CORE.get());
+                output.accept(ModItems.CHARGED_EIDOLITE_CORE.get());
+                output.accept(ModItems.ANCIENT_EIDOLITE_CORE.get());
+
+                // Shape Concepts (Swords)
+                output.accept(ModItems.GLADIUS_SHAPE_CONCEPT.get());
+                output.accept(ModItems.LONGSWORD_SHAPE_CONCEPT.get());
+                output.accept(ModItems.SHORTSWORD_SHAPE_CONCEPT.get());
+                output.accept(ModItems.AKRAFENA_SHAPE_CONCEPT.get());
+
+                // Shape Concepts (Axes)
+                output.accept(ModItems.HAND_AXE_SHAPE_CONCEPT.get());
+                output.accept(ModItems.WAR_AXE_SHAPE_CONCEPT.get());
+                output.accept(ModItems.POLE_AXE_SHAPE_CONCEPT.get());
+                output.accept(ModItems.HALBERD_SHAPE_CONCEPT.get());
+                output.accept(ModItems.BEARD_AXE_SHAPE_CONCEPT.get());
+
+                // Shape Concepts (Bows)
+                output.accept(ModItems.SHORTBOW_SHAPE_CONCEPT.get());
+                output.accept(ModItems.LONGBOW_SHAPE_CONCEPT.get());
+                output.accept(ModItems.CROSSBOW_SHAPE_CONCEPT.get());
+                output.accept(ModItems.REPEATER_SHAPE_CONCEPT.get());
+                output.accept(ModItems.WAR_BOW_SHAPE_CONCEPT.get());
+
+                // Shape Concepts (Tools)
+                output.accept(ModItems.PICKAXE_SHAPE_CONCEPT.get());
+                output.accept(ModItems.SHOVEL_SHAPE_CONCEPT.get());
+                output.accept(ModItems.ADZE_SHAPE_CONCEPT.get());
+                output.accept(ModItems.PAXEL_SHAPE_CONCEPT.get());
+
+                // Shape Concepts (Others)
+                output.accept(ModItems.SPEAR_SHAPE_CONCEPT.get());
+                output.accept(ModItems.MACE_SHAPE_CONCEPT.get());
+                output.accept(ModItems.MORNING_STAR_SHAPE_CONCEPT.get());
+                output.accept(ModItems.WARHAMMER_SHAPE_CONCEPT.get());
+            }).build());
+
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> WEAPONS_TAB = CREATIVE_MODE_TABS.register("weapons_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.entropica.weapons"))
             .icon(() -> ModItems.SOULBOUND_BLADE.get().getDefaultInstance())
