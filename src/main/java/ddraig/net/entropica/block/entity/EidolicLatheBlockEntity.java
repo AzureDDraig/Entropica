@@ -74,7 +74,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
     public boolean isCrafting = false;
     public boolean waitForClick = false;
     public int craftingProgress = 0;
-    public int maxCraftingProgress = 500; // 25 Seconds
+    public int maxCraftingProgress = 900; // 25 Seconds
     public EssenceType craftingEssenceType = null;
     private boolean isIchorCraft = false;
     private int ampouleFumeTotal = 0;
@@ -316,7 +316,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         this.isCrafting = true;
         this.waitForClick = false;
         this.craftingProgress = 0;
-        this.maxCraftingProgress = 500; // 25 second ritual
+        this.maxCraftingProgress = 900; // 45 second ritual
 
         this.craftingEssenceType = networkType != null ? networkType : detectedAmpouleType;
         this.isIchorCraft = false; // Default until an Ichor pipe connects
