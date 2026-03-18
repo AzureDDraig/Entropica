@@ -24,6 +24,7 @@ public class DynamicVisWeaponItem extends Item {
         super(properties);
     }
 
+
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -74,7 +75,7 @@ public class DynamicVisWeaponItem extends Item {
                 tooltipComponents.accept(Component.literal(" Material: ").withStyle(ChatFormatting.GRAY)
                         .append(Component.literal(state.materialTier()).withStyle(ChatFormatting.WHITE)));
 
-                Component essenceName = Component.literal(state.baseType().getSerializedName())
+                Component essenceName = Component.literal(state.baseType().getDisplayName())
                         .withStyle(style -> style.withColor(state.baseType().getColorInt()));
                 tooltipComponents.accept(Component.literal(" Vis Affinity: ").withStyle(ChatFormatting.GRAY).append(essenceName));
 
@@ -83,8 +84,12 @@ public class DynamicVisWeaponItem extends Item {
                             .withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
                 }
 
-                if (state.baseDamage() > 0) {
-                    tooltipComponents.accept(Component.literal(String.format(" Resonance Damage: +%.1f", state.baseDamage())).withStyle(ChatFormatting.BLUE));
+                // Pure Vis Damage Output (Replaces Vanilla Physical Damage)
+                if (state.baseType() != EssenceType.REGULAR && state.baseDamage() > 0) {
+                    Component damageValue = Component.literal(String.format(" %.1f ", state.baseDamage())).withStyle(ChatFormatting.DARK_GREEN);
+                    Component damageLabel = Component.literal(" Damage").withStyle(ChatFormatting.DARK_GREEN);
+
+                    tooltipComponents.accept(Component.empty().append(damageValue).append(essenceName).append(damageLabel));
                 }
 
                 if (state.bonusSpeed() > 0) {

@@ -34,6 +34,9 @@
   "item.entropica.whisperwood_wand": "Whisperwood Wand",
   "item.entropica.shimmering_focus": "Shimmering Focus",
   "item.entropica.aetheric_monocle": "Aetheric Monocle",
+  "item.entropica.dynamic_sword": "Eidolic Sword",
+  "item.entropica.dynamic_axe": "Eidolic Axe",
+  "item.entropica.dynamic_pickaxe": "Eidolic Pickaxe",
 
   "_comment_base_ampoules": "================ EMPTY & MANA AMPOULES ================",
   "item.entropica.small_ampoule": "Small Ampoule (Empty)",
@@ -228,7 +231,11 @@
 
   "_comment_dynamic_weapons": "================ DYNAMIC WEAPONS & FORGING ================",
   "block.entropica.eidolic_focal_pedestal": "Eidolic Focal Pedestal",
+  "item.entropica.eidolic_focal_pedestal": "Eidolic Focal Pedestal",
+  "block.entropica.attunement_pedestal": "Attunement Pedestal",
+  "item.entropica.attunement_pedestal": "Attunement Pedestal",
   "block.entropica.morphic_loom": "Morphic Loom",
+  "item.entropica.morphic_loom": "Morphic Loom",
   "item.entropica.orbis_acceptor": "Orbis Acceptor",
   "item.entropica.spell_gem": "Spell Gem",
   "item.entropica.arcanite_weapon_core": "Arcanite Weapon Core",
@@ -292,6 +299,10 @@
   "item.entropica.essence_readout": "Essence Readout",
   "item.entropica.orbis_cell": "Orbis Cell",
   "item.entropica.mana_filter": "Mana Filter",
+  "block.entropica.aetheric_terminal": "Aetheric Terminal",
+  "item.entropica.aetheric_terminal": "Aetheric Terminal",
+  "block.entropica.synthesizer_user_interface": "Synthesizer User Interface",
+  "item.entropica.synthesizer_user_interface": "Synthesizer User Interface",
   "item.entropica.aetheric_synthesizer": "Aetheric Synthesizer",
   "item.entropica.aetheric_automator": "Aetheric Automator",
   "item.entropica.arcane_loom": "Arcane Loom",
@@ -307,8 +318,6 @@
   "item.entropica.vis_extraction_apparatus": "Vis Extraction Apparatus",
   "item.entropica.vis_extractor_base": "Vis Extractor Base",
   "item.entropica.vis_motor": "Vis-Motor",
-  "item.entropica.eidolic_focal_pedestal": "Eidolic Focal Pedestal",
-  "item.entropica.morphic_loom": "Morphic Loom",
 
   "_comment_vis_vitae_items": "================ ITEMS (VIS VITAE) ================",
   "item.entropica.vis_vitae_pipe": "Vis Pipe",
@@ -472,7 +481,7 @@
   "tooltip.entropica.eidolite_core": "A pale, ghostly core that grants rudimentary arcane intelligence.",
   "tooltip.entropica.charged_eidolite_core": "An overclocked Eidolite core granting increased phantom mobility.",
   "tooltip.entropica.ancient_eidolite_core": "The absolute pinnacle of autonomous phantom metal.",
-  "tooltip.entropica.shape_concept": "A physical manifestation of a weapon's spectral soul.",
+  "tooltip.entropica.shape_concept": "A physical manifestation of a weapon's spectral form.",
   "tooltip.entropica.orbis_acceptor": "Acts as the intake valve for magical energy.",
   "tooltip.entropica.spell_gem": "A crystallized spell matrix that can be slotted into weapons."
 }

@@ -18,12 +18,14 @@ import ddraig.net.entropica.block.entity.CreativeVisFumeGeneratorBlockEntity;
 import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
 import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity;
 import ddraig.net.entropica.client.gui.SynthesizerUserInterfaceScreen;
+import ddraig.net.entropica.client.gui.WeaponNamingScreen;
 import ddraig.net.entropica.Entropica;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
@@ -71,6 +73,25 @@ public class ModClientEvents {
         }
     }
 
+    // --- NEW: Universal Client-Side Inventory Scanner for Naming Feature! ---
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        // Check only occasionally to save performance (e.g., every 10 ticks / half a second)
+        if (mc.player != null && mc.level != null && mc.screen == null && mc.level.getGameTime() % 10 == 0) {
+            for (int i = 0; i < mc.player.getInventory().getContainerSize(); i++) {
+                ItemStack stack = mc.player.getInventory().getItem(i);
+                if (stack.getItem() instanceof ddraig.net.entropica.item.DynamicVisWeaponItem) {
+                    ddraig.net.entropica.component.VisWeaponState state = stack.get(ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE.get());
+                    if (state != null && !state.hasInitializedName()) {
+                        mc.setScreen(new WeaponNamingScreen());
+                        break; // Stop iterating; only pop one screen at a time!
+                    }
+                }
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         // Binds the "invisible" server-side Menu to the "visible" client-side Screen
@@ -99,7 +120,6 @@ public class ModClientEvents {
 
         // --- NEW: Eidolic Lathe Holograms! ---
         event.registerBlockEntityRenderer(ModBlockEntities.EIDOLIC_FOCAL_PEDESTAL_BE.get(), EidolicFocalPedestalRenderer::new);
-        event.registerBlockEntityRenderer(ModBlockEntities.ATTUNEMENT_PEDESTAL_BE.get(), AttunementPedestalRenderer::new);
 
         // Added the Creative Vis Fume Generator Hologram Renderer
         event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_VIS_FUME_GENERATOR_BE.get(), CreativeVisFumeGeneratorRenderer::new);
@@ -258,5 +278,4 @@ public class ModClientEvents {
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "fume_glass_tint"), FumeGlassTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "essence_tint"), EssenceTint.MAP_CODEC);
     }
-
 }

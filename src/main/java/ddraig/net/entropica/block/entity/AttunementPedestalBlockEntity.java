@@ -47,6 +47,23 @@ public class AttunementPedestalBlockEntity extends BlockEntity {
         }
         // Insert
         else {
+            // 1. Try to stack with an existing matching item first
+            for (int i = 0; i < 2; i++) {
+                ItemStack stackInSlot = inventory.getItem(i);
+                if (!stackInSlot.isEmpty() && ItemStack.isSameItemSameComponents(stackInSlot, heldItem)) {
+                    if (stackInSlot.getCount() < stackInSlot.getMaxStackSize()) {
+                        stackInSlot.grow(1);
+                        heldItem.shrink(1);
+                        this.setChanged();
+                        if (this.level != null && !this.level.isClientSide()) {
+                            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+                        }
+                        return true;
+                    }
+                }
+            }
+
+            // 2. If no matching stack is found, place it in the first empty slot
             for (int i = 0; i < 2; i++) {
                 ItemStack stackInSlot = inventory.getItem(i);
                 if (stackInSlot.isEmpty()) {

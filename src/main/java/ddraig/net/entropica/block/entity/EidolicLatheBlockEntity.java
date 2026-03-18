@@ -113,8 +113,8 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
                 return; // PAUSED! Waiting for the player to click to advance the ritual.
             }
 
-            // Pause thresholds based on the 500 tick limit (30%, 60%, 85%)
-            if (this.craftingProgress == 150 || this.craftingProgress == 300 || this.craftingProgress == 425) {
+            // Pause exactly ONCE at the end of Phase 1 to let the player finish pumping in Fumes
+            if (this.craftingProgress == 150) {
                 this.waitForClick = true;
                 this.setChanged();
                 this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
@@ -122,6 +122,12 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
             }
 
             this.craftingProgress++;
+
+            if (this.craftingProgress == 300) {
+                broadcastMessage("§dPhase 3: Channeling to Apex...");
+            } else if (this.craftingProgress == 425) {
+                broadcastMessage("§dPhase 4: Finalizing Forge...");
+            }
 
             if (this.craftingProgress % 5 == 0) {
                 this.setChanged();
@@ -286,24 +292,19 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
             return;
         }
 
-        // 3. Validate Fuel Availability (Network + Pedestal Ampoules)
-        boolean hasFume = this.storedFume != null && !this.storedFume.isEmpty() && this.storedFume.getAmount() > 0;
-        boolean hasIchor = this.storedIchor != null && !this.storedIchor.isEmpty() && this.storedIchor.getAmount() > 0;
-        boolean hasAmpoule = tempAmpouleFuelTotal > 0;
+        // 3. Safety Check: If there's residue in the Lathe but they placed an ampoule that conflicts
+        EssenceType networkType = null;
+        if (this.storedIchor != null && !this.storedIchor.isEmpty()) networkType = this.storedIchor.getType();
+        else if (this.storedFume != null && !this.storedFume.isEmpty()) networkType = this.storedFume.getType();
 
-        if (!hasFume && !hasIchor && !hasAmpoule) {
-            if (player != null) player.displayClientMessage(Component.literal("§cInsufficient Vis or Ichor in the network and no ampoules provided."), true);
+        if (networkType != null && detectedAmpouleType != null && networkType != detectedAmpouleType) {
+            if (player != null) player.displayClientMessage(Component.literal("§cMismatched Vis types between Lathe residue and ampoules."), true);
             return;
         }
 
-        EssenceType networkType = hasIchor ? this.storedIchor.getType() : (hasFume ? this.storedFume.getType() : null);
-
-        if (networkType != null && hasAmpoule && networkType != detectedAmpouleType) {
-            if (player != null) player.displayClientMessage(Component.literal("§cMismatched Vis types between network and ampoules."), true);
-            return;
-        }
-
-        // Lock in the crafting state
+        // Lock in the crafting state!
+        // We removed the harsh network capacity check here. If they didn't provide ampoules,
+        // the Lathe will now sit and eagerly wait for pipes to inject Vis during Phase 1!
         this.isCrafting = true;
         this.waitForClick = false;
         this.craftingProgress = 0;
@@ -406,12 +407,10 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
                             if (modPath.contains("quartz")) modifierDamage += 1.0f;
                             else if (modPath.contains("feather")) modifierSpeed += 0.1f;
                             else if (modPath.contains("spell_gem")) {
-                                // Dynamically extract the spell ID stored on the gem! Use Optional safely.
                                 net.minecraft.world.item.component.CustomData spellData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
                                 if (spellData.copyTag().contains("SpellID")) {
                                     embeddedSpell = spellData.copyTag().getString("SpellID").orElse(modPath.replace("spell_gem_", ""));
                                 } else {
-                                    // Fallback for statically named gems
                                     embeddedSpell = modPath.replace("spell_gem_", "");
                                 }
                             }
@@ -422,8 +421,13 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         }
 
         // 4. CALCULATE VIS DAMAGE SCALING
+        // If NO Vis was piped in at all during the ritual, default to a standard physical weapon!
+        if (this.craftingEssenceType == null) {
+            this.craftingEssenceType = EssenceType.REGULAR;
+        }
+
         float multiplier = this.isIchorCraft ? 20.0f : 1.0f;
-        int networkFumesCollected = this.isIchorCraft ? this.storedIchor.getAmount() : this.storedFume.getAmount();
+        int networkFumesCollected = this.isIchorCraft && this.storedIchor != null ? this.storedIchor.getAmount() : (this.storedFume != null ? this.storedFume.getAmount() : 0);
         float equivalentFumes = (networkFumesCollected * multiplier) + (this.ampouleFumeTotal * 1.0f);
 
         // 5. APPLY ATTRIBUTES TO WEAPON
@@ -449,16 +453,16 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
                 result.set(ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE.get(), state);
             }
         } else {
-            float extraVisDamage = (Math.min((float)MAX_VIS_CAPACITY, equivalentFumes) / (float)MAX_VIS_CAPACITY) * 20.0f;
+            float totalVisDamage = basePhysicalDamage + modifierDamage + ((Math.min((float)MAX_VIS_CAPACITY, equivalentFumes) / (float)MAX_VIS_CAPACITY) * 20.0f);
 
-            modifierBuilder.add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE, new net.minecraft.world.entity.ai.attributes.AttributeModifier(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "base_attack_damage"), basePhysicalDamage + modifierDamage, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
+            // For Elemental Weapons, DO NOT assign Vanilla Attack Damage! Vis damage entirely replaces it.
             modifierBuilder.add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED, new net.minecraft.world.entity.ai.attributes.AttributeModifier(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "base_attack_speed"), baseAttackSpeed + modifierSpeed, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
 
             result.set(net.minecraft.core.component.DataComponents.ATTRIBUTE_MODIFIERS, modifierBuilder.build());
 
             if (ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE != null && this.craftingEssenceType != null) {
                 // Constructs using exactly: Builder(baseType, baseDamage, innateSlots)
-                ddraig.net.entropica.component.VisWeaponState state = new ddraig.net.entropica.component.VisWeaponState.Builder(this.craftingEssenceType, extraVisDamage, coreSlots)
+                ddraig.net.entropica.component.VisWeaponState state = new ddraig.net.entropica.component.VisWeaponState.Builder(this.craftingEssenceType, totalVisDamage, coreSlots)
                         .material(tierName)
                         .speed(modifierSpeed)
                         .spell(embeddedSpell)
@@ -666,14 +670,22 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         return isFormed;
     }
 
+    private void broadcastMessage(String message) {
+        if (this.level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            for (Player p : serverLevel.players()) {
+                if (p.distanceToSqr(this.worldPosition.getCenter()) < 400) { // Roughly 20 block radius
+                    p.displayClientMessage(Component.literal(message), true);
+                }
+            }
+        }
+    }
+
     public boolean interactWithPlayer(Player player, InteractionHand hand) {
         if (this.isCrafting) {
             if (this.waitForClick) {
                 this.waitForClick = false;
                 if (player != null) {
-                    if (this.craftingProgress == 150) player.displayClientMessage(Component.literal("§dPhase 2: Distributing Essences..."), true);
-                    else if (this.craftingProgress == 300) player.displayClientMessage(Component.literal("§dPhase 3: Channeling to Apex..."), true);
-                    else if (this.craftingProgress == 425) player.displayClientMessage(Component.literal("§dPhase 4: Finalizing Forge..."), true);
+                    player.displayClientMessage(Component.literal("§dPhase 2: Distributing Essences..."), true);
                 }
 
                 this.craftingProgress++;
@@ -684,7 +696,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
                 }
                 return true;
             }
-            player.displayClientMessage(Component.literal("§cThe Lathe is actively forging!"), true);
+            if (player != null) player.displayClientMessage(Component.literal("§cThe Lathe is actively forging!"), true);
             return false;
         }
 
@@ -707,6 +719,23 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
             }
         }
         else {
+            // 1. Try to stack with an existing matching item on the pedestal first
+            for (int i = 0; i < 4; i++) {
+                ItemStack stackInSlot = inventory.getItem(i);
+                if (!stackInSlot.isEmpty() && ItemStack.isSameItemSameComponents(stackInSlot, heldItem)) {
+                    if (stackInSlot.getCount() < stackInSlot.getMaxStackSize()) {
+                        stackInSlot.grow(1);
+                        heldItem.shrink(1);
+                        this.setChanged();
+                        if (this.level != null && !this.level.isClientSide()) {
+                            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+                        }
+                        return true;
+                    }
+                }
+            }
+
+            // 2. If no matching stack is found, place it in the first empty slot
             for (int i = 0; i < 4; i++) {
                 ItemStack stackInSlot = inventory.getItem(i);
                 if (stackInSlot.isEmpty()) {
