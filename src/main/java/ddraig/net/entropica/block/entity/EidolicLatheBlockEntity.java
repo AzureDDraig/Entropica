@@ -110,15 +110,23 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         if (this.isFormed && this.isCrafting) {
 
             if (this.waitForClick) {
-                return; // PAUSED! Waiting for the player to click to advance the ritual.
-            }
+                // AUTO-PHASE LOGIC! If Fumes reach max capacity (100,000 equivalent), skip the click requirement!
+                if (this.craftingProgress == 150) {
+                    float multiplier = this.isIchorCraft ? 20.0f : 1.0f;
+                    int networkFumesCollected = this.isIchorCraft && this.storedIchor != null ? this.storedIchor.getAmount() : (this.storedFume != null ? this.storedFume.getAmount() : 0);
+                    float equivalentFumes = (networkFumesCollected * multiplier) + (this.ampouleFumeTotal * 1.0f);
 
-            // Pause exactly ONCE at the end of Phase 1 to let the player finish pumping in Fumes
-            if (this.craftingProgress == 150) {
-                this.waitForClick = true;
-                this.setChanged();
-                this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
-                return;
+                    if (equivalentFumes >= MAX_VIS_CAPACITY) {
+                        this.waitForClick = false;
+                        this.craftingProgress++;
+                        broadcastMessage("§dPhase 2: Distributing Essences... (Max Vis Reached!)");
+                        this.setChanged();
+                        if (this.level != null && !this.level.isClientSide()) {
+                            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+                        }
+                    }
+                }
+                return; // Still waiting for either a click or for Vis to max out!
             }
 
             this.craftingProgress++;
@@ -364,35 +372,48 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         String conceptPath = BuiltInRegistries.ITEM.getKey(conceptStack.getItem()).getPath();
         Item outputBaseItem = ModItems.DYNAMIC_SWORD.get(); // Fallback
 
-        if (conceptPath.contains("pickaxe")) outputBaseItem = ModItems.DYNAMIC_PICKAXE.get();
-        else if (conceptPath.contains("shovel")) outputBaseItem = ModItems.DYNAMIC_SHOVEL.get();
-        else if (conceptPath.contains("adze")) outputBaseItem = ModItems.DYNAMIC_ADZE.get();
-        else if (conceptPath.contains("paxel")) outputBaseItem = ModItems.DYNAMIC_PAXEL.get();
-        else if (conceptPath.contains("axe") || conceptPath.contains("halberd")) outputBaseItem = ModItems.DYNAMIC_AXE.get();
-        else if (conceptPath.contains("spear")) outputBaseItem = ModItems.DYNAMIC_SPEAR.get();
-        else if (conceptPath.contains("mace")) outputBaseItem = ModItems.DYNAMIC_MACE.get();
-        else if (conceptPath.contains("morning_star")) outputBaseItem = ModItems.DYNAMIC_MORNING_STAR.get();
-        else if (conceptPath.contains("warhammer")) outputBaseItem = ModItems.DYNAMIC_WARHAMMER.get();
-        else if (conceptPath.contains("shortbow")) outputBaseItem = ModItems.DYNAMIC_SHORTBOW.get();
-        else if (conceptPath.contains("longbow")) outputBaseItem = ModItems.DYNAMIC_LONGBOW.get();
-        else if (conceptPath.contains("war_bow")) outputBaseItem = ModItems.DYNAMIC_WAR_BOW.get();
-        else if (conceptPath.contains("crossbow")) outputBaseItem = ModItems.DYNAMIC_CROSSBOW.get();
-        else if (conceptPath.contains("repeater")) outputBaseItem = ModItems.DYNAMIC_REPEATER.get();
+        float baseAttackSpeed = -2.4f;
+        float absoluteSpeed = 1.6f; // (4.0 - 2.4)
+
+        if (conceptPath.contains("pickaxe") || conceptPath.contains("adze") || conceptPath.contains("paxel") || conceptPath.contains("shovel")) {
+            outputBaseItem = conceptPath.contains("pickaxe") ? ModItems.DYNAMIC_PICKAXE.get() : conceptPath.contains("shovel") ? ModItems.DYNAMIC_SHOVEL.get() : conceptPath.contains("adze") ? ModItems.DYNAMIC_ADZE.get() : ModItems.DYNAMIC_PAXEL.get();
+            baseAttackSpeed = -2.8f; absoluteSpeed = 1.2f;
+        } else if (conceptPath.contains("axe") || conceptPath.contains("halberd")) {
+            outputBaseItem = ModItems.DYNAMIC_AXE.get();
+            baseAttackSpeed = -3.0f; absoluteSpeed = 1.0f;
+        } else if (conceptPath.contains("spear")) {
+            outputBaseItem = ModItems.DYNAMIC_SPEAR.get();
+            baseAttackSpeed = -2.2f; absoluteSpeed = 1.8f;
+        } else if (conceptPath.contains("mace") || conceptPath.contains("morning_star") || conceptPath.contains("warhammer")) {
+            outputBaseItem = conceptPath.contains("mace") ? ModItems.DYNAMIC_MACE.get() : conceptPath.contains("morning_star") ? ModItems.DYNAMIC_MORNING_STAR.get() : ModItems.DYNAMIC_WARHAMMER.get();
+            baseAttackSpeed = -3.2f; absoluteSpeed = 0.8f;
+        } else if (conceptPath.contains("bow") || conceptPath.contains("repeater")) {
+            outputBaseItem = conceptPath.contains("shortbow") ? ModItems.DYNAMIC_SHORTBOW.get() : conceptPath.contains("longbow") ? ModItems.DYNAMIC_LONGBOW.get() : conceptPath.contains("war_bow") ? ModItems.DYNAMIC_WAR_BOW.get() : conceptPath.contains("crossbow") ? ModItems.DYNAMIC_CROSSBOW.get() : ModItems.DYNAMIC_REPEATER.get();
+            baseAttackSpeed = -2.0f; absoluteSpeed = 2.0f;
+        }
 
         ItemStack result = new ItemStack(outputBaseItem);
 
-        // Determine Autonomous Status & Core Slots
+        // Determine Autonomous Status, Core Slots, and Tooltip Display Name!
         String corePath = BuiltInRegistries.ITEM.getKey(coreStack.getItem()).getPath();
         boolean isAutonomous = corePath.contains("eidolite");
+
         int coreSlots = 3;
-        if (corePath.contains("ancient")) coreSlots = 9;
-        else if (corePath.contains("charged")) coreSlots = 6;
+        String coreTierDisplay = "Base";
+        if (corePath.contains("ancient")) { coreSlots = 9; coreTierDisplay = "Ancient"; }
+        else if (corePath.contains("charged")) { coreSlots = 6; coreTierDisplay = "Charged"; }
+
+        String coreMaterialDisplay = "Arcanite";
+        if (corePath.contains("viscanite")) coreMaterialDisplay = "Viscanite";
+        else if (corePath.contains("resonite")) coreMaterialDisplay = "Resonite";
+        else if (corePath.contains("eidolite")) coreMaterialDisplay = "Eidolite";
+
+        String finalCoreType = coreTierDisplay + " " + coreMaterialDisplay + " Core";
 
         // Determine Material Tier dynamically based on the ingot path
         String materialPath = BuiltInRegistries.ITEM.getKey(materialStack.getItem()).getPath();
         String tierName = "Arcanite";
         float basePhysicalDamage = 5.0f;
-        float baseAttackSpeed = -2.4f; // Vanilla Sword Speed
 
         if (materialPath.contains("viscanite")) {
             tierName = "Viscanite"; basePhysicalDamage = 7.0f;
@@ -448,18 +469,21 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         net.minecraft.world.item.component.ItemAttributeModifiers.Builder modifierBuilder = net.minecraft.world.item.component.ItemAttributeModifiers.builder();
 
         if (this.craftingEssenceType == EssenceType.REGULAR) {
-            float extraPhysical = (Math.min((float)MAX_VIS_CAPACITY, equivalentFumes) / (float)MAX_VIS_CAPACITY) * 10.0f;
+            float extraPhysical = (Math.min((float)MAX_VIS_CAPACITY, equivalentFumes) / 10000.0f);
             float totalDamage = Math.min(20.0f, basePhysicalDamage + modifierDamage + extraPhysical);
 
             modifierBuilder.add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE, new net.minecraft.world.entity.ai.attributes.AttributeModifier(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "base_attack_damage"), totalDamage, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
             modifierBuilder.add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED, new net.minecraft.world.entity.ai.attributes.AttributeModifier(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "base_attack_speed"), baseAttackSpeed + modifierSpeed, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
 
+            // Hides default Vanilla Attributes from the tooltip! (In 1.21.2+, this is handled via Tooltip Events or TooltipDisplay component)
             result.set(net.minecraft.core.component.DataComponents.ATTRIBUTE_MODIFIERS, modifierBuilder.build());
 
             if (ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE != null) {
-                ddraig.net.entropica.component.VisWeaponState state = new ddraig.net.entropica.component.VisWeaponState.Builder(this.craftingEssenceType, 0f, coreSlots)
+                ddraig.net.entropica.component.VisWeaponState state = new ddraig.net.entropica.component.VisWeaponState.Builder(this.craftingEssenceType, totalDamage, coreSlots)
                         .material(tierName)
+                        .coreType(finalCoreType)
                         .speed(modifierSpeed)
+                        .absoluteSpeed(absoluteSpeed + modifierSpeed)
                         .spell(embeddedSpell)
                         .autonomous(isAutonomous)
                         .hasOrbisSlot(true)
@@ -467,17 +491,21 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
                 result.set(ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE.get(), state);
             }
         } else {
-            float extraVisDamage = (Math.min((float)MAX_VIS_CAPACITY, equivalentFumes) / (float)MAX_VIS_CAPACITY) * 20.0f;
-            float totalVisDamage = Math.min(20.0f, basePhysicalDamage + modifierDamage + extraVisDamage);
+            // Elemental Damage scales perfectly from 0.1 at 500 fumes to 20.0 at 100,000 fumes!
+            float extraVisDamage = Math.min(20.0f, (equivalentFumes / 5000.0f));
+            float totalVisDamage = Math.min(20.0f, modifierDamage + extraVisDamage);
 
             modifierBuilder.add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED, new net.minecraft.world.entity.ai.attributes.AttributeModifier(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "base_attack_speed"), baseAttackSpeed + modifierSpeed, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
 
+            // Hides default Vanilla Attributes from the tooltip! (In 1.21.2+, this is handled via Tooltip Events or TooltipDisplay component)
             result.set(net.minecraft.core.component.DataComponents.ATTRIBUTE_MODIFIERS, modifierBuilder.build());
 
             if (ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE != null && this.craftingEssenceType != null) {
                 ddraig.net.entropica.component.VisWeaponState state = new ddraig.net.entropica.component.VisWeaponState.Builder(this.craftingEssenceType, totalVisDamage, coreSlots)
                         .material(tierName)
+                        .coreType(finalCoreType)
                         .speed(modifierSpeed)
+                        .absoluteSpeed(absoluteSpeed + modifierSpeed)
                         .spell(embeddedSpell)
                         .autonomous(isAutonomous)
                         .hasOrbisSlot(true)

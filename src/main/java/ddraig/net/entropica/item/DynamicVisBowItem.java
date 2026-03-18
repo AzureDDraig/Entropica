@@ -124,8 +124,10 @@ public class DynamicVisBowItem extends BowItem {
                     tooltipComponents.accept(Component.literal("⚔ Autonomous Eidolic Weapon").withStyle(ChatFormatting.GOLD));
                     tooltipComponents.accept(Component.literal(" Requires: Autonomous Weapon Sheath").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
                 } else {
-                    tooltipComponents.accept(Component.literal("Eidolic Forged Weapon").withStyle(ChatFormatting.LIGHT_PURPLE));
+                    tooltipComponents.accept(Component.literal("Forged in the Eidolic Lathe").withStyle(ChatFormatting.LIGHT_PURPLE));
                 }
+
+                tooltipComponents.accept(Component.literal(" Core Type: ").withStyle(ChatFormatting.GRAY).append(Component.literal(state.coreType()).withStyle(ChatFormatting.WHITE)));
 
                 if (state.isAltered()) {
                     tooltipComponents.accept(Component.literal(" Active Profile: " + state.activeProfile())
@@ -135,15 +137,16 @@ public class DynamicVisBowItem extends BowItem {
                 if (state.baseType() != EssenceType.REGULAR && state.baseDamage() > 0) {
                     String rawName = state.baseType().name();
                     String essenceNameStr = rawName.substring(0, 1).toUpperCase() + rawName.substring(1).toLowerCase();
-                    Component damageValue = Component.literal(String.format(" +%.1f ", state.baseDamage())).withStyle(ChatFormatting.DARK_GREEN);
+                    Component damageValue = Component.literal(String.format(" %.1f ", state.baseDamage())).withStyle(ChatFormatting.DARK_GREEN);
                     Component essenceName = Component.literal(essenceNameStr).withStyle(style -> style.withColor(state.baseType().getColorInt()));
                     Component damageLabel = Component.literal(" Damage").withStyle(ChatFormatting.DARK_GREEN);
                     tooltipComponents.accept(Component.empty().append(damageValue).append(essenceName).append(damageLabel));
+                } else {
+                    Component damageValue = Component.literal(String.format(" %.1f Physical Damage", state.baseDamage())).withStyle(ChatFormatting.DARK_GREEN);
+                    tooltipComponents.accept(Component.empty().append(damageValue));
                 }
 
-                if (state.bonusSpeed() > 0) {
-                    tooltipComponents.accept(Component.literal(String.format(" Kinetic Swiftness: +%.2f", state.bonusSpeed())).withStyle(ChatFormatting.AQUA));
-                }
+                tooltipComponents.accept(Component.literal(String.format(" %.2f Draw Speed", state.absoluteSpeed())).withStyle(ChatFormatting.DARK_GREEN));
 
                 tooltipComponents.accept(Component.literal(" Augment Slots: " + state.slottedFragments().size() + " / " + state.innateSlots())
                         .withStyle(ChatFormatting.GOLD));
@@ -152,7 +155,27 @@ public class DynamicVisBowItem extends BowItem {
                     if (state.orbisCell().isEmpty()) {
                         tooltipComponents.accept(Component.literal(" No Orbis Cell Equipped").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
                     } else {
-                        tooltipComponents.accept(Component.literal(" Orbis Cell Equipped").withStyle(ChatFormatting.AQUA));
+                        ItemStack cell = state.orbisCell();
+                        net.minecraft.world.item.component.CustomData data = cell.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+
+                        // Cleanly unwraps the Optional using orElse!
+                        int storedVis = data.copyTag().getInt("StoredVis").orElse(0);
+
+                        String typeStr = data.copyTag().getString("EssenceType").orElse("REGULAR");
+                        EssenceType parsedType;
+                        try { parsedType = EssenceType.valueOf(typeStr); } catch (Exception e) { parsedType = EssenceType.REGULAR; }
+
+                        // Assign to a final variable to satisfy Java's lambda requirements!
+                        final EssenceType cellType = parsedType;
+
+                        int bars = Math.min(20, storedVis / 500);
+                        String filled = "|".repeat(bars);
+                        String empty = "|".repeat(20 - bars);
+
+                        tooltipComponents.accept(Component.literal(" Stored Vis ").withStyle(ChatFormatting.GRAY)
+                                .append(Component.literal(filled).withStyle(style -> style.withColor(cellType.getColorInt())))
+                                .append(Component.literal(empty).withStyle(ChatFormatting.DARK_GRAY))
+                        );
                     }
                 }
 

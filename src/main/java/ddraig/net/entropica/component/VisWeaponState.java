@@ -15,8 +15,10 @@ public record VisWeaponState(
         EssenceType baseType,
         String activeProfile,
         String materialTier,
+        String coreType,
         float baseDamage,
         float bonusSpeed,
+        float absoluteSpeed,
         int innateSlots,
         List<EssenceType> slottedFragments,
         String activeSpell,
@@ -26,14 +28,16 @@ public record VisWeaponState(
         ItemStack orbisCell
 ) {
 
-    public static final VisWeaponState EMPTY = new VisWeaponState(EssenceType.REGULAR, "regular", "None", 0f, 0f, 0, List.of(), "none", false, false, false, ItemStack.EMPTY);
+    public static final VisWeaponState EMPTY = new VisWeaponState(EssenceType.REGULAR, "regular", "None", "None", 0f, 0f, 1.0f, 0, List.of(), "none", false, false, false, ItemStack.EMPTY);
 
     public static final Codec<VisWeaponState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             EssenceType.CODEC.fieldOf("base_type").forGetter(VisWeaponState::baseType),
             Codec.STRING.fieldOf("active_profile").forGetter(VisWeaponState::activeProfile),
             Codec.STRING.fieldOf("material_tier").forGetter(VisWeaponState::materialTier),
+            Codec.STRING.fieldOf("core_type").forGetter(VisWeaponState::coreType),
             Codec.FLOAT.fieldOf("base_damage").forGetter(VisWeaponState::baseDamage),
             Codec.FLOAT.fieldOf("bonus_speed").forGetter(VisWeaponState::bonusSpeed),
+            Codec.FLOAT.fieldOf("absolute_speed").forGetter(VisWeaponState::absoluteSpeed),
             Codec.INT.fieldOf("innate_slots").forGetter(VisWeaponState::innateSlots),
             EssenceType.CODEC.listOf().fieldOf("slotted_fragments").forGetter(VisWeaponState::slottedFragments),
             Codec.STRING.fieldOf("active_spell").forGetter(VisWeaponState::activeSpell),
@@ -48,8 +52,10 @@ public record VisWeaponState(
                 EssenceType.STREAM_CODEC.encode(buf, state.baseType());
                 ByteBufCodecs.STRING_UTF8.encode(buf, state.activeProfile());
                 ByteBufCodecs.STRING_UTF8.encode(buf, state.materialTier());
+                ByteBufCodecs.STRING_UTF8.encode(buf, state.coreType());
                 ByteBufCodecs.FLOAT.encode(buf, state.baseDamage());
                 ByteBufCodecs.FLOAT.encode(buf, state.bonusSpeed());
+                ByteBufCodecs.FLOAT.encode(buf, state.absoluteSpeed());
                 ByteBufCodecs.VAR_INT.encode(buf, state.innateSlots());
                 EssenceType.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, state.slottedFragments());
                 ByteBufCodecs.STRING_UTF8.encode(buf, state.activeSpell());
@@ -62,6 +68,8 @@ public record VisWeaponState(
                     EssenceType.STREAM_CODEC.decode(buf),
                     ByteBufCodecs.STRING_UTF8.decode(buf),
                     ByteBufCodecs.STRING_UTF8.decode(buf),
+                    ByteBufCodecs.STRING_UTF8.decode(buf),
+                    ByteBufCodecs.FLOAT.decode(buf),
                     ByteBufCodecs.FLOAT.decode(buf),
                     ByteBufCodecs.FLOAT.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
@@ -79,19 +87,21 @@ public record VisWeaponState(
     }
 
     public VisWeaponState withInitializedName(boolean named) {
-        return new VisWeaponState(baseType, activeProfile, materialTier, baseDamage, bonusSpeed, innateSlots, slottedFragments, activeSpell, isAutonomous, named, hasOrbisSlot, orbisCell);
+        return new VisWeaponState(baseType, activeProfile, materialTier, coreType, baseDamage, bonusSpeed, absoluteSpeed, innateSlots, slottedFragments, activeSpell, isAutonomous, named, hasOrbisSlot, orbisCell);
     }
 
     public VisWeaponState withOrbisCell(ItemStack newCell) {
-        return new VisWeaponState(baseType, activeProfile, materialTier, baseDamage, bonusSpeed, innateSlots, slottedFragments, activeSpell, isAutonomous, hasInitializedName, hasOrbisSlot, newCell);
+        return new VisWeaponState(baseType, activeProfile, materialTier, coreType, baseDamage, bonusSpeed, absoluteSpeed, innateSlots, slottedFragments, activeSpell, isAutonomous, hasInitializedName, hasOrbisSlot, newCell);
     }
 
     public static class Builder {
         private final EssenceType baseType;
         private String activeProfile;
         private String materialTier = "Arcanite";
+        private String coreType = "Base Arcanite Core";
         private final float baseDamage;
         private float bonusSpeed = 0f;
+        private float absoluteSpeed = 1.0f;
         private final int innateSlots;
         private final List<EssenceType> fragments = new ArrayList<>();
         private String activeSpell = "none";
@@ -109,7 +119,9 @@ public record VisWeaponState(
 
         public Builder setActiveProfile(String profileId) { this.activeProfile = profileId; return this; }
         public Builder material(String materialTier) { this.materialTier = materialTier; return this; }
+        public Builder coreType(String coreType) { this.coreType = coreType; return this; }
         public Builder speed(float bonusSpeed) { this.bonusSpeed = bonusSpeed; return this; }
+        public Builder absoluteSpeed(float absoluteSpeed) { this.absoluteSpeed = absoluteSpeed; return this; }
         public Builder spell(String activeSpell) { this.activeSpell = activeSpell; return this; }
         public Builder autonomous(boolean isAutonomous) { this.isAutonomous = isAutonomous; return this; }
         public Builder named(boolean hasInitializedName) { this.hasInitializedName = hasInitializedName; return this; }
@@ -118,7 +130,7 @@ public record VisWeaponState(
         public Builder addFragment(EssenceType fragmentType) { this.fragments.add(fragmentType); return this; }
 
         public VisWeaponState build() {
-            return new VisWeaponState(baseType, activeProfile, materialTier, baseDamage, bonusSpeed, innateSlots, fragments, activeSpell, isAutonomous, hasInitializedName, hasOrbisSlot, orbisCell);
+            return new VisWeaponState(baseType, activeProfile, materialTier, coreType, baseDamage, bonusSpeed, absoluteSpeed, innateSlots, fragments, activeSpell, isAutonomous, hasInitializedName, hasOrbisSlot, orbisCell);
         }
     }
 }
