@@ -76,16 +76,16 @@ public class FurnaceHatchBlock extends Block {
             if (stack.getItem() instanceof OrbisCellItem orbisCell) {
                 master.updateLastInteractedHatch(pos);
 
-                int cellCapacity = orbisCell.getMaxMana();
+                int cellCapacity = orbisCell.getMaxVis();
                 CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
                 CompoundTag tag = customData.copyTag();
 
-                int currentCellMana = tag.getInt("StoredMana").orElse(0);
-                String storedTypeStr = tag.getString("ManaType").orElse("");
+                int currentCellVis = tag.getInt("StoredVis").orElse(0);
+                String storedTypeStr = tag.getString("EssenceType").orElse("");
 
                 EssenceType targetType = null;
 
-                if (currentCellMana == 0 || storedTypeStr.isEmpty()) {
+                if (currentCellVis == 0 || storedTypeStr.isEmpty()) {
                     for (Map.Entry<EssenceType, Integer> entry : master.getManaPool().entrySet()) {
                         if (entry.getValue() > 0) {
                             targetType = entry.getKey();
@@ -101,18 +101,18 @@ public class FurnaceHatchBlock extends Block {
                 }
 
                 if (targetType != null) {
-                    if (currentCellMana < cellCapacity) {
-                        int spaceLeft = cellCapacity - currentCellMana;
+                    if (currentCellVis < cellCapacity) {
+                        int spaceLeft = cellCapacity - currentCellVis;
                         int extracted = master.extractMana(targetType, spaceLeft);
 
                         if (extracted > 0) {
-                            tag.putInt("StoredMana", currentCellMana + extracted);
-                            tag.putString("ManaType", targetType.name());
+                            tag.putInt("StoredVis", currentCellVis + extracted);
+                            tag.putString("EssenceType", targetType.name());
                             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
-                            player.displayClientMessage(Component.literal("§bExtracted " + extracted + " " + targetType.name().toLowerCase() + " Mana! (Cell: " + (currentCellMana + extracted) + "/" + cellCapacity + ")"), true);
+                            player.displayClientMessage(Component.literal("§bExtracted " + extracted + " " + targetType.name().toLowerCase() + " Vis! (Cell: " + (currentCellVis + extracted) + "/" + cellCapacity + ")"), true);
                         } else {
-                            player.displayClientMessage(Component.literal("§cCore has no more " + targetType.name().toLowerCase() + " mana!"), true);
+                            player.displayClientMessage(Component.literal("§cCore has no more " + targetType.name().toLowerCase() + " vis!"), true);
                         }
                     } else {
                         player.displayClientMessage(Component.literal("§eOrbis Cell is already full!"), true);

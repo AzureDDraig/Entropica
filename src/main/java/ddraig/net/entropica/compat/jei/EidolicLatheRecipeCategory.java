@@ -29,7 +29,6 @@ public class EidolicLatheRecipeCategory implements IRecipeCategory<EidolicLatheR
     private final IDrawable slotDrawable;
 
     public EidolicLatheRecipeCategory(IGuiHelper guiHelper) {
-        // Increased the canvas size to comfortably fit a massive 16-slot outer ring!
         this.background = guiHelper.createBlankDrawable(180, 130);
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get()));
         this.localizedName = Component.translatable("block.entropica.eidolic_focal_pedestal");
@@ -85,7 +84,6 @@ public class EidolicLatheRecipeCategory implements IRecipeCategory<EidolicLatheR
                 .addIngredients(recipe.baseMaterial());
 
         // 2. Dynamic Attunement Pedestal Modifiers
-        // Always renders a perfect circle of 16 slots!
         int numModifiers = recipe.modifiers().size();
         int totalSlots = 16;
         double radius = 46.0;
@@ -99,8 +97,6 @@ public class EidolicLatheRecipeCategory implements IRecipeCategory<EidolicLatheR
             var slotBuilder = builder.addSlot(RecipeIngredientRole.INPUT, slotX, slotY)
                     .setBackground(slotDrawable, -1, -1);
 
-            // Populate the slots with ingredients if the recipe provides them.
-            // Any unused slots will gracefully remain as empty guides!
             if (i < numModifiers) {
                 slotBuilder.addIngredients(recipe.modifiers().get(i));
             }
@@ -125,10 +121,9 @@ public class EidolicLatheRecipeCategory implements IRecipeCategory<EidolicLatheR
         int b = (int) ((Math.sin(t + 4.188) * 0.5 + 0.5) * 255);
         int dynamicColor = (0xFF << 24) | (r << 16) | (g << 8) | b;
 
-        // Text positioned neatly in the bottom right corner, out of the way of the massive ring
-        guiGraphics.drawString(font, "Fuel Requirement:", 90, 90, 0xFF888888, false);
-        guiGraphics.drawString(font, "1 to 8000 Vis", 90, 100, dynamicColor, false);
-        guiGraphics.drawString(font, "(Fumes or Ichor)", 90, 110, 0xFFAAAAAA, false);
+        String fuelText = "500 - 100,000 Vis";
+        int fuelTextWidth = font.width(fuelText);
+        guiGraphics.drawString(font, fuelText, 90 - (fuelTextWidth / 2), 5, dynamicColor, false);
 
         guiGraphics.drawString(font, "➔", 125, 60, 0xFFFFFFFF, true);
 
