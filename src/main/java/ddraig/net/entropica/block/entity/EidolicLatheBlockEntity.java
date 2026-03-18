@@ -123,6 +123,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
 
             this.craftingProgress++;
 
+            // Auto-Progress Phases and broadcast dynamically!
             if (this.craftingProgress == 300) {
                 broadcastMessage("§dPhase 3: Channeling to Apex...");
             } else if (this.craftingProgress == 425) {
@@ -199,6 +200,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         // 1. SCAN CENTRAL PEDESTAL FOR WEAPON SKELETON
         ItemStack conceptStack = ItemStack.EMPTY;
         ItemStack coreStack = ItemStack.EMPTY;
+        ItemStack orbisStack = ItemStack.EMPTY;
         ItemStack materialStack = ItemStack.EMPTY;
 
         for (int i = 0; i < 4; i++) {
@@ -210,14 +212,15 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
                 String path = rl.getPath();
                 if (path.contains("concept")) conceptStack = s;
                 else if (path.contains("core")) coreStack = s;
+                else if (path.contains("orbis_acceptor")) orbisStack = s;
                 else if (path.contains("arcanite") || path.contains("viscanite") || path.contains("resonite") || path.contains("eidolite")) {
                     materialStack = s;
                 }
             }
         }
 
-        if (conceptStack.isEmpty() || coreStack.isEmpty() || materialStack.isEmpty() || materialStack.getCount() < 4) {
-            if (player != null) player.displayClientMessage(Component.literal("§cMissing Weapon Skeleton. Requires: 1x Concept, 1x Core, 4x Base Material."), true);
+        if (conceptStack.isEmpty() || coreStack.isEmpty() || orbisStack.isEmpty() || materialStack.isEmpty() || materialStack.getCount() < 4) {
+            if (player != null) player.displayClientMessage(Component.literal("§cMissing Weapon Skeleton. Requires: 1x Concept, 1x Core, 1x Orbis Acceptor, 4x Base Material."), true);
             return;
         }
 
@@ -302,9 +305,6 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
             return;
         }
 
-        // Lock in the crafting state!
-        // We removed the harsh network capacity check here. If they didn't provide ampoules,
-        // the Lathe will now sit and eagerly wait for pipes to inject Vis during Phase 1!
         this.isCrafting = true;
         this.waitForClick = false;
         this.craftingProgress = 0;
@@ -334,6 +334,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         // 1. RE-VALIDATE SKELETON
         ItemStack conceptStack = ItemStack.EMPTY;
         ItemStack coreStack = ItemStack.EMPTY;
+        ItemStack orbisStack = ItemStack.EMPTY;
         ItemStack materialStack = ItemStack.EMPTY;
 
         for (int i = 0; i < 4; i++) {
@@ -344,13 +345,14 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
                 String path = rl.getPath();
                 if (path.contains("concept")) conceptStack = s;
                 else if (path.contains("core")) coreStack = s;
+                else if (path.contains("orbis_acceptor")) orbisStack = s;
                 else {
                     materialStack = s;
                 }
             }
         }
 
-        if (conceptStack.isEmpty() || coreStack.isEmpty() || materialStack.isEmpty() || materialStack.getCount() < 4) {
+        if (conceptStack.isEmpty() || coreStack.isEmpty() || orbisStack.isEmpty() || materialStack.isEmpty() || materialStack.getCount() < 4) {
             this.storedFume = VisFumeStack.EMPTY;
             this.storedIchor = VisIchorStack.EMPTY;
             this.setChanged();
@@ -361,8 +363,21 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         // 2. DETERMINE OUTPUT ITEM AND BASE STATS
         String conceptPath = BuiltInRegistries.ITEM.getKey(conceptStack.getItem()).getPath();
         Item outputBaseItem = ModItems.DYNAMIC_SWORD.get(); // Fallback
-        if (conceptPath.contains("axe")) outputBaseItem = ModItems.DYNAMIC_AXE.get();
-        else if (conceptPath.contains("pickaxe")) outputBaseItem = ModItems.DYNAMIC_PICKAXE.get();
+
+        if (conceptPath.contains("pickaxe")) outputBaseItem = ModItems.DYNAMIC_PICKAXE.get();
+        else if (conceptPath.contains("shovel")) outputBaseItem = ModItems.DYNAMIC_SHOVEL.get();
+        else if (conceptPath.contains("adze")) outputBaseItem = ModItems.DYNAMIC_ADZE.get();
+        else if (conceptPath.contains("paxel")) outputBaseItem = ModItems.DYNAMIC_PAXEL.get();
+        else if (conceptPath.contains("axe") || conceptPath.contains("halberd")) outputBaseItem = ModItems.DYNAMIC_AXE.get();
+        else if (conceptPath.contains("spear")) outputBaseItem = ModItems.DYNAMIC_SPEAR.get();
+        else if (conceptPath.contains("mace")) outputBaseItem = ModItems.DYNAMIC_MACE.get();
+        else if (conceptPath.contains("morning_star")) outputBaseItem = ModItems.DYNAMIC_MORNING_STAR.get();
+        else if (conceptPath.contains("warhammer")) outputBaseItem = ModItems.DYNAMIC_WARHAMMER.get();
+        else if (conceptPath.contains("shortbow")) outputBaseItem = ModItems.DYNAMIC_SHORTBOW.get();
+        else if (conceptPath.contains("longbow")) outputBaseItem = ModItems.DYNAMIC_LONGBOW.get();
+        else if (conceptPath.contains("war_bow")) outputBaseItem = ModItems.DYNAMIC_WAR_BOW.get();
+        else if (conceptPath.contains("crossbow")) outputBaseItem = ModItems.DYNAMIC_CROSSBOW.get();
+        else if (conceptPath.contains("repeater")) outputBaseItem = ModItems.DYNAMIC_REPEATER.get();
 
         ItemStack result = new ItemStack(outputBaseItem);
 
@@ -421,7 +436,6 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         }
 
         // 4. CALCULATE VIS DAMAGE SCALING
-        // If NO Vis was piped in at all during the ritual, default to a standard physical weapon!
         if (this.craftingEssenceType == null) {
             this.craftingEssenceType = EssenceType.REGULAR;
         }
@@ -435,7 +449,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
 
         if (this.craftingEssenceType == EssenceType.REGULAR) {
             float extraPhysical = (Math.min((float)MAX_VIS_CAPACITY, equivalentFumes) / (float)MAX_VIS_CAPACITY) * 10.0f;
-            float totalDamage = basePhysicalDamage + modifierDamage + extraPhysical;
+            float totalDamage = Math.min(20.0f, basePhysicalDamage + modifierDamage + extraPhysical);
 
             modifierBuilder.add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE, new net.minecraft.world.entity.ai.attributes.AttributeModifier(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "base_attack_damage"), totalDamage, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
             modifierBuilder.add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED, new net.minecraft.world.entity.ai.attributes.AttributeModifier(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "base_attack_speed"), baseAttackSpeed + modifierSpeed, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
@@ -443,30 +457,30 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
             result.set(net.minecraft.core.component.DataComponents.ATTRIBUTE_MODIFIERS, modifierBuilder.build());
 
             if (ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE != null) {
-                // Constructs using exactly: Builder(baseType, baseDamage, innateSlots)
                 ddraig.net.entropica.component.VisWeaponState state = new ddraig.net.entropica.component.VisWeaponState.Builder(this.craftingEssenceType, 0f, coreSlots)
                         .material(tierName)
                         .speed(modifierSpeed)
                         .spell(embeddedSpell)
                         .autonomous(isAutonomous)
+                        .hasOrbisSlot(true)
                         .build();
                 result.set(ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE.get(), state);
             }
         } else {
-            float totalVisDamage = basePhysicalDamage + modifierDamage + ((Math.min((float)MAX_VIS_CAPACITY, equivalentFumes) / (float)MAX_VIS_CAPACITY) * 20.0f);
+            float extraVisDamage = (Math.min((float)MAX_VIS_CAPACITY, equivalentFumes) / (float)MAX_VIS_CAPACITY) * 20.0f;
+            float totalVisDamage = Math.min(20.0f, basePhysicalDamage + modifierDamage + extraVisDamage);
 
-            // For Elemental Weapons, DO NOT assign Vanilla Attack Damage! Vis damage entirely replaces it.
             modifierBuilder.add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED, new net.minecraft.world.entity.ai.attributes.AttributeModifier(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "base_attack_speed"), baseAttackSpeed + modifierSpeed, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
 
             result.set(net.minecraft.core.component.DataComponents.ATTRIBUTE_MODIFIERS, modifierBuilder.build());
 
             if (ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE != null && this.craftingEssenceType != null) {
-                // Constructs using exactly: Builder(baseType, baseDamage, innateSlots)
                 ddraig.net.entropica.component.VisWeaponState state = new ddraig.net.entropica.component.VisWeaponState.Builder(this.craftingEssenceType, totalVisDamage, coreSlots)
                         .material(tierName)
                         .speed(modifierSpeed)
                         .spell(embeddedSpell)
                         .autonomous(isAutonomous)
+                        .hasOrbisSlot(true)
                         .build();
                 result.set(ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE.get(), state);
             }
@@ -475,6 +489,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         // 6. CONSUME PHYSICAL ITEMS
         conceptStack.shrink(1);
         coreStack.shrink(1);
+        orbisStack.shrink(1); // Consume the Acceptor!
         materialStack.shrink(4);
 
         // Drain Ampoules
@@ -673,7 +688,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
     private void broadcastMessage(String message) {
         if (this.level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             for (Player p : serverLevel.players()) {
-                if (p.distanceToSqr(this.worldPosition.getCenter()) < 400) { // Roughly 20 block radius
+                if (p.distanceToSqr(this.worldPosition.getCenter()) < 400) {
                     p.displayClientMessage(Component.literal(message), true);
                 }
             }
@@ -719,7 +734,6 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
             }
         }
         else {
-            // 1. Try to stack with an existing matching item on the pedestal first
             for (int i = 0; i < 4; i++) {
                 ItemStack stackInSlot = inventory.getItem(i);
                 if (!stackInSlot.isEmpty() && ItemStack.isSameItemSameComponents(stackInSlot, heldItem)) {
@@ -735,7 +749,6 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
                 }
             }
 
-            // 2. If no matching stack is found, place it in the first empty slot
             for (int i = 0; i < 4; i++) {
                 ItemStack stackInSlot = inventory.getItem(i);
                 if (stackInSlot.isEmpty()) {

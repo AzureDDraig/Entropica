@@ -6,6 +6,7 @@ import ddraig.net.entropica.api.EssenceType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +21,12 @@ public record VisWeaponState(
         List<EssenceType> slottedFragments,
         String activeSpell,
         boolean isAutonomous,
-        boolean hasInitializedName
+        boolean hasInitializedName,
+        boolean hasOrbisSlot,
+        ItemStack orbisCell
 ) {
 
-    public static final VisWeaponState EMPTY = new VisWeaponState(EssenceType.REGULAR, "regular", "None", 0f, 0f, 0, List.of(), "none", false, false);
+    public static final VisWeaponState EMPTY = new VisWeaponState(EssenceType.REGULAR, "regular", "None", 0f, 0f, 0, List.of(), "none", false, false, false, ItemStack.EMPTY);
 
     public static final Codec<VisWeaponState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             EssenceType.CODEC.fieldOf("base_type").forGetter(VisWeaponState::baseType),
@@ -35,7 +38,9 @@ public record VisWeaponState(
             EssenceType.CODEC.listOf().fieldOf("slotted_fragments").forGetter(VisWeaponState::slottedFragments),
             Codec.STRING.fieldOf("active_spell").forGetter(VisWeaponState::activeSpell),
             Codec.BOOL.fieldOf("is_autonomous").forGetter(VisWeaponState::isAutonomous),
-            Codec.BOOL.fieldOf("has_initialized_name").forGetter(VisWeaponState::hasInitializedName)
+            Codec.BOOL.fieldOf("has_initialized_name").forGetter(VisWeaponState::hasInitializedName),
+            Codec.BOOL.fieldOf("has_orbis_slot").forGetter(VisWeaponState::hasOrbisSlot),
+            ItemStack.OPTIONAL_CODEC.fieldOf("orbis_cell").forGetter(VisWeaponState::orbisCell)
     ).apply(instance, VisWeaponState::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, VisWeaponState> STREAM_CODEC = StreamCodec.of(
@@ -50,6 +55,8 @@ public record VisWeaponState(
                 ByteBufCodecs.STRING_UTF8.encode(buf, state.activeSpell());
                 ByteBufCodecs.BOOL.encode(buf, state.isAutonomous());
                 ByteBufCodecs.BOOL.encode(buf, state.hasInitializedName());
+                ByteBufCodecs.BOOL.encode(buf, state.hasOrbisSlot());
+                ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, state.orbisCell());
             },
             buf -> new VisWeaponState(
                     EssenceType.STREAM_CODEC.decode(buf),
@@ -61,7 +68,9 @@ public record VisWeaponState(
                     EssenceType.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
                     ByteBufCodecs.STRING_UTF8.decode(buf),
                     ByteBufCodecs.BOOL.decode(buf),
-                    ByteBufCodecs.BOOL.decode(buf)
+                    ByteBufCodecs.BOOL.decode(buf),
+                    ByteBufCodecs.BOOL.decode(buf),
+                    ItemStack.OPTIONAL_STREAM_CODEC.decode(buf)
             )
     );
 
@@ -70,7 +79,11 @@ public record VisWeaponState(
     }
 
     public VisWeaponState withInitializedName(boolean named) {
-        return new VisWeaponState(baseType, activeProfile, materialTier, baseDamage, bonusSpeed, innateSlots, slottedFragments, activeSpell, isAutonomous, named);
+        return new VisWeaponState(baseType, activeProfile, materialTier, baseDamage, bonusSpeed, innateSlots, slottedFragments, activeSpell, isAutonomous, named, hasOrbisSlot, orbisCell);
+    }
+
+    public VisWeaponState withOrbisCell(ItemStack newCell) {
+        return new VisWeaponState(baseType, activeProfile, materialTier, baseDamage, bonusSpeed, innateSlots, slottedFragments, activeSpell, isAutonomous, hasInitializedName, hasOrbisSlot, newCell);
     }
 
     public static class Builder {
@@ -84,6 +97,8 @@ public record VisWeaponState(
         private String activeSpell = "none";
         private boolean isAutonomous = false;
         private boolean hasInitializedName = false;
+        private boolean hasOrbisSlot = false;
+        private ItemStack orbisCell = ItemStack.EMPTY;
 
         public Builder(EssenceType baseType, float baseDamage, int innateSlots) {
             this.baseType = baseType;
@@ -92,43 +107,18 @@ public record VisWeaponState(
             this.innateSlots = innateSlots;
         }
 
-        public Builder setActiveProfile(String profileId) {
-            this.activeProfile = profileId;
-            return this;
-        }
-
-        public Builder material(String materialTier) {
-            this.materialTier = materialTier;
-            return this;
-        }
-
-        public Builder speed(float bonusSpeed) {
-            this.bonusSpeed = bonusSpeed;
-            return this;
-        }
-
-        public Builder spell(String activeSpell) {
-            this.activeSpell = activeSpell;
-            return this;
-        }
-
-        public Builder autonomous(boolean isAutonomous) {
-            this.isAutonomous = isAutonomous;
-            return this;
-        }
-
-        public Builder named(boolean hasInitializedName) {
-            this.hasInitializedName = hasInitializedName;
-            return this;
-        }
-
-        public Builder addFragment(EssenceType fragmentType) {
-            this.fragments.add(fragmentType);
-            return this;
-        }
+        public Builder setActiveProfile(String profileId) { this.activeProfile = profileId; return this; }
+        public Builder material(String materialTier) { this.materialTier = materialTier; return this; }
+        public Builder speed(float bonusSpeed) { this.bonusSpeed = bonusSpeed; return this; }
+        public Builder spell(String activeSpell) { this.activeSpell = activeSpell; return this; }
+        public Builder autonomous(boolean isAutonomous) { this.isAutonomous = isAutonomous; return this; }
+        public Builder named(boolean hasInitializedName) { this.hasInitializedName = hasInitializedName; return this; }
+        public Builder hasOrbisSlot(boolean hasOrbisSlot) { this.hasOrbisSlot = hasOrbisSlot; return this; }
+        public Builder orbisCell(ItemStack orbisCell) { this.orbisCell = orbisCell; return this; }
+        public Builder addFragment(EssenceType fragmentType) { this.fragments.add(fragmentType); return this; }
 
         public VisWeaponState build() {
-            return new VisWeaponState(baseType, activeProfile, materialTier, baseDamage, bonusSpeed, innateSlots, fragments, activeSpell, isAutonomous, hasInitializedName);
+            return new VisWeaponState(baseType, activeProfile, materialTier, baseDamage, bonusSpeed, innateSlots, fragments, activeSpell, isAutonomous, hasInitializedName, hasOrbisSlot, orbisCell);
         }
     }
 }

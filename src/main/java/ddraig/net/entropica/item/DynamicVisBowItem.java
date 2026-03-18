@@ -5,18 +5,16 @@ import ddraig.net.entropica.component.VisWeaponState;
 import ddraig.net.entropica.registry.ModDataComponents;
 import ddraig.net.entropica.registry.ModItems;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
@@ -24,9 +22,9 @@ import net.minecraft.world.level.Level;
 
 import java.util.function.Consumer;
 
-public class DynamicVisWeaponItem extends Item {
+public class DynamicVisBowItem extends BowItem {
 
-    public DynamicVisWeaponItem(Properties properties) {
+    public DynamicVisBowItem(Properties properties) {
         super(properties);
     }
 
@@ -94,24 +92,23 @@ public class DynamicVisWeaponItem extends Item {
             ItemStack cell = state.orbisCell();
             net.minecraft.world.item.component.CustomData data = cell.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
             int stored = data.copyTag().getInt("StoredVis").orElse(0);
-            int max = 10000; // Default max capability for an Orbis Cell
+            int max = 10000;
             if (stored > 0) {
                 return Math.round(13.0f * ((float)stored / max));
             }
-            return 13; // Visually full if no explicit tag is found yet
+            return 13;
         }
         return 0;
     }
 
     @Override
     public int getBarColor(ItemStack stack) {
-        return 0x00FFFF; // Bright Cyan/Teal to represent raw Vis
+        return 0x00FFFF;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, display, tooltipComponents, tooltipFlag);
-
         tooltipComponents.accept(Component.translatable("tooltip.entropica.dynamic_weapon_desc").withStyle(ChatFormatting.DARK_PURPLE));
 
         if (stack.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME)) {
@@ -138,11 +135,9 @@ public class DynamicVisWeaponItem extends Item {
                 if (state.baseType() != EssenceType.REGULAR && state.baseDamage() > 0) {
                     String rawName = state.baseType().name();
                     String essenceNameStr = rawName.substring(0, 1).toUpperCase() + rawName.substring(1).toLowerCase();
-
                     Component damageValue = Component.literal(String.format(" +%.1f ", state.baseDamage())).withStyle(ChatFormatting.DARK_GREEN);
                     Component essenceName = Component.literal(essenceNameStr).withStyle(style -> style.withColor(state.baseType().getColorInt()));
                     Component damageLabel = Component.literal(" Damage").withStyle(ChatFormatting.DARK_GREEN);
-
                     tooltipComponents.accept(Component.empty().append(damageValue).append(essenceName).append(damageLabel));
                 }
 
@@ -172,7 +167,5 @@ public class DynamicVisWeaponItem extends Item {
     }
 
     @Override
-    public boolean isFoil(ItemStack stack) {
-        return true;
-    }
+    public boolean isFoil(ItemStack stack) { return true; }
 }

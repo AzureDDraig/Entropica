@@ -18,14 +18,14 @@ import java.util.List;
 public record EidolicLatheRecipe(
         Ingredient etherealShape,
         Ingredient core,
+        Ingredient orbisAcceptor,
+        Ingredient baseMaterial,
         List<Ingredient> modifiers,
         ItemStack result
 ) implements Recipe<RecipeInput> {
 
     @Override
     public boolean matches(RecipeInput input, Level level) {
-        // We handle custom multiblock dynamic matching inside the BlockEntity itself!
-        // This recipe class now acts primarily as a Blueprint/Template for JEI/REI integrations.
         return false;
     }
 
@@ -58,30 +58,6 @@ public record EidolicLatheRecipe(
         return RecipeBookCategories.CRAFTING_MISC;
     }
 
-    // ==========================================
-    // BLUEPRINT FALLBACK RECIPES (For UI Viewers)
-    // ==========================================
-    private static List<EidolicLatheRecipe> HARDCODED_RECIPES = null;
-
-    public static List<EidolicLatheRecipe> getHardcodedRecipes() {
-        if (HARDCODED_RECIPES == null) {
-            HARDCODED_RECIPES = new ArrayList<>();
-
-            // A placeholder recipe that will eventually display in JEI showing players
-            // the "Concept + Core + Material = Dynamic Weapon" layout.
-            List<Ingredient> templateModifiers = new ArrayList<>();
-            templateModifiers.add(Ingredient.of(Items.AMETHYST_SHARD)); // Just a visual placeholder
-
-            HARDCODED_RECIPES.add(new EidolicLatheRecipe(
-                    Ingredient.of(Items.PAPER), // Ethereal Shape Placeholder
-                    Ingredient.of(Items.NETHER_STAR), // Core Placeholder
-                    templateModifiers, // Modifiers
-                    new ItemStack(ModItems.DYNAMIC_SWORD.get()) // Output
-            ));
-        }
-        return HARDCODED_RECIPES;
-    }
-
     public static class Type implements RecipeType<EidolicLatheRecipe> {
         private Type() {}
         public static final Type INSTANCE = new Type();
@@ -94,16 +70,30 @@ public record EidolicLatheRecipe(
         public static final MapCodec<EidolicLatheRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
                 Ingredient.CODEC.fieldOf("ethereal_shape").forGetter(EidolicLatheRecipe::etherealShape),
                 Ingredient.CODEC.fieldOf("core").forGetter(EidolicLatheRecipe::core),
+                Ingredient.CODEC.fieldOf("orbis_acceptor").forGetter(EidolicLatheRecipe::orbisAcceptor),
+                Ingredient.CODEC.fieldOf("base_material").forGetter(EidolicLatheRecipe::baseMaterial),
                 Ingredient.CODEC.listOf().fieldOf("modifiers").forGetter(EidolicLatheRecipe::modifiers),
                 ItemStack.CODEC.fieldOf("result").forGetter(EidolicLatheRecipe::result)
         ).apply(inst, EidolicLatheRecipe::new));
 
-        public static final StreamCodec<RegistryFriendlyByteBuf, EidolicLatheRecipe> STREAM_CODEC = StreamCodec.composite(
-                Ingredient.CONTENTS_STREAM_CODEC, EidolicLatheRecipe::etherealShape,
-                Ingredient.CONTENTS_STREAM_CODEC, EidolicLatheRecipe::core,
-                Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), EidolicLatheRecipe::modifiers,
-                ItemStack.STREAM_CODEC, EidolicLatheRecipe::result,
-                EidolicLatheRecipe::new
+        // Using StreamCodec.of() perfectly bypasses any parameter limits that .composite() might have!
+        public static final StreamCodec<RegistryFriendlyByteBuf, EidolicLatheRecipe> STREAM_CODEC = StreamCodec.of(
+                (buf, recipe) -> {
+                    Ingredient.CONTENTS_STREAM_CODEC.encode(buf, recipe.etherealShape());
+                    Ingredient.CONTENTS_STREAM_CODEC.encode(buf, recipe.core());
+                    Ingredient.CONTENTS_STREAM_CODEC.encode(buf, recipe.orbisAcceptor());
+                    Ingredient.CONTENTS_STREAM_CODEC.encode(buf, recipe.baseMaterial());
+                    Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, recipe.modifiers());
+                    ItemStack.STREAM_CODEC.encode(buf, recipe.result());
+                },
+                buf -> new EidolicLatheRecipe(
+                        Ingredient.CONTENTS_STREAM_CODEC.decode(buf),
+                        Ingredient.CONTENTS_STREAM_CODEC.decode(buf),
+                        Ingredient.CONTENTS_STREAM_CODEC.decode(buf),
+                        Ingredient.CONTENTS_STREAM_CODEC.decode(buf),
+                        Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
+                        ItemStack.STREAM_CODEC.decode(buf)
+                )
         );
 
         @Override

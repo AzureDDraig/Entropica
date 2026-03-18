@@ -37,6 +37,18 @@
   "item.entropica.dynamic_sword": "Eidolic Sword",
   "item.entropica.dynamic_axe": "Eidolic Axe",
   "item.entropica.dynamic_pickaxe": "Eidolic Pickaxe",
+  "item.entropica.dynamic_shovel": "Eidolic Shovel",
+  "item.entropica.dynamic_adze": "Eidolic Adze",
+  "item.entropica.dynamic_paxel": "Eidolic Paxel",
+  "item.entropica.dynamic_spear": "Eidolic Spear",
+  "item.entropica.dynamic_mace": "Eidolic Mace",
+  "item.entropica.dynamic_morning_star": "Eidolic Morning Star",
+  "item.entropica.dynamic_warhammer": "Eidolic Warhammer",
+  "item.entropica.dynamic_shortbow": "Eidolic Shortbow",
+  "item.entropica.dynamic_longbow": "Eidolic Longbow",
+  "item.entropica.dynamic_war_bow": "Eidolic War Bow",
+  "item.entropica.dynamic_crossbow": "Eidolic Crossbow",
+  "item.entropica.dynamic_repeater": "Eidolic Repeater",
 
   "_comment_base_ampoules": "================ EMPTY & MANA AMPOULES ================",
   "item.entropica.small_ampoule": "Small Ampoule (Empty)",
@@ -481,7 +493,7 @@
   "tooltip.entropica.eidolite_core": "A pale, ghostly core that grants rudimentary arcane intelligence.",
   "tooltip.entropica.charged_eidolite_core": "An overclocked Eidolite core granting increased phantom mobility.",
   "tooltip.entropica.ancient_eidolite_core": "The absolute pinnacle of autonomous phantom metal.",
-  "tooltip.entropica.shape_concept": "A physical manifestation of a weapon's spectral form.",
+  "tooltip.entropica.shape_concept": "A physical manifestation of a weapon's spectral soul.",
   "tooltip.entropica.orbis_acceptor": "Acts as the intake valve for magical energy.",
   "tooltip.entropica.spell_gem": "A crystallized spell matrix that can be slotted into weapons."
 }

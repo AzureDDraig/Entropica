@@ -306,13 +306,49 @@ public class ModItems {
     // ==========================================
 
     public static final DeferredItem<Item> DYNAMIC_SWORD = ITEMS.register("dynamic_sword",
-            name -> new DynamicVisWeaponItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
 
     public static final DeferredItem<Item> DYNAMIC_AXE = ITEMS.register("dynamic_axe",
-            name -> new DynamicVisWeaponItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
 
     public static final DeferredItem<Item> DYNAMIC_PICKAXE = ITEMS.register("dynamic_pickaxe",
-            name -> new DynamicVisWeaponItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_SHOVEL = ITEMS.register("dynamic_shovel",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_ADZE = ITEMS.register("dynamic_adze",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_PAXEL = ITEMS.register("dynamic_paxel",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_SPEAR = ITEMS.register("dynamic_spear",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_MACE = ITEMS.register("dynamic_mace",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_MORNING_STAR = ITEMS.register("dynamic_morning_star",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_WARHAMMER = ITEMS.register("dynamic_warhammer",
+            name -> new DynamicVisWeaponItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_SHORTBOW = ITEMS.register("dynamic_shortbow",
+            name -> new DynamicVisBowItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_LONGBOW = ITEMS.register("dynamic_longbow",
+            name -> new DynamicVisBowItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_WAR_BOW = ITEMS.register("dynamic_war_bow",
+            name -> new DynamicVisBowItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_CROSSBOW = ITEMS.register("dynamic_crossbow",
+            name -> new DynamicVisCrossbowItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
+
+    public static final DeferredItem<Item> DYNAMIC_REPEATER = ITEMS.register("dynamic_repeater",
+            name -> new DynamicVisCrossbowItem(new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, name))));
 
     public static final DeferredItem<Item> ORBIS_CELL_ITEM = ITEMS.registerItem("orbis_cell", properties -> new OrbisCellItem(ModBlocks.ORBIS_CELL.get(), properties));
 

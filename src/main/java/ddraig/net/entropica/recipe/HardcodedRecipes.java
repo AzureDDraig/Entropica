@@ -27,16 +27,122 @@ public class HardcodedRecipes {
         if (LATHE_RECIPES == null) {
             LATHE_RECIPES = new ArrayList<>();
 
-            // A placeholder recipe that will eventually display in JEI showing players
-            // the "Concept + Core + Material = Dynamic Weapon" layout.
-            List<Ingredient> templateModifiers = new ArrayList<>();
-            templateModifiers.add(Ingredient.of(Items.AMETHYST_SHARD)); // Just a visual placeholder
+            // 1. Group all valid Cores together so JEI automatically cycles through them
+            Ingredient allCores = Ingredient.of(
+                    ModItems.ARCANITE_WEAPON_CORE.get(), ModItems.CHARGED_ARCANITE_WEAPON_CORE.get(), ModItems.ANCIENT_ARCANITE_WEAPON_CORE.get(),
+                    ModItems.VISCANITE_WEAPON_CORE.get(), ModItems.CHARGED_VISCANITE_WEAPON_CORE.get(), ModItems.ANCIENT_VISCANITE_WEAPON_CORE.get(),
+                    ModItems.RESONITE_WEAPON_CORE.get(), ModItems.CHARGED_RESONITE_WEAPON_CORE.get(), ModItems.ANCIENT_RESONITE_WEAPON_CORE.get(),
+                    ModItems.ARCANITE_TOOL_CORE.get(), ModItems.CHARGED_ARCANITE_TOOL_CORE.get(), ModItems.ANCIENT_ARCANITE_TOOL_CORE.get(),
+                    ModItems.VISCANITE_TOOL_CORE.get(), ModItems.CHARGED_VISCANITE_TOOL_CORE.get(), ModItems.ANCIENT_VISCANITE_TOOL_CORE.get(),
+                    ModItems.RESONITE_TOOL_CORE.get(), ModItems.CHARGED_RESONITE_TOOL_CORE.get(), ModItems.ANCIENT_RESONITE_TOOL_CORE.get(),
+                    ModItems.EIDOLITE_CORE.get(), ModItems.CHARGED_EIDOLITE_CORE.get(), ModItems.ANCIENT_EIDOLITE_CORE.get()
+            );
 
+            // 2. Group all valid Base Materials
+            Ingredient allMaterials = Ingredient.of(
+                    ModItems.ARCANITE_INGOT.get(), ModItems.VISCANITE_INGOT.get(),
+                    ModItems.RESONITE_INGOT.get(), ModItems.EIDOLITE_INGOT.get()
+            );
+
+            Ingredient orbis = Ingredient.of(ModItems.ORBIS_ACCEPTOR.get());
+
+            // 3. Example Modifiers to show players what can go on the outer pedestals
+            List<Ingredient> exampleModifiers = List.of(
+                    Ingredient.of(ModItems.SPELL_GEM.get()),
+                    Ingredient.of(Items.QUARTZ),
+                    Ingredient.of(Items.FEATHER)
+            );
+
+            // --- BUILD DYNAMIC WEAPON RECIPES ---
+
+            // Dynamic Sword
             LATHE_RECIPES.add(new EidolicLatheRecipe(
-                    Ingredient.of(Items.PAPER), // Ethereal Shape Placeholder
-                    Ingredient.of(Items.NETHER_STAR), // Core Placeholder
-                    templateModifiers, // Modifiers
-                    new ItemStack(ModItems.DYNAMIC_SWORD.get()) // Output
+                    Ingredient.of(ModItems.GLADIUS_SHAPE_CONCEPT.get(), ModItems.LONGSWORD_SHAPE_CONCEPT.get(), ModItems.SHORTSWORD_SHAPE_CONCEPT.get(), ModItems.AKRAFENA_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_SWORD.get())
+            ));
+
+            // Dynamic Axe
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.HAND_AXE_SHAPE_CONCEPT.get(), ModItems.WAR_AXE_SHAPE_CONCEPT.get(), ModItems.POLE_AXE_SHAPE_CONCEPT.get(), ModItems.HALBERD_SHAPE_CONCEPT.get(), ModItems.BEARD_AXE_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_AXE.get())
+            ));
+
+            // Dynamic Pickaxe
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.PICKAXE_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_PICKAXE.get())
+            ));
+
+            // Dynamic Shovel
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.SHOVEL_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_SHOVEL.get())
+            ));
+
+            // Dynamic Adze
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.ADZE_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_ADZE.get())
+            ));
+
+            // Dynamic Paxel
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.PAXEL_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_PAXEL.get())
+            ));
+
+            // Dynamic Spear
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.SPEAR_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_SPEAR.get())
+            ));
+
+            // Dynamic Mace
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.MACE_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_MACE.get())
+            ));
+
+            // Dynamic Morning Star
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.MORNING_STAR_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_MORNING_STAR.get())
+            ));
+
+            // Dynamic Warhammer
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.WARHAMMER_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_WARHAMMER.get())
+            ));
+
+            // Dynamic Shortbow
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.SHORTBOW_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_SHORTBOW.get())
+            ));
+
+            // Dynamic Longbow
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.LONGBOW_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_LONGBOW.get())
+            ));
+
+            // Dynamic War Bow
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.WAR_BOW_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_WAR_BOW.get())
+            ));
+
+            // Dynamic Crossbow
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.CROSSBOW_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_CROSSBOW.get())
+            ));
+
+            // Dynamic Repeater
+            LATHE_RECIPES.add(new EidolicLatheRecipe(
+                    Ingredient.of(ModItems.REPEATER_SHAPE_CONCEPT.get()),
+                    allCores, orbis, allMaterials, exampleModifiers, new ItemStack(ModItems.DYNAMIC_REPEATER.get())
             ));
         }
         return LATHE_RECIPES;
@@ -200,7 +306,7 @@ public class HardcodedRecipes {
 
             // 45-47. Plates
             String[] platePat = {"     ", " AAA ", " AAA ", "     ", "     "};
-            build(SYNTHESIZER_RECIPES, platePat, new Object[]{'A', arcIngot}, new Object[]{arcPlate, 4}); // Updated to yield 4 plates!
+            build(SYNTHESIZER_RECIPES, platePat, new Object[]{'A', arcIngot}, new Object[]{arcPlate, 4});
             build(SYNTHESIZER_RECIPES, platePat, new Object[]{'A', viscIngot}, new Object[]{viscPlate, 4});
             build(SYNTHESIZER_RECIPES, platePat, new Object[]{'A', resIngot}, new Object[]{resPlate, 4});
 
