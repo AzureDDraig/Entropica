@@ -30,21 +30,22 @@ public record VisWeaponState(
 
     public static final VisWeaponState EMPTY = new VisWeaponState(EssenceType.REGULAR, "regular", "None", "None", 0f, 0f, 1.0f, 0, List.of(), "none", false, false, false, ItemStack.EMPTY);
 
+    // Converted to optionalFieldOf() to make NBT Saving/Loading bulletproof against missing or empty data!
     public static final Codec<VisWeaponState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            EssenceType.CODEC.fieldOf("base_type").forGetter(VisWeaponState::baseType),
-            Codec.STRING.fieldOf("active_profile").forGetter(VisWeaponState::activeProfile),
-            Codec.STRING.fieldOf("material_tier").forGetter(VisWeaponState::materialTier),
-            Codec.STRING.fieldOf("core_type").forGetter(VisWeaponState::coreType),
-            Codec.FLOAT.fieldOf("base_damage").forGetter(VisWeaponState::baseDamage),
-            Codec.FLOAT.fieldOf("bonus_speed").forGetter(VisWeaponState::bonusSpeed),
-            Codec.FLOAT.fieldOf("absolute_speed").forGetter(VisWeaponState::absoluteSpeed),
-            Codec.INT.fieldOf("innate_slots").forGetter(VisWeaponState::innateSlots),
-            EssenceType.CODEC.listOf().fieldOf("slotted_fragments").forGetter(VisWeaponState::slottedFragments),
-            Codec.STRING.fieldOf("active_spell").forGetter(VisWeaponState::activeSpell),
-            Codec.BOOL.fieldOf("is_autonomous").forGetter(VisWeaponState::isAutonomous),
-            Codec.BOOL.fieldOf("has_initialized_name").forGetter(VisWeaponState::hasInitializedName),
-            Codec.BOOL.fieldOf("has_orbis_slot").forGetter(VisWeaponState::hasOrbisSlot),
-            ItemStack.OPTIONAL_CODEC.fieldOf("orbis_cell").forGetter(VisWeaponState::orbisCell)
+            EssenceType.CODEC.optionalFieldOf("base_type", EssenceType.REGULAR).forGetter(VisWeaponState::baseType),
+            Codec.STRING.optionalFieldOf("active_profile", "regular").forGetter(VisWeaponState::activeProfile),
+            Codec.STRING.optionalFieldOf("material_tier", "None").forGetter(VisWeaponState::materialTier),
+            Codec.STRING.optionalFieldOf("core_type", "None").forGetter(VisWeaponState::coreType),
+            Codec.FLOAT.optionalFieldOf("base_damage", 0f).forGetter(VisWeaponState::baseDamage),
+            Codec.FLOAT.optionalFieldOf("bonus_speed", 0f).forGetter(VisWeaponState::bonusSpeed),
+            Codec.FLOAT.optionalFieldOf("absolute_speed", 1.0f).forGetter(VisWeaponState::absoluteSpeed),
+            Codec.INT.optionalFieldOf("innate_slots", 0).forGetter(VisWeaponState::innateSlots),
+            EssenceType.CODEC.listOf().optionalFieldOf("slotted_fragments", List.of()).forGetter(VisWeaponState::slottedFragments),
+            Codec.STRING.optionalFieldOf("active_spell", "none").forGetter(VisWeaponState::activeSpell),
+            Codec.BOOL.optionalFieldOf("is_autonomous", false).forGetter(VisWeaponState::isAutonomous),
+            Codec.BOOL.optionalFieldOf("has_initialized_name", false).forGetter(VisWeaponState::hasInitializedName),
+            Codec.BOOL.optionalFieldOf("has_orbis_slot", false).forGetter(VisWeaponState::hasOrbisSlot),
+            ItemStack.OPTIONAL_CODEC.optionalFieldOf("orbis_cell", ItemStack.EMPTY).forGetter(VisWeaponState::orbisCell)
     ).apply(instance, VisWeaponState::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, VisWeaponState> STREAM_CODEC = StreamCodec.of(

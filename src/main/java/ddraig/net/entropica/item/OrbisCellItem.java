@@ -4,7 +4,6 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.config.EntropicaConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.BlockItem;
@@ -24,16 +23,17 @@ public class OrbisCellItem extends BlockItem {
         super(block, properties);
     }
 
-    public int getMaxMana() {
+    public int getMaxVis() {
+        // Assuming config keeps the original internal variable name, but logically returning Vis
         return EntropicaConfig.ORBIS_CELL_MAX_MANA.get();
     }
 
     // --- HELPER METHODS FOR DATA COMPONENTS ---
 
     @Nullable
-    public static EssenceType getStoredManaType(ItemStack stack) {
+    public static EssenceType getStoredVisType(ItemStack stack) {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        String typeStr = customData.copyTag().getString("ManaType").orElse("");
+        String typeStr = customData.copyTag().getString("EssenceType").orElse("");
         if (!typeStr.isEmpty()) {
             try {
                 return EssenceType.valueOf(typeStr);
@@ -42,9 +42,9 @@ public class OrbisCellItem extends BlockItem {
         return null;
     }
 
-    public static int getStoredManaAmount(ItemStack stack) {
+    public static int getStoredVisAmount(ItemStack stack) {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        return customData.copyTag().getInt("StoredMana").orElse(0);
+        return customData.copyTag().getInt("StoredVis").orElse(0);
     }
 
     // --- DYNAMIC TOOLTIP ---
@@ -53,28 +53,25 @@ public class OrbisCellItem extends BlockItem {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, display, tooltipComponents, tooltipFlag);
 
-        int currentCellMana = getStoredManaAmount(stack);
-        EssenceType type = getStoredManaType(stack);
-        int maxMana = getMaxMana();
+        int currentCellVis = getStoredVisAmount(stack);
+        EssenceType type = getStoredVisType(stack);
+        int maxVis = getMaxVis();
 
-        if (currentCellMana > 0 && type != null) {
-            // Get the precise RGB color from your Enum
-            // We use a static time of 0 for the tooltip so it doesn't flicker wildly unless it's a dynamic type
+        if (currentCellVis > 0 && type != null) {
             long time = System.currentTimeMillis() / 50;
             int[] rgb = type.getCurrentRGB(time);
             int hexColor = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
 
-            // Create a custom style using that Hex value
             Style essenceStyle = Style.EMPTY.withColor(hexColor);
 
-            tooltipComponents.accept(Component.literal("Stored Mana (").withStyle(ChatFormatting.GRAY)
+            tooltipComponents.accept(Component.literal("Stored Vis (").withStyle(ChatFormatting.GRAY)
                     .append(Component.literal(type.getDisplayName()).withStyle(essenceStyle))
                     .append(Component.literal("): ").withStyle(ChatFormatting.GRAY))
-                    .append(Component.literal(currentCellMana + " / " + maxMana).withStyle(essenceStyle)));
+                    .append(Component.literal(currentCellVis + " / " + maxVis).withStyle(essenceStyle)));
 
             // Text Progress Bar
             int barSegments = 20;
-            int filledSegments = (int) Math.round(((double) currentCellMana / maxMana) * barSegments);
+            int filledSegments = (int) Math.round(((double) currentCellVis / maxVis) * barSegments);
             filledSegments = Math.clamp(filledSegments, 0, barSegments);
             int emptySegments = barSegments - filledSegments;
 
@@ -87,7 +84,7 @@ public class OrbisCellItem extends BlockItem {
             tooltipComponents.accept(progressBar);
         } else {
             // Empty State
-            tooltipComponents.accept(Component.literal("Stored Mana (Empty): 0 / " + maxMana).withStyle(ChatFormatting.DARK_GRAY));
+            tooltipComponents.accept(Component.literal("Stored Vis (Empty): 0 / " + maxVis).withStyle(ChatFormatting.DARK_GRAY));
             Component emptyBar = Component.literal("[" + "|".repeat(20) + "]").withStyle(ChatFormatting.DARK_GRAY);
             tooltipComponents.accept(emptyBar);
         }
