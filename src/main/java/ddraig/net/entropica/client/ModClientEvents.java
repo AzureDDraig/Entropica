@@ -3,6 +3,7 @@ package ddraig.net.entropica.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import ddraig.net.entropica.client.particle.FumeParticle;
 import ddraig.net.entropica.client.renderer.*;
+import ddraig.net.entropica.client.renderer.item.DynamicWeaponRenderer;
 import ddraig.net.entropica.registry.ModParticles;
 import net.minecraft.client.KeyMapping;
 import ddraig.net.entropica.api.EssenceType;
@@ -32,6 +33,7 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
@@ -73,11 +75,9 @@ public class ModClientEvents {
         }
     }
 
-    // --- NEW: Universal Client-Side Inventory Scanner for Naming Feature! ---
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
-        // Check only occasionally to save performance (e.g., every 10 ticks / half a second)
         if (mc.player != null && mc.level != null && mc.screen == null && mc.level.getGameTime() % 10 == 0) {
             for (int i = 0; i < mc.player.getInventory().getContainerSize(); i++) {
                 ItemStack stack = mc.player.getInventory().getItem(i);
@@ -85,7 +85,7 @@ public class ModClientEvents {
                     ddraig.net.entropica.component.VisWeaponState state = stack.get(ddraig.net.entropica.registry.ModDataComponents.VIS_WEAPON_STATE.get());
                     if (state != null && !state.hasInitializedName()) {
                         mc.setScreen(new WeaponNamingScreen());
-                        break; // Stop iterating; only pop one screen at a time!
+                        break;
                     }
                 }
             }
@@ -94,8 +94,12 @@ public class ModClientEvents {
 
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
-        // Binds the "invisible" server-side Menu to the "visible" client-side Screen
         event.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);
+    }
+
+    @SubscribeEvent
+    public static void registerSpecialModels(RegisterSpecialModelRendererEvent event) {
+        event.register(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "dynamic_weapon"), DynamicWeaponRenderer.Unbaked.MAP_CODEC);
     }
 
     @SubscribeEvent
@@ -114,15 +118,16 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.MANA_ENRICHED_GLASS_BE.get(), ManaEnrichedGlassRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENRICHMENT_TABLE_BE.get(), EnrichmentTableRenderer::new);
 
-        // Registering the new Synthesizer Renderer
         event.registerBlockEntityRenderer(ModBlockEntities.AETHERIC_SYNTHESIZER_BE.get(), AethericSynthesizerRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.AETHERIC_AUTOMATOR_BE.get(), AethericAutomatorRenderer::new);
 
-        // --- NEW: Eidolic Lathe Holograms! ---
         event.registerBlockEntityRenderer(ModBlockEntities.EIDOLIC_FOCAL_PEDESTAL_BE.get(), EidolicFocalPedestalRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ATTUNEMENT_PEDESTAL_BE.get(), AttunementPedestalRenderer::new);
 
-        // Added the Creative Vis Fume Generator Hologram Renderer
         event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_VIS_FUME_GENERATOR_BE.get(), CreativeVisFumeGeneratorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_PARTICLE_GENERATOR_BE.get(), CreativeParticleGeneratorRenderer::new);
+
+        event.registerBlockEntityRenderer(ModBlockEntities.VOID_RIFT_BE.get(), context -> new VoidRiftRenderer(context));
 
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
@@ -199,8 +204,6 @@ public class ModClientEvents {
         }, ModFluids.DILUTED_ESSENCE_FLUID_TYPE.get());
     }
 
-    // --- 1.21.2+ DATA-DRIVEN ITEM TINTING SYSTEM ---
-
     public record AmpouleTint() implements ItemTintSource {
         public static final MapCodec<AmpouleTint> MAP_CODEC = MapCodec.unit(new AmpouleTint());
 
@@ -211,7 +214,6 @@ public class ModClientEvents {
                 type = VisFumeAmpouleItem.getEssenceType(stack);
             }
             if (type != null) {
-                // Dynamically animates the colors for cycling fusions
                 int[] rgb = type.getCurrentRGB(System.currentTimeMillis() / 50);
                 return (0xFF << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
             }
@@ -234,7 +236,6 @@ public class ModClientEvents {
                 type = EssenceAmpouleItem.getEssenceType(stack);
             }
             if (type != null) {
-                // Dynamically animates the colors for cycling fusions
                 int[] rgb = type.getCurrentRGB(System.currentTimeMillis() / 50);
                 return (0xFF << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
             }

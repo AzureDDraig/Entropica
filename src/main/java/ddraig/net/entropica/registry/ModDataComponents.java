@@ -2,6 +2,7 @@ package ddraig.net.entropica.registry;
 
 import ddraig.net.entropica.component.EssenceCombatStats;
 import ddraig.net.entropica.component.VisWeaponState;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -25,5 +26,12 @@ public class ModDataComponents {
             () -> DataComponentType.<VisWeaponState>builder()
                     .persistent(VisWeaponState.CODEC)
                     .networkSynchronized(VisWeaponState.STREAM_CODEC)
+                    .build());
+
+    // Component for Wire Spools tracking the starting connection node
+    public static final Supplier<DataComponentType<GlobalPos>> SPOOL_BINDING = COMPONENTS.register("spool_binding",
+            () -> DataComponentType.<GlobalPos>builder()
+                    .persistent(GlobalPos.CODEC)
+                    .networkSynchronized(GlobalPos.STREAM_CODEC)
                     .build());
 }

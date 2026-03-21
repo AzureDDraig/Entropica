@@ -48,7 +48,10 @@ public class ModBlocks {
     public static final DeferredBlock<VisFumeValveBlock> VIS_FUME_VALVE = BLOCKS.register("vis_fume_valve", name -> new VisFumeValveBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(1.5f).requiresCorrectToolForDrops().noOcclusion()));
     public static final DeferredBlock<VisFumeOneWayValveBlock> VIS_FUME_ONE_WAY_VALVE = BLOCKS.register("vis_fume_one_way_valve", name -> new VisFumeOneWayValveBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(1.5f).requiresCorrectToolForDrops().noOcclusion()));
     public static final DeferredBlock<VisFumeDiverterBlock> VIS_FUME_DIVERTER = BLOCKS.register("vis_fume_diverter", name -> new VisFumeDiverterBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(2.0f).requiresCorrectToolForDrops().noOcclusion()));
+
+    // Developer & Creative Blocks
     public static final DeferredBlock<CreativeVisFumeGeneratorBlock> CREATIVE_VIS_FUME_GENERATOR = BLOCKS.register("creative_vis_fume_generator", name -> new CreativeVisFumeGeneratorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(1.5f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<CreativeParticleGeneratorBlock> CREATIVE_PARTICLE_GENERATOR = BLOCKS.register("creative_particle_generator", name -> new CreativeParticleGeneratorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(1.5f).requiresCorrectToolForDrops()));
 
     // ---  Vis Fume Pressure Vessel ---
     public static final DeferredBlock<VisFumeVesselControllerBlock> VIS_FUME_VESSEL_CONTROLLER = BLOCKS.register("vis_fume_vessel_controller", name -> new VisFumeVesselControllerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
@@ -103,9 +106,13 @@ public class ModBlocks {
 
     public static final DeferredBlock<VisMotorBlock> VIS_MOTOR = BLOCKS.register("vis_motor", name -> new VisMotorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
 
+    // --- Void Rifts Logistics ---
+    public static final DeferredBlock<VoidRiftBlock> VOID_RIFT = BLOCKS.register("void_rift", name -> new VoidRiftBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name))));
+
     // ==========================================
     // DATAGEN BLOCK LIST
     // Any basic block added to this list will automatically have a cube model generated.
+    // (Void Rift is intentionally omitted as it is an invisible floating entity block!)
     // ==========================================
     public static final List<DeferredBlock<?>> SIMPLE_BLOCKS = List.of(
             ENTROPIC_ORE, ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MANA_PLUME,
@@ -113,6 +120,7 @@ public class ModBlocks {
             MANA_FILTER, ARCANE_LOOM, ESSENCE_FORGE,
             ARCANE_ANVIL, MORPHIC_LOOM, VIS_EXHAUST, VIS_SIMPLE_MACHINE_BLOCK, VIS_COMPLEX_MACHINE_BLOCK,
             VIS_FUME_INPUT_PORT, VIS_ICHOR_INPUT_PORT, EXTRACTOR_OUTPUT_PORT,
-            ESSENCE_NODE_IDENTIFIER_BLOCK, VIS_EXTRACTION_APPARATUS, VIS_EXTRACTOR_BASE, VIS_MOTOR
+            ESSENCE_NODE_IDENTIFIER_BLOCK, VIS_EXTRACTION_APPARATUS, VIS_EXTRACTOR_BASE, VIS_MOTOR,
+            CREATIVE_PARTICLE_GENERATOR
     );
 }

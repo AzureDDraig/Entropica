@@ -248,9 +248,41 @@ public class ModItems {
     public static final DeferredItem<Item> FREQUENCY_SPLITTER_PRISM = ITEMS.registerItem("frequency_splitter_prism", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.frequency_splitter_prism"));
     public static final DeferredItem<Item> TUNING_FORK = ITEMS.registerItem("tuning_fork", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.tuning_fork"));
     public static final DeferredItem<Item> RESONITE_TUNING_FORK = ITEMS.registerItem("resonite_tuning_fork", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_tuning_fork"));
-    public static final DeferredItem<Item> VOID_RESONANT_TUNING_FORK = ITEMS.registerItem("void_resonant_tuning_fork", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.void_resonant_tuning_fork"));
+
+    // --- VOID LOGISTICS ---
+    // FIXED: Now uses the custom VoidResonantTuningForkItem class!
+    public static final DeferredItem<Item> VOID_RESONANT_TUNING_FORK = ITEMS.registerItem("void_resonant_tuning_fork", VoidResonantTuningForkItem::new);
+
     public static final DeferredItem<Item> SPECTRAL_GLYPH_PLATE = ITEMS.registerItem("spectral_glyph_plate", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.spectral_glyph_plate"));
     public static final DeferredItem<Item> TETHER_ANCHOR_PIN = ITEMS.registerItem("tether_anchor_pin", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.tether_anchor_pin"));
+
+    // ==========================================
+    // --- RUNES (ELDER FUTHARK) ---
+    // ==========================================
+    public static final DeferredItem<Item> RUNE_FEHU = ITEMS.registerItem("rune_fehu", p -> new RuneItem(p, "ᚠ", "Fehu", "Wealth / Filtering"));
+    public static final DeferredItem<Item> RUNE_URUZ = ITEMS.registerItem("rune_uruz", p -> new RuneItem(p, "ᚢ", "Uruz", "Strength / Speed"));
+    public static final DeferredItem<Item> RUNE_THURISAZ = ITEMS.registerItem("rune_thurisaz", p -> new RuneItem(p, "ᚦ", "Thurisaz", "Gateway / Tearing"));
+    public static final DeferredItem<Item> RUNE_ANSUZ = ITEMS.registerItem("rune_ansuz", p -> new RuneItem(p, "ᚨ", "Ansuz", "Signals / Redstone"));
+    public static final DeferredItem<Item> RUNE_RAIDO = ITEMS.registerItem("rune_raido", p -> new RuneItem(p, "ᚱ", "Raido", "Journey / Routing"));
+    public static final DeferredItem<Item> RUNE_KENAZ = ITEMS.registerItem("rune_kenaz", p -> new RuneItem(p, "ᚲ", "Kenaz", "Torch / Vision"));
+    public static final DeferredItem<Item> RUNE_GEBO = ITEMS.registerItem("rune_gebo", p -> new RuneItem(p, "ᚷ", "Gebo", "Gift / Exchange"));
+    public static final DeferredItem<Item> RUNE_WUNJO = ITEMS.registerItem("rune_wunjo", p -> new RuneItem(p, "ᚹ", "Wunjo", "Joy / Output"));
+    public static final DeferredItem<Item> RUNE_HAGALAZ = ITEMS.registerItem("rune_hagalaz", p -> new RuneItem(p, "ᚺ", "Hagalaz", "Hail / Destruction"));
+    public static final DeferredItem<Item> RUNE_NAUTHIZ = ITEMS.registerItem("rune_nauthiz", p -> new RuneItem(p, "ᚾ", "Nauthiz", "Need / Demand"));
+    public static final DeferredItem<Item> RUNE_ISA = ITEMS.registerItem("rune_isa", p -> new RuneItem(p, "ᛁ", "Isa", "Ice / Stasis"));
+    public static final DeferredItem<Item> RUNE_JERA = ITEMS.registerItem("rune_jera", p -> new RuneItem(p, "ᛃ", "Jera", "Harvest / Extraction"));
+    public static final DeferredItem<Item> RUNE_EIHWAZ = ITEMS.registerItem("rune_eihwaz", p -> new RuneItem(p, "ᛇ", "Eihwaz", "Yew / Connection"));
+    public static final DeferredItem<Item> RUNE_PERTHRO = ITEMS.registerItem("rune_perthro", p -> new RuneItem(p, "ᛈ", "Perthro", "Secret / Filtering"));
+    public static final DeferredItem<Item> RUNE_ALGIZ = ITEMS.registerItem("rune_algiz", p -> new RuneItem(p, "ᛉ", "Algiz", "Protection / Warding"));
+    public static final DeferredItem<Item> RUNE_SOWILO = ITEMS.registerItem("rune_sowilo", p -> new RuneItem(p, "ᛊ", "Sowilo", "Sun / Energy"));
+    public static final DeferredItem<Item> RUNE_TIWAZ = ITEMS.registerItem("rune_tiwaz", p -> new RuneItem(p, "ᛏ", "Tiwaz", "Justice / Balancing"));
+    public static final DeferredItem<Item> RUNE_BERKANO = ITEMS.registerItem("rune_berkano", p -> new RuneItem(p, "ᛒ", "Berkano", "Growth / Farming"));
+    public static final DeferredItem<Item> RUNE_EHWAZ = ITEMS.registerItem("rune_ehwaz", p -> new RuneItem(p, "ᛖ", "Ehwaz", "Horse / Transit"));
+    public static final DeferredItem<Item> RUNE_MANNAZ = ITEMS.registerItem("rune_mannaz", p -> new RuneItem(p, "ᛗ", "Mannaz", "Humanity / Player"));
+    public static final DeferredItem<Item> RUNE_LAGUZ = ITEMS.registerItem("rune_laguz", p -> new RuneItem(p, "ᛚ", "Laguz", "Water / Fluid"));
+    public static final DeferredItem<Item> RUNE_INGWAZ = ITEMS.registerItem("rune_ingwaz", p -> new RuneItem(p, "ᛜ", "Ingwaz", "Seed / Storage"));
+    public static final DeferredItem<Item> RUNE_DAGAZ = ITEMS.registerItem("rune_dagaz", p -> new RuneItem(p, "ᛞ", "Dagaz", "Dawn / Splitting"));
+    public static final DeferredItem<Item> RUNE_OTHALA = ITEMS.registerItem("rune_othala", p -> new RuneItem(p, "ᛟ", "Othala", "Heritage / Zoning"));
 
     // ==========================================
     // DYNAMIC ESSENCE ORBS & ESSENCE AMPOULES
@@ -368,6 +400,7 @@ public class ModItems {
     public static final DeferredItem<BlockItem> VIS_FUME_ONE_WAY_VALVE_ITEM = ITEMS.registerItem("vis_fume_one_way_valve", properties -> new BlockItem(ModBlocks.VIS_FUME_ONE_WAY_VALVE.get(), properties));
     public static final DeferredItem<BlockItem> VIS_FUME_DIVERTER_ITEM = ITEMS.registerItem("vis_fume_diverter", properties -> new BlockItem(ModBlocks.VIS_FUME_DIVERTER.get(), properties));
     public static final DeferredItem<BlockItem> CREATIVE_VIS_FUME_GENERATOR_ITEM = ITEMS.registerItem("creative_vis_fume_generator", properties -> new BlockItem(ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get(), properties));
+    public static final DeferredItem<BlockItem> CREATIVE_PARTICLE_GENERATOR_ITEM = ITEMS.registerItem("creative_particle_generator", properties -> new BlockItem(ModBlocks.CREATIVE_PARTICLE_GENERATOR.get(), properties));
 
     // ---  Vis Fume Pressure Vessel Items ---
     public static final DeferredItem<BlockItem> VIS_FUME_VESSEL_CONTROLLER_ITEM = ITEMS.registerItem("vis_fume_vessel_controller", properties -> new BlockItem(ModBlocks.VIS_FUME_VESSEL_CONTROLLER.get(), properties));
@@ -380,6 +413,9 @@ public class ModItems {
     // --- Vis Fume Pressure Chamber Items ---
     public static final DeferredItem<BlockItem> VIS_FUME_PRESSURE_CHAMBER_CONTROLLER_ITEM = ITEMS.registerItem("vis_fume_pressure_chamber_controller", properties -> new BlockItem(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get(), properties));
     public static final DeferredItem<BlockItem> ENRICHMENT_TABLE_ITEM = ITEMS.registerItem("enrichment_table", properties -> new BlockItem(ModBlocks.ENRICHMENT_TABLE.get(), properties));
+
+    // --- Void Rifts Item ---
+    public static final DeferredItem<BlockItem> VOID_RIFT_ITEM = ITEMS.registerItem("void_rift", properties -> new BlockItem(ModBlocks.VOID_RIFT.get(), properties));
 
     // Others
     public static final DeferredItem<BlockItem> VIS_VITAE_ANCHOR_ITEM = ITEMS.registerItem("vis_vitae_anchor", properties -> new BlockItem(ModBlocks.VIS_VITAE_ANCHOR.get(), properties));
@@ -428,6 +464,9 @@ public class ModItems {
             ORBIS_ACCEPTOR, SPELL_GEM,
             FOCAL_LENS_ASSEMBLY, AETHERIC_LOGIC_GATE, REFRACTION_GRID_MESH, ICHOR_CAPILLARY_TUBE, VIS_CAPACITOR_PLATE, HARMONIC_FEEDBACK_LOOP, AETHERIC_PITCH_PIPE, FREQUENCY_SPLITTER_PRISM, TUNING_FORK, RESONITE_TUNING_FORK, VOID_RESONANT_TUNING_FORK, SPECTRAL_GLYPH_PLATE, TETHER_ANCHOR_PIN,
             ARCANITE_ICHOR_VALVE, VISCANITE_ICHOR_VALVE, ARCANITE_FUME_VALVE, VISCANITE_FUME_VALVE, AETHERIC_FLOW_REGULATOR, VOID_SEALED_O_RING, FUME_CONDENSER_COIL, ICHOR_EVAPORATOR_COIL,
-            MORPHIC_LOOM_ITEM
+            MORPHIC_LOOM_ITEM, VOID_RIFT_ITEM,
+            RUNE_FEHU, RUNE_URUZ, RUNE_THURISAZ, RUNE_ANSUZ, RUNE_RAIDO, RUNE_KENAZ, RUNE_GEBO, RUNE_WUNJO,
+            RUNE_HAGALAZ, RUNE_NAUTHIZ, RUNE_ISA, RUNE_JERA, RUNE_EIHWAZ, RUNE_PERTHRO, RUNE_ALGIZ, RUNE_SOWILO,
+            RUNE_TIWAZ, RUNE_BERKANO, RUNE_EHWAZ, RUNE_MANNAZ, RUNE_LAGUZ, RUNE_INGWAZ, RUNE_DAGAZ, RUNE_OTHALA
     );
 }
