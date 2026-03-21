@@ -135,12 +135,12 @@ public class ManaFilterBlockEntity extends BlockEntity {
                 handStack.is(ModItems.MEDIUM_AMPOULE_BASE.get()) ||
                 handStack.is(ModItems.LARGE_AMPOULE_BASE.get())) {
 
-            int capacity = handStack.is(ModItems.SMALL_AMPOULE_BASE.get()) ? 4 :
-                    handStack.is(ModItems.MEDIUM_AMPOULE_BASE.get()) ? 16 : 64;
+            int capacity = handStack.is(ModItems.SMALL_AMPOULE_BASE.get()) ? 8 :
+                    handStack.is(ModItems.MEDIUM_AMPOULE_BASE.get()) ? 32 : 128;
 
             VisFumeAmpouleItem targetFilledItem = (VisFumeAmpouleItem) (
-                    (capacity == 4) ? ModItems.SMALL_VIS_FUME_AMPOULE.get() :
-                            (capacity == 16) ? ModItems.MEDIUM_VIS_FUME_AMPOULE.get() : ModItems.LARGE_VIS_FUME_AMPOULE.get());
+                    (capacity == 8) ? ModItems.SMALL_VIS_FUME_AMPOULE.get() :
+                            (capacity == 32) ? ModItems.MEDIUM_VIS_FUME_AMPOULE.get() : ModItems.LARGE_VIS_FUME_AMPOULE.get());
 
             int currentMana = master.getManaPool().getOrDefault(this.filterType, 0);
 

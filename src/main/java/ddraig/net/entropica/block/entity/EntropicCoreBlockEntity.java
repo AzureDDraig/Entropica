@@ -756,12 +756,12 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
                 handStack.getItem() == ModItems.MEDIUM_AMPOULE_BASE.get() ||
                 handStack.getItem() == ModItems.LARGE_AMPOULE_BASE.get()) {
 
-            int capacity = (handStack.getItem() == ModItems.SMALL_AMPOULE_BASE.get()) ? 4 :
-                    (handStack.getItem() == ModItems.MEDIUM_AMPOULE_BASE.get()) ? 16 : 64;
+            int capacity = (handStack.getItem() == ModItems.SMALL_AMPOULE_BASE.get()) ? 8 :
+                    (handStack.getItem() == ModItems.MEDIUM_AMPOULE_BASE.get()) ? 32 : 128;
 
             VisFumeAmpouleItem targetFilledItem = (VisFumeAmpouleItem) (
-                    (capacity == 4) ? ModItems.SMALL_VIS_FUME_AMPOULE.get() :
-                            (capacity == 16) ? ModItems.MEDIUM_VIS_FUME_AMPOULE.get() : ModItems.LARGE_VIS_FUME_AMPOULE.get());
+                    (capacity == 8) ? ModItems.SMALL_VIS_FUME_AMPOULE.get() :
+                            (capacity == 32) ? ModItems.MEDIUM_VIS_FUME_AMPOULE.get() : ModItems.LARGE_VIS_FUME_AMPOULE.get());
 
             EssenceType bestType = null;
             int maxFound = -1;

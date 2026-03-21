@@ -19,6 +19,7 @@
 
   "_comment_effects": "================ EFFECTS ================",
   "effect.entropica.vis_toxicity": "Vis Toxicity",
+  "effect.entropica.void_tear": "Void Tear",
 
   "_comment_enchants": "================ ENCHANTMENTS ================",
   "enchantment.entropica.augment_slot_expansion": "Augment Slot Expansion",
