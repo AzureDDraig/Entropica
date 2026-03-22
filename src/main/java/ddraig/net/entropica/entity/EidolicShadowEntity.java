@@ -9,7 +9,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -39,6 +38,11 @@ public class EidolicShadowEntity extends Entity {
     private boolean movingForward = true;
     private int waitTimer = 0;
 
+    // Animation Trackers
+    public float walkDist = 0f;
+    public float prevWalkDist = 0f;
+    private Vec3 lastPos = Vec3.ZERO;
+
     public EidolicShadowEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
         this.noPhysics = true;
@@ -57,7 +61,6 @@ public class EidolicShadowEntity extends Entity {
         this.waypoints = new ArrayList<>(path);
     }
 
-    // --- NEW GETTER FOR THE HOLOGRAPHIC RENDERER ---
     public List<BlockPos> getWaypoints() {
         return this.waypoints;
     }
@@ -108,15 +111,27 @@ public class EidolicShadowEntity extends Entity {
     public void tick() {
         super.tick();
 
+        // FIXED: The client MUST process animation frames before returning!
+        this.prevWalkDist = this.walkDist;
+        if (this.lastPos != Vec3.ZERO) {
+            double dx = this.getX() - this.lastPos.x;
+            double dz = this.getZ() - this.lastPos.z;
+            // Add distance to the animation tracker (multiplied by 4 for visible stride speed)
+            this.walkDist += (float) Math.sqrt(dx * dx + dz * dz) * 4.0f;
+        }
+        this.lastPos = this.position();
+
+        // Stop the client from trying to do server-side Pathfinding or Chest interactions
         if (level().isClientSide() || waypoints.isEmpty()) return;
 
+        // --- SERVER PATHFINDING LOGIC ---
         if (waitTimer > 0) {
             waitTimer--;
             return;
         }
 
         BlockPos targetPos = waypoints.get(currentTargetIndex);
-        Vec3 targetVec = new Vec3(targetPos.getX() + 0.5, targetPos.getY() + 0.5, targetPos.getZ() + 0.5);
+        Vec3 targetVec = new Vec3(targetPos.getX() + 0.5, targetPos.getY() + 1.0, targetPos.getZ() + 0.5);
         Vec3 currentVec = this.position();
         double dist = currentVec.distanceTo(targetVec);
 
@@ -124,33 +139,36 @@ public class EidolicShadowEntity extends Entity {
             if (currentTargetIndex == 0) {
                 if (entityData.get(CARRIED_ITEM).isEmpty()) {
                     interactWithChest(targetPos, true);
-
-                    if (entityData.get(CARRIED_ITEM).isEmpty()) {
-                        if (!hasRune("ᚱ")) {
-                            this.playSound(SoundEvents.SOUL_ESCAPE.value(), 1.0f, 0.5f);
-                            this.discard();
-                            return;
-                        }
-                    }
                 }
-                movingForward = true;
-                currentTargetIndex++;
+
+                if (!entityData.get(CARRIED_ITEM).isEmpty() || hasRune("ᚱ")) {
+                    movingForward = true;
+                    currentTargetIndex++;
+                } else {
+                    waitTimer = 20;
+                }
             } else if (currentTargetIndex == waypoints.size() - 1) {
                 if (!entityData.get(CARRIED_ITEM).isEmpty()) {
                     interactWithChest(targetPos, false);
                 }
 
-                if (!entityData.get(CARRIED_ITEM).isEmpty()) {
+                if (entityData.get(CARRIED_ITEM).isEmpty()) {
                     if (!hasRune("ᚱ")) {
-                        Containers.dropItemStack(level(), currentVec.x, currentVec.y, currentVec.z, entityData.get(CARRIED_ITEM));
                         this.playSound(SoundEvents.SOUL_ESCAPE.value(), 1.0f, 0.5f);
                         this.discard();
                         return;
+                    } else {
+                        movingForward = false;
+                        currentTargetIndex--;
+                    }
+                } else {
+                    if (hasRune("ᚱ")) {
+                        movingForward = false;
+                        currentTargetIndex--;
+                    } else {
+                        waitTimer = 20;
                     }
                 }
-                movingForward = false;
-                currentTargetIndex--;
-
             } else {
                 currentTargetIndex += movingForward ? 1 : -1;
             }
@@ -197,10 +215,6 @@ public class EidolicShadowEntity extends Entity {
             }
         }
     }
-
-    // ==========================================
-    // MODERN 1.21.10 SERIALIZATION
-    // ==========================================
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {

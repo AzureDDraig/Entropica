@@ -7,8 +7,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
@@ -26,10 +28,14 @@ public class EidolonPathmarkerItem extends EntropicaComponentItem {
         super(properties, "tooltip.entropica.eidolon_pathmarker");
     }
 
+    // ==========================================
+    // CALLED WHEN CLICKING A BLOCK
+    // ==========================================
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
         Level level = context.getLevel();
+
         BlockPos pos = context.getClickedPos();
         ItemStack stack = context.getItemInHand();
 
@@ -37,58 +43,96 @@ public class EidolonPathmarkerItem extends EntropicaComponentItem {
 
         CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = data.copyTag();
+        int size = tag.getInt("PathSize").orElse(0);
+
+        if (size >= 64) {
+            if (level.isClientSide()) {
+                player.displayClientMessage(Component.literal("Max path size reached (64 nodes). Right-click air to summon!").withStyle(ChatFormatting.RED), true);
+            }
+            return InteractionResult.FAIL;
+        }
+
+        tag.putLong("Path_" + size, pos.asLong());
+        tag.putInt("PathSize", size + 1);
+
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+
+        if (level.isClientSide()) {
+            player.displayClientMessage(Component.literal("Path Node " + (size + 1) + " marked.").withStyle(ChatFormatting.LIGHT_PURPLE), true);
+        } else {
+            // FIXED: Added .value() back to unwrap the Holder.Reference
+            level.playSound(null, pos, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.PLAYERS, 0.5f, 2.0f);
+        }
+
+        // Returning SUCCESS prevents the chest from opening!
+        return InteractionResult.SUCCESS;
+    }
+
+    // ==========================================
+    // CALLED WHEN CLICKING THE AIR
+    // ==========================================
+    @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CompoundTag tag = data.copyTag();
+        int size = tag.getInt("PathSize").orElse(0);
 
         if (player.isShiftKeyDown()) {
-            if (!level.isClientSide() && tag.contains("PathSize")) {
-                int size = tag.getInt("PathSize").orElse(0); // 1.21.10 Optional unwrap
-                if (size >= 2) {
+            // SNEAK + CLICK AIR: Safely clear the path without summoning
+            if (size > 0) {
+                tag.remove("PathSize");
+                for (int i = 0; i < size; i++) {
+                    tag.remove("Path_" + i);
+                }
+                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+
+                if (level.isClientSide()) {
+                    player.displayClientMessage(Component.literal("Path cleared.").withStyle(ChatFormatting.YELLOW), true);
+                } else {
+                    // FIXED: Added .value() back to unwrap the Holder.Reference
+                    level.playSound(null, player.blockPosition(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 1.0f, 1.0f);
+                }
+                return InteractionResult.SUCCESS;
+            }
+        } else {
+            // NORMAL CLICK AIR: Summon the shadow!
+            if (size >= 2) {
+                if (level instanceof ServerLevel serverLevel) {
                     List<BlockPos> path = new ArrayList<>();
                     for (int i = 0; i < size; i++) {
-                        path.add(BlockPos.of(tag.getLong("Path_" + i).orElse(0L))); // 1.21.10 Optional unwrap
+                        path.add(BlockPos.of(tag.getLong("Path_" + i).orElse(0L)));
                     }
 
-                    // 1.21.10 requires EntitySpawnReason
-                    EidolicShadowEntity shadow = ModEntityTypes.EIDOLIC_SHADOW.get().create(level, EntitySpawnReason.SPAWN_ITEM_USE);
+                    EidolicShadowEntity shadow = ModEntityTypes.EIDOLIC_SHADOW.get().create(serverLevel, EntitySpawnReason.SPAWN_ITEM_USE);
                     if (shadow != null) {
                         BlockPos spawnPos = path.get(0);
-                        shadow.setPos(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
+                        // Spawn 1 block above the chest so it gracefully hovers
+                        shadow.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
                         shadow.setWaypoints(path);
-                        level.addFreshEntity(shadow);
-
-                        // 1.21.10 SoundEvent unwrapping
-                        level.playSound(null, spawnPos, SoundEvents.SOUL_ESCAPE.value(), SoundSource.PLAYERS, 1.0f, 0.5f);
+                        serverLevel.addFreshEntity(shadow);
+                        serverLevel.playSound(null, spawnPos, SoundEvents.SOUL_ESCAPE.value(), SoundSource.PLAYERS, 1.0f, 0.5f);
                     }
-
-                    tag.remove("PathSize");
-                    CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
                 } else {
+                    player.displayClientMessage(Component.literal("Eidolic Shadow Summoned!").withStyle(ChatFormatting.DARK_PURPLE), true);
+                }
+
+                // Clear the path data after successfully summoning
+                tag.remove("PathSize");
+                for (int i = 0; i < size; i++) {
+                    tag.remove("Path_" + i);
+                }
+                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+
+                return InteractionResult.SUCCESS;
+            } else if (size > 0) {
+                if (level.isClientSide()) {
                     player.displayClientMessage(Component.literal("Path too short! Need at least 2 points.").withStyle(ChatFormatting.RED), true);
                 }
-            } else if (level.isClientSide()) {
-                player.displayClientMessage(Component.literal("Eidolic Shadow Summoned!").withStyle(ChatFormatting.DARK_PURPLE), true);
+                return InteractionResult.FAIL;
             }
-            return InteractionResult.SUCCESS;
-        } else {
-            if (!level.isClientSide()) {
-                int size = tag.getInt("PathSize").orElse(0);
-
-                // Add your 64 block hard limit
-                if (size >= 64) {
-                    player.displayClientMessage(Component.literal("Max path size reached (64 nodes). Shift-click to summon!").withStyle(ChatFormatting.RED), true);
-                    return InteractionResult.FAIL;
-                }
-
-                tag.putLong("Path_" + size, pos.asLong());
-                tag.putInt("PathSize", size + 1);
-                CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
-
-                // 1.21.10 SoundEvent unwrapping
-                level.playSound(null, pos, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.PLAYERS, 0.5f, 2.0f);
-            } else {
-                int size = tag.getInt("PathSize").orElse(0);
-                player.displayClientMessage(Component.literal("Path Node " + (size + 1) + " marked.").withStyle(ChatFormatting.LIGHT_PURPLE), true);
-            }
-            return InteractionResult.SUCCESS;
         }
+
+        return InteractionResult.PASS;
     }
 }

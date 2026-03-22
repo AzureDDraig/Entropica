@@ -125,12 +125,12 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.ATTUNEMENT_PEDESTAL_BE.get(), AttunementPedestalRenderer::new);
 
         event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_VIS_FUME_GENERATOR_BE.get(), CreativeVisFumeGeneratorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_PARTICLE_GENERATOR_BE.get(), CreativeParticleGeneratorRenderer::new);
+
+        event.registerBlockEntityRenderer(ModBlockEntities.VOID_RIFT_BE.get(), context -> new VoidRiftRenderer(context));
 
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
-
-        // --- FIXED: Bind the Shadow Courier to its renderer! ---
-        event.registerEntityRenderer(ModEntityTypes.EIDOLIC_SHADOW.get(), EidolicShadowRenderer::new);
     }
 
     @SubscribeEvent
@@ -203,8 +203,6 @@ public class ModClientEvents {
 
         }, ModFluids.DILUTED_ESSENCE_FLUID_TYPE.get());
     }
-
-    // --- 1.21.2+ DATA-DRIVEN ITEM TINTING SYSTEM ---
 
     public record AmpouleTint() implements ItemTintSource {
         public static final MapCodec<AmpouleTint> MAP_CODEC = MapCodec.unit(new AmpouleTint());
@@ -280,5 +278,11 @@ public class ModClientEvents {
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "generator_tint"), GeneratorTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "fume_glass_tint"), FumeGlassTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "essence_tint"), EssenceTint.MAP_CODEC);
+    }
+
+    @SubscribeEvent
+    public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        // Registers the Hulking Beast blockbench model layout into the game!
+        event.registerLayerDefinition(EidolicShadowModel.LAYER_LOCATION, EidolicShadowModel::createBodyLayer);
     }
 }

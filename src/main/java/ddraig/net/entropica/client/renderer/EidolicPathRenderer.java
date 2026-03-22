@@ -32,7 +32,6 @@ public class EidolicPathRenderer {
 
     private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
 
-    // FIXED: Subscribed to the specific .AfterEntities subclass required by NeoForge 1.21.10!
     @SubscribeEvent
     public static void onRenderWorld(RenderLevelStageEvent.AfterEntities event) {
         Minecraft mc = Minecraft.getInstance();
@@ -43,17 +42,13 @@ public class EidolicPathRenderer {
         ItemStack offHand = player.getOffhandItem();
         boolean holdsMarker = mainHand.getItem() instanceof EidolonPathmarkerItem || offHand.getItem() instanceof EidolonPathmarkerItem;
 
-        // Only draw the holographic paths if the player is holding the Pathmarker tool!
         if (!holdsMarker) return;
 
         PoseStack poseStack = event.getPoseStack();
-
-        // Safely pull the Camera directly from the GameRenderer
         Vec3 camPos = mc.gameRenderer.getMainCamera().getPosition();
         MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
 
         poseStack.pushPose();
-        // Shift matrix to 0,0,0 world origin for absolute coordinate rendering
         poseStack.translate(-camPos.x, -camPos.y, -camPos.z);
 
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucentEmissive(WHITE_TEXTURE));
@@ -87,14 +82,13 @@ public class EidolicPathRenderer {
     private static void renderPath(PoseStack poseStack, VertexConsumer consumer, List<BlockPos> path, float r, float g, float b, float a) {
         if (path.isEmpty()) return;
 
-        int light = 15728880; // Max Light (Glow in the dark)
+        int light = 15728880;
 
-        // Draw small glowing cubes at each recorded Block Node
         for (BlockPos pos : path) {
             poseStack.pushPose();
-            poseStack.translate(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+            // FIXED: Float the hologram +1.0 block up so it perfectly matches the ghost's path and isn't trapped in the chest!
+            poseStack.translate(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5);
 
-            // Subtle rotation pulse for the nodes
             float time = (System.currentTimeMillis() % 360000L) / 20.0f;
             poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(time));
             poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(time));
@@ -103,10 +97,10 @@ public class EidolicPathRenderer {
             poseStack.popPose();
         }
 
-        // Draw connecting glowing beams between the nodes
         for (int i = 0; i < path.size() - 1; i++) {
-            Vec3 p1 = new Vec3(path.get(i).getX() + 0.5, path.get(i).getY() + 0.5, path.get(i).getZ() + 0.5);
-            Vec3 p2 = new Vec3(path.get(i+1).getX() + 0.5, path.get(i+1).getY() + 0.5, path.get(i+1).getZ() + 0.5);
+            // FIXED: Beam endpoints raised by +1.0 Y to connect the floating cubes
+            Vec3 p1 = new Vec3(path.get(i).getX() + 0.5, path.get(i).getY() + 1.0, path.get(i).getZ() + 0.5);
+            Vec3 p2 = new Vec3(path.get(i+1).getX() + 0.5, path.get(i+1).getY() + 1.0, path.get(i+1).getZ() + 0.5);
             drawBeam(consumer, poseStack.last().pose(), p1, p2, 0.05f, r, g, b, a, light);
         }
     }
