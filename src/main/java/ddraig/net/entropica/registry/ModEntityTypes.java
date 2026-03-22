@@ -1,6 +1,7 @@
 package ddraig.net.entropica.registry;
 
 import ddraig.net.entropica.Entropica;
+import ddraig.net.entropica.entity.EidolicShadowEntity;
 import ddraig.net.entropica.entity.EssenceNodeEntity;
 import ddraig.net.entropica.entity.EssenceOrbEntity;
 import net.minecraft.core.registries.Registries;
@@ -31,4 +32,14 @@ public class ModEntityTypes {
                             .updateInterval(20)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "essence_node"))));
+
+    // --- NEW EIDOLIC SHADOW ENTITY ---
+    public static final DeferredHolder<EntityType<?>, EntityType<EidolicShadowEntity>> EIDOLIC_SHADOW =
+            ENTITY_TYPES.register("eidolic_shadow",
+                    () -> EntityType.Builder.<EidolicShadowEntity>of(EidolicShadowEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 1.8F) // Humanoid bounds
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "eidolic_shadow"))));
 }

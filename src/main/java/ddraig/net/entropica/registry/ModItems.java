@@ -24,6 +24,7 @@ public class ModItems {
     // --- Standalone Items ---
     public static final DeferredItem<Item> ARCANUM_FOCUS = ITEMS.registerItem("arcanum_focus", Item::new);
     public static final DeferredItem<Item> VIS_VALUE_DETECTOR = ITEMS.registerItem("vis_value_detector", Item::new);
+    public static final DeferredItem<Item> EIDOLON_PATHMARKER = ITEMS.registerItem("eidolon_pathmarker", properties -> new EidolonPathmarkerItem(properties.stacksTo(1)));
 
     // --- Aetheric Vision Equipment ---
     public static final DeferredItem<Item> AETHERIC_MONOCLE = ITEMS.registerItem("aetheric_monocle", properties -> new ddraig.net.entropica.item.AethericVisionItem(
@@ -250,9 +251,7 @@ public class ModItems {
     public static final DeferredItem<Item> RESONITE_TUNING_FORK = ITEMS.registerItem("resonite_tuning_fork", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_tuning_fork"));
 
     // --- VOID LOGISTICS ---
-    // FIXED: Now uses the custom VoidResonantTuningForkItem class!
     public static final DeferredItem<Item> VOID_RESONANT_TUNING_FORK = ITEMS.registerItem("void_resonant_tuning_fork", VoidResonantTuningForkItem::new);
-
     public static final DeferredItem<Item> SPECTRAL_GLYPH_PLATE = ITEMS.registerItem("spectral_glyph_plate", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.spectral_glyph_plate"));
     public static final DeferredItem<Item> TETHER_ANCHOR_PIN = ITEMS.registerItem("tether_anchor_pin", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.tether_anchor_pin"));
 
@@ -437,7 +436,7 @@ public class ModItems {
     // Any basic item added to this list will automatically have a flat model generated.
     // ==========================================
     public static final List<DeferredItem<? extends Item>> SIMPLE_ITEMS = List.of(
-            ARCANUM_FOCUS, VIS_VALUE_DETECTOR, ARCANE_BRICK_PIECE, ARCANE_CLAY,
+            ARCANUM_FOCUS, VIS_VALUE_DETECTOR, ARCANE_BRICK_PIECE, ARCANE_CLAY, EIDOLON_PATHMARKER,
             SMALL_AMPOULE, MEDIUM_AMPOULE, LARGE_AMPOULE, ESSENCE_HARVESTING_BLADE, SOULBOUND_BLADE,
             OBLIVION_BLADE, TIDAL_TRIDENT, VOID_SWORD, BASALT_PICKAXE, WHISPERWOOD_WAND, SHIMMERING_FOCUS,
             ARCANITE_INGOT, VISCANITE_INGOT, RESONITE_INGOT, EIDOLITE_INGOT, CHARGED_ARCANITE_INGOT, CHARGED_VISCANITE_INGOT, CHARGED_RESONITE_INGOT, CHARGED_EIDOLITE_INGOT,
