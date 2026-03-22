@@ -131,6 +131,9 @@ public class ModClientEvents {
 
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
+
+        // FIXED: The Shadow Beast renderer is now bound to the physical entity!
+        event.registerEntityRenderer(ModEntityTypes.EIDOLIC_SHADOW.get(), EidolicShadowRenderer::new);
     }
 
     @SubscribeEvent
