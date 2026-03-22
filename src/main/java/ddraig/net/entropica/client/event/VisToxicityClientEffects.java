@@ -1,15 +1,12 @@
 package ddraig.net.entropica.client.event;
 
 import ddraig.net.entropica.Entropica;
-import ddraig.net.entropica.api.fumes.IFumeHandler;
-import ddraig.net.entropica.api.fumes.VisFumeStack;
+import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.registry.ModAttachments;
 import ddraig.net.entropica.registry.ModEffects;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -21,7 +18,7 @@ public class VisToxicityClientEffects {
 
     // Trackers for the glitch state
     private static int glitchFramesLeft = 0;
-    private static int maxGlitchFrames = 1;
+    private static int maxGlitchFrames = 3;
     private static int currentGlitchColor = 0xFFFFFF;
 
     @SubscribeEvent
@@ -68,8 +65,18 @@ public class VisToxicityClientEffects {
                     glitchFramesLeft = player.level().random.nextInt(10) + 5;
                     maxGlitchFrames = glitchFramesLeft;
 
-                    // Scan the area for the gas causing the issue
-                    currentGlitchColor = findNearestFumeColor(player);
+                    // DIRECT READ: Pull the synced toxicity source directly from the player!
+                    String typeName = player.getData(ModAttachments.TOXICITY_SOURCE);
+                    try {
+                        if (!typeName.equals("UNKNOWN")) {
+                            EssenceType type = EssenceType.valueOf(typeName);
+                            currentGlitchColor = type.getColorInt();
+                        } else {
+                            currentGlitchColor = 0x88FF88; // Default pale green fallback
+                        }
+                    } catch (IllegalArgumentException e) {
+                        currentGlitchColor = 0x88FF88;
+                    }
                 }
             }
 
@@ -115,39 +122,5 @@ public class VisToxicityClientEffects {
                 event.getGuiGraphics().fill(0, 0, screenWidth, screenHeight, argb);
             }
         }
-    }
-
-    /**
-     * Scans a 4-block radius around the player to find the closest machine/pipe with fumes.
-     */
-    private static int findNearestFumeColor(LocalPlayer player) {
-        Level level = player.level();
-        BlockPos playerPos = player.blockPosition();
-
-        // Default to a sickly pale green if we somehow can't find a pipe nearby
-        int closestColor = 0x88FF88;
-        double closestDist = Double.MAX_VALUE;
-
-        // Scan a 9x9x9 area around the player
-        for (int x = -4; x <= 4; x++) {
-            for (int y = -4; y <= 4; y++) {
-                for (int z = -4; z <= 4; z++) {
-                    BlockPos pos = playerPos.offset(x, y, z);
-                    BlockEntity be = level.getBlockEntity(pos);
-
-                    if (be instanceof IFumeHandler handler) {
-                        VisFumeStack stack = handler.getFumeInTank();
-                        if (!stack.isEmpty()) {
-                            double dist = pos.distSqr(playerPos);
-                            if (dist < closestDist) {
-                                closestDist = dist;
-                                closestColor = stack.getType().getColorInt();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return closestColor;
     }
 }

@@ -21,9 +21,8 @@ public class Entropica {
 
         // --- Register the Network Packets ---
         modEventBus.addListener(ModNetwork::register);
-
+        ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         ModDataComponents.COMPONENTS.register(modEventBus);
-
         ModEffects.EFFECTS.register(modEventBus); // <-- Added Effects Registry here!
         ModFluids.FLUID_TYPES.register(modEventBus);
         ModFluids.FLUIDS.register(modEventBus);

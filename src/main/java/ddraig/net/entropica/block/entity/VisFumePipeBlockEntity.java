@@ -6,6 +6,7 @@ import ddraig.net.entropica.api.fumes.VisFumeStack;
 import ddraig.net.entropica.block.VisFumeOneWayValveBlock;
 import ddraig.net.entropica.block.VisFumePipeBlock;
 import ddraig.net.entropica.config.EntropicaConfig;
+import ddraig.net.entropica.registry.ModAttachments;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModEffects;
 import net.minecraft.core.BlockPos;
@@ -266,8 +267,6 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
         }
 
         // 3. OPEN END VENTING
-        // FIXED: Only vent if the pipe has exactly ONE connection, meaning it is an open-ended pipe.
-        // It will vent out the exact opposite side of its only connection.
         if (activeConnections.size() == 1 && myAmount > 0) {
             Direction ventDir = activeConnections.get(0).getOpposite();
 
@@ -459,8 +458,13 @@ public class VisFumePipeBlockEntity extends BlockEntity implements IFumeHandler 
     private void applyVisToxicity(ServerLevel level, BlockPos pos) {
         AABB aabb = new AABB(pos).inflate(3.0);
         List<Player> players = level.getEntitiesOfClass(Player.class, aabb);
+
+        // FIXED: Extract the literal EssenceType from the pipe's internal storage
+        String toxicitySource = this.storedFumes.isEmpty() ? "UNKNOWN" : this.storedFumes.getType().name();
+
         for (Player player : players) {
             player.addEffect(new MobEffectInstance(ModEffects.VIS_TOXICITY, 200, 0));
+            player.setData(ModAttachments.TOXICITY_SOURCE, toxicitySource);
         }
     }
 

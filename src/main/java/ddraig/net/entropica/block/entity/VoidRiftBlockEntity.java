@@ -1,7 +1,9 @@
 package ddraig.net.entropica.block.entity;
 
 import com.mojang.serialization.Codec;
+import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.block.VoidRiftBlock;
+import ddraig.net.entropica.registry.ModAttachments;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModEffects;
 import net.minecraft.core.BlockPos;
@@ -111,7 +113,6 @@ public class VoidRiftBlockEntity extends BlockEntity {
 
         boolean found = false;
         while (!queue.isEmpty()) {
-            // Highly optimized safety bound: A 9x9x9 space only contains 729 blocks maximum.
             if (visited.size() > 500) {
                 break;
             }
@@ -125,7 +126,6 @@ public class VoidRiftBlockEntity extends BlockEntity {
             for (Direction dir : Direction.values()) {
                 BlockPos neighbor = current.relative(dir);
 
-                // Strictly bounded to the 9x9x9 area (Chebyshev distance of 4)
                 if (Math.abs(neighbor.getX() - start.getX()) > 4 ||
                         Math.abs(neighbor.getY() - start.getY()) > 4 ||
                         Math.abs(neighbor.getZ() - start.getZ()) > 4) continue;
@@ -233,6 +233,8 @@ public class VoidRiftBlockEntity extends BlockEntity {
             for (LivingEntity living : entities) {
                 living.addEffect(new MobEffectInstance(ModEffects.VOID_TEAR, 80, 0, false, true, true));
                 living.addEffect(new MobEffectInstance(ModEffects.VIS_TOXICITY, 200, 0, false, true, true));
+                // FIXED: Use the specific LivingEntity instance and explicitly pass VOID
+                living.setData(ModAttachments.TOXICITY_SOURCE, EssenceType.VOID.name());
             }
         }
 
