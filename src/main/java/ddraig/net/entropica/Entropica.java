@@ -1,6 +1,7 @@
 package ddraig.net.entropica;
 
 import ddraig.net.entropica.config.EntropicaConfig;
+import ddraig.net.entropica.event.ModEntityEvents;
 import ddraig.net.entropica.network.ModNetwork;
 import ddraig.net.entropica.registry.*;
 import org.slf4j.Logger;

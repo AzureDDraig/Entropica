@@ -4,6 +4,7 @@ import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.entity.EidolicShadowEntity;
 import ddraig.net.entropica.entity.EssenceNodeEntity;
 import ddraig.net.entropica.entity.EssenceOrbEntity;
+import ddraig.net.entropica.entity.grot.GrotEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -33,7 +34,7 @@ public class ModEntityTypes {
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "essence_node"))));
 
-    // --- NEW EIDOLIC SHADOW ENTITY ---
+    // --- EIDOLIC SHADOW ENTITY (Shelved but Registered) ---
     public static final DeferredHolder<EntityType<?>, EntityType<EidolicShadowEntity>> EIDOLIC_SHADOW =
             ENTITY_TYPES.register("eidolic_shadow",
                     () -> EntityType.Builder.<EidolicShadowEntity>of(EidolicShadowEntity::new, MobCategory.MISC)
@@ -42,4 +43,14 @@ public class ModEntityTypes {
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "eidolic_shadow"))));
+
+    // --- GROT ENTITY ---
+    public static final DeferredHolder<EntityType<?>, EntityType<GrotEntity>> GROT =
+            ENTITY_TYPES.register("grot",
+                    () -> EntityType.Builder.<GrotEntity>of(GrotEntity::new, MobCategory.MONSTER)
+                            .sized(2.04F, 2.04F) // Vanilla Slime base size. Entity scales this dynamically based on the Size attribute!
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "grot"))));
 }

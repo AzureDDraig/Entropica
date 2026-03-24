@@ -16,5 +16,8 @@ public class ModCommands {
 
         // Register all individual commands here as you make them!
         EssenceNodeCommands.register(dispatcher);
+
+        // --- Register the new Grot Summon Command ---
+        GrotSummonCommands.register(dispatcher);
     }
 }
