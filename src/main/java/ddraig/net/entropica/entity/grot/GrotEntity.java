@@ -236,13 +236,14 @@ public class GrotEntity extends Slime {
         this.goalSelector.addGoal(2, new Goal() {
             private GrotEntity targetMate;
             @Override public boolean canUse() {
-                if (GrotEntity.this.getIntelligence() < 15 || GrotEntity.this.isTamed()) return false;
+                // Ensure they aren't breeding (inLove) and aren't tamed.
+                if (GrotEntity.this.getIntelligence() < 15 || GrotEntity.this.isTamed() || GrotEntity.this.inLove > 0) return false;
                 if (GrotEntity.this.getHealth() > GrotEntity.this.getMaxHealth() * 0.3f) return false;
                 if (GrotEntity.this.getSize() >= 8 || GrotEntity.this.isFusing()) return false;
 
                 List<GrotEntity> list = GrotEntity.this.level().getEntitiesOfClass(GrotEntity.class, GrotEntity.this.getBoundingBox().inflate(16.0D));
                 for (GrotEntity other : list) {
-                    if (other != GrotEntity.this && other.getSize() == GrotEntity.this.getSize() && !other.isFusing() && other.isAlive() && !other.isTamed()) {
+                    if (other != GrotEntity.this && other.getSize() == GrotEntity.this.getSize() && !other.isFusing() && other.isAlive() && !other.isTamed() && other.inLove <= 0) {
                         targetMate = other;
                         return true;
                     }
@@ -1465,16 +1466,31 @@ public class GrotEntity extends Slime {
             return;
         }
 
+        // Breeding is not agreeing to merge, and taming prevents merges (unless rebelling, where isTamed is false)
+        if (this.inLove > 0 || this.isTamed()) {
+            this.contactTicks = Math.max(0, this.contactTicks - 2);
+            return;
+        }
+
         AABB scanBox = this.getBoundingBox().inflate(0.2);
         List<GrotEntity> others = this.level().getEntitiesOfClass(GrotEntity.class, scanBox, e ->
-                e != this && e.isAlive() && !e.isFusing() && e.getSize() == this.getSize()
+                e != this && e.isAlive() && !e.isFusing() && e.getSize() == this.getSize() && e.inLove <= 0 && !e.isTamed()
         );
 
         if (!others.isEmpty()) {
             GrotEntity partner = others.get(0);
+
+            // Merging should only happen if at least one is in combat
+            boolean eitherInCombat = this.getTarget() != null || partner.getTarget() != null;
+            if (!eitherInCombat) {
+                this.contactTicks = Math.max(0, this.contactTicks - 2);
+                return;
+            }
+
             this.contactTicks++;
 
-            if (this.contactTicks >= 100 || this.getRandom().nextFloat() < 0.04f) {
+            // They "agree" to merge by maintaining contact for 100 ticks (removed random 4% instant-fusion chance to stop accidents)
+            if (this.contactTicks >= 100) {
                 this.setFusing(true);
                 partner.setFusing(true);
                 this.setFusionTarget(partner.getId());
