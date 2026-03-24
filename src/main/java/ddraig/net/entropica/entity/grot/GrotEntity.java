@@ -19,6 +19,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -81,14 +82,11 @@ public class GrotEntity extends Slime {
     private static final EntityDataAccessor<Integer> FRIENDLINESS = SynchedEntityData.defineId(GrotEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_TAMED = SynchedEntityData.defineId(GrotEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_RIDEABLE = SynchedEntityData.defineId(GrotEntity.class, EntityDataSerializers.BOOLEAN);
-
-    // Safely syncs the UUID as a String to prevent OPTIONAL_UUID registry crashes
     private static final EntityDataAccessor<String> OWNER_UUID = SynchedEntityData.defineId(GrotEntity.class, EntityDataSerializers.STRING);
-
-    // --- NEW GENETICS ---
     private static final EntityDataAccessor<Integer> PURITY = SynchedEntityData.defineId(GrotEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FERTILITY = SynchedEntityData.defineId(GrotEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_COHESIVE = SynchedEntityData.defineId(GrotEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> REBEL_CHANCE = SynchedEntityData.defineId(GrotEntity.class, EntityDataSerializers.INT);
 
     private int contactTicks = 0;
     private int fusionTicks = 0;
@@ -114,8 +112,6 @@ public class GrotEntity extends Slime {
 
     @Override
     public EntityDimensions getDefaultDimensions(Pose pose) {
-        // EXACT HITBOX FIX REVERT: Mathematically multiplies base by size and the new Genetic Scale Factor!
-        // Prevents the double-scaling error caused by directly modifying Attributes.SCALE!
         float s = 0.51F * (float)Math.max(1, this.getSize()) * this.getScaleFactor();
         return EntityDimensions.fixed(s, s);
     }
@@ -134,23 +130,56 @@ public class GrotEntity extends Slime {
         return true;
     }
 
+    @Nullable
+    @Override
+    public LivingEntity getControllingPassenger() {
+        if (this.isRideable() && this.getIntelligence() > 8) {
+            Entity first = this.getFirstPassenger();
+            if (first instanceof Player player) {
+                return player;
+            }
+        }
+        return super.getControllingPassenger();
+    }
+
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        // Tamed Player Protection: Block incoming damage from players unless the player is sneaking
         if (this.isTamed() && source.getEntity() instanceof Player player) {
             if (!player.isCrouching()) {
                 return false;
+            }
+
+            Optional<UUID> ownerId = this.getOwnerUUID();
+            if (ownerId.isPresent() && player.getUUID().equals(ownerId.get())) {
+                this.setFriendliness(Math.max(0, this.getFriendliness() - 15));
+                this.setRebelChance(Math.min(100, this.getRebelChance() + 15));
+
+                if (this.getRandom().nextInt(100) < this.getRebelChance()) {
+                    this.setTamed(false);
+                    this.setOwnerUUID(null);
+                    this.setRebelChance(0);
+
+                    this.setTarget(player);
+                    this.playSound(SoundEvents.ENDER_DRAGON_GROWL, 1.0f, 1.5f);
+
+                    double alertRange = 20.0D;
+                    AABB alertBox = this.getBoundingBox().inflate(alertRange);
+                    List<GrotEntity> friends = this.level().getEntitiesOfClass(GrotEntity.class, alertBox);
+                    for (GrotEntity friend : friends) {
+                        if (friend != this && friend.getTarget() == null && friend.isAlive() && !friend.isTamed()) {
+                            friend.setTarget(player);
+                        }
+                    }
+                }
             }
         }
         return super.hurtServer(level, source, amount);
     }
 
-    // --- RIDING AND FEEDING INTERACTION ---
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
-        // Rideable Check (Empty hand, not sneaking)
         if (this.isRideable() && stack.isEmpty() && !player.isSecondaryUseActive()) {
             if (!this.level().isClientSide()) {
                 player.startRiding(this);
@@ -161,25 +190,21 @@ public class GrotEntity extends Slime {
         if (stack.getItem() instanceof EssenceItem eItem) {
             EssenceType t = EssenceItem.getEssenceType(stack);
 
-            // Feeding them their matched Essence type!
             if (t == this.getEssenceType()) {
                 if (!player.isCreative()) stack.shrink(1);
 
                 if (!this.level().isClientSide()) {
-                    // Raises friendliness!
                     if (this.getFriendliness() < 255) {
                         this.setFriendliness(Math.min(255, this.getFriendliness() + 10));
                     }
 
-                    // Taming logic
                     if (!this.isTamed() && this.getFriendliness() > 50 && this.getRandom().nextFloat() < 0.2f) {
                         this.setTamed(true);
                         this.setOwnerUUID(player.getUUID());
-                        this.level().broadcastEntityEvent(this, (byte) 7); // Heart particles for tame
+                        this.level().broadcastEntityEvent(this, (byte) 7);
                     }
-                    // Breeding logic (if already tamed or high enough friendliness)
                     else if (!this.isSterile() && this.inLove <= 0 && this.loveCooldown <= 0) {
-                        this.inLove = 600; // 30 seconds of love mode
+                        this.inLove = 600;
                         this.level().broadcastEntityEvent(this, (byte) 18);
                     }
                 }
@@ -207,8 +232,84 @@ public class GrotEntity extends Slime {
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new FloatGoal(this));
 
-        // BREEDING GOAL
+        // --- NEW: TACTICAL FUSION (Emergency Heal) ---
         this.goalSelector.addGoal(2, new Goal() {
+            private GrotEntity targetMate;
+            @Override public boolean canUse() {
+                if (GrotEntity.this.getIntelligence() < 15 || GrotEntity.this.isTamed()) return false;
+                if (GrotEntity.this.getHealth() > GrotEntity.this.getMaxHealth() * 0.3f) return false;
+                if (GrotEntity.this.getSize() >= 8 || GrotEntity.this.isFusing()) return false;
+
+                List<GrotEntity> list = GrotEntity.this.level().getEntitiesOfClass(GrotEntity.class, GrotEntity.this.getBoundingBox().inflate(16.0D));
+                for (GrotEntity other : list) {
+                    if (other != GrotEntity.this && other.getSize() == GrotEntity.this.getSize() && !other.isFusing() && other.isAlive() && !other.isTamed()) {
+                        targetMate = other;
+                        return true;
+                    }
+                }
+                return false;
+            }
+            @Override public void start() {
+                GrotEntity.this.setTarget(null); // Abort combat!
+            }
+            @Override public boolean canContinueToUse() {
+                return targetMate != null && targetMate.isAlive() && !GrotEntity.this.isFusing();
+            }
+            @Override public void tick() {
+                if (targetMate != null && targetMate.isAlive()) {
+                    GrotEntity.this.getNavigation().moveTo(targetMate, 1.5D);
+                    if (GrotEntity.this.distanceToSqr(targetMate) < 3.0D) {
+                        GrotEntity.this.setFusing(true);
+                        targetMate.setFusing(true);
+                        GrotEntity.this.setFusionTarget(targetMate.getId());
+                        targetMate.setFusionTarget(GrotEntity.this.getId());
+                        GrotEntity.this.contactTicks = 100;
+                        targetMate.contactTicks = 100;
+                        GrotEntity.this.fusionTicks = 25; // Skip almost the entire struggle
+                    }
+                }
+            }
+        });
+
+        // --- NEW: LOOT DENIAL (Greedy Grot) ---
+        this.goalSelector.addGoal(3, new Goal() {
+            private ItemEntity targetItem;
+            @Override public boolean canUse() {
+                if (GrotEntity.this.getIntelligence() < 8 || GrotEntity.this.isTamed()) return false;
+                List<ItemEntity> items = GrotEntity.this.level().getEntitiesOfClass(ItemEntity.class, GrotEntity.this.getBoundingBox().inflate(12.0D));
+                for (ItemEntity item : items) {
+                    Item i = item.getItem().getItem();
+                    if (i == ModItems.AVERAGE_ESSENCE.get() || i == ModItems.STRONG_ESSENCE.get()) {
+                        targetItem = item;
+                        return true;
+                    }
+                }
+                return false;
+            }
+            @Override public void start() { GrotEntity.this.setTarget(null); }
+            @Override public boolean canContinueToUse() {
+                return targetItem != null && targetItem.isAlive();
+            }
+            @Override public void tick() {
+                if (targetItem != null && targetItem.isAlive()) {
+                    GrotEntity.this.getNavigation().moveTo(targetItem, 1.4D);
+                    if (GrotEntity.this.distanceToSqr(targetItem) < 2.0D) {
+                        targetItem.discard();
+                        GrotEntity.this.playSound(SoundEvents.GENERIC_EAT.value(), 1.0F, 1.0F);
+                        GrotEntity.this.heal(GrotEntity.this.getMaxHealth());
+                        GrotEntity.this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 600, 1));
+                        GrotEntity.this.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 600, 1));
+                        if (GrotEntity.this.getRandom().nextBoolean() && GrotEntity.this.getPurity() < 28) {
+                            GrotEntity.this.setPurity(GrotEntity.this.getPurity() + 1);
+                        }
+                        targetItem = null;
+                    }
+                }
+            }
+        });
+
+        // BREEDING GOAL
+        this.goalSelector.addGoal(4, new Goal() {
             private GrotEntity mate;
 
             @Override public boolean canUse() {
@@ -235,14 +336,11 @@ public class GrotEntity extends Slime {
                     GrotEntity.this.inLove = 0;
                     mate.inLove = 0;
 
-                    // Fertility dramatically reduces breeding cooldown!
                     int cooldown = Math.max(1200, 6000 - (GrotEntity.this.getFertility() * 200));
                     GrotEntity.this.loveCooldown = cooldown;
                     mate.loveCooldown = cooldown;
 
                     if (!GrotEntity.this.level().isClientSide()) {
-
-                        // High fertility grants a chance for Twins or Triplets
                         int numBabies = 1;
                         float extraChance = (GrotEntity.this.getFertility() + mate.getFertility()) * 0.025f;
                         if (GrotEntity.this.getRandom().nextFloat() < extraChance) numBabies++;
@@ -255,30 +353,25 @@ public class GrotEntity extends Slime {
                                 EssenceType t2 = mate.getEssenceType();
                                 EssenceType fusion = GrotFusionHelper.getFusion(t1, t2);
 
-                                // Fusion Genetics
                                 if (fusion != null && GrotEntity.this.getRandom().nextFloat() < 0.75f) {
                                     baby.setEssenceType(fusion);
                                 } else {
                                     baby.setEssenceType(GrotEntity.this.getRandom().nextBoolean() ? t1 : t2);
                                 }
 
-                                // Average the genetics with slight mutations!
                                 baby.setScaleFactor(GrotEntity.this.mutate((GrotEntity.this.getScaleFactor() + mate.getScaleFactor()) / 2f, 0.75f, 1.25f));
                                 baby.setStrengthFactor(GrotEntity.this.mutate((GrotEntity.this.getStrengthFactor() + mate.getStrengthFactor()) / 2f, 0.5f, 1.5f));
                                 baby.setVisFactor(GrotEntity.this.mutate((GrotEntity.this.getVisFactor() + mate.getVisFactor()) / 2f, 0.5f, 1.5f));
                                 baby.setSpeedFactor(GrotEntity.this.mutate((GrotEntity.this.getSpeedFactor() + mate.getSpeedFactor()) / 2f, 0.8f, 1.2f));
                                 baby.setWaterSpeedFactor(GrotEntity.this.mutate((GrotEntity.this.getWaterSpeedFactor() + mate.getWaterSpeedFactor()) / 2f, 0.65f, 1.35f));
 
-                                // Averages Intelligence and Friendliness
                                 baby.setIntelligence((GrotEntity.this.getIntelligence() + mate.getIntelligence()) / 2);
                                 baby.setFriendliness((GrotEntity.this.getFriendliness() + mate.getFriendliness()) / 2);
 
-                                // NEW GENETICS: Purity, Fertility, and Cohesion
                                 baby.setPurity(Mth.clamp((GrotEntity.this.getPurity() + mate.getPurity()) / 2 + (GrotEntity.this.getRandom().nextInt(3) - 1), 1, 28));
                                 baby.setFertility(Mth.clamp((GrotEntity.this.getFertility() + mate.getFertility()) / 2 + (GrotEntity.this.getRandom().nextInt(3) - 1), 1, 20));
                                 baby.setCohesive(GrotEntity.this.isCohesive() || mate.isCohesive() ? GrotEntity.this.getRandom().nextFloat() < 0.8f : GrotEntity.this.getRandom().nextFloat() < 0.05f);
 
-                                // RANGED GENETICS: Hereditary trait logic
                                 float rangedChance = 0.05f;
                                 if (GrotEntity.this.canRanged() && mate.canRanged()) rangedChance = 0.80f;
                                 else if (GrotEntity.this.canRanged() || mate.canRanged()) rangedChance = 0.40f;
@@ -297,14 +390,73 @@ public class GrotEntity extends Slime {
             }
         });
 
-        // FLEE GOAL (Incorporates the Intelligence Avoidance & Call Help logic)
-        this.goalSelector.addGoal(3, new Goal() {
+        // --- NEW: CONDUCTOR WATER SEEKING ---
+        this.goalSelector.addGoal(5, new Goal() {
+            private BlockPos waterPos;
+            @Override public boolean canUse() {
+                if (GrotEntity.this.getIntelligence() < 10 || GrotEntity.this.isTamed()) return false;
+                if (GrotEntity.this.getTarget() == null || GrotEntity.this.isInWater()) return false;
+
+                EssenceType t = GrotEntity.this.getEssenceType();
+                boolean isConductor = (t == EssenceType.LIGHTNING || t == EssenceType.STORM || t == EssenceType.STATIC);
+                boolean isPuddle = (t == EssenceType.WATER || t == EssenceType.VAPOR || t == EssenceType.FLOW);
+                if (!isConductor && !isPuddle) return false;
+
+                BlockPos.MutableBlockPos mPos = new BlockPos.MutableBlockPos();
+                for (int x = -8; x <= 8; x++) {
+                    for (int y = -3; y <= 3; y++) {
+                        for (int z = -8; z <= 8; z++) {
+                            mPos.set(GrotEntity.this.getX() + x, GrotEntity.this.getY() + y, GrotEntity.this.getZ() + z);
+                            if (GrotEntity.this.level().getFluidState(mPos).is(FluidTags.WATER)) {
+                                waterPos = mPos.immutable();
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            @Override public boolean canContinueToUse() {
+                return waterPos != null && !GrotEntity.this.isInWater() && GrotEntity.this.getTarget() != null;
+            }
+            @Override public void tick() {
+                GrotEntity.this.getNavigation().moveTo(waterPos.getX(), waterPos.getY(), waterPos.getZ(), 1.3D);
+            }
+        });
+
+        // --- NEW: FALSE FLEE (Baiting) ---
+        this.goalSelector.addGoal(6, new Goal() {
+            private Vec3 fleeDir;
+            @Override public boolean canUse() {
+                if (GrotEntity.this.getIntelligence() < 14 || GrotEntity.this.isTamed()) return false;
+                LivingEntity target = GrotEntity.this.getTarget();
+                if (target == null) return false;
+
+                if (GrotEntity.this.getHealth() > GrotEntity.this.getMaxHealth() * 0.8f) return false;
+
+                List<GrotEntity> friends = GrotEntity.this.level().getEntitiesOfClass(GrotEntity.class, GrotEntity.this.getBoundingBox().inflate(15.0D), e -> e != GrotEntity.this && e.getTarget() == target);
+                if (friends.size() < 2) return false;
+
+                Vec3 packCenter = Vec3.ZERO;
+                for (GrotEntity f : friends) packCenter = packCenter.add(f.position());
+                packCenter = packCenter.scale(1.0 / friends.size());
+
+                fleeDir = GrotEntity.this.position().subtract(packCenter).normalize().scale(10);
+                return true;
+            }
+            @Override public void tick() {
+                if (fleeDir != null) {
+                    GrotEntity.this.getNavigation().moveTo(GrotEntity.this.getX() + fleeDir.x, GrotEntity.this.getY(), GrotEntity.this.getZ() + fleeDir.z, 1.4D);
+                }
+            }
+        });
+
+        // FLEE GOAL (Spooked Avoidance)
+        this.goalSelector.addGoal(7, new Goal() {
             private Player player;
             @Override public boolean canUse() {
-                // Ignore fleeing if they are already in a fight
                 if (GrotEntity.this.getTarget() != null) return false;
 
-                // INT logic: If Intelligence is >= 10, they get spooked by players BEFORE getting hurt!
                 boolean isSmartAndScared = GrotEntity.this.getIntelligence() >= 10 && !GrotEntity.this.isTamed();
                 boolean isHealthyFlee = GrotEntity.this.getHealth() >= GrotEntity.this.getMaxHealth() * 0.9f;
 
@@ -315,7 +467,6 @@ public class GrotEntity extends Slime {
                 player = players.get(0);
                 if (player.isCreative() || player.isSpectator()) return false;
 
-                // Call for help BEFORE running!
                 if (isSmartAndScared) {
                     List<GrotEntity> friends = GrotEntity.this.level().getEntitiesOfClass(GrotEntity.class, GrotEntity.this.getBoundingBox().inflate(20.0D));
                     for (GrotEntity friend : friends) {
@@ -324,7 +475,6 @@ public class GrotEntity extends Slime {
                         }
                     }
                 }
-
                 return true;
             }
             @Override public boolean canContinueToUse() {
@@ -338,7 +488,8 @@ public class GrotEntity extends Slime {
             }
         });
 
-        this.goalSelector.addGoal(4, new Goal() {
+        // PRIMARY COMBAT GOAL (Now includes Medics and Conductor Traps)
+        this.goalSelector.addGoal(8, new Goal() {
             private int jumpDelay = 0;
             private int rangedCooldown = 0;
             private int attackCooldown = 0;
@@ -357,6 +508,50 @@ public class GrotEntity extends Slime {
                     double distSq = GrotEntity.this.distanceToSqr(target);
                     double reach = 1.0 + (GrotEntity.this.getBbWidth() / 2.0);
 
+                    // --- COMBAT MEDIC LOGIC ---
+                    if (target instanceof GrotEntity ally) {
+                        if (distSq > reach * reach * 4.0D) {
+                            GrotEntity.this.getNavigation().moveTo(ally, 1.2D);
+                        } else {
+                            GrotEntity.this.getNavigation().stop();
+                            if (attackCooldown <= 0) {
+                                ally.heal(4.0f);
+                                ally.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 100, 0));
+                                GrotEntity.this.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 1.0F, 1.5F);
+                                if (GrotEntity.this.level() instanceof ServerLevel sl) {
+                                    sl.sendParticles(ParticleTypes.HAPPY_VILLAGER, ally.getX(), ally.getY() + ally.getBbHeight()/2, ally.getZ(), 5, 0.3, 0.3, 0.3, 0.0);
+                                }
+                                attackCooldown = 40;
+                            }
+                        }
+                        if (jumpDelay > 0) jumpDelay--;
+                        if (attackCooldown > 0) attackCooldown--;
+                        return; // Skip normal attacking
+                    }
+
+                    EssenceType t = GrotEntity.this.getEssenceType();
+
+                    // --- CONDUCTOR TRAP LOGIC ---
+                    boolean isConductor = (t == EssenceType.LIGHTNING || t == EssenceType.STORM || t == EssenceType.STATIC);
+                    if (GrotEntity.this.getIntelligence() >= 10 && isConductor && GrotEntity.this.isInWater()) {
+                        GrotEntity.this.getNavigation().stop(); // Hold ground in the water
+                        if (rangedCooldown <= 0 && target.isInWater() && distSq < 100.0D) {
+                            rangedCooldown = 40;
+                            List<LivingEntity> inWater = GrotEntity.this.level().getEntitiesOfClass(LivingEntity.class, GrotEntity.this.getBoundingBox().inflate(10.0D), e -> e.isInWater() && e != GrotEntity.this && !(e instanceof GrotEntity));
+                            for (LivingEntity e : inWater) {
+                                e.hurtServer((ServerLevel)GrotEntity.this.level(), GrotEntity.this.damageSources().magic(), 4.0F * GrotEntity.this.getVisFactor());
+                                e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 2));
+                                if (GrotEntity.this.level() instanceof ServerLevel sl) {
+                                    sl.sendParticles(ParticleTypes.ELECTRIC_SPARK, e.getX(), e.getY() + 0.5, e.getZ(), 10, 0.5, 0.5, 0.5, 0.1);
+                                }
+                            }
+                            GrotEntity.this.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 0.5F, 2.0F);
+                        }
+                        if (rangedCooldown > 0) rangedCooldown--;
+                        return; // Skip normal attacking
+                    }
+
+                    // Standard Movement
                     if (GrotEntity.this.canRanged() && distSq < 144.0 && distSq > reach * reach) {
                         GrotEntity.this.getNavigation().stop();
                     } else {
@@ -370,7 +565,6 @@ public class GrotEntity extends Slime {
                     // RANGED ATTACK LOGIC
                     if (GrotEntity.this.canRanged() && rangedCooldown <= 0 && distSq > reach * reach && distSq < 144.0) {
                         rangedCooldown = 60 + GrotEntity.this.getRandom().nextInt(40);
-                        EssenceType t = GrotEntity.this.getEssenceType();
                         Vec3 dir = target.position().subtract(GrotEntity.this.position()).normalize();
 
                         if (t == EssenceType.AIR || t == EssenceType.STORM || t == EssenceType.LIGHTNING || t == EssenceType.VAPOR) {
@@ -400,7 +594,7 @@ public class GrotEntity extends Slime {
                         }
                     }
 
-                    // MELEE LEAP LOGIC (Collision damage handled natively by dealDamage override now)
+                    // MELEE LEAP LOGIC
                     if (distSq <= reach * reach * 3.0 && jumpDelay <= 0 && GrotEntity.this.onGround()) {
                         Vec3 dir = target.position().subtract(GrotEntity.this.position()).normalize();
                         GrotEntity.this.setDeltaMovement(dir.x * 0.5, 0.4, dir.z * 0.5);
@@ -423,7 +617,46 @@ public class GrotEntity extends Slime {
             }
         });
 
-        this.goalSelector.addGoal(5, new Goal() {
+        // FRIENDLY JUMP GOAL
+        this.goalSelector.addGoal(9, new Goal() {
+            private Player targetPlayer;
+            private int jumpDelay = 0;
+
+            @Override public boolean canUse() {
+                if (GrotEntity.this.getFriendliness() <= 120 || GrotEntity.this.getTarget() != null || GrotEntity.this.isFusing()) return false;
+                if (GrotEntity.this.getRandom().nextInt(40) != 0) return false;
+
+                List<Player> players = GrotEntity.this.level().getEntitiesOfClass(Player.class, GrotEntity.this.getBoundingBox().inflate(8.0D));
+                if (players.isEmpty()) return false;
+                targetPlayer = players.get(0);
+                return true;
+            }
+
+            @Override public boolean canContinueToUse() {
+                return targetPlayer != null && targetPlayer.isAlive() && GrotEntity.this.getTarget() == null && GrotEntity.this.distanceToSqr(targetPlayer) < 100.0D;
+            }
+
+            @Override public void tick() {
+                GrotEntity.this.getLookControl().setLookAt(targetPlayer, 30.0F, 30.0F);
+                double distSq = GrotEntity.this.distanceToSqr(targetPlayer);
+
+                if (jumpDelay > 0) jumpDelay--;
+
+                if (distSq > 4.0D && jumpDelay <= 0 && GrotEntity.this.onGround()) {
+                    Vec3 dir = targetPlayer.position().subtract(GrotEntity.this.position()).normalize();
+                    GrotEntity.this.setDeltaMovement(dir.x * 0.4, 0.3, dir.z * 0.4);
+                    GrotEntity.this.hasImpulse = true;
+                    jumpDelay = 30 + GrotEntity.this.getRandom().nextInt(20);
+                    GrotEntity.this.playSound(SoundEvents.SLIME_JUMP, 0.5F, 1.5F);
+
+                    if (GrotEntity.this.level() instanceof ServerLevel sl) {
+                        sl.sendParticles(ParticleTypes.HAPPY_VILLAGER, GrotEntity.this.getX(), GrotEntity.this.getY() + GrotEntity.this.getBbHeight(), GrotEntity.this.getZ(), 3, 0.2, 0.2, 0.2, 0.0);
+                    }
+                }
+            }
+        });
+
+        this.goalSelector.addGoal(10, new Goal() {
             private BlockPos targetPipe = null;
             private int drainCooldown = 0;
 
@@ -505,7 +738,7 @@ public class GrotEntity extends Slime {
             }
         });
 
-        this.goalSelector.addGoal(6, new Goal() {
+        this.goalSelector.addGoal(11, new Goal() {
             private ItemEntity targetItem;
             @Override public boolean canUse() {
                 EssenceType t = GrotEntity.this.getEssenceType();
@@ -553,7 +786,7 @@ public class GrotEntity extends Slime {
             }
         });
 
-        this.goalSelector.addGoal(7, new Goal() {
+        this.goalSelector.addGoal(12, new Goal() {
             private double tx, ty, tz;
             @Override public boolean canUse() {
                 if (GrotEntity.this.getTarget() != null) return false;
@@ -571,11 +804,12 @@ public class GrotEntity extends Slime {
             }
         });
 
-        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(9, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(13, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(14, new RandomLookAroundGoal(this));
 
         this.targetSelector.addGoal(1, new Goal() {
             @Override public boolean canUse() {
+                if (GrotEntity.this.isTamed()) return false;
                 return GrotEntity.this.getLastHurtByMob() != null && GrotEntity.this.getTarget() == null;
             }
             @Override public void start() {
@@ -586,16 +820,38 @@ public class GrotEntity extends Slime {
                 AABB alertBox = GrotEntity.this.getBoundingBox().inflate(alertRange);
                 List<GrotEntity> friends = GrotEntity.this.level().getEntitiesOfClass(GrotEntity.class, alertBox);
                 for (GrotEntity friend : friends) {
-                    if (friend != GrotEntity.this && friend.getTarget() == null && friend.isAlive()) {
+                    if (friend != GrotEntity.this && friend.getTarget() == null && friend.isAlive() && !friend.isTamed()) {
                         friend.setTarget(attacker);
                     }
                 }
             }
         });
 
+        // --- NEW: COMBAT MEDIC TARGETING ---
         this.targetSelector.addGoal(2, new Goal() {
+            private GrotEntity patient;
+            @Override public boolean canUse() {
+                if (GrotEntity.this.isTamed()) return false;
+                if (GrotEntity.this.getIntelligence() < 12) return false;
+                EssenceType t = GrotEntity.this.getEssenceType();
+                if (t != EssenceType.NATURE && t != EssenceType.OVERGROWTH && t != EssenceType.SPORE) return false;
+
+                List<GrotEntity> list = GrotEntity.this.level().getEntitiesOfClass(GrotEntity.class, GrotEntity.this.getBoundingBox().inflate(16.0D));
+                for (GrotEntity other : list) {
+                    if (other != GrotEntity.this && other.getHealth() < other.getMaxHealth() * 0.5f && other.isAlive()) {
+                        patient = other;
+                        return true;
+                    }
+                }
+                return false;
+            }
+            @Override public void start() { GrotEntity.this.setTarget(patient); }
+        });
+
+        this.targetSelector.addGoal(3, new Goal() {
             private Player targetPlayer;
             @Override public boolean canUse() {
+                if (GrotEntity.this.isTamed()) return false;
                 if (GrotEntity.this.getHealth() >= GrotEntity.this.getMaxHealth() * 0.9f || GrotEntity.this.tickCount % 20 != 0) return false;
                 List<Player> players = GrotEntity.this.level().getEntitiesOfClass(Player.class, GrotEntity.this.getBoundingBox().inflate(10.0D));
                 if (players.isEmpty()) return false;
@@ -616,7 +872,6 @@ public class GrotEntity extends Slime {
         builder.define(IS_FUSING, false);
         builder.define(FUSION_TARGET_ID, -1);
 
-        // Genetics bindings
         builder.define(SCALE_FACTOR, 1.0f);
         builder.define(STRENGTH_FACTOR, 1.0f);
         builder.define(VIS_FACTOR, 1.0f);
@@ -631,6 +886,7 @@ public class GrotEntity extends Slime {
         builder.define(PURITY, 10);
         builder.define(FERTILITY, 5);
         builder.define(IS_COHESIVE, false);
+        builder.define(REBEL_CHANCE, 0);
     }
 
     public EssenceType getEssenceType() {
@@ -663,7 +919,6 @@ public class GrotEntity extends Slime {
     public int getFusionTarget() { return this.entityData.get(FUSION_TARGET_ID); }
     public void setFusionTarget(int id) { this.entityData.set(FUSION_TARGET_ID, id); }
 
-    // --- GENETICS GETTERS & SETTERS ---
     public float getScaleFactor() { return this.entityData.get(SCALE_FACTOR); }
     public void setScaleFactor(float f) { this.entityData.set(SCALE_FACTOR, f); }
 
@@ -711,11 +966,13 @@ public class GrotEntity extends Slime {
     public boolean isCohesive() { return this.entityData.get(IS_COHESIVE); }
     public void setCohesive(boolean c) { this.entityData.set(IS_COHESIVE, c); }
 
+    public int getRebelChance() { return this.entityData.get(REBEL_CHANCE); }
+    public void setRebelChance(int r) { this.entityData.set(REBEL_CHANCE, Mth.clamp(r, 0, 100)); }
+
     @Override
     public void setSize(int size, boolean resetHealth) {
         super.setSize(size, resetHealth);
 
-        // Purity directly buffs the Max Health!
         double health = (double)(size * 4) + (this.getPurity() * 0.5);
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(health);
 
@@ -748,6 +1005,7 @@ public class GrotEntity extends Slime {
         output.store("Purity", Codec.INT, getPurity());
         output.store("Fertility", Codec.INT, getFertility());
         output.store("IsCohesive", Codec.BOOL, isCohesive());
+        output.store("RebelChance", Codec.INT, getRebelChance());
     }
 
     @Override
@@ -778,6 +1036,7 @@ public class GrotEntity extends Slime {
         setPurity(input.read("Purity", Codec.INT).orElse(10));
         setFertility(input.read("Fertility", Codec.INT).orElse(5));
         setCohesive(input.read("IsCohesive", Codec.BOOL).orElse(false));
+        setRebelChance(input.read("RebelChance", Codec.INT).orElse(0));
     }
 
     @Nullable
@@ -786,7 +1045,6 @@ public class GrotEntity extends Slime {
         EssenceType type = GrotSpawnRegistry.rollEssenceForBiome(level.getBiome(this.blockPosition()), this.getRandom());
         this.setEssenceType(type);
 
-        // --- WILD PURITY ROLL ---
         float pRoll = this.getRandom().nextFloat();
         int purity;
         if (pRoll < 0.625f) purity = 1 + this.getRandom().nextInt(9);
@@ -805,7 +1063,6 @@ public class GrotEntity extends Slime {
             size = 1 << this.getRandom().nextInt(3);
         }
 
-        // --- ROLL WILD GENETICS ---
         this.setScaleFactor(0.75f + this.getRandom().nextFloat() * 0.5f);
 
         float strBase = (type == EssenceType.EARTH || type == EssenceType.DUST) ? 0.75f : 0.5f;
@@ -847,7 +1104,6 @@ public class GrotEntity extends Slime {
                     child.setEssenceType(this.getEssenceType());
                     child.setFromSplit(true);
 
-                    // Split children perfectly inherit their single parent's genetics
                     child.setCanRanged(this.canRanged());
                     child.setScaleFactor(this.getScaleFactor());
                     child.setStrengthFactor(this.getStrengthFactor());
@@ -861,6 +1117,7 @@ public class GrotEntity extends Slime {
                     child.setPurity(this.getPurity());
                     child.setFertility(this.getFertility());
                     child.setCohesive(this.isCohesive());
+                    child.setRebelChance(this.getRebelChance());
                     this.getOwnerUUID().ifPresent(child::setOwnerUUID);
 
                     child.setSize(currentSize / 2, true);
@@ -883,7 +1140,6 @@ public class GrotEntity extends Slime {
         Item essenceItem;
         int amount = 1 + this.getRandom().nextInt(3);
 
-        // Purity drives the quality of the Essence Drops!
         if (purity == 28) {
             essenceItem = ModItems.STRONG_ESSENCE.get();
             amount = 2;
@@ -924,14 +1180,12 @@ public class GrotEntity extends Slime {
 
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
-        // EXACT 2 DAMAGE FIX REVERT: Physically forces 2.0F base multiplied only by the genetic strength factor!
         float physDamage = 2.0F * this.getStrengthFactor();
         boolean hit = target.hurtServer(level, this.damageSources().mobAttack(this), physDamage);
 
         if (hit) {
             target.invulnerableTime = 0;
 
-            // Magic damage equals 2.0F * the genetic vis factor * size, PLUS 0.04 flat damage per Purity level
             float magicDamage = (2.0F * this.getSize() * this.getVisFactor()) + (0.04F * this.getPurity());
             target.hurtServer(level, this.damageSources().magic(), magicDamage);
 
@@ -992,7 +1246,18 @@ public class GrotEntity extends Slime {
 
         EssenceType type = this.getEssenceType();
 
-        // GENETIC SPEED
+        // --- PUDDLE AMBUSH INVISIBILITY ---
+        if (this.getIntelligence() >= 10 && (type == EssenceType.WATER || type == EssenceType.VAPOR || type == EssenceType.FLOW)) {
+            if (this.isInWater() && this.getTarget() != null) {
+                if (this.distanceToSqr(this.getTarget()) > 9.0D) {
+                    this.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 40, 0, false, false));
+                } else {
+                    this.removeEffect(MobEffects.INVISIBILITY);
+                    this.addEffect(new MobEffectInstance(MobEffects.SPEED, 60, 1, false, false));
+                }
+            }
+        }
+
         float baseSpeed = 0.2F * this.getSpeedFactor();
         if (this.isFlightCapable()) {
             this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(baseSpeed * 1.2F);
@@ -1005,7 +1270,6 @@ public class GrotEntity extends Slime {
             this.resetFallDistance();
         }
 
-        // GENETIC WATER SPEED
         if (this.isInWater() && (type == EssenceType.WATER || type == EssenceType.FLOW)) {
             float waterMult = 1.1F * this.getWaterSpeedFactor();
             this.setDeltaMovement(this.getDeltaMovement().multiply(waterMult, waterMult, waterMult));
@@ -1025,7 +1289,6 @@ public class GrotEntity extends Slime {
             }
         }
 
-        // --- AMBIENT INTELLIGENCE & FRIENDLINESS LOGIC ---
         if (!this.level().isClientSide() && this.tickCount % 100 == 0) {
             if (this.getFriendliness() < 255) {
                 int hayCount = 0;
@@ -1066,9 +1329,6 @@ public class GrotEntity extends Slime {
             }
         }
 
-        // ==========================================
-        // CONTINUOUS SERVER-SIDE AURAS
-        // ==========================================
         if (!this.level().isClientSide() && this.tickCount % 5 == 0) {
             int radius = Math.min(8, 1 + this.getSize());
             BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
@@ -1170,8 +1430,27 @@ public class GrotEntity extends Slime {
         if (this.level().isClientSide() || !this.isAlive() || this.getSize() >= 8) return;
 
         if (this.isFusing()) {
+            Entity rawPartner = this.level().getEntity(this.getFusionTarget());
+
+            if (!(rawPartner instanceof GrotEntity partner) || !partner.isAlive()) {
+                this.setFusing(false);
+                this.fusionTicks = 0;
+                this.contactTicks = 0;
+                return;
+            }
+
+            double reach = (this.getBbWidth() / 2.0) + (partner.getBbWidth() / 2.0) + 1.0;
+            if (this.distanceToSqr(partner) > reach * reach) {
+                this.setFusing(false);
+                this.fusionTicks = 0;
+                this.contactTicks = 0;
+                return;
+            }
+
             this.fusionTicks++;
-            this.setDeltaMovement(Vec3.ZERO);
+
+            Vec3 pull = partner.position().subtract(this.position()).normalize().scale(0.05);
+            this.setDeltaMovement(pull);
 
             if (this.fusionTicks % 5 == 0) {
                 if (this.level() instanceof ServerLevel sl) {
@@ -1180,7 +1459,7 @@ public class GrotEntity extends Slime {
                 this.playSound(SoundEvents.MINECART_RIDING, 0.5f, 1.0f + (this.fusionTicks / 30.0f));
             }
 
-            if (this.fusionTicks >= 100) {
+            if (this.fusionTicks >= 30) {
                 executeFusion();
             }
             return;
@@ -1228,7 +1507,6 @@ public class GrotEntity extends Slime {
         boolean inheritedSterility = this.isFromSplit() || partner.isFromSplit() || this.isSterile() || partner.isSterile();
         boolean inheritedRanged = this.canRanged() || partner.canRanged();
 
-        // If either partner is Cohesive, it cures the sterility!
         if (this.isCohesive() || partner.isCohesive()) {
             inheritedSterility = false;
         }
