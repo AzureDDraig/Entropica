@@ -88,8 +88,9 @@ public class GrotEntity extends Slime {
 
     @Override
     public EntityDimensions getDefaultDimensions(Pose pose) {
-        float s = 0.51F * (float)Math.max(1, this.getSize());
-        return EntityDimensions.fixed(s, s);
+        // FIX: The Vanilla Slime class natively multiplies this base dimension by its size.
+        // Returning purely 0.51 prevents the "double scaling" 4x4 hitbox explosion!
+        return EntityDimensions.fixed(0.51F, 0.51F);
     }
 
     @Override
@@ -144,11 +145,9 @@ public class GrotEntity extends Slime {
                     double distSq = GrotEntity.this.distanceToSqr(target);
                     double reach = 1.0 + (GrotEntity.this.getBbWidth() / 2.0);
 
-                    // FIX: If Ranged capable, inside 12 blocks, and outside melee reach... plant feet and shoot!
                     if (GrotEntity.this.canRanged() && distSq < 144.0 && distSq > reach * reach) {
                         GrotEntity.this.getNavigation().stop();
                     } else {
-                        // Otherwise, slide into position (either to get in range, or dive into melee)
                         GrotEntity.this.getNavigation().moveTo(target, 1.2D);
                     }
 
@@ -156,7 +155,7 @@ public class GrotEntity extends Slime {
                     if (rangedCooldown > 0) rangedCooldown--;
 
                     // RANGED ATTACK LOGIC
-                    if (GrotEntity.this.canRanged() && rangedCooldown <= 0 && distSq > reach * reach && distSq < 144.0) { // Max 12 blocks
+                    if (GrotEntity.this.canRanged() && rangedCooldown <= 0 && distSq > reach * reach && distSq < 144.0) {
                         rangedCooldown = 60 + GrotEntity.this.getRandom().nextInt(40);
                         EssenceType t = GrotEntity.this.getEssenceType();
                         Vec3 dir = target.position().subtract(GrotEntity.this.position()).normalize();
