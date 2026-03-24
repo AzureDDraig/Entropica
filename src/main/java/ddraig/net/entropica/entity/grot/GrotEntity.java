@@ -88,9 +88,8 @@ public class GrotEntity extends Slime {
 
     @Override
     public EntityDimensions getDefaultDimensions(Pose pose) {
-        // FIX: The Vanilla Slime class natively multiplies this base dimension by its size.
-        // Returning purely 0.51 prevents the "double scaling" 4x4 hitbox explosion!
-        return EntityDimensions.fixed(0.51F, 0.51F);
+        float s = 0.51F * (float)Math.max(1, this.getSize());
+        return EntityDimensions.fixed(s, s);
     }
 
     @Override
@@ -130,6 +129,7 @@ public class GrotEntity extends Slime {
         this.goalSelector.addGoal(3, new Goal() {
             private int jumpDelay = 0;
             private int rangedCooldown = 0;
+            private int attackCooldown = 0;
 
             @Override public boolean canUse() {
                 return GrotEntity.this.getTarget() != null && GrotEntity.this.getHealth() < GrotEntity.this.getMaxHealth() * 0.9f;
@@ -153,6 +153,7 @@ public class GrotEntity extends Slime {
 
                     if (jumpDelay > 0) jumpDelay--;
                     if (rangedCooldown > 0) rangedCooldown--;
+                    if (attackCooldown > 0) attackCooldown--;
 
                     // RANGED ATTACK LOGIC
                     if (GrotEntity.this.canRanged() && rangedCooldown <= 0 && distSq > reach * reach && distSq < 144.0) {
@@ -163,7 +164,7 @@ public class GrotEntity extends Slime {
                         if (t == EssenceType.AIR || t == EssenceType.STORM || t == EssenceType.LIGHTNING || t == EssenceType.VAPOR) {
                             target.setDeltaMovement(target.getDeltaMovement().add(dir.x * 1.5, 0.5, dir.z * 1.5));
                             if (!GrotEntity.this.level().isClientSide()) {
-                                target.hurtServer((ServerLevel)GrotEntity.this.level(), GrotEntity.this.damageSources().mobAttack(GrotEntity.this), 2.0F);
+                                GrotEntity.this.doHurtTarget((ServerLevel)GrotEntity.this.level(), target);
                                 ((ServerLevel)GrotEntity.this.level()).sendParticles(ParticleTypes.EXPLOSION, target.getX(), target.getY() + target.getBbHeight()/2, target.getZ(), 5, 0.2, 0.2, 0.2, 0.2);
                             }
                             GrotEntity.this.playSound(SoundEvents.WIND_CHARGE_BURST.value(), 1.0F, 1.0F);
@@ -187,7 +188,7 @@ public class GrotEntity extends Slime {
                         }
                     }
 
-                    // MELEE LEAP LOGIC
+                    // MELEE LEAP LOGIC (Collision damage handled natively by dealDamage override now)
                     if (distSq <= reach * reach * 3.0 && jumpDelay <= 0 && GrotEntity.this.onGround()) {
                         Vec3 dir = target.position().subtract(GrotEntity.this.position()).normalize();
                         GrotEntity.this.setDeltaMovement(dir.x * 0.5, 0.4, dir.z * 0.5);
@@ -197,9 +198,13 @@ public class GrotEntity extends Slime {
                     }
 
                     // TRUE MELEE DAMAGE
-                    if (distSq <= reach * reach) {
+                    if (distSq <= reach * reach && attackCooldown <= 0) {
                         if (GrotEntity.this.level() instanceof ServerLevel serverLevel) {
-                            GrotEntity.this.doHurtTarget(serverLevel, target);
+                            boolean hit = GrotEntity.this.doHurtTarget(serverLevel, target);
+                            if (hit) {
+                                GrotEntity.this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, 1.0F);
+                                attackCooldown = 20; // Pace the attacks so they aren't blocked by i-frames
+                            }
                         }
                     }
                 }
@@ -527,10 +532,29 @@ public class GrotEntity extends Slime {
     }
 
     @Override
+    protected void dealDamage(LivingEntity target) {
+        if (this.isAlive() && this.level() instanceof ServerLevel sl) {
+            int i = this.getSize();
+            // Natively manages the exact collision box math that Vanilla Slimes use!
+            if (this.distanceToSqr(target) < 0.6D * (double)i * 0.6D * (double)i && this.hasLineOfSight(target)) {
+                boolean hit = this.doHurtTarget(sl, target);
+                if (hit) {
+                    this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.2F + 1.0F);
+                }
+            }
+        }
+    }
+
+    @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
+        // Forces exactly 2.0F physical damage
         boolean hit = target.hurtServer(level, this.damageSources().mobAttack(this), 2.0F);
 
         if (hit) {
+            // Nullifies the i-frames from the previous punch to guarantee simultaneous connection!
+            target.invulnerableTime = 0;
+
+            // Forces exactly 2.0F magic damage
             target.hurtServer(level, this.damageSources().magic(), 2.0F);
 
             if (target instanceof LivingEntity living) {
