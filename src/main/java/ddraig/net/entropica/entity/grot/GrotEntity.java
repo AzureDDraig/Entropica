@@ -98,6 +98,14 @@ public class GrotEntity extends Slime {
     public int inLove = 0;
     public int loveCooldown = 0;
 
+    // --- PLAYFUL STATE TRACKING (Transient) ---
+    public LivingEntity tagTarget = null;
+    public int tagTimer = 0;
+    public boolean isSeeker = false;
+    public boolean isHider = false;
+    public int hideSeekTimer = 0;
+    public GrotEntity seekTarget = null;
+
     public GrotEntity(EntityType<? extends Slime> type, Level level) {
         super(type, level);
         this.moveControl = new MoveControl(this);
@@ -807,6 +815,172 @@ public class GrotEntity extends Slime {
 
         this.goalSelector.addGoal(13, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(14, new RandomLookAroundGoal(this));
+
+        // --- NEW: PLAY TAG (CHASER) ---
+        this.goalSelector.addGoal(15, new Goal() {
+            @Override public boolean canUse() {
+                if (GrotEntity.this.getTarget() != null || GrotEntity.this.isFusing()) return false;
+                if (GrotEntity.this.tagTarget != null && GrotEntity.this.tagTarget.isAlive()) return true;
+                if (GrotEntity.this.getFriendliness() > 150 && GrotEntity.this.getRandom().nextInt(200) == 0) {
+                    List<LivingEntity> potentials = GrotEntity.this.level().getEntitiesOfClass(LivingEntity.class, GrotEntity.this.getBoundingBox().inflate(10.0D),
+                            e -> e != GrotEntity.this && e.isAlive() &&
+                                    ((e instanceof Player p && !p.isCreative() && !p.isSpectator()) ||
+                                            (e instanceof GrotEntity g && !g.isFusing() && g.getTarget() == null && !g.isSeeker && !g.isHider)));
+
+                    if (!potentials.isEmpty()) {
+                        GrotEntity.this.tagTarget = potentials.get(GrotEntity.this.getRandom().nextInt(potentials.size()));
+                        GrotEntity.this.tagTimer = 200; // 10 seconds to tag
+                        return true;
+                    }
+                }
+                return false;
+            }
+            @Override public boolean canContinueToUse() {
+                return GrotEntity.this.tagTarget != null && GrotEntity.this.tagTarget.isAlive() && GrotEntity.this.tagTimer > 0 && GrotEntity.this.getTarget() == null;
+            }
+            @Override public void start() {
+                GrotEntity.this.playSound(SoundEvents.SLIME_JUMP, 1.0F, 1.5F);
+                if (GrotEntity.this.level() instanceof ServerLevel sl) {
+                    sl.sendParticles(ParticleTypes.HAPPY_VILLAGER, GrotEntity.this.getX(), GrotEntity.this.getY() + 1, GrotEntity.this.getZ(), 5, 0.2, 0.2, 0.2, 0);
+                }
+            }
+            @Override public void tick() {
+                GrotEntity.this.tagTimer--;
+                GrotEntity.this.getLookControl().setLookAt(GrotEntity.this.tagTarget, 30.0F, 30.0F);
+                GrotEntity.this.getNavigation().moveTo(GrotEntity.this.tagTarget, 1.3D);
+
+                if (GrotEntity.this.distanceToSqr(GrotEntity.this.tagTarget) < 4.0D) {
+                    // TAG! You're it!
+                    GrotEntity.this.playSound(SoundEvents.SLIME_SQUISH, 1.0F, 2.0F);
+                    GrotEntity.this.setDeltaMovement(0, 0.4, 0); // Happy jump
+                    if (GrotEntity.this.level() instanceof ServerLevel sl) {
+                        sl.sendParticles(ParticleTypes.HEART, GrotEntity.this.tagTarget.getX(), GrotEntity.this.tagTarget.getY() + 1, GrotEntity.this.tagTarget.getZ(), 3, 0.2, 0.2, 0.2, 0);
+                    }
+                    if (GrotEntity.this.tagTarget instanceof GrotEntity otherGrot) {
+                        otherGrot.tagTarget = GrotEntity.this; // Make the other grot the chaser
+                        otherGrot.tagTimer = 200;
+                    }
+                    GrotEntity.this.tagTarget = null;
+                }
+            }
+            @Override public void stop() { GrotEntity.this.tagTarget = null; }
+        });
+
+        // --- NEW: PLAY TAG (FLEE) ---
+        this.goalSelector.addGoal(16, new Goal() {
+            private LivingEntity chaser;
+            @Override public boolean canUse() {
+                if (GrotEntity.this.getTarget() != null) return false;
+                List<GrotEntity> grots = GrotEntity.this.level().getEntitiesOfClass(GrotEntity.class, GrotEntity.this.getBoundingBox().inflate(10.0D),
+                        e -> e.tagTarget == GrotEntity.this);
+                if (!grots.isEmpty()) {
+                    chaser = grots.get(0);
+                    return true;
+                }
+                return false;
+            }
+            @Override public boolean canContinueToUse() {
+                return chaser != null && chaser.isAlive() && ((GrotEntity)chaser).tagTarget == GrotEntity.this && GrotEntity.this.getTarget() == null;
+            }
+            @Override public void tick() {
+                Vec3 dir = GrotEntity.this.position().subtract(chaser.position()).normalize().scale(5);
+                GrotEntity.this.getNavigation().moveTo(GrotEntity.this.getX() + dir.x, GrotEntity.this.getY(), GrotEntity.this.getZ() + dir.z, 1.2D);
+            }
+        });
+
+        // --- NEW: HIDE AND SEEK (SEEKER) ---
+        this.goalSelector.addGoal(17, new Goal() {
+            @Override public boolean canUse() {
+                if (GrotEntity.this.getTarget() != null || GrotEntity.this.isFusing()) return false;
+                if (GrotEntity.this.isSeeker) return true;
+                if (GrotEntity.this.getIntelligence() > 10 && GrotEntity.this.getFriendliness() > 120 && GrotEntity.this.getRandom().nextInt(400) == 0) {
+                    List<GrotEntity> friends = GrotEntity.this.level().getEntitiesOfClass(GrotEntity.class, GrotEntity.this.getBoundingBox().inflate(10.0D),
+                            e -> e != GrotEntity.this && !e.isSeeker && !e.isHider && e.getTarget() == null && e.tagTarget == null);
+
+                    if (friends.size() >= 1) {
+                        GrotEntity.this.isSeeker = true;
+                        GrotEntity.this.hideSeekTimer = 100; // Counting for 5 seconds
+                        for (GrotEntity friend : friends) {
+                            friend.isHider = true;
+                            friend.hideSeekTimer = 400; // 20 seconds max to hide and be found
+                            friend.seekTarget = GrotEntity.this; // Know who to run from
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            }
+            @Override public boolean canContinueToUse() {
+                return GrotEntity.this.isSeeker && GrotEntity.this.getTarget() == null && GrotEntity.this.hideSeekTimer > -400; // Give up after 20 secs of seeking
+            }
+            @Override public void start() {
+                GrotEntity.this.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 1.0F, 1.5F); // Happy starting sound
+            }
+            @Override public void tick() {
+                GrotEntity.this.hideSeekTimer--;
+                if (GrotEntity.this.hideSeekTimer > 0) {
+                    // Counting! Spin around looking down.
+                    GrotEntity.this.getNavigation().stop();
+                    GrotEntity.this.setYRot(GrotEntity.this.getYRot() + 10.0F);
+                    GrotEntity.this.setXRot(40.0F);
+                } else {
+                    // Seeking!
+                    List<GrotEntity> hiders = GrotEntity.this.level().getEntitiesOfClass(GrotEntity.class, GrotEntity.this.getBoundingBox().inflate(15.0D), e -> e.isHider);
+                    if (!hiders.isEmpty()) {
+                        GrotEntity targetHider = hiders.get(0);
+                        GrotEntity.this.getLookControl().setLookAt(targetHider, 30.0F, 30.0F);
+                        GrotEntity.this.getNavigation().moveTo(targetHider, 1.1D);
+
+                        if (GrotEntity.this.distanceToSqr(targetHider) < 5.0D) {
+                            // Found them!
+                            targetHider.isHider = false;
+                            targetHider.setDeltaMovement(0, 0.4, 0); // Hider happy jump
+                            GrotEntity.this.setDeltaMovement(0, 0.4, 0); // Seeker happy jump
+                            GrotEntity.this.playSound(SoundEvents.SLIME_SQUISH, 1.0F, 2.0F);
+                            if (GrotEntity.this.level() instanceof ServerLevel sl) {
+                                sl.sendParticles(ParticleTypes.HAPPY_VILLAGER, targetHider.getX(), targetHider.getY() + 1, targetHider.getZ(), 5, 0.2, 0.2, 0.2, 0);
+                            }
+                        }
+                    } else {
+                        // Wander randomly searching
+                        if (GrotEntity.this.getNavigation().isDone()) {
+                            double tx = GrotEntity.this.getX() + (GrotEntity.this.getRandom().nextInt(15) - 7);
+                            double tz = GrotEntity.this.getZ() + (GrotEntity.this.getRandom().nextInt(15) - 7);
+                            GrotEntity.this.getNavigation().moveTo(tx, GrotEntity.this.getY(), tz, 1.0D);
+                        }
+                    }
+                }
+            }
+            @Override public void stop() { GrotEntity.this.isSeeker = false; }
+        });
+
+        // --- NEW: HIDE AND SEEK (HIDER) ---
+        this.goalSelector.addGoal(18, new Goal() {
+            @Override public boolean canUse() {
+                return GrotEntity.this.isHider && GrotEntity.this.getTarget() == null && GrotEntity.this.hideSeekTimer > 0;
+            }
+            @Override public boolean canContinueToUse() {
+                return GrotEntity.this.isHider && GrotEntity.this.getTarget() == null && GrotEntity.this.hideSeekTimer > 0;
+            }
+            @Override public void tick() {
+                GrotEntity.this.hideSeekTimer--;
+                if (GrotEntity.this.seekTarget != null && GrotEntity.this.seekTarget.hideSeekTimer > 0) {
+                    // Seeker is counting, run away!
+                    Vec3 dir = GrotEntity.this.position().subtract(GrotEntity.this.seekTarget.position()).normalize().scale(8);
+                    GrotEntity.this.getNavigation().moveTo(GrotEntity.this.getX() + dir.x, GrotEntity.this.getY(), GrotEntity.this.getZ() + dir.z, 1.2D);
+                } else {
+                    // Hide! Stay still, occasionally peek
+                    GrotEntity.this.getNavigation().stop();
+                    if (GrotEntity.this.getRandom().nextInt(40) == 0 && GrotEntity.this.seekTarget != null) {
+                        GrotEntity.this.getLookControl().setLookAt(GrotEntity.this.seekTarget, 30.0F, 30.0F);
+                    }
+                }
+            }
+            @Override public void stop() {
+                GrotEntity.this.isHider = false;
+                GrotEntity.this.seekTarget = null;
+            }
+        });
 
         this.targetSelector.addGoal(1, new Goal() {
             @Override public boolean canUse() {
