@@ -41,8 +41,10 @@ public class GrotModel extends EntityModel<GrotRenderState> {
     @Override
     public void setupAnim(GrotRenderState state) {
         super.setupAnim(state);
-        // Hide BOTH from the base renderer. We will draw them manually in the Layer!
-        this.innerBody.visible = false;
+        // Let the base renderer natively draw the opaque inner core, eyes, and mouth!
+        this.innerBody.visible = true;
+
+        // Hide the outer jelly from the base renderer so we can draw it with translucency in the Layer!
         this.outerBody.visible = false;
     }
 

@@ -106,6 +106,9 @@ public class GrotEntity extends Slime {
     public int hideSeekTimer = 0;
     public GrotEntity seekTarget = null;
 
+    public int tagCooldown = 0;
+    public int happyJumps = 0;
+
     public GrotEntity(EntityType<? extends Slime> type, Level level) {
         super(type, level);
         this.moveControl = new MoveControl(this);
@@ -819,13 +822,13 @@ public class GrotEntity extends Slime {
         // --- NEW: PLAY TAG (CHASER) ---
         this.goalSelector.addGoal(15, new Goal() {
             @Override public boolean canUse() {
-                if (GrotEntity.this.getTarget() != null || GrotEntity.this.isFusing()) return false;
+                if (GrotEntity.this.getTarget() != null || GrotEntity.this.isFusing() || GrotEntity.this.tagCooldown > 0) return false;
                 if (GrotEntity.this.tagTarget != null && GrotEntity.this.tagTarget.isAlive()) return true;
                 if (GrotEntity.this.getFriendliness() > 150 && GrotEntity.this.getRandom().nextInt(200) == 0) {
                     List<LivingEntity> potentials = GrotEntity.this.level().getEntitiesOfClass(LivingEntity.class, GrotEntity.this.getBoundingBox().inflate(10.0D),
                             e -> e != GrotEntity.this && e.isAlive() &&
                                     ((e instanceof Player p && !p.isCreative() && !p.isSpectator()) ||
-                                            (e instanceof GrotEntity g && !g.isFusing() && g.getTarget() == null && !g.isSeeker && !g.isHider)));
+                                            (e instanceof GrotEntity g && !g.isFusing() && g.getTarget() == null && !g.isSeeker && !g.isHider && g.tagCooldown <= 0)));
 
                     if (!potentials.isEmpty()) {
                         GrotEntity.this.tagTarget = potentials.get(GrotEntity.this.getRandom().nextInt(potentials.size()));
@@ -852,15 +855,18 @@ public class GrotEntity extends Slime {
                 if (GrotEntity.this.distanceToSqr(GrotEntity.this.tagTarget) < 4.0D) {
                     // TAG! You're it!
                     GrotEntity.this.playSound(SoundEvents.SLIME_SQUISH, 1.0F, 2.0F);
-                    GrotEntity.this.setDeltaMovement(0, 0.4, 0); // Happy jump
+                    GrotEntity.this.happyJumps = 2; // Perform queued happy jumps
+
                     if (GrotEntity.this.level() instanceof ServerLevel sl) {
                         sl.sendParticles(ParticleTypes.HEART, GrotEntity.this.tagTarget.getX(), GrotEntity.this.tagTarget.getY() + 1, GrotEntity.this.tagTarget.getZ(), 3, 0.2, 0.2, 0.2, 0);
                     }
                     if (GrotEntity.this.tagTarget instanceof GrotEntity otherGrot) {
                         otherGrot.tagTarget = GrotEntity.this; // Make the other grot the chaser
                         otherGrot.tagTimer = 200;
+                        otherGrot.tagCooldown = 40; // 2 seconds before tagging back (prevents infinite jump loops)
                     }
                     GrotEntity.this.tagTarget = null;
+                    GrotEntity.this.tagCooldown = 40;
                 }
             }
             @Override public void stop() { GrotEntity.this.tagTarget = null; }
@@ -934,9 +940,10 @@ public class GrotEntity extends Slime {
                         if (GrotEntity.this.distanceToSqr(targetHider) < 5.0D) {
                             // Found them!
                             targetHider.isHider = false;
-                            targetHider.setDeltaMovement(0, 0.4, 0); // Hider happy jump
-                            GrotEntity.this.setDeltaMovement(0, 0.4, 0); // Seeker happy jump
+                            targetHider.happyJumps = 2; // Queue happy jump
+                            GrotEntity.this.happyJumps = 2; // Queue happy jump
                             GrotEntity.this.playSound(SoundEvents.SLIME_SQUISH, 1.0F, 2.0F);
+
                             if (GrotEntity.this.level() instanceof ServerLevel sl) {
                                 sl.sendParticles(ParticleTypes.HAPPY_VILLAGER, targetHider.getX(), targetHider.getY() + 1, targetHider.getZ(), 5, 0.2, 0.2, 0.2, 0);
                             }
@@ -1303,7 +1310,6 @@ public class GrotEntity extends Slime {
             }
         }
 
-        this.setSize(0, false);
         super.remove(reason);
     }
 
@@ -1417,6 +1423,19 @@ public class GrotEntity extends Slime {
 
         if (this.inLove > 0) {
             this.inLove--;
+        }
+
+        if (this.tagCooldown > 0) {
+            this.tagCooldown--;
+        }
+
+        // Safely perform queued happy jumps without overriding horizontal movement
+        if (this.happyJumps > 0 && this.onGround() && this.lastTickOnGround) {
+            this.setDeltaMovement(0.0D, 0.4D, 0.0D);
+            this.hasImpulse = true;
+            this.playSound(SoundEvents.SLIME_JUMP, 1.0F, 1.5F);
+            this.happyJumps--;
+            this.lastTickOnGround = false; // Prevents triggering multiple jumps instantly
         }
 
         EssenceType type = this.getEssenceType();
