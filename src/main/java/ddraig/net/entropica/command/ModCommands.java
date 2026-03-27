@@ -13,11 +13,8 @@ public class ModCommands {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-
-        // Register all individual commands here as you make them!
         EssenceNodeCommands.register(dispatcher);
-
-        // --- Register the new Grot Summon Command ---
         GrotSummonCommands.register(dispatcher);
+        VeilFoxCommands.register(dispatcher);
     }
 }

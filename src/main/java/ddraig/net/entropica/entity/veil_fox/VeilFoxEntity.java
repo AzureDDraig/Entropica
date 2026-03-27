@@ -84,6 +84,7 @@ public class VeilFoxEntity extends TamableAnimal {
     private int teleportDelay = 0;
     private Vec3 pendingTeleportTarget = null;
     private boolean pendingTeleportSitting = false;
+    private boolean pendingTeleportLeaveAfterimage = false;
     private int sleepTicksClient = 0;
 
     public LivingEntity tagTarget = null;
@@ -94,6 +95,11 @@ public class VeilFoxEntity extends TamableAnimal {
     public int hideSeekTimer = 0;
     public VeilFoxEntity seekTarget = null;
     public boolean isPlayingTagWithOwner = false;
+
+    public String forcedPackGame = "";
+    public int forcedMelody = -1;
+
+    public boolean isPlayingPackGame = false;
 
     public ItemStack voidPocket = ItemStack.EMPTY;
     public ItemStack fetchedItem = ItemStack.EMPTY;
@@ -240,7 +246,7 @@ public class VeilFoxEntity extends TamableAnimal {
         this.goalSelector.addGoal(28, new DetectHiddenTargetGoal());
 
         this.goalSelector.addGoal(29, new WaterAvoidingRandomStrollGoal(this, 1.0D) {
-            @Override public boolean canUse() { return !VeilFoxEntity.this.isTame() && super.canUse(); }
+            @Override public boolean canUse() { return !VeilFoxEntity.this.isTame() && !VeilFoxEntity.this.isPlayingPackGame && super.canUse(); }
         });
 
         this.goalSelector.addGoal(30, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -252,6 +258,10 @@ public class VeilFoxEntity extends TamableAnimal {
     @Override
     public void tick() {
         super.tick();
+
+        if (this.getTarget() != null) {
+            this.isPlayingPackGame = false;
+        }
 
         if (this.level().isClientSide()) {
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6;
@@ -343,7 +353,7 @@ public class VeilFoxEntity extends TamableAnimal {
         if (this.blinkCooldown > 0) this.blinkCooldown--;
 
         if (!this.level().isClientSide() && this.chainBlinksRemaining > 0 && this.blinkCooldown <= 0) {
-            if (this.teleportRandomly(8, true)) {
+            if (this.teleportRandomly(8, true, true)) {
                 this.chainBlinksRemaining--;
                 this.blinkCooldown = 10;
             } else {
@@ -360,12 +370,13 @@ public class VeilFoxEntity extends TamableAnimal {
         }
     }
 
-    public void scheduleTeleport(Vec3 target) {
+    public void scheduleTeleport(Vec3 target, boolean leaveAfterimage) {
         if (!this.level().isClientSide() && this.teleportDelay <= 0) {
             this.pendingTeleportTarget = target;
             this.pendingTeleportSitting = this.isOrderedToSit();
+            this.pendingTeleportLeaveAfterimage = leaveAfterimage;
             this.teleportDelay = 2;
-            this.level().broadcastEntityEvent(this, (byte) 60);
+            this.level().broadcastEntityEvent(this, (byte) 100);
         }
     }
 
@@ -381,20 +392,22 @@ public class VeilFoxEntity extends TamableAnimal {
             this.playSound(ModSounds.VEIL_FOX_BLINK.get(), 1.0F, 1.0F);
             this.level().gameEvent(GameEvent.TELEPORT, this.position(), GameEvent.Context.of(this));
 
-            VeilFoxAfterimageEntity ghost = ModEntityTypes.VEIL_FOX_AFTERIMAGE.get().create(this.level(), EntitySpawnReason.TRIGGERED);
-            if (ghost != null) {
-                ghost.snapTo(oldX, oldY, oldZ, this.getYRot(), this.getXRot());
-                ghost.setPoses(oldYBodyRot, oldYHeadRot, oldXRot, this.pendingTeleportSitting);
-                this.level().addFreshEntity(ghost);
+            if (this.pendingTeleportLeaveAfterimage) {
+                VeilFoxAfterimageEntity ghost = ModEntityTypes.VEIL_FOX_AFTERIMAGE.get().create(this.level(), EntitySpawnReason.TRIGGERED);
+                if (ghost != null) {
+                    ghost.snapTo(oldX, oldY, oldZ, this.getYRot(), this.getXRot());
+                    ghost.setPoses(oldYBodyRot, oldYHeadRot, oldXRot, this.pendingTeleportSitting);
+                    this.level().addFreshEntity(ghost);
+                }
             }
-            this.level().broadcastEntityEvent(this, (byte) 61);
+            this.level().broadcastEntityEvent(this, (byte) 101);
         } else {
-            this.level().broadcastEntityEvent(this, (byte) 61);
+            this.level().broadcastEntityEvent(this, (byte) 101);
         }
         this.pendingTeleportTarget = null;
     }
 
-    public boolean teleportRandomly(int radius, boolean hideFromPlayer) {
+    public boolean teleportRandomly(int radius, boolean hideFromPlayer, boolean leaveAfterimage) {
         if (this.level().isClientSide() || this.teleportDelay > 0) return false;
         if (!hideFromPlayer && this.tickCount - this.recentTeleportTicks[this.teleportIndex] < 200) return false;
 
@@ -419,7 +432,7 @@ public class VeilFoxEntity extends TamableAnimal {
                         this.recentTeleportTicks[this.teleportIndex] = this.tickCount;
                         this.teleportIndex = (this.teleportIndex + 1) % 4;
                     }
-                    this.scheduleTeleport(targetVec);
+                    this.scheduleTeleport(targetVec, leaveAfterimage);
                     return true;
                 }
             }
@@ -429,23 +442,23 @@ public class VeilFoxEntity extends TamableAnimal {
 
     @Override
     public void handleEntityEvent(byte id) {
-        if (id == 60) {
+        if (id == 100) {
             this.blinkOutAnimationState.start(this.tickCount);
             this.blinkInAnimationState.stop();
             this.idleAnimationState.stop();
             this.attackAnimationState.stop();
-        } else if (id == 61) {
+        } else if (id == 101) {
             this.blinkInAnimationState.start(this.tickCount);
             this.blinkOutAnimationState.stop();
             this.idleAnimationState.stop();
             this.attackAnimationState.stop();
-        } else if (id == 62) {
+        } else if (id == 102) {
             this.attackAnimationState.start(this.tickCount);
             this.idleAnimationState.stop();
-        } else if (id == 63) {
+        } else if (id == 103) {
             this.rolloverAnimationState.start(this.tickCount);
             this.idleAnimationState.stop();
-        } else if (id == 64) {
+        } else if (id == 104) {
             this.digAnimationState.start(this.tickCount);
             this.idleAnimationState.stop();
         } else {
@@ -456,6 +469,7 @@ public class VeilFoxEntity extends TamableAnimal {
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         this.setSleeping(false);
+        this.isPlayingPackGame = false;
 
         if (this.isTame() && this.getFriendliness() > 150 && !this.isAggressive() && source.getEntity() == this.getOwner()) {
             Player p = (Player)source.getEntity();
@@ -470,10 +484,10 @@ public class VeilFoxEntity extends TamableAnimal {
         if (!this.isTame() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             if (this.isAggressive() && source.getEntity() instanceof LivingEntity attacker) {
                 this.setTarget(attacker);
-                this.teleportRandomly(5, false);
+                this.teleportRandomly(5, false, true);
                 this.playSound(SoundEvents.FOX_BITE, 1.0F, 1.0F);
             } else if (this.random.nextFloat() < 0.90f) {
-                this.teleportRandomly(8, true);
+                this.teleportRandomly(8, true, true);
                 this.chainBlinksRemaining = this.random.nextInt(3);
                 this.blinkCooldown = 15;
 
@@ -481,7 +495,8 @@ public class VeilFoxEntity extends TamableAnimal {
                     List<VeilFoxEntity> pack = this.level().getEntitiesOfClass(VeilFoxEntity.class, this.getBoundingBox().inflate(16.0D));
                     for(VeilFoxEntity friend : pack) {
                         if(friend != this && friend.blinkCooldown <= 0) {
-                            friend.teleportRandomly(8, true);
+                            friend.isPlayingPackGame = false;
+                            friend.teleportRandomly(8, true, true);
                             friend.blinkCooldown = 15;
                         }
                     }
@@ -495,73 +510,81 @@ public class VeilFoxEntity extends TamableAnimal {
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
-        if (this.level().isClientSide()) return super.mobInteract(player, hand);
 
-        if (this.isTame()) {
-            if (this.isOwnedBy(player)) {
-                if (player.isCrouching() && itemstack.isEmpty() && this.getFriendliness() >= 180) {
-                    this.startRiding(player);
-                    return InteractionResult.SUCCESS;
-                }
+        if (this.level().isClientSide()) {
+            boolean isTamingItem = itemstack.is(ModItems.VEIL_SHARD.get()) || itemstack.getItem() instanceof EssenceItem;
+            boolean interacts = (this.isTame() && this.isOwnedBy(player)) || isTamingItem;
+            return interacts ? InteractionResult.CONSUME : super.mobInteract(player, hand);
+        }
 
-                if (this.getFriendliness() == 255 && !player.isCrouching()) {
-                    boolean isTamingItem = itemstack.is(ModItems.VEIL_SHARD.get()) || itemstack.getItem() instanceof EssenceItem;
-                    if (itemstack.isEmpty() && !this.voidPocket.isEmpty()) {
-                        if (this.level() instanceof ServerLevel sl) {
-                            this.spawnAtLocation(sl, this.voidPocket);
-                        }
-                        this.voidPocket = ItemStack.EMPTY;
-                        this.playSound(SoundEvents.SHULKER_BOX_OPEN, 1.0f, 1.5f);
-                        return InteractionResult.SUCCESS;
-                    } else if (!itemstack.isEmpty() && this.voidPocket.isEmpty() && !isTamingItem) {
-                        this.voidPocket = itemstack.copy();
-                        itemstack.shrink(itemstack.getCount());
-                        this.playSound(SoundEvents.SHULKER_BOX_CLOSE, 1.0f, 1.5f);
+        if (hand == InteractionHand.MAIN_HAND) {
+            if (this.isTame()) {
+                if (this.isOwnedBy(player)) {
+                    if (player.isCrouching() && itemstack.isEmpty() && this.getFriendliness() >= 180) {
+                        this.startRiding(player);
                         return InteractionResult.SUCCESS;
                     }
-                }
 
-                this.setSleeping(false);
-                this.setOrderedToSit(!this.isOrderedToSit());
-                this.jumping = false;
-                this.navigation.stop();
-                return InteractionResult.SUCCESS;
-            }
-        } else {
-            if (this.getTamingPhase() >= 5) {
-                boolean isTamingItem = itemstack.is(ModItems.VEIL_SHARD.get()) || itemstack.is(ModItems.WEAK_ESSENCE.get()) || itemstack.is(ModItems.AVERAGE_ESSENCE.get()) || itemstack.is(ModItems.STRONG_ESSENCE.get());
-                if (isTamingItem) {
-                    if (this.getRandom().nextInt(32) < this.getTrickster()) {
-                        if (!player.getAbilities().instabuild) {
-                            ItemStack stolen = itemstack.copyWithCount(1);
-                            itemstack.shrink(1);
-                            if (!this.voidPocket.isEmpty() && this.level() instanceof ServerLevel sl) {
+                    if (this.getFriendliness() == 255 && !player.isCrouching()) {
+                        boolean isTamingItem = itemstack.is(ModItems.VEIL_SHARD.get()) || itemstack.getItem() instanceof EssenceItem;
+
+                        if (itemstack.isEmpty() && !this.voidPocket.isEmpty()) {
+                            if (this.level() instanceof ServerLevel sl) {
                                 this.spawnAtLocation(sl, this.voidPocket);
                             }
-                            this.voidPocket = stolen;
+                            this.voidPocket = ItemStack.EMPTY;
+                            this.playSound(SoundEvents.SHULKER_BOX_OPEN, 1.0f, 1.5f);
+                            return InteractionResult.SUCCESS;
+                        } else if (!itemstack.isEmpty() && this.voidPocket.isEmpty() && !isTamingItem) {
+                            this.voidPocket = itemstack.copy();
+                            itemstack.shrink(itemstack.getCount());
+                            this.playSound(SoundEvents.SHULKER_BOX_CLOSE, 1.0f, 1.5f);
+                            return InteractionResult.SUCCESS;
                         }
-                        this.setTrickster(Math.max(0, this.getTrickster() - 10));
-                        this.setTamingPhase(0);
-
-                        if (this.isAggressive()) {
-                            this.setTarget(player);
-                            this.teleportRandomly(4, false);
-                            this.playSound(SoundEvents.FOX_BITE, 1.0F, 1.0F);
-                        } else {
-                            this.teleportRandomly(12, true);
-                            this.playSound(SoundEvents.FOX_SCREECH, 1.0F, 1.5F);
-                        }
-                        return InteractionResult.SUCCESS;
                     }
 
-                    if (!player.getAbilities().instabuild) itemstack.shrink(1);
-                    this.setFriendliness(255);
-                    this.tame(player);
+                    this.setSleeping(false);
+                    this.setOrderedToSit(!this.isOrderedToSit());
+                    this.jumping = false;
                     this.navigation.stop();
-                    this.setTarget(null);
-                    this.setOrderedToSit(true);
-                    this.level().broadcastEntityEvent(this, (byte) 7);
                     return InteractionResult.SUCCESS;
+                }
+            } else {
+                if (this.getTamingPhase() >= 5) {
+                    boolean isTamingItem = itemstack.is(ModItems.VEIL_SHARD.get()) || itemstack.is(ModItems.WEAK_ESSENCE.get()) || itemstack.is(ModItems.AVERAGE_ESSENCE.get()) || itemstack.is(ModItems.STRONG_ESSENCE.get());
+                    if (isTamingItem) {
+                        if (this.getRandom().nextInt(32) < this.getTrickster()) {
+                            if (!player.getAbilities().instabuild) {
+                                ItemStack stolen = itemstack.copyWithCount(1);
+                                itemstack.shrink(1);
+                                if (!this.voidPocket.isEmpty() && this.level() instanceof ServerLevel sl) {
+                                    this.spawnAtLocation(sl, this.voidPocket);
+                                }
+                                this.voidPocket = stolen;
+                            }
+                            this.setTrickster(Math.max(0, this.getTrickster() - 10));
+                            this.setTamingPhase(0);
+
+                            if (this.isAggressive()) {
+                                this.setTarget(player);
+                                this.teleportRandomly(4, false, true);
+                                this.playSound(SoundEvents.FOX_BITE, 1.0F, 1.0F);
+                            } else {
+                                this.teleportRandomly(12, true, false);
+                                this.playSound(SoundEvents.FOX_SCREECH, 1.0F, 1.5F);
+                            }
+                            return InteractionResult.SUCCESS;
+                        }
+
+                        if (!player.getAbilities().instabuild) itemstack.shrink(1);
+                        this.setFriendliness(255);
+                        this.tame(player);
+                        this.navigation.stop();
+                        this.setTarget(null);
+                        this.setOrderedToSit(true);
+                        this.level().broadcastEntityEvent(this, (byte) 7);
+                        return InteractionResult.SUCCESS;
+                    }
                 }
             }
         }
@@ -604,7 +627,7 @@ public class VeilFoxEntity extends TamableAnimal {
         protected void checkAndPerformAttack(LivingEntity target) {
             if (VeilFoxEntity.this.isWithinMeleeAttackRange(target) && this.isTimeToAttack()) {
                 this.resetAttackCooldown();
-                VeilFoxEntity.this.level().broadcastEntityEvent(VeilFoxEntity.this, (byte) 62);
+                VeilFoxEntity.this.level().broadcastEntityEvent(VeilFoxEntity.this, (byte) 102);
 
                 if (VeilFoxEntity.this.isPlayingTagWithOwner && target == VeilFoxEntity.this.getOwner()) {
                     VeilFoxEntity.this.isPlayingTagWithOwner = false;
@@ -625,16 +648,22 @@ public class VeilFoxEntity extends TamableAnimal {
 
     class VoidFetchGoal extends Goal {
         private ItemEntity targetToy;
+        private int timeout = 0;
         public VoidFetchGoal() { this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK)); }
 
         @Override
         public boolean canUse() {
-            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getFriendliness() <= 100 || VeilFoxEntity.this.getIntelligence() <= 5 || VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.teleportDelay > 0) return false;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("void_fetch");
+            if (!forced) {
+                if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getFriendliness() <= 100 || VeilFoxEntity.this.getIntelligence() <= 5 || VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.teleportDelay > 0) return false;
+            }
+
+            if (!VeilFoxEntity.this.fetchedItem.isEmpty()) return true;
 
             List<ItemEntity> items = VeilFoxEntity.this.level().getEntitiesOfClass(ItemEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D));
             for (ItemEntity item : items) {
                 Item i = item.getItem().getItem();
-                if ((i == Items.SLIME_BALL || i == Items.STICK || i == Items.BONE) && Math.abs(item.getDeltaMovement().y) > 0.1) {
+                if (forced || ((i == Items.SLIME_BALL || i == Items.STICK || i == Items.BONE) && Math.abs(item.getDeltaMovement().y) > 0.1)) {
                     targetToy = item;
                     return true;
                 }
@@ -644,29 +673,51 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public void start() {
-            if (targetToy != null) {
+            VeilFoxEntity.this.forcedPackGame = "";
+            timeout = 0;
+            if (targetToy != null && VeilFoxEntity.this.fetchedItem.isEmpty()) {
                 Vec3 intercept = targetToy.position().add(targetToy.getDeltaMovement().scale(2.0));
-                VeilFoxEntity.this.scheduleTeleport(intercept);
+                VeilFoxEntity.this.scheduleTeleport(intercept, false);
                 VeilFoxEntity.this.setNoGravity(true);
             }
         }
 
         @Override
         public boolean canContinueToUse() {
-            return targetToy != null && targetToy.isAlive() && VeilFoxEntity.this.fetchedItem.isEmpty();
+            return (!VeilFoxEntity.this.fetchedItem.isEmpty()) || (targetToy != null && targetToy.isAlive() && timeout < 100);
         }
 
         @Override
         public void tick() {
-            if (targetToy != null && targetToy.isAlive()) {
-                if (VeilFoxEntity.this.distanceToSqr(targetToy) < 4.0D) {
+            timeout++;
+
+            if (!VeilFoxEntity.this.fetchedItem.isEmpty()) {
+                VeilFoxEntity.this.setNoGravity(false);
+                LivingEntity owner = VeilFoxEntity.this.getOwner();
+                if (owner != null) {
+                    VeilFoxEntity.this.getLookControl().setLookAt(owner, 30.0F, 30.0F);
+                    if (VeilFoxEntity.this.distanceToSqr(owner) > 6.0D) {
+                        if (timeout % 10 == 0 && VeilFoxEntity.this.teleportDelay <= 0) {
+                            VeilFoxEntity.this.scheduleTeleport(owner.position().add((VeilFoxEntity.this.random.nextDouble() - 0.5), 0, (VeilFoxEntity.this.random.nextDouble() - 0.5)), false);
+                        }
+                    } else {
+                        if (VeilFoxEntity.this.level() instanceof ServerLevel sl) {
+                            VeilFoxEntity.this.spawnAtLocation(sl, VeilFoxEntity.this.fetchedItem);
+                        }
+                        VeilFoxEntity.this.fetchedItem = ItemStack.EMPTY;
+                        VeilFoxEntity.this.playSound(SoundEvents.FOX_AGGRO, 1.0F, 1.5F);
+                    }
+                }
+            } else if (targetToy != null && targetToy.isAlive()) {
+                VeilFoxEntity.this.getLookControl().setLookAt(targetToy, 30.0F, 30.0F);
+                if (VeilFoxEntity.this.distanceToSqr(targetToy) < 9.0D || VeilFoxEntity.this.getBoundingBox().inflate(1.0D).intersects(targetToy.getBoundingBox())) {
                     VeilFoxEntity.this.fetchedItem = targetToy.getItem().copy();
                     targetToy.discard();
                     targetToy = null;
                     VeilFoxEntity.this.setNoGravity(false);
-
-                    LivingEntity owner = VeilFoxEntity.this.getOwner();
-                    if (owner != null) VeilFoxEntity.this.scheduleTeleport(owner.position().add(owner.getLookAngle().normalize().scale(2.0)));
+                } else if (timeout % 10 == 0 && VeilFoxEntity.this.teleportDelay <= 0) {
+                    Vec3 intercept = targetToy.position().add(targetToy.getDeltaMovement().scale(3.0));
+                    VeilFoxEntity.this.scheduleTeleport(intercept, false);
                 }
             }
         }
@@ -687,10 +738,13 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 180 || VeilFoxEntity.this.getIntelligence() <= 16) return false;
-            if (VeilFoxEntity.this.getRandom().nextInt(400) != 0) return false;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("mirror_match");
+            if (!forced) {
+                if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 180 || VeilFoxEntity.this.getIntelligence() <= 16 || VeilFoxEntity.this.isPlayingPackGame) return false;
+                if (VeilFoxEntity.this.getRandom().nextInt(400) != 0) return false;
+            }
 
-            List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(10.0D), f -> f != VeilFoxEntity.this && !f.isTame());
+            List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(10.0D), f -> f != VeilFoxEntity.this && !f.isTame() && !f.isPlayingPackGame);
             if (!friends.isEmpty()) {
                 partner = friends.get(0);
                 return true;
@@ -700,9 +754,12 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public void start() {
+            VeilFoxEntity.this.forcedPackGame = "";
             matchTimer = 60;
-            animId = VeilFoxEntity.this.getRandom().nextBoolean() ? 63 : 64;
+            animId = VeilFoxEntity.this.getRandom().nextBoolean() ? 103 : 104;
             VeilFoxEntity.this.level().broadcastEntityEvent(VeilFoxEntity.this, (byte) animId);
+            VeilFoxEntity.this.isPlayingPackGame = true;
+            partner.isPlayingPackGame = true;
         }
 
         @Override
@@ -724,37 +781,64 @@ public class VeilFoxEntity extends TamableAnimal {
                 partner.setIntelligence(partner.getIntelligence() + 1);
             }
         }
-        @Override public void stop() { partner = null; }
+        @Override public void stop() {
+            VeilFoxEntity.this.isPlayingPackGame = false;
+            if (partner != null) partner.isPlayingPackGame = false;
+            partner = null;
+        }
     }
 
     class EssenceHotPotatoGoal extends Goal {
         private VeilFoxEntity partner;
         private ItemEntity targetItem;
+        private List<VeilFoxEntity> participants;
 
         public EssenceHotPotatoGoal() { this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK)); }
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 160 || VeilFoxEntity.this.getIntelligence() <= 14) return false;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("hot_potato");
+            if (!forced) {
+                if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 160 || VeilFoxEntity.this.getIntelligence() <= 14 || VeilFoxEntity.this.isPlayingPackGame) return false;
+            }
 
             List<ItemEntity> items = VeilFoxEntity.this.level().getEntitiesOfClass(ItemEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(12.0D));
             for (ItemEntity item : items) {
                 if (item.getItem().is(ModItems.VEIL_SHARD.get()) || item.getItem().getItem() instanceof EssenceItem) {
-                    List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(12.0D), f -> f != VeilFoxEntity.this);
+                    List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(12.0D), f -> f != VeilFoxEntity.this && !f.isPlayingPackGame);
                     if (!friends.isEmpty()) {
                         targetItem = item;
                         partner = friends.get(0);
+                        participants = friends;
                         return true;
                     }
+                }
+            }
+
+            if (forced) {
+                List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(12.0D), f -> f != VeilFoxEntity.this && !f.isPlayingPackGame);
+                if (!friends.isEmpty()) {
+                    targetItem = null;
+                    VeilFoxEntity.this.fetchedItem = new ItemStack(ModItems.VEIL_SHARD.get());
+                    partner = friends.get(0);
+                    participants = friends;
+                    return true;
                 }
             }
             return false;
         }
 
         @Override
+        public void start() {
+            VeilFoxEntity.this.forcedPackGame = "";
+            VeilFoxEntity.this.isPlayingPackGame = true;
+            for(VeilFoxEntity f : participants) f.isPlayingPackGame = true;
+        }
+
+        @Override
         public void tick() {
             if (targetItem != null && targetItem.isAlive() && VeilFoxEntity.this.fetchedItem.isEmpty()) {
-                VeilFoxEntity.this.scheduleTeleport(targetItem.position());
+                VeilFoxEntity.this.scheduleTeleport(targetItem.position(), false);
                 if (VeilFoxEntity.this.distanceToSqr(targetItem) < 4.0D) {
                     VeilFoxEntity.this.fetchedItem = targetItem.getItem().copy();
                     targetItem.discard();
@@ -769,6 +853,14 @@ public class VeilFoxEntity extends TamableAnimal {
                 VeilFoxEntity.this.playSound(SoundEvents.FOX_AGGRO, 1.0F, 1.5F);
             }
         }
+
+        @Override
+        public void stop() {
+            VeilFoxEntity.this.isPlayingPackGame = false;
+            if (participants != null) {
+                for(VeilFoxEntity f : participants) f.isPlayingPackGame = false;
+            }
+        }
     }
 
     class ArcaneKingOfTheHillGoal extends Goal {
@@ -777,8 +869,14 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 100 || VeilFoxEntity.this.getIntelligence() <= 8 || VeilFoxEntity.this.teleportDelay > 0) return false;
-            if (VeilFoxEntity.this.getRandom().nextInt(200) != 0) return false;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("king_of_the_hill");
+            if (!forced) {
+                if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 100 || VeilFoxEntity.this.getIntelligence() <= 8 || VeilFoxEntity.this.teleportDelay > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
+                if (VeilFoxEntity.this.getRandom().nextInt(200) != 0) return false;
+            }
+
+            List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D), f -> f != VeilFoxEntity.this);
+            if (friends.size() < 2 && !forced) return false;
 
             for (int i = 0; i < 10; i++) {
                 BlockPos p = VeilFoxEntity.this.blockPosition().offset(VeilFoxEntity.this.getRandom().nextInt(16)-8, VeilFoxEntity.this.getRandom().nextInt(3)+1, VeilFoxEntity.this.getRandom().nextInt(16)-8);
@@ -791,7 +889,8 @@ public class VeilFoxEntity extends TamableAnimal {
         }
         @Override
         public void start() {
-            if (hillPos != null) VeilFoxEntity.this.scheduleTeleport(new Vec3(hillPos.getX()+0.5, hillPos.getY(), hillPos.getZ()+0.5));
+            VeilFoxEntity.this.forcedPackGame = "";
+            if (hillPos != null) VeilFoxEntity.this.scheduleTeleport(new Vec3(hillPos.getX()+0.5, hillPos.getY(), hillPos.getZ()+0.5), false);
         }
     }
 
@@ -801,9 +900,12 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 120 || VeilFoxEntity.this.getIntelligence() <= 10 || VeilFoxEntity.this.teleportDelay > 0) return false;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("leapfrog");
+            if (!forced) {
+                if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 120 || VeilFoxEntity.this.getIntelligence() <= 10 || VeilFoxEntity.this.teleportDelay > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
+            }
 
-            List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(6.0D), f -> f != VeilFoxEntity.this && f.getDeltaMovement().horizontalDistanceSqr() > 0.001);
+            List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(10.0D), f -> f != VeilFoxEntity.this && !f.isPlayingPackGame && (forced || f.getDeltaMovement().horizontalDistanceSqr() > 0.001));
             if (!friends.isEmpty()) {
                 leader = friends.get(0);
                 return true;
@@ -812,9 +914,10 @@ public class VeilFoxEntity extends TamableAnimal {
         }
         @Override
         public void start() {
+            VeilFoxEntity.this.forcedPackGame = "";
             if (leader != null) {
                 Vec3 jumpPos = leader.position().add(leader.getDeltaMovement().normalize().scale(3.0));
-                VeilFoxEntity.this.scheduleTeleport(jumpPos);
+                VeilFoxEntity.this.scheduleTeleport(jumpPos, false);
                 VeilFoxEntity.this.playSound(SoundEvents.FOX_AGGRO, 0.5f, 1.8f);
             }
         }
@@ -826,10 +929,13 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 60 || VeilFoxEntity.this.getTrickster() <= 15 || VeilFoxEntity.this.teleportDelay > 0) return false;
-            if (VeilFoxEntity.this.getRandom().nextInt(200) != 0) return false;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("ambush");
+            if (!forced) {
+                if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 60 || VeilFoxEntity.this.getTrickster() <= 15 || VeilFoxEntity.this.teleportDelay > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
+                if (VeilFoxEntity.this.getRandom().nextInt(200) != 0) return false;
+            }
 
-            List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D), f -> f != VeilFoxEntity.this && (f.isSleeping() || f.isOrderedToSit()));
+            List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D), f -> f != VeilFoxEntity.this && !f.isPlayingPackGame && (forced || f.isSleeping() || f.isOrderedToSit()));
             if (!friends.isEmpty()) {
                 victim = friends.get(0);
                 return true;
@@ -838,16 +944,17 @@ public class VeilFoxEntity extends TamableAnimal {
         }
         @Override
         public void start() {
-            VeilFoxEntity.this.level().broadcastEntityEvent(VeilFoxEntity.this, (byte) 64);
+            VeilFoxEntity.this.forcedPackGame = "";
+            VeilFoxEntity.this.level().broadcastEntityEvent(VeilFoxEntity.this, (byte) 104);
             Vec3 ambushPos = victim.position().subtract(victim.getLookAngle().normalize().scale(1.5));
-            VeilFoxEntity.this.scheduleTeleport(ambushPos);
+            VeilFoxEntity.this.scheduleTeleport(ambushPos, false);
         }
         @Override
         public void tick() {
             if (VeilFoxEntity.this.distanceToSqr(victim) < 4.0D && VeilFoxEntity.this.teleportDelay <= 0) {
                 VeilFoxEntity.this.playSound(SoundEvents.FOX_SCREECH, 1.0F, 1.0F);
                 victim.setSleeping(false);
-                victim.teleportRandomly(6, true);
+                victim.teleportRandomly(6, true, false);
                 victim = null;
             }
         }
@@ -859,6 +966,7 @@ public class VeilFoxEntity extends TamableAnimal {
         private int noteIndex = 0;
         private int noteDelay = 10;
         private int songTick = 0;
+        private List<VeilFoxEntity> participants;
 
         private final float R = 100.0f;
 
@@ -882,24 +990,55 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 200 || VeilFoxEntity.this.getIntelligence() <= 15 || !VeilFoxEntity.this.hasHeardMusic()) return false;
-            boolean isNight = !VeilFoxEntity.this.level().dimensionType().hasFixedTime() && (VeilFoxEntity.this.level().getDayTime() % 24000L >= 13000L);
-            return isNight && VeilFoxEntity.this.getRandom().nextInt(400) == 0;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("howling");
+            if (!forced) {
+                if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 200 || VeilFoxEntity.this.getIntelligence() <= 15 || !VeilFoxEntity.this.hasHeardMusic() || VeilFoxEntity.this.isPlayingPackGame) return false;
+                boolean isNight = !VeilFoxEntity.this.level().dimensionType().hasFixedTime() && (VeilFoxEntity.this.level().getDayTime() % 24000L >= 13000L);
+                if (!isNight || VeilFoxEntity.this.getRandom().nextInt(400) != 0) return false;
+            }
+
+            participants = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D), f -> f != VeilFoxEntity.this && !f.isPlayingPackGame);
+            if (participants.size() >= 1 || forced) {
+                return true;
+            }
+            return false;
         }
 
         @Override
         public void start() {
             VeilFoxEntity.this.setOrderedToSit(true);
+            VeilFoxEntity.this.isPlayingPackGame = true;
+            if (participants != null) {
+                for(VeilFoxEntity f : participants) { f.isPlayingPackGame = true; f.setOrderedToSit(true); }
+            }
+
             howlTimer = 240;
             noteIndex = 0;
             songTick = 0;
 
-            if (VeilFoxEntity.this.getRandom().nextFloat() < 0.2f) {
-                currentMelody = MELODIES[VeilFoxEntity.this.getRandom().nextInt(MELODIES.length)];
-                noteDelay = 10;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("howling");
+
+            if (forced) {
+                if (VeilFoxEntity.this.forcedMelody >= 0 && VeilFoxEntity.this.forcedMelody < MELODIES.length) {
+                    currentMelody = MELODIES[VeilFoxEntity.this.forcedMelody];
+                    noteDelay = 10;
+                } else if (VeilFoxEntity.this.forcedMelody == -2) {
+                    currentMelody = null;
+                    noteDelay = 30;
+                } else {
+                    currentMelody = MELODIES[VeilFoxEntity.this.getRandom().nextInt(MELODIES.length)];
+                    noteDelay = 10;
+                }
+                VeilFoxEntity.this.forcedPackGame = "";
+                VeilFoxEntity.this.forcedMelody = -1;
             } else {
-                currentMelody = null;
-                noteDelay = 30;
+                if (VeilFoxEntity.this.getRandom().nextFloat() < 0.2f) {
+                    currentMelody = MELODIES[VeilFoxEntity.this.getRandom().nextInt(MELODIES.length)];
+                    noteDelay = 10;
+                } else {
+                    currentMelody = null;
+                    noteDelay = 30;
+                }
             }
         }
 
@@ -927,9 +1066,23 @@ public class VeilFoxEntity extends TamableAnimal {
                 }
 
                 if (play) {
-                    VeilFoxEntity.this.playSound(SoundEvents.FOX_AGGRO, 1.0f, pitch);
+                    pitch = Mth.clamp(pitch, 0.5f, 2.0f);
+
+                    VeilFoxEntity.this.level().playSound(null, VeilFoxEntity.this.getX(), VeilFoxEntity.this.getY(), VeilFoxEntity.this.getZ(), ModSounds.VEIL_FOX_CHORUS.get(), net.minecraft.sounds.SoundSource.NEUTRAL, 1.0f, pitch);
                     if (VeilFoxEntity.this.level() instanceof ServerLevel sl) {
                         sl.sendParticles(ParticleTypes.NOTE, VeilFoxEntity.this.getX(), VeilFoxEntity.this.getY()+1, VeilFoxEntity.this.getZ(), 1, 0.2, 0.2, 0.2, 0);
+                    }
+
+                    if (participants != null) {
+                        for (VeilFoxEntity f : participants) {
+                            if (f.isAlive()) {
+                                float chorusPitch = Mth.clamp(pitch + (f.getRandom().nextFloat() * 0.04f - 0.02f), 0.5f, 2.0f);
+                                f.level().playSound(null, f.getX(), f.getY(), f.getZ(), ModSounds.VEIL_FOX_CHORUS.get(), net.minecraft.sounds.SoundSource.NEUTRAL, 0.8f, chorusPitch);
+                                if (f.level() instanceof ServerLevel sl) {
+                                    sl.sendParticles(ParticleTypes.NOTE, f.getX(), f.getY()+1, f.getZ(), 1, 0.2, 0.2, 0.2, 0);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -939,6 +1092,10 @@ public class VeilFoxEntity extends TamableAnimal {
         @Override
         public void stop() {
             VeilFoxEntity.this.setOrderedToSit(false);
+            VeilFoxEntity.this.isPlayingPackGame = false;
+            if (participants != null) {
+                for(VeilFoxEntity f : participants) { f.isPlayingPackGame = false; f.setOrderedToSit(false); }
+            }
             currentMelody = null;
         }
     }
@@ -949,7 +1106,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.getTarget() != null || VeilFoxEntity.this.isInWater() || VeilFoxEntity.this.teleportDelay > 0) return false;
+            if (VeilFoxEntity.this.getTarget() != null || VeilFoxEntity.this.isInWater() || VeilFoxEntity.this.teleportDelay > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
             if (VeilFoxEntity.this.isTame()) {
                 LivingEntity owner = VeilFoxEntity.this.getOwner();
                 return owner != null && owner.isSleeping();
@@ -967,7 +1124,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canContinueToUse() {
-            if (VeilFoxEntity.this.getTarget() != null || VeilFoxEntity.this.isInWater()) return false;
+            if (VeilFoxEntity.this.getTarget() != null || VeilFoxEntity.this.isInWater() || VeilFoxEntity.this.isPlayingPackGame) return false;
             if (VeilFoxEntity.this.isTame()) {
                 LivingEntity owner = VeilFoxEntity.this.getOwner();
                 return owner != null && owner.isSleeping();
@@ -982,10 +1139,10 @@ public class VeilFoxEntity extends TamableAnimal {
             VeilFoxEntity.this.getNavigation().stop();
             if (VeilFoxEntity.this.isTame() && VeilFoxEntity.this.getOwner() != null) {
                 Vec3 bedPos = VeilFoxEntity.this.getOwner().position().add((VeilFoxEntity.this.getRandom().nextDouble() - 0.5), 0, (VeilFoxEntity.this.getRandom().nextDouble() - 0.5));
-                VeilFoxEntity.this.scheduleTeleport(bedPos);
+                VeilFoxEntity.this.scheduleTeleport(bedPos, false);
             } else if (leader != null) {
                 Vec3 cuddlePos = leader.position().add((VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 0.5, 0, (VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 0.5);
-                VeilFoxEntity.this.scheduleTeleport(cuddlePos);
+                VeilFoxEntity.this.scheduleTeleport(cuddlePos, false);
             }
         }
         @Override public void stop() { VeilFoxEntity.this.setSleeping(false); leader = null; }
@@ -998,7 +1155,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.isSleeping()) return false;
+            if (VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.isPlayingPackGame) return false;
             LivingEntity owner = VeilFoxEntity.this.getOwner();
             if (owner != null && owner.getLastHurtByMob() != null && owner.getLastHurtByMob().isAlive() && owner.tickCount - owner.getLastHurtByMobTimestamp() < 100) {
                 threat = owner.getLastHurtByMob();
@@ -1024,7 +1181,7 @@ public class VeilFoxEntity extends TamableAnimal {
             distractTimer--;
             if (distractTimer % 10 == 0 && VeilFoxEntity.this.teleportDelay <= 0) {
                 Vec3 blinkPos = threat.position().add((VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 4, VeilFoxEntity.this.getRandom().nextDouble() * 2, (VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 4);
-                VeilFoxEntity.this.scheduleTeleport(blinkPos);
+                VeilFoxEntity.this.scheduleTeleport(blinkPos, true);
             }
             if (distractTimer == 10) {
                 threat.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
@@ -1037,7 +1194,7 @@ public class VeilFoxEntity extends TamableAnimal {
             LivingEntity owner = VeilFoxEntity.this.getOwner();
             if (owner != null && VeilFoxEntity.this.teleportDelay <= 0) {
                 Vec3 targetPos = owner.position().add((VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 2, 0, (VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 2);
-                VeilFoxEntity.this.scheduleTeleport(targetPos);
+                VeilFoxEntity.this.scheduleTeleport(targetPos, true);
             }
             threat = null;
         }
@@ -1051,7 +1208,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.teleportDelay > 0) return false;
+            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.teleportDelay > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
             if (cooldown > 0) { cooldown--; return false; }
             LivingEntity owner = VeilFoxEntity.this.getOwner();
             return owner != null && VeilFoxEntity.this.getRandom().nextInt(300) == 0;
@@ -1061,7 +1218,7 @@ public class VeilFoxEntity extends TamableAnimal {
         public void start() {
             isAway = true; returnTimer = 100;
             Vec3 fetchPos = VeilFoxEntity.this.position().add(0, 200, 0);
-            VeilFoxEntity.this.scheduleTeleport(fetchPos);
+            VeilFoxEntity.this.scheduleTeleport(fetchPos, false);
             VeilFoxEntity.this.setNoGravity(true);
         }
 
@@ -1075,7 +1232,7 @@ public class VeilFoxEntity extends TamableAnimal {
                 if (owner != null) {
                     Vec3 targetPos = owner.position().add(owner.getLookAngle().normalize().scale(2.0));
                     VeilFoxEntity.this.setNoGravity(false);
-                    VeilFoxEntity.this.scheduleTeleport(targetPos);
+                    VeilFoxEntity.this.scheduleTeleport(targetPos, false);
 
                     Item[] gifts = {Items.RABBIT_HIDE, Items.FEATHER, ModItems.WEAK_ESSENCE.get(), Items.EMERALD, Items.GLOW_BERRIES};
                     ItemStack gift = new ItemStack(gifts[VeilFoxEntity.this.getRandom().nextInt(gifts.length)]);
@@ -1098,7 +1255,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.teleportDelay > 0) return false;
+            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.teleportDelay > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
             if (VeilFoxEntity.this.getRandom().nextInt(40) != 0) return false;
 
             List<ItemEntity> items = VeilFoxEntity.this.level().getEntitiesOfClass(ItemEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(12.0D));
@@ -1118,7 +1275,7 @@ public class VeilFoxEntity extends TamableAnimal {
                 if (VeilFoxEntity.this.distanceToSqr(targetItem) > 4.0D) {
                     if (VeilFoxEntity.this.teleportDelay <= 0 && VeilFoxEntity.this.getRandom().nextInt(20) == 0) {
                         Vec3 targetPos = targetItem.position().add((VeilFoxEntity.this.random.nextDouble() - 0.5) * 3, 0, (VeilFoxEntity.this.random.nextDouble() - 0.5) * 3);
-                        VeilFoxEntity.this.scheduleTeleport(targetPos);
+                        VeilFoxEntity.this.scheduleTeleport(targetPos, false);
                     } else {
                         VeilFoxEntity.this.getNavigation().moveTo(targetItem, 0.6D);
                     }
@@ -1139,7 +1296,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getFriendliness() <= 150) return false;
+            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getFriendliness() <= 150 || VeilFoxEntity.this.isPlayingPackGame) return false;
             LivingEntity owner = VeilFoxEntity.this.getOwner();
             if (owner == null) return false;
 
@@ -1162,7 +1319,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public void start() {
-            if (guideTarget != null) VeilFoxEntity.this.scheduleTeleport(new Vec3(guideTarget.getX()+0.5, guideTarget.getY(), guideTarget.getZ()+0.5));
+            if (guideTarget != null) VeilFoxEntity.this.scheduleTeleport(new Vec3(guideTarget.getX()+0.5, guideTarget.getY(), guideTarget.getZ()+0.5), false);
         }
 
         @Override
@@ -1180,7 +1337,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getFriendliness() <= 200 || !VeilFoxEntity.this.isOrderedToSit()) return false;
+            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getFriendliness() <= 200 || !VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.isPlayingPackGame) return false;
             if (cooldown > 0) { cooldown--; return false; }
             LivingEntity owner = VeilFoxEntity.this.getOwner();
             return owner != null && owner.isCrouching() && VeilFoxEntity.this.distanceToSqr(owner) < 4.0D;
@@ -1212,39 +1369,46 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getFriendliness() <= 100 || VeilFoxEntity.this.isOrderedToSit()) return false;
+            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getFriendliness() <= 100 || VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.isPlayingPackGame) return false;
+
+            if (!VeilFoxEntity.this.fetchedItem.isEmpty()) return true;
+
             LivingEntity owner = VeilFoxEntity.this.getOwner();
             if (owner == null || (owner.getLastHurtByMob() == null && owner.getLastHurtMob() == null)) return false;
 
             List<ItemEntity> items = VeilFoxEntity.this.level().getEntitiesOfClass(ItemEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D));
-            if (!items.isEmpty() && VeilFoxEntity.this.fetchedItem.isEmpty()) {
+            if (!items.isEmpty()) {
                 targetItem = items.get(0);
                 return true;
             }
-            return !VeilFoxEntity.this.fetchedItem.isEmpty();
+            return false;
         }
 
         @Override
         public void tick() {
-            if (VeilFoxEntity.this.fetchedItem.isEmpty() && targetItem != null && targetItem.isAlive()) {
-                if (VeilFoxEntity.this.distanceToSqr(targetItem) > 4.0D) {
-                    VeilFoxEntity.this.scheduleTeleport(targetItem.position());
-                } else {
-                    VeilFoxEntity.this.fetchedItem = targetItem.getItem().copy();
-                    targetItem.discard();
-                    targetItem = null;
-                }
-            } else if (!VeilFoxEntity.this.fetchedItem.isEmpty()) {
+            if (!VeilFoxEntity.this.fetchedItem.isEmpty()) {
                 LivingEntity owner = VeilFoxEntity.this.getOwner();
                 if (owner != null) {
                     if (VeilFoxEntity.this.distanceToSqr(owner) > 4.0D) {
-                        VeilFoxEntity.this.scheduleTeleport(owner.position().add((VeilFoxEntity.this.random.nextDouble() - 0.5), 0, (VeilFoxEntity.this.random.nextDouble() - 0.5)));
+                        if (VeilFoxEntity.this.teleportDelay <= 0 && VeilFoxEntity.this.getRandom().nextInt(10) == 0) {
+                            VeilFoxEntity.this.scheduleTeleport(owner.position().add((VeilFoxEntity.this.random.nextDouble() - 0.5), 0, (VeilFoxEntity.this.random.nextDouble() - 0.5)), false);
+                        }
                     } else {
                         if (VeilFoxEntity.this.level() instanceof ServerLevel sl) {
                             VeilFoxEntity.this.spawnAtLocation(sl, VeilFoxEntity.this.fetchedItem);
                         }
                         VeilFoxEntity.this.fetchedItem = ItemStack.EMPTY;
                     }
+                }
+            } else if (targetItem != null && targetItem.isAlive()) {
+                if (VeilFoxEntity.this.distanceToSqr(targetItem) > 4.0D) {
+                    if (VeilFoxEntity.this.teleportDelay <= 0 && VeilFoxEntity.this.getRandom().nextInt(10) == 0) {
+                        VeilFoxEntity.this.scheduleTeleport(targetItem.position(), false);
+                    }
+                } else {
+                    VeilFoxEntity.this.fetchedItem = targetItem.getItem().copy();
+                    targetItem.discard();
+                    targetItem = null;
                 }
             }
         }
@@ -1257,34 +1421,39 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.getWildFriendliness() <= 60 || VeilFoxEntity.this.isTame()) return false;
+            if (VeilFoxEntity.this.getWildFriendliness() <= 60 || VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isPlayingPackGame) return false;
+
+            if (!VeilFoxEntity.this.fetchedItem.isEmpty() && targetFox != null && targetFox.isAlive()) return true;
 
             List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D), f -> f != VeilFoxEntity.this && f.getHealth() < f.getMaxHealth() * 0.5f);
             if (friends.isEmpty()) return false;
 
             List<ItemEntity> items = VeilFoxEntity.this.level().getEntitiesOfClass(ItemEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D), i -> i.getItem().getItem() instanceof EssenceItem);
-            if (items.isEmpty() && VeilFoxEntity.this.fetchedItem.isEmpty()) return false;
+            if (items.isEmpty()) return false;
 
             targetFox = friends.get(0);
-            if (VeilFoxEntity.this.fetchedItem.isEmpty()) targetItem = items.get(0);
+            targetItem = items.get(0);
             return true;
         }
 
         @Override
         public void tick() {
-            if (VeilFoxEntity.this.fetchedItem.isEmpty() && targetItem != null && targetItem.isAlive()) {
-                VeilFoxEntity.this.scheduleTeleport(targetItem.position());
-                if (VeilFoxEntity.this.distanceToSqr(targetItem) < 4.0D) {
-                    VeilFoxEntity.this.fetchedItem = targetItem.getItem().copy();
-                    targetItem.discard();
-                }
-            } else if (!VeilFoxEntity.this.fetchedItem.isEmpty() && targetFox != null && targetFox.isAlive()) {
-                VeilFoxEntity.this.scheduleTeleport(targetFox.position());
-                if (VeilFoxEntity.this.distanceToSqr(targetFox) < 4.0D) {
+            if (!VeilFoxEntity.this.fetchedItem.isEmpty() && targetFox != null && targetFox.isAlive()) {
+                if (VeilFoxEntity.this.distanceToSqr(targetFox) > 4.0D) {
+                    if (VeilFoxEntity.this.teleportDelay <= 0) VeilFoxEntity.this.scheduleTeleport(targetFox.position(), false);
+                } else {
                     if (VeilFoxEntity.this.level() instanceof ServerLevel sl) {
                         VeilFoxEntity.this.spawnAtLocation(sl, VeilFoxEntity.this.fetchedItem);
                     }
                     VeilFoxEntity.this.fetchedItem = ItemStack.EMPTY;
+                }
+            } else if (targetItem != null && targetItem.isAlive()) {
+                if (VeilFoxEntity.this.distanceToSqr(targetItem) > 4.0D) {
+                    if (VeilFoxEntity.this.teleportDelay <= 0) VeilFoxEntity.this.scheduleTeleport(targetItem.position(), false);
+                } else {
+                    VeilFoxEntity.this.fetchedItem = targetItem.getItem().copy();
+                    targetItem.discard();
+                    targetItem = null;
                 }
             }
         }
@@ -1296,7 +1465,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.getWildFriendliness() <= 160 || VeilFoxEntity.this.isTame() || VeilFoxEntity.this.teleportDelay > 0) return false;
+            if (VeilFoxEntity.this.getWildFriendliness() <= 160 || VeilFoxEntity.this.isTame() || VeilFoxEntity.this.teleportDelay > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
 
             List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D));
             for (VeilFoxEntity f : friends) {
@@ -1310,7 +1479,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public void start() {
-            if (targetFox != null) VeilFoxEntity.this.scheduleTeleport(targetFox.position());
+            if (targetFox != null) VeilFoxEntity.this.scheduleTeleport(targetFox.position(), false);
         }
 
         @Override
@@ -1326,20 +1495,26 @@ public class VeilFoxEntity extends TamableAnimal {
     }
 
     class BlinkTagGoal extends Goal {
+        private List<VeilFoxEntity> participants;
+
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 80 || VeilFoxEntity.this.tagCooldown > 0) return false;
-            if (VeilFoxEntity.this.tagTarget != null && VeilFoxEntity.this.tagTarget.isAlive()) return true;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("blink_tag");
+            if (!forced) {
+                if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 80 || VeilFoxEntity.this.tagCooldown > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
+                if (VeilFoxEntity.this.tagTarget != null && VeilFoxEntity.this.tagTarget.isAlive()) return true;
+                if (VeilFoxEntity.this.getRandom().nextInt(200) != 0) return false;
+            } else {
+                if (VeilFoxEntity.this.tagTarget != null && VeilFoxEntity.this.tagTarget.isAlive()) return true;
+            }
 
-            if (VeilFoxEntity.this.getRandom().nextInt(200) == 0) {
-                List<VeilFoxEntity> potentials = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D),
-                        e -> e != VeilFoxEntity.this && e.isAlive() && !e.isTame() && e.tagCooldown <= 0);
+            participants = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D),
+                    e -> e != VeilFoxEntity.this && e.isAlive() && !e.isTame() && e.tagCooldown <= 0 && !e.isPlayingPackGame);
 
-                if (!potentials.isEmpty()) {
-                    VeilFoxEntity.this.tagTarget = potentials.get(VeilFoxEntity.this.getRandom().nextInt(potentials.size()));
-                    VeilFoxEntity.this.tagTimer = 200;
-                    return true;
-                }
+            if (!participants.isEmpty()) {
+                VeilFoxEntity.this.tagTarget = participants.get(VeilFoxEntity.this.getRandom().nextInt(participants.size()));
+                VeilFoxEntity.this.tagTimer = 200;
+                return true;
             }
             return false;
         }
@@ -1348,10 +1523,19 @@ public class VeilFoxEntity extends TamableAnimal {
         public boolean canContinueToUse() { return VeilFoxEntity.this.tagTarget != null && VeilFoxEntity.this.tagTarget.isAlive() && VeilFoxEntity.this.tagTimer > 0; }
 
         @Override
+        public void start() {
+            VeilFoxEntity.this.forcedPackGame = "";
+            VeilFoxEntity.this.isPlayingPackGame = true;
+            if (participants != null) {
+                for(VeilFoxEntity f : participants) f.isPlayingPackGame = true;
+            }
+        }
+
+        @Override
         public void tick() {
             VeilFoxEntity.this.tagTimer--;
             if (VeilFoxEntity.this.teleportDelay <= 0 && VeilFoxEntity.this.getRandom().nextInt(10) == 0) {
-                VeilFoxEntity.this.scheduleTeleport(VeilFoxEntity.this.tagTarget.position());
+                VeilFoxEntity.this.scheduleTeleport(VeilFoxEntity.this.tagTarget.position(), false);
             }
 
             if (VeilFoxEntity.this.distanceToSqr(VeilFoxEntity.this.tagTarget) < 4.0D) {
@@ -1365,46 +1549,64 @@ public class VeilFoxEntity extends TamableAnimal {
                 VeilFoxEntity.this.tagCooldown = 40;
             }
         }
-        @Override public void stop() { VeilFoxEntity.this.tagTarget = null; }
+        @Override
+        public void stop() {
+            VeilFoxEntity.this.tagTarget = null;
+            VeilFoxEntity.this.isPlayingPackGame = false;
+            if (participants != null) {
+                for(VeilFoxEntity f : participants) f.isPlayingPackGame = false;
+            }
+        }
     }
 
     class HideAndSeekGoal extends Goal {
+        private List<VeilFoxEntity> hiders;
+
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 150) return false;
-            if (VeilFoxEntity.this.isSeeker) return true;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("hide_and_seek");
+            if (!forced) {
+                if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 150) return false;
+                if (VeilFoxEntity.this.isSeeker) return true;
+                if (VeilFoxEntity.this.getRandom().nextInt(400) != 0) return false;
+            } else {
+                if (VeilFoxEntity.this.isSeeker) return true;
+            }
 
-            if (VeilFoxEntity.this.getRandom().nextInt(400) == 0) {
-                List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D),
-                        e -> e != VeilFoxEntity.this && !e.isSeeker && !e.isHider && !e.isTame());
+            hiders = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D),
+                    e -> e != VeilFoxEntity.this && !e.isSeeker && !e.isHider && !e.isTame() && !e.isPlayingPackGame);
 
-                if (!friends.isEmpty()) {
-                    VeilFoxEntity.this.isSeeker = true;
-                    VeilFoxEntity.this.hideSeekTimer = 100;
-                    for (VeilFoxEntity friend : friends) {
-                        friend.isHider = true;
-                        friend.hideSeekTimer = 400;
-                        friend.seekTarget = VeilFoxEntity.this;
-                    }
-                    return true;
-                }
+            if (hiders.size() >= 1) {
+                VeilFoxEntity.this.isSeeker = true;
+                VeilFoxEntity.this.hideSeekTimer = 100;
+                return true;
             }
             return false;
         }
 
         @Override
-        public void start() { VeilFoxEntity.this.setSleeping(true); }
+        public void start() {
+            VeilFoxEntity.this.forcedPackGame = "";
+            VeilFoxEntity.this.setSleeping(true);
+            VeilFoxEntity.this.isPlayingPackGame = true;
+            for (VeilFoxEntity friend : hiders) {
+                friend.isHider = true;
+                friend.hideSeekTimer = 400;
+                friend.seekTarget = VeilFoxEntity.this;
+                friend.isPlayingPackGame = true;
+            }
+        }
 
         @Override
         public void tick() {
             VeilFoxEntity.this.hideSeekTimer--;
             if (VeilFoxEntity.this.hideSeekTimer <= 0) {
                 VeilFoxEntity.this.setSleeping(false);
-                List<VeilFoxEntity> hiders = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(24.0D), e -> e.isHider);
+                List<VeilFoxEntity> activeHiders = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(24.0D), e -> e.isHider);
 
-                for (VeilFoxEntity hider : hiders) {
+                for (VeilFoxEntity hider : activeHiders) {
                     if (VeilFoxEntity.this.hasLineOfSight(hider)) {
-                        VeilFoxEntity.this.scheduleTeleport(hider.position());
+                        VeilFoxEntity.this.scheduleTeleport(hider.position(), false);
                         hider.isHider = false;
                         VeilFoxEntity.this.playSound(SoundEvents.FOX_AGGRO, 1.0F, 2.0F);
                         VeilFoxEntity.this.setIntelligence(VeilFoxEntity.this.getIntelligence() + 1);
@@ -1412,7 +1614,15 @@ public class VeilFoxEntity extends TamableAnimal {
                 }
             }
         }
-        @Override public void stop() { VeilFoxEntity.this.isSeeker = false; VeilFoxEntity.this.setSleeping(false); }
+        @Override
+        public void stop() {
+            VeilFoxEntity.this.isSeeker = false;
+            VeilFoxEntity.this.setSleeping(false);
+            VeilFoxEntity.this.isPlayingPackGame = false;
+            if (hiders != null) {
+                for (VeilFoxEntity f : hiders) f.isPlayingPackGame = false;
+            }
+        }
     }
 
     class HideAndSeekHiderGoal extends Goal {
@@ -1422,12 +1632,18 @@ public class VeilFoxEntity extends TamableAnimal {
         public void tick() {
             VeilFoxEntity.this.hideSeekTimer--;
             if (VeilFoxEntity.this.seekTarget != null && VeilFoxEntity.this.seekTarget.isSleeping() && VeilFoxEntity.this.teleportDelay <= 0) {
-                VeilFoxEntity.this.teleportRandomly(12, true);
+                VeilFoxEntity.this.teleportRandomly(12, true, false);
             } else {
                 VeilFoxEntity.this.setOrderedToSit(true);
             }
         }
-        @Override public void stop() { VeilFoxEntity.this.isHider = false; VeilFoxEntity.this.seekTarget = null; VeilFoxEntity.this.setOrderedToSit(false); }
+        @Override
+        public void stop() {
+            VeilFoxEntity.this.isHider = false;
+            VeilFoxEntity.this.seekTarget = null;
+            VeilFoxEntity.this.setOrderedToSit(false);
+            VeilFoxEntity.this.isPlayingPackGame = false;
+        }
     }
 
     class PhantomHerdingGoal extends Goal {
@@ -1436,7 +1652,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 90) return false;
+            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 90 || VeilFoxEntity.this.isPlayingPackGame) return false;
             if (VeilFoxEntity.this.getRandom().nextInt(200) != 0) return false;
 
             List<Animal> animals = VeilFoxEntity.this.level().getEntitiesOfClass(Animal.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D), a -> !(a instanceof VeilFoxEntity));
@@ -1452,7 +1668,7 @@ public class VeilFoxEntity extends TamableAnimal {
             if (prey != null && prey.isAlive() && VeilFoxEntity.this.teleportDelay <= 0) {
                 if (VeilFoxEntity.this.getRandom().nextInt(15) == 0) {
                     Vec3 surroundPos = prey.position().add((VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 6, 0, (VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 6);
-                    VeilFoxEntity.this.scheduleTeleport(surroundPos);
+                    VeilFoxEntity.this.scheduleTeleport(surroundPos, false);
                 }
             }
         }
@@ -1463,7 +1679,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 120) return false;
+            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 120 || VeilFoxEntity.this.isPlayingPackGame) return false;
             boolean isNight = !VeilFoxEntity.this.level().dimensionType().hasFixedTime() && (VeilFoxEntity.this.level().getDayTime() % 24000L >= 13000L);
             if (!isNight || !VeilFoxEntity.this.level().canSeeSky(VeilFoxEntity.this.blockPosition())) return false;
             return VeilFoxEntity.this.getRandom().nextInt(200) == 0;
@@ -1493,13 +1709,18 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.blinkCooldown > 0 || VeilFoxEntity.this.teleportDelay > 0) return false;
+            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.blinkCooldown > 0 || VeilFoxEntity.this.teleportDelay > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
             if (VeilFoxEntity.this.getTarget() != null && VeilFoxEntity.this.isAggressive()) return false;
 
             List<Player> nearbyPlayers = VeilFoxEntity.this.level().getEntitiesOfClass(Player.class, VeilFoxEntity.this.getBoundingBox().inflate(8.0D));
             for (Player p : nearbyPlayers) {
+                if (p.isCreative() || p.isSpectator()) continue;
+
                 double speedSqr = p.getDeltaMovement().horizontalDistanceSqr();
-                if ((speedSqr > 0.002D && !p.isCrouching()) || p.swinging) return true;
+
+                if ((speedSqr > 0.002D && !p.isCrouching()) || p.swinging) {
+                    return true;
+                }
             }
             return false;
         }
@@ -1512,27 +1733,17 @@ public class VeilFoxEntity extends TamableAnimal {
                 List<Player> nearbyPlayers = VeilFoxEntity.this.level().getEntitiesOfClass(Player.class, VeilFoxEntity.this.getBoundingBox().inflate(8.0D));
                 if (!nearbyPlayers.isEmpty()) {
                     VeilFoxEntity.this.setTarget(nearbyPlayers.get(0));
-                    VeilFoxEntity.this.teleportRandomly(5, false);
+                    VeilFoxEntity.this.teleportRandomly(5, false, true);
                     VeilFoxEntity.this.blinkCooldown = 15;
                     VeilFoxEntity.this.setTamingPhase(0);
                     return;
                 }
             }
 
-            VeilFoxEntity.this.teleportRandomly(12, true);
+            VeilFoxEntity.this.teleportRandomly(12, true, true);
             VeilFoxEntity.this.chainBlinksRemaining = 1 + VeilFoxEntity.this.random.nextInt(2);
             VeilFoxEntity.this.blinkCooldown = 15;
             VeilFoxEntity.this.setTamingPhase(0);
-
-            if (VeilFoxEntity.this.getWildFriendliness() > 40) {
-                List<VeilFoxEntity> pack = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D));
-                for(VeilFoxEntity friend : pack) {
-                    if(friend != VeilFoxEntity.this && friend.blinkCooldown <= 0) {
-                        friend.teleportRandomly(8, true);
-                        friend.blinkCooldown = 15;
-                    }
-                }
-            }
         }
     }
 
@@ -1546,7 +1757,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isSleeping()) return false;
+            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.isPlayingPackGame) return false;
             List<Player> players = VeilFoxEntity.this.level().getEntitiesOfClass(Player.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D));
             if (players.isEmpty()) return false;
 
@@ -1564,7 +1775,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
             double speedSqr = tamingTarget.getDeltaMovement().horizontalDistanceSqr();
             if (!tamingTarget.isCrouching() || speedSqr > 0.002D) {
-                if (VeilFoxEntity.this.getTamingPhase() > 0) VeilFoxEntity.this.teleportRandomly(12, true);
+                if (VeilFoxEntity.this.getTamingPhase() > 0) VeilFoxEntity.this.teleportRandomly(12, true, true);
                 resetTaming();
                 return;
             }
@@ -1617,7 +1828,7 @@ public class VeilFoxEntity extends TamableAnimal {
                 for(int i = 0; i < 10; i++) {
                     BlockPos targetPos = this.owner.blockPosition().offset(this.tamable.getRandom().nextInt(5) - 2, this.tamable.getRandom().nextInt(3) - 1, this.tamable.getRandom().nextInt(5) - 2);
                     if (this.tamable.level().getBlockState(targetPos).isAir() && this.tamable.level().getBlockState(targetPos.above()).isAir() && this.tamable.level().getBlockState(targetPos.below()).isSolidRender()) {
-                        ((VeilFoxEntity)this.tamable).scheduleTeleport(new Vec3(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5));
+                        ((VeilFoxEntity)this.tamable).scheduleTeleport(new Vec3(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5), false);
                         break;
                     }
                 }
@@ -1630,7 +1841,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.teleportDelay > 0) return false;
+            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isOrderedToSit() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.teleportDelay > 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
             if (VeilFoxEntity.this.getRandom().nextInt(80) != 0) return false;
             LivingEntity owner = VeilFoxEntity.this.getOwner();
             return owner != null && VeilFoxEntity.this.distanceToSqr(owner) <= 144;
@@ -1641,7 +1852,7 @@ public class VeilFoxEntity extends TamableAnimal {
             for (int i = 0; i < 15; i++) {
                 BlockPos pos = BlockPos.containing(VeilFoxEntity.this.getX() + (VeilFoxEntity.this.random.nextDouble() - 0.5D) * 16, VeilFoxEntity.this.getY() + 2 + VeilFoxEntity.this.random.nextInt(4), VeilFoxEntity.this.getZ() + (VeilFoxEntity.this.random.nextDouble() - 0.5D) * 16);
                 if (VeilFoxEntity.this.level().getBlockState(pos.below()).isSolidRender() && VeilFoxEntity.this.level().getBlockState(pos).isAir() && VeilFoxEntity.this.level().getBlockState(pos.above()).isAir()) {
-                    VeilFoxEntity.this.scheduleTeleport(new Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5));
+                    VeilFoxEntity.this.scheduleTeleport(new Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5), false);
                     break;
                 }
             }
@@ -1654,7 +1865,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.tickCount % 10 != 0) return false;
+            if (!VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isSleeping() || VeilFoxEntity.this.tickCount % 10 != 0 || VeilFoxEntity.this.isPlayingPackGame) return false;
             if (!(VeilFoxEntity.this.getOwner() instanceof Player owner)) return false;
 
             for (Monster m : VeilFoxEntity.this.level().getEntitiesOfClass(Monster.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D))) {
@@ -1682,23 +1893,38 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isSleeping()) return false;
-            boolean isNight = !VeilFoxEntity.this.level().dimensionType().hasFixedTime() && (VeilFoxEntity.this.level().getDayTime() % 24000L >= 13000L);
-            if (!isNight || VeilFoxEntity.this.getRandom().nextInt(100) != 0) return false;
+            boolean forced = VeilFoxEntity.this.forcedPackGame.equals("night_gathering");
+            if (!forced) {
+                if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.isSleeping()) return false;
+                boolean isNight = !VeilFoxEntity.this.level().dimensionType().hasFixedTime() && (VeilFoxEntity.this.level().getDayTime() % 24000L >= 13000L);
+                if (!isNight || VeilFoxEntity.this.getRandom().nextInt(100) != 0) return false;
+            }
 
             List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(32.0D), f -> !f.isTame());
-            if (friends.size() < 2) return false;
+            if (friends.isEmpty() && !forced) return false;
 
-            int avgX = 0, avgY = 0, avgZ = 0;
-            for (VeilFoxEntity f : friends) { avgX += f.getX(); avgY += f.getY(); avgZ += f.getZ(); }
-            gatheringCenter = new BlockPos(avgX / friends.size(), avgY / friends.size(), avgZ / friends.size());
+            int avgX = (int)VeilFoxEntity.this.getX(), avgY = (int)VeilFoxEntity.this.getY(), avgZ = (int)VeilFoxEntity.this.getZ();
+            if (!friends.isEmpty()) {
+                for (VeilFoxEntity f : friends) { avgX += f.getX(); avgY += f.getY(); avgZ += f.getZ(); }
+                avgX /= (friends.size() + 1);
+                avgY /= (friends.size() + 1);
+                avgZ /= (friends.size() + 1);
+            }
+            gatheringCenter = new BlockPos(avgX, avgY, avgZ);
             return true;
         }
 
         @Override
         public boolean canContinueToUse() {
-            boolean isNight = !VeilFoxEntity.this.level().dimensionType().hasFixedTime() && (VeilFoxEntity.this.level().getDayTime() % 24000L >= 13000L);
-            return !VeilFoxEntity.this.isTame() && !VeilFoxEntity.this.isSleeping() && isNight;
+            if (VeilFoxEntity.this.forcedPackGame.equals("night_gathering")) return true;
+            long time = VeilFoxEntity.this.level().getDayTime() % 24000L;
+            return !VeilFoxEntity.this.isTame() && !VeilFoxEntity.this.isSleeping() && time >= 13000L && time <= 23000L;
+        }
+
+        @Override
+        public void start() {
+            VeilFoxEntity.this.forcedPackGame = "";
+            VeilFoxEntity.this.setOrderedToSit(false);
         }
 
         @Override
@@ -1711,7 +1937,7 @@ public class VeilFoxEntity extends TamableAnimal {
                 VeilFoxEntity.this.setOrderedToSit(true);
                 long syncTime = VeilFoxEntity.this.level().getGameTime();
                 if ((syncTime % 100 == 0 || syncTime % 100 == 15) && VeilFoxEntity.this.getRandom().nextFloat() < 0.6f) {
-                    VeilFoxEntity.this.teleportRandomly(5, false);
+                    VeilFoxEntity.this.teleportRandomly(5, false, false);
                     VeilFoxEntity.this.setOrderedToSit(true);
                 }
             }

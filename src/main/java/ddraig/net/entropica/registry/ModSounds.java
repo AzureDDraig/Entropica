@@ -15,6 +15,7 @@ public class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> VEIL_FOX_AMBIENT = registerSoundEvent("veil_fox_ambient");
     public static final DeferredHolder<SoundEvent, SoundEvent> VEIL_FOX_HURT = registerSoundEvent("veil_fox_hurt");
     public static final DeferredHolder<SoundEvent, SoundEvent> VEIL_FOX_DEATH = registerSoundEvent("veil_fox_death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> VEIL_FOX_CHORUS = registerSoundEvent("veil_fox_chorus");
 
     private static DeferredHolder<SoundEvent, SoundEvent> registerSoundEvent(String name) {
         return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, name)));
