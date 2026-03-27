@@ -6,6 +6,7 @@ import ddraig.net.entropica.item.*;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -25,6 +26,9 @@ public class ModItems {
     public static final DeferredItem<Item> ARCANUM_FOCUS = ITEMS.registerItem("arcanum_focus", Item::new);
     public static final DeferredItem<Item> VIS_VALUE_DETECTOR = ITEMS.registerItem("vis_value_detector", Item::new);
     public static final DeferredItem<Item> EIDOLON_PATHMARKER = ITEMS.registerItem("eidolon_pathmarker", properties -> new EidolonPathmarkerItem(properties.stacksTo(1)));
+
+    // Veil Fox Items
+    public static final DeferredItem<Item> VEIL_SHARD = ITEMS.registerItem("veil_shard", Item::new);
 
     // --- Aetheric Vision Equipment ---
     public static final DeferredItem<Item> AETHERIC_MONOCLE = ITEMS.registerItem("aetheric_monocle", properties -> new ddraig.net.entropica.item.AethericVisionItem(
@@ -437,6 +441,7 @@ public class ModItems {
     // ==========================================
     public static final List<DeferredItem<? extends Item>> SIMPLE_ITEMS = List.of(
             ARCANUM_FOCUS, VIS_VALUE_DETECTOR, ARCANE_BRICK_PIECE, ARCANE_CLAY, EIDOLON_PATHMARKER,
+            VEIL_SHARD,
             SMALL_AMPOULE, MEDIUM_AMPOULE, LARGE_AMPOULE, ESSENCE_HARVESTING_BLADE, SOULBOUND_BLADE,
             OBLIVION_BLADE, TIDAL_TRIDENT, VOID_SWORD, BASALT_PICKAXE, WHISPERWOOD_WAND, SHIMMERING_FOCUS,
             ARCANITE_INGOT, VISCANITE_INGOT, RESONITE_INGOT, EIDOLITE_INGOT, CHARGED_ARCANITE_INGOT, CHARGED_VISCANITE_INGOT, CHARGED_RESONITE_INGOT, CHARGED_EIDOLITE_INGOT,

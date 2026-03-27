@@ -33,6 +33,7 @@ public class Entropica {
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
         ModParticles.PARTICLES.register(modEventBus);
         ModRecipes.register(modEventBus);
+        ModSounds.SOUNDS.register(modEventBus);
 
         // --- Register Menu Types ---
         ModMenuTypes.MENU_TYPES.register(modEventBus);

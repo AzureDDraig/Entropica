@@ -2,6 +2,8 @@ package ddraig.net.entropica.event;
 
 import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.entity.grot.GrotEntity;
+import ddraig.net.entropica.entity.veil_fox.VeilFoxAfterimageEntity;
+import ddraig.net.entropica.entity.veil_fox.VeilFoxEntity;
 import ddraig.net.entropica.registry.ModEntityTypes;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -15,5 +17,7 @@ public class ModEntityEvents {
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
         // Registers the base max health/speed to prevent the NullPointerException crash
         event.put(ModEntityTypes.GROT.get(), GrotEntity.createAttributes().build());
+        event.put(ModEntityTypes.VEIL_FOX.get(), VeilFoxEntity.createAttributes().build());
+        event.put(ModEntityTypes.VEIL_FOX_AFTERIMAGE.get(), VeilFoxAfterimageEntity.createAttributes().build());
     }
 }

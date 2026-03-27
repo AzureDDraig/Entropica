@@ -5,6 +5,8 @@ import ddraig.net.entropica.entity.EidolicShadowEntity;
 import ddraig.net.entropica.entity.EssenceNodeEntity;
 import ddraig.net.entropica.entity.EssenceOrbEntity;
 import ddraig.net.entropica.entity.grot.GrotEntity;
+import ddraig.net.entropica.entity.veil_fox.VeilFoxAfterimageEntity;
+import ddraig.net.entropica.entity.veil_fox.VeilFoxEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -34,23 +36,41 @@ public class ModEntityTypes {
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "essence_node"))));
 
-    // --- EIDOLIC SHADOW ENTITY (Shelved but Registered) ---
     public static final DeferredHolder<EntityType<?>, EntityType<EidolicShadowEntity>> EIDOLIC_SHADOW =
             ENTITY_TYPES.register("eidolic_shadow",
                     () -> EntityType.Builder.<EidolicShadowEntity>of(EidolicShadowEntity::new, MobCategory.MISC)
-                            .sized(0.6F, 1.8F) // Humanoid bounds
+                            .sized(0.6F, 1.8F)
                             .clientTrackingRange(10)
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "eidolic_shadow"))));
 
-    // --- GROT ENTITY ---
     public static final DeferredHolder<EntityType<?>, EntityType<GrotEntity>> GROT =
             ENTITY_TYPES.register("grot",
                     () -> EntityType.Builder.<GrotEntity>of(GrotEntity::new, MobCategory.MONSTER)
-                            .sized(2.04F, 2.04F) // Vanilla Slime base size. Entity scales this dynamically based on the Size attribute!
+                            .sized(2.04F, 2.04F)
                             .clientTrackingRange(10)
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "grot"))));
+
+    // --- VEIL FOX ENTITY ---
+    public static final DeferredHolder<EntityType<?>, EntityType<VeilFoxEntity>> VEIL_FOX =
+            ENTITY_TYPES.register("veil_fox",
+                    () -> EntityType.Builder.<VeilFoxEntity>of(VeilFoxEntity::new, MobCategory.CREATURE)
+                            .sized(0.6F, 0.7F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "veil_fox"))));
+
+    // --- VEIL FOX AFTERIMAGE ---
+    public static final DeferredHolder<EntityType<?>, EntityType<VeilFoxAfterimageEntity>> VEIL_FOX_AFTERIMAGE =
+            ENTITY_TYPES.register("veil_fox_afterimage",
+                    () -> EntityType.Builder.<VeilFoxAfterimageEntity>of(VeilFoxAfterimageEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 0.7F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "veil_fox_afterimage"))));
 }

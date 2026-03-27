@@ -3,6 +3,7 @@ package ddraig.net.entropica.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import ddraig.net.entropica.client.model.GrotModel;
 import ddraig.net.entropica.client.model.ModModelLayers;
+import ddraig.net.entropica.client.model.VeilFoxModel;
 import ddraig.net.entropica.client.particle.FumeParticle;
 import ddraig.net.entropica.client.renderer.*;
 import ddraig.net.entropica.client.renderer.item.DynamicWeaponRenderer;
@@ -134,11 +135,12 @@ public class ModClientEvents {
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
 
-        // FIXED: The Shadow Beast renderer is now bound to the physical entity!
         event.registerEntityRenderer(ModEntityTypes.EIDOLIC_SHADOW.get(), EidolicShadowRenderer::new);
 
-        // --- GROT ENTITY RENDERER ---
         event.registerEntityRenderer(ModEntityTypes.GROT.get(), GrotRenderer::new);
+
+        event.registerEntityRenderer(ModEntityTypes.VEIL_FOX.get(), VeilFoxRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.VEIL_FOX_AFTERIMAGE.get(), VeilFoxAfterimageRenderer::new);
     }
 
     @SubscribeEvent
@@ -290,10 +292,8 @@ public class ModClientEvents {
 
     @SubscribeEvent
     public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
-        // Registers the Hulking Beast blockbench model layout into the game!
         event.registerLayerDefinition(EidolicShadowModel.LAYER_LOCATION, EidolicShadowModel::createBodyLayer);
-
-        // --- GROT MODEL LAYER ---
         event.registerLayerDefinition(ModModelLayers.GROT, GrotModel::createBodyLayer);
+        event.registerLayerDefinition(VeilFoxModel.LAYER_LOCATION, VeilFoxModel::createBodyLayer);
     }
 }
