@@ -709,5 +709,11 @@ public class VeilFoxModel extends EntityModel<VeilFoxRenderState> {
         this.attackAnimation.apply(state.attackAnimationState, state.ageInTicks);
         this.rolloverAnimation.apply(state.rolloverAnimationState, state.ageInTicks);
         this.digAnimation.apply(state.digAnimationState, state.ageInTicks);
+
+        // --- DETECTOR OVERRIDE ---
+        // If the fox has detected a hidden mob for the owner, hard-override the tail animation to point straight up!
+        if (state.isDetecting) {
+            this.tail.xRot = Mth.PI / 4.0f;
+        }
     }
 }

@@ -8,6 +8,9 @@ public class VeilFoxRenderState extends LivingEntityRenderState {
     public EssenceType essenceType;
     public boolean isSitting = false;
 
+    // Alert System
+    public boolean isDetecting = false;
+
     public float bodyRot = 0.0f;
     public float strobeAlpha = 1.0f;
 

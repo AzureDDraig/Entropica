@@ -28,6 +28,9 @@ public class VeilFoxRenderer extends MobRenderer<VeilFoxEntity, VeilFoxRenderSta
         state.essenceType = entity.getEssenceType();
         state.isSitting = entity.isOrderedToSit();
 
+        // Pass the detector AI down to the client model!
+        state.isDetecting = entity.getDetectingTargetId() != -1;
+
         state.idleAnimationState.copyFrom(entity.idleAnimationState);
         state.blinkOutAnimationState.copyFrom(entity.blinkOutAnimationState);
         state.blinkInAnimationState.copyFrom(entity.blinkInAnimationState);
