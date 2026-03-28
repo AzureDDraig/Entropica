@@ -300,6 +300,17 @@ public class VeilFoxEntity extends TamableAnimal {
                     }
                 }
             }
+        } else {
+            if (this.teleportDelay > 0) {
+                this.teleportDelay--;
+                if (this.teleportDelay == 0 && this.pendingTeleportTarget != null) {
+                    this.executeTeleport();
+                }
+            }
+
+            if (this.isPassenger() && this.getVehicle() instanceof Player p) {
+                p.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 40, 0, false, false, true));
+            }
 
             if (this.tickCount % 40 == 0 && !this.hasHeardMusic()) {
                 BlockPos.MutableBlockPos mPos = new BlockPos.MutableBlockPos();
@@ -315,17 +326,6 @@ public class VeilFoxEntity extends TamableAnimal {
                         }
                     }
                 }
-            }
-        } else {
-            if (this.teleportDelay > 0) {
-                this.teleportDelay--;
-                if (this.teleportDelay == 0 && this.pendingTeleportTarget != null) {
-                    this.executeTeleport();
-                }
-            }
-
-            if (this.isPassenger() && this.getVehicle() instanceof Player p) {
-                p.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 40, 0, false, false, true));
             }
 
             if (this.tickCount % 100 == 0) {
@@ -962,29 +962,15 @@ public class VeilFoxEntity extends TamableAnimal {
 
     class HarmonicHowlingGoal extends Goal {
         private int howlTimer = 0;
-        private float[] currentMelody = null;
+        private int currentMelodyId = -1;
         private int noteIndex = 0;
         private int noteDelay = 10;
         private int songTick = 0;
         private List<VeilFoxEntity> participants;
 
-        private final float R = 100.0f;
-
         private float p(int semitonesFromE4) {
             return (float) Math.pow(2.0D, (semitonesFromE4 - 2) / 12.0D);
         }
-
-        private final float[][] MELODIES = new float[][] {
-                { p(2), R, p(5), R, p(-2), R, R, p(2), R, p(5), R, p(-2) },
-                { p(0), R, p(3), R, p(5), R, p(3), R, p(0) },
-                { p(0), p(0), R, p(0), R, p(-4), p(0), R, p(3) },
-                { p(3), R, p(0), R, p(-4), R, p(-2), R, p(0) },
-                { p(-4), R, p(0), R, p(3), R, p(5), R, p(3) },
-                { p(0), p(0), R, p(-2), p(0), R, p(3), p(0) },
-                { p(0), p(0), p(12), R, p(7), R, p(6), p(5), p(3), p(0), p(3), p(5) },
-                { p(-5), p(7), p(2), p(-1), R, p(7), p(2), p(-1) },
-                { p(0), p(0), p(0), p(0), p(-4), p(-2), p(0), R, p(-2), p(0) }
-        };
 
         public HarmonicHowlingGoal() { this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK)); }
 
@@ -1006,10 +992,13 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public void start() {
-            VeilFoxEntity.this.setOrderedToSit(true);
+            VeilFoxEntity.this.getNavigation().stop();
             VeilFoxEntity.this.isPlayingPackGame = true;
             if (participants != null) {
-                for(VeilFoxEntity f : participants) { f.isPlayingPackGame = true; f.setOrderedToSit(true); }
+                for(VeilFoxEntity f : participants) {
+                    f.isPlayingPackGame = true;
+                    f.getNavigation().stop();
+                }
             }
 
             howlTimer = 240;
@@ -1019,24 +1008,24 @@ public class VeilFoxEntity extends TamableAnimal {
             boolean forced = VeilFoxEntity.this.forcedPackGame.equals("howling");
 
             if (forced) {
-                if (VeilFoxEntity.this.forcedMelody >= 0 && VeilFoxEntity.this.forcedMelody < MELODIES.length) {
-                    currentMelody = MELODIES[VeilFoxEntity.this.forcedMelody];
+                if (VeilFoxEntity.this.forcedMelody >= 0 && VeilFoxEntity.this.forcedMelody <= 8) {
+                    currentMelodyId = VeilFoxEntity.this.forcedMelody;
                     noteDelay = 10;
                 } else if (VeilFoxEntity.this.forcedMelody == -2) {
-                    currentMelody = null;
+                    currentMelodyId = -1;
                     noteDelay = 30;
                 } else {
-                    currentMelody = MELODIES[VeilFoxEntity.this.getRandom().nextInt(MELODIES.length)];
+                    currentMelodyId = VeilFoxEntity.this.getRandom().nextInt(9);
                     noteDelay = 10;
                 }
                 VeilFoxEntity.this.forcedPackGame = "";
                 VeilFoxEntity.this.forcedMelody = -1;
             } else {
                 if (VeilFoxEntity.this.getRandom().nextFloat() < 0.2f) {
-                    currentMelody = MELODIES[VeilFoxEntity.this.getRandom().nextInt(MELODIES.length)];
+                    currentMelodyId = VeilFoxEntity.this.getRandom().nextInt(9);
                     noteDelay = 10;
                 } else {
-                    currentMelody = null;
+                    currentMelodyId = -1;
                     noteDelay = 30;
                 }
             }
@@ -1050,34 +1039,173 @@ public class VeilFoxEntity extends TamableAnimal {
             howlTimer--;
 
             if (songTick % noteDelay == 0) {
-                float pitch = 0;
-                boolean play = true;
+                float pitch = 1.0f;
+                boolean play = false;
+                boolean noteDone = false;
 
-                if (currentMelody != null) {
-                    if (noteIndex < currentMelody.length) {
-                        pitch = currentMelody[noteIndex];
-                        noteIndex++;
-                        if (pitch == R) play = false;
-                    } else {
-                        play = false;
-                    }
-                } else {
+                if (currentMelodyId == -1) {
                     pitch = 0.5f + (VeilFoxEntity.this.getRandom().nextFloat() * 1.5f);
+                    play = true;
+                    if (songTick > 100) howlTimer = 0;
+                } else {
+                    switch (currentMelodyId) {
+                        case 0:
+                            switch (noteIndex) {
+                                case 0: pitch = p(2); play = true; break;
+                                case 1: play = false; break;
+                                case 2: pitch = p(5); play = true; break;
+                                case 3: play = false; break;
+                                case 4: pitch = p(-2); play = true; break;
+                                case 5: play = false; break;
+                                case 6: play = false; break;
+                                case 7: pitch = p(2); play = true; break;
+                                case 8: play = false; break;
+                                case 9: pitch = p(5); play = true; break;
+                                case 10: play = false; break;
+                                case 11: pitch = p(-2); play = true; break;
+                                default: noteDone = true; break;
+                            }
+                            break;
+                        case 1:
+                            switch (noteIndex) {
+                                case 0: pitch = p(0); play = true; break;
+                                case 1: play = false; break;
+                                case 2: pitch = p(3); play = true; break;
+                                case 3: play = false; break;
+                                case 4: pitch = p(5); play = true; break;
+                                case 5: play = false; break;
+                                case 6: pitch = p(3); play = true; break;
+                                case 7: play = false; break;
+                                case 8: pitch = p(0); play = true; break;
+                                default: noteDone = true; break;
+                            }
+                            break;
+                        case 2:
+                            switch (noteIndex) {
+                                case 0: pitch = p(0); play = true; break;
+                                case 1: pitch = p(0); play = true; break;
+                                case 2: play = false; break;
+                                case 3: pitch = p(0); play = true; break;
+                                case 4: play = false; break;
+                                case 5: pitch = p(-4); play = true; break;
+                                case 6: pitch = p(0); play = true; break;
+                                case 7: play = false; break;
+                                case 8: pitch = p(3); play = true; break;
+                                default: noteDone = true; break;
+                            }
+                            break;
+                        case 3:
+                            switch (noteIndex) {
+                                case 0: pitch = p(3); play = true; break;
+                                case 1: play = false; break;
+                                case 2: pitch = p(0); play = true; break;
+                                case 3: play = false; break;
+                                case 4: pitch = p(-4); play = true; break;
+                                case 5: play = false; break;
+                                case 6: pitch = p(-2); play = true; break;
+                                case 7: play = false; break;
+                                case 8: pitch = p(0); play = true; break;
+                                default: noteDone = true; break;
+                            }
+                            break;
+                        case 4:
+                            switch (noteIndex) {
+                                case 0: pitch = p(-4); play = true; break;
+                                case 1: play = false; break;
+                                case 2: pitch = p(0); play = true; break;
+                                case 3: play = false; break;
+                                case 4: pitch = p(3); play = true; break;
+                                case 5: play = false; break;
+                                case 6: pitch = p(5); play = true; break;
+                                case 7: play = false; break;
+                                case 8: pitch = p(3); play = true; break;
+                                default: noteDone = true; break;
+                            }
+                            break;
+                        case 5:
+                            switch (noteIndex) {
+                                case 0: pitch = p(0); play = true; break;
+                                case 1: pitch = p(0); play = true; break;
+                                case 2: play = false; break;
+                                case 3: pitch = p(-2); play = true; break;
+                                case 4: pitch = p(0); play = true; break;
+                                case 5: play = false; break;
+                                case 6: pitch = p(3); play = true; break;
+                                case 7: pitch = p(0); play = true; break;
+                                default: noteDone = true; break;
+                            }
+                            break;
+                        case 6:
+                            switch (noteIndex) {
+                                case 0: pitch = p(0); play = true; break;
+                                case 1: pitch = p(0); play = true; break;
+                                case 2: pitch = p(12); play = true; break;
+                                case 3: play = false; break;
+                                case 4: pitch = p(7); play = true; break;
+                                case 5: play = false; break;
+                                case 6: pitch = p(6); play = true; break;
+                                case 7: pitch = p(5); play = true; break;
+                                case 8: pitch = p(3); play = true; break;
+                                case 9: pitch = p(0); play = true; break;
+                                case 10: pitch = p(3); play = true; break;
+                                case 11: pitch = p(5); play = true; break;
+                                default: noteDone = true; break;
+                            }
+                            break;
+                        case 7:
+                            switch (noteIndex) {
+                                case 0: pitch = p(-5); play = true; break;
+                                case 1: pitch = p(7); play = true; break;
+                                case 2: pitch = p(2); play = true; break;
+                                case 3: pitch = p(-1); play = true; break;
+                                case 4: play = false; break;
+                                case 5: pitch = p(7); play = true; break;
+                                case 6: pitch = p(2); play = true; break;
+                                case 7: pitch = p(-1); play = true; break;
+                                default: noteDone = true; break;
+                            }
+                            break;
+                        case 8:
+                            switch (noteIndex) {
+                                case 0: pitch = p(0); play = true; break;
+                                case 1: pitch = p(0); play = true; break;
+                                case 2: pitch = p(0); play = true; break;
+                                case 3: pitch = p(0); play = true; break;
+                                case 4: pitch = p(-4); play = true; break;
+                                case 5: pitch = p(-2); play = true; break;
+                                case 6: pitch = p(0); play = true; break;
+                                case 7: play = false; break;
+                                case 8: pitch = p(-2); play = true; break;
+                                case 9: pitch = p(0); play = true; break;
+                                default: noteDone = true; break;
+                            }
+                            break;
+                        default:
+                            noteDone = true; break;
+                    }
+
+                    noteIndex++;
+                    if (noteDone) {
+                        play = false;
+                        howlTimer = 0; // End the song!
+                    }
                 }
 
                 if (play) {
                     pitch = Mth.clamp(pitch, 0.5f, 2.0f);
 
-                    VeilFoxEntity.this.level().playSound(null, VeilFoxEntity.this.getX(), VeilFoxEntity.this.getY(), VeilFoxEntity.this.getZ(), ModSounds.VEIL_FOX_CHORUS.get(), net.minecraft.sounds.SoundSource.NEUTRAL, 1.0f, pitch);
+                    VeilFoxEntity.this.playSound(ModSounds.VEIL_FOX_CHORUS.get(), 1.0f, pitch);
                     if (VeilFoxEntity.this.level() instanceof ServerLevel sl) {
                         sl.sendParticles(ParticleTypes.NOTE, VeilFoxEntity.this.getX(), VeilFoxEntity.this.getY()+1, VeilFoxEntity.this.getZ(), 1, 0.2, 0.2, 0.2, 0);
                     }
 
+                    // Orchestrate the pack so they all sing the note perfectly in sync!
                     if (participants != null) {
                         for (VeilFoxEntity f : participants) {
                             if (f.isAlive()) {
+                                // Add a very tiny pitch variation for a natural chorus effect
                                 float chorusPitch = Mth.clamp(pitch + (f.getRandom().nextFloat() * 0.04f - 0.02f), 0.5f, 2.0f);
-                                f.level().playSound(null, f.getX(), f.getY(), f.getZ(), ModSounds.VEIL_FOX_CHORUS.get(), net.minecraft.sounds.SoundSource.NEUTRAL, 0.8f, chorusPitch);
+                                f.playSound(ModSounds.VEIL_FOX_CHORUS.get(), 0.8f, chorusPitch);
                                 if (f.level() instanceof ServerLevel sl) {
                                     sl.sendParticles(ParticleTypes.NOTE, f.getX(), f.getY()+1, f.getZ(), 1, 0.2, 0.2, 0.2, 0);
                                 }
@@ -1091,12 +1219,10 @@ public class VeilFoxEntity extends TamableAnimal {
 
         @Override
         public void stop() {
-            VeilFoxEntity.this.setOrderedToSit(false);
             VeilFoxEntity.this.isPlayingPackGame = false;
             if (participants != null) {
-                for(VeilFoxEntity f : participants) { f.isPlayingPackGame = false; f.setOrderedToSit(false); }
+                for(VeilFoxEntity f : participants) { f.isPlayingPackGame = false; }
             }
-            currentMelody = null;
         }
     }
 
@@ -1670,36 +1796,6 @@ public class VeilFoxEntity extends TamableAnimal {
                     Vec3 surroundPos = prey.position().add((VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 6, 0, (VeilFoxEntity.this.getRandom().nextDouble() - 0.5) * 6);
                     VeilFoxEntity.this.scheduleTeleport(surroundPos, false);
                 }
-            }
-        }
-    }
-
-    class ResonantChorusGoal extends Goal {
-        public ResonantChorusGoal() { this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK)); }
-
-        @Override
-        public boolean canUse() {
-            if (VeilFoxEntity.this.isTame() || VeilFoxEntity.this.getWildFriendliness() <= 120 || VeilFoxEntity.this.isPlayingPackGame) return false;
-            boolean isNight = !VeilFoxEntity.this.level().dimensionType().hasFixedTime() && (VeilFoxEntity.this.level().getDayTime() % 24000L >= 13000L);
-            if (!isNight || !VeilFoxEntity.this.level().canSeeSky(VeilFoxEntity.this.blockPosition())) return false;
-            return VeilFoxEntity.this.getRandom().nextInt(200) == 0;
-        }
-
-        @Override
-        public void start() { VeilFoxEntity.this.setOrderedToSit(true); }
-
-        @Override
-        public void tick() {
-            List<VeilFoxEntity> friends = VeilFoxEntity.this.level().getEntitiesOfClass(VeilFoxEntity.class, VeilFoxEntity.this.getBoundingBox().inflate(16.0D), f -> f != VeilFoxEntity.this);
-            for (VeilFoxEntity f : friends) {
-                if (f.isOrderedToSit() && VeilFoxEntity.this.level() instanceof ServerLevel sl) {
-                    sl.sendParticles(ParticleTypes.PORTAL, VeilFoxEntity.this.getX(), VeilFoxEntity.this.getY() + 1, VeilFoxEntity.this.getZ(), 1, (f.getX() - VeilFoxEntity.this.getX()) * 0.1, (f.getY() - VeilFoxEntity.this.getY()) * 0.1, (f.getZ() - VeilFoxEntity.this.getZ()) * 0.1, 0.1);
-                }
-            }
-
-            if (VeilFoxEntity.this.tickCount % 40 == 0) {
-                List<Monster> hostiles = VeilFoxEntity.this.level().getEntitiesOfClass(Monster.class, VeilFoxEntity.this.getBoundingBox().inflate(32.0D));
-                for (Monster m : hostiles) m.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
             }
         }
     }

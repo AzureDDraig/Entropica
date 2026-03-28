@@ -18,6 +18,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -52,6 +53,7 @@ public class ModModelProvider extends ModelProvider {
 
         // Generates a simple baseline BlockState mapping to satisfy the validation
         // You can manually overwrite the resulting JSON files if you need directional facing!
+        blockModels.createNonTemplateModelBlock(ModBlocks.VOID_RIFT.get()); // Added to satisfy validation!
         blockModels.createNonTemplateModelBlock(ModBlocks.MANA_FURNACE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_AUTO_SMELTER.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_CORE.get());
@@ -150,6 +152,23 @@ public class ModModelProvider extends ModelProvider {
                 ModItems.AETHERIC_MONOCLE.get(),
                 new BlockModelWrapper.Unbaked(ResourceLocation.fromNamespaceAndPath("entropica", "item/custom/aetheric_monocle"), Collections.emptyList())
         );
+
+        // Skip datagen for Dynamic Weapons as they use custom special model renderers and handwritten JSONs!
+        List<Item> dynamicWeapons = List.of(
+                ModItems.DYNAMIC_SWORD.get(), ModItems.DYNAMIC_AXE.get(), ModItems.DYNAMIC_PICKAXE.get(),
+                ModItems.DYNAMIC_SHOVEL.get(), ModItems.DYNAMIC_ADZE.get(), ModItems.DYNAMIC_PAXEL.get(),
+                ModItems.DYNAMIC_SPEAR.get(), ModItems.DYNAMIC_MACE.get(), ModItems.DYNAMIC_MORNING_STAR.get(),
+                ModItems.DYNAMIC_WARHAMMER.get(), ModItems.DYNAMIC_SHORTBOW.get(), ModItems.DYNAMIC_LONGBOW.get(),
+                ModItems.DYNAMIC_WAR_BOW.get(), ModItems.DYNAMIC_CROSSBOW.get(), ModItems.DYNAMIC_REPEATER.get()
+        );
+
+        for (Item weapon : dynamicWeapons) {
+            ResourceLocation loc = ModelLocationUtils.getModelLocation(weapon);
+            itemModels.itemModelOutput.accept(
+                    weapon,
+                    new BlockModelWrapper.Unbaked(ResourceLocation.fromNamespaceAndPath("entropica", "item/custom/" + loc.getPath().replace("item/", "")), Collections.emptyList())
+            );
+        }
 
         // Ampoule Bases
         generateFlatItemWithTexture(itemModels, ModItems.SMALL_AMPOULE_BASE.get(), "small_ampoule");
