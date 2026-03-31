@@ -1,6 +1,7 @@
 package ddraig.net.entropica.event;
 
 import ddraig.net.entropica.Entropica;
+import ddraig.net.entropica.entity.ashen_stalker.AshenStalkerEntity;
 import ddraig.net.entropica.entity.grot.GrotEntity;
 import ddraig.net.entropica.entity.veil_fox.VeilFoxAfterimageEntity;
 import ddraig.net.entropica.entity.veil_fox.VeilFoxEntity;
@@ -19,5 +20,7 @@ public class ModEntityEvents {
         event.put(ModEntityTypes.GROT.get(), GrotEntity.createAttributes().build());
         event.put(ModEntityTypes.VEIL_FOX.get(), VeilFoxEntity.createAttributes().build());
         event.put(ModEntityTypes.VEIL_FOX_AFTERIMAGE.get(), VeilFoxAfterimageEntity.createAttributes().build());
+        // Ashen Stalker
+        event.put(ModEntityTypes.ASHEN_STALKER.get(), AshenStalkerEntity.createAttributes().build());
     }
 }

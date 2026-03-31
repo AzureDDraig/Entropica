@@ -73,4 +73,14 @@ public class ModEntityTypes {
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "veil_fox_afterimage"))));
+
+    // --- ASHEN STALKER ---
+    public static final DeferredHolder<EntityType<?>, EntityType<ddraig.net.entropica.entity.ashen_stalker.AshenStalkerEntity>> ASHEN_STALKER =
+            ENTITY_TYPES.register("ashen_stalker",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.ashen_stalker.AshenStalkerEntity>of(ddraig.net.entropica.entity.ashen_stalker.AshenStalkerEntity::new, MobCategory.CREATURE)
+                            .sized(0.9F, 1.4F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "ashen_stalker"))));
 }

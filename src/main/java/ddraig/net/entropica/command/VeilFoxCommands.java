@@ -78,7 +78,6 @@ public class VeilFoxCommands {
             for (VeilFoxEntity fox : foxes) {
                 // Instantly override their AI conditions to forcefully trigger the selected pack game!
                 fox.forcedPackGame = game;
-                fox.forcedMelody = melodyType;
 
                 // Wake them up and unsit them if they are resting
                 fox.setSleeping(false);
