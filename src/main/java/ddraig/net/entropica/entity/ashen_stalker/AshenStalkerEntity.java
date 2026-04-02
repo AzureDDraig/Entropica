@@ -274,29 +274,18 @@ public class AshenStalkerEntity extends PathfinderMob {
 
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
-        // Completely bypasses vanilla's internal reach checks and masking logic
-        float damage = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
-        float knockback = (float) this.getAttributeValue(Attributes.ATTACK_KNOCKBACK);
+        // CRITICAL FIX: Wipe the target's pre-existing Invulnerability Frames (I-Frames).
+        // Without this, the Vanilla engine will completely reject the attack if the player
+        // took any damage (like fall damage or a previous hit) within the last 20 ticks!
+        target.invulnerableTime = 0;
 
-        boolean attackSuccess = target.hurtServer(level, this.damageSources().mobAttack(this), damage);
-
-        // --- DEBUG: Action bar and console output upon physical attempt to hurt a player ---
-        if (target instanceof Player p) {
-            System.out.println("[AshenStalker Debug] doHurtTarget on Player! Success: " + attackSuccess + " | InvulnerableTime: " + p.invulnerableTime + " | DMG: " + damage);
-            p.displayClientMessage(Component.literal("§c[Stalker Debug] §eAttack Check: " + (attackSuccess ? "§aSUCCESS" : "§4FAILED")), true);
-        }
+        // Let the Native Vanilla combat engine handle armor checks, shields, enchantments, and knockback natively!
+        boolean attackSuccess = super.doHurtTarget(level, target);
 
         if (attackSuccess) {
-            // Apply knockback manually since we bypassed super.doHurtTarget
-            if (knockback > 0.0F && target instanceof LivingEntity livingTarget) {
-                livingTarget.knockback(knockback * 0.5F, Mth.sin(this.getYRot() * Mth.DEG_TO_RAD), -Mth.cos(this.getYRot() * Mth.DEG_TO_RAD));
-                this.setDeltaMovement(this.getDeltaMovement().multiply(0.6D, 1.0D, 0.6D));
-            }
+            this.playSound(SoundEvents.FOX_BITE, 1.0F, 0.5F); // Give audio feedback
 
-            this.setLastHurtMob(target);
-
-            // OVERRIDE: Clear the target's vanilla Invulnerability Frames (I-Frames).
-            // Without this, Minecraft strictly prevents the player from taking damage faster than once per second (20 ticks).
+            // OVERRIDE AGAIN: Clear the newly-created I-frames so the Stalker's furious 12-tick bite flurry actually lands!
             target.invulnerableTime = 0;
         }
 
@@ -645,41 +634,22 @@ public class AshenStalkerEntity extends PathfinderMob {
             // Attack Execution (Happens every tick independently of the pathfinding update)
             if (attackTick > 0) attackTick--;
 
-            // --- DEBUG: Display AI state to action bar when close ---
-            if (isPlayer && distSq <= 100.0D) { // Approx 10 blocks out
-                Player p = (Player) target;
-                p.displayClientMessage(Component.literal(
-                        "§c[Stalker] §fEdge: §e" + String.format("%.2f", edgeDistance) + "m" +
-                                " §f| Cooldown: §e" + attackTick +
-                                " §f| LoS: " + (hasLoS ? "§aYes" : "§cNo")), true);
-            }
-
             if (attackTick <= 0 && inAttackRange && hasLoS) {
                 attackTick = 12; // 0.6 seconds! Guarantees the player's 10-tick invulnerability window is cleared before the next bite!
 
                 AshenStalkerEntity.this.level().broadcastEntityEvent(AshenStalkerEntity.this, (byte) 4); // Bite exclusively
 
                 if (AshenStalkerEntity.this.level() instanceof ServerLevel sl) {
-                    // Uses the fully native vanilla method. Ensures proper damage, armor checks, knockback, and neoForge reach-checks!
+                    // Uses the fully native vanilla method now located at AshenStalkerEntity.doHurtTarget()!
                     boolean attackSuccess = AshenStalkerEntity.this.doHurtTarget(sl, target);
 
-                    if (isPlayer) {
-                        Player p = (Player) target;
-                        p.displayClientMessage(Component.literal("§c[Stalker Debug] §eAttack Check: " + (attackSuccess ? "§aSUCCESS" : "§4FAILED")), true);
-                    }
-
-                    if (attackSuccess) {
-                        AshenStalkerEntity.this.playSound(SoundEvents.FOX_BITE, 1.0F, 0.5F); // Give audio feedback
-                        target.invulnerableTime = 0; // Clear vanilla I-frames so the Stalker can bite rapidly!
-
-                        if (!target.isAlive()) {
-                            // PREY KILLED! Transition to Feeding!
-                            AshenStalkerEntity.this.isGrudgeTriggered = false; // Reset Grudge on kill
-                            AshenStalkerEntity.this.setTarget(null);
-                            AshenStalkerEntity.this.setHuntPhase(3);
-                            AshenStalkerEntity.this.feedTimer = 200; // 10 seconds!
-                            AshenStalkerEntity.this.killPos = target.blockPosition();
-                        }
+                    if (attackSuccess && !target.isAlive()) {
+                        // PREY KILLED! Transition to Feeding!
+                        AshenStalkerEntity.this.isGrudgeTriggered = false; // Reset Grudge on kill
+                        AshenStalkerEntity.this.setTarget(null);
+                        AshenStalkerEntity.this.setHuntPhase(3);
+                        AshenStalkerEntity.this.feedTimer = 200; // 10 seconds!
+                        AshenStalkerEntity.this.killPos = target.blockPosition();
                     }
                 }
             }
