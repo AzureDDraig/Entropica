@@ -95,4 +95,10 @@ public class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VoidRiftBlockEntity>> VOID_RIFT_BE =
             BLOCK_ENTITIES.register("void_rift", () ->
                     new BlockEntityType<>(VoidRiftBlockEntity::new, ModBlocks.VOID_RIFT.get()));
+
+    // --- CRUCIBLE ---
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CrucibleBlockEntity>> CRUCIBLE_BE =
+            BLOCK_ENTITIES.register("crucible", () ->
+                    new BlockEntityType<>(CrucibleBlockEntity::new, ModBlocks.CRUCIBLE.get()));
+
 }

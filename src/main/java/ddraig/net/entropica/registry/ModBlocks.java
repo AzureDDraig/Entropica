@@ -109,6 +109,9 @@ public class ModBlocks {
     // --- Void Rifts Logistics ---
     public static final DeferredBlock<VoidRiftBlock> VOID_RIFT = BLOCKS.register("void_rift", name -> new VoidRiftBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name))));
 
+    // --- Crucible ---
+    public static final DeferredBlock<CrucibleBlock> CRUCIBLE = BLOCKS.register("crucible", name -> new CrucibleBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name))));
+
     // ==========================================
     // DATAGEN BLOCK LIST
     // Any basic block added to this list will automatically have a cube model generated.

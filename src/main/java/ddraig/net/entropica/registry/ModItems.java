@@ -420,6 +420,9 @@ public class ModItems {
     // --- Void Rifts Item ---
     public static final DeferredItem<BlockItem> VOID_RIFT_ITEM = ITEMS.registerItem("void_rift", properties -> new BlockItem(ModBlocks.VOID_RIFT.get(), properties));
 
+    // --- Crucible Item ---
+    public static final DeferredItem<BlockItem> CRUCIBLE_ITEM = ITEMS.registerItem("crucible", properties -> new BlockItem(ModBlocks.CRUCIBLE.get(), properties));
+
     // Others
     public static final DeferredItem<BlockItem> VIS_VITAE_ANCHOR_ITEM = ITEMS.registerItem("vis_vitae_anchor", properties -> new BlockItem(ModBlocks.VIS_VITAE_ANCHOR.get(), properties));
     public static final DeferredItem<BlockItem> VIS_VITAE_CONDENSER_ITEM = ITEMS.registerItem("vis_vitae_condenser", properties -> new BlockItem(ModBlocks.VIS_VITAE_CONDENSER.get(), properties));

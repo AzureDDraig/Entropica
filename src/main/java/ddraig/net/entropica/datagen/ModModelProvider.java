@@ -66,6 +66,7 @@ public class ModModelProvider extends ModelProvider {
         blockModels.createNonTemplateModelBlock(ModBlocks.AETHERIC_AUTOMATOR.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ATTUNEMENT_PEDESTAL.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.CRUCIBLE.get());
 
         // Vis Fume Network Blocks
         blockModels.createNonTemplateModelBlock(ModBlocks.VIS_FUME_DIVERTER.get());
@@ -139,6 +140,7 @@ public class ModModelProvider extends ModelProvider {
         generate3DBlockItem(itemModels, ModItems.AETHERIC_AUTOMATOR_ITEM.get(), "aetheric_automator");
         generate3DBlockItem(itemModels, ModItems.SYNTHESIZER_USER_INTERFACE_ITEM.get(), "synthesizer_user_interface");
         generate3DBlockItem(itemModels, ModItems.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER_ITEM.get(), "vis_fume_pressure_chamber_controller");
+        generate3DBlockItem(itemModels, ModItems.CRUCIBLE_ITEM.get(), "crucible");
 
         // ==========================================
         // MANUAL: CUSTOM ITEM MODELS

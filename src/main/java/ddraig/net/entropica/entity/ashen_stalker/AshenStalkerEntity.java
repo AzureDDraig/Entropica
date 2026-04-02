@@ -9,6 +9,7 @@ import ddraig.net.entropica.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -19,6 +20,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -90,6 +92,7 @@ public class AshenStalkerEntity extends PathfinderMob {
                 .add(Attributes.MAX_HEALTH, 55.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.28D)
                 .add(Attributes.ATTACK_DAMAGE, 10.0D)
+                .add(Attributes.ATTACK_KNOCKBACK, 1.0D) // Added to give the bite some force!
                 .add(Attributes.FOLLOW_RANGE, 32.0D) // Toned down to 32 to complement the 24 block tracking radius
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.6D);
     }
@@ -267,6 +270,37 @@ public class AshenStalkerEntity extends PathfinderMob {
         } else {
             super.handleEntityEvent(id);
         }
+    }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        // Completely bypasses vanilla's internal reach checks and masking logic
+        float damage = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
+        float knockback = (float) this.getAttributeValue(Attributes.ATTACK_KNOCKBACK);
+
+        boolean attackSuccess = target.hurtServer(level, this.damageSources().mobAttack(this), damage);
+
+        // --- DEBUG: Action bar and console output upon physical attempt to hurt a player ---
+        if (target instanceof Player p) {
+            System.out.println("[AshenStalker Debug] doHurtTarget on Player! Success: " + attackSuccess + " | InvulnerableTime: " + p.invulnerableTime + " | DMG: " + damage);
+            p.displayClientMessage(Component.literal("§c[Stalker Debug] §eAttack Check: " + (attackSuccess ? "§aSUCCESS" : "§4FAILED")), true);
+        }
+
+        if (attackSuccess) {
+            // Apply knockback manually since we bypassed super.doHurtTarget
+            if (knockback > 0.0F && target instanceof LivingEntity livingTarget) {
+                livingTarget.knockback(knockback * 0.5F, Mth.sin(this.getYRot() * Mth.DEG_TO_RAD), -Mth.cos(this.getYRot() * Mth.DEG_TO_RAD));
+                this.setDeltaMovement(this.getDeltaMovement().multiply(0.6D, 1.0D, 0.6D));
+            }
+
+            this.setLastHurtMob(target);
+
+            // OVERRIDE: Clear the target's vanilla Invulnerability Frames (I-Frames).
+            // Without this, Minecraft strictly prevents the player from taking damage faster than once per second (20 ticks).
+            target.invulnerableTime = 0;
+        }
+
+        return attackSuccess;
     }
 
     @Override
@@ -481,14 +515,26 @@ public class AshenStalkerEntity extends PathfinderMob {
             if (target == null) return;
 
             AshenStalkerEntity.this.getLookControl().setLookAt(target, 30.0F, 30.0F);
+
+            // Raw center-to-center distance squared (used for memory/drop-off)
             double distSq = AshenStalkerEntity.this.distanceToSqr(target);
 
-            // Added 1.0D buffer to reach to ensure momentum doesn't cause micro-stutter misses
-            double reachSq = (AshenStalkerEntity.this.getBbWidth() * 2.0F * AshenStalkerEntity.this.getBbWidth() * 2.0F) + target.getBbWidth() + 1.0D;
+            // Clean edge-to-edge distance (Math.max prevents negative values if they completely overlap)
+            double edgeDistance = Math.max(0.0D, AshenStalkerEntity.this.distanceTo(target) - (AshenStalkerEntity.this.getBbWidth() / 2.0F) - (target.getBbWidth() / 2.0F));
 
             boolean isPlayer = target instanceof Player;
             boolean isSprintingPlayer = isPlayer && ((Player) target).isSprinting();
             boolean isKnownPlayer = isPlayer && target.getUUID().equals(AshenStalkerEntity.this.rememberedPlayerUUID);
+
+            // Precise manual Raytrace to guarantee absolute Line of Sight, bypassing weird vanilla caching
+            net.minecraft.world.phys.HitResult rayTraceHit = AshenStalkerEntity.this.level().clip(new net.minecraft.world.level.ClipContext(
+                    AshenStalkerEntity.this.getEyePosition(),
+                    target.getEyePosition(),
+                    net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                    net.minecraft.world.level.ClipContext.Fluid.NONE,
+                    AshenStalkerEntity.this
+            ));
+            boolean hasLoS = rayTraceHit.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
 
             // --- RED LIGHT, GREEN LIGHT EYE CONTACT MECHANIC ---
             if (isKnownPlayer && !AshenStalkerEntity.this.isGrudgeTriggered) {
@@ -496,14 +542,13 @@ public class AshenStalkerEntity extends PathfinderMob {
                 Vec3 playerLook = target.getLookAngle().normalize();
 
                 // Dot product > 0.85 equals roughly a 60-degree field of view cone from the player's crosshair
-                if (vecToStalker.dot(playerLook) > 0.85D && target.hasLineOfSight(AshenStalkerEntity.this)) {
+                if (vecToStalker.dot(playerLook) > 0.85D && hasLoS) {
                     AshenStalkerEntity.this.isGrudgeTriggered = true; // They saw us!
                     AshenStalkerEntity.this.playSound(SoundEvents.ENDER_DRAGON_GROWL, 1.0F, 1.5F); // Raspy Hiss
                 }
             }
 
             // Player Tracking Memory: Lost track of them
-            // All targets drop off at exactly 24 blocks (576.0D) to maximize the investigation cycle mechanics!
             double maxTrackDistSq = 576.0D;
 
             if (isPlayer && distSq > maxTrackDistSq && !isSprintingPlayer && !AshenStalkerEntity.this.isGrudgeTriggered) {
@@ -521,6 +566,11 @@ public class AshenStalkerEntity extends PathfinderMob {
                 AshenStalkerEntity.this.setHuntPhase(0);
                 return;
             }
+
+            // --- PRECISE DISTANCE LOGIC ---
+            // Gap of 2.1D keeps the stalker at a very terrifying standoff distance!
+            boolean inStopRange = AshenStalkerEntity.this.getBoundingBox().inflate(2.1D).intersects(target.getBoundingBox());
+            boolean inAttackRange = AshenStalkerEntity.this.getBoundingBox().inflate(2.2D).intersects(target.getBoundingBox());
 
             this.pathUpdateTimer--;
 
@@ -546,8 +596,14 @@ public class AshenStalkerEntity extends PathfinderMob {
                     if (isSprintingPlayer || distSq < 64.0D || AshenStalkerEntity.this.isGrudgeTriggered) {
                         // PHASE 2: Sprinting Hunt
                         AshenStalkerEntity.this.setHuntPhase(2);
-                        if (isFlanking) AshenStalkerEntity.this.getNavigation().moveTo(moveTarget.x, moveTarget.y, moveTarget.z, 1.6D);
-                        else AshenStalkerEntity.this.getNavigation().moveTo(target, 1.6D); // Use entity tracking, not raw coordinates
+
+                        if (inStopRange) {
+                            AshenStalkerEntity.this.getNavigation().stop();
+                        } else if (isFlanking) {
+                            AshenStalkerEntity.this.getNavigation().moveTo(moveTarget.x, moveTarget.y, moveTarget.z, 1.6D);
+                        } else {
+                            AshenStalkerEntity.this.getNavigation().moveTo(target, 1.6D);
+                        }
                     } else {
                         // PHASE 1: Creepy Stalking
                         AshenStalkerEntity.this.setHuntPhase(1);
@@ -564,38 +620,66 @@ public class AshenStalkerEntity extends PathfinderMob {
                             AshenStalkerEntity.this.getNavigation().moveTo(hidePos.x, hidePos.y, hidePos.z, 0.7D);
                         } else {
                             // Player is looking away, creep up slowly
-                            AshenStalkerEntity.this.getNavigation().moveTo(target, 0.5D); // Use entity tracking, not raw coordinates
+                            if (inStopRange) {
+                                AshenStalkerEntity.this.getNavigation().stop();
+                            } else {
+                                AshenStalkerEntity.this.getNavigation().moveTo(target, 0.5D);
+                            }
                         }
                     }
                 } else {
                     // Normal Animal Hunting
-                    if (distSq > 256.0D) { // > 16 blocks away
-                        AshenStalkerEntity.this.setHuntPhase(1);
-                        if (isFlanking) AshenStalkerEntity.this.getNavigation().moveTo(moveTarget.x, moveTarget.y, moveTarget.z, 0.5D);
-                        else AshenStalkerEntity.this.getNavigation().moveTo(target, 0.5D);
+                    double speed = distSq > 256.0D ? 0.5D : 1.6D;
+                    AshenStalkerEntity.this.setHuntPhase(distSq > 256.0D ? 1 : 2);
+
+                    if (inStopRange) {
+                        AshenStalkerEntity.this.getNavigation().stop();
+                    } else if (isFlanking) {
+                        AshenStalkerEntity.this.getNavigation().moveTo(moveTarget.x, moveTarget.y, moveTarget.z, speed);
                     } else {
-                        AshenStalkerEntity.this.setHuntPhase(2);
-                        if (isFlanking) AshenStalkerEntity.this.getNavigation().moveTo(moveTarget.x, moveTarget.y, moveTarget.z, 1.6D);
-                        else AshenStalkerEntity.this.getNavigation().moveTo(target, 1.6D);
+                        AshenStalkerEntity.this.getNavigation().moveTo(target, speed);
                     }
                 }
             }
 
             // Attack Execution (Happens every tick independently of the pathfinding update)
             if (attackTick > 0) attackTick--;
-            if (distSq <= reachSq && attackTick <= 0) {
-                attackTick = 10; // Faster flurry of attacks!
+
+            // --- DEBUG: Display AI state to action bar when close ---
+            if (isPlayer && distSq <= 100.0D) { // Approx 10 blocks out
+                Player p = (Player) target;
+                p.displayClientMessage(Component.literal(
+                        "§c[Stalker] §fEdge: §e" + String.format("%.2f", edgeDistance) + "m" +
+                                " §f| Cooldown: §e" + attackTick +
+                                " §f| LoS: " + (hasLoS ? "§aYes" : "§cNo")), true);
+            }
+
+            if (attackTick <= 0 && inAttackRange && hasLoS) {
+                attackTick = 12; // 0.6 seconds! Guarantees the player's 10-tick invulnerability window is cleared before the next bite!
 
                 AshenStalkerEntity.this.level().broadcastEntityEvent(AshenStalkerEntity.this, (byte) 4); // Bite exclusively
+
                 if (AshenStalkerEntity.this.level() instanceof ServerLevel sl) {
-                    boolean hit = AshenStalkerEntity.this.doHurtTarget(sl, target);
-                    if (hit && !target.isAlive()) {
-                        // PREY KILLED! Transition to Feeding!
-                        AshenStalkerEntity.this.isGrudgeTriggered = false; // Reset Grudge on kill
-                        AshenStalkerEntity.this.setTarget(null);
-                        AshenStalkerEntity.this.setHuntPhase(3);
-                        AshenStalkerEntity.this.feedTimer = 200; // 10 seconds!
-                        AshenStalkerEntity.this.killPos = target.blockPosition();
+                    // Uses the fully native vanilla method. Ensures proper damage, armor checks, knockback, and neoForge reach-checks!
+                    boolean attackSuccess = AshenStalkerEntity.this.doHurtTarget(sl, target);
+
+                    if (isPlayer) {
+                        Player p = (Player) target;
+                        p.displayClientMessage(Component.literal("§c[Stalker Debug] §eAttack Check: " + (attackSuccess ? "§aSUCCESS" : "§4FAILED")), true);
+                    }
+
+                    if (attackSuccess) {
+                        AshenStalkerEntity.this.playSound(SoundEvents.FOX_BITE, 1.0F, 0.5F); // Give audio feedback
+                        target.invulnerableTime = 0; // Clear vanilla I-frames so the Stalker can bite rapidly!
+
+                        if (!target.isAlive()) {
+                            // PREY KILLED! Transition to Feeding!
+                            AshenStalkerEntity.this.isGrudgeTriggered = false; // Reset Grudge on kill
+                            AshenStalkerEntity.this.setTarget(null);
+                            AshenStalkerEntity.this.setHuntPhase(3);
+                            AshenStalkerEntity.this.feedTimer = 200; // 10 seconds!
+                            AshenStalkerEntity.this.killPos = target.blockPosition();
+                        }
                     }
                 }
             }
