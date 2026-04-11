@@ -96,9 +96,13 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("void_rift", () ->
                     new BlockEntityType<>(VoidRiftBlockEntity::new, ModBlocks.VOID_RIFT.get()));
 
-    // --- CRUCIBLE ---
+    // --- CRUCIBLE & RITUAL BOWLS ---
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CrucibleBlockEntity>> CRUCIBLE_BE =
             BLOCK_ENTITIES.register("crucible", () ->
                     new BlockEntityType<>(CrucibleBlockEntity::new, ModBlocks.CRUCIBLE.get()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RitualBowlBlockEntity>> RITUAL_BOWL_BE =
+            BLOCK_ENTITIES.register("ritual_bowl", () ->
+                    new BlockEntityType<>(RitualBowlBlockEntity::new, ModBlocks.MARBLE_RITUAL_BOWL.get(), ModBlocks.BASALT_RITUAL_BOWL.get()));
 
 }

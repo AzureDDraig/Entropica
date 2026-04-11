@@ -11,13 +11,11 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -27,7 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CrucibleBlockEntity extends BlockEntity {
+public class RitualBowlBlockEntity extends BlockEntity {
+
+    public final boolean isBasalt;
 
     public final SimpleContainer inventory = new SimpleContainer(5) {
         @Override
@@ -35,39 +35,35 @@ public class CrucibleBlockEntity extends BlockEntity {
             super.setChanged();
             if (level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-                CrucibleBlockEntity.this.setChanged();
+                RitualBowlBlockEntity.this.setChanged();
             }
         }
     };
 
-    public boolean isHeated = false;
-    public int meltingProgress = 0;
-    public final int maxMeltingTime = 60;
+    public int burningProgress = 0;
+    public final int maxBurningTime = 100;
 
-    public CrucibleBlockEntity(BlockPos pos, BlockState blockState) {
-        super(ModBlockEntities.CRUCIBLE_BE.get(), pos, blockState);
+    public RitualBowlBlockEntity(BlockPos pos, BlockState blockState) {
+        super(ModBlockEntities.RITUAL_BOWL_BE.get(), pos, blockState);
+        if (blockState.getBlock() instanceof ddraig.net.entropica.block.RitualBowlBlock bowl) {
+            this.isBasalt = bowl.isBasalt;
+        } else {
+            this.isBasalt = false;
+        }
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
         if (level.isClientSide()) return;
 
-        BlockState below = level.getBlockState(pos.below());
-        boolean currentlyHeated = below.is(BlockTags.CAMPFIRES) || below.is(BlockTags.FIRE) || below.is(Blocks.MAGMA_BLOCK) || below.is(Blocks.LAVA);
-
-        if (currentlyHeated != this.isHeated) {
-            this.isHeated = currentlyHeated;
-            level.sendBlockUpdated(pos, state, state, 3);
-        }
-
         ItemStack inputStack = inventory.getItem(0);
 
-        if (this.isHeated && !inputStack.isEmpty()) {
-            // Safe O(1) Instant Lookup using the EMC Graph! Level parameter is no longer required!
+        if (!inputStack.isEmpty()) {
+            // Safe O(1) Instant Lookup! Level parameter removed!
             List<ItemEssenceMap.EssenceValue> values = ItemEssenceMap.getEssenceFor(inputStack);
 
             if (!values.isEmpty()) {
-                this.meltingProgress++;
-                if (this.meltingProgress >= this.maxMeltingTime) {
+                this.burningProgress++;
+                if (this.burningProgress >= this.maxBurningTime) {
 
                     List<ItemStack> toOutput = new ArrayList<>();
 
@@ -86,26 +82,26 @@ public class CrucibleBlockEntity extends BlockEntity {
                     if (toOutput.isEmpty()) {
                         inputStack.shrink(1);
                         inventory.setItem(0, inputStack.isEmpty() ? ItemStack.EMPTY : inputStack);
-                        this.meltingProgress = 0;
-                        level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.3F, 1.5F + (level.random.nextFloat() * 0.5f));
+                        this.burningProgress = 0;
+                        level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.1F, 2.0F);
                         this.setChanged();
                     } else if (canFitOutputs(toOutput)) {
                         mergeOutputs(toOutput);
                         inputStack.shrink(1);
                         inventory.setItem(0, inputStack.isEmpty() ? ItemStack.EMPTY : inputStack);
-                        this.meltingProgress = 0;
-                        level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.3F, 1.5F + (level.random.nextFloat() * 0.5f));
-                        level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 0.5F, 1.2F);
+                        this.burningProgress = 0;
+                        level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.1F, 2.0F);
+                        level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 0.4F, 1.4F);
                         this.setChanged();
                     } else {
-                        this.meltingProgress = this.maxMeltingTime - 1;
+                        this.burningProgress = this.maxBurningTime - 1;
                     }
                 }
             } else {
-                this.meltingProgress = 0;
+                this.burningProgress = 0;
             }
         } else {
-            this.meltingProgress = 0;
+            this.burningProgress = 0;
         }
     }
 
@@ -208,7 +204,6 @@ public class CrucibleBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store("IsHeated", Codec.BOOL, this.isHeated);
         for (int i = 0; i < this.inventory.getContainerSize(); i++) {
             ItemStack stack = this.inventory.getItem(i);
             if (!stack.isEmpty()) output.store("Slot" + i, ItemStack.OPTIONAL_CODEC, stack);
@@ -218,7 +213,6 @@ public class CrucibleBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.isHeated = input.read("IsHeated", Codec.BOOL).orElse(false);
         this.inventory.clearContent();
         for (int i = 0; i < this.inventory.getContainerSize(); i++) {
             int slot = i;

@@ -1,7 +1,6 @@
 package ddraig.net.entropica.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import ddraig.net.entropica.client.model.AshenStalkerModel;
 import ddraig.net.entropica.client.model.GrotModel;
 import ddraig.net.entropica.client.model.ModModelLayers;
 import ddraig.net.entropica.client.model.VeilFoxModel;
@@ -133,6 +132,9 @@ public class ModClientEvents {
 
         event.registerBlockEntityRenderer(ModBlockEntities.VOID_RIFT_BE.get(), context -> new VoidRiftRenderer(context));
 
+        // --- NEW: Crucible Renderer ---
+        event.registerBlockEntityRenderer(ModBlockEntities.CRUCIBLE_BE.get(), CrucibleRenderer::new);
+
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
 
@@ -143,7 +145,7 @@ public class ModClientEvents {
         event.registerEntityRenderer(ModEntityTypes.VEIL_FOX.get(), VeilFoxRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.VEIL_FOX_AFTERIMAGE.get(), VeilFoxAfterimageRenderer::new);
 
-        event.registerEntityRenderer(ModEntityTypes.ASHEN_STALKER.get(), AshenStalkerRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.ASHEN_STALKER.get(), ddraig.net.entropica.client.renderer.AshenStalkerRenderer::new);
     }
 
     @SubscribeEvent
@@ -298,6 +300,6 @@ public class ModClientEvents {
         event.registerLayerDefinition(EidolicShadowModel.LAYER_LOCATION, EidolicShadowModel::createBodyLayer);
         event.registerLayerDefinition(ModModelLayers.GROT, GrotModel::createBodyLayer);
         event.registerLayerDefinition(VeilFoxModel.LAYER_LOCATION, VeilFoxModel::createBodyLayer);
-        event.registerLayerDefinition(AshenStalkerModel.LAYER_LOCATION, AshenStalkerModel::createBodyLayer);
+        event.registerLayerDefinition(ddraig.net.entropica.client.model.AshenStalkerModel.LAYER_LOCATION, ddraig.net.entropica.client.model.AshenStalkerModel::createBodyLayer);
     }
 }

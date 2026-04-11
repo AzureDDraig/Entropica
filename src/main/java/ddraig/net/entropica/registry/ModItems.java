@@ -420,8 +420,13 @@ public class ModItems {
     // --- Void Rifts Item ---
     public static final DeferredItem<BlockItem> VOID_RIFT_ITEM = ITEMS.registerItem("void_rift", properties -> new BlockItem(ModBlocks.VOID_RIFT.get(), properties));
 
-    // --- Crucible Item ---
+    // --- Crucible & Ritual Bowls Items ---
     public static final DeferredItem<BlockItem> CRUCIBLE_ITEM = ITEMS.registerItem("crucible", properties -> new BlockItem(ModBlocks.CRUCIBLE.get(), properties));
+    public static final DeferredItem<BlockItem> MARBLE_RITUAL_BOWL_ITEM = ITEMS.registerItem("marble_ritual_bowl", properties -> new BlockItem(ModBlocks.MARBLE_RITUAL_BOWL.get(), properties));
+    public static final DeferredItem<BlockItem> BASALT_RITUAL_BOWL_ITEM = ITEMS.registerItem("basalt_ritual_bowl", properties -> new BlockItem(ModBlocks.BASALT_RITUAL_BOWL.get(), properties));
+
+    // --- RITUAL CHALK ---
+    public static final DeferredItem<Item> CHALK = ITEMS.registerItem("chalk", Item::new);
 
     // Others
     public static final DeferredItem<BlockItem> VIS_VITAE_ANCHOR_ITEM = ITEMS.registerItem("vis_vitae_anchor", properties -> new BlockItem(ModBlocks.VIS_VITAE_ANCHOR.get(), properties));
@@ -444,7 +449,7 @@ public class ModItems {
     // ==========================================
     public static final List<DeferredItem<? extends Item>> SIMPLE_ITEMS = List.of(
             ARCANUM_FOCUS, VIS_VALUE_DETECTOR, ARCANE_BRICK_PIECE, ARCANE_CLAY, EIDOLON_PATHMARKER,
-            VEIL_SHARD,
+            VEIL_SHARD, CHALK, // Added Chalk here!
             SMALL_AMPOULE, MEDIUM_AMPOULE, LARGE_AMPOULE, ESSENCE_HARVESTING_BLADE, SOULBOUND_BLADE,
             OBLIVION_BLADE, TIDAL_TRIDENT, VOID_SWORD, BASALT_PICKAXE, WHISPERWOOD_WAND, SHIMMERING_FOCUS,
             ARCANITE_INGOT, VISCANITE_INGOT, RESONITE_INGOT, EIDOLITE_INGOT, CHARGED_ARCANITE_INGOT, CHARGED_VISCANITE_INGOT, CHARGED_RESONITE_INGOT, CHARGED_EIDOLITE_INGOT,

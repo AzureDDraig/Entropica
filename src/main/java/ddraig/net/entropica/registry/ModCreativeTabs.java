@@ -135,6 +135,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.AETHERIC_MONOCLE.get());
                 output.accept(ModItems.VIS_VALUE_DETECTOR.get());
                 output.accept(ModItems.ARCANUM_FOCUS.get());
+                output.accept(ModItems.CHALK.get()); // Added Chalk to Tools Tab
             }).build());
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> WEAPON_CRAFTING_TAB = CREATIVE_MODE_TABS.register("weapon_crafting_tab", () -> CreativeModeTab.builder()
@@ -145,10 +146,9 @@ public class ModCreativeTabs {
                 output.accept(ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get());
                 output.accept(ModBlocks.ATTUNEMENT_PEDESTAL.get());
                 output.accept(ModBlocks.MORPHIC_LOOM.get());
-                output.accept(ModBlocks.CRUCIBLE.get()); // Added Crucible here!
-
-                // Crafting Mechanics
-                output.accept(ModItems.ORBIS_ACCEPTOR.get());
+                output.accept(ModBlocks.CRUCIBLE.get());
+                output.accept(ModBlocks.MARBLE_RITUAL_BOWL.get()); // Ritual Bowls
+                output.accept(ModBlocks.BASALT_RITUAL_BOWL.get());
                 output.accept(ModItems.SPELL_GEM.get());
 
                 // Weapon Cores
