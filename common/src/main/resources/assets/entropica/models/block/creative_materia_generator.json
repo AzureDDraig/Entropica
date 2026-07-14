@@ -1,0 +1,23 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "entropica:block/creative_materia_generator_side",
+    "bottom": "entropica:block/creative_materia_generator_bottom",
+    "top": "entropica:block/creative_materia_generator_top",
+    "side": "entropica:block/creative_materia_generator_side"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down":  { "texture": "#bottom", "tintindex": 0, "cullface": "down" },
+        "up":    { "texture": "#top", "tintindex": 0, "cullface": "up" },
+        "north": { "texture": "#side", "tintindex": 0, "cullface": "north" },
+        "south": { "texture": "#side", "tintindex": 0, "cullface": "south" },
+        "west":  { "texture": "#side", "tintindex": 0, "cullface": "west" },
+        "east":  { "texture": "#side", "tintindex": 0, "cullface": "east" }
+      }
+    }
+  ]
+}

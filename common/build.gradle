@@ -1,0 +1,55 @@
+plugins {
+    id "dev.architectury.loom"
+    id "architectury-plugin"
+}
+
+architectury {
+    common("neoforge", "fabric")
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+
+    modImplementation "dev.architectury:architectury:${architectury_version}"
+    compileOnly "mezz.jei:jei-1.21.10-common-api:${jei_version}"
+    compileOnly "net.fabricmc:fabric-loader:${fabric_loader_version}"
+}
+
+tasks.matching { it.name.startsWith("transformProduction") }.configureEach { task ->
+    doFirst {
+        def loader = task.class.classLoader
+        try {
+            def addURLMethod = loader.class.getMethod("addURL", java.net.URL.class)
+            project.configurations.compileClasspath.each { file ->
+                addURLMethod.invoke(loader, file.toURI().toURL())
+            }
+            println "[Antigravity] Successfully added compileClasspath to transformer ClassLoader for task: " + task.path
+        } catch (Exception e) {
+            println "[Antigravity] Failed to inject compileClasspath to ClassLoader: " + e.message
+        }
+    }
+    doLast {
+        def inputJar = task.getInput().get().asFile.toPath()
+        def outputJar = task.getArchiveFile().get().asFile.toPath()
+        def transformersList = task.getTransformers().get()
+        
+        def loader = task.class.classLoader
+        System.setProperty("architectury.platform.name", task.name.toLowerCase().contains("neoforge") ? "neoforge" : "fabric")
+        try {
+            Class<?> transformClass = loader.loadClass("dev.architectury.transformer.Transform")
+            def runMethod = transformClass.getMethod("runTransformers", java.nio.file.Path.class, java.nio.file.Path.class, java.util.List.class)
+            
+            if (java.nio.file.Files.exists(outputJar)) {
+                java.nio.file.Files.delete(outputJar)
+            }
+            
+            runMethod.invoke(null, inputJar, outputJar, transformersList)
+            println "[Antigravity] Successfully re-ran transformer in doLast to write the production jar: " + outputJar
+        } catch (Exception e) {
+            println "[Antigravity] Failed to run transformer in doLast: " + e.message
+        } finally {
+            System.clearProperty("architectury.platform.name")
+        }
+    }
+}

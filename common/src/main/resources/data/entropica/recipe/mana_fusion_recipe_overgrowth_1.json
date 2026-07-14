@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "nature":  20,
+                   "earth":  12
+               },
+    "success":  "overgrowth",
+    "failure":  "regular",
+    "chance":  0.9,
+    "yield":  8,
+    "requires_catalyst":  false
+}

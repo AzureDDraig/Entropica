@@ -1,0 +1,23 @@
+{
+  "replace": false,
+  "values": [
+    "alexsmobs:centipede",
+    "alexsmobs:cockroach",
+    "alexsmobs:fly",
+    "alexsmobs:leafcutter_ant",
+    "alexsmobs:tarantula_hawk",
+    "twilightforest:hedge_spider",
+    "twilightforest:swarm_spider",
+    "twilightforest:king_spider",
+    "twilightforest:minotaur",
+    "twilightforest:minoshroom",
+    "twilightforest:hydra",
+    "twilightforest:slime_beetle",
+    "twilightforest:pinch_beetle",
+    "twilightforest:mosquito_swarm",
+    "aether:cockatrice",
+    "aether:mimic",
+    "moreaxolotlvariants:axolotl",
+    "enderzoology:concussion_creeper"
+  ]
+}

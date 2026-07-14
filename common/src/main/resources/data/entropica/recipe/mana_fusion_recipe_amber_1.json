@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "vitae":  9,
+                   "earth":  21
+               },
+    "success":  "amber",
+    "failure":  "regular",
+    "chance":  0.9,
+    "yield":  8,
+    "requires_catalyst":  false
+}

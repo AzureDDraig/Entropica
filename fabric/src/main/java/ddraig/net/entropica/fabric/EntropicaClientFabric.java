@@ -1,0 +1,223 @@
+package ddraig.net.entropica.fabric;
+
+import ddraig.net.entropica.Entropica;
+import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.block.entity.CreativeMateriaGeneratorBlockEntity;
+import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity;
+import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
+import ddraig.net.entropica.client.ModItemTintSources;
+import ddraig.net.entropica.client.gui.SynthesizerUserInterfaceScreen;
+import ddraig.net.entropica.client.model.AshenStalkerModel;
+import ddraig.net.entropica.client.model.GrotModel;
+import ddraig.net.entropica.client.model.ModModelLayers;
+import ddraig.net.entropica.client.model.VeilFoxModel;
+import ddraig.net.entropica.client.renderer.*;
+import ddraig.net.entropica.client.renderer.item.DynamicWeaponRenderer;
+import ddraig.net.entropica.registry.ModBlockEntities;
+import ddraig.net.entropica.registry.ModBlocks;
+import ddraig.net.entropica.registry.ModEntityTypes;
+import ddraig.net.entropica.registry.ModMenuTypes;
+import ddraig.net.entropica.registry.fabric.ModFluidsFabric;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.client.color.item.ItemTintSource;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.material.FluidState;
+import org.jetbrains.annotations.Nullable;
+
+public class EntropicaClientFabric implements ClientModInitializer {
+    @Override
+    public void onInitializeClient() {
+        // --- 1. Block Entity Renderers ---
+        BlockEntityRenderers.register(ModBlockEntities.MANA_FURNACE_BE.get(), ManaFurnaceRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ENTROPIC_CORE_BE.get(), EntropicCoreRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ESSENCE_READOUT_BE.get(), EssenceReadoutRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.MANA_READOUT_BE.get(), MateriaReadoutRenderer::new);
+
+        BlockEntityRenderers.register(ModBlockEntities.VAPOR_PNEUMATIC_PIPE_BE.get(), VaporPneumaticPipeRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.VAPOR_PNEUMATIC_VALVE_BE.get(), VaporPneumaticPipeRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.VAPOR_PNEUMATIC_ONE_WAY_VALVE_BE.get(), VaporPneumaticPipeRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.VAPOR_PNEUMATIC_DIVERTER_BE.get(), VaporPneumaticPipeRenderer::new);
+
+        BlockEntityRenderers.register(ModBlockEntities.MATERIA_VESSEL_CONTROLLER_BE.get(), MateriaVesselControllerRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.MANA_ENRICHED_GLASS_BE.get(), ManaEnrichedGlassRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ENRICHMENT_TABLE_BE.get(), EnrichmentTableRenderer::new);
+
+        BlockEntityRenderers.register(ModBlockEntities.AETHERIC_SYNTHESIZER_BE.get(), AethericSynthesizerRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.AETHERIC_AUTOMATOR_BE.get(), AethericAutomatorRenderer::new);
+
+        BlockEntityRenderers.register(ModBlockEntities.EIDOLIC_FOCAL_PEDESTAL_BE.get(), EidolicFocalPedestalRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ATTUNEMENT_PEDESTAL_BE.get(), AttunementPedestalRenderer::new);
+
+        BlockEntityRenderers.register(ModBlockEntities.CREATIVE_MATERIA_GENERATOR_BE.get(), CreativeMateriaGeneratorRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.CREATIVE_PARTICLE_GENERATOR_BE.get(), CreativeParticleGeneratorRenderer::new);
+
+        BlockEntityRenderers.register(ModBlockEntities.VOID_RIFT_BE.get(), VoidRiftRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.CRUCIBLE_BE.get(), CrucibleRenderer::new);
+
+        // --- 2. Entity Renderers ---
+        EntityRendererRegistry.register(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.EIDOLIC_SHADOW.get(), EidolicShadowRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.GROT.get(), GrotRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.VEIL_FOX.get(), VeilFoxRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.VEIL_FOX_AFTERIMAGE.get(), VeilFoxAfterimageRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.ASHEN_STALKER.get(), AshenStalkerRenderer::new);
+
+        // --- 3. Entity Layer Definitions ---
+        EntityModelLayerRegistry.registerModelLayer(EidolicShadowModel.LAYER_LOCATION, EidolicShadowModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ModModelLayers.GROT, GrotModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(VeilFoxModel.LAYER_LOCATION, VeilFoxModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(AshenStalkerModel.LAYER_LOCATION, AshenStalkerModel::createBodyLayer);
+
+        // --- 4. Menu Screens ---
+        MenuScreens.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);
+
+        // --- 5. Block Colors ---
+        ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
+            if (level != null && pos != null && tintIndex == 0) {
+                if (level.getBlockEntity(pos) instanceof CreativeMateriaGeneratorBlockEntity generator) {
+                    return generator.getCurrentType().getColorInt();
+                }
+            }
+            return 0xFFFFFF;
+        }, ModBlocks.CREATIVE_MATERIA_GENERATOR.get());
+
+        ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
+            if (level != null && pos != null && tintIndex == 0) {
+                if (level.getBlockEntity(pos) instanceof ManaEnrichedGlassBlockEntity glassBE) {
+                    EssenceType type = glassBE.getEssenceType();
+                    if (type != null) {
+                        return type.getColorInt();
+                    }
+                }
+            }
+            return 0xFFFFFF;
+        },
+        ModBlocks.FRAGMENT_LATTICE_GLASS.get(),
+        ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(),
+        ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get(),
+        ModBlocks.ESSENCE_ENRICHED_GLASS.get());
+
+        // --- 6. Custom Fluid Render Handler & Render Layer ---
+        FluidRenderHandlerRegistry.INSTANCE.register(
+            ModFluidsFabric.STILL,
+            ModFluidsFabric.FLOWING,
+            new FluidRenderHandler() {
+                private final TextureAtlasSprite[] sprites = new TextureAtlasSprite[2];
+
+                @Override
+                public TextureAtlasSprite[] getFluidSprites(@Nullable BlockAndTintGetter view, @Nullable BlockPos pos, FluidState state) {
+                    if (sprites[0] == null) {
+                        var atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(TextureAtlas.LOCATION_BLOCKS);
+                        sprites[0] = atlas.getSprite(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "block/diluted_essence_still"));
+                        sprites[1] = atlas.getSprite(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "block/diluted_essence_flow"));
+                    }
+                    return sprites;
+                }
+
+                @Override
+                public int getFluidColor(@Nullable BlockAndTintGetter view, @Nullable BlockPos pos, FluidState state) {
+                    if (view != null && pos != null) {
+                        if (view.getBlockEntity(pos) instanceof DilutedEssenceFluidBlockEntity be) {
+                            return be.getTintColor();
+                        }
+                        for (int x = -1; x <= 1; x++) {
+                            for (int y = 0; y <= 1; y++) {
+                                for (int z = -1; z <= 1; z++) {
+                                    if (view.getBlockEntity(pos.offset(x, y, z)) instanceof DilutedEssenceFluidBlockEntity be) {
+                                        return be.getTintColor();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return 0xFFB200FF;
+                }
+            }
+        );
+
+        BlockRenderLayerMap.INSTANCE.putFluids(
+            net.minecraft.client.renderer.Sheets.translucentItemSheet(),
+            ModFluidsFabric.STILL,
+            ModFluidsFabric.FLOWING
+        );
+
+        BlockRenderLayerMap.INSTANCE.putBlocks(
+            net.minecraft.client.renderer.RenderType.cutout(),
+            ModBlocks.FRAGMENT_LATTICE_GLASS.get(),
+            ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(),
+            ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get(),
+            ModBlocks.ESSENCE_ENRICHED_GLASS.get(),
+            ModBlocks.VAPOR_PNEUMATIC_DIVERTER.get()
+        );
+
+        BlockRenderLayerMap.INSTANCE.putBlocks(
+            net.minecraft.client.renderer.Sheets.translucentItemSheet(),
+            ModBlocks.CATALYST_RECEPTACLE.get(),
+            ModBlocks.ESSENCE_RECEPTACLE.get(),
+            ModBlocks.VAPOR_PNEUMATIC_PIPE_COPPER.get(),
+            ModBlocks.VAPOR_PNEUMATIC_VALVE.get(),
+            ModBlocks.VAPOR_PNEUMATIC_ONE_WAY_VALVE.get()
+        );
+
+        // --- 7. Item Tint Sources ---
+        registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "ampoule_tint"), ModItemTintSources.AmpouleTint.MAP_CODEC);
+        registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "generator_tint"), ModItemTintSources.GeneratorTint.MAP_CODEC);
+        registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "fume_glass_tint"), ModItemTintSources.FumeGlassTint.MAP_CODEC);
+        registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "essence_tint"), ModItemTintSources.EssenceTint.MAP_CODEC);
+
+        // --- 8. Special Model Renderer ---
+        registerLoomSpecialModelRenderer(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "dynamic_weapon"), DynamicWeaponRenderer.Unbaked.MAP_CODEC);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void registerLoomTintSource(ResourceLocation id, MapCodec<? extends ItemTintSource> codec) {
+        try {
+            for (java.lang.reflect.Field field : net.minecraft.client.color.item.ItemTintSources.class.getDeclaredFields()) {
+                if (field.getType().equals(net.minecraft.util.ExtraCodecs.LateBoundIdMapper.class)) {
+                    field.setAccessible(true);
+                    net.minecraft.util.ExtraCodecs.LateBoundIdMapper<ResourceLocation, MapCodec<? extends ItemTintSource>> mapper = 
+                        (net.minecraft.util.ExtraCodecs.LateBoundIdMapper<ResourceLocation, MapCodec<? extends ItemTintSource>>) field.get(null);
+                    mapper.put(id, codec);
+                    return;
+                }
+            }
+            Entropica.LOGGER.error("Failed to find ID_MAPPER field in ItemTintSources");
+        } catch (Exception e) {
+            Entropica.LOGGER.error("Failed to register item tint source via reflection", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void registerLoomSpecialModelRenderer(ResourceLocation id, MapCodec<? extends net.minecraft.client.renderer.special.SpecialModelRenderer.Unbaked> codec) {
+        try {
+            for (java.lang.reflect.Field field : net.minecraft.client.renderer.special.SpecialModelRenderers.class.getDeclaredFields()) {
+                if (field.getType().equals(net.minecraft.util.ExtraCodecs.LateBoundIdMapper.class)) {
+                    field.setAccessible(true);
+                    net.minecraft.util.ExtraCodecs.LateBoundIdMapper<ResourceLocation, MapCodec<? extends net.minecraft.client.renderer.special.SpecialModelRenderer.Unbaked>> mapper = 
+                        (net.minecraft.util.ExtraCodecs.LateBoundIdMapper<ResourceLocation, MapCodec<? extends net.minecraft.client.renderer.special.SpecialModelRenderer.Unbaked>>) field.get(null);
+                    mapper.put(id, codec);
+                    return;
+                }
+            }
+            Entropica.LOGGER.error("Failed to find ID_MAPPER field in SpecialModelRenderers");
+        } catch (Exception e) {
+            Entropica.LOGGER.error("Failed to register special model renderer via reflection", e);
+        }
+    }
+}

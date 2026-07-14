@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "radiant":  6,
+                   "arid":  20
+               },
+    "success":  "mirage",
+    "failure":  "regular",
+    "chance":  0.9,
+    "yield":  6,
+    "requires_catalyst":  false
+}

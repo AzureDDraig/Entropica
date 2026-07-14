@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "earth":  11,
+                   "undead":  21
+               },
+    "success":  "barrow",
+    "failure":  "regular",
+    "chance":  0.9,
+    "yield":  8,
+    "requires_catalyst":  false
+}

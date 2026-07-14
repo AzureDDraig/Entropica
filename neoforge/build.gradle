@@ -1,0 +1,120 @@
+plugins {
+    id "dev.architectury.loom"
+    id "architectury-plugin"
+    id "com.gradleup.shadow"
+}
+
+architectury {
+    platformSetupLoomIde()
+    neoForge()
+}
+
+base {
+    archivesName = "Entropica-neoforge"
+}
+
+configurations {
+    common
+    shadowCommon
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentNeoForge.extendsFrom common
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+
+    neoForge "net.neoforged:neoforge:${neo_version}"
+    modImplementation "dev.architectury:architectury-neoforge:${architectury_version}"
+    
+    common project(path: ":common", configuration: "namedElements")
+    shadowCommon project(path: ":common", configuration: "transformProductionNeoForge")
+
+    modCompileOnly "mezz.jei:jei-1.21.10-neoforge-api:${jei_version}"
+    modLocalRuntime "mezz.jei:jei-1.21.10-neoforge:${jei_version}"
+
+    modRuntimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
+    modCompileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
+}
+
+tasks.register('deploy', Copy) {
+    dependsOn remapJar
+    from remapJar.archiveFile
+    into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevNF/mods"
+}
+
+tasks.register('deploytoDev', Copy) {
+    dependsOn remapJar
+    from remapJar.archiveFile
+    into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevNF/mods"
+}
+
+def generateModsToml = tasks.register("generateModsToml", Copy) {
+    var replaceProperties = [
+        minecraft_version: minecraft_version,
+        minecraft_version_range: minecraft_version_range,
+        neo_version: neo_version,
+        mod_id: mod_id,
+        mod_name: mod_name,
+        mod_license: mod_license,
+        mod_version: "${mod_version_major}-build-${mod_version_build}-${mod_version_designation}"
+    ]
+    inputs.properties replaceProperties
+
+    from("src/main/resources") {
+        include "META-INF/neoforge.mods.toml"
+        expand replaceProperties
+    }
+    from("src/main/resources") {
+        exclude "META-INF/neoforge.mods.toml"
+    }
+    into layout.buildDirectory.dir("generated/resources")
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = [generateModsToml]
+        }
+    }
+}
+
+processResources {
+    var replaceProperties = [
+        minecraft_version: minecraft_version,
+        minecraft_version_range: minecraft_version_range,
+        neo_version: neo_version,
+        mod_id: mod_id,
+        mod_name: mod_name,
+        mod_license: mod_license,
+        mod_version: "${mod_version_major}-build-${mod_version_build}-${mod_version_designation}"
+    ]
+    inputs.properties replaceProperties
+}
+
+shadowJar {
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier = "dev-shadow"
+}
+
+remapJar {
+    inputFile.set(shadowJar.archiveFile)
+    archiveFileName = "Entropica-neoforge-${project.version}.jar"
+    dependsOn shadowJar
+}
+
+loom {
+    runs {
+        data {
+            data()
+            mainClass = "net.neoforged.neoforge.data.Main"
+            programArgs "--all", "--mod", "entropica"
+            programArgs "--output", project(":common").file("src/main/resources").absolutePath
+            programArgs "--existing", project(":common").file("src/main/resources").absolutePath
+        }
+    }
+}
+
+
+

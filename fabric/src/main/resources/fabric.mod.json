@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "entropica",
+  "version": "${version}",
+  "name": "Entropica",
+  "description": "An esoteric magic mod focused on entropy, aetheric energies, and reality warping.",
+  "authors": [
+    "Azureddraig"
+  ],
+  "contact": {},
+  "license": "All Rights Reserved",
+  "icon": "assets/entropica/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ddraig.net.entropica.fabric.EntropicaFabric"
+    ],
+    "client": [
+      "ddraig.net.entropica.fabric.EntropicaClientFabric"
+    ]
+  },
+  "mixins": [
+    "entropica.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.17.2",
+    "minecraft": ">=1.21.1",
+    "fabric-api": "*",
+    "architectury": "*"
+  }
+}

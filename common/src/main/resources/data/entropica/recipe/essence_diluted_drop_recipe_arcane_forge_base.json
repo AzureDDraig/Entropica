@@ -1,0 +1,13 @@
+{
+  "type": "entropica:diluted_essence",
+  "inputs": [
+    "#minecraft:stone_bricks",
+    "#minecraft:stone_bricks"
+  ],
+  "output": {
+    "id": "entropica:arcane_forge_base",
+    "count": 1
+  },
+  "processingTime": 300,
+  "chargeCost": 16
+}
