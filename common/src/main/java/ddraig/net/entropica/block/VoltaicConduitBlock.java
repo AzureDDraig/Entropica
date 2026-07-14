@@ -142,7 +142,7 @@ public class VoltaicConduitBlock extends Block implements SimpleWaterloggedBlock
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
-        return neighborState.getBlock() instanceof VoltaicConduitBlock;
+        return neighborState.getBlock() instanceof VoltaicConduitBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

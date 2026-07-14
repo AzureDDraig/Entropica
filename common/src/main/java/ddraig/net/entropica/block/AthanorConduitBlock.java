@@ -142,7 +142,7 @@ public class AthanorConduitBlock extends Block implements SimpleWaterloggedBlock
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
-        return neighborState.getBlock() instanceof AthanorConduitBlock;
+        return neighborState.getBlock() instanceof AthanorConduitBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

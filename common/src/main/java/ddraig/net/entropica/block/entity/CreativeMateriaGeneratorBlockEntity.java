@@ -3,6 +3,13 @@ package ddraig.net.entropica.block.entity;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaLiquidaStack;
+import ddraig.net.entropica.api.materia.MateriaVolatilisStack;
+import ddraig.net.entropica.api.materia.MateriaCoagulataStack;
+import ddraig.net.entropica.api.materia.MateriaIchorStack;
+import ddraig.net.entropica.api.materia.MateriaTransmutataStack;
+import ddraig.net.entropica.api.materia.MateriaPerfectaStack;
+import ddraig.net.entropica.api.materia.MateriaLiminaliaStack;
 import ddraig.net.entropica.config.EntropicaConfig;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -70,6 +77,97 @@ public class CreativeMateriaGeneratorBlockEntity extends BlockEntity {
                     if (pushAmount > 0) {
                         MateriaFumusStack pushStack = new MateriaFumusStack(this.currentType, pushAmount);
                         handler.fill(pushStack, false);
+                    }
+                }
+            } else if (neighbor instanceof HydraulicPipelineBlockEntity pipeline) {
+                int currentAmount = pipeline.getLiquidInTank().getAmount();
+                int limit = pipeline.getCapacity();
+
+                if (currentAmount < limit) {
+                    int spaceToFill = limit - currentAmount;
+                    int pushAmount = Math.min(spaceToFill, amountToPush);
+
+                    if (pushAmount > 0) {
+                        MateriaLiquidaStack pushStack = new MateriaLiquidaStack(this.currentType, pushAmount);
+                        pipeline.fill(pushStack, false);
+                    }
+                }
+            } else if (neighbor instanceof VoltaicConduitBlockEntity conduit) {
+                int currentAmount = conduit.getVolatilisInTank().getAmount();
+                int limit = conduit.getCapacity();
+
+                if (currentAmount < limit) {
+                    int spaceToFill = limit - currentAmount;
+                    int pushAmount = Math.min(spaceToFill, amountToPush);
+
+                    if (pushAmount > 0) {
+                        MateriaVolatilisStack pushStack = new MateriaVolatilisStack(this.currentType, pushAmount);
+                        conduit.fill(pushStack, false);
+                    }
+                }
+            } else if (neighbor instanceof ViscousAgitatorBlockEntity agitator) {
+                int currentAmount = agitator.getCoagulataInTank().getAmount();
+                int limit = agitator.getCapacity();
+
+                if (currentAmount < limit) {
+                    int spaceToFill = limit - currentAmount;
+                    int pushAmount = Math.min(spaceToFill, amountToPush);
+
+                    if (pushAmount > 0) {
+                        MateriaCoagulataStack pushStack = new MateriaCoagulataStack(this.currentType, pushAmount);
+                        agitator.fill(pushStack, false);
+                    }
+                }
+            } else if (neighbor instanceof SanguineConduitBlockEntity conduit) {
+                int currentAmount = conduit.getIchorInTank().getAmount();
+                int limit = conduit.getCapacity();
+
+                if (currentAmount < limit) {
+                    int spaceToFill = limit - currentAmount;
+                    int pushAmount = Math.min(spaceToFill, amountToPush);
+
+                    if (pushAmount > 0) {
+                        MateriaIchorStack pushStack = new MateriaIchorStack(this.currentType, pushAmount);
+                        conduit.fill(pushStack, false);
+                    }
+                }
+            } else if (neighbor instanceof EquilibriumConduitBlockEntity conduit) {
+                int currentAmount = conduit.getTransmutataInTank().getAmount();
+                int limit = conduit.getCapacity();
+
+                if (currentAmount < limit) {
+                    int spaceToFill = limit - currentAmount;
+                    int pushAmount = Math.min(spaceToFill, amountToPush);
+
+                    if (pushAmount > 0) {
+                        MateriaTransmutataStack pushStack = new MateriaTransmutataStack(this.currentType, pushAmount);
+                        conduit.fill(pushStack, false);
+                    }
+                }
+            } else if (neighbor instanceof PristineConduitBlockEntity conduit) {
+                int currentAmount = conduit.getPerfectaInTank().getAmount();
+                int limit = conduit.getCapacity();
+
+                if (currentAmount < limit) {
+                    int spaceToFill = limit - currentAmount;
+                    int pushAmount = Math.min(spaceToFill, amountToPush);
+
+                    if (pushAmount > 0) {
+                        MateriaPerfectaStack pushStack = new MateriaPerfectaStack(this.currentType, pushAmount);
+                        conduit.fill(pushStack, false);
+                    }
+                }
+            } else if (neighbor instanceof AthanorConduitBlockEntity conduit) {
+                int currentAmount = conduit.getLiminaliaInTank().getAmount();
+                int limit = conduit.getCapacity();
+
+                if (currentAmount < limit) {
+                    int spaceToFill = limit - currentAmount;
+                    int pushAmount = Math.min(spaceToFill, amountToPush);
+
+                    if (pushAmount > 0) {
+                        MateriaLiminaliaStack pushStack = new MateriaLiminaliaStack(this.currentType, pushAmount);
+                        conduit.fill(pushStack, false);
                     }
                 }
             }

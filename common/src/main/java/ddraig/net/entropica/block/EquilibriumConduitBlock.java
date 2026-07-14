@@ -142,7 +142,7 @@ public class EquilibriumConduitBlock extends Block implements SimpleWaterloggedB
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
-        return neighborState.getBlock() instanceof EquilibriumConduitBlock;
+        return neighborState.getBlock() instanceof EquilibriumConduitBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

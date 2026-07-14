@@ -142,7 +142,7 @@ public class PristineConduitBlock extends Block implements SimpleWaterloggedBloc
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
-        return neighborState.getBlock() instanceof PristineConduitBlock;
+        return neighborState.getBlock() instanceof PristineConduitBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

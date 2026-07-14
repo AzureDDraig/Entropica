@@ -142,7 +142,7 @@ public class ViscousAgitatorBlock extends Block implements SimpleWaterloggedBloc
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
-        return neighborState.getBlock() instanceof ViscousAgitatorBlock;
+        return neighborState.getBlock() instanceof ViscousAgitatorBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

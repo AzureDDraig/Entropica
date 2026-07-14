@@ -142,7 +142,7 @@ public class SanguineConduitBlock extends Block implements SimpleWaterloggedBloc
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
-        return neighborState.getBlock() instanceof SanguineConduitBlock;
+        return neighborState.getBlock() instanceof SanguineConduitBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

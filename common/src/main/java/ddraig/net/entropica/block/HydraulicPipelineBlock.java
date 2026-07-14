@@ -144,7 +144,7 @@ public class HydraulicPipelineBlock extends Block implements SimpleWaterloggedBl
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
-        return neighborState.getBlock() instanceof HydraulicPipelineBlock;
+        return neighborState.getBlock() instanceof HydraulicPipelineBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {
