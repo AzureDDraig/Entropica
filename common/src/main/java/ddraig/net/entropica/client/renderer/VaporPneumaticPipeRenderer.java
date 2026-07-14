@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.block.VaporPneumaticDiverterBlock;
 import ddraig.net.entropica.block.VaporPneumaticOneWayValveBlock;
 import ddraig.net.entropica.block.VaporPneumaticPipeBlock;
 import ddraig.net.entropica.block.entity.VaporPneumaticPipeBlockEntity;
@@ -48,6 +49,17 @@ public class VaporPneumaticPipeRenderer implements BlockEntityRenderer<VaporPneu
         return new VisFumePipeRenderState();
     }
 
+    private void setDirectionState(VisFumePipeRenderState state, Direction dir, boolean value) {
+        switch (dir) {
+            case NORTH -> state.north = value;
+            case SOUTH -> state.south = value;
+            case EAST  -> state.east = value;
+            case WEST  -> state.west = value;
+            case UP    -> state.up = value;
+            case DOWN  -> state.down = value;
+        }
+    }
+
     @Override
     public void extractRenderState(VaporPneumaticPipeBlockEntity be, VisFumePipeRenderState state, float partialTick,
                                    Vec3 cameraPos, @Nullable ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
@@ -84,6 +96,14 @@ public class VaporPneumaticPipeRenderer implements BlockEntityRenderer<VaporPneu
             state.valveFacing = null;
         }
 
+        // Reset all directions to false first
+        state.north = false;
+        state.south = false;
+        state.east  = false;
+        state.west  = false;
+        state.up    = false;
+        state.down  = false;
+
         if (blockState.getBlock() instanceof VaporPneumaticPipeBlock) {
             state.north = blockState.getValue(VaporPneumaticPipeBlock.NORTH);
             state.south = blockState.getValue(VaporPneumaticPipeBlock.SOUTH);
@@ -91,6 +111,26 @@ public class VaporPneumaticPipeRenderer implements BlockEntityRenderer<VaporPneu
             state.west  = blockState.getValue(VaporPneumaticPipeBlock.WEST);
             state.up    = blockState.getValue(VaporPneumaticPipeBlock.UP);
             state.down  = blockState.getValue(VaporPneumaticPipeBlock.DOWN);
+        } else if (blockState.getBlock() instanceof VaporPneumaticDiverterBlock) {
+            Direction inputFace = blockState.getValue(VaporPneumaticDiverterBlock.FACING);
+            Direction playerPerspective = blockState.getValue(VaporPneumaticDiverterBlock.HORIZONTAL_FACING);
+
+            Direction forwardFace = inputFace.getOpposite();
+            Direction rightFace;
+            Direction leftFace;
+
+            if (inputFace.getAxis().isVertical()) {
+                leftFace = playerPerspective.getCounterClockWise();
+                rightFace = playerPerspective.getClockWise();
+            } else {
+                leftFace = inputFace.getClockWise();
+                rightFace = inputFace.getCounterClockWise();
+            }
+
+            setDirectionState(state, inputFace, true);
+            setDirectionState(state, forwardFace, blockState.getValue(VaporPneumaticDiverterBlock.FORWARD_OPEN));
+            setDirectionState(state, leftFace, blockState.getValue(VaporPneumaticDiverterBlock.LEFT_OPEN));
+            setDirectionState(state, rightFace, blockState.getValue(VaporPneumaticDiverterBlock.RIGHT_OPEN));
         }
     }
 
