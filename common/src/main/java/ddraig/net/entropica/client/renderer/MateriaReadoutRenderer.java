@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.block.MateriaReadoutBlock;
 import ddraig.net.entropica.block.entity.EntropicCoreBlockEntity;
 import ddraig.net.entropica.block.entity.MateriaReadoutBlockEntity;
@@ -72,7 +73,7 @@ public class MateriaReadoutRenderer implements BlockEntityRenderer<MateriaReadou
                                 renderState.hasTarget = true;
                                 renderState.targetName = className.contains("Chamber") ? "Chamber Fume Levels" : "Vessel Fume Levels";
 
-                                MateriaFumusStack fume = fumeHandler.getMateriaInTank();
+                                MateriaStack fume = fumeHandler.getMateriaInTank();
                                 if (fume != null && !fume.isEmpty()) {
                                     renderState.visPool.put(fume.getType(), fume.getAmount());
                                 }

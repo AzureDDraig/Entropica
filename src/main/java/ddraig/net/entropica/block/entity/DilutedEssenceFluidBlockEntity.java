@@ -31,6 +31,7 @@ public class DilutedEssenceFluidBlockEntity extends BlockEntity {
 
     private int charge = 0;
     private int tintColor = 0xFFB200FF;
+    private final java.util.Map<ItemEntity, Integer> fluidTimes = new java.util.WeakHashMap<>();
 
     public DilutedEssenceFluidBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.DILUTED_ESSENCE_FLUID_BE.get(), pos, state);
@@ -105,7 +106,7 @@ public class DilutedEssenceFluidBlockEntity extends BlockEntity {
                     // Dampen movement to counteract fluid buoyancy
                     ent.setDeltaMovement(ent.getDeltaMovement().multiply(0.95D, 0.5D, 0.95D));
 
-                    int timeInFluid = ent.getPersistentData().getInt("EntropicaFluidTime").orElse(0);
+                    int timeInFluid = this.fluidTimes.getOrDefault(ent, 0);
                     timeInFluid++;
 
                     if (timeInFluid % 10 == 0) {
@@ -115,7 +116,7 @@ public class DilutedEssenceFluidBlockEntity extends BlockEntity {
                     if (timeInFluid < recipe.processingTime()) {
                         allReady = false;
                     }
-                    ent.getPersistentData().putInt("EntropicaFluidTime", timeInFluid);
+                    this.fluidTimes.put(ent, timeInFluid);
                 }
 
                 if (allReady) {
@@ -143,9 +144,10 @@ public class DilutedEssenceFluidBlockEntity extends BlockEntity {
                             ent.getItem().shrink(maxCrafts);
                             if (ent.getItem().isEmpty()) {
                                 ent.discard();
+                                this.fluidTimes.remove(ent);
                             } else {
                                 ent.setItem(ent.getItem());
-                                ent.getPersistentData().putInt("EntropicaFluidTime", 0);
+                                this.fluidTimes.put(ent, 0);
                             }
                         }
                     }

@@ -52,7 +52,7 @@ public class ManaEnrichedGlassBlockEntity extends BlockEntity {
     public void notifyControllerOfBreak() {
         if (this.level != null && this.controllerPos != null && !this.level.isClientSide()) {
             BlockEntity be = this.level.getBlockEntity(this.controllerPos);
-            if (be instanceof VisFumeVesselControllerBlockEntity controller) {
+            if (be instanceof MateriaVesselControllerBlockEntity controller) {
                 controller.invalidateMultiblock();
             }
         }

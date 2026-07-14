@@ -114,7 +114,6 @@ public class VisInteractionManager {
         addBaseRule(EssenceType.AURORA, List.of(EssenceType.UNDEAD), List.of(EssenceType.UMBRAL, EssenceType.NETHER));
         addRule("aurora_frozen_dom", List.of(EssenceType.WATER, EssenceType.NATURE), List.of(EssenceType.UMBRAL, EssenceType.NETHER, EssenceType.UNDEAD));
 
-
         // ==========================================
         // 3. TIER 2 FUSIONS
         // ==========================================
@@ -151,7 +150,6 @@ public class VisInteractionManager {
         addBaseRule(EssenceType.BARROW, List.of(EssenceType.FROZEN, EssenceType.AMBER), List.of(EssenceType.RADIANT, EssenceType.AIR, EssenceType.NATURE));
         addRule("barrow_earth_dom", List.of(EssenceType.VOID), List.of(EssenceType.RADIANT, EssenceType.AIR, EssenceType.NATURE));
 
-
         // ==========================================
         // 4. TIER 3 FUSIONS (Base & Submissive Ascension)
         // ==========================================
@@ -182,7 +180,6 @@ public class VisInteractionManager {
         addBaseRule(EssenceType.OBLIVION, List.of(EssenceType.RADIANT, EssenceType.NATURE, EssenceType.FROZEN, EssenceType.GENESIS, EssenceType.AURA), List.of(EssenceType.WATER, EssenceType.VOID));
         addRule("oblivion_nether_dom", List.of(EssenceType.FROZEN, EssenceType.NATURE, EssenceType.GENESIS, EssenceType.AURA), List.of(EssenceType.VOID, EssenceType.WATER));
 
-
         // ==========================================
         // 5. APEX FUSIONS (Tier 4)
         // ==========================================
@@ -200,7 +197,6 @@ public class VisInteractionManager {
 
         addBaseRule(EssenceType.PRISMATIC, List.of(EssenceType.UNDEAD, EssenceType.BLIGHT, EssenceType.SOULFIRE, EssenceType.BLOOD), List.of(EssenceType.UMBRAL));
         addRule("prismatic_chimera_rec", List.of(EssenceType.UNDEAD, EssenceType.BLIGHT, EssenceType.SOULFIRE, EssenceType.BLOOD), List.of(EssenceType.UMBRAL));
-
 
         // ==========================================
         // 6. ESCHATON & SINGULARITY (Tier 5 & 6)

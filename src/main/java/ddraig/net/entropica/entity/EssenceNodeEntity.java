@@ -25,10 +25,6 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.level.BlockEvent;
-
 import java.util.List;
 
 public class EssenceNodeEntity extends Entity {
@@ -288,40 +284,22 @@ public class EssenceNodeEntity extends Entity {
     }
 
     // ==========================================
-    // EVENT LISTENER FOR PLACEMENT PROTECTION
+    // ARCANE PLACEMENT PROTECTION HELPER
     // ==========================================
 
-    @EventBusSubscriber(modid = "entropica")
-    public static class NodeProtectionEvents {
-
-        @SubscribeEvent
-        public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
-            // Check if the entity placing the block is a player
-            if (event.getEntity() instanceof Player player) {
-                // Check if they are wearing the Monocle / Goggles
-                if (player.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof AethericVisionItem) {
-
-                    if (event.getLevel() instanceof Level level) {
-                        // Create a bounding box for the block they are trying to place
-                        AABB placementBox = new AABB(event.getPos());
-
-                        // Check if an Essence Node exists in that exact space
-                        List<EssenceNodeEntity> nodes = level.getEntitiesOfClass(EssenceNodeEntity.class, placementBox);
-
-                        if (!nodes.isEmpty()) {
-                            // Cancel the block placement!
-                            event.setCanceled(true);
-
-                            // Send a small message to the action bar (above the hotbar)
-                            if (player instanceof ServerPlayer serverPlayer) {
-                                serverPlayer.displayClientMessage(
-                                        Component.literal("§cThe dense arcane energy repels the block!"), true
-                                );
-                            }
-                        }
-                    }
+    public static boolean checkPlacementProtection(Level level, BlockPos pos, Player player) {
+        if (player.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof AethericVisionItem) {
+            AABB placementBox = new AABB(pos);
+            List<EssenceNodeEntity> nodes = level.getEntitiesOfClass(EssenceNodeEntity.class, placementBox);
+            if (!nodes.isEmpty()) {
+                if (player instanceof ServerPlayer serverPlayer) {
+                    serverPlayer.displayClientMessage(
+                            Component.literal("§cThe dense arcane energy repels the block!"), true
+                    );
                 }
+                return true; // Cancel placement
             }
         }
+        return false;
     }
 }

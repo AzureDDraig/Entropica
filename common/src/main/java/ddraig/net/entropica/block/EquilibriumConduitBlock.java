@@ -142,6 +142,9 @@ public class EquilibriumConduitBlock extends Block implements SimpleWaterloggedB
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
+        if (neighborState.getBlock() instanceof DecompressionCouplerBlock) {
+            return neighborState.getValue(DecompressionCouplerBlock.AXIS) == dirToNeighbor.getAxis();
+        }
         return neighborState.getBlock() instanceof EquilibriumConduitBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 

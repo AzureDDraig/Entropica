@@ -2,8 +2,8 @@
   "render_type": "minecraft:cutout",
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "entropica:block/glass_vis_fragment_lattice",
-    "all": "entropica:block/glass_vis_fragment_lattice"
+    "particle": "entropica:block/glass_fragment_lattice",
+    "all": "entropica:block/glass_fragment_lattice"
   },
   "elements": [
     {

@@ -14,25 +14,18 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@EventBusSubscriber(modid = "entropica")
 public class VisTooltipEventHandler {
 
     private static final String[] RUNES = {"ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ", "ᚺ", "ᚾ", "ᛁ", "ᛃ", "ᛇ", "ᛈ", "ᛉ", "ᛊ", "ᛏ", "ᛒ", "ᛖ", "ᛗ", "ᛚ", "ᛜ", "ᛞ", "ᛟ"};
 
-    @SubscribeEvent
-    public static void onItemTooltip(ItemTooltipEvent event) {
-        ItemStack stack = event.getItemStack();
+    public static void handle(ItemStack stack, List<Component> tooltip) {
         VisWeaponState visState = stack.get(ModDataComponents.VIS_WEAPON_STATE.get());
 
         if (visState != null && visState.baseDamage() > 0) {
-            List<Component> tooltip = event.getToolTip();
             List<Component> linesToInject = new ArrayList<>();
 
             // 1. Format the Damage Line with EXACT RGB Values

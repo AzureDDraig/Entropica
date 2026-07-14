@@ -2,9 +2,9 @@ package ddraig.net.entropica.entity.grot;
 
 import com.mojang.serialization.Codec;
 import ddraig.net.entropica.api.EssenceType;
-import ddraig.net.entropica.api.fumes.VisFumeStack;
-import ddraig.net.entropica.block.VisFumePipeBlock;
-import ddraig.net.entropica.block.entity.VisFumePipeBlockEntity;
+import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.block.VaporPneumaticPipeBlock;
+import ddraig.net.entropica.block.entity.VaporPneumaticPipeBlockEntity;
 import ddraig.net.entropica.item.EssenceItem;
 import ddraig.net.entropica.registry.ModAttachments;
 import ddraig.net.entropica.registry.ModEffects;
@@ -686,9 +686,9 @@ public class GrotEntity extends Slime {
             }
 
             private boolean isValidPipe(BlockPos pos) {
-                if (GrotEntity.this.level().getBlockState(pos).getBlock() instanceof VisFumePipeBlock) {
-                    if (GrotEntity.this.level().getBlockEntity(pos) instanceof VisFumePipeBlockEntity pipe) {
-                        return !pipe.getFumeInTank().isEmpty();
+                if (GrotEntity.this.level().getBlockState(pos).getBlock() instanceof VaporPneumaticPipeBlock) {
+                    if (GrotEntity.this.level().getBlockEntity(pos) instanceof VaporPneumaticPipeBlockEntity pipe) {
+                        return !pipe.getMateriaInTank().isEmpty();
                     }
                 }
                 return false;
@@ -722,9 +722,9 @@ public class GrotEntity extends Slime {
                     double reach = 1.5 + (GrotEntity.this.getBbWidth() / 2.0);
 
                     if (distSq <= reach * reach && drainCooldown <= 0) {
-                        if (GrotEntity.this.level().getBlockEntity(targetPipe) instanceof VisFumePipeBlockEntity pipe) {
-                            if (!pipe.getFumeInTank().isEmpty()) {
-                                VisFumeStack drained = pipe.drain(10, false);
+                        if (GrotEntity.this.level().getBlockEntity(targetPipe) instanceof VaporPneumaticPipeBlockEntity pipe) {
+                            if (!pipe.getMateriaInTank().isEmpty()) {
+                                MateriaFumusStack drained = pipe.drain(10, false);
 
                                 if (!drained.isEmpty()) {
                                     GrotEntity.this.playSound(SoundEvents.BREWING_STAND_BREW, 1.0f, 1.5f);
@@ -1373,8 +1373,8 @@ public class GrotEntity extends Slime {
             if (target instanceof LivingEntity living) {
                 if (this.getRandom().nextFloat() < 0.25F) {
                     living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 1));
-                    living.addEffect(new MobEffectInstance(ModEffects.VIS_TOXICITY, 200, 0));
-                    living.setData(ModAttachments.TOXICITY_SOURCE, this.getEssenceType().name());
+                    living.addEffect(new MobEffectInstance(ModEffects.MATERIA_TOXICITY, 200, 0));
+                    ModAttachments.setToxicitySource(living, this.getEssenceType().name());
                 }
 
                 if (this.getEssenceType() == EssenceType.LIGHTNING || this.getEssenceType() == EssenceType.STATIC) {

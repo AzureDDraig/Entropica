@@ -17,8 +17,9 @@ import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModEntityTypes;
 import ddraig.net.entropica.registry.ModFluids;
+import ddraig.net.entropica.registry.neoforge.ModFluidsNeoForge;
 import ddraig.net.entropica.registry.ModMenuTypes;
-import ddraig.net.entropica.block.entity.CreativeVisFumeGeneratorBlockEntity;
+import ddraig.net.entropica.block.entity.CreativeMateriaGeneratorBlockEntity;
 import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
 import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity;
 import ddraig.net.entropica.client.gui.SynthesizerUserInterfaceScreen;
@@ -110,14 +111,14 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.MANA_FURNACE_BE.get(), ManaFurnaceRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENTROPIC_CORE_BE.get(), EntropicCoreRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ESSENCE_READOUT_BE.get(), EssenceReadoutRenderer::new);
-        event.registerBlockEntityRenderer(ModBlockEntities.MANA_READOUT_BE.get(), VisReadoutRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.MANA_READOUT_BE.get(), MateriaReadoutRenderer::new);
 
-        event.registerBlockEntityRenderer(ModBlockEntities.VIS_FUME_PIPE_BE.get(), VisFumePipeRenderer::new);
-        event.registerBlockEntityRenderer(ModBlockEntities.VIS_FUME_VALVE_BE.get(), VisFumePipeRenderer::new);
-        event.registerBlockEntityRenderer(ModBlockEntities.VIS_FUME_ONE_WAY_VALVE_BE.get(), VisFumePipeRenderer::new);
-        event.registerBlockEntityRenderer(ModBlockEntities.VIS_FUME_DIVERTER_BE.get(), VisFumePipeRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.VAPOR_PNEUMATIC_PIPE_BE.get(), VaporPneumaticPipeRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.VAPOR_PNEUMATIC_VALVE_BE.get(), VaporPneumaticPipeRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.VAPOR_PNEUMATIC_ONE_WAY_VALVE_BE.get(), VaporPneumaticPipeRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.VAPOR_PNEUMATIC_DIVERTER_BE.get(), VaporPneumaticPipeRenderer::new);
 
-        event.registerBlockEntityRenderer(ModBlockEntities.VIS_FUME_VESSEL_CONTROLLER_BE.get(), VisFumeVesselControllerRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.MATERIA_VESSEL_CONTROLLER_BE.get(), MateriaVesselControllerRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.MANA_ENRICHED_GLASS_BE.get(), ManaEnrichedGlassRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENRICHMENT_TABLE_BE.get(), EnrichmentTableRenderer::new);
 
@@ -127,7 +128,7 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.EIDOLIC_FOCAL_PEDESTAL_BE.get(), EidolicFocalPedestalRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ATTUNEMENT_PEDESTAL_BE.get(), AttunementPedestalRenderer::new);
 
-        event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_VIS_FUME_GENERATOR_BE.get(), CreativeVisFumeGeneratorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_MATERIA_GENERATOR_BE.get(), CreativeMateriaGeneratorRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_PARTICLE_GENERATOR_BE.get(), CreativeParticleGeneratorRenderer::new);
 
         event.registerBlockEntityRenderer(ModBlockEntities.VOID_RIFT_BE.get(), context -> new VoidRiftRenderer(context));
@@ -157,12 +158,12 @@ public class ModClientEvents {
     public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
         event.register((state, level, pos, tintIndex) -> {
             if (level != null && pos != null && tintIndex == 0) {
-                if (level.getBlockEntity(pos) instanceof CreativeVisFumeGeneratorBlockEntity generator) {
+                if (level.getBlockEntity(pos) instanceof CreativeMateriaGeneratorBlockEntity generator) {
                     return generator.getCurrentType().getColorInt();
                 }
             }
             return 0xFFFFFF;
-        }, ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get());
+        }, ModBlocks.CREATIVE_MATERIA_GENERATOR.get());
 
         event.register((state, level, pos, tintIndex) -> {
                     if (level != null && pos != null && tintIndex == 0) {
@@ -176,8 +177,8 @@ public class ModClientEvents {
                     return 0xFFFFFF;
                 },
                 ModBlocks.FRAGMENT_LATTICE_GLASS.get(),
-                ModBlocks.VIS_ICHOR_ENRICHED_GLASS.get(),
-                ModBlocks.VIS_FUME_STRENGTHENED_GLASS.get(),
+                ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(),
+                ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get(),
                 ModBlocks.ESSENCE_ENRICHED_GLASS.get());
     }
 
@@ -216,83 +217,15 @@ public class ModClientEvents {
                 return 0xFFB200FF;
             }
 
-        }, ModFluids.DILUTED_ESSENCE_FLUID_TYPE.get());
-    }
-
-    public record AmpouleTint() implements ItemTintSource {
-        public static final MapCodec<AmpouleTint> MAP_CODEC = MapCodec.unit(new AmpouleTint());
-
-        @Override
-        public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
-            EssenceType type = null;
-            if (stack.getItem() instanceof VisFumeAmpouleItem) {
-                type = VisFumeAmpouleItem.getEssenceType(stack);
-            }
-            if (type != null) {
-                int[] rgb = type.getCurrentRGB(System.currentTimeMillis() / 50);
-                return (0xFF << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
-            }
-            return 0xFFFFFFFF;
-        }
-
-        @Override
-        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
-    }
-
-    public record EssenceTint() implements ItemTintSource {
-        public static final MapCodec<EssenceTint> MAP_CODEC = MapCodec.unit(new EssenceTint());
-
-        @Override
-        public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
-            EssenceType type = null;
-            if (stack.getItem() instanceof EssenceItem) {
-                type = EssenceItem.getEssenceType(stack);
-            } else if (stack.getItem() instanceof EssenceAmpouleItem) {
-                type = EssenceAmpouleItem.getEssenceType(stack);
-            }
-            if (type != null) {
-                int[] rgb = type.getCurrentRGB(System.currentTimeMillis() / 50);
-                return (0xFF << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
-            }
-            return 0xFFFFFFFF;
-        }
-
-        @Override
-        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
-    }
-
-    public record GeneratorTint() implements ItemTintSource {
-        public static final MapCodec<GeneratorTint> MAP_CODEC = MapCodec.unit(new GeneratorTint());
-
-        @Override
-        public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
-            EssenceType[] types = EssenceType.values();
-            int index = (int) ((System.currentTimeMillis() / 1000) % types.length);
-            return 0xFF000000 | types[index].getColorInt();
-        }
-
-        @Override
-        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
-    }
-
-    public record FumeGlassTint() implements ItemTintSource {
-        public static final MapCodec<FumeGlassTint> MAP_CODEC = MapCodec.unit(new FumeGlassTint());
-
-        @Override
-        public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
-            return 0xFFFFFFFF;
-        }
-
-        @Override
-        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
+        }, ModFluidsNeoForge.DILUTED_ESSENCE_FLUID_TYPE.get());
     }
 
     @SubscribeEvent
     public static void registerItemTintSources(RegisterColorHandlersEvent.ItemTintSources event) {
-        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "ampoule_tint"), AmpouleTint.MAP_CODEC);
-        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "generator_tint"), GeneratorTint.MAP_CODEC);
-        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "fume_glass_tint"), FumeGlassTint.MAP_CODEC);
-        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "essence_tint"), EssenceTint.MAP_CODEC);
+        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "ampoule_tint"), ModItemTintSources.AmpouleTint.MAP_CODEC);
+        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "generator_tint"), ModItemTintSources.GeneratorTint.MAP_CODEC);
+        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "fume_glass_tint"), ModItemTintSources.FumeGlassTint.MAP_CODEC);
+        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "essence_tint"), ModItemTintSources.EssenceTint.MAP_CODEC);
     }
 
     @SubscribeEvent

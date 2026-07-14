@@ -4,105 +4,255 @@ import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.block.entity.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
+import dev.architectury.registry.registries.DeferredRegister;
 
 public class ModBlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
-            DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Entropica.MODID);
+            DeferredRegister.create(Entropica.MODID, Registries.BLOCK_ENTITY_TYPE);
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ManaFurnaceBlockEntity>> MANA_FURNACE_BE =
+    public static final RegistrySupplier<BlockEntityType<ManaFurnaceBlockEntity>> MANA_FURNACE_BE =
             BLOCK_ENTITIES.register("mana_furnace", () ->
-                    new BlockEntityType<>(ManaFurnaceBlockEntity::new, ModBlocks.MANA_FURNACE.get()));
+                    BlockEntityHelper.create(ManaFurnaceBlockEntity::new, ModBlocks.MANA_FURNACE.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EntropicCoreBlockEntity>> ENTROPIC_CORE_BE =
+    public static final RegistrySupplier<BlockEntityType<EntropicCoreBlockEntity>> ENTROPIC_CORE_BE =
             BLOCK_ENTITIES.register("entropic_core", () ->
-                    new BlockEntityType<>(EntropicCoreBlockEntity::new, ModBlocks.ENTROPIC_CORE.get()));
+                    BlockEntityHelper.create(EntropicCoreBlockEntity::new, ModBlocks.ENTROPIC_CORE.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EssenceReceptacleBlockEntity>> ESSENCE_RECEPTACLE_BE =
+    public static final RegistrySupplier<BlockEntityType<EssenceReceptacleBlockEntity>> ESSENCE_RECEPTACLE_BE =
             BLOCK_ENTITIES.register("essence_receptacle", () ->
-                    new BlockEntityType<>(EssenceReceptacleBlockEntity::new, ModBlocks.ESSENCE_RECEPTACLE.get()));
+                    BlockEntityHelper.create(EssenceReceptacleBlockEntity::new, ModBlocks.ESSENCE_RECEPTACLE.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<OrbisCellBlockEntity>> ORBIS_CELL_BE =
+    public static final RegistrySupplier<BlockEntityType<OrbisCellBlockEntity>> ORBIS_CELL_BE =
             BLOCK_ENTITIES.register("orbis_cell", () ->
-                    new BlockEntityType<>(OrbisCellBlockEntity::new, ModBlocks.ORBIS_CELL.get()));
+                    BlockEntityHelper.create(OrbisCellBlockEntity::new, ModBlocks.ORBIS_CELL.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CatalystReceptacleBlockEntity>> CATALYST_RECEPTACLE_BE =
+    public static final RegistrySupplier<BlockEntityType<CatalystReceptacleBlockEntity>> CATALYST_RECEPTACLE_BE =
             BLOCK_ENTITIES.register("catalyst_receptacle", () ->
-                    new BlockEntityType<>(CatalystReceptacleBlockEntity::new, ModBlocks.CATALYST_RECEPTACLE.get()));
+                    BlockEntityHelper.create(CatalystReceptacleBlockEntity::new, ModBlocks.CATALYST_RECEPTACLE.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisReadoutBlockEntity>> MANA_READOUT_BE =
-            BLOCK_ENTITIES.register("mana_readout", () ->
-                    new BlockEntityType<>(VisReadoutBlockEntity::new, ModBlocks.VIS_READOUT.get()));
+    public static final RegistrySupplier<BlockEntityType<MateriaReadoutBlockEntity>> MANA_READOUT_BE =
+            BLOCK_ENTITIES.register("materia_readout", () ->
+                    BlockEntityHelper.create(MateriaReadoutBlockEntity::new, ModBlocks.VIS_READOUT.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EssenceReadoutBlockEntity>> ESSENCE_READOUT_BE =
-            BLOCK_ENTITIES.register("essence_readout", () ->
-                    new BlockEntityType<>(EssenceReadoutBlockEntity::new, ModBlocks.ESSENCE_READOUT.get()));
+    public static final RegistrySupplier<BlockEntityType<EssenceReadoutBlockEntity>> ESSENCE_READOUT_BE =
+            BLOCK_ENTITIES.register("raw_materia_readout", () ->
+                    BlockEntityHelper.create(EssenceReadoutBlockEntity::new, ModBlocks.ESSENCE_READOUT.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ManaPlumeBlockEntity>> MANA_PLUME_BE =
+    public static final RegistrySupplier<BlockEntityType<ManaPlumeBlockEntity>> MANA_PLUME_BE =
             BLOCK_ENTITIES.register("mana_plume", () ->
-                    new BlockEntityType<>(ManaPlumeBlockEntity::new, ModBlocks.MANA_PLUME.get()));
+                    BlockEntityHelper.create(ManaPlumeBlockEntity::new, ModBlocks.MANA_PLUME.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ManaFilterBlockEntity>> MANA_FILTER_BE =
-            BLOCK_ENTITIES.register("mana_filter", () ->
-                    new BlockEntityType<>(ManaFilterBlockEntity::new, ModBlocks.MANA_FILTER.get()));
+    public static final RegistrySupplier<BlockEntityType<MateriaFilterBlockEntity>> MATERIA_FILTER_BE =
+            BLOCK_ENTITIES.register("materia_filter", () ->
+                    BlockEntityHelper.create(MateriaFilterBlockEntity::new, ModBlocks.MATERIA_FILTER.get()));
 
-    // --- VIS FUME NETWORK ---
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumePipeBlockEntity>> VIS_FUME_PIPE_BE = BLOCK_ENTITIES.register("vis_fume_pipe", () -> new BlockEntityType<>(VisFumePipeBlockEntity::new, ModBlocks.VIS_FUME_PIPE.get()));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeValveBlockEntity>> VIS_FUME_VALVE_BE = BLOCK_ENTITIES.register("vis_fume_valve", () -> new BlockEntityType<>(VisFumeValveBlockEntity::new, ModBlocks.VIS_FUME_VALVE.get()));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeOneWayValveBlockEntity>> VIS_FUME_ONE_WAY_VALVE_BE = BLOCK_ENTITIES.register("vis_fume_one_way_valve", () -> new BlockEntityType<>(VisFumeOneWayValveBlockEntity::new, ModBlocks.VIS_FUME_ONE_WAY_VALVE.get()));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeDiverterBlockEntity>> VIS_FUME_DIVERTER_BE = BLOCK_ENTITIES.register("vis_fume_diverter", () -> new BlockEntityType<>(VisFumeDiverterBlockEntity::new, ModBlocks.VIS_FUME_DIVERTER.get()));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreativeVisFumeGeneratorBlockEntity>> CREATIVE_VIS_FUME_GENERATOR_BE = BLOCK_ENTITIES.register("creative_vis_fume_generator", () -> new BlockEntityType<>(CreativeVisFumeGeneratorBlockEntity::new, ModBlocks.CREATIVE_VIS_FUME_GENERATOR.get()));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreativeParticleGeneratorBlockEntity>> CREATIVE_PARTICLE_GENERATOR_BE = BLOCK_ENTITIES.register("creative_particle_generator", () -> new BlockEntityType<>(CreativeParticleGeneratorBlockEntity::new, ModBlocks.CREATIVE_PARTICLE_GENERATOR.get()));
+    // --- Vapor Pneumatic Network ---
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeInputPortBlockEntity>> VIS_FUME_INPUT_PORT_BE = BLOCK_ENTITIES.register("vis_fume_input_port", () -> new BlockEntityType<>(VisFumeInputPortBlockEntity::new, ModBlocks.VIS_FUME_INPUT_PORT.get()));
+    public static final RegistrySupplier<BlockEntityType<VaporPneumaticValveBlockEntity>> VAPOR_PNEUMATIC_VALVE_BE =
+            BLOCK_ENTITIES.register("vapor_pneumatic_valve", () ->
+                    BlockEntityHelper.create(VaporPneumaticValveBlockEntity::new, ModBlocks.VAPOR_PNEUMATIC_VALVE.get()));
+
+    public static final RegistrySupplier<BlockEntityType<VaporPneumaticOneWayValveBlockEntity>> VAPOR_PNEUMATIC_ONE_WAY_VALVE_BE =
+            BLOCK_ENTITIES.register("vapor_pneumatic_one_way_valve", () ->
+                    BlockEntityHelper.create(VaporPneumaticOneWayValveBlockEntity::new, ModBlocks.VAPOR_PNEUMATIC_ONE_WAY_VALVE.get()));
+
+    public static final RegistrySupplier<BlockEntityType<VaporPneumaticDiverterBlockEntity>> VAPOR_PNEUMATIC_DIVERTER_BE =
+            BLOCK_ENTITIES.register("vapor_pneumatic_diverter", () ->
+                    BlockEntityHelper.create(VaporPneumaticDiverterBlockEntity::new, ModBlocks.VAPOR_PNEUMATIC_DIVERTER.get()));
+
+    public static final RegistrySupplier<BlockEntityType<CreativeMateriaGeneratorBlockEntity>> CREATIVE_MATERIA_GENERATOR_BE =
+            BLOCK_ENTITIES.register("creative_materia_generator", () ->
+                    BlockEntityHelper.create(CreativeMateriaGeneratorBlockEntity::new, ModBlocks.CREATIVE_MATERIA_GENERATOR.get()));
+
+    // --- VAPOR PNEUMATIC PIPES (T2/T3 — Mfum/Msub) ---
+    // All 10 tiers share one BE class; instance type is resolved via registry path at runtime
+    public static final RegistrySupplier<BlockEntityType<VaporPneumaticPipeBlockEntity>> VAPOR_PNEUMATIC_PIPE_BE =
+            BLOCK_ENTITIES.register("vapor_pneumatic_pipe", () ->
+                    BlockEntityHelper.create(VaporPneumaticPipeBlockEntity::new,
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_COPPER.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_IRON.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_GOLD.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_ARCANITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_DIAMOND.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_VISCANITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_RESONITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_ARCANITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_VISCANITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_RESONITE.get()
+                    ));
+
+    // --- HYDRAULIC PIPELINE (T4 — Mliq) ---
+    public static final RegistrySupplier<BlockEntityType<HydraulicPipelineBlockEntity>> HYDRAULIC_PIPELINE_BE =
+            BLOCK_ENTITIES.register("hydraulic_pipeline", () ->
+                    BlockEntityHelper.create(HydraulicPipelineBlockEntity::new,
+                            ModBlocks.HYDRAULIC_PIPELINE_IRON.get(),
+                            ModBlocks.HYDRAULIC_PIPELINE_ARCANITE.get(),
+                            ModBlocks.HYDRAULIC_PIPELINE_VISCANITE.get(),
+                            ModBlocks.HYDRAULIC_PIPELINE_RESONITE.get(),
+                            ModBlocks.HYDRAULIC_PIPELINE_CHARGED_ARCANITE.get(),
+                            ModBlocks.HYDRAULIC_PIPELINE_CHARGED_VISCANITE.get(),
+                            ModBlocks.HYDRAULIC_PIPELINE_CHARGED_RESONITE.get()
+                    ));
+
+    // --- VOLTAIC CONDUIT (T5 — Mvol) ---
+    public static final RegistrySupplier<BlockEntityType<VoltaicConduitBlockEntity>> VOLTAIC_CONDUIT_BE =
+            BLOCK_ENTITIES.register("voltaic_conduit", () ->
+                    BlockEntityHelper.create(VoltaicConduitBlockEntity::new,
+                            ModBlocks.VOLTAIC_CONDUIT_ARCANITE.get(),
+                            ModBlocks.VOLTAIC_CONDUIT_VISCANITE.get(),
+                            ModBlocks.VOLTAIC_CONDUIT_RESONITE.get(),
+                            ModBlocks.VOLTAIC_CONDUIT_CHARGED_ARCANITE.get(),
+                            ModBlocks.VOLTAIC_CONDUIT_CHARGED_VISCANITE.get(),
+                            ModBlocks.VOLTAIC_CONDUIT_CHARGED_RESONITE.get()
+                    ));
+
+    // --- T6: VISCOUS AGITATOR (Mcoa) ---
+    public static final RegistrySupplier<BlockEntityType<ViscousAgitatorBlockEntity>> VISCOUS_AGITATOR_BE =
+            BLOCK_ENTITIES.register("viscous_agitator", () ->
+                    BlockEntityHelper.create(ViscousAgitatorBlockEntity::new,
+                            ModBlocks.VISCOUS_AGITATOR_CAPUTITE.get(),
+                            ModBlocks.VISCOUS_AGITATOR_CHARGED_CAPUTITE.get()
+                    ));
+
+    // --- T7: SANGUINE CONDUIT (Mich) ---
+    public static final RegistrySupplier<BlockEntityType<SanguineConduitBlockEntity>> SANGUINE_CONDUIT_BE =
+            BLOCK_ENTITIES.register("sanguine_conduit", () ->
+                    BlockEntityHelper.create(SanguineConduitBlockEntity::new,
+                            ModBlocks.SANGUINE_CONDUIT_SANGUINITE.get(),
+                            ModBlocks.SANGUINE_CONDUIT_CHARGED_SANGUINITE.get()
+                    ));
+
+    // --- T8: EQUILIBRIUM CONDUIT (Mtra) ---
+    public static final RegistrySupplier<BlockEntityType<EquilibriumConduitBlockEntity>> EQUILIBRIUM_CONDUIT_BE =
+            BLOCK_ENTITIES.register("equilibrium_conduit", () ->
+                    BlockEntityHelper.create(EquilibriumConduitBlockEntity::new,
+                            ModBlocks.EQUILIBRIUM_CONDUIT_MERCURITE.get(),
+                            ModBlocks.EQUILIBRIUM_CONDUIT_CHARGED_MERCURITE.get()
+                    ));
+
+    // --- T9: PRISTINE CONDUIT (Mper) ---
+    public static final RegistrySupplier<BlockEntityType<PristineConduitBlockEntity>> PRISTINE_CONDUIT_BE =
+            BLOCK_ENTITIES.register("pristine_conduit", () ->
+                    BlockEntityHelper.create(PristineConduitBlockEntity::new,
+                            ModBlocks.PRISTINE_CONDUIT_EUCLIDITE.get(),
+                            ModBlocks.PRISTINE_CONDUIT_CHARGED_EUCLIDITE.get()
+                    ));
+
+    // --- T10: ATHANOR CONDUIT (Mlim) ---
+    public static final RegistrySupplier<BlockEntityType<AthanorConduitBlockEntity>> ATHANOR_CONDUIT_BE =
+            BLOCK_ENTITIES.register("athanor_conduit", () ->
+                    BlockEntityHelper.create(AthanorConduitBlockEntity::new,
+                            ModBlocks.ATHANOR_CONDUIT_ATHANORITE.get(),
+                            ModBlocks.ATHANOR_CONDUIT_CHARGED_ATHANORITE.get()
+                    ));
+
+    // --- ADVANCED ORBIS CELLS ---
+    public static final RegistrySupplier<BlockEntityType<SublimatedOrbisCellBlockEntity>> SUBLIMATED_ORBIS_CELL_BE =
+            BLOCK_ENTITIES.register("sublimated_orbis_cell", () ->
+                    BlockEntityHelper.create(SublimatedOrbisCellBlockEntity::new, ModBlocks.SUBLIMATED_ORBIS_CELL.get()));
+
+    public static final RegistrySupplier<BlockEntityType<PneumaticCalixBlockEntity>> PNEUMATIC_CALIX_BE =
+            BLOCK_ENTITIES.register("pneumatic_calix", () ->
+                    BlockEntityHelper.create(PneumaticCalixBlockEntity::new, ModBlocks.PNEUMATIC_CALIX.get()));
+
+    public static final RegistrySupplier<BlockEntityType<VoltaicCalixBlockEntity>> VOLTAIC_CALIX_BE =
+            BLOCK_ENTITIES.register("voltaic_calix", () ->
+                    BlockEntityHelper.create(VoltaicCalixBlockEntity::new, ModBlocks.VOLTAIC_CALIX.get()));
+
+    public static final RegistrySupplier<BlockEntityType<MatrixCalixBlockEntity>> MATRIX_CALIX_BE =
+            BLOCK_ENTITIES.register("matrix_calix", () ->
+                    BlockEntityHelper.create(MatrixCalixBlockEntity::new, ModBlocks.MATRIX_CALIX.get()));
+
+    public static final RegistrySupplier<BlockEntityType<ThecaCellBlockEntity>> THECA_CELL_BE =
+            BLOCK_ENTITIES.register("theca_cell", () ->
+                    BlockEntityHelper.create(ThecaCellBlockEntity::new, ModBlocks.THECA_CELL.get()));
+
+    public static final RegistrySupplier<BlockEntityType<VasCellBlockEntity>> VAS_CELL_BE =
+            BLOCK_ENTITIES.register("vas_cell", () ->
+                    BlockEntityHelper.create(VasCellBlockEntity::new, ModBlocks.VAS_CELL.get()));
+
+    public static final RegistrySupplier<BlockEntityType<MonadCoreBlockEntity>> MONAD_CORE_BE =
+            BLOCK_ENTITIES.register("monad_core", () ->
+                    BlockEntityHelper.create(MonadCoreBlockEntity::new, ModBlocks.MONAD_CORE.get()));
+
+    public static final RegistrySupplier<BlockEntityType<AthanorCoreBlockEntity>> ATHANOR_CORE_BE =
+            BLOCK_ENTITIES.register("athanor_core", () ->
+                    BlockEntityHelper.create(AthanorCoreBlockEntity::new, ModBlocks.ATHANOR_CORE.get()));
+
+    public static final RegistrySupplier<BlockEntityType<CreativeParticleGeneratorBlockEntity>> CREATIVE_PARTICLE_GENERATOR_BE =
+            BLOCK_ENTITIES.register("creative_particle_generator", () ->
+                    BlockEntityHelper.create(CreativeParticleGeneratorBlockEntity::new, ModBlocks.CREATIVE_PARTICLE_GENERATOR.get()));
+
+    public static final RegistrySupplier<BlockEntityType<VaporPneumaticInputPortBlockEntity>> VAPOR_PNEUMATIC_INPUT_PORT_BE =
+            BLOCK_ENTITIES.register("vapor_pneumatic_input_port", () ->
+                    BlockEntityHelper.create(VaporPneumaticInputPortBlockEntity::new, ModBlocks.VAPOR_PNEUMATIC_INPUT_PORT.get()));
 
     // --- VIS FUME PRESSURE VESSEL ---
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeVesselControllerBlockEntity>> VIS_FUME_VESSEL_CONTROLLER_BE = BLOCK_ENTITIES.register("vis_fume_vessel_controller", () -> new BlockEntityType<>(VisFumeVesselControllerBlockEntity::new, ModBlocks.VIS_FUME_VESSEL_CONTROLLER.get()));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumeVesselPortBlockEntity>> VIS_FUME_VESSEL_PORT_BE = BLOCK_ENTITIES.register("vis_fume_vessel_port", () -> new BlockEntityType<>(VisFumeVesselPortBlockEntity::new, ModBlocks.VIS_FUME_VESSEL_PORT.get()));
+    public static final RegistrySupplier<BlockEntityType<MateriaVesselControllerBlockEntity>> MATERIA_VESSEL_CONTROLLER_BE =
+            BLOCK_ENTITIES.register("materia_vessel_controller", () ->
+                    BlockEntityHelper.create(MateriaVesselControllerBlockEntity::new, ModBlocks.MATERIA_VESSEL_CONTROLLER.get()));
+
+    public static final RegistrySupplier<BlockEntityType<MateriaVesselPortBlockEntity>> MATERIA_VESSEL_PORT_BE =
+            BLOCK_ENTITIES.register("materia_vessel_port", () ->
+                    BlockEntityHelper.create(MateriaVesselPortBlockEntity::new, ModBlocks.MATERIA_VESSEL_PORT.get()));
 
     // --- Glass tiers grouped into single Block Entity ---
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ManaEnrichedGlassBlockEntity>> MANA_ENRICHED_GLASS_BE = BLOCK_ENTITIES.register("mana_enriched_glass", () -> new BlockEntityType<>(ManaEnrichedGlassBlockEntity::new, ModBlocks.ESSENCE_ENRICHED_GLASS.get(), ModBlocks.VIS_FUME_STRENGTHENED_GLASS.get(), ModBlocks.VIS_ICHOR_ENRICHED_GLASS.get(), ModBlocks.FRAGMENT_LATTICE_GLASS.get()));
+    public static final RegistrySupplier<BlockEntityType<ManaEnrichedGlassBlockEntity>> MANA_ENRICHED_GLASS_BE =
+            BLOCK_ENTITIES.register("mana_enriched_glass", () ->
+                    BlockEntityHelper.create(ManaEnrichedGlassBlockEntity::new,
+                            ModBlocks.ESSENCE_ENRICHED_GLASS.get(),
+                            ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get(),
+                            ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(),
+                            ModBlocks.FRAGMENT_LATTICE_GLASS.get()
+                    ));
 
     // --- VIS FUME PRESSURE CHAMBER ---
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VisFumePressureChamberControllerBlockEntity>> VIS_FUME_PRESSURE_CHAMBER_CONTROLLER_BE = BLOCK_ENTITIES.register("vis_fume_pressure_chamber_controller", () -> new BlockEntityType<>(VisFumePressureChamberControllerBlockEntity::new, ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get()));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnrichmentTableBlockEntity>> ENRICHMENT_TABLE_BE = BLOCK_ENTITIES.register("enrichment_table", () -> new BlockEntityType<>(EnrichmentTableBlockEntity::new, ModBlocks.ENRICHMENT_TABLE.get()));
+    public static final RegistrySupplier<BlockEntityType<MateriaPressureChamberControllerBlockEntity>> MATERIA_PRESSURE_CHAMBER_CONTROLLER_BE =
+            BLOCK_ENTITIES.register("materia_pressure_chamber_controller", () ->
+                    BlockEntityHelper.create(MateriaPressureChamberControllerBlockEntity::new, ModBlocks.MATERIA_PRESSURE_CHAMBER_CONTROLLER.get()));
+
+    public static final RegistrySupplier<BlockEntityType<EnrichmentTableBlockEntity>> ENRICHMENT_TABLE_BE =
+            BLOCK_ENTITIES.register("enrichment_table", () ->
+                    BlockEntityHelper.create(EnrichmentTableBlockEntity::new, ModBlocks.ENRICHMENT_TABLE.get()));
 
     // --- AETHERIC SYNTHESIZER & AUTOMATOR ---
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AethericSynthesizerBlockEntity>> AETHERIC_SYNTHESIZER_BE =
+    public static final RegistrySupplier<BlockEntityType<AethericSynthesizerBlockEntity>> AETHERIC_SYNTHESIZER_BE =
             BLOCK_ENTITIES.register("aetheric_synthesizer", () ->
-                    new BlockEntityType<>(AethericSynthesizerBlockEntity::new, ModBlocks.AETHERIC_SYNTHESIZER.get()));
+                    BlockEntityHelper.create(AethericSynthesizerBlockEntity::new, ModBlocks.AETHERIC_SYNTHESIZER.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AethericAutomatorBlockEntity>> AETHERIC_AUTOMATOR_BE =
+    public static final RegistrySupplier<BlockEntityType<AethericAutomatorBlockEntity>> AETHERIC_AUTOMATOR_BE =
             BLOCK_ENTITIES.register("aetheric_automator", () ->
-                    new BlockEntityType<>(AethericAutomatorBlockEntity::new, ModBlocks.AETHERIC_AUTOMATOR.get()));
+                    BlockEntityHelper.create(AethericAutomatorBlockEntity::new, ModBlocks.AETHERIC_AUTOMATOR.get()));
 
     // --- EIDOLIC LATHE MULTIBLOCK ---
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EidolicLatheBlockEntity>> EIDOLIC_FOCAL_PEDESTAL_BE =
+    public static final RegistrySupplier<BlockEntityType<EidolicLatheBlockEntity>> EIDOLIC_FOCAL_PEDESTAL_BE =
             BLOCK_ENTITIES.register("eidolic_focal_pedestal", () ->
-                    new BlockEntityType<>(EidolicLatheBlockEntity::new, ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get()));
+                    BlockEntityHelper.create(EidolicLatheBlockEntity::new, ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AttunementPedestalBlockEntity>> ATTUNEMENT_PEDESTAL_BE =
+    public static final RegistrySupplier<BlockEntityType<AttunementPedestalBlockEntity>> ATTUNEMENT_PEDESTAL_BE =
             BLOCK_ENTITIES.register("attunement_pedestal", () ->
-                    new BlockEntityType<>(AttunementPedestalBlockEntity::new, ModBlocks.ATTUNEMENT_PEDESTAL.get()));
+                    BlockEntityHelper.create(AttunementPedestalBlockEntity::new, ModBlocks.ATTUNEMENT_PEDESTAL.get()));
 
     // --- DILUTED ESSENCE FLUID ---
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DilutedEssenceFluidBlockEntity>> DILUTED_ESSENCE_FLUID_BE =
+    public static final RegistrySupplier<BlockEntityType<DilutedEssenceFluidBlockEntity>> DILUTED_ESSENCE_FLUID_BE =
             BLOCK_ENTITIES.register("diluted_essence_fluid", () ->
-                    new BlockEntityType<>(DilutedEssenceFluidBlockEntity::new, ModBlocks.DILUTED_ESSENCE_FLUID_BLOCK.get()));
+                    BlockEntityHelper.create(DilutedEssenceFluidBlockEntity::new, ModBlocks.DILUTED_ESSENCE_FLUID_BLOCK.get()));
 
     // --- VOID RIFTS ---
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VoidRiftBlockEntity>> VOID_RIFT_BE =
+    public static final RegistrySupplier<BlockEntityType<VoidRiftBlockEntity>> VOID_RIFT_BE =
             BLOCK_ENTITIES.register("void_rift", () ->
-                    new BlockEntityType<>(VoidRiftBlockEntity::new, ModBlocks.VOID_RIFT.get()));
+                    BlockEntityHelper.create(VoidRiftBlockEntity::new, ModBlocks.VOID_RIFT.get()));
 
     // --- CRUCIBLE & RITUAL BOWLS ---
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CrucibleBlockEntity>> CRUCIBLE_BE =
+    public static final RegistrySupplier<BlockEntityType<CrucibleBlockEntity>> CRUCIBLE_BE =
             BLOCK_ENTITIES.register("crucible", () ->
-                    new BlockEntityType<>(CrucibleBlockEntity::new, ModBlocks.CRUCIBLE.get()));
+                    BlockEntityHelper.create(CrucibleBlockEntity::new, ModBlocks.CRUCIBLE.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RitualBowlBlockEntity>> RITUAL_BOWL_BE =
+    public static final RegistrySupplier<BlockEntityType<RitualBowlBlockEntity>> RITUAL_BOWL_BE =
             BLOCK_ENTITIES.register("ritual_bowl", () ->
-                    new BlockEntityType<>(RitualBowlBlockEntity::new, ModBlocks.MARBLE_RITUAL_BOWL.get(), ModBlocks.BASALT_RITUAL_BOWL.get()));
-
+                    BlockEntityHelper.create(RitualBowlBlockEntity::new,
+                            ModBlocks.MARBLE_RITUAL_BOWL.get(),
+                            ModBlocks.BASALT_RITUAL_BOWL.get()
+                    ));
 }

@@ -4,6 +4,7 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.IVaporMultiblockController;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.block.ManaEnrichedGlassBlock;
 import ddraig.net.entropica.block.VaporPneumaticOneWayValveBlock;
 import ddraig.net.entropica.block.MateriaVesselControllerBlock;
@@ -303,8 +304,8 @@ public class MateriaVesselControllerBlockEntity extends BlockEntity implements I
     @Override public MateriaFumusStack getStoredMateria() { return storedFume; }
 
     @Override
-    public int fill(MateriaFumusStack resource, boolean simulate) {
-        if (!isFormed || resource.isEmpty() || this.isExportMode) return 0;
+    public int fill(MateriaStack resource, boolean simulate) {
+        if (!isFormed || resource.isEmpty() || this.isExportMode || !(resource instanceof MateriaFumusStack)) return 0;
 
         if (!this.storedFume.isEmpty() && this.storedFume.getType() != resource.getType()) {
             return 0;
@@ -330,11 +331,11 @@ public class MateriaVesselControllerBlockEntity extends BlockEntity implements I
     }
 
     @Override
-    public MateriaFumusStack drain(int maxDrain, boolean simulate) {
+    public MateriaStack drain(int maxDrain, boolean simulate) {
         if (!isFormed || this.storedFume.isEmpty() || maxDrain <= 0 || !this.isExportMode) return MateriaFumusStack.EMPTY;
 
         int amountToDrain = Math.min(maxDrain, this.storedFume.getAmount());
-        MateriaFumusStack drainedStack = new MateriaFumusStack(this.storedFume.getType(), amountToDrain);
+        MateriaStack drainedStack = new MateriaFumusStack(this.storedFume.getType(), amountToDrain);
 
         if (!simulate) {
             this.storedFume.shrink(amountToDrain);
@@ -350,7 +351,7 @@ public class MateriaVesselControllerBlockEntity extends BlockEntity implements I
     }
 
     @Override
-    public MateriaFumusStack getMateriaInTank() {
+    public MateriaStack getMateriaInTank() {
         return this.storedFume != null ? this.storedFume : MateriaFumusStack.EMPTY;
     }
 

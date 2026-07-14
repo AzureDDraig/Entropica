@@ -8,7 +8,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -156,9 +155,9 @@ public class HardcodedRecipes {
             SYNTHESIZER_RECIPES = new ArrayList<>();
 
             // Define all component items for clean builder access
-            Item smallAmp = ModItems.SMALL_VIS_FUME_AMPOULE.get();
-            Item medAmp = ModItems.MEDIUM_VIS_FUME_AMPOULE.get();
-            Item largeAmp = ModItems.LARGE_VIS_FUME_AMPOULE.get();
+            Item smallAmp = ModItems.SMALL_MATERIA_FUMUS_AMPOULE.get();
+            Item medAmp = ModItems.MEDIUM_MATERIA_FUMUS_AMPOULE.get();
+            Item largeAmp = ModItems.LARGE_MATERIA_FUMUS_AMPOULE.get();
             Item smallBase = ModItems.SMALL_AMPOULE_BASE.get();
             Item medBase = ModItems.MEDIUM_AMPOULE_BASE.get();
             Item largeBase = ModItems.LARGE_AMPOULE_BASE.get();
@@ -341,7 +340,7 @@ public class HardcodedRecipes {
             Object v = keys[i+1];
             Ingredient ing = null;
             if (v instanceof Item item) ing = Ingredient.of(item);
-            else if (v instanceof ItemStack stack) ing = DataComponentIngredient.of(false, stack);
+            else if (v instanceof ItemStack stack) ing = Ingredient.of(stack.getItem());
             else if (v instanceof Ingredient iG) ing = iG;
             map.put(k, ing);
         }

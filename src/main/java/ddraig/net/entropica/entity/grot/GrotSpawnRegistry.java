@@ -5,7 +5,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.Biome;
-import net.neoforged.neoforge.common.Tags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +16,18 @@ import java.util.List;
 import java.util.Map;
 
 public class GrotSpawnRegistry {
+
+    private static TagKey<Biome> cTag(String path) {
+        return TagKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath("c", path));
+    }
+
+    private static final TagKey<Biome> IS_DESERT = cTag("is_desert");
+    private static final TagKey<Biome> IS_BADLANDS = cTag("is_badlands");
+    private static final TagKey<Biome> IS_PLAINS = cTag("is_plains");
+    private static final TagKey<Biome> IS_DARK_FOREST = cTag("is_dark_forest");
+    private static final TagKey<Biome> IS_SNOWY = cTag("is_snowy");
+    private static final TagKey<Biome> IS_SWAMP = cTag("is_swamp");
+    private static final TagKey<Biome> IS_CAVE = cTag("is_cave");
 
     // ==========================================
     // CUSTOM WEIGHTED LIST UTILITY
@@ -63,27 +77,27 @@ public class GrotSpawnRegistry {
         BIOME_WEIGHTS.put(BiomeTags.IS_NETHER, new WeightedList<EssenceType>()
                 .add(EssenceType.NETHER, 75).add(EssenceType.EARTH, 10).add(EssenceType.MAGMA, 10));
 
-        BIOME_WEIGHTS.put(Tags.Biomes.IS_DESERT, new WeightedList<EssenceType>()
+        BIOME_WEIGHTS.put(IS_DESERT, new WeightedList<EssenceType>()
                 .add(EssenceType.EARTH, 35).add(EssenceType.AIR, 40).add(EssenceType.ARID, 10).add(EssenceType.DUST, 10));
 
-        BIOME_WEIGHTS.put(Tags.Biomes.IS_BADLANDS, new WeightedList<EssenceType>()
+        BIOME_WEIGHTS.put(IS_BADLANDS, new WeightedList<EssenceType>()
                 .add(EssenceType.EARTH, 50).add(EssenceType.AIR, 20).add(EssenceType.ARID, 10).add(EssenceType.DUST, 10).add(EssenceType.NETHER, 5));
 
         // --- TEMPERATE & OVERGROWN ---
-        BIOME_WEIGHTS.put(Tags.Biomes.IS_PLAINS, new WeightedList<EssenceType>()
+        BIOME_WEIGHTS.put(IS_PLAINS, new WeightedList<EssenceType>()
                 .add(EssenceType.NATURE, 50).add(EssenceType.AIR, 30).add(EssenceType.EARTH, 10).add(EssenceType.RADIANT, 5));
 
         BIOME_WEIGHTS.put(BiomeTags.IS_FOREST, new WeightedList<EssenceType>()
                 .add(EssenceType.NATURE, 60).add(EssenceType.EARTH, 20).add(EssenceType.OVERGROWTH, 10).add(EssenceType.SPORE, 5));
 
-        BIOME_WEIGHTS.put(Tags.Biomes.IS_DARK_FOREST, new WeightedList<EssenceType>()
+        BIOME_WEIGHTS.put(IS_DARK_FOREST, new WeightedList<EssenceType>()
                 .add(EssenceType.UMBRAL, 45).add(EssenceType.NATURE, 30).add(EssenceType.SPORE, 20));
 
         BIOME_WEIGHTS.put(BiomeTags.IS_JUNGLE, new WeightedList<EssenceType>()
                 .add(EssenceType.NATURE, 40).add(EssenceType.WATER, 30).add(EssenceType.OVERGROWTH, 20).add(EssenceType.SPORE, 5));
 
         // --- COLD & HIGH ALTITUDE ---
-        BIOME_WEIGHTS.put(Tags.Biomes.IS_SNOWY, new WeightedList<EssenceType>()
+        BIOME_WEIGHTS.put(IS_SNOWY, new WeightedList<EssenceType>()
                 .add(EssenceType.FROZEN, 60).add(EssenceType.EARTH, 20).add(EssenceType.TAIGA, 10).add(EssenceType.GLACIAL, 5));
 
         BIOME_WEIGHTS.put(BiomeTags.IS_MOUNTAIN, new WeightedList<EssenceType>()
@@ -93,11 +107,11 @@ public class GrotSpawnRegistry {
         BIOME_WEIGHTS.put(BiomeTags.IS_OCEAN, new WeightedList<EssenceType>()
                 .add(EssenceType.WATER, 70).add(EssenceType.AIR, 10).add(EssenceType.STORM, 10).add(EssenceType.REGULAR, 5));
 
-        BIOME_WEIGHTS.put(Tags.Biomes.IS_SWAMP, new WeightedList<EssenceType>()
+        BIOME_WEIGHTS.put(IS_SWAMP, new WeightedList<EssenceType>()
                 .add(EssenceType.WATER, 40).add(EssenceType.NATURE, 30).add(EssenceType.UNDEAD, 15).add(EssenceType.SPORE, 10));
 
         // --- UNDERGROUND ---
-        BIOME_WEIGHTS.put(Tags.Biomes.IS_CAVE, new WeightedList<EssenceType>()
+        BIOME_WEIGHTS.put(IS_CAVE, new WeightedList<EssenceType>()
                 .add(EssenceType.EARTH, 75).add(EssenceType.REGULAR, 10).add(EssenceType.UMBRAL, 10));
 
         BIOME_WEIGHTS.put(BiomeTags.HAS_ANCIENT_CITY, new WeightedList<EssenceType>()
@@ -116,18 +130,18 @@ public class GrotSpawnRegistry {
 
         // Added .getOrDefault protections to ensure we never throw a NullPointerException if a map key is somehow missing
         if (biomeHolder.is(BiomeTags.HAS_ANCIENT_CITY)) return BIOME_WEIGHTS.getOrDefault(BiomeTags.HAS_ANCIENT_CITY, DEFAULT_POOL).getRandomValue(random, EssenceType.UMBRAL);
-        if (biomeHolder.is(Tags.Biomes.IS_DARK_FOREST)) return BIOME_WEIGHTS.getOrDefault(Tags.Biomes.IS_DARK_FOREST, DEFAULT_POOL).getRandomValue(random, EssenceType.UMBRAL);
-        if (biomeHolder.is(Tags.Biomes.IS_SWAMP)) return BIOME_WEIGHTS.getOrDefault(Tags.Biomes.IS_SWAMP, DEFAULT_POOL).getRandomValue(random, EssenceType.WATER);
-        if (biomeHolder.is(Tags.Biomes.IS_CAVE)) return BIOME_WEIGHTS.getOrDefault(Tags.Biomes.IS_CAVE, DEFAULT_POOL).getRandomValue(random, EssenceType.EARTH);
+        if (biomeHolder.is(IS_DARK_FOREST)) return BIOME_WEIGHTS.getOrDefault(IS_DARK_FOREST, DEFAULT_POOL).getRandomValue(random, EssenceType.UMBRAL);
+        if (biomeHolder.is(IS_SWAMP)) return BIOME_WEIGHTS.getOrDefault(IS_SWAMP, DEFAULT_POOL).getRandomValue(random, EssenceType.WATER);
+        if (biomeHolder.is(IS_CAVE)) return BIOME_WEIGHTS.getOrDefault(IS_CAVE, DEFAULT_POOL).getRandomValue(random, EssenceType.EARTH);
         if (biomeHolder.is(BiomeTags.IS_NETHER)) return BIOME_WEIGHTS.getOrDefault(BiomeTags.IS_NETHER, DEFAULT_POOL).getRandomValue(random, EssenceType.NETHER);
         if (biomeHolder.is(BiomeTags.IS_END)) return BIOME_WEIGHTS.getOrDefault(BiomeTags.IS_END, DEFAULT_POOL).getRandomValue(random, EssenceType.VOID);
-        if (biomeHolder.is(Tags.Biomes.IS_BADLANDS)) return BIOME_WEIGHTS.getOrDefault(Tags.Biomes.IS_BADLANDS, DEFAULT_POOL).getRandomValue(random, EssenceType.EARTH);
-        if (biomeHolder.is(Tags.Biomes.IS_DESERT)) return BIOME_WEIGHTS.getOrDefault(Tags.Biomes.IS_DESERT, DEFAULT_POOL).getRandomValue(random, EssenceType.AIR);
+        if (biomeHolder.is(IS_BADLANDS)) return BIOME_WEIGHTS.getOrDefault(IS_BADLANDS, DEFAULT_POOL).getRandomValue(random, EssenceType.EARTH);
+        if (biomeHolder.is(IS_DESERT)) return BIOME_WEIGHTS.getOrDefault(IS_DESERT, DEFAULT_POOL).getRandomValue(random, EssenceType.AIR);
         if (biomeHolder.is(BiomeTags.IS_JUNGLE)) return BIOME_WEIGHTS.getOrDefault(BiomeTags.IS_JUNGLE, DEFAULT_POOL).getRandomValue(random, EssenceType.NATURE);
-        if (biomeHolder.is(Tags.Biomes.IS_SNOWY)) return BIOME_WEIGHTS.getOrDefault(Tags.Biomes.IS_SNOWY, DEFAULT_POOL).getRandomValue(random, EssenceType.FROZEN);
+        if (biomeHolder.is(IS_SNOWY)) return BIOME_WEIGHTS.getOrDefault(IS_SNOWY, DEFAULT_POOL).getRandomValue(random, EssenceType.FROZEN);
         if (biomeHolder.is(BiomeTags.IS_MOUNTAIN)) return BIOME_WEIGHTS.getOrDefault(BiomeTags.IS_MOUNTAIN, DEFAULT_POOL).getRandomValue(random, EssenceType.AIR);
         if (biomeHolder.is(BiomeTags.IS_FOREST)) return BIOME_WEIGHTS.getOrDefault(BiomeTags.IS_FOREST, DEFAULT_POOL).getRandomValue(random, EssenceType.NATURE);
-        if (biomeHolder.is(Tags.Biomes.IS_PLAINS)) return BIOME_WEIGHTS.getOrDefault(Tags.Biomes.IS_PLAINS, DEFAULT_POOL).getRandomValue(random, EssenceType.NATURE);
+        if (biomeHolder.is(IS_PLAINS)) return BIOME_WEIGHTS.getOrDefault(IS_PLAINS, DEFAULT_POOL).getRandomValue(random, EssenceType.NATURE);
         if (biomeHolder.is(BiomeTags.IS_OCEAN)) return BIOME_WEIGHTS.getOrDefault(BiomeTags.IS_OCEAN, DEFAULT_POOL).getRandomValue(random, EssenceType.WATER);
 
         return DEFAULT_POOL.getRandomValue(random, EssenceType.EARTH);

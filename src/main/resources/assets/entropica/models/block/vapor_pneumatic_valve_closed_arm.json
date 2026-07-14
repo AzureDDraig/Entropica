@@ -1,0 +1,21 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "entropica:block/vapor_pneumatic_valve_closed",
+    "pipe": "entropica:block/vapor_pneumatic_valve_closed"
+  },
+  "elements": [
+    {
+      "from": [5, 0, 5],
+      "to": [11, 5, 11],
+      "faces": {
+        "north": { "uv": [5, 11, 11, 16], "texture": "#pipe" },
+        "east":  { "uv": [5, 11, 11, 16], "texture": "#pipe" },
+        "south": { "uv": [5, 11, 11, 16], "texture": "#pipe" },
+        "west":  { "uv": [5, 11, 11, 16], "texture": "#pipe" },
+        "down":  { "uv": [5, 5, 11, 11], "texture": "#pipe", "cullface": "down" }
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "entropica:block/vapor_pneumatic_pipe_arm",
+  "textures": {
+    "particle": "entropica:block/pipe_copper",
+    "pipe": "entropica:block/pipe_copper"
+  }
+}

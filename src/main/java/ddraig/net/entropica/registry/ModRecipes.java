@@ -8,59 +8,58 @@ import ddraig.net.entropica.recipe.AethericSynthesizerRecipe;
 import ddraig.net.entropica.recipe.DilutedEssenceRecipe;
 import ddraig.net.entropica.recipe.FusionRecipe;
 import ddraig.net.entropica.recipe.PressureChamberRecipe;
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class ModRecipes {
     public static final DeferredRegister<RecipeSerializer<?>> SERIALIZERS =
-            DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, "entropica");
+            DeferredRegister.create("entropica", net.minecraft.resources.ResourceKey.createRegistryKey(net.minecraft.resources.ResourceLocation.withDefaultNamespace("recipe_serializer")));
     public static final DeferredRegister<RecipeType<?>> TYPES =
-            DeferredRegister.create(BuiltInRegistries.RECIPE_TYPE, "entropica");
+            DeferredRegister.create("entropica", net.minecraft.resources.ResourceKey.createRegistryKey(net.minecraft.resources.ResourceLocation.withDefaultNamespace("recipe_type")));
 
     // --- Fusion Recipes ---
-    public static final DeferredHolder<RecipeType<?>, RecipeType<FusionRecipe>> FUSION_TYPE =
+    public static final RegistrySupplier<RecipeType<FusionRecipe>> FUSION_TYPE =
             TYPES.register("fusion", () -> new RecipeType<>() {});
 
-    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<FusionRecipe>> FUSION_SERIALIZER =
+    public static final RegistrySupplier<RecipeSerializer<FusionRecipe>> FUSION_SERIALIZER =
             SERIALIZERS.register("fusion", () -> new FusionSerializer());
 
     // --- Pressure Chamber Recipes ---
-    public static final DeferredHolder<RecipeType<?>, RecipeType<PressureChamberRecipe>> PRESSURE_CHAMBER_TYPE =
+    public static final RegistrySupplier<RecipeType<PressureChamberRecipe>> PRESSURE_CHAMBER_TYPE =
             TYPES.register("pressure_chamber_enriching", () -> PressureChamberRecipe.Type.INSTANCE);
 
-    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PressureChamberRecipe>> PRESSURE_CHAMBER_SERIALIZER =
+    public static final RegistrySupplier<RecipeSerializer<PressureChamberRecipe>> PRESSURE_CHAMBER_SERIALIZER =
             SERIALIZERS.register("pressure_chamber_enriching", () -> PressureChamberRecipe.Serializer.INSTANCE);
 
     // --- Diluted Essence Recipes ---
-    public static final DeferredHolder<RecipeType<?>, RecipeType<DilutedEssenceRecipe>> DILUTED_ESSENCE_FLUID_TYPE =
+    public static final RegistrySupplier<RecipeType<DilutedEssenceRecipe>> DILUTED_ESSENCE_FLUID_TYPE =
             TYPES.register("diluted_essence", () -> new RecipeType<>() {});
 
-    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<DilutedEssenceRecipe>> DILUTED_ESSENCE_FLUID_SERIALIZER =
+    public static final RegistrySupplier<RecipeSerializer<DilutedEssenceRecipe>> DILUTED_ESSENCE_FLUID_SERIALIZER =
             SERIALIZERS.register("diluted_essence", DilutedEssenceRecipe.Serializer::new);
 
     // --- Aetheric Synthesizer Recipes ---
-    public static final DeferredHolder<RecipeType<?>, RecipeType<AethericSynthesizerRecipe>> AETHERIC_SYNTHESIZER_TYPE =
+    public static final RegistrySupplier<RecipeType<AethericSynthesizerRecipe>> AETHERIC_SYNTHESIZER_TYPE =
             TYPES.register("aetheric_synthesis", () -> AethericSynthesizerRecipe.Type.INSTANCE);
 
-    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AethericSynthesizerRecipe>> AETHERIC_SYNTHESIZER_SERIALIZER =
+    public static final RegistrySupplier<RecipeSerializer<AethericSynthesizerRecipe>> AETHERIC_SYNTHESIZER_SERIALIZER =
             SERIALIZERS.register("aetheric_synthesis", () -> AethericSynthesizerRecipe.Serializer.INSTANCE);
 
     // --- Eidolic Lathe Recipes ---
-    public static final DeferredHolder<RecipeType<?>, RecipeType<ddraig.net.entropica.recipe.EidolicLatheRecipe>> EIDOLIC_LATHE_TYPE =
+    public static final RegistrySupplier<RecipeType<ddraig.net.entropica.recipe.EidolicLatheRecipe>> EIDOLIC_LATHE_TYPE =
             TYPES.register("eidolic_lathe", () -> ddraig.net.entropica.recipe.EidolicLatheRecipe.Type.INSTANCE);
 
-    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ddraig.net.entropica.recipe.EidolicLatheRecipe>> EIDOLIC_LATHE_SERIALIZER =
+    public static final RegistrySupplier<RecipeSerializer<ddraig.net.entropica.recipe.EidolicLatheRecipe>> EIDOLIC_LATHE_SERIALIZER =
             SERIALIZERS.register("eidolic_lathe", () -> ddraig.net.entropica.recipe.EidolicLatheRecipe.Serializer.INSTANCE);
 
-    public static void register(IEventBus eventBus) {
-        SERIALIZERS.register(eventBus);
-        TYPES.register(eventBus);
+    public static void register() {
+        SERIALIZERS.register();
+        TYPES.register();
     }
 
     private static class FusionSerializer implements RecipeSerializer<FusionRecipe> {

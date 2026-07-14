@@ -1,8 +1,8 @@
 package ddraig.net.entropica.block.entity;
 
 import ddraig.net.entropica.api.EssenceType;
-import ddraig.net.entropica.api.fumes.IFumeHandler;
-import ddraig.net.entropica.api.fumes.VisFumeStack;
+import ddraig.net.entropica.api.materia.IVaporHandler;
+import ddraig.net.entropica.api.materia.MateriaFumusStack;
 import ddraig.net.entropica.config.EntropicaConfig;
 import ddraig.net.entropica.item.VisFumeAmpouleItem;
 import ddraig.net.entropica.registry.ModBlockEntities;
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler {
+public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandler {
 
     public enum BurnMode {
         REGULAR("Regular Mana Production", "§d"),
@@ -221,7 +221,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
                 level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
             }
 
-            if (level.getGameTime() % EntropicaConfig.VIS_FUME_TICK_RATE.get() == 0) {
+            if (level.getGameTime() % EntropicaConfig.MATERIA_FUMUS_TICK_RATE.get() == 0) {
                 pushManaToPipes(level);
             }
         }
@@ -296,22 +296,22 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
 
         if (typeToPush == null || maxMana <= 0) return;
 
-        int amountLeftToPush = Math.min(maxMana, EntropicaConfig.VIS_FUME_TRANSFER_RATE.get());
+        int amountLeftToPush = Math.min(maxMana, EntropicaConfig.MATERIA_FUMUS_TRANSFER_RATE.get());
 
         // Gather all UNIQUE fume handlers attached to the top of all plumes
-        Set<IFumeHandler> handlersSet = new HashSet<>();
+        Set<IVaporHandler> handlersSet = new HashSet<>();
         for (BlockPos plumePos : this.connectedPlumes) {
             if (level.getBlockState(plumePos).is(ModBlocks.MANA_PLUME.get())) {
                 BlockPos targetPos = plumePos.above(); // Only check directly above
                 BlockEntity targetBE = level.getBlockEntity(targetPos);
 
-                if (targetBE instanceof IFumeHandler handler && !(targetBE instanceof ManaPlumeBlockEntity) && !(targetBE instanceof EntropicCoreBlockEntity)) {
+                if (targetBE instanceof IVaporHandler handler && !(targetBE instanceof ManaPlumeBlockEntity) && !(targetBE instanceof EntropicCoreBlockEntity)) {
                     handlersSet.add(handler);
                 }
             }
         }
 
-        List<IFumeHandler> validHandlers = new ArrayList<>(handlersSet);
+        List<IVaporHandler> validHandlers = new ArrayList<>(handlersSet);
 
         // Iteratively distribute the mana evenly across all valid handlers
         boolean pushedAny;
@@ -322,16 +322,16 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
             int splitAmount = amountLeftToPush / validHandlers.size();
             int remainder = amountLeftToPush % validHandlers.size();
 
-            Iterator<IFumeHandler> it = validHandlers.iterator();
+            Iterator<IVaporHandler> it = validHandlers.iterator();
             while (it.hasNext()) {
-                IFumeHandler handler = it.next();
+                IVaporHandler handler = it.next();
 
                 int amountToTry = splitAmount + (remainder > 0 ? 1 : 0);
                 if (amountToTry == 0) amountToTry = 1;
 
                 amountToTry = Math.min(amountToTry, amountLeftToPush);
 
-                VisFumeStack pushStack = new VisFumeStack(typeToPush, amountToTry);
+                MateriaFumusStack pushStack = new MateriaFumusStack(typeToPush, amountToTry);
                 int accepted = handler.fill(pushStack, false);
 
                 if (accepted > 0) {
@@ -450,7 +450,10 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
                 }
                 boolean fusionSuccess = false;
                 if (level instanceof ServerLevel serverLevel && ModRecipes.FUSION_TYPE.isBound()) {
-                    Collection<RecipeHolder<FusionRecipe>> recipes = serverLevel.recipeAccess().recipeMap().byType(ModRecipes.FUSION_TYPE.get());
+                    var recipes = serverLevel.getServer().getRecipeManager().getRecipes().stream()
+                        .filter(holder -> holder.value().getType() == ModRecipes.FUSION_TYPE.get())
+                        .map(holder -> (RecipeHolder<FusionRecipe>) (RecipeHolder<?>) holder)
+                        .toList();
                     for (RecipeHolder<FusionRecipe> holder : recipes) {
                         FusionRecipe recipe = holder.value();
                         if (recipe.requiresCatalyst() && !hasCatalystInReceptacle("prismatic")) continue;
@@ -623,7 +626,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
                 block == ModBlocks.FURNACE_HATCH.get() || block == ModBlocks.ESSENCE_RECEPTACLE.get() ||
                 block == ModBlocks.CATALYST_RECEPTACLE.get() || block == ModBlocks.ARCANE_BRICK.get() ||
                 block == ModBlocks.ARCANITE_PLATING.get() || block == ModBlocks.VIS_READOUT.get() ||
-                block == ModBlocks.ESSENCE_READOUT.get() || block == ModBlocks.MANA_FILTER.get();
+                block == ModBlocks.ESSENCE_READOUT.get() || block == ModBlocks.MATERIA_FILTER.get();
     }
 
     // ==========================================
@@ -648,13 +651,12 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
                 .sum();
     }
 
-
     // ==========================================
     // FUME HANDLER IMPLEMENTATION
     // ==========================================
 
     @Override
-    public int fill(VisFumeStack resource, boolean simulate) {
+    public int fill(MateriaFumusStack resource, boolean simulate) {
         EntropicCoreBlockEntity master = getMaster();
         if (!master.isFormed || resource.isEmpty()) return 0;
 
@@ -678,9 +680,9 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
     }
 
     @Override
-    public VisFumeStack drain(int maxDrain, boolean simulate) {
+    public MateriaFumusStack drain(int maxDrain, boolean simulate) {
         EntropicCoreBlockEntity master = getMaster();
-        if (!master.isFormed || maxDrain <= 0) return VisFumeStack.EMPTY;
+        if (!master.isFormed || maxDrain <= 0) return MateriaFumusStack.EMPTY;
 
         EssenceType bestType = null;
         int maxFound = 0;
@@ -692,7 +694,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
             }
         }
 
-        if (bestType == null || maxFound <= 0) return VisFumeStack.EMPTY;
+        if (bestType == null || maxFound <= 0) return MateriaFumusStack.EMPTY;
 
         int amountToDrain = Math.min(maxFound, maxDrain);
 
@@ -704,11 +706,11 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
             }
         }
 
-        return new VisFumeStack(bestType, amountToDrain);
+        return new MateriaFumusStack(bestType, amountToDrain);
     }
 
     @Override
-    public VisFumeStack getFumeInTank() {
+    public MateriaFumusStack getMateriaInTank() {
         EntropicCoreBlockEntity master = getMaster();
         EssenceType bestType = null;
         int maxFound = 0;
@@ -720,8 +722,8 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
             }
         }
 
-        if (bestType == null || maxFound <= 0) return VisFumeStack.EMPTY;
-        return new VisFumeStack(bestType, maxFound);
+        if (bestType == null || maxFound <= 0) return MateriaFumusStack.EMPTY;
+        return new MateriaFumusStack(bestType, maxFound);
     }
 
     @Override
@@ -760,8 +762,8 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IFumeHandler
                     (handStack.getItem() == ModItems.MEDIUM_AMPOULE_BASE.get()) ? 32 : 128;
 
             VisFumeAmpouleItem targetFilledItem = (VisFumeAmpouleItem) (
-                    (capacity == 8) ? ModItems.SMALL_VIS_FUME_AMPOULE.get() :
-                            (capacity == 32) ? ModItems.MEDIUM_VIS_FUME_AMPOULE.get() : ModItems.LARGE_VIS_FUME_AMPOULE.get());
+                    (capacity == 8) ? ModItems.SMALL_MATERIA_FUMUS_AMPOULE.get() :
+                            (capacity == 32) ? ModItems.MEDIUM_MATERIA_FUMUS_AMPOULE.get() : ModItems.LARGE_MATERIA_FUMUS_AMPOULE.get());
 
             EssenceType bestType = null;
             int maxFound = -1;

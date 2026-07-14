@@ -47,6 +47,10 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("materia_filter", () ->
                     BlockEntityHelper.create(MateriaFilterBlockEntity::new, ModBlocks.MATERIA_FILTER.get()));
 
+    public static final RegistrySupplier<BlockEntityType<DecompressionCouplerBlockEntity>> DECOMPRESSION_COUPLER_BE =
+            BLOCK_ENTITIES.register("decompression_coupler", () ->
+                    BlockEntityHelper.create(DecompressionCouplerBlockEntity::new, ModBlocks.VAPOR_DECOMPRESSION_COUPLING.get()));
+
     // --- Vapor Pneumatic Network ---
 
     public static final RegistrySupplier<BlockEntityType<VaporPneumaticValveBlockEntity>> VAPOR_PNEUMATIC_VALVE_BE =

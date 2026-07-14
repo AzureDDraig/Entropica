@@ -36,7 +36,7 @@ public interface IVaporHandler {
      * Use this to check the type and amount.
      */
     @NotNull
-    MateriaFumusStack getMateriaInTank();
+    MateriaStack getMateriaInTank();
 
     /**
      * Attempts to push Materia Fumus into the machine.
@@ -44,14 +44,14 @@ public interface IVaporHandler {
      * @param simulate If true, only calculates the result without actually modifying the tank.
      * @return The amount of Materia Fumus that was successfully accepted (or would be accepted).
      */
-    int fill(MateriaFumusStack resource, boolean simulate);
+    int fill(MateriaStack resource, boolean simulate);
 
     /**
      * Attempts to pull Materia Fumus out of the machine.
      * @param maxDrain The maximum amount of Materia Fumus requested.
      * @param simulate If true, only calculates the result without actually modifying the tank.
-     * @return A MateriaFumusStack containing the extracted Materia Fumus (or EMPTY if none could be extracted).
+     * @return A MateriaStack containing the extracted Materia Fumus (or EMPTY if none could be extracted).
      */
     @NotNull
-    MateriaFumusStack drain(int maxDrain, boolean simulate);
+    MateriaStack drain(int maxDrain, boolean simulate);
 }

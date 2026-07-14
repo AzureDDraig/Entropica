@@ -1,20 +1,16 @@
 package ddraig.net.entropica.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import ddraig.net.entropica.Entropica;
+import dev.architectury.event.events.common.CommandRegistrationEvent;
 import net.minecraft.commands.CommandSourceStack;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-@EventBusSubscriber(modid = Entropica.MODID)
 public class ModCommands {
 
-    @SubscribeEvent
-    public static void onRegisterCommands(RegisterCommandsEvent event) {
-        CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-        EssenceNodeCommands.register(dispatcher);
-        GrotSummonCommands.register(dispatcher);
-        VeilFoxCommands.register(dispatcher);
+    public static void register() {
+        CommandRegistrationEvent.EVENT.register((dispatcher, registryAccess, selection) -> {
+            EssenceNodeCommands.register(dispatcher);
+            GrotSummonCommands.register(dispatcher);
+            VeilFoxCommands.register(dispatcher);
+        });
     }
 }

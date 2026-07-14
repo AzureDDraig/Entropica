@@ -59,7 +59,6 @@ public class FumeParticle extends SingleQuadParticle {
         return SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
-
     public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         Vec3 cameraPos = camera.getPosition();
 

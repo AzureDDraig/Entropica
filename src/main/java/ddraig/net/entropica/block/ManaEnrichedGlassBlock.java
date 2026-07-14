@@ -26,5 +26,4 @@ public class ManaEnrichedGlassBlock extends TransparentBlock implements EntityBl
         return RenderShape.MODEL;
     }
 
-
 }

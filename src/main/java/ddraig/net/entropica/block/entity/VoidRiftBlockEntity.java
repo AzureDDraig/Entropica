@@ -232,9 +232,9 @@ public class VoidRiftBlockEntity extends BlockEntity {
             List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, riftHitbox);
             for (LivingEntity living : entities) {
                 living.addEffect(new MobEffectInstance(ModEffects.VOID_TEAR, 80, 0, false, true, true));
-                living.addEffect(new MobEffectInstance(ModEffects.VIS_TOXICITY, 200, 0, false, true, true));
+                living.addEffect(new MobEffectInstance(ModEffects.MATERIA_TOXICITY, 200, 0, false, true, true));
                 // FIXED: Use the specific LivingEntity instance and explicitly pass VOID
-                living.setData(ModAttachments.TOXICITY_SOURCE, EssenceType.VOID.name());
+                ModAttachments.setToxicitySource(living, EssenceType.VOID.name());
             }
         }
 

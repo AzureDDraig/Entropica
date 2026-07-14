@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -134,7 +135,10 @@ public class AethericSynthesizerBlockEntity extends BlockEntity {
 
     private AethericSynthesizerRecipe getMatchedRecipe() {
         if (this.level instanceof ServerLevel serverLevel) {
-            var recipes = serverLevel.recipeAccess().recipeMap().byType(ModRecipes.AETHERIC_SYNTHESIZER_TYPE.get());
+            var recipes = serverLevel.getServer().getRecipeManager().getRecipes().stream()
+                .filter(holder -> holder.value().getType() == ModRecipes.AETHERIC_SYNTHESIZER_TYPE.get())
+                .map(holder -> (RecipeHolder<AethericSynthesizerRecipe>) (RecipeHolder<?>) holder)
+                .toList();
             for (var holder : recipes) {
                 if (holder.value().matchesGrid(this.inventory)) {
                     return holder.value();

@@ -2,6 +2,8 @@ package ddraig.net.entropica.block.entity;
 
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -70,7 +72,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     // --- PROXY FUME HANDLER ---
 
     @Override
-    public int fill(MateriaFumusStack resource, boolean simulate) {
+    public int fill(MateriaStack resource, boolean simulate) {
         IVaporHandler handler = getControllerHandler();
         if (handler != null) {
             return handler.fill(resource, simulate);
@@ -79,7 +81,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     }
 
     @Override
-    public MateriaFumusStack drain(int maxDrain, boolean simulate) {
+    public MateriaStack drain(int maxDrain, boolean simulate) {
         IVaporHandler handler = getControllerHandler();
         if (handler != null) {
             return handler.drain(maxDrain, simulate);
@@ -88,7 +90,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     }
 
     @Override
-    public MateriaFumusStack getMateriaInTank() {
+    public MateriaStack getMateriaInTank() {
         IVaporHandler handler = getControllerHandler();
         if (handler != null) {
             return handler.getMateriaInTank();

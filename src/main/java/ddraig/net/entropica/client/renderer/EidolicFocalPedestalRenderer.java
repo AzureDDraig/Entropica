@@ -3,7 +3,7 @@ package ddraig.net.entropica.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import ddraig.net.entropica.api.EssenceType;
-import ddraig.net.entropica.block.VisIchorInputPortBlock;
+import ddraig.net.entropica.block.HydraulicInputPortBlock;
 import ddraig.net.entropica.block.entity.EidolicLatheBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -126,7 +126,7 @@ public class EidolicFocalPedestalRenderer implements BlockEntityRenderer<Eidolic
         if (be.activePortPos != null && level != null) {
             state.portOffset = new Vec3(be.activePortPos.getX() - center.getX(), be.activePortPos.getY() - center.getY(), be.activePortPos.getZ() - center.getZ());
             Block portBlock = level.getBlockState(be.activePortPos).getBlock();
-            state.isIchorPort = (portBlock instanceof VisIchorInputPortBlock);
+            state.isIchorPort = (portBlock instanceof HydraulicInputPortBlock);
         } else {
             state.portOffset = null;
             state.isIchorPort = false;

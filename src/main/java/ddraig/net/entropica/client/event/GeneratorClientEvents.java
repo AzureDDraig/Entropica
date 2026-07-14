@@ -1,7 +1,7 @@
 package ddraig.net.entropica.client.event;
 
 import ddraig.net.entropica.Entropica;
-import ddraig.net.entropica.block.entity.CreativeVisFumeGeneratorBlockEntity;
+import ddraig.net.entropica.block.entity.CreativeMateriaGeneratorBlockEntity;
 import ddraig.net.entropica.network.GeneratorScrollPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.sounds.SoundEvents;
@@ -23,7 +23,7 @@ public class GeneratorClientEvents {
             if (mc.hitResult.getType() == HitResult.Type.BLOCK) {
                 BlockHitResult bhr = (BlockHitResult) mc.hitResult;
 
-                if (mc.level.getBlockEntity(bhr.getBlockPos()) instanceof CreativeVisFumeGeneratorBlockEntity gen) {
+                if (mc.level.getBlockEntity(bhr.getBlockPos()) instanceof CreativeMateriaGeneratorBlockEntity gen) {
 
                     double scrollAmount = event.getScrollDeltaY();
                     if (scrollAmount != 0) {
@@ -36,11 +36,9 @@ public class GeneratorClientEvents {
                         mc.level.sendBlockUpdated(bhr.getBlockPos(), gen.getBlockState(), gen.getBlockState(), 8);
 
                         // 3. SECURE VANILLA PACKET: Sends the change to the server to make it official
-                        if (mc.getConnection() != null) {
-                            mc.getConnection().send(new net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket(
-                                    new GeneratorScrollPayload(bhr.getBlockPos(), delta)
-                            ));
-                        }
+                        dev.architectury.networking.NetworkManager.sendToServer(
+                                new GeneratorScrollPayload(bhr.getBlockPos(), delta)
+                        );
 
                         mc.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.3F, 1.2F + (delta * 0.1f));
                         event.setCanceled(true);

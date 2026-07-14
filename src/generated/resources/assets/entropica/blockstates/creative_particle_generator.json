@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "entropica:block/creative_particle_generator"
+    }
+  }
+}

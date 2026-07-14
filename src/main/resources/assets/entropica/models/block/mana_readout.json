@@ -1,8 +1,8 @@
 {
   "parent": "minecraft:block/orientable",
   "textures": {
-    "particle": "entropica:block/mana_readout",
-    "front": "entropica:block/mana_readout",
+    "particle": "entropica:block/materia_readout",
+    "front": "entropica:block/materia_readout",
     "side": "entropica:block/arcane_plating",
     "top": "entropica:block/arcane_plating",
     "bottom": "entropica:block/arcane_plating"

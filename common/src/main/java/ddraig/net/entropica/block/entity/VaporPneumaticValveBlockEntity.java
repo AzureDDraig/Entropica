@@ -3,6 +3,7 @@ package ddraig.net.entropica.block.entity;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.block.VaporPneumaticPipeBlock;
 import ddraig.net.entropica.block.VaporPneumaticValveBlock;
 import ddraig.net.entropica.config.EntropicaConfig;
@@ -65,7 +66,7 @@ public class VaporPneumaticValveBlockEntity extends VaporPneumaticPipeBlockEntit
         }
 
         for (IVaporHandler neighbor : validNeighbors) {
-            MateriaFumusStack neighborFumes = neighbor.getMateriaInTank();
+            MateriaStack neighborFumes = neighbor.getMateriaInTank();
             if (neighborFumes.isEmpty() || neighborFumes.getType() == type) {
                 int diff = myAmount - neighborFumes.getAmount();
                 if (diff >= 1) { // Changed to match pipe logic
@@ -78,7 +79,9 @@ public class VaporPneumaticValveBlockEntity extends VaporPneumaticPipeBlockEntit
                     }
 
                     if (toTransfer > 0) {
-                        int accepted = neighbor.fill(new MateriaFumusStack(type, toTransfer), false);
+                        MateriaStack pushStack = this.storedMateria.copy();
+                        pushStack.setAmount(toTransfer);
+                        int accepted = neighbor.fill(pushStack, false);
                         if (accepted > 0) {
                             this.storedMateria.shrink(accepted);
                             myAmount -= accepted;

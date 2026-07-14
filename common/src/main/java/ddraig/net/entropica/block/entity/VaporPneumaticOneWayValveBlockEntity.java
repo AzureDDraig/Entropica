@@ -3,6 +3,7 @@ package ddraig.net.entropica.block.entity;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.block.VaporPneumaticOneWayValveBlock;
 import ddraig.net.entropica.config.EntropicaConfig;
 import ddraig.net.entropica.registry.ModBlockEntities;
@@ -65,7 +66,7 @@ public class VaporPneumaticOneWayValveBlockEntity extends VaporPneumaticPipeBloc
         // ONLY attempt to push gas to the FACING direction
         BlockEntity targetBE = level.getBlockEntity(pos.relative(flowDir));
         if (targetBE instanceof IVaporHandler neighbor) {
-            MateriaFumusStack neighborFumes = neighbor.getMateriaInTank();
+            MateriaStack neighborFumes = neighbor.getMateriaInTank();
             if (neighborFumes.isEmpty() || neighborFumes.getType() == type) {
                 int diff = myAmount - neighborFumes.getAmount();
                 if (diff >= 1) {
@@ -73,7 +74,9 @@ public class VaporPneumaticOneWayValveBlockEntity extends VaporPneumaticPipeBloc
                             Math.min(myAmount, EntropicaConfig.MATERIA_FUMUS_TRANSFER_RATE.get()) :
                             Math.min(Math.max(1, diff / 2), EntropicaConfig.MATERIA_FUMUS_TRANSFER_RATE.get());
 
-                    int accepted = neighbor.fill(new MateriaFumusStack(type, toTransfer), false);
+                    MateriaStack pushStack = this.storedMateria.copy();
+                    pushStack.setAmount(toTransfer);
+                    int accepted = neighbor.fill(pushStack, false);
                     if (accepted > 0) {
                         this.storedMateria.shrink(accepted);
                         changed = true;

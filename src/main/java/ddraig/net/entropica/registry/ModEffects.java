@@ -1,21 +1,21 @@
 package ddraig.net.entropica.registry;
 
-import ddraig.net.entropica.effect.VisToxicityEffect;
+import ddraig.net.entropica.effect.MateriaToxicityEffect;
 import ddraig.net.entropica.effect.VoidTearEffect;
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class ModEffects {
-    public static final DeferredRegister<MobEffect> EFFECTS = DeferredRegister.create(BuiltInRegistries.MOB_EFFECT, "entropica");
+    public static final DeferredRegister<MobEffect> EFFECTS = DeferredRegister.create("entropica", net.minecraft.resources.ResourceKey.createRegistryKey(net.minecraft.resources.ResourceLocation.withDefaultNamespace("mob_effect")));
 
     // Registers the effect as Harmful with a toxic cyan particle color
-    public static final DeferredHolder<MobEffect, VisToxicityEffect> VIS_TOXICITY = EFFECTS.register("vis_toxicity",
-            () -> new VisToxicityEffect(MobEffectCategory.HARMFUL, 0x1AE5D4));
+    public static final RegistrySupplier<MobEffect> MATERIA_TOXICITY = EFFECTS.register("materia_toxicity",
+            () -> new MateriaToxicityEffect(MobEffectCategory.HARMFUL, 0x1AE5D4));
 
     // Registers the new Void Tear effect with a dark abyssal purple color
-    public static final DeferredHolder<MobEffect, VoidTearEffect> VOID_TEAR = EFFECTS.register("void_tear",
+    public static final RegistrySupplier<MobEffect> VOID_TEAR = EFFECTS.register("void_tear",
             VoidTearEffect::new);
 }

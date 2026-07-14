@@ -1,9 +1,10 @@
 package ddraig.net.entropica.event;
 
-import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.registry.ModEnchantments;
 import ddraig.net.entropica.registry.ModEntityTags;
 import ddraig.net.entropica.registry.ModItems;
+import ddraig.net.entropica.util.EntityHelper;
+import dev.architectury.event.events.common.EntityEvent;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -36,24 +37,34 @@ import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import net.minecraft.world.damagesource.DamageSource;
 
-@EventBusSubscriber(modid = Entropica.MODID)
 public class MobDropHandler {
 
-    @SubscribeEvent
-    public static void onMobDeath(LivingDeathEvent event) {
-        Entity entity = event.getEntity();
+    public static boolean shouldCancelExperience(LivingEntity entity) {
+        return EntityHelper.hasEssenceDropped(entity);
+    }
+
+    public static void register() {
+        EntityEvent.ADD.register((entity, level) -> {
+            if (!level.isClientSide() && entity instanceof ItemEntity itemEntity) {
+                if (itemEntity.getItem().getItem() instanceof ddraig.net.entropica.item.EssenceItem) {
+                    itemEntity.setNoGravity(true);
+                    itemEntity.setInvulnerable(true);
+                    itemEntity.setGlowingTag(true);
+                }
+            }
+            return dev.architectury.event.EventResult.pass();
+        });
+    }
+
+    public static void onMobDeath(LivingEntity entity, DamageSource source) {
         if (entity.level().isClientSide()) return;
 
         boolean holdingBlade = false;
         int reapLevel = 0;
 
-        Entity killer = event.getSource().getEntity();
+        Entity killer = source.getEntity();
         if (killer instanceof LivingEntity livingKiller) {
             ItemStack weapon = livingKiller.getMainHandItem();
 
@@ -66,7 +77,7 @@ public class MobDropHandler {
             var essenceReapHolder = enchantmentLookup.get(ModEnchantments.ESSENCE_REAP);
 
             if (essenceReapHolder.isPresent()) {
-                reapLevel = weapon.getEnchantmentLevel(essenceReapHolder.get());
+                reapLevel = net.minecraft.world.item.enchantment.EnchantmentHelper.getItemEnchantmentLevel(essenceReapHolder.get(), weapon);
             }
 
             if (reapLevel > 0 && entity.level() instanceof ServerLevel serverLevel) {
@@ -146,27 +157,6 @@ public class MobDropHandler {
             if (rabbit.getVariant() == Rabbit.Variant.GOLD) tryDropTieredEssence(entity, ddraig.net.entropica.api.EssenceType.ARID, holdingBlade, reapLevel, isPassive);
             else if (rabbit.getVariant() == Rabbit.Variant.WHITE || rabbit.getVariant() == Rabbit.Variant.WHITE_SPLOTCHED) tryDropTieredEssence(entity, ddraig.net.entropica.api.EssenceType.FROZEN, holdingBlade, reapLevel, isPassive);
             else tryDropTieredEssence(entity, ddraig.net.entropica.api.EssenceType.EARTH, holdingBlade, reapLevel, isPassive);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onExperienceDrop(LivingExperienceDropEvent event) {
-        if (event.getEntity().getPersistentData().getBoolean("EntropicaEssenceDropped").orElse(false)) {
-            event.setCanceled(true);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onEntityJoin(EntityJoinLevelEvent event) {
-        if (event.getLevel().isClientSide()) return;
-
-        // Only apply floating physics to the physical Orbs!
-        if (event.getEntity() instanceof ItemEntity itemEntity) {
-            if (itemEntity.getItem().getItem() instanceof ddraig.net.entropica.item.EssenceItem) {
-                itemEntity.setNoGravity(true);
-                itemEntity.setInvulnerable(true);
-                itemEntity.setGlowingTag(true);
-            }
         }
     }
 
@@ -293,6 +283,6 @@ public class MobDropHandler {
         drop.setGlowingTag(true);
 
         entity.level().addFreshEntity(drop);
-        entity.getPersistentData().putBoolean("EntropicaEssenceDropped", true);
+        EntityHelper.setEssenceDropped(entity, true);
     }
 }

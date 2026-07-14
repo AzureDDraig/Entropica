@@ -3,8 +3,8 @@ package ddraig.net.entropica.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import ddraig.net.entropica.Entropica;
-import ddraig.net.entropica.api.fumes.IFumeMultiblockController;
-import ddraig.net.entropica.api.fumes.VisFumeStack;
+import ddraig.net.entropica.api.materia.IVaporMultiblockController;
+import ddraig.net.entropica.api.materia.MateriaFumusStack;
 import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
 import ddraig.net.entropica.registry.ModBlocks;
 import net.minecraft.client.Minecraft;
@@ -54,19 +54,19 @@ public class ManaEnrichedGlassRenderer implements BlockEntityRenderer<ManaEnrich
 
             // NEW: Abort rendering entirely if the glass is part of a Pressure Chamber!
             // This leaves the glass perfectly clear so the custom particles can do the visual work.
-            if (controllerState.is(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get())) {
+            if (controllerState.is(ModBlocks.MATERIA_PRESSURE_CHAMBER_CONTROLLER.get())) {
                 return;
             }
 
             BlockEntity controllerBE = level.getBlockEntity(controllerPos);
 
-            if (controllerBE instanceof IFumeMultiblockController controller && controller.isFormed()) {
-                VisFumeStack stored = controller.getStoredFume();
+            if (controllerBE instanceof IVaporMultiblockController controller && controller.isFormed()) {
+                MateriaFumusStack stored = controller.getStoredMateria();
 
                 if (!stored.isEmpty()) {
                     renderState.hasFume = true;
                     renderState.colorInt = stored.getType().getColorInt();
-                    // Changed to getSafeCapacity() to match the updated IFumeMultiblockController interface
+                    // Changed to getSafeCapacity() to match the updated IVaporMultiblockController interface
                     renderState.fillRatio = Math.min(1.0f, Math.max(0.0f, (float) stored.getAmount() / controller.getSafeCapacity()));
 
                     BlockPos myPos = be.getBlockPos();

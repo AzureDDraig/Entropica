@@ -3,6 +3,8 @@ package ddraig.net.entropica.block.entity;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaSublimataStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.block.VaporPneumaticOneWayValveBlock;
 import ddraig.net.entropica.block.VaporPneumaticPipeBlock;
 import ddraig.net.entropica.config.EntropicaConfig;
@@ -34,7 +36,7 @@ import java.util.*;
 
 public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVaporHandler {
 
-    protected MateriaFumusStack storedMateria = MateriaFumusStack.EMPTY;
+    protected MateriaStack storedMateria = MateriaFumusStack.EMPTY;
     private int lastSyncedAmount = -1;
     private EssenceType lastSyncedType = null;
     private boolean isFlushing = false;
@@ -199,7 +201,7 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
                 if (be instanceof CreativeMateriaGeneratorBlockEntity gen) {
                     if (this.storedMateria.isEmpty() || gen.getCurrentType() != this.storedMateria.getType()) return true;
                 } else if (be instanceof VaporPneumaticPipeBlockEntity pipe) {
-                    MateriaFumusStack nStack = pipe.getMateriaInTank();
+                    MateriaStack nStack = pipe.getMateriaInTank();
                     if (!nStack.isEmpty() && (!nStack.is(this.storedMateria.getType()) && nStack.getAmount() > this.storedMateria.getAmount())) {
                         return true;
                     }
@@ -319,7 +321,7 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
             }
 
             if (be instanceof IVaporHandler neighbor) {
-                MateriaFumusStack neighborMateria = neighbor.getMateriaInTank();
+                MateriaStack neighborMateria = neighbor.getMateriaInTank();
 
                 if (neighborMateria.isEmpty() || neighborMateria.getType() == type) {
                     float nPressure = neighbor.getPressure();
@@ -327,7 +329,9 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
                     // OVERRIDE: If being purged, ignore pressure rules and violently force gas out
                     if (beingPurged) {
                         int toTransfer = Math.min(myAmount, getTransferRate());
-                        int accepted = neighbor.fill(new MateriaFumusStack(type, toTransfer), false);
+                        MateriaStack pushStack = this.storedMateria.copy();
+                        pushStack.setAmount(toTransfer);
+                        int accepted = neighbor.fill(pushStack, false);
                         if (accepted > 0) {
                             this.storedMateria.shrink(accepted);
                             myAmount -= accepted;
@@ -348,7 +352,9 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
                         toTransfer = Math.max(1, toTransfer); // Always move at least 1 to resolve rounding stalls
 
                         if (toTransfer > 0) {
-                            int accepted = neighbor.fill(new MateriaFumusStack(type, toTransfer), false);
+                            MateriaStack pushStack = this.storedMateria.copy();
+                            pushStack.setAmount(toTransfer);
+                            int accepted = neighbor.fill(pushStack, false);
                             if (accepted > 0) {
                                 this.storedMateria.shrink(accepted);
                                 myAmount -= accepted;
@@ -369,8 +375,9 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
     }
 
     @Override
-    public int fill(MateriaFumusStack resource, boolean simulate) {
+    public int fill(MateriaStack resource, boolean simulate) {
         if (resource.isEmpty()) return 0;
+        if (!(resource instanceof MateriaFumusStack) && !(resource instanceof MateriaSublimataStack)) return 0;
 
         // Flushing Mechanics (If a different type of gas forcefully enters)
         if (!this.storedMateria.isEmpty() && !this.storedMateria.is(resource.getType())) {
@@ -424,7 +431,8 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
 
         if (!simulate && accepted > 0) {
             if (this.storedMateria.isEmpty()) {
-                this.storedMateria = new MateriaFumusStack(resource.getType(), accepted);
+                this.storedMateria = resource.copy();
+                this.storedMateria.setAmount(accepted);
             } else {
                 this.storedMateria.grow(accepted);
             }
@@ -437,13 +445,14 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
     }
 
     @Override
-    public @NotNull MateriaFumusStack getMateriaInTank() { return this.storedMateria; }
+    public @NotNull MateriaStack getMateriaInTank() { return this.storedMateria; }
 
     @Override
-    public @NotNull MateriaFumusStack drain(int maxDrain, boolean simulate) {
+    public @NotNull MateriaStack drain(int maxDrain, boolean simulate) {
         if (this.storedMateria.isEmpty() || maxDrain <= 0) return MateriaFumusStack.EMPTY;
         int drained = Math.min(this.storedMateria.getAmount(), maxDrain);
-        MateriaFumusStack result = new MateriaFumusStack(this.storedMateria.getType(), drained);
+        MateriaStack result = this.storedMateria.copy();
+        result.setAmount(drained);
         if (!simulate) {
             this.storedMateria.shrink(drained);
             this.setChanged();
@@ -452,7 +461,7 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
         return result;
     }
 
-    protected void ventGasIntoAir(ServerLevel level, BlockPos pos, Direction dir, MateriaFumusStack stack, int amount) {
+    protected void ventGasIntoAir(ServerLevel level, BlockPos pos, Direction dir, MateriaStack stack, int amount) {
         double pX = pos.getX() + 0.5 + (dir.getStepX() * 0.6);
         double pY = pos.getY() + 0.5 + (dir.getStepY() * 0.6);
         double pZ = pos.getZ() + 0.5 + (dir.getStepZ() * 0.6);
@@ -488,6 +497,7 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
         super.saveAdditional(output);
         output.putInt("FumeAmount", this.storedMateria.getAmount());
         output.putInt("FumeType", this.storedMateria.isEmpty() ? -1 : this.storedMateria.getType().ordinal());
+        output.putBoolean("IsSublimated", this.storedMateria instanceof MateriaSublimataStack);
     }
 
     @Override
@@ -495,10 +505,15 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
         super.loadAdditional(input);
         int amount = input.getIntOr("FumeAmount", 0);
         int typeOrd = input.getIntOr("FumeType", -1);
+        boolean isSublimated = input.getBooleanOr("IsSublimated", false);
         if (amount <= 0 || typeOrd < 0 || typeOrd >= EssenceType.values().length) {
             this.storedMateria = MateriaFumusStack.EMPTY;
         } else {
-            this.storedMateria = new MateriaFumusStack(EssenceType.values()[typeOrd], amount);
+            if (isSublimated) {
+                this.storedMateria = new MateriaSublimataStack(EssenceType.values()[typeOrd], amount);
+            } else {
+                this.storedMateria = new MateriaFumusStack(EssenceType.values()[typeOrd], amount);
+            }
         }
         this.lastSyncedAmount = -1;
         this.lastSyncedType = null;

@@ -1,50 +1,43 @@
 package ddraig.net.entropica;
 
-import ddraig.net.entropica.config.EntropicaConfig;
+import ddraig.net.entropica.command.ModCommands;
+import ddraig.net.entropica.event.EssenceMappingEvents;
+import ddraig.net.entropica.event.MobDropHandler;
 import ddraig.net.entropica.event.ModEntityEvents;
 import ddraig.net.entropica.network.ModNetwork;
 import ddraig.net.entropica.registry.*;
 import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
-@Mod(Entropica.MODID)
 public class Entropica {
     public static final String MODID = "entropica";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public Entropica(IEventBus modEventBus, ModContainer modContainer) {
-        modEventBus.addListener(this::commonSetup);
+    public static void init() {
+        LOGGER.info("Entropica: Where Life Fuels Progress - Common Initialization starting.");
 
-        // --- Register the Network Packets ---
-        modEventBus.addListener(ModNetwork::register);
-        ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
-        ModDataComponents.COMPONENTS.register(modEventBus);
-        ModEffects.EFFECTS.register(modEventBus); // <-- Added Effects Registry here!
-        ModFluids.FLUID_TYPES.register(modEventBus);
-        ModFluids.FLUIDS.register(modEventBus);
-        ModBlocks.BLOCKS.register(modEventBus);
-        ModItems.ITEMS.register(modEventBus);
-        ModBlockEntities.BLOCK_ENTITIES.register(modEventBus);
-        ModEntityTypes.ENTITY_TYPES.register(modEventBus);
-        ModParticles.PARTICLES.register(modEventBus);
-        ModRecipes.register(modEventBus);
-        ModSounds.SOUNDS.register(modEventBus);
+        // --- Register the Registries ---
+        ModDataComponents.COMPONENTS.register();
+        ModEffects.EFFECTS.register();
+        ModBlocks.BLOCKS.register();
+        ModItems.ITEMS.register();
+        ModBlockEntities.BLOCK_ENTITIES.register();
+        ModEntityTypes.ENTITY_TYPES.register();
+        ModParticles.PARTICLES.register();
+        ModRecipes.register();
+        ModSounds.SOUNDS.register();
+        ModMenuTypes.MENU_TYPES.register();
+        ModCreativeTabs.CREATIVE_MODE_TABS.register();
 
-        // --- Register Menu Types ---
-        ModMenuTypes.MENU_TYPES.register(modEventBus);
+        // --- Register Network Receiver and Commands ---
+        ModNetwork.register();
+        ModCommands.register();
 
-        // --- Register the new Creative Tabs Class ---
-        ModCreativeTabs.CREATIVE_MODE_TABS.register(modEventBus);
+        // --- Register Common Events ---
+        ModEntityEvents.register();
+        EssenceMappingEvents.register();
+        MobDropHandler.register();
 
-        modContainer.registerConfig(ModConfig.Type.COMMON, EntropicaConfig.SPEC);
-    }
-
-    private void commonSetup(FMLCommonSetupEvent event) {
-        LOGGER.info("Entropica: Where Life Fuels Progress setup initialized.");
+        LOGGER.info("Entropica: Common Initialization completed.");
     }
 }

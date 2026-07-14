@@ -3,6 +3,7 @@ package ddraig.net.entropica.entity.grot;
 import com.mojang.serialization.Codec;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.block.VaporPneumaticPipeBlock;
 import ddraig.net.entropica.block.entity.VaporPneumaticPipeBlockEntity;
 import ddraig.net.entropica.item.EssenceItem;
@@ -724,7 +725,7 @@ public class GrotEntity extends Slime {
                     if (distSq <= reach * reach && drainCooldown <= 0) {
                         if (GrotEntity.this.level().getBlockEntity(targetPipe) instanceof VaporPneumaticPipeBlockEntity pipe) {
                             if (!pipe.getMateriaInTank().isEmpty()) {
-                                MateriaFumusStack drained = pipe.drain(10, false);
+                                MateriaStack drained = pipe.drain(10, false);
 
                                 if (!drained.isEmpty()) {
                                     GrotEntity.this.playSound(SoundEvents.BREWING_STAND_BREW, 1.0f, 1.5f);

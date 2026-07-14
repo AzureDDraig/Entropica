@@ -2,6 +2,8 @@ package ddraig.net.entropica.block;
 
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
+import ddraig.net.entropica.api.materia.MateriaSublimataStack;
 import ddraig.net.entropica.block.entity.VaporPneumaticPipeBlockEntity;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModBlockEntities;
@@ -130,12 +132,13 @@ public class VaporPneumaticPipeBlock extends Block implements SimpleWaterloggedB
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide()) {
             if (level.getBlockEntity(pos) instanceof VaporPneumaticPipeBlockEntity pipe) {
-                MateriaFumusStack stack = pipe.getMateriaInTank();
+                MateriaStack stack = pipe.getMateriaInTank();
+                String suffix = stack instanceof MateriaSublimataStack ? " Msub" : " Mfum";
 
                 if (stack.isEmpty()) {
-                    player.displayClientMessage(Component.literal("§7Pipe is Empty (0 / " + pipe.getSafeCapacity() + " Mfum)"), true);
+                    player.displayClientMessage(Component.literal("§7Pipe is Empty (0 / " + pipe.getSafeCapacity() + suffix + ")"), true);
                 } else {
-                    player.displayClientMessage(Component.literal("§aPipe contains: " + stack.getAmount() + " / " + pipe.getSafeCapacity() + " Mfum of " + stack.getType().getFormattedName() + " §c[Max: " + pipe.getAbsoluteCapacity() + "]"), true);
+                    player.displayClientMessage(Component.literal("§aPipe contains: " + stack.getAmount() + " / " + pipe.getSafeCapacity() + suffix + " of " + stack.getType().getFormattedName() + " §c[Max: " + pipe.getAbsoluteCapacity() + "]"), true);
                 }
             }
         }
@@ -145,6 +148,10 @@ public class VaporPneumaticPipeBlock extends Block implements SimpleWaterloggedB
     // The robust connection logic
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
         Block neighborBlock = neighborState.getBlock();
+
+        if (neighborBlock instanceof DecompressionCouplerBlock) {
+            return neighborState.getValue(DecompressionCouplerBlock.AXIS) == dirToNeighbor.getAxis();
+        }
 
         // If the neighbor is a Valve, only connect if we are aligning with its open straight axis
         if (neighborBlock instanceof VaporPneumaticValveBlock) {

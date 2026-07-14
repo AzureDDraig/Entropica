@@ -33,7 +33,7 @@ public class PressureChamberRecipeCategory implements IRecipeCategory<PressureCh
     public PressureChamberRecipeCategory(IGuiHelper helper) {
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/gui/jei/pressure_chamber.png");
         this.background = helper.createDrawable(texture, 0, 0, 150, 60);
-        this.icon = helper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get()));
+        this.icon = helper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.MATERIA_PRESSURE_CHAMBER_CONTROLLER.get()));
 
         // Grab the default vanilla gray slot graphic from JEI
         this.slotDrawable = helper.getSlotDrawable();
@@ -46,7 +46,7 @@ public class PressureChamberRecipeCategory implements IRecipeCategory<PressureCh
 
     @Override
     public Component getTitle() {
-        return Component.translatable("block.entropica.vis_fume_pressure_chamber_controller");
+        return Component.translatable("block.entropica.materia_pressure_chamber_controller");
     }
 
     @Override

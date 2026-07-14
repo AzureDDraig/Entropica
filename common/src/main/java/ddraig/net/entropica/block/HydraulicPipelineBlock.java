@@ -144,6 +144,9 @@ public class HydraulicPipelineBlock extends Block implements SimpleWaterloggedBl
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
+        if (neighborState.getBlock() instanceof DecompressionCouplerBlock) {
+            return neighborState.getValue(DecompressionCouplerBlock.AXIS) == dirToNeighbor.getAxis();
+        }
         return neighborState.getBlock() instanceof HydraulicPipelineBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 

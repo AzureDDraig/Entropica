@@ -11,14 +11,14 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
+import dev.architectury.registry.registries.DeferredRegister;
 
 public class ModCreativeTabs {
 
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Entropica.MODID);
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Entropica.MODID, Registries.CREATIVE_MODE_TAB);
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> BLOCKS_TAB = CREATIVE_MODE_TABS.register("blocks_tab", () -> CreativeModeTab.builder()
+    public static final RegistrySupplier<CreativeModeTab> BLOCKS_TAB = CREATIVE_MODE_TABS.register("blocks_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
             .title(Component.translatable("itemGroup.entropica.blocks"))
             .icon(() -> ModItems.MANA_FURNACE_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
@@ -30,7 +30,7 @@ public class ModCreativeTabs {
                 });
             }).build());
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ITEMS_TAB = CREATIVE_MODE_TABS.register("items_tab", () -> CreativeModeTab.builder()
+    public static final RegistrySupplier<CreativeModeTab> ITEMS_TAB = CREATIVE_MODE_TABS.register("items_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 1)
             .title(Component.translatable("itemGroup.entropica.items"))
             .icon(() -> ModItems.ARCANUM_FOCUS.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
@@ -52,14 +52,14 @@ public class ModCreativeTabs {
                             item != ModItems.WHISPERWOOD_WAND.get() &&
                             item != ModItems.SHIMMERING_FOCUS.get() &&
                             item != ModItems.AETHERIC_MONOCLE.get() &&
-                            item != ModItems.VIS_VALUE_DETECTOR.get()) {
+                            item != ModItems.MATERIA_VALUE_DETECTOR.get()) {
 
                         output.accept(item);
                     }
                 });
             }).build());
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> VIS_ITEMS_TAB = CREATIVE_MODE_TABS.register("vis_items_tab", () -> CreativeModeTab.builder()
+    public static final RegistrySupplier<CreativeModeTab> VIS_ITEMS_TAB = CREATIVE_MODE_TABS.register("vis_items_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 2)
             .title(Component.translatable("itemGroup.entropica.vis_items"))
             .icon(() -> {
                 ItemStack iconStack = new ItemStack(ModItems.LARGE_ESSENCE_AMPOULE.get());
@@ -110,22 +110,22 @@ public class ModCreativeTabs {
                         output.accept(largeEssenceAmp);
 
                         // Vis Fume Ampoules (Gaseous Material)
-                        ItemStack smallFumeAmp = new ItemStack(ModItems.SMALL_VIS_FUME_AMPOULE.get());
+                        ItemStack smallFumeAmp = new ItemStack(ModItems.SMALL_MATERIA_FUMUS_AMPOULE.get());
                         VisFumeAmpouleItem.setEssenceType(smallFumeAmp, type);
                         output.accept(smallFumeAmp);
 
-                        ItemStack medFumeAmp = new ItemStack(ModItems.MEDIUM_VIS_FUME_AMPOULE.get());
+                        ItemStack medFumeAmp = new ItemStack(ModItems.MEDIUM_MATERIA_FUMUS_AMPOULE.get());
                         VisFumeAmpouleItem.setEssenceType(medFumeAmp, type);
                         output.accept(medFumeAmp);
 
-                        ItemStack largeFumeAmp = new ItemStack(ModItems.LARGE_VIS_FUME_AMPOULE.get());
+                        ItemStack largeFumeAmp = new ItemStack(ModItems.LARGE_MATERIA_FUMUS_AMPOULE.get());
                         VisFumeAmpouleItem.setEssenceType(largeFumeAmp, type);
                         output.accept(largeFumeAmp);
                     }
                 }
             }).build());
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TOOLS_TAB = CREATIVE_MODE_TABS.register("tools_tab", () -> CreativeModeTab.builder()
+    public static final RegistrySupplier<CreativeModeTab> TOOLS_TAB = CREATIVE_MODE_TABS.register("tools_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 3)
             .title(Component.translatable("itemGroup.entropica.tools"))
             .icon(() -> ModItems.WHISPERWOOD_WAND.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
@@ -133,12 +133,12 @@ public class ModCreativeTabs {
                 output.accept(ModItems.WHISPERWOOD_WAND.get());
                 output.accept(ModItems.SHIMMERING_FOCUS.get());
                 output.accept(ModItems.AETHERIC_MONOCLE.get());
-                output.accept(ModItems.VIS_VALUE_DETECTOR.get());
+                output.accept(ModItems.MATERIA_VALUE_DETECTOR.get());
                 output.accept(ModItems.ARCANUM_FOCUS.get());
                 output.accept(ModItems.CHALK.get()); // Added Chalk to Tools Tab
             }).build());
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> WEAPON_CRAFTING_TAB = CREATIVE_MODE_TABS.register("weapon_crafting_tab", () -> CreativeModeTab.builder()
+    public static final RegistrySupplier<CreativeModeTab> WEAPON_CRAFTING_TAB = CREATIVE_MODE_TABS.register("weapon_crafting_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 4)
             .title(Component.translatable("itemGroup.entropica.weapon_crafting"))
             .icon(() -> ModItems.ORBIS_ACCEPTOR.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
@@ -215,7 +215,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.WARHAMMER_SHAPE_CONCEPT.get());
             }).build());
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> WEAPONS_TAB = CREATIVE_MODE_TABS.register("weapons_tab", () -> CreativeModeTab.builder()
+    public static final RegistrySupplier<CreativeModeTab> WEAPONS_TAB = CREATIVE_MODE_TABS.register("weapons_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 5)
             .title(Component.translatable("itemGroup.entropica.weapons"))
             .icon(() -> ModItems.SOULBOUND_BLADE.get().getDefaultInstance())
             .displayItems((parameters, output) -> {

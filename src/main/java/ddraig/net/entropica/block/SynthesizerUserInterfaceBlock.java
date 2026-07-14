@@ -66,11 +66,26 @@ public class SynthesizerUserInterfaceBlock extends Block {
 
             if (synthPos != null) {
                 final BlockPos finalSynthPos = synthPos;
-                // Open the custom Menu, passing the exact position of the Synthesizer
-                player.openMenu(new SimpleMenuProvider(
-                        (id, inv, p) -> new SynthesizerUserInterfaceMenu(id, inv, finalSynthPos),
-                        Component.translatable("block.entropica.synthesizer_user_interface")
-                ), buf -> buf.writeBlockPos(finalSynthPos));
+                // Open the custom Menu using Architectury's MenuRegistry
+                dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(
+                    (net.minecraft.server.level.ServerPlayer) player,
+                    new dev.architectury.registry.menu.ExtendedMenuProvider() {
+                        @Override
+                        public void saveExtraData(net.minecraft.network.FriendlyByteBuf buf) {
+                            buf.writeBlockPos(finalSynthPos);
+                        }
+
+                        @Override
+                        public Component getDisplayName() {
+                            return Component.translatable("block.entropica.synthesizer_user_interface");
+                        }
+
+                        @Override
+                        public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int id, net.minecraft.world.entity.player.Inventory inv, Player p) {
+                            return new SynthesizerUserInterfaceMenu(id, inv, finalSynthPos);
+                        }
+                    }
+                );
             } else {
                 player.displayClientMessage(Component.literal("§cSynthesizer UI must be placed adjacent to an Aetheric Synthesizer!"), true);
             }

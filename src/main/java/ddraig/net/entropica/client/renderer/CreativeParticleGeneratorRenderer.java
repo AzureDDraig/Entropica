@@ -60,12 +60,10 @@ public class CreativeParticleGeneratorRenderer implements BlockEntityRenderer<Cr
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             poseStack.pushPose();
 
-            poseStack.translate(
-                    0.5 + dir.getStepX() * 0.505,
-                    0.5,
-                    0.5 + dir.getStepZ() * 0.505
-            );
+            // 1. Move to block center
+            poseStack.translate(0.5f, 0.5f, 0.5f);
 
+            // 2. Rotate the text so it faces perfectly outwards based on the block face
             switch (dir) {
                 case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(0));
                 case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180));
@@ -73,9 +71,12 @@ public class CreativeParticleGeneratorRenderer implements BlockEntityRenderer<Cr
                 case EAST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
             }
 
-            // A slightly smaller scale since Particle namespaces (e.g. "minecraft:soul_fire_flame") are long!
+            // 3. Push it to the very edge of the specific face (+0.505 prevents Z-fighting)
+            poseStack.translate(0.0f, 0.0f, 0.505f);
+
+            // 4. Flip Y and Z so text is oriented correctly (Z is negative to face outwards)
             float baseScale = 0.009f;
-            poseStack.scale(baseScale, -baseScale, baseScale);
+            poseStack.scale(baseScale, -baseScale, -baseScale);
 
             for (int i = -listRange; i <= listRange; i++) {
                 String text = state.displayNames[i + 2];
@@ -108,8 +109,6 @@ public class CreativeParticleGeneratorRenderer implements BlockEntityRenderer<Cr
 
             poseStack.popPose();
         }
-
-        bufferSource.endBatch();
     }
 
     public static class ParticleRenderState extends BlockEntityRenderState {

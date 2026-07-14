@@ -142,6 +142,9 @@ public class ViscousAgitatorBlock extends Block implements SimpleWaterloggedBloc
     }
 
     protected boolean canConnectTo(BlockState neighborState, Direction dirToNeighbor) {
+        if (neighborState.getBlock() instanceof DecompressionCouplerBlock) {
+            return neighborState.getValue(DecompressionCouplerBlock.AXIS) == dirToNeighbor.getAxis();
+        }
         return neighborState.getBlock() instanceof ViscousAgitatorBlock || neighborState.getBlock() instanceof CreativeMateriaGeneratorBlock;
     }
 

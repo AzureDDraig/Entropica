@@ -128,14 +128,6 @@ public class ManaFurnaceBlockEntity extends BlockEntity {
         return this.saveWithoutMetadata(registries);
     }
 
-    @Override
-    public void handleUpdateTag(ValueInput input) {
-        super.handleUpdateTag(input);
-        this.mana = input.getIntOr("FurnaceMana", 0);
-        this.essence = input.getIntOr("FurnaceEssence", 0);
-        this.isActive = input.getBooleanOr("FurnaceActive", false);
-    }
-
     @Nullable
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {

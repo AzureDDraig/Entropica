@@ -5,6 +5,7 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.IVaporMultiblockController;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.api.materia.ILiquidMateriaMultiblock;
 import ddraig.net.entropica.api.materia.MateriaLiquidaStack;
 import ddraig.net.entropica.block.AttunementPedestalBlock;
@@ -822,13 +823,13 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
     }
 
     @Override
-    public MateriaFumusStack getMateriaInTank() {
+    public MateriaStack getMateriaInTank() {
         return this.storedFume != null ? this.storedFume : MateriaFumusStack.EMPTY;
     }
 
     @Override
-    public int fill(MateriaFumusStack resource, boolean simulate) {
-        if (!this.isFormed || resource.isEmpty()) return 0;
+    public int fill(MateriaStack resource, boolean simulate) {
+        if (!this.isFormed || resource.isEmpty() || !(resource instanceof MateriaFumusStack)) return 0;
 
         if (!this.isCrafting) return 0;
 
@@ -862,11 +863,11 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
     }
 
     @Override
-    public MateriaFumusStack drain(int maxDrain, boolean simulate) {
+    public MateriaStack drain(int maxDrain, boolean simulate) {
         if (!this.isFormed || this.storedFume.isEmpty() || maxDrain <= 0) return MateriaFumusStack.EMPTY;
 
         int amountToDrain = Math.min(this.storedFume.getAmount(), maxDrain);
-        MateriaFumusStack drained = new MateriaFumusStack(this.storedFume.getType(), amountToDrain);
+        MateriaStack drained = new MateriaFumusStack(this.storedFume.getType(), amountToDrain);
 
         if (!simulate) {
             this.storedFume.shrink(amountToDrain);

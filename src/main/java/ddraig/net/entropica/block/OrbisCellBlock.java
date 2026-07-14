@@ -10,6 +10,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
@@ -71,11 +72,10 @@ public class OrbisCellBlock extends Block implements EntityBlock {
         return super.playerWillDestroy(level, pos, state, player);
     }
 
-    // UPDATED SIGNATURE: LevelReader is now the first parameter in 1.21.1+
     @Override
-    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
         // Start with the basic stack
-        ItemStack stack = super.getCloneItemStack(level, pos, state, includeData, player);
+        ItemStack stack = super.getCloneItemStack(level, pos, state, includeData);
 
         // If the game says includeData (or we just want to ensure it always happens)
         if (level.getBlockEntity(pos) instanceof OrbisCellBlockEntity cellBlockEntity) {

@@ -5,6 +5,7 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.IVaporMultiblockController;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.block.MateriaPressureChamberControllerBlock;
 import ddraig.net.entropica.client.particle.FumeParticleOption;
 import ddraig.net.entropica.config.EntropicaConfig;
@@ -201,7 +202,7 @@ public class MateriaPressureChamberControllerBlockEntity extends BlockEntity imp
 
                         int acceptedAmount = targetHandler.fill(pushAttempt, true);
                         if (acceptedAmount > 0) {
-                            MateriaFumusStack drained = this.drain(acceptedAmount, false);
+                            MateriaStack drained = this.drain(acceptedAmount, false);
                             targetHandler.fill(drained, false);
                             if (this.storedFume.isEmpty()) return;
                         }
@@ -631,8 +632,8 @@ public class MateriaPressureChamberControllerBlockEntity extends BlockEntity imp
     @Override public MateriaFumusStack getStoredMateria() { return storedFume; }
 
     @Override
-    public int fill(MateriaFumusStack resource, boolean simulate) {
-        if (!isFormed || resource.isEmpty()) return 0;
+    public int fill(MateriaStack resource, boolean simulate) {
+        if (!isFormed || resource.isEmpty() || !(resource instanceof MateriaFumusStack)) return 0;
 
         if (!isProcessing) return 0;
 
@@ -677,11 +678,11 @@ public class MateriaPressureChamberControllerBlockEntity extends BlockEntity imp
     }
 
     @Override
-    public MateriaFumusStack drain(int maxDrain, boolean simulate) {
+    public MateriaStack drain(int maxDrain, boolean simulate) {
         if (!isFormed || this.storedFume.isEmpty() || maxDrain <= 0) return MateriaFumusStack.EMPTY;
 
         int amountToDrain = Math.min(this.storedFume.getAmount(), maxDrain);
-        MateriaFumusStack drained = new MateriaFumusStack(this.storedFume.getType(), amountToDrain);
+        MateriaStack drained = new MateriaFumusStack(this.storedFume.getType(), amountToDrain);
 
         if (!simulate) {
             this.storedFume.shrink(amountToDrain);
@@ -696,7 +697,7 @@ public class MateriaPressureChamberControllerBlockEntity extends BlockEntity imp
     }
 
     @Override
-    public MateriaFumusStack getMateriaInTank() {
+    public MateriaStack getMateriaInTank() {
         return this.storedFume != null ? this.storedFume : MateriaFumusStack.EMPTY;
     }
 

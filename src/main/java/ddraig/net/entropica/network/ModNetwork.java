@@ -1,65 +1,66 @@
 package ddraig.net.entropica.network;
 
 import ddraig.net.entropica.block.entity.AethericSynthesizerBlockEntity;
-import ddraig.net.entropica.block.entity.CreativeVisFumeGeneratorBlockEntity;
+import ddraig.net.entropica.block.entity.CreativeMateriaGeneratorBlockEntity;
 import ddraig.net.entropica.block.entity.CreativeParticleGeneratorBlockEntity;
 import ddraig.net.entropica.component.VisWeaponState;
 import ddraig.net.entropica.item.DynamicVisWeaponItem;
 import ddraig.net.entropica.registry.ModDataComponents;
+import dev.architectury.networking.NetworkManager;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class ModNetwork {
 
-    public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("1.0").playToServer(
+    public static void register() {
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
                 GeneratorScrollPayload.TYPE,
                 GeneratorScrollPayload.STREAM_CODEC,
                 ModNetwork::handleGeneratorScroll
         );
 
-        // Register the NEW Particle Generator Scroll Payload
-        event.registrar("1.0").playToServer(
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
                 ParticleGeneratorScrollPayload.TYPE,
                 ParticleGeneratorScrollPayload.STREAM_CODEC,
                 ModNetwork::handleParticleGeneratorScroll
         );
 
-        event.registrar("1.0").playToServer(
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
                 TerminalCraftPayload.TYPE,
                 TerminalCraftPayload.STREAM_CODEC,
                 ModNetwork::handleTerminalCraft
         );
 
-        event.registrar("1.0").playToServer(
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
                 WeaponNamingPayload.TYPE,
                 WeaponNamingPayload.STREAM_CODEC,
                 ModNetwork::handleNaming
         );
     }
 
-    public static void handleGeneratorScroll(final GeneratorScrollPayload data, final IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Player player = context.player();
+    public static void handleGeneratorScroll(final GeneratorScrollPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
             if (player != null && player.level().isLoaded(data.pos())) {
                 BlockEntity be = player.level().getBlockEntity(data.pos());
-                if (be instanceof CreativeVisFumeGeneratorBlockEntity gen) {
+                if (be instanceof CreativeMateriaGeneratorBlockEntity gen) {
                     gen.cycleType(data.delta());
                 }
             }
         });
     }
 
-    // Handler for the Particle Generator
-    public static void handleParticleGeneratorScroll(final ParticleGeneratorScrollPayload data, final IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Player player = context.player();
+    public static void handleParticleGeneratorScroll(final ParticleGeneratorScrollPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
             if (player != null && player.level().isLoaded(data.pos())) {
                 BlockEntity be = player.level().getBlockEntity(data.pos());
                 if (be instanceof CreativeParticleGeneratorBlockEntity gen) {
@@ -69,9 +70,9 @@ public class ModNetwork {
         });
     }
 
-    public static void handleTerminalCraft(final TerminalCraftPayload data, final IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Player player = context.player();
+    public static void handleTerminalCraft(final TerminalCraftPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
             if (player != null && player.level().isLoaded(data.pos())) {
                 BlockEntity be = player.level().getBlockEntity(data.pos());
                 if (be instanceof AethericSynthesizerBlockEntity synth) {
@@ -81,9 +82,9 @@ public class ModNetwork {
         });
     }
 
-    public static void handleNaming(final WeaponNamingPayload data, final IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Player player = context.player();
+    public static void handleNaming(final WeaponNamingPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
             if (player == null) return;
 
             for (int i = 0; i < player.getInventory().getContainerSize(); i++) {

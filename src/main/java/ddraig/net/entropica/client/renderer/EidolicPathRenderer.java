@@ -18,22 +18,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@EventBusSubscriber(modid = Entropica.MODID, value = Dist.CLIENT)
 public class EidolicPathRenderer {
 
     private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
 
-    @SubscribeEvent
-    public static void onRenderWorld(RenderLevelStageEvent.AfterEntities event) {
+    public static void render(PoseStack poseStack) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         if (player == null || mc.level == null) return;
@@ -44,7 +38,6 @@ public class EidolicPathRenderer {
 
         if (!holdsMarker) return;
 
-        PoseStack poseStack = event.getPoseStack();
         Vec3 camPos = mc.gameRenderer.getMainCamera().getPosition();
         MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
 

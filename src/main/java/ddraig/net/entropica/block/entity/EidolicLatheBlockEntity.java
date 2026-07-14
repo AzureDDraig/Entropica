@@ -2,15 +2,15 @@ package ddraig.net.entropica.block.entity;
 
 import com.mojang.serialization.Codec;
 import ddraig.net.entropica.api.EssenceType;
-import ddraig.net.entropica.api.fumes.IFumeHandler;
-import ddraig.net.entropica.api.fumes.IFumeMultiblockController;
-import ddraig.net.entropica.api.fumes.VisFumeStack;
-import ddraig.net.entropica.api.ichor.IIchorMultiblock;
-import ddraig.net.entropica.api.ichor.VisIchorStack;
+import ddraig.net.entropica.api.materia.IVaporHandler;
+import ddraig.net.entropica.api.materia.IVaporMultiblockController;
+import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.ILiquidMateriaMultiblock;
+import ddraig.net.entropica.api.materia.MateriaLiquidaStack;
 import ddraig.net.entropica.block.AttunementPedestalBlock;
 import ddraig.net.entropica.block.EidolicFocalPedestalBlock;
-import ddraig.net.entropica.block.VisFumeInputPortBlock;
-import ddraig.net.entropica.block.VisIchorInputPortBlock;
+import ddraig.net.entropica.block.VaporPneumaticInputPortBlock;
+import ddraig.net.entropica.block.HydraulicInputPortBlock;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModItems;
@@ -43,7 +43,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler, IFumeMultiblockController, IIchorMultiblock {
+public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandler, IVaporMultiblockController, ILiquidMateriaMultiblock {
 
     public final SimpleContainer inventory = new SimpleContainer(5) {
         @Override
@@ -66,8 +66,8 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
     public BlockPos activePortPos = null;
 
     // Fuel Buffers
-    private VisFumeStack storedFume = VisFumeStack.EMPTY;
-    private VisIchorStack storedIchor = VisIchorStack.EMPTY;
+    private MateriaFumusStack storedFume = MateriaFumusStack.EMPTY;
+    private MateriaLiquidaStack storedIchor = MateriaLiquidaStack.EMPTY;
     private static final int MAX_VIS_CAPACITY = 100000;
 
     // Crafting State Machine
@@ -322,8 +322,8 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         this.isIchorCraft = false; // Default until an Ichor pipe connects
         this.ampouleFumeTotal = tempAmpouleFuelTotal;
 
-        this.storedFume = VisFumeStack.EMPTY;
-        this.storedIchor = VisIchorStack.EMPTY;
+        this.storedFume = MateriaFumusStack.EMPTY;
+        this.storedIchor = MateriaLiquidaStack.EMPTY;
 
         if (player != null) player.displayClientMessage(Component.literal("§aLathe activated. Commencing Phase 1: Essence Injection..."), true);
 
@@ -361,8 +361,8 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         }
 
         if (conceptStack.isEmpty() || coreStack.isEmpty() || orbisStack.isEmpty() || materialStack.isEmpty() || materialStack.getCount() < 4) {
-            this.storedFume = VisFumeStack.EMPTY;
-            this.storedIchor = VisIchorStack.EMPTY;
+            this.storedFume = MateriaFumusStack.EMPTY;
+            this.storedIchor = MateriaLiquidaStack.EMPTY;
             this.setChanged();
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
             return;
@@ -576,8 +576,8 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         this.inventory.setItem(4, result);
 
         // Empty the network tanks to prevent leftover Vis!
-        this.storedFume = VisFumeStack.EMPTY;
-        this.storedIchor = VisIchorStack.EMPTY;
+        this.storedFume = MateriaFumusStack.EMPTY;
+        this.storedIchor = MateriaLiquidaStack.EMPTY;
 
         this.setChanged();
         this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
@@ -609,7 +609,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
                     BlockState scanState = this.level.getBlockState(scanPos);
                     Block block = scanState.getBlock();
 
-                    boolean isPort = (block instanceof VisFumeInputPortBlock || block instanceof VisIchorInputPortBlock);
+                    boolean isPort = (block instanceof VaporPneumaticInputPortBlock || block instanceof HydraulicInputPortBlock);
                     boolean isAirOrPort = scanState.isAir() || isPort;
 
                     if (isPort) {
@@ -654,7 +654,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
             for (int z = -3; z <= 3; z++) {
                 BlockPos scanPos = new BlockPos(baseX + x, baseY + 5, baseZ + z);
                 Block block = this.level.getBlockState(scanPos).getBlock();
-                if (block instanceof VisFumeInputPortBlock || block instanceof VisIchorInputPortBlock) {
+                if (block instanceof VaporPneumaticInputPortBlock || block instanceof HydraulicInputPortBlock) {
                     portCount++;
                     if (foundPort == null) foundPort = scanPos;
                 }
@@ -817,17 +817,17 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
     }
 
     @Override
-    public VisFumeStack getStoredFume() {
+    public MateriaFumusStack getStoredMateria() {
         return this.storedFume;
     }
 
     @Override
-    public VisFumeStack getFumeInTank() {
-        return this.storedFume != null ? this.storedFume : VisFumeStack.EMPTY;
+    public MateriaFumusStack getMateriaInTank() {
+        return this.storedFume != null ? this.storedFume : MateriaFumusStack.EMPTY;
     }
 
     @Override
-    public int fill(VisFumeStack resource, boolean simulate) {
+    public int fill(MateriaFumusStack resource, boolean simulate) {
         if (!this.isFormed || resource.isEmpty()) return 0;
 
         if (!this.isCrafting) return 0;
@@ -849,7 +849,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
 
         if (!simulate) {
             if (this.storedFume.isEmpty()) {
-                this.storedFume = new VisFumeStack(resource.getType(), amountToFill);
+                this.storedFume = new MateriaFumusStack(resource.getType(), amountToFill);
             } else {
                 this.storedFume.grow(amountToFill);
             }
@@ -862,16 +862,16 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
     }
 
     @Override
-    public VisFumeStack drain(int maxDrain, boolean simulate) {
-        if (!this.isFormed || this.storedFume.isEmpty() || maxDrain <= 0) return VisFumeStack.EMPTY;
+    public MateriaFumusStack drain(int maxDrain, boolean simulate) {
+        if (!this.isFormed || this.storedFume.isEmpty() || maxDrain <= 0) return MateriaFumusStack.EMPTY;
 
         int amountToDrain = Math.min(this.storedFume.getAmount(), maxDrain);
-        VisFumeStack drained = new VisFumeStack(this.storedFume.getType(), amountToDrain);
+        MateriaFumusStack drained = new MateriaFumusStack(this.storedFume.getType(), amountToDrain);
 
         if (!simulate) {
             this.storedFume.shrink(amountToDrain);
             if (this.storedFume.getAmount() <= 0) {
-                this.storedFume = VisFumeStack.EMPTY;
+                this.storedFume = MateriaFumusStack.EMPTY;
             }
             this.setChanged();
             if (this.level != null && !this.level.isClientSide()) {
@@ -896,12 +896,12 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
     }
 
     @Override
-    public boolean canConnectIchor(Direction side) {
+    public boolean canConnectLiquid(Direction side) {
         return true; // The Lathe accepts connections globally via its floating ports
     }
 
     @Override
-    public boolean isIchorValid(EssenceType type) {
+    public boolean isLiquidValid(EssenceType type) {
         return true; // The Lathe accepts any Ichor type for crafting
     }
 
@@ -911,12 +911,12 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
     }
 
     @Override
-    public VisIchorStack getIchorInTank() {
-        return this.storedIchor != null ? this.storedIchor : VisIchorStack.EMPTY;
+    public MateriaLiquidaStack getLiquidInTank() {
+        return this.storedIchor != null ? this.storedIchor : MateriaLiquidaStack.EMPTY;
     }
 
     @Override
-    public int fill(VisIchorStack resource, boolean simulate) {
+    public int fill(MateriaLiquidaStack resource, boolean simulate) {
         if (!this.isFormed || resource.isEmpty()) return 0;
 
         if (!this.isCrafting) return 0;
@@ -938,7 +938,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
 
         if (!simulate) {
             if (this.storedIchor.isEmpty()) {
-                this.storedIchor = new VisIchorStack(resource.getType(), amountToFill);
+                this.storedIchor = new MateriaLiquidaStack(resource.getType(), amountToFill);
             } else {
                 this.storedIchor.grow(amountToFill);
             }
@@ -951,16 +951,16 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
     }
 
     @Override
-    public VisIchorStack drainIchor(int maxDrain, boolean simulate) {
-        if (!this.isFormed || this.storedIchor.isEmpty() || maxDrain <= 0) return VisIchorStack.EMPTY;
+    public MateriaLiquidaStack drainLiquid(int maxDrain, boolean simulate) {
+        if (!this.isFormed || this.storedIchor.isEmpty() || maxDrain <= 0) return MateriaLiquidaStack.EMPTY;
 
         int amountToDrain = Math.min(this.storedIchor.getAmount(), maxDrain);
-        VisIchorStack drained = new VisIchorStack(this.storedIchor.getType(), amountToDrain);
+        MateriaLiquidaStack drained = new MateriaLiquidaStack(this.storedIchor.getType(), amountToDrain);
 
         if (!simulate) {
             this.storedIchor.shrink(amountToDrain);
             if (this.storedIchor.getAmount() <= 0) {
-                this.storedIchor = VisIchorStack.EMPTY;
+                this.storedIchor = MateriaLiquidaStack.EMPTY;
             }
             this.setChanged();
             if (this.level != null && !this.level.isClientSide()) {
@@ -1053,16 +1053,16 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IFumeHandler
         String fumeTypeStr = input.read("FumeType", Codec.STRING).orElse("");
         int fumeAmt = input.read("FumeAmount", Codec.INT).orElse(0);
         if (!fumeTypeStr.isEmpty() && fumeAmt > 0) {
-            try { this.storedFume = new VisFumeStack(EssenceType.valueOf(fumeTypeStr), fumeAmt); }
-            catch (IllegalArgumentException e) { this.storedFume = VisFumeStack.EMPTY; }
-        } else { this.storedFume = VisFumeStack.EMPTY; }
+            try { this.storedFume = new MateriaFumusStack(EssenceType.valueOf(fumeTypeStr), fumeAmt); }
+            catch (IllegalArgumentException e) { this.storedFume = MateriaFumusStack.EMPTY; }
+        } else { this.storedFume = MateriaFumusStack.EMPTY; }
 
         String ichorTypeStr = input.read("IchorType", Codec.STRING).orElse("");
         int ichorAmt = input.read("IchorAmount", Codec.INT).orElse(0);
         if (!ichorTypeStr.isEmpty() && ichorAmt > 0) {
-            try { this.storedIchor = new VisIchorStack(EssenceType.valueOf(ichorTypeStr), ichorAmt); }
-            catch (IllegalArgumentException e) { this.storedIchor = VisIchorStack.EMPTY; }
-        } else { this.storedIchor = VisIchorStack.EMPTY; }
+            try { this.storedIchor = new MateriaLiquidaStack(EssenceType.valueOf(ichorTypeStr), ichorAmt); }
+            catch (IllegalArgumentException e) { this.storedIchor = MateriaLiquidaStack.EMPTY; }
+        } else { this.storedIchor = MateriaLiquidaStack.EMPTY; }
     }
 
     @Override

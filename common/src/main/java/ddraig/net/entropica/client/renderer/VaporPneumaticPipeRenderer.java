@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.block.VaporPneumaticDiverterBlock;
 import ddraig.net.entropica.block.VaporPneumaticOneWayValveBlock;
 import ddraig.net.entropica.block.VaporPneumaticPipeBlock;
@@ -65,7 +66,7 @@ public class VaporPneumaticPipeRenderer implements BlockEntityRenderer<VaporPneu
                                    Vec3 cameraPos, @Nullable ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
         BlockEntityRenderState.extractBase(be, state, crumblingOverlay);
 
-        MateriaFumusStack fumeStack = be.getMateriaInTank();
+        MateriaStack fumeStack = be.getMateriaInTank();
 
         if (fumeStack.isEmpty()) {
             state.type = null;

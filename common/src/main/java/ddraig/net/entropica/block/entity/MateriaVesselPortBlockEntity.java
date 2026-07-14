@@ -3,6 +3,7 @@ package ddraig.net.entropica.block.entity;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.IVaporMultiblockController;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -87,7 +88,7 @@ public class MateriaVesselPortBlockEntity extends BlockEntity implements IVaporH
 
     // --- PROXY FUME HANDLER ---
     @Override
-    public int fill(MateriaFumusStack resource, boolean simulate) {
+    public int fill(MateriaStack resource, boolean simulate) {
         if (this.mode != PortMode.INPUT) return 0; // Reject if we are an output port
         IVaporHandler handler = getControllerHandler();
         if (handler != null) {
@@ -97,7 +98,7 @@ public class MateriaVesselPortBlockEntity extends BlockEntity implements IVaporH
     }
 
     @Override
-    public MateriaFumusStack drain(int maxDrain, boolean simulate) {
+    public MateriaStack drain(int maxDrain, boolean simulate) {
         if (this.mode != PortMode.OUTPUT) return MateriaFumusStack.EMPTY; // Reject if we are an input port
         IVaporHandler handler = getControllerHandler();
         if (handler != null) {
@@ -107,7 +108,7 @@ public class MateriaVesselPortBlockEntity extends BlockEntity implements IVaporH
     }
 
     @Override
-    public MateriaFumusStack getMateriaInTank() {
+    public MateriaStack getMateriaInTank() {
         IVaporHandler handler = getControllerHandler();
         if (handler != null) {
             return handler.getMateriaInTank();

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "entropica:block/hydraulic_input_port"
+    }
+  }
+}

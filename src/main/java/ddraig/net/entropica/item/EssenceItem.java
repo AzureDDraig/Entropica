@@ -69,13 +69,11 @@ public class EssenceItem extends Item {
         return super.getName(stack);
     }
 
-    @Override
     public boolean hasCustomEntity(ItemStack stack) {
         return true;
     }
 
     @Nullable
-    @Override
     public Entity createEntity(Level level, Entity location, ItemStack stack) {
         if (location instanceof ItemEntity vanillaEntity) {
             EssenceOrbEntity orb = new EssenceOrbEntity(level, vanillaEntity.getX(), vanillaEntity.getY(), vanillaEntity.getZ(), stack);
