@@ -40,6 +40,13 @@ public class CreativeParticleGeneratorRenderer implements BlockEntityRenderer<Cr
         for (int i = -2; i <= 2; i++) {
             state.displayNames[i + 2] = be.getParticleNameOffset(i);
         }
+
+        Minecraft mc = Minecraft.getInstance();
+        boolean hovered = false;
+        if (mc.hitResult instanceof BlockHitResult bhr) {
+            hovered = bhr.getBlockPos().equals(state.worldPos);
+        }
+        state.isHovered = hovered;
     }
 
     @Override
@@ -49,13 +56,7 @@ public class CreativeParticleGeneratorRenderer implements BlockEntityRenderer<Cr
         Minecraft mc = Minecraft.getInstance();
         MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
 
-        // Safely check if the player is looking directly at this specific generator
-        boolean isHovered = false;
-        if (mc.hitResult instanceof BlockHitResult bhr) {
-            isHovered = bhr.getBlockPos().equals(state.worldPos);
-        }
-
-        int listRange = isHovered ? 2 : 0;
+        int listRange = state.isHovered ? 2 : 0;
 
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             poseStack.pushPose();
@@ -109,10 +110,14 @@ public class CreativeParticleGeneratorRenderer implements BlockEntityRenderer<Cr
 
             poseStack.popPose();
         }
+
+        // Flush the buffer to force the text to draw to the screen!
+        bufferSource.endBatch();
     }
 
     public static class ParticleRenderState extends BlockEntityRenderState {
         public String[] displayNames = new String[5];
         public BlockPos worldPos;
+        public boolean isHovered;
     }
 }

@@ -69,6 +69,10 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("creative_materia_generator", () ->
                     BlockEntityHelper.create(CreativeMateriaGeneratorBlockEntity::new, ModBlocks.CREATIVE_MATERIA_GENERATOR.get()));
 
+    public static final RegistrySupplier<BlockEntityType<MateriaPumpBlockEntity>> MATERIA_PUMP_BE =
+            BLOCK_ENTITIES.register("materia_pump", () ->
+                    BlockEntityHelper.create(MateriaPumpBlockEntity::new, ModBlocks.MATERIA_PUMP.get()));
+
     // --- VAPOR PNEUMATIC PIPES (T2/T3 — Mfum/Msub) ---
     // All 10 tiers share one BE class; instance type is resolved via registry path at runtime
     public static final RegistrySupplier<BlockEntityType<VaporPneumaticPipeBlockEntity>> VAPOR_PNEUMATIC_PIPE_BE =

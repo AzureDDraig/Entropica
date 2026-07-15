@@ -1,23 +1,77 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:centipede",
-    "alexsmobs:cockroach",
-    "alexsmobs:fly",
-    "alexsmobs:leafcutter_ant",
-    "alexsmobs:tarantula_hawk",
-    "twilightforest:hedge_spider",
-    "twilightforest:swarm_spider",
-    "twilightforest:king_spider",
-    "twilightforest:minotaur",
-    "twilightforest:minoshroom",
-    "twilightforest:hydra",
-    "twilightforest:slime_beetle",
-    "twilightforest:pinch_beetle",
-    "twilightforest:mosquito_swarm",
-    "aether:cockatrice",
-    "aether:mimic",
-    "moreaxolotlvariants:axolotl",
-    "enderzoology:concussion_creeper"
+    {
+      "id": "alexsmobs:centipede",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:cockroach",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:fly",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:leafcutter_ant",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:tarantula_hawk",
+      "required": false
+    },
+    {
+      "id": "twilightforest:hedge_spider",
+      "required": false
+    },
+    {
+      "id": "twilightforest:swarm_spider",
+      "required": false
+    },
+    {
+      "id": "twilightforest:king_spider",
+      "required": false
+    },
+    {
+      "id": "twilightforest:minotaur",
+      "required": false
+    },
+    {
+      "id": "twilightforest:minoshroom",
+      "required": false
+    },
+    {
+      "id": "twilightforest:hydra",
+      "required": false
+    },
+    {
+      "id": "twilightforest:slime_beetle",
+      "required": false
+    },
+    {
+      "id": "twilightforest:pinch_beetle",
+      "required": false
+    },
+    {
+      "id": "twilightforest:mosquito_swarm",
+      "required": false
+    },
+    {
+      "id": "aether:cockatrice",
+      "required": false
+    },
+    {
+      "id": "aether:mimic",
+      "required": false
+    },
+    {
+      "id": "moreaxolotlvariants:axolotl",
+      "required": false
+    },
+    {
+      "id": "enderzoology:concussion_creeper",
+      "required": false
+    }
   ]
 }

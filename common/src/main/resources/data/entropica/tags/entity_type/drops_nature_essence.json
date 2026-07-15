@@ -1,15 +1,45 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:capuchin_monkey",
-    "alexsmobs:gorilla",
-    "twilightforest:naga",
-    "twilightforest:quest_ram",
-    "aether:aechor_plant",
-    "aether:carrion_sprout",
-    "friendsandfoes:moobloom",
-    "mowziesmobs:foliaath",
-    "mowziesmobs:frostmaw",
-    "enderzoology:owl"
+    {
+      "id": "alexsmobs:capuchin_monkey",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:gorilla",
+      "required": false
+    },
+    {
+      "id": "twilightforest:naga",
+      "required": false
+    },
+    {
+      "id": "twilightforest:quest_ram",
+      "required": false
+    },
+    {
+      "id": "aether:aechor_plant",
+      "required": false
+    },
+    {
+      "id": "aether:carrion_sprout",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:moobloom",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:foliaath",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:frostmaw",
+      "required": false
+    },
+    {
+      "id": "enderzoology:owl",
+      "required": false
+    }
   ]
 }

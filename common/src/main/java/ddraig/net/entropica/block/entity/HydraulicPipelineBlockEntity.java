@@ -3,8 +3,11 @@ package ddraig.net.entropica.block.entity;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.ILiquidMateriaHandler;
 import ddraig.net.entropica.api.materia.MateriaLiquidaStack;
+import ddraig.net.entropica.api.pressure.PressureNetworkManager;
+import ddraig.net.entropica.api.pressure.PressureNetworkHelper;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -17,9 +20,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class HydraulicPipelineBlockEntity extends BlockEntity implements ILiquidMateriaHandler {
 
-    private static final int CAPACITY = 64;
+
 
     protected MateriaLiquidaStack storedLiquid = MateriaLiquidaStack.EMPTY;
+    private boolean managedByGraph = false;
+    private Direction activeBoostDirection = null;
+    private float activeBoostStrength = 0.0f;
+    private boolean firstTick = true;
 
     public HydraulicPipelineBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.HYDRAULIC_PIPELINE_BE.get(), pos, state);
@@ -27,7 +34,55 @@ public class HydraulicPipelineBlockEntity extends BlockEntity implements ILiquid
 
     @Override
     public int getCapacity() {
-        return CAPACITY;
+        return PressureNetworkHelper.getConduitCapacity(this.getBlockState(), 1);
+    }
+
+    @Override
+    public int getTransferRate() {
+        return PressureNetworkHelper.getConduitTransferRate(this.getBlockState(), 1, this.storedLiquid.getAmount());
+    }
+
+    @Override
+    public float getResistance() {
+        return PressureNetworkHelper.getConduitResistance(this.getBlockState(), 0.04f); // Viscosity friction
+    }
+
+    @Override
+    public boolean isManagedByGraph() {
+        return this.managedByGraph;
+    }
+
+    @Override
+    public void setManagedByGraph(boolean managed) {
+        this.managedByGraph = managed;
+    }
+
+    @Override
+    public void applyActiveBoost(Direction direction, float strength) {
+        this.activeBoostDirection = direction;
+        this.activeBoostStrength = strength;
+    }
+
+    @Override
+    public Direction getActiveBoostDirection() {
+        return this.activeBoostDirection;
+    }
+
+    @Override
+    public float getActiveBoostStrength() {
+        return this.activeBoostStrength;
+    }
+
+    @Override
+    public void clearActiveBoost() {
+        this.activeBoostDirection = null;
+        this.activeBoostStrength = 0.0f;
+    }
+
+    @Override
+    public void setRemoved() {
+        PressureNetworkManager.onBlockEntityRemoved(this);
+        super.setRemoved();
     }
 
     @Override
@@ -42,7 +97,7 @@ public class HydraulicPipelineBlockEntity extends BlockEntity implements ILiquid
         if (!this.storedLiquid.isEmpty() && !this.storedLiquid.is(resource.getType())) return 0;
 
         int currentAmount = this.storedLiquid.getAmount();
-        int space = Math.max(0, CAPACITY - currentAmount);
+        int space = Math.max(0, getCapacity() - currentAmount);
         int accepted = Math.min(space, resource.getAmount());
 
         if (!simulate && accepted > 0) {
@@ -75,10 +130,18 @@ public class HydraulicPipelineBlockEntity extends BlockEntity implements ILiquid
         return result;
     }
 
-    // Currently a passive conduit — fluid only moves when driven by an external pump.
     public void tick(Level level, BlockPos pos, BlockState state) {
         if (level.isClientSide()) return;
-        // Future: pump-driven transfer logic
+
+        if (firstTick) {
+            firstTick = false;
+            PressureNetworkManager.onBlockAdded(level, pos, this);
+        }
+
+        PressureNetworkManager.tick(level);
+        if (!isManagedByGraph()) {
+            PressureNetworkHelper.tickLocalEqualization(level, pos, this);
+        }
     }
 
     @Override

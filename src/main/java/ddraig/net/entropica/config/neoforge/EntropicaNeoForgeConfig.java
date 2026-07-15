@@ -41,6 +41,36 @@ public class EntropicaNeoForgeConfig {
     public static ModConfigSpec.IntValue CHARGED_RESONITE_PIPE_CAPACITY;
     public static ModConfigSpec.IntValue CHARGED_RESONITE_PIPE_TRANSFER_RATE;
 
+    public static final ModConfigSpec.IntValue CONDUIT_BASE_SAFE_CAPACITY;
+    public static final ModConfigSpec.DoubleValue CHARGED_CONDUIT_CAPACITY_MULTIPLIER;
+    public static final ModConfigSpec.IntValue CONDUIT_UNCHARGED_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue CONDUIT_CHARGED_TRANSFER_RATE;
+
+    public static final ModConfigSpec.IntValue CAPUTITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue CAPUTITE_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue CHARGED_CAPUTITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue CHARGED_CAPUTITE_PIPE_TRANSFER_RATE;
+
+    public static final ModConfigSpec.IntValue SANGUINITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue SANGUINITE_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue CHARGED_SANGUINITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue CHARGED_SANGUINITE_PIPE_TRANSFER_RATE;
+
+    public static final ModConfigSpec.IntValue MERCURITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue MERCURITE_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue CHARGED_MERCURITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue CHARGED_MERCURITE_PIPE_TRANSFER_RATE;
+
+    public static final ModConfigSpec.IntValue EUCLIDITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue EUCLIDITE_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue CHARGED_EUCLIDITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue CHARGED_EUCLIDITE_PIPE_TRANSFER_RATE;
+
+    public static final ModConfigSpec.IntValue ATHANORITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue ATHANORITE_PIPE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue CHARGED_ATHANORITE_PIPE_CAPACITY;
+    public static final ModConfigSpec.IntValue CHARGED_ATHANORITE_PIPE_TRANSFER_RATE;
+
     public static final ModConfigSpec.IntValue MATERIA_FUMUS_TRANSFER_RATE;
     public static final ModConfigSpec.IntValue MATERIA_FUMUS_TICK_RATE;
     public static final ModConfigSpec.IntValue VAPOR_PNEUMATIC_DIVERTER_CAPACITY;
@@ -149,6 +179,36 @@ public class EntropicaNeoForgeConfig {
         GOLD_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Gold Vapor Pneumatic Pipe").defineInRange("goldPipeTransferRate", 50, 1, Integer.MAX_VALUE);
         CHARGED_RESONITE_PIPE_CAPACITY = BUILDER.comment("Capacity for Charged Resonite Vapor Pneumatic Pipe").defineInRange("chargedResonitePipeCapacity", 50000, 1, Integer.MAX_VALUE);
         CHARGED_RESONITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Charged Resonite Vapor Pneumatic Pipe").defineInRange("chargedResonitePipeTransferRate", 5000, 1, Integer.MAX_VALUE);
+
+        CONDUIT_BASE_SAFE_CAPACITY = BUILDER.comment("Base safe capacity for all uncharged conduits (Hydraulic to Athanor). Min: 1, Default: 4000").defineInRange("conduitBaseSafeCapacity", 4000, 1, Integer.MAX_VALUE);
+        CHARGED_CONDUIT_CAPACITY_MULTIPLIER = BUILDER.comment("Capacity multiplier for all charged conduits. Default: 1.25").defineInRange("chargedConduitCapacityMultiplier", 1.25, 0.01, 1000.0);
+        CONDUIT_UNCHARGED_TRANSFER_RATE = BUILDER.comment("Base transfer rate for uncharged conduits. Default: 20").defineInRange("conduitUnchargedTransferRate", 20, 1, Integer.MAX_VALUE);
+        CONDUIT_CHARGED_TRANSFER_RATE = BUILDER.comment("Base transfer rate for charged conduits. Default: 200").defineInRange("conduitChargedTransferRate", 200, 1, Integer.MAX_VALUE);
+
+        CAPUTITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Caputite Fume Pipes. Default: 8000").defineInRange("caputitePipeCapacity", 8000, 1, Integer.MAX_VALUE);
+        CAPUTITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Caputite Fume Pipes. Default: 40").defineInRange("caputitePipeTransferRate", 40, 1, Integer.MAX_VALUE);
+        CHARGED_CAPUTITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Charged Caputite Fume Pipes. Default: 24000").defineInRange("chargedCaputitePipeCapacity", 24000, 1, Integer.MAX_VALUE);
+        CHARGED_CAPUTITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Charged Caputite Fume Pipes. Default: 400").defineInRange("chargedCaputitePipeTransferRate", 400, 1, Integer.MAX_VALUE);
+
+        SANGUINITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Sanguinite Fume Pipes. Default: 16000").defineInRange("sanguinitePipeCapacity", 16000, 1, Integer.MAX_VALUE);
+        SANGUINITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Sanguinite Fume Pipes. Default: 80").defineInRange("sanguinitePipeTransferRate", 80, 1, Integer.MAX_VALUE);
+        CHARGED_SANGUINITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Charged Sanguinite Fume Pipes. Default: 48000").defineInRange("chargedSanguinitePipeCapacity", 48000, 1, Integer.MAX_VALUE);
+        CHARGED_SANGUINITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Charged Sanguinite Fume Pipes. Default: 800").defineInRange("chargedSanguinitePipeTransferRate", 800, 1, Integer.MAX_VALUE);
+
+        MERCURITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Mercurite Fume Pipes. Default: 32000").defineInRange("mercuritePipeCapacity", 32000, 1, Integer.MAX_VALUE);
+        MERCURITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Mercurite Fume Pipes. Default: 160").defineInRange("mercuritePipeTransferRate", 160, 1, Integer.MAX_VALUE);
+        CHARGED_MERCURITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Charged Mercurite Fume Pipes. Default: 96000").defineInRange("chargedMercuritePipeCapacity", 96000, 1, Integer.MAX_VALUE);
+        CHARGED_MERCURITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Charged Mercurite Fume Pipes. Default: 1600").defineInRange("chargedMercuritePipeTransferRate", 1600, 1, Integer.MAX_VALUE);
+
+        EUCLIDITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Euclidite Fume Pipes. Default: 64000").defineInRange("eucliditePipeCapacity", 64000, 1, Integer.MAX_VALUE);
+        EUCLIDITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Euclidite Fume Pipes. Default: 320").defineInRange("eucliditePipeTransferRate", 320, 1, Integer.MAX_VALUE);
+        CHARGED_EUCLIDITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Charged Euclidite Fume Pipes. Default: 192000").defineInRange("chargedEucliditePipeCapacity", 192000, 1, Integer.MAX_VALUE);
+        CHARGED_EUCLIDITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Charged Euclidite Fume Pipes. Default: 3200").defineInRange("chargedEucliditePipeTransferRate", 3200, 1, Integer.MAX_VALUE);
+
+        ATHANORITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Athanorite Fume Pipes. Default: 128000").defineInRange("athanoritePipeCapacity", 128000, 1, Integer.MAX_VALUE);
+        ATHANORITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Athanorite Fume Pipes. Default: 640").defineInRange("athanoritePipeTransferRate", 640, 1, Integer.MAX_VALUE);
+        CHARGED_ATHANORITE_PIPE_CAPACITY = BUILDER.comment("Safe capacity for Charged Athanorite Fume Pipes. Default: 384000").defineInRange("chargedAthanoritePipeCapacity", 384000, 1, Integer.MAX_VALUE);
+        CHARGED_ATHANORITE_PIPE_TRANSFER_RATE = BUILDER.comment("Transfer rate for Charged Athanorite Fume Pipes. Default: 6400").defineInRange("chargedAthanoritePipeTransferRate", 6400, 1, Integer.MAX_VALUE);
 
         MATERIA_FUMUS_TRANSFER_RATE = BUILDER.comment("Base transfer rate for generators and machines pushing Fumes into the network. Min: 1, Max: 2147483647, Default: 100")
                 .translation("entropica.configuration.vis_fume_network_settings.transferRate")

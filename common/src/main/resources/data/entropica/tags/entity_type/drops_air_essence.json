@@ -1,33 +1,117 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:bald_eagle",
-    "alexsmobs:crow",
-    "alexsmobs:flutter",
-    "alexsmobs:hummingbird",
-    "alexsmobs:seagull",
-    "alexsmobs:toucan",
-    "alexsmobs:sunbird",
-    "alexsmobs:potoo",
-    "twilightforest:tiny_bird",
-    "twilightforest:forest_raven",
-    "naturalist:bird",
-    "naturalist:canary",
-    "naturalist:cardinal",
-    "naturalist:robin",
-    "naturalist:bluejay",
-    "tconstruct:sky_slime",
-    "aether:aerwhale",
-    "aether:flying_cow",
-    "aether:zephyr",
-    "aether:zephyroo",
-    "aether:moa",
-    "aether:tempest",
-    "aether:aerbunny",
-    "aether:phyg",
-    "mowziesmobs:naga",
-    "enderzoology:owl",
-    "biomeswevegone:blue_jay",
-    "biomeswevegone:cardinal"
+    {
+      "id": "alexsmobs:bald_eagle",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:crow",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:flutter",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:hummingbird",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:seagull",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:toucan",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:sunbird",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:potoo",
+      "required": false
+    },
+    {
+      "id": "twilightforest:tiny_bird",
+      "required": false
+    },
+    {
+      "id": "twilightforest:forest_raven",
+      "required": false
+    },
+    {
+      "id": "naturalist:bird",
+      "required": false
+    },
+    {
+      "id": "naturalist:canary",
+      "required": false
+    },
+    {
+      "id": "naturalist:cardinal",
+      "required": false
+    },
+    {
+      "id": "naturalist:robin",
+      "required": false
+    },
+    {
+      "id": "naturalist:bluejay",
+      "required": false
+    },
+    {
+      "id": "tconstruct:sky_slime",
+      "required": false
+    },
+    {
+      "id": "aether:aerwhale",
+      "required": false
+    },
+    {
+      "id": "aether:flying_cow",
+      "required": false
+    },
+    {
+      "id": "aether:zephyr",
+      "required": false
+    },
+    {
+      "id": "aether:zephyroo",
+      "required": false
+    },
+    {
+      "id": "aether:moa",
+      "required": false
+    },
+    {
+      "id": "aether:tempest",
+      "required": false
+    },
+    {
+      "id": "aether:aerbunny",
+      "required": false
+    },
+    {
+      "id": "aether:phyg",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:naga",
+      "required": false
+    },
+    {
+      "id": "enderzoology:owl",
+      "required": false
+    },
+    {
+      "id": "biomeswevegone:blue_jay",
+      "required": false
+    },
+    {
+      "id": "biomeswevegone:cardinal",
+      "required": false
+    }
   ]
 }

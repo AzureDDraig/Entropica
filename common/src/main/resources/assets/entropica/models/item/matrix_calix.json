@@ -1,3 +1,6 @@
 {
-  "parent": "entropica:block/matrix_calix"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:item/matrix_calix"
+  }
 }

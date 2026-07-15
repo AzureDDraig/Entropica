@@ -1,7 +1,13 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:farseer",
-    "twilightforest:lich"
+    {
+      "id": "alexsmobs:farseer",
+      "required": false
+    },
+    {
+      "id": "twilightforest:lich",
+      "required": false
+    }
   ]
 }

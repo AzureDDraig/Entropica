@@ -1,16 +1,49 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:cosmaw",
-    "alexsmobs:cosmic_cod",
-    "alexsmobs:endergrade",
-    "alexsmobs:enderiophage",
-    "alexsmobs:farseer",
-    "alexsmobs:mimic_octopus",
-    "alexsmobs:spectre",
-    "alexsmobs:void_worm",
-    "tconstruct:ender_slime",
-    "enderzoology:concussion_creeper",
-    "enderzoology:enderminy"
+    {
+      "id": "alexsmobs:cosmaw",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:cosmic_cod",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:endergrade",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:enderiophage",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:farseer",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:mimic_octopus",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:spectre",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:void_worm",
+      "required": false
+    },
+    {
+      "id": "tconstruct:ender_slime",
+      "required": false
+    },
+    {
+      "id": "enderzoology:concussion_creeper",
+      "required": false
+    },
+    {
+      "id": "enderzoology:enderminy",
+      "required": false
+    }
   ]
 }

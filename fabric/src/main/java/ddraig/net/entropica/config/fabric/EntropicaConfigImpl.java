@@ -101,6 +101,36 @@ public class EntropicaConfigImpl {
         public IntOption chargedResonitePipeCapacity = new IntOption("Capacity for Charged Resonite Vapor Pneumatic Pipe. Min: 1, Max: 2147483647, Default: 500", 1, Integer.MAX_VALUE, 500);
         public IntOption chargedResonitePipeTransferRate = new IntOption("Transfer rate for Charged Resonite Vapor Pneumatic Pipe. Min: 1, Max: 2147483647, Default: 5000", 1, Integer.MAX_VALUE, 5000);
 
+        public IntOption conduitBaseSafeCapacity = new IntOption("Base safe capacity for all uncharged conduits. Min: 1, Default: 4000", 1, Integer.MAX_VALUE, 4000);
+        public DoubleOption chargedConduitCapacityMultiplier = new DoubleOption("Capacity multiplier for all charged conduits. Default: 1.25", 0.01, 1000.0, 1.25);
+        public IntOption conduitUnchargedTransferRate = new IntOption("Base transfer rate for uncharged conduits. Default: 20", 1, Integer.MAX_VALUE, 20);
+        public IntOption conduitChargedTransferRate = new IntOption("Base transfer rate for charged conduits. Default: 200", 1, Integer.MAX_VALUE, 200);
+
+        public IntOption caputitePipeCapacity = new IntOption("Safe capacity for Caputite Fume Pipes. Default: 8000", 1, Integer.MAX_VALUE, 8000);
+        public IntOption caputitePipeTransferRate = new IntOption("Transfer rate for Caputite Fume Pipes. Default: 40", 1, Integer.MAX_VALUE, 40);
+        public IntOption chargedCaputitePipeCapacity = new IntOption("Safe capacity for Charged Caputite Fume Pipes. Default: 24000", 1, Integer.MAX_VALUE, 24000);
+        public IntOption chargedCaputitePipeTransferRate = new IntOption("Transfer rate for Charged Caputite Fume Pipes. Default: 400", 1, Integer.MAX_VALUE, 400);
+
+        public IntOption sanguinitePipeCapacity = new IntOption("Safe capacity for Sanguinite Fume Pipes. Default: 16000", 1, Integer.MAX_VALUE, 16000);
+        public IntOption sanguinitePipeTransferRate = new IntOption("Transfer rate for Sanguinite Fume Pipes. Default: 80", 1, Integer.MAX_VALUE, 80);
+        public IntOption chargedSanguinitePipeCapacity = new IntOption("Safe capacity for Charged Sanguinite Fume Pipes. Default: 48000", 1, Integer.MAX_VALUE, 48000);
+        public IntOption chargedSanguinitePipeTransferRate = new IntOption("Transfer rate for Charged Sanguinite Fume Pipes. Default: 800", 1, Integer.MAX_VALUE, 800);
+
+        public IntOption mercuritePipeCapacity = new IntOption("Safe capacity for Mercurite Fume Pipes. Default: 32000", 1, Integer.MAX_VALUE, 32000);
+        public IntOption mercuritePipeTransferRate = new IntOption("Transfer rate for Mercurite Fume Pipes. Default: 160", 1, Integer.MAX_VALUE, 160);
+        public IntOption chargedMercuritePipeCapacity = new IntOption("Safe capacity for Charged Mercurite Fume Pipes. Default: 96000", 1, Integer.MAX_VALUE, 96000);
+        public IntOption chargedMercuritePipeTransferRate = new IntOption("Transfer rate for Charged Mercurite Fume Pipes. Default: 1600", 1, Integer.MAX_VALUE, 1600);
+
+        public IntOption eucliditePipeCapacity = new IntOption("Safe capacity for Euclidite Fume Pipes. Default: 64000", 1, Integer.MAX_VALUE, 64000);
+        public IntOption eucliditePipeTransferRate = new IntOption("Transfer rate for Euclidite Fume Pipes. Default: 320", 1, Integer.MAX_VALUE, 320);
+        public IntOption chargedEucliditePipeCapacity = new IntOption("Safe capacity for Charged Euclidite Fume Pipes. Default: 192000", 1, Integer.MAX_VALUE, 192000);
+        public IntOption chargedEucliditePipeTransferRate = new IntOption("Transfer rate for Charged Euclidite Fume Pipes. Default: 3200", 1, Integer.MAX_VALUE, 3200);
+
+        public IntOption athanoritePipeCapacity = new IntOption("Safe capacity for Athanorite Fume Pipes. Default: 128000", 1, Integer.MAX_VALUE, 128000);
+        public IntOption athanoritePipeTransferRate = new IntOption("Transfer rate for Athanorite Fume Pipes. Default: 640", 1, Integer.MAX_VALUE, 640);
+        public IntOption chargedAthanoritePipeCapacity = new IntOption("Safe capacity for Charged Athanorite Fume Pipes. Default: 384000", 1, Integer.MAX_VALUE, 384000);
+        public IntOption chargedAthanoritePipeTransferRate = new IntOption("Transfer rate for Charged Athanorite Fume Pipes. Default: 6400", 1, Integer.MAX_VALUE, 6400);
+
         public IntOption materiaFumusTransferRate = new IntOption("Base transfer rate for generators and machines pushing Fumes into the network. Min: 1, Max: 2147483647, Default: 100", 1, Integer.MAX_VALUE, 100);
         public IntOption materiaFumusTickRate = new IntOption("How many ticks between each gas transfer operation in the pipe network. Min: 1, Max: 200, Default: 5", 1, 200, 5);
         public IntOption vaporPneumaticDiverterCapacity = new IntOption("Maximum amount of Vis Fumes a Diverter block can safely process. Min: 1, Max: 2147483647, Default: 2500", 1, Integer.MAX_VALUE, 2500);
@@ -158,6 +188,36 @@ public class EntropicaConfigImpl {
             goldPipeTransferRate.validate();
             chargedResonitePipeCapacity.validate();
             chargedResonitePipeTransferRate.validate();
+
+            conduitBaseSafeCapacity.validate();
+            chargedConduitCapacityMultiplier.validate();
+            conduitUnchargedTransferRate.validate();
+            conduitChargedTransferRate.validate();
+
+            caputitePipeCapacity.validate();
+            caputitePipeTransferRate.validate();
+            chargedCaputitePipeCapacity.validate();
+            chargedCaputitePipeTransferRate.validate();
+
+            sanguinitePipeCapacity.validate();
+            sanguinitePipeTransferRate.validate();
+            chargedSanguinitePipeCapacity.validate();
+            chargedSanguinitePipeTransferRate.validate();
+
+            mercuritePipeCapacity.validate();
+            mercuritePipeTransferRate.validate();
+            chargedMercuritePipeCapacity.validate();
+            chargedMercuritePipeTransferRate.validate();
+
+            eucliditePipeCapacity.validate();
+            eucliditePipeTransferRate.validate();
+            chargedEucliditePipeCapacity.validate();
+            chargedEucliditePipeTransferRate.validate();
+
+            athanoritePipeCapacity.validate();
+            athanoritePipeTransferRate.validate();
+            chargedAthanoritePipeCapacity.validate();
+            chargedAthanoritePipeTransferRate.validate();
             materiaFumusTransferRate.validate();
             materiaFumusTickRate.validate();
             vaporPneumaticDiverterCapacity.validate();
@@ -264,4 +324,34 @@ public class EntropicaConfigImpl {
     public static boolean getNodeInfiniteCapacity() { return data.nodeInfiniteCapacity.value; }
     public static int getNodeSpawnSpacing() { return data.nodeSpawnSpacing.value; }
     public static int getNodeMaxPerArea() { return data.nodeMaxPerArea.value; }
+
+    public static int getConduitBaseSafeCapacity() { return data.conduitBaseSafeCapacity.value; }
+    public static double getChargedConduitCapacityMultiplier() { return data.chargedConduitCapacityMultiplier.value; }
+    public static int getConduitUnchargedTransferRate() { return data.conduitUnchargedTransferRate.value; }
+    public static int getConduitChargedTransferRate() { return data.conduitChargedTransferRate.value; }
+
+    public static int getCaputitePipeCapacity() { return data.caputitePipeCapacity.value; }
+    public static int getCaputitePipeTransferRate() { return data.caputitePipeTransferRate.value; }
+    public static int getChargedCaputitePipeCapacity() { return data.chargedCaputitePipeCapacity.value; }
+    public static int getChargedCaputitePipeTransferRate() { return data.chargedCaputitePipeTransferRate.value; }
+
+    public static int getSanguinitePipeCapacity() { return data.sanguinitePipeCapacity.value; }
+    public static int getSanguinitePipeTransferRate() { return data.sanguinitePipeTransferRate.value; }
+    public static int getChargedSanguinitePipeCapacity() { return data.chargedSanguinitePipeCapacity.value; }
+    public static int getChargedSanguinitePipeTransferRate() { return data.chargedSanguinitePipeTransferRate.value; }
+
+    public static int getMercuritePipeCapacity() { return data.mercuritePipeCapacity.value; }
+    public static int getMercuritePipeTransferRate() { return data.mercuritePipeTransferRate.value; }
+    public static int getChargedMercuritePipeCapacity() { return data.chargedMercuritePipeCapacity.value; }
+    public static int getChargedMercuritePipeTransferRate() { return data.chargedMercuritePipeTransferRate.value; }
+
+    public static int getEucliditePipeCapacity() { return data.eucliditePipeCapacity.value; }
+    public static int getEucliditePipeTransferRate() { return data.eucliditePipeTransferRate.value; }
+    public static int getChargedEucliditePipeCapacity() { return data.chargedEucliditePipeCapacity.value; }
+    public static int getChargedEucliditePipeTransferRate() { return data.chargedEucliditePipeTransferRate.value; }
+
+    public static int getAthanoritePipeCapacity() { return data.athanoritePipeCapacity.value; }
+    public static int getAthanoritePipeTransferRate() { return data.athanoritePipeTransferRate.value; }
+    public static int getChargedAthanoritePipeCapacity() { return data.chargedAthanoritePipeCapacity.value; }
+    public static int getChargedAthanoritePipeTransferRate() { return data.chargedAthanoritePipeTransferRate.value; }
 }

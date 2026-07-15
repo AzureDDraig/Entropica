@@ -33,6 +33,9 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import ddraig.net.entropica.api.pressure.IPressureHandler;
+import ddraig.net.entropica.api.pressure.PressureNetworkManager;
+import ddraig.net.entropica.api.pressure.PressureNetworkHelper;
 
 public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVaporHandler {
 
@@ -40,9 +43,16 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
     private int lastSyncedAmount = -1;
     private EssenceType lastSyncedType = null;
     private boolean isFlushing = false;
+    private boolean firstTick = true;
+
+    private boolean managedByGraph = false;
+    private Direction activeBoostDirection = null;
+    private float activeBoostStrength = 0.0f;
 
     public enum PipeTier {
-        COPPER, IRON, GOLD, ARCANITE, DIAMOND, VISCANITE, RESONITE, CHARGED_ARCANITE, CHARGED_VISCANITE, CHARGED_RESONITE, DEFAULT;
+        COPPER, IRON, GOLD, ARCANITE, DIAMOND, VISCANITE, RESONITE, CHARGED_ARCANITE, CHARGED_VISCANITE, CHARGED_RESONITE,
+        CAPUTITE, CHARGED_CAPUTITE, SANGUINITE, CHARGED_SANGUINITE, MERCURITE, CHARGED_MERCURITE, EUCLIDITE, CHARGED_EUCLIDITE, ATHANORITE, CHARGED_ATHANORITE,
+        DEFAULT;
 
         public int getCapacity() {
             return switch (this) {
@@ -56,6 +66,16 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
                 case CHARGED_ARCANITE -> EntropicaConfig.CHARGED_ARCANITE_PIPE_CAPACITY.get();
                 case CHARGED_VISCANITE -> EntropicaConfig.CHARGED_VISCANITE_PIPE_CAPACITY.get();
                 case CHARGED_RESONITE -> EntropicaConfig.CHARGED_RESONITE_PIPE_CAPACITY.get();
+                case CAPUTITE -> EntropicaConfig.getCaputitePipeCapacity();
+                case CHARGED_CAPUTITE -> EntropicaConfig.getChargedCaputitePipeCapacity();
+                case SANGUINITE -> EntropicaConfig.getSanguinitePipeCapacity();
+                case CHARGED_SANGUINITE -> EntropicaConfig.getChargedSanguinitePipeCapacity();
+                case MERCURITE -> EntropicaConfig.getMercuritePipeCapacity();
+                case CHARGED_MERCURITE -> EntropicaConfig.getChargedMercuritePipeCapacity();
+                case EUCLIDITE -> EntropicaConfig.getEucliditePipeCapacity();
+                case CHARGED_EUCLIDITE -> EntropicaConfig.getChargedEucliditePipeCapacity();
+                case ATHANORITE -> EntropicaConfig.getAthanoritePipeCapacity();
+                case CHARGED_ATHANORITE -> EntropicaConfig.getChargedAthanoritePipeCapacity();
                 default -> 200; // Fallback
             };
         }
@@ -72,9 +92,71 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
                 case CHARGED_ARCANITE -> EntropicaConfig.CHARGED_ARCANITE_PIPE_TRANSFER_RATE.get();
                 case CHARGED_VISCANITE -> EntropicaConfig.CHARGED_VISCANITE_PIPE_TRANSFER_RATE.get();
                 case CHARGED_RESONITE -> EntropicaConfig.CHARGED_RESONITE_PIPE_TRANSFER_RATE.get();
+                case CAPUTITE -> EntropicaConfig.getCaputitePipeTransferRate();
+                case CHARGED_CAPUTITE -> EntropicaConfig.getChargedCaputitePipeTransferRate();
+                case SANGUINITE -> EntropicaConfig.getSanguinitePipeTransferRate();
+                case CHARGED_SANGUINITE -> EntropicaConfig.getChargedSanguinitePipeTransferRate();
+                case MERCURITE -> EntropicaConfig.getMercuritePipeTransferRate();
+                case CHARGED_MERCURITE -> EntropicaConfig.getChargedMercuritePipeTransferRate();
+                case EUCLIDITE -> EntropicaConfig.getEucliditePipeTransferRate();
+                case CHARGED_EUCLIDITE -> EntropicaConfig.getChargedEucliditePipeTransferRate();
+                case ATHANORITE -> EntropicaConfig.getAthanoritePipeTransferRate();
+                case CHARGED_ATHANORITE -> EntropicaConfig.getChargedAthanoritePipeTransferRate();
                 default -> 20; // Fallback
             };
         }
+
+        public float getResistance() {
+            return switch (this) {
+                case COPPER -> 0.05f;
+                case IRON -> 0.03f;
+                case GOLD -> 0.02f;
+                case DIAMOND -> 0.015f;
+                case ARCANITE -> 0.01f;
+                case VISCANITE, RESONITE -> 0.005f;
+                case CAPUTITE, SANGUINITE, MERCURITE, EUCLIDITE, ATHANORITE -> 0.002f;
+                case CHARGED_ARCANITE, CHARGED_VISCANITE, CHARGED_RESONITE,
+                     CHARGED_CAPUTITE, CHARGED_SANGUINITE, CHARGED_MERCURITE, CHARGED_EUCLIDITE, CHARGED_ATHANORITE -> 0.0f;
+                default -> 0.02f;
+            };
+        }
+    }
+
+    @Override
+    public float getResistance() {
+        return getTier().getResistance();
+    }
+
+    @Override
+    public boolean isManagedByGraph() {
+        return this.managedByGraph;
+    }
+
+    @Override
+    public void setManagedByGraph(boolean managed) {
+        this.managedByGraph = managed;
+    }
+
+    @Override
+    public void applyActiveBoost(Direction direction, float strength) {
+        this.activeBoostDirection = direction;
+        this.activeBoostStrength = strength;
+    }
+
+    @Override
+    public Direction getActiveBoostDirection() {
+        return this.activeBoostDirection;
+    }
+
+    @Override
+    public float getActiveBoostStrength() {
+        return this.activeBoostStrength;
+    }
+
+    @Override
+    public void clearActiveBoost() {
+        this.activeBoostDirection = null;
+        this.activeBoostStrength = 0.0f;
     }
 
     public VaporPneumaticPipeBlockEntity(BlockPos pos, BlockState state) {
@@ -93,9 +175,19 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
         if (path.contains("charged_viscanite")) return PipeTier.CHARGED_VISCANITE;
         if (path.contains("charged_arcanite")) return PipeTier.CHARGED_ARCANITE;
         if (path.contains("charged_resonite")) return PipeTier.CHARGED_RESONITE;
+        if (path.contains("charged_athanorite")) return PipeTier.CHARGED_ATHANORITE;
+        if (path.contains("charged_euclidite")) return PipeTier.CHARGED_EUCLIDITE;
+        if (path.contains("charged_mercurite")) return PipeTier.CHARGED_MERCURITE;
+        if (path.contains("charged_sanguinite")) return PipeTier.CHARGED_SANGUINITE;
+        if (path.contains("charged_caputite")) return PipeTier.CHARGED_CAPUTITE;
         if (path.contains("viscanite")) return PipeTier.VISCANITE;
         if (path.contains("resonite")) return PipeTier.RESONITE;
         if (path.contains("arcanite")) return PipeTier.ARCANITE;
+        if (path.contains("athanorite")) return PipeTier.ATHANORITE;
+        if (path.contains("euclidite")) return PipeTier.EUCLIDITE;
+        if (path.contains("mercurite")) return PipeTier.MERCURITE;
+        if (path.contains("sanguinite")) return PipeTier.SANGUINITE;
+        if (path.contains("caputite")) return PipeTier.CAPUTITE;
         if (path.contains("diamond")) return PipeTier.DIAMOND;
         if (path.contains("gold")) return PipeTier.GOLD;
         if (path.contains("iron")) return PipeTier.IRON;
@@ -213,7 +305,11 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
         return false;
     }
 
-    // ==========================================
+    @Override
+    public void setRemoved() {
+        PressureNetworkManager.onBlockEntityRemoved(this);
+        super.setRemoved();
+    }
 
     protected void syncIfNeeded(Level level, BlockPos pos, BlockState state) {
         int currentAmount = storedMateria.isEmpty() ? 0 : storedMateria.getAmount();
@@ -230,147 +326,38 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
     public void tick(Level level, BlockPos pos, BlockState state) {
         if (level.isClientSide()) return;
 
+        if (firstTick) {
+            firstTick = false;
+            PressureNetworkManager.onBlockAdded(level, pos, this);
+        }
+
         syncIfNeeded(level, pos, state);
 
-        int myAmount = this.storedMateria.getAmount();
-        int safeCap = getSafeCapacity();
-        int absoluteCap = getAbsoluteCapacity();
+        PressureNetworkManager.tick(level);
 
-        // 1. CATASTROPHIC FAILURE
-        if (myAmount > absoluteCap) {
-            exhaustBreakBlock((ServerLevel) level, pos);
-            return;
-        }
-
-        // 2. OVERPRESSURE LEAKING (Vis Toxicity)
-        if (myAmount > safeCap) {
-            float overpressureRatio = (float)(myAmount - safeCap) / (absoluteCap - safeCap);
-            // Up to 15% chance to vent every single tick depending on severity
-            if (level.random.nextFloat() < overpressureRatio * 0.15f) {
-                int leakAmount = Math.max(1, (int)(getTransferRate() * 0.2f));
-                ventGasIntoAir((ServerLevel) level, pos, Direction.UP, this.storedMateria, leakAmount);
-                applyVisToxicity((ServerLevel) level, pos);
-                this.storedMateria.shrink(leakAmount);
-                myAmount = this.storedMateria.getAmount();
-                this.setChanged();
-                level.sendBlockUpdated(pos, state, state, 3);
-            }
-        }
-
-        if (storedMateria.isEmpty() || level.getGameTime() % EntropicaConfig.MATERIA_FUMUS_TICK_RATE.get() != 0) {
-            return;
-        }
-
-        List<Direction> activeConnections = getActiveConnections(state);
-        if (activeConnections.isEmpty()) return;
-
-        boolean changed = false;
-        EssenceType type = this.storedMateria.getType();
-        float myPressure = this.getPressure();
-
-        // PURGE LOGIC INTEGRATION
-        boolean beingPurged = isBeingOverpowered();
-        Direction priorityDir = null;
-        if (beingPurged && activeConnections.size() > 1) {
-            priorityDir = findNearestExit(level, pos, 32).orElse(null);
-        }
-
-        // 3. OPEN END VENTING
-        if (activeConnections.size() == 1 && myAmount > 0) {
-            Direction ventDir = activeConnections.get(0).getOpposite();
-
-            if (priorityDir == null || priorityDir == ventDir) {
-                BlockPos airPos = pos.relative(ventDir);
-                if (level.getBlockState(airPos).isAir()) {
-                    int ventAmount = Math.min(myAmount, getTransferRate());
-                    ventGasIntoAir((ServerLevel) level, pos, ventDir, this.storedMateria, ventAmount);
-                    this.storedMateria.shrink(ventAmount);
-                    myAmount -= ventAmount;
-                    myPressure = this.getPressure();
-                    changed = true;
-                }
-            }
-        }
-
-        if (myAmount <= 0) {
-            if (changed) { this.setChanged(); level.sendBlockUpdated(pos, state, state, 3); }
-            return;
-        }
-
-        // Sort connections by neighbor's pressure (lowest first) to flow into emptiest pipes first
-        activeConnections.sort((d1, d2) -> {
-            BlockEntity be1 = level.getBlockEntity(pos.relative(d1));
-            BlockEntity be2 = level.getBlockEntity(pos.relative(d2));
-            float p1 = (be1 instanceof IVaporHandler h1) ? h1.getPressure() : 1.0f;
-            float p2 = (be2 instanceof IVaporHandler h2) ? h2.getPressure() : 1.0f;
-            return Float.compare(p1, p2);
-        });
-
-        // 4. TRANSFER
-        for (Direction dir : activeConnections) {
-            if (priorityDir != null && dir != priorityDir) continue; // Respect purge target direction
-
-            BlockEntity be = level.getBlockEntity(pos.relative(dir));
-
-            // Anti-Backflow check for One-Way Valves
-            if (be instanceof VaporPneumaticOneWayValveBlockEntity oneWay) {
-                if (oneWay.getBlockState().hasProperty(VaporPneumaticOneWayValveBlock.FACING) &&
-                        oneWay.getBlockState().getValue(VaporPneumaticOneWayValveBlock.FACING) == dir.getOpposite()) {
-                    continue;
-                }
-            }
-
-            if (be instanceof IVaporHandler neighbor) {
-                MateriaStack neighborMateria = neighbor.getMateriaInTank();
-
-                if (neighborMateria.isEmpty() || neighborMateria.getType() == type) {
-                    float nPressure = neighbor.getPressure();
-
-                    // OVERRIDE: If being purged, ignore pressure rules and violently force gas out
-                    if (beingPurged) {
-                        int toTransfer = Math.min(myAmount, getTransferRate());
-                        MateriaStack pushStack = this.storedMateria.copy();
-                        pushStack.setAmount(toTransfer);
-                        int accepted = neighbor.fill(pushStack, false);
-                        if (accepted > 0) {
-                            this.storedMateria.shrink(accepted);
-                            myAmount -= accepted;
-                            myPressure = this.getPressure();
-                            changed = true;
-                        }
-                    }
-                    // STANDARD: Smooth Pressure Gradient
-                    else if (myPressure > nPressure) {
-                        int nSafeCap = neighbor.getSafeCapacity();
-
-                        // Calculate perfect equilibrium target
-                        float targetPressure = (float)(myAmount + neighborMateria.getAmount()) / (safeCap + nSafeCap);
-                        int desiredNeighborAmount = (int)(targetPressure * nSafeCap);
-                        int toTransfer = desiredNeighborAmount - neighborMateria.getAmount();
-
-                        toTransfer = Math.min(toTransfer, getTransferRate());
-                        toTransfer = Math.max(1, toTransfer); // Always move at least 1 to resolve rounding stalls
-
-                        if (toTransfer > 0) {
-                            MateriaStack pushStack = this.storedMateria.copy();
-                            pushStack.setAmount(toTransfer);
-                            int accepted = neighbor.fill(pushStack, false);
-                            if (accepted > 0) {
-                                this.storedMateria.shrink(accepted);
-                                myAmount -= accepted;
-                                myPressure = this.getPressure(); // Recalculate my pressure for the next iteration
-                                changed = true;
-                            }
+        // Open-end venting
+        if (!this.storedMateria.isEmpty() && level.getGameTime() % EntropicaConfig.MATERIA_FUMUS_TICK_RATE.get() == 0) {
+            List<Direction> active = getActiveConnections(state);
+            if (active.size() == 1) {
+                Direction ventDir = active.get(0).getOpposite();
+                BlockPos ventPos = pos.relative(ventDir);
+                if (level.getBlockState(ventPos).isAir()) {
+                    if (level instanceof ServerLevel serverLevel) {
+                        int ventAmount = Math.min(this.storedMateria.getAmount(), getTransferRate());
+                        if (ventAmount > 0) {
+                            ventGasIntoAir(serverLevel, pos, ventDir, this.storedMateria, ventAmount);
+                            applyVisToxicity(serverLevel, pos);
+                            this.storedMateria.shrink(ventAmount);
+                            this.setChanged();
+                            level.sendBlockUpdated(pos, state, state, 3);
                         }
                     }
                 }
             }
-            if (myAmount <= 0) break;
         }
 
-        if (changed) {
-            this.setChanged();
-            level.sendBlockUpdated(pos, state, state, 3);
+        if (!isManagedByGraph()) {
+            PressureNetworkHelper.tickLocalEqualization(level, pos, this);
         }
     }
 

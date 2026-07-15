@@ -1,28 +1,97 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:bone_serpent",
-    "alexsmobs:underminer",
-    "alexsmobs:soul_vulture",
-    "alexsmobs:skelewag",
-    "alexsmobs:corpse_fly",
-    "alexsmobs:murmur",
-    "twilightforest:skeleton_druid",
-    "twilightforest:wraith",
-    "twilightforest:death_tome",
-    "twilightforest:lich",
-    "friendsandfoes:zombie_horse",
-    "variantsandventures:gelid",
-    "variantsandventures:thicket",
-    "variantsandventures:verdant",
-    "variantsandventures:murk",
-    "eternalnether:corpor",
-    "eternalnether:wraither",
-    "eternalnether:wex",
-    "eternalnether:wither_skeleton_knight",
-    "enderzoology:fallen_knight",
-    "enderzoology:fallen_mount",
-    "enderzoology:wither_witch",
-    "enderzoology:wither_cat"
+    {
+      "id": "alexsmobs:bone_serpent",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:underminer",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:soul_vulture",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:skelewag",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:corpse_fly",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:murmur",
+      "required": false
+    },
+    {
+      "id": "twilightforest:skeleton_druid",
+      "required": false
+    },
+    {
+      "id": "twilightforest:wraith",
+      "required": false
+    },
+    {
+      "id": "twilightforest:death_tome",
+      "required": false
+    },
+    {
+      "id": "twilightforest:lich",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:zombie_horse",
+      "required": false
+    },
+    {
+      "id": "variantsandventures:gelid",
+      "required": false
+    },
+    {
+      "id": "variantsandventures:thicket",
+      "required": false
+    },
+    {
+      "id": "variantsandventures:verdant",
+      "required": false
+    },
+    {
+      "id": "variantsandventures:murk",
+      "required": false
+    },
+    {
+      "id": "eternalnether:corpor",
+      "required": false
+    },
+    {
+      "id": "eternalnether:wraither",
+      "required": false
+    },
+    {
+      "id": "eternalnether:wex",
+      "required": false
+    },
+    {
+      "id": "eternalnether:wither_skeleton_knight",
+      "required": false
+    },
+    {
+      "id": "enderzoology:fallen_knight",
+      "required": false
+    },
+    {
+      "id": "enderzoology:fallen_mount",
+      "required": false
+    },
+    {
+      "id": "enderzoology:wither_witch",
+      "required": false
+    },
+    {
+      "id": "enderzoology:wither_cat",
+      "required": false
+    }
   ]
 }

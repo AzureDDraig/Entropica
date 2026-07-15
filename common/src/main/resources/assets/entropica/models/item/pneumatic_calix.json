@@ -1,3 +1,6 @@
 {
-  "parent": "entropica:block/pneumatic_calix"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:item/pneumatic_calix"
+  }
 }

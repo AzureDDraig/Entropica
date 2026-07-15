@@ -1,13 +1,15 @@
 package ddraig.net.entropica.api.materia;
 
+import ddraig.net.entropica.api.pressure.IPressureHandler;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a handler for managing Materia Fumus (Vapor) within a machine or system.
+ * Extends IPressureHandler to participate in centralized pressure network mechanics.
  * The MateriaFumusStack-based counterpart to IVaporHandler, used by the Vapor Pneumatic Pipe network.
  * Provides methods to interact with, store, and manipulate gaseous Materia.
  */
-public interface IVaporHandler {
+public interface IVaporHandler extends IPressureHandler {
 
     /**
      * Returns the safe operating capacity of Materia Fumus the machine can hold.

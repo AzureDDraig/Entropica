@@ -1,0 +1,64 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "entropica:block/vapor_pneumatic_pipe_mercurite_core"
+      }
+    },
+    {
+      "when": {
+        "down": "true"
+      },
+      "apply": {
+        "model": "entropica:block/vapor_pneumatic_pipe_mercurite_arm"
+      }
+    },
+    {
+      "when": {
+        "up": "true"
+      },
+      "apply": {
+        "model": "entropica:block/vapor_pneumatic_pipe_mercurite_arm",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "north": "true"
+      },
+      "apply": {
+        "model": "entropica:block/vapor_pneumatic_pipe_mercurite_arm",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "south": "true"
+      },
+      "apply": {
+        "model": "entropica:block/vapor_pneumatic_pipe_mercurite_arm",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/vapor_pneumatic_pipe_mercurite_arm",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "true"
+      },
+      "apply": {
+        "model": "entropica:block/vapor_pneumatic_pipe_mercurite_arm",
+        "x": 90,
+        "y": 270
+      }
+    }
+  ]
+}

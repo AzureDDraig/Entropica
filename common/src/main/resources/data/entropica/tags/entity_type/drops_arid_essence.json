@@ -1,25 +1,85 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:gazelle",
-    "alexsmobs:jerboa",
-    "alexsmobs:komodo_dragon",
-    "alexsmobs:roadrunner",
-    "alexsmobs:rattlesnake",
-    "alexsmobs:emu",
-    "alexsmobs:kangaroo",
-    "alexsmobs:guster",
-    "naturalist:lion",
-    "naturalist:rhino",
-    "naturalist:zebra",
-    "naturalist:elephant",
-    "naturalist:giraffe",
-    "naturalist:hippopotamus",
-    "naturalist:ostrich",
-    "naturalist:vulture",
-    "friendsandfoes:mauler",
-    "mowziesmobs:barako",
-    "biomeswevegone:coyote",
-    "biomeswevegone:roadrunner"
+    {
+      "id": "alexsmobs:gazelle",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:jerboa",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:komodo_dragon",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:roadrunner",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:rattlesnake",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:emu",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:kangaroo",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:guster",
+      "required": false
+    },
+    {
+      "id": "naturalist:lion",
+      "required": false
+    },
+    {
+      "id": "naturalist:rhino",
+      "required": false
+    },
+    {
+      "id": "naturalist:zebra",
+      "required": false
+    },
+    {
+      "id": "naturalist:elephant",
+      "required": false
+    },
+    {
+      "id": "naturalist:giraffe",
+      "required": false
+    },
+    {
+      "id": "naturalist:hippopotamus",
+      "required": false
+    },
+    {
+      "id": "naturalist:ostrich",
+      "required": false
+    },
+    {
+      "id": "naturalist:vulture",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:mauler",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:barako",
+      "required": false
+    },
+    {
+      "id": "biomeswevegone:coyote",
+      "required": false
+    },
+    {
+      "id": "biomeswevegone:roadrunner",
+      "required": false
+    }
   ]
 }

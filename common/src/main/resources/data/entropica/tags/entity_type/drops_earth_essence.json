@@ -1,36 +1,129 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:anteater",
-    "alexsmobs:badger",
-    "alexsmobs:grizzly_bear",
-    "alexsmobs:raccoon",
-    "alexsmobs:skunk",
-    "alexsmobs:tasmanian_devil",
-    "alexsmobs:anaconda",
-    "twilightforest:bighorn_sheep",
-    "twilightforest:wild_boar",
-    "twilightforest:wild_deer",
-    "twilightforest:bunny",
-    "twilightforest:squirrel",
-    "twilightforest:maze_slime",
-    "naturalist:bear",
-    "naturalist:deer",
-    "naturalist:snail",
-    "naturalist:snake",
-    "naturalist:boar",
-    "tconstruct:earth_slime",
-    "tconstruct:terracube",
-    "aether:slider",
-    "aether:sentry",
-    "aether:tracking_golem",
-    "friendsandfoes:tuff_golem",
-    "friendsandfoes:copper_golem",
-    "friendsandfoes:rascal",
-    "mowziesmobs:ferrous_wroughtnaut",
-    "mowziesmobs:grottol",
-    "enderzoology:dire_wolf",
-    "biomeswevegone:prairie_dog",
-    "biomeswevegone:snapping_turtle"
+    {
+      "id": "alexsmobs:anteater",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:badger",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:grizzly_bear",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:raccoon",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:skunk",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:tasmanian_devil",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:anaconda",
+      "required": false
+    },
+    {
+      "id": "twilightforest:bighorn_sheep",
+      "required": false
+    },
+    {
+      "id": "twilightforest:wild_boar",
+      "required": false
+    },
+    {
+      "id": "twilightforest:wild_deer",
+      "required": false
+    },
+    {
+      "id": "twilightforest:bunny",
+      "required": false
+    },
+    {
+      "id": "twilightforest:squirrel",
+      "required": false
+    },
+    {
+      "id": "twilightforest:maze_slime",
+      "required": false
+    },
+    {
+      "id": "naturalist:bear",
+      "required": false
+    },
+    {
+      "id": "naturalist:deer",
+      "required": false
+    },
+    {
+      "id": "naturalist:snail",
+      "required": false
+    },
+    {
+      "id": "naturalist:snake",
+      "required": false
+    },
+    {
+      "id": "naturalist:boar",
+      "required": false
+    },
+    {
+      "id": "tconstruct:earth_slime",
+      "required": false
+    },
+    {
+      "id": "tconstruct:terracube",
+      "required": false
+    },
+    {
+      "id": "aether:slider",
+      "required": false
+    },
+    {
+      "id": "aether:sentry",
+      "required": false
+    },
+    {
+      "id": "aether:tracking_golem",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:tuff_golem",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:copper_golem",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:rascal",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:ferrous_wroughtnaut",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:grottol",
+      "required": false
+    },
+    {
+      "id": "enderzoology:dire_wolf",
+      "required": false
+    },
+    {
+      "id": "biomeswevegone:prairie_dog",
+      "required": false
+    },
+    {
+      "id": "biomeswevegone:snapping_turtle",
+      "required": false
+    }
   ]
 }

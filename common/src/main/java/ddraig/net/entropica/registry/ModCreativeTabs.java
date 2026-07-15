@@ -24,7 +24,7 @@ public class ModCreativeTabs {
             .displayItems((parameters, output) -> {
                 ModBlocks.BLOCKS.getEntries().forEach(blockHolder -> {
                     Item blockItem = blockHolder.get().asItem();
-                    if (blockItem != Items.AIR) {
+                    if (blockItem != Items.AIR && !isLogisticsItem(blockItem)) {
                         output.accept(blockItem);
                     }
                 });
@@ -225,4 +225,30 @@ public class ModCreativeTabs {
                 output.accept(ModItems.TIDAL_TRIDENT.get());
                 output.accept(ModItems.VOID_SWORD.get());
             }).build());
+
+    public static final RegistrySupplier<CreativeModeTab> LOGISTICS_TAB = CREATIVE_MODE_TABS.register("logistics_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 6)
+            .title(Component.translatable("itemGroup.entropica.logistics"))
+            .icon(() -> ModItems.VAPOR_PNEUMATIC_PIPE_COPPER_ITEM.get().getDefaultInstance())
+            .displayItems((parameters, output) -> {
+                ModBlocks.BLOCKS.getEntries().forEach(blockHolder -> {
+                    Item blockItem = blockHolder.get().asItem();
+                    if (blockItem != Items.AIR && isLogisticsItem(blockItem)) {
+                        output.accept(blockItem);
+                    }
+                });
+            }).build());
+
+    private static boolean isLogisticsItem(Item item) {
+        String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getPath();
+        return path.contains("pipe") ||
+               path.contains("pipeline") ||
+               path.contains("conduit") ||
+               path.contains("valve") ||
+               path.contains("diverter") ||
+               path.contains("port") ||
+               path.contains("pump") ||
+               path.contains("generator") ||
+               path.contains("coupling") ||
+               path.contains("agitator");
+    }
 }

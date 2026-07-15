@@ -1,3 +1,6 @@
 {
-  "parent": "entropica:block/monad_core"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:item/monad_core"
+  }
 }

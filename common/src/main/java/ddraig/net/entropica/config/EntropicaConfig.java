@@ -39,6 +39,35 @@ public class EntropicaConfig {
     public static final Supplier<Integer> MATERIA_FUMUS_TICK_RATE = EntropicaConfig::getMateriaFumusTickRate;
     public static final Supplier<Integer> VAPOR_PNEUMATIC_DIVERTER_CAPACITY = EntropicaConfig::getVaporPneumaticDiverterCapacity;
     public static final Supplier<Integer> VIS_FUME_OVERPRESSURE_LIMIT = EntropicaConfig::getVisFumeOverpressureLimit;
+    public static final Supplier<Integer> CONDUIT_BASE_SAFE_CAPACITY = EntropicaConfig::getConduitBaseSafeCapacity;
+    public static final Supplier<Double> CHARGED_CONDUIT_CAPACITY_MULTIPLIER = EntropicaConfig::getChargedConduitCapacityMultiplier;
+    public static final Supplier<Integer> CONDUIT_UNCHARGED_TRANSFER_RATE = EntropicaConfig::getConduitUnchargedTransferRate;
+    public static final Supplier<Integer> CONDUIT_CHARGED_TRANSFER_RATE = EntropicaConfig::getConduitChargedTransferRate;
+
+    public static final Supplier<Integer> CAPUTITE_PIPE_CAPACITY = EntropicaConfig::getCaputitePipeCapacity;
+    public static final Supplier<Integer> CAPUTITE_PIPE_TRANSFER_RATE = EntropicaConfig::getCaputitePipeTransferRate;
+    public static final Supplier<Integer> CHARGED_CAPUTITE_PIPE_CAPACITY = EntropicaConfig::getChargedCaputitePipeCapacity;
+    public static final Supplier<Integer> CHARGED_CAPUTITE_PIPE_TRANSFER_RATE = EntropicaConfig::getChargedCaputitePipeTransferRate;
+
+    public static final Supplier<Integer> SANGUINITE_PIPE_CAPACITY = EntropicaConfig::getSanguinitePipeCapacity;
+    public static final Supplier<Integer> SANGUINITE_PIPE_TRANSFER_RATE = EntropicaConfig::getSanguinitePipeTransferRate;
+    public static final Supplier<Integer> CHARGED_SANGUINITE_PIPE_CAPACITY = EntropicaConfig::getChargedSanguinitePipeCapacity;
+    public static final Supplier<Integer> CHARGED_SANGUINITE_PIPE_TRANSFER_RATE = EntropicaConfig::getChargedSanguinitePipeTransferRate;
+
+    public static final Supplier<Integer> MERCURITE_PIPE_CAPACITY = EntropicaConfig::getMercuritePipeCapacity;
+    public static final Supplier<Integer> MERCURITE_PIPE_TRANSFER_RATE = EntropicaConfig::getMercuritePipeTransferRate;
+    public static final Supplier<Integer> CHARGED_MERCURITE_PIPE_CAPACITY = EntropicaConfig::getChargedMercuritePipeCapacity;
+    public static final Supplier<Integer> CHARGED_MERCURITE_PIPE_TRANSFER_RATE = EntropicaConfig::getChargedMercuritePipeTransferRate;
+
+    public static final Supplier<Integer> EUCLIDITE_PIPE_CAPACITY = EntropicaConfig::getEucliditePipeCapacity;
+    public static final Supplier<Integer> EUCLIDITE_PIPE_TRANSFER_RATE = EntropicaConfig::getEucliditePipeTransferRate;
+    public static final Supplier<Integer> CHARGED_EUCLIDITE_PIPE_CAPACITY = EntropicaConfig::getChargedEucliditePipeCapacity;
+    public static final Supplier<Integer> CHARGED_EUCLIDITE_PIPE_TRANSFER_RATE = EntropicaConfig::getChargedEucliditePipeTransferRate;
+
+    public static final Supplier<Integer> ATHANORITE_PIPE_CAPACITY = EntropicaConfig::getAthanoritePipeCapacity;
+    public static final Supplier<Integer> ATHANORITE_PIPE_TRANSFER_RATE = EntropicaConfig::getAthanoritePipeTransferRate;
+    public static final Supplier<Integer> CHARGED_ATHANORITE_PIPE_CAPACITY = EntropicaConfig::getChargedAthanoritePipeCapacity;
+    public static final Supplier<Integer> CHARGED_ATHANORITE_PIPE_TRANSFER_RATE = EntropicaConfig::getChargedAthanoritePipeTransferRate;
 
     // Vessel & Chamber
     public static final Supplier<Integer> VESSEL_GLASS_BASE_CAPACITY = EntropicaConfig::getVesselGlassBaseCapacity;
@@ -117,4 +146,34 @@ public class EntropicaConfig {
     @ExpectPlatform public static boolean getNodeInfiniteCapacity() { throw new AssertionError(); }
     @ExpectPlatform public static int getNodeSpawnSpacing() { throw new AssertionError(); }
     @ExpectPlatform public static int getNodeMaxPerArea() { throw new AssertionError(); }
+
+    @ExpectPlatform public static int getConduitBaseSafeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static double getChargedConduitCapacityMultiplier() { throw new AssertionError(); }
+    @ExpectPlatform public static int getConduitUnchargedTransferRate() { throw new AssertionError(); }
+    @ExpectPlatform public static int getConduitChargedTransferRate() { throw new AssertionError(); }
+
+    @ExpectPlatform public static int getCaputitePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getCaputitePipeTransferRate() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedCaputitePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedCaputitePipeTransferRate() { throw new AssertionError(); }
+
+    @ExpectPlatform public static int getSanguinitePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getSanguinitePipeTransferRate() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedSanguinitePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedSanguinitePipeTransferRate() { throw new AssertionError(); }
+
+    @ExpectPlatform public static int getMercuritePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getMercuritePipeTransferRate() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedMercuritePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedMercuritePipeTransferRate() { throw new AssertionError(); }
+
+    @ExpectPlatform public static int getEucliditePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getEucliditePipeTransferRate() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedEucliditePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedEucliditePipeTransferRate() { throw new AssertionError(); }
+
+    @ExpectPlatform public static int getAthanoritePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getAthanoritePipeTransferRate() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedAthanoritePipeCapacity() { throw new AssertionError(); }
+    @ExpectPlatform public static int getChargedAthanoritePipeTransferRate() { throw new AssertionError(); }
 }

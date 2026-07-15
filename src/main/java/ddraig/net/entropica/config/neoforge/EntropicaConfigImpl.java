@@ -55,4 +55,34 @@ public class EntropicaConfigImpl {
     public static boolean getNodeInfiniteCapacity() { return EntropicaNeoForgeConfig.NODE_INFINITE_CAPACITY.get(); }
     public static int getNodeSpawnSpacing() { return EntropicaNeoForgeConfig.NODE_SPAWN_SPACING.get(); }
     public static int getNodeMaxPerArea() { return EntropicaNeoForgeConfig.NODE_MAX_PER_AREA.get(); }
+
+    public static int getConduitBaseSafeCapacity() { return EntropicaNeoForgeConfig.CONDUIT_BASE_SAFE_CAPACITY.get(); }
+    public static double getChargedConduitCapacityMultiplier() { return EntropicaNeoForgeConfig.CHARGED_CONDUIT_CAPACITY_MULTIPLIER.get(); }
+    public static int getConduitUnchargedTransferRate() { return EntropicaNeoForgeConfig.CONDUIT_UNCHARGED_TRANSFER_RATE.get(); }
+    public static int getConduitChargedTransferRate() { return EntropicaNeoForgeConfig.CONDUIT_CHARGED_TRANSFER_RATE.get(); }
+
+    public static int getCaputitePipeCapacity() { return EntropicaNeoForgeConfig.CAPUTITE_PIPE_CAPACITY.get(); }
+    public static int getCaputitePipeTransferRate() { return EntropicaNeoForgeConfig.CAPUTITE_PIPE_TRANSFER_RATE.get(); }
+    public static int getChargedCaputitePipeCapacity() { return EntropicaNeoForgeConfig.CHARGED_CAPUTITE_PIPE_CAPACITY.get(); }
+    public static int getChargedCaputitePipeTransferRate() { return EntropicaNeoForgeConfig.CHARGED_CAPUTITE_PIPE_TRANSFER_RATE.get(); }
+
+    public static int getSanguinitePipeCapacity() { return EntropicaNeoForgeConfig.SANGUINITE_PIPE_CAPACITY.get(); }
+    public static int getSanguinitePipeTransferRate() { return EntropicaNeoForgeConfig.SANGUINITE_PIPE_TRANSFER_RATE.get(); }
+    public static int getChargedSanguinitePipeCapacity() { return EntropicaNeoForgeConfig.CHARGED_SANGUINITE_PIPE_CAPACITY.get(); }
+    public static int getChargedSanguinitePipeTransferRate() { return EntropicaNeoForgeConfig.CHARGED_SANGUINITE_PIPE_TRANSFER_RATE.get(); }
+
+    public static int getMercuritePipeCapacity() { return EntropicaNeoForgeConfig.MERCURITE_PIPE_CAPACITY.get(); }
+    public static int getMercuritePipeTransferRate() { return EntropicaNeoForgeConfig.MERCURITE_PIPE_TRANSFER_RATE.get(); }
+    public static int getChargedMercuritePipeCapacity() { return EntropicaNeoForgeConfig.CHARGED_MERCURITE_PIPE_CAPACITY.get(); }
+    public static int getChargedMercuritePipeTransferRate() { return EntropicaNeoForgeConfig.CHARGED_MERCURITE_PIPE_TRANSFER_RATE.get(); }
+
+    public static int getEucliditePipeCapacity() { return EntropicaNeoForgeConfig.EUCLIDITE_PIPE_CAPACITY.get(); }
+    public static int getEucliditePipeTransferRate() { return EntropicaNeoForgeConfig.EUCLIDITE_PIPE_TRANSFER_RATE.get(); }
+    public static int getChargedEucliditePipeCapacity() { return EntropicaNeoForgeConfig.CHARGED_EUCLIDITE_PIPE_CAPACITY.get(); }
+    public static int getChargedEucliditePipeTransferRate() { return EntropicaNeoForgeConfig.CHARGED_EUCLIDITE_PIPE_TRANSFER_RATE.get(); }
+
+    public static int getAthanoritePipeCapacity() { return EntropicaNeoForgeConfig.ATHANORITE_PIPE_CAPACITY.get(); }
+    public static int getAthanoritePipeTransferRate() { return EntropicaNeoForgeConfig.ATHANORITE_PIPE_TRANSFER_RATE.get(); }
+    public static int getChargedAthanoritePipeCapacity() { return EntropicaNeoForgeConfig.CHARGED_ATHANORITE_PIPE_CAPACITY.get(); }
+    public static int getChargedAthanoritePipeTransferRate() { return EntropicaNeoForgeConfig.CHARGED_ATHANORITE_PIPE_TRANSFER_RATE.get(); }
 }

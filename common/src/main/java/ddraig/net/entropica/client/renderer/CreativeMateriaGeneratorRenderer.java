@@ -37,6 +37,13 @@ public class CreativeMateriaGeneratorRenderer implements BlockEntityRenderer<Cre
         BlockEntityRenderState.extractBase(be, state, crumblingOverlay);
         state.currentType = be.getCurrentType();
         state.worldPos = be.getBlockPos();
+
+        Minecraft mc = Minecraft.getInstance();
+        boolean hovered = false;
+        if (mc.hitResult instanceof BlockHitResult bhr) {
+            hovered = bhr.getBlockPos().equals(state.worldPos);
+        }
+        state.isHovered = hovered;
     }
 
     @Override
@@ -46,17 +53,11 @@ public class CreativeMateriaGeneratorRenderer implements BlockEntityRenderer<Cre
         Minecraft mc = Minecraft.getInstance();
         MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
 
-        // Safely check if the player is looking directly at this specific generator
-        boolean isHovered = false;
-        if (mc.hitResult instanceof BlockHitResult bhr) {
-            isHovered = bhr.getBlockPos().equals(state.worldPos);
-        }
-
         EssenceType[] types = EssenceType.values();
         int curIdx = state.currentType.ordinal();
 
         // If hovered, expand to show 5 items. If not hovered, only show the currently selected one.
-        int listRange = isHovered ? 2 : 0;
+        int listRange = state.isHovered ? 2 : 0;
 
         // Render the UI perfectly flat against all 4 horizontal faces
         for (Direction dir : Direction.Plane.HORIZONTAL) {
@@ -121,10 +122,14 @@ public class CreativeMateriaGeneratorRenderer implements BlockEntityRenderer<Cre
 
             poseStack.popPose();
         }
+
+        // Flush the buffer to force the text to draw to the screen!
+        bufferSource.endBatch();
     }
 
     public static class GeneratorRenderState extends BlockEntityRenderState {
         public EssenceType currentType;
         public BlockPos worldPos;
+        public boolean isHovered;
     }
 }

@@ -113,7 +113,7 @@ public class CreativeParticleGeneratorBlockEntity extends BlockEntity {
             currentParticle = ResourceLocation.tryParse(rl);
             if (validParticles != null && currentParticle != null) {
                 currentIndex = validParticles.indexOf(currentParticle);
-                if (currentIndex == -1) {
+                if (currentIndex == -1 && !validParticles.isEmpty()) {
                     currentIndex = 0;
                     currentParticle = validParticles.get(0);
                 }

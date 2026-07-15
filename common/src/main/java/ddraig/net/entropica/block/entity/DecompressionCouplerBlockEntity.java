@@ -148,6 +148,23 @@ public class DecompressionCouplerBlockEntity extends BlockEntity {
         int tier1 = getMateriaTier(be1);
         int tier2 = getMateriaTier(be2);
 
+        // If one of the endpoints is an empty VaporPneumaticPipeBlockEntity, it can act as either Tier 2 or Tier 3
+        // depending on what the other side is, so we can start the flow!
+        if (be1 instanceof VaporPneumaticPipeBlockEntity pipe1 && pipe1.getMateriaInTank().isEmpty()) {
+            if (Math.abs(3 - tier2) == 1) {
+                tier1 = 3;
+            } else if (Math.abs(2 - tier2) == 1) {
+                tier1 = 2;
+            }
+        }
+        if (be2 instanceof VaporPneumaticPipeBlockEntity pipe2 && pipe2.getMateriaInTank().isEmpty()) {
+            if (Math.abs(tier1 - 3) == 1) {
+                tier2 = 3;
+            } else if (Math.abs(tier1 - 2) == 1) {
+                tier2 = 2;
+            }
+        }
+
         if (tier1 <= 0 || tier2 <= 0) return;
         if (Math.abs(tier1 - tier2) != 1) return;
 

@@ -1,26 +1,89 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:alligator_snapping_turtle",
-    "alexsmobs:blobfish",
-    "alexsmobs:cachalot_whale",
-    "alexsmobs:caiman",
-    "alexsmobs:crocodile",
-    "alexsmobs:flying_fish",
-    "alexsmobs:frilled_shark",
-    "alexsmobs:giant_squid",
-    "alexsmobs:lobster",
-    "alexsmobs:mantis_shrimp",
-    "alexsmobs:orca",
-    "alexsmobs:seal",
-    "alexsmobs:shoebill",
-    "alexsmobs:stradpole",
-    "twilightforest:penguin",
-    "twilightforest:helmet_crab",
-    "naturalist:bass",
-    "naturalist:catfish",
-    "naturalist:alligator",
-    "mowziesmobs:naga",
-    "biomeswevegone:snapping_turtle"
+    {
+      "id": "alexsmobs:alligator_snapping_turtle",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:blobfish",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:cachalot_whale",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:caiman",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:crocodile",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:flying_fish",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:frilled_shark",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:giant_squid",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:lobster",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:mantis_shrimp",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:orca",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:seal",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:shoebill",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:stradpole",
+      "required": false
+    },
+    {
+      "id": "twilightforest:penguin",
+      "required": false
+    },
+    {
+      "id": "twilightforest:helmet_crab",
+      "required": false
+    },
+    {
+      "id": "naturalist:bass",
+      "required": false
+    },
+    {
+      "id": "naturalist:catfish",
+      "required": false
+    },
+    {
+      "id": "naturalist:alligator",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:naga",
+      "required": false
+    },
+    {
+      "id": "biomeswevegone:snapping_turtle",
+      "required": false
+    }
   ]
 }

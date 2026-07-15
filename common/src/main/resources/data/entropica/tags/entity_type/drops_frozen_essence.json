@@ -1,16 +1,49 @@
 {
   "replace": false,
   "values": [
-    "alexsmobs:snow_leopard",
-    "alexsmobs:froststalker",
-    "alexsmobs:moose",
-    "twilightforest:alpha_yeti",
-    "twilightforest:yeti",
-    "twilightforest:snow_queen",
-    "twilightforest:snow_guardian",
-    "twilightforest:winter_wolf",
-    "friendsandfoes:iceologer",
-    "variantsandventures:gelid",
-    "mowziesmobs:frostmaw"
+    {
+      "id": "alexsmobs:snow_leopard",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:froststalker",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:moose",
+      "required": false
+    },
+    {
+      "id": "twilightforest:alpha_yeti",
+      "required": false
+    },
+    {
+      "id": "twilightforest:yeti",
+      "required": false
+    },
+    {
+      "id": "twilightforest:snow_queen",
+      "required": false
+    },
+    {
+      "id": "twilightforest:snow_guardian",
+      "required": false
+    },
+    {
+      "id": "twilightforest:winter_wolf",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:iceologer",
+      "required": false
+    },
+    {
+      "id": "variantsandventures:gelid",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:frostmaw",
+      "required": false
+    }
   ]
 }

@@ -1,13 +1,37 @@
 {
   "replace": false,
   "values": [
-    "twilightforest:adherent",
-    "aether:sun_spirit",
-    "aether:valkyrie",
-    "aether:valkyrie_queen",
-    "aether:angel",
-    "friendsandfoes:glare",
-    "mowziesmobs:barako",
-    "mowziesmobs:grottol"
+    {
+      "id": "twilightforest:adherent",
+      "required": false
+    },
+    {
+      "id": "aether:sun_spirit",
+      "required": false
+    },
+    {
+      "id": "aether:valkyrie",
+      "required": false
+    },
+    {
+      "id": "aether:valkyrie_queen",
+      "required": false
+    },
+    {
+      "id": "aether:angel",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:glare",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:barako",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:grottol",
+      "required": false
+    }
   ]
 }
