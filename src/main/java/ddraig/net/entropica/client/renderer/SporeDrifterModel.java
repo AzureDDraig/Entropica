@@ -1,25 +1,17 @@
 package ddraig.net.entropica.client.renderer;
 
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
-
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import ddraig.net.entropica.Entropica;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.util.Mth;
 
-// Made with Blockbench 5.1.4
-// Exported for Minecraft version 1.17 or later with Mojang mappings
-// Paste this class into your mod and generate all required imports
-
-
-public class SporeDrifterModel extends EntityModel<EntityRenderState> {
+public class SporeDrifterModel extends EntityModel<SporeDrifterRenderState> {
 	// This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
-	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath("modid", "spore_drifter"), "main");
+	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "spore_drifter"), "main");
 	private final ModelPart bell;
 	private final ModelPart bell_side_n;
 	private final ModelPart bell_flap_n_1;
@@ -453,9 +445,75 @@ public class SporeDrifterModel extends EntityModel<EntityRenderState> {
 	}
 
 	@Override
-	public void setupAnim(EntityRenderState state) {
+	public void setupAnim(SporeDrifterRenderState state) {
+		float age = state.ageInTicks;
 
+		// Pulsation contracting animation on the bell
+		float pulsation = Mth.sin(age * 0.05F) * 0.15F + 0.15F;
+		this.bell.yScale = 1.0F - pulsation * 0.5F;
+		this.bell.xScale = 1.0F + pulsation * 0.2F;
+		this.bell.zScale = 1.0F + pulsation * 0.2F;
+
+		// Outer trailing tendril sways
+		float wave = Mth.sin(age * 0.08F) * 0.1F;
+
+		this.tendril_fl_seg1.zRot = wave;
+		this.tendril_fl_seg2.zRot = wave * 1.2F;
+		this.tendril_fl_seg3.zRot = wave * 1.4F;
+		this.tendril_fl_seg4.zRot = wave * 1.6F;
+		this.tendril_fl_seg5.zRot = wave * 1.8F;
+		this.tendril_fl_seg6.zRot = wave * 2.0F;
+		this.tendril_fl_seg7.zRot = wave * 2.2F;
+		this.tendril_fl_seg8.zRot = wave * 2.4F;
+
+		this.tendril_fr_seg1.zRot = -wave;
+		this.tendril_fr_seg2.zRot = -wave * 1.2F;
+		this.tendril_fr_seg3.zRot = -wave * 1.4F;
+		this.tendril_fr_seg4.zRot = -wave * 1.6F;
+		this.tendril_fr_seg5.zRot = -wave * 1.8F;
+		this.tendril_fr_seg6.zRot = -wave * 2.0F;
+		this.tendril_fr_seg7.zRot = -wave * 2.2F;
+		this.tendril_fr_seg8.zRot = -wave * 2.4F;
+
+		this.tendril_bl_seg1.xRot = wave;
+		this.tendril_bl_seg2.xRot = wave * 1.2F;
+		this.tendril_bl_seg3.xRot = wave * 1.4F;
+		this.tendril_bl_seg4.xRot = wave * 1.6F;
+		this.tendril_bl_seg5.xRot = wave * 1.8F;
+		this.tendril_bl_seg6.xRot = wave * 2.0F;
+		this.tendril_bl_seg7.xRot = wave * 2.2F;
+		this.tendril_bl_seg8.xRot = wave * 2.4F;
+
+		this.tendril_br_seg1.xRot = -wave;
+		this.tendril_br_seg2.xRot = -wave * 1.2F;
+		this.tendril_br_seg3.xRot = -wave * 1.4F;
+		this.tendril_br_seg4.xRot = -wave * 1.6F;
+		this.tendril_br_seg5.xRot = -wave * 1.8F;
+		this.tendril_br_seg6.xRot = -wave * 2.0F;
+		this.tendril_br_seg7.xRot = -wave * 2.2F;
+		this.tendril_br_seg8.xRot = -wave * 2.4F;
+
+		// Inner tendril chains (shorter)
+		float waveInner = Mth.sin(age * 0.12F) * 0.08F;
+
+		this.tendril_ifl_seg1.zRot = waveInner;
+		this.tendril_ifl_seg2.zRot = waveInner * 1.3F;
+		this.tendril_ifl_seg3.zRot = waveInner * 1.6F;
+		this.tendril_ifl_seg4.zRot = waveInner * 1.9F;
+
+		this.tendril_ifr_seg1.zRot = -waveInner;
+		this.tendril_ifr_seg2.zRot = -waveInner * 1.3F;
+		this.tendril_ifr_seg3.zRot = -waveInner * 1.6F;
+		this.tendril_ifr_seg4.zRot = -waveInner * 1.9F;
+
+		this.tendril_ibl_seg1.xRot = waveInner;
+		this.tendril_ibl_seg2.xRot = waveInner * 1.3F;
+		this.tendril_ibl_seg3.xRot = waveInner * 1.6F;
+		this.tendril_ibl_seg4.xRot = waveInner * 1.9F;
+
+		this.tendril_ibr_seg1.xRot = -waveInner;
+		this.tendril_ibr_seg2.xRot = -waveInner * 1.3F;
+		this.tendril_ibr_seg3.xRot = -waveInner * 1.6F;
+		this.tendril_ibr_seg4.xRot = -waveInner * 1.9F;
 	}
-
-	
 }

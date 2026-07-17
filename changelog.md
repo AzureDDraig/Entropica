@@ -2,6 +2,35 @@
 
 ---
 
+## Build 000-1a
+
+### Added
+*   **Directional Magical Diodes (One-Way Energy Gates)**:
+    *   Added a brand new circuit node type: the **Diode** (represented by a "D" icon and a classic electronic diode schematic symbol). Diodes act as one-way gates for magical essence, letting energy pass through in only one direction.
+    *   When you place or cycle a chalk node to a Diode, it automatically aligns itself to face the same direction your player is looking.
+    *   Magical energy and colors can only enter the Diode from its backside (input) and flow out of its frontside (output). Energy trying to flow backwards or sideways is blocked.
+    *   To prevent energy from leaking to adjacent lines, the Diode will only connect to other chalk blocks located directly in front of or behind it, automatically ignoring any lines trying to connect from the sides.
+*   **PCB-Style 45-Degree Mitered Corners (Angled Bend Graphics)**:
+    *   Improved the visual rendering of advanced circuit tracks when they turn a corner.
+    *   Instead of drawing overlapping square blocks at 90-degree corners, the system now calculates custom coordinates to render smooth, professional-looking 45-degree mitered diagonal bends.
+    *   This diagonal bend geometry is rendered for the bright center power line as well as the two thin outer parallel copper paths, making your ritual setups look like actual high-tech printed circuit boards.
+*   **Dynamic & Shifting Essence Colors**:
+    *   Updated the rendering of both scribed chalk lines, concentric magic circles, and the fluids/gases flowing inside all Vapor Pneumatic Pipes, Hydraulic Pipelines, and Conduits to fully support shifting, multi-stage, and prismatic colors.
+    *   Previously, once these components were filled or dyed, they retained a static snapshot of the essence's starting color. Now, if an essence type has shifting color cycles (like Storm, Eclipse, or Prismatic), all of these components will smoothly pulse and flow through their color cycles in perfect synchronization on the client.
+
+### Changed
+*   **Smart Corner and Staircase Connection Detection (Improved Parallel Check)**:
+    *   Redesigned the connection rules for advanced chalk lines to solve a bug where turns and bends wouldn't connect.
+    *   Previously, the game blocked adjacent blocks from connecting if they ran parallel, but this accidentally blocked single circuit lines making a 90-degree bend, a loop, or a staircase-like slope because it thought the adjacent parts were separate parallel wires.
+    *   The connection check is now much smarter: it only blocks adjacent lines from connecting if they are running in the exact same direction (running side-by-side). If the lines are turning a corner, stepping down in a staircase, or forming a loop, the system recognizes that they belong to the same path and connects them perfectly.
+
+### Fixed
+*   **Magic Circle Color Refresh Animation (Dynamic Re-Dyeing)**:
+    *   Fixed a visual bug where changing the element type (color) of your energy source on an active magic circle wouldn't play the dyeing animation, leaving the old color statically visible or updating without smooth transition.
+    *   Now, when the chalk circuit registers a change in essence/color, it automatically resets its visual wave timer back to zero. This triggers a fresh wave of color that flows smoothly from the source node throughout the entire magic circle system and all surrounding connections.
+
+---
+
 ## Build 000-0a
 
 ### Added

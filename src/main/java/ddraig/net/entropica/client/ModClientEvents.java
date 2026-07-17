@@ -82,6 +82,10 @@ public class ModClientEvents {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
+        
+        // Custom Haze shader tick manager
+        HazeShaderManager.clientTick(mc);
+
         if (mc.player != null && mc.level != null && mc.screen == null && mc.level.getGameTime() % 10 == 0) {
             for (int i = 0; i < mc.player.getInventory().getContainerSize(); i++) {
                 ItemStack stack = mc.player.getInventory().getItem(i);
@@ -144,6 +148,11 @@ public class ModClientEvents {
         // --- NEW: Crucible Renderer ---
         event.registerBlockEntityRenderer(ModBlockEntities.CRUCIBLE_BE.get(), CrucibleRenderer::new);
 
+        // --- NEW: Chalk & Scribing Engine ---
+        event.registerBlockEntityRenderer(ModBlockEntities.SCRIBED_CHALK_BE.get(), ScribedChalkRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.SCRIBING_CONTROLLER_BE.get(), ScribingControllerRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.VISCANITE_PISTON_PRESS_BE.get(), ViscanitePistonPressRenderer::new);
+
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
 
@@ -155,6 +164,12 @@ public class ModClientEvents {
         event.registerEntityRenderer(ModEntityTypes.VEIL_FOX_AFTERIMAGE.get(), VeilFoxAfterimageRenderer::new);
 
         event.registerEntityRenderer(ModEntityTypes.ASHEN_STALKER.get(), ddraig.net.entropica.client.renderer.AshenStalkerRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.SPORE_DRIFTER.get(), SporeDrifterRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.SPORE_CLOUD.get(), SporeCloudRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.RIME_BACK_OVIS.get(), RimeBackOvisRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.OVERGROWTH_OVIS.get(), OvergrowthOvisRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.RIME_SHEPHERD.get(), RimeShepherdRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.BLOOM_CRAWLER.get(), BloomCrawlerRenderer::new);
     }
 
     @SubscribeEvent
@@ -242,5 +257,9 @@ public class ModClientEvents {
         event.registerLayerDefinition(ModModelLayers.GROT, GrotModel::createBodyLayer);
         event.registerLayerDefinition(VeilFoxModel.LAYER_LOCATION, VeilFoxModel::createBodyLayer);
         event.registerLayerDefinition(ddraig.net.entropica.client.model.AshenStalkerModel.LAYER_LOCATION, ddraig.net.entropica.client.model.AshenStalkerModel::createBodyLayer);
+        event.registerLayerDefinition(RimeBackOvisModel.LAYER_LOCATION, RimeBackOvisModel::createBodyLayer);
+        event.registerLayerDefinition(RimeShepherdModel.LAYER_LOCATION, RimeShepherdModel::createBodyLayer);
+        event.registerLayerDefinition(SporeDrifterModel.LAYER_LOCATION, SporeDrifterModel::createBodyLayer);
+        event.registerLayerDefinition(BloomCrawlerModel.LAYER_LOCATION, BloomCrawlerModel::createBodyLayer);
     }
 }

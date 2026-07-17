@@ -87,7 +87,17 @@ public class ModBlockEntities {
                             ModBlocks.VAPOR_PNEUMATIC_PIPE_RESONITE.get(),
                             ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_ARCANITE.get(),
                             ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_VISCANITE.get(),
-                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_RESONITE.get()
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_RESONITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CAPUTITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_CAPUTITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_SANGUINITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_SANGUINITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_MERCURITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_MERCURITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_EUCLIDITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_EUCLIDITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_ATHANORITE.get(),
+                            ModBlocks.VAPOR_PNEUMATIC_PIPE_CHARGED_ATHANORITE.get()
                     ));
 
     // --- HYDRAULIC PIPELINE (T4 — Mliq) ---
@@ -204,6 +214,27 @@ public class ModBlockEntities {
     public static final RegistrySupplier<BlockEntityType<MateriaVesselPortBlockEntity>> MATERIA_VESSEL_PORT_BE =
             BLOCK_ENTITIES.register("materia_vessel_port", () ->
                     BlockEntityHelper.create(MateriaVesselPortBlockEntity::new, ModBlocks.MATERIA_VESSEL_PORT.get()));
+
+    // --- Runic Scribing & Research Block Entities ---
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.ScribedChalkBlockEntity>> SCRIBED_CHALK_BE =
+            BLOCK_ENTITIES.register("scribed_chalk", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.ScribedChalkBlockEntity::new, ModBlocks.SCRIBED_CHALK.get()));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.ScribingControllerBlockEntity>> SCRIBING_CONTROLLER_BE =
+            BLOCK_ENTITIES.register("scribing_controller", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.ScribingControllerBlockEntity::new, ModBlocks.SCRIBING_CONTROLLER.get()));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.ViscanitePistonPressBlockEntity>> VISCANITE_PISTON_PRESS_BE =
+            BLOCK_ENTITIES.register("viscanite_piston_press", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.ViscanitePistonPressBlockEntity::new, ModBlocks.VISCANITE_PISTON_PRESS.get()));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.DraftingTableBlockEntity>> DRAFTING_TABLE_BE =
+            BLOCK_ENTITIES.register("drafting_table", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.DraftingTableBlockEntity::new, ModBlocks.DRAFTING_TABLE.get()));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.ResearchBenchBlockEntity>> RESEARCH_BENCH_BE =
+            BLOCK_ENTITIES.register("research_bench", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.ResearchBenchBlockEntity::new, ModBlocks.RESEARCH_BENCH.get()));
 
     // --- Glass tiers grouped into single Block Entity ---
     public static final RegistrySupplier<BlockEntityType<ManaEnrichedGlassBlockEntity>> MANA_ENRICHED_GLASS_BE =

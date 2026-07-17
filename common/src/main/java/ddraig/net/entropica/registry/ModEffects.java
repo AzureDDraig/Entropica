@@ -18,4 +18,8 @@ public class ModEffects {
     // Registers the new Void Tear effect with a dark abyssal purple color
     public static final RegistrySupplier<MobEffect> VOID_TEAR = EFFECTS.register("void_tear",
             VoidTearEffect::new);
+
+    // Registers the new Haze effect with a custom color
+    public static final RegistrySupplier<MobEffect> HAZE = EFFECTS.register("haze",
+            ddraig.net.entropica.effect.HazeEffect::new);
 }

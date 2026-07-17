@@ -24,4 +24,14 @@ public class EntropicaClient {
         Entropica.LOGGER.info("HELLO FROM CLIENT SETUP");
         Entropica.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
     }
+
+    @SubscribeEvent
+    static void onRegisterGuiLayers(net.neoforged.neoforge.client.event.RegisterGuiLayersEvent event) {
+        event.registerAboveAll(
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "haze_overlay"),
+            (guiGraphics, deltaTracker) -> {
+                ddraig.net.entropica.client.HazeOverlayRenderer.render(guiGraphics, deltaTracker.getGameTimeDeltaTicks());
+            }
+        );
+    }
 }

@@ -77,6 +77,11 @@ public class EntropicaClientFabric implements ClientModInitializer {
         BlockEntityRenderers.register(ModBlockEntities.VOID_RIFT_BE.get(), VoidRiftRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.CRUCIBLE_BE.get(), CrucibleRenderer::new);
 
+        // --- NEW: Chalk & Scribing Engine ---
+        BlockEntityRenderers.register(ModBlockEntities.SCRIBED_CHALK_BE.get(), ScribedChalkRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.SCRIBING_CONTROLLER_BE.get(), ScribingControllerRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.VISCANITE_PISTON_PRESS_BE.get(), ViscanitePistonPressRenderer::new);
+
         // --- 2. Entity Renderers ---
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
@@ -85,12 +90,22 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntityTypes.VEIL_FOX.get(), VeilFoxRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.VEIL_FOX_AFTERIMAGE.get(), VeilFoxAfterimageRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.ASHEN_STALKER.get(), AshenStalkerRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SPORE_DRIFTER.get(), SporeDrifterRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SPORE_CLOUD.get(), SporeCloudRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.RIME_BACK_OVIS.get(), RimeBackOvisRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.OVERGROWTH_OVIS.get(), OvergrowthOvisRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.RIME_SHEPHERD.get(), RimeShepherdRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.BLOOM_CRAWLER.get(), BloomCrawlerRenderer::new);
 
         // --- 3. Entity Layer Definitions ---
         EntityModelLayerRegistry.registerModelLayer(EidolicShadowModel.LAYER_LOCATION, EidolicShadowModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.GROT, GrotModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(VeilFoxModel.LAYER_LOCATION, VeilFoxModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(AshenStalkerModel.LAYER_LOCATION, AshenStalkerModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(RimeBackOvisModel.LAYER_LOCATION, RimeBackOvisModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(RimeShepherdModel.LAYER_LOCATION, RimeShepherdModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(SporeDrifterModel.LAYER_LOCATION, SporeDrifterModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(BloomCrawlerModel.LAYER_LOCATION, BloomCrawlerModel::createBodyLayer);
 
         // --- 4. Menu Screens ---
         MenuScreens.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);
@@ -191,6 +206,16 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
         // --- 8. Special Model Renderer ---
         registerLoomSpecialModelRenderer(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "dynamic_weapon"), DynamicWeaponRenderer.Unbaked.MAP_CODEC);
+
+        // --- 9. Custom Client Haze Shader Tick ---
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            ddraig.net.entropica.client.HazeShaderManager.clientTick(client);
+        });
+
+        // Register GUI Overlay HUD Renderer
+        net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback.EVENT.register((guiGraphics, tickCounter) -> {
+            ddraig.net.entropica.client.HazeOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+        });
     }
 
     @SuppressWarnings("unchecked")

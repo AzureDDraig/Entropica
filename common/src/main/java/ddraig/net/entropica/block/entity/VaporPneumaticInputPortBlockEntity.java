@@ -25,7 +25,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     }
 
     /**
-     * Dynamically locates the Eidolic Lathe controller.
+     * Dynamically locates the multiblock controller.
      * It checks a generous 7x13x7 bounding box, allowing the port to be placed
      * virtually anywhere within or slightly above/below the structure.
      */
@@ -33,7 +33,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     public BlockPos getControllerPos() {
         if (this.controllerPos != null && this.level != null) {
             BlockEntity be = this.level.getBlockEntity(this.controllerPos);
-            if (be instanceof EidolicLatheBlockEntity lathe && lathe.isFormed()) {
+            if (be instanceof ddraig.net.entropica.api.materia.IVaporMultiblockController controller && controller.isFormed()) {
                 return this.controllerPos;
             }
         }
@@ -45,7 +45,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
                     for (int z = -3; z <= 3; z++) {
                         BlockPos checkPos = this.worldPosition.offset(x, y, z);
                         BlockEntity be = this.level.getBlockEntity(checkPos);
-                        if (be instanceof EidolicLatheBlockEntity lathe && lathe.isFormed()) {
+                        if (be instanceof ddraig.net.entropica.api.materia.IVaporMultiblockController controller && controller.isFormed()) {
                             this.controllerPos = checkPos;
                             this.setChanged();
                             return this.controllerPos;
@@ -62,8 +62,8 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
         BlockPos pos = getControllerPos();
         if (pos != null && this.level != null) {
             BlockEntity be = this.level.getBlockEntity(pos);
-            if (be instanceof EidolicLatheBlockEntity lathe && lathe.isFormed()) {
-                return lathe;
+            if (be instanceof IVaporHandler handler) {
+                return handler;
             }
         }
         return null;

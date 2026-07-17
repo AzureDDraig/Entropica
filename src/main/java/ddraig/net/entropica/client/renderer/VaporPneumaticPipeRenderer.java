@@ -160,7 +160,18 @@ public class VaporPneumaticPipeRenderer implements BlockEntityRenderer<BlockEnti
                        CameraRenderState cameraState) {
         if (state.type == null || state.amount <= 0) return;
 
-        int colorInt = state.type.getColorInt();
+        int colorInt;
+        if (state.type.isDynamic()) {
+            float speed = 0.05f;
+            float cycle = (System.currentTimeMillis() / 50) * speed;
+            int rChan = (int) ((Math.sin(cycle) * 0.5f + 0.5f) * 255.0f);
+            int gChan = (int) ((Math.sin(cycle + 2.094f) * 0.5f + 0.5f) * 255.0f);
+            int bChan = (int) ((Math.sin(cycle + 4.188f) * 0.5f + 0.5f) * 255.0f);
+            colorInt = (rChan << 16) | (gChan << 8) | bChan;
+        } else {
+            int[] rgb = state.type.getCurrentRGB(System.currentTimeMillis() / 50);
+            colorInt = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+        }
         float r = ((colorInt >> 16) & 0xFF) / 255.0f;
         float g = ((colorInt >> 8)  & 0xFF) / 255.0f;
         float b = (colorInt & 0xFF)          / 255.0f;

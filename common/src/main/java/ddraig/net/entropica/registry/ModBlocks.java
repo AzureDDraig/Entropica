@@ -230,6 +230,25 @@ public class ModBlocks {
     public static final RegistrySupplier<RitualBowlBlock> MARBLE_RITUAL_BOWL = BLOCKS.register("marble_ritual_bowl", name -> new RitualBowlBlock(false, BlockBehaviour.Properties.ofFullCopy(Blocks.QUARTZ_BLOCK).setId(ResourceKey.create(Registries.BLOCK, name)).noOcclusion()));
     public static final RegistrySupplier<RitualBowlBlock> BASALT_RITUAL_BOWL = BLOCKS.register("basalt_ritual_bowl", name -> new RitualBowlBlock(true, BlockBehaviour.Properties.ofFullCopy(Blocks.BASALT).setId(ResourceKey.create(Registries.BLOCK, name)).noOcclusion()));
 
+    // --- Runic Scribing & Research ---
+    public static final RegistrySupplier<ddraig.net.entropica.block.ScribedChalkBlock> SCRIBED_CHALK =
+            BLOCKS.register("scribed_chalk", name -> new ddraig.net.entropica.block.ScribedChalkBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).noCollision().noOcclusion().instabreak().pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)));
+            
+    public static final RegistrySupplier<net.minecraft.world.level.block.Block> VISCANITE_SYNTHESIZER =
+            BLOCKS.register("viscanite_synthesizer", name -> new net.minecraft.world.level.block.Block(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+            
+    public static final RegistrySupplier<ddraig.net.entropica.block.ScribingControllerBlock> SCRIBING_CONTROLLER =
+            BLOCKS.register("scribing_controller", name -> new ddraig.net.entropica.block.ScribingControllerBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops().noOcclusion()));
+            
+    public static final RegistrySupplier<ddraig.net.entropica.block.ViscanitePistonPressBlock> VISCANITE_PISTON_PRESS =
+            BLOCKS.register("viscanite_piston_press", name -> new ddraig.net.entropica.block.ViscanitePistonPressBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops().noOcclusion()));
+            
+    public static final RegistrySupplier<ddraig.net.entropica.block.DraftingTableBlock> DRAFTING_TABLE =
+            BLOCKS.register("drafting_table", name -> new ddraig.net.entropica.block.DraftingTableBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.5f).noOcclusion()));
+            
+    public static final RegistrySupplier<ddraig.net.entropica.block.ResearchBenchBlock> RESEARCH_BENCH =
+            BLOCKS.register("research_bench", name -> new ddraig.net.entropica.block.ResearchBenchBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
+
     public static final List<RegistrySupplier<?>> SIMPLE_BLOCKS = List.of(
             ENTROPIC_ORE, ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MANA_PLUME,
             VIS_VITAE_ANCHOR, VIS_VITAE_CONDENSER, VIS_VITAE_VACUUM, VITAE_BARREL,
@@ -237,7 +256,8 @@ public class ModBlocks {
             ARCANE_ANVIL, MORPHIC_LOOM, MATERIA_EXHAUST, MATERIA_SIMPLE_MACHINE_BLOCK, MATERIA_COMPLEX_MACHINE_BLOCK,
             VAPOR_PNEUMATIC_INPUT_PORT, HYDRAULIC_INPUT_PORT, EXTRACTOR_OUTPUT_PORT,
             ESSENCE_NODE_IDENTIFIER_BLOCK, MATERIA_EXTRACTION_APPARATUS, MATERIA_EXTRACTOR_BASE, MATERIA_MOTOR,
-            CREATIVE_PARTICLE_GENERATOR
+            CREATIVE_PARTICLE_GENERATOR,
+            VISCANITE_SYNTHESIZER, SCRIBING_CONTROLLER, VISCANITE_PISTON_PRESS, DRAFTING_TABLE, RESEARCH_BENCH
     );
 
     @ExpectPlatform

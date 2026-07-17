@@ -72,6 +72,7 @@ public class ModBlocks {
     public static final RegistrySupplier<VaporPneumaticValveBlock> VAPOR_PNEUMATIC_VALVE = BLOCKS.register("vapor_pneumatic_valve", name -> new VaporPneumaticValveBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(1.5f).requiresCorrectToolForDrops().noOcclusion()));
     public static final RegistrySupplier<VaporPneumaticOneWayValveBlock> VAPOR_PNEUMATIC_ONE_WAY_VALVE = BLOCKS.register("vapor_pneumatic_one_way_valve", name -> new VaporPneumaticOneWayValveBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(1.5f).requiresCorrectToolForDrops().noOcclusion()));
     public static final RegistrySupplier<VaporPneumaticDiverterBlock> VAPOR_PNEUMATIC_DIVERTER = BLOCKS.register("vapor_pneumatic_diverter", name -> new VaporPneumaticDiverterBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(2.0f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<MateriaPumpBlock> MATERIA_PUMP = BLOCKS.register("materia_pump", name -> new MateriaPumpBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
 
     // ==========================================
     // VAPOR PNEUMATIC PIPES (T2/T3 — Mfum/Msub)
@@ -86,6 +87,17 @@ public class ModBlocks {
     public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_CHARGED_ARCANITE  = BLOCKS.register("vapor_pneumatic_pipe_charged_arcanite",  name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).destroyTime(2.5f).requiresCorrectToolForDrops().noOcclusion()));
     public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_CHARGED_VISCANITE = BLOCKS.register("vapor_pneumatic_pipe_charged_viscanite", name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_GRAY).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
     public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_CHARGED_RESONITE  = BLOCKS.register("vapor_pneumatic_pipe_charged_resonite",  name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.GOLD).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
+
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_CAPUTITE         = BLOCKS.register("vapor_pneumatic_pipe_caputite",         name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_CHARGED_CAPUTITE = BLOCKS.register("vapor_pneumatic_pipe_charged_caputite", name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_SANGUINITE        = BLOCKS.register("vapor_pneumatic_pipe_sanguinite",        name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_RED).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_CHARGED_SANGUINITE = BLOCKS.register("vapor_pneumatic_pipe_charged_sanguinite", name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_RED).destroyTime(4.0f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_MERCURITE        = BLOCKS.register("vapor_pneumatic_pipe_mercurite",        name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_CHARGED_MERCURITE = BLOCKS.register("vapor_pneumatic_pipe_charged_mercurite", name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.5f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_EUCLIDITE        = BLOCKS.register("vapor_pneumatic_pipe_euclidite",        name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).destroyTime(4.5f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_CHARGED_EUCLIDITE = BLOCKS.register("vapor_pneumatic_pipe_charged_euclidite", name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).destroyTime(5.0f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_ATHANORITE       = BLOCKS.register("vapor_pneumatic_pipe_athanorite",       name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.GOLD).destroyTime(5.0f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<VaporPneumaticPipeBlock> VAPOR_PNEUMATIC_PIPE_CHARGED_ATHANORITE = BLOCKS.register("vapor_pneumatic_pipe_charged_athanorite", name -> new VaporPneumaticPipeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.GOLD).destroyTime(5.5f).requiresCorrectToolForDrops().noOcclusion()));
 
     // ==========================================
     // HYDRAULIC PIPELINE (T4 — Mliq)
@@ -138,10 +150,7 @@ public class ModBlocks {
     public static final RegistrySupplier<AthanorConduitBlock> ATHANOR_CONDUIT_ATHANORITE         = BLOCKS.register("athanor_conduit_athanorite",         name -> new AthanorConduitBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLACK).destroyTime(5.0f).requiresCorrectToolForDrops().noOcclusion()));
     public static final RegistrySupplier<AthanorConduitBlock> ATHANOR_CONDUIT_CHARGED_ATHANORITE = BLOCKS.register("athanor_conduit_charged_athanorite", name -> new AthanorConduitBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLACK).destroyTime(6.0f).requiresCorrectToolForDrops().noOcclusion()));
 
-    // ==========================================
-    // DECOMPRESSION COUPLING
-    // ==========================================
-    public static final RegistrySupplier<Block> VAPOR_DECOMPRESSION_COUPLING = BLOCKS.register("vapor_decompression_coupling", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(2.0f).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<DecompressionCouplerBlock> VAPOR_DECOMPRESSION_COUPLING = BLOCKS.register("vapor_decompression_coupling", name -> new DecompressionCouplerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(2.0f).requiresCorrectToolForDrops().noOcclusion()));
 
     // ==========================================
     // ADVANCED ORBIS CELLS (Vis Vitae Network — higher Materia stages)
@@ -221,6 +230,25 @@ public class ModBlocks {
     public static final RegistrySupplier<RitualBowlBlock> MARBLE_RITUAL_BOWL = BLOCKS.register("marble_ritual_bowl", name -> new RitualBowlBlock(false, BlockBehaviour.Properties.ofFullCopy(Blocks.QUARTZ_BLOCK).setId(ResourceKey.create(Registries.BLOCK, name)).noOcclusion()));
     public static final RegistrySupplier<RitualBowlBlock> BASALT_RITUAL_BOWL = BLOCKS.register("basalt_ritual_bowl", name -> new RitualBowlBlock(true, BlockBehaviour.Properties.ofFullCopy(Blocks.BASALT).setId(ResourceKey.create(Registries.BLOCK, name)).noOcclusion()));
 
+    // --- Runic Scribing & Research ---
+    public static final RegistrySupplier<ddraig.net.entropica.block.ScribedChalkBlock> SCRIBED_CHALK =
+            BLOCKS.register("scribed_chalk", name -> new ddraig.net.entropica.block.ScribedChalkBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).noCollision().noOcclusion().instabreak().pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)));
+            
+    public static final RegistrySupplier<net.minecraft.world.level.block.Block> VISCANITE_SYNTHESIZER =
+            BLOCKS.register("viscanite_synthesizer", name -> new net.minecraft.world.level.block.Block(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
+            
+    public static final RegistrySupplier<ddraig.net.entropica.block.ScribingControllerBlock> SCRIBING_CONTROLLER =
+            BLOCKS.register("scribing_controller", name -> new ddraig.net.entropica.block.ScribingControllerBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops().noOcclusion()));
+            
+    public static final RegistrySupplier<ddraig.net.entropica.block.ViscanitePistonPressBlock> VISCANITE_PISTON_PRESS =
+            BLOCKS.register("viscanite_piston_press", name -> new ddraig.net.entropica.block.ViscanitePistonPressBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops().noOcclusion()));
+            
+    public static final RegistrySupplier<ddraig.net.entropica.block.DraftingTableBlock> DRAFTING_TABLE =
+            BLOCKS.register("drafting_table", name -> new ddraig.net.entropica.block.DraftingTableBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.5f).noOcclusion()));
+            
+    public static final RegistrySupplier<ddraig.net.entropica.block.ResearchBenchBlock> RESEARCH_BENCH =
+            BLOCKS.register("research_bench", name -> new ddraig.net.entropica.block.ResearchBenchBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
+
     public static final List<RegistrySupplier<?>> SIMPLE_BLOCKS = List.of(
             ENTROPIC_ORE, ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MANA_PLUME,
             VIS_VITAE_ANCHOR, VIS_VITAE_CONDENSER, VIS_VITAE_VACUUM, VITAE_BARREL,
@@ -228,7 +256,8 @@ public class ModBlocks {
             ARCANE_ANVIL, MORPHIC_LOOM, MATERIA_EXHAUST, MATERIA_SIMPLE_MACHINE_BLOCK, MATERIA_COMPLEX_MACHINE_BLOCK,
             VAPOR_PNEUMATIC_INPUT_PORT, HYDRAULIC_INPUT_PORT, EXTRACTOR_OUTPUT_PORT,
             ESSENCE_NODE_IDENTIFIER_BLOCK, MATERIA_EXTRACTION_APPARATUS, MATERIA_EXTRACTOR_BASE, MATERIA_MOTOR,
-            CREATIVE_PARTICLE_GENERATOR
+            CREATIVE_PARTICLE_GENERATOR,
+            VISCANITE_SYNTHESIZER, SCRIBING_CONTROLLER, VISCANITE_PISTON_PRESS, DRAFTING_TABLE, RESEARCH_BENCH
     );
 
     @ExpectPlatform

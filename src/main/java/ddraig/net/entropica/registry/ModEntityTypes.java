@@ -82,5 +82,65 @@ public class ModEntityTypes {
                             .clientTrackingRange(10)
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
-                                    ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "ashen_stalker"))));
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "ashen_stalker"))));
+
+    // --- SPORE DRIFTER ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.SporeDrifterEntity>> SPORE_DRIFTER =
+            ENTITY_TYPES.register("spore_drifter",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.SporeDrifterEntity>of(ddraig.net.entropica.entity.SporeDrifterEntity::new, MobCategory.AMBIENT)
+                            .sized(0.8F, 1.8F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "spore_drifter"))));
+
+    // --- SPORE CLOUD ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.SporeCloudEntity>> SPORE_CLOUD =
+            ENTITY_TYPES.register("spore_cloud",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.SporeCloudEntity>of(ddraig.net.entropica.entity.SporeCloudEntity::new, MobCategory.MISC)
+                            .sized(1.5F, 1.5F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "spore_cloud"))));
+
+    // --- RIME-BACK OVIS ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.ovis.RimeBackOvisEntity>> RIME_BACK_OVIS =
+            ENTITY_TYPES.register("rime_back_ovis",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.ovis.RimeBackOvisEntity>of(ddraig.net.entropica.entity.ovis.RimeBackOvisEntity::new, MobCategory.CREATURE)
+                            .sized(0.9F, 1.3F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "rime_back_ovis"))));
+
+    // --- OVERGROWTH OVIS ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.ovis.OvergrowthOvisEntity>> OVERGROWTH_OVIS =
+            ENTITY_TYPES.register("overgrowth_ovis",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.ovis.OvergrowthOvisEntity>of(ddraig.net.entropica.entity.ovis.OvergrowthOvisEntity::new, MobCategory.CREATURE)
+                            .sized(0.9F, 1.3F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "overgrowth_ovis"))));
+
+    // --- RIME SHEPHERD ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.RimeShepherdEntity>> RIME_SHEPHERD =
+            ENTITY_TYPES.register("rime_shepherd",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.RimeShepherdEntity>of(ddraig.net.entropica.entity.RimeShepherdEntity::new, MobCategory.CREATURE)
+                            .sized(1.2F, 2.2F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "rime_shepherd"))));
+
+    // --- BLOOM CRAWLER ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.BloomCrawlerEntity>> BLOOM_CRAWLER =
+            ENTITY_TYPES.register("bloom_crawler",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.BloomCrawlerEntity>of(ddraig.net.entropica.entity.BloomCrawlerEntity::new, MobCategory.CREATURE)
+                            .sized(0.7F, 0.5F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "bloom_crawler"))));
 }

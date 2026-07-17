@@ -40,6 +40,10 @@
     {
       "id": "enderzoology:owl",
       "required": false
+    },
+    {
+      "id": "entropica:bloom_crawler",
+      "required": false
     }
   ]
 }

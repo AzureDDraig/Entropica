@@ -1,0 +1,124 @@
+{
+  "variants": {
+    "circuit=true,node_type=default,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=default,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=default,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=default,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=default,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=default,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=default,tier=4": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=default,tier=4": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=input,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=input,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=input,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=input,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=input,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=input,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=input,tier=4": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=input,tier=4": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=source,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=source,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=source,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=source,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=source,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=source,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=source,tier=4": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=source,tier=4": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=output,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=output,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=output,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=output,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=output,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=output,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=output,tier=4": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=output,tier=4": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=rune,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=rune,tier=1": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=rune,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=rune,tier=2": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=rune,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=rune,tier=3": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=true,node_type=rune,tier=4": {
+      "model": "minecraft:block/air"
+    },
+    "circuit=false,node_type=rune,tier=4": {
+      "model": "minecraft:block/air"
+    }
+  }
+}

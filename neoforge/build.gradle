@@ -50,36 +50,6 @@ tasks.register('deploytoDev', Copy) {
     into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevNF/mods"
 }
 
-def generateModsToml = tasks.register("generateModsToml", Copy) {
-    var replaceProperties = [
-        minecraft_version: minecraft_version,
-        minecraft_version_range: minecraft_version_range,
-        neo_version: neo_version,
-        mod_id: mod_id,
-        mod_name: mod_name,
-        mod_license: mod_license,
-        mod_version: "${mod_version_major}-build-${mod_version_build}-${mod_version_designation}"
-    ]
-    inputs.properties replaceProperties
-
-    from("src/main/resources") {
-        include "META-INF/neoforge.mods.toml"
-        expand replaceProperties
-    }
-    from("src/main/resources") {
-        exclude "META-INF/neoforge.mods.toml"
-    }
-    into layout.buildDirectory.dir("generated/resources")
-}
-
-sourceSets {
-    main {
-        resources {
-            srcDirs = [generateModsToml]
-        }
-    }
-}
-
 processResources {
     var replaceProperties = [
         minecraft_version: minecraft_version,
@@ -91,6 +61,10 @@ processResources {
         mod_version: "${mod_version_major}-build-${mod_version_build}-${mod_version_designation}"
     ]
     inputs.properties replaceProperties
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand replaceProperties
+    }
 }
 
 shadowJar {
@@ -108,7 +82,7 @@ loom {
     runs {
         data {
             data()
-            mainClass = "net.neoforged.neoforge.data.Main"
+            mainClass = "net.neoforged.devlaunch.Main"
             programArgs "--all", "--mod", "entropica"
             programArgs "--output", project(":common").file("src/main/resources").absolutePath
             programArgs "--existing", project(":common").file("src/main/resources").absolutePath

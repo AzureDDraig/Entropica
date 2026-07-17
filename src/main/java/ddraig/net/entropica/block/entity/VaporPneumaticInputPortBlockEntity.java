@@ -2,6 +2,8 @@ package ddraig.net.entropica.block.entity;
 
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaFumusStack;
+import ddraig.net.entropica.api.materia.MateriaStack;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -23,7 +25,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     }
 
     /**
-     * Dynamically locates the Eidolic Lathe controller.
+     * Dynamically locates the multiblock controller.
      * It checks a generous 7x13x7 bounding box, allowing the port to be placed
      * virtually anywhere within or slightly above/below the structure.
      */
@@ -31,7 +33,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     public BlockPos getControllerPos() {
         if (this.controllerPos != null && this.level != null) {
             BlockEntity be = this.level.getBlockEntity(this.controllerPos);
-            if (be instanceof EidolicLatheBlockEntity lathe && lathe.isFormed()) {
+            if (be instanceof ddraig.net.entropica.api.materia.IVaporMultiblockController controller && controller.isFormed()) {
                 return this.controllerPos;
             }
         }
@@ -43,7 +45,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
                     for (int z = -3; z <= 3; z++) {
                         BlockPos checkPos = this.worldPosition.offset(x, y, z);
                         BlockEntity be = this.level.getBlockEntity(checkPos);
-                        if (be instanceof EidolicLatheBlockEntity lathe && lathe.isFormed()) {
+                        if (be instanceof ddraig.net.entropica.api.materia.IVaporMultiblockController controller && controller.isFormed()) {
                             this.controllerPos = checkPos;
                             this.setChanged();
                             return this.controllerPos;
@@ -60,8 +62,8 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
         BlockPos pos = getControllerPos();
         if (pos != null && this.level != null) {
             BlockEntity be = this.level.getBlockEntity(pos);
-            if (be instanceof EidolicLatheBlockEntity lathe && lathe.isFormed()) {
-                return lathe;
+            if (be instanceof IVaporHandler handler) {
+                return handler;
             }
         }
         return null;
@@ -70,7 +72,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     // --- PROXY FUME HANDLER ---
 
     @Override
-    public int fill(MateriaFumusStack resource, boolean simulate) {
+    public int fill(MateriaStack resource, boolean simulate) {
         IVaporHandler handler = getControllerHandler();
         if (handler != null) {
             return handler.fill(resource, simulate);
@@ -79,7 +81,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     }
 
     @Override
-    public MateriaFumusStack drain(int maxDrain, boolean simulate) {
+    public MateriaStack drain(int maxDrain, boolean simulate) {
         IVaporHandler handler = getControllerHandler();
         if (handler != null) {
             return handler.drain(maxDrain, simulate);
@@ -88,7 +90,7 @@ public class VaporPneumaticInputPortBlockEntity extends BlockEntity implements I
     }
 
     @Override
-    public MateriaFumusStack getMateriaInTank() {
+    public MateriaStack getMateriaInTank() {
         IVaporHandler handler = getControllerHandler();
         if (handler != null) {
             return handler.getMateriaInTank();

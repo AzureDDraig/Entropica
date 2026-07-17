@@ -201,11 +201,9 @@ public class ModItems {
     public static final RegistrySupplier<Item> ARCANITE_PLATE = ITEMS.registerItem("arcanite_plate", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.arcanite_plate"));
     public static final RegistrySupplier<Item> VISCANITE_PLATE = ITEMS.registerItem("viscanite_plate", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_plate"));
     public static final RegistrySupplier<Item> RESONITE_PLATE = ITEMS.registerItem("resonite_plate", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_plate"));
-    public static final RegistrySupplier<Item> VISCANITE_PISTON = ITEMS.registerItem("viscanite_piston", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.viscanite_piston"));
     public static final RegistrySupplier<Item> RESONITE_PISTON = ITEMS.registerItem("resonite_piston", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.resonite_piston"));
 
     public static final RegistrySupplier<Item> BELLOWS_CRANK_ASSEMBLY = ITEMS.registerItem("bellows_crank_assembly", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.bellows_crank_assembly"));
-    public static final RegistrySupplier<Item> PRESSURE_GRADED_GASKET = ITEMS.registerItem("pressure_graded_gasket", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.pressure_graded_gasket"));
     public static final RegistrySupplier<Item> ENTROPIC_HEAT_SINK = ITEMS.registerItem("entropic_heat_sink", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.entropic_heat_sink"));
 
     // Fluid & Gas Machine Components
@@ -302,7 +300,6 @@ public class ModItems {
 
     // --- VOID LOGISTICS ---
     public static final RegistrySupplier<Item> VOID_RESONANT_TUNING_FORK = ITEMS.registerItem("void_resonant_tuning_fork", VoidResonantTuningForkItem::new);
-    public static final RegistrySupplier<Item> SPECTRAL_GLYPH_PLATE = ITEMS.registerItem("spectral_glyph_plate", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.spectral_glyph_plate"));
     public static final RegistrySupplier<Item> TETHER_ANCHOR_PIN = ITEMS.registerItem("tether_anchor_pin", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.tether_anchor_pin"));
 
     // ==========================================
@@ -526,7 +523,43 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> BASALT_RITUAL_BOWL_ITEM = ITEMS.registerItem("basalt_ritual_bowl", properties -> new BlockItem(ModBlocks.BASALT_RITUAL_BOWL.get(), properties));
 
     // --- RITUAL CHALK ---
-    public static final RegistrySupplier<Item> CHALK = ITEMS.registerItem("chalk", Item::new);
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> CHALK = ITEMS.registerItem("chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(32), 1, false));
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> DULL_CHALK = ITEMS.registerItem("dull_chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(64), 1, false));
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> CONDUCTIVE_CHALK = ITEMS.registerItem("conductive_chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(128), 2, false));
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> RESONANT_CHALK = ITEMS.registerItem("resonant_chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(256), 3, false));
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> EIDOLIC_CHALK = ITEMS.registerItem("eidolic_chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(512), 4, false));
+
+    // --- ADVANCED CHALK (CIRCUITS) ---
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> ADVANCED_CHALK = ITEMS.registerItem("advanced_chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(32), 1, true));
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> ADVANCED_DULL_CHALK = ITEMS.registerItem("advanced_dull_chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(64), 1, true));
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> ADVANCED_CONDUCTIVE_CHALK = ITEMS.registerItem("advanced_conductive_chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(128), 2, true));
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> ADVANCED_RESONANT_CHALK = ITEMS.registerItem("advanced_resonant_chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(256), 3, true));
+    public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> ADVANCED_EIDOLIC_CHALK = ITEMS.registerItem("advanced_eidolic_chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(512), 4, true));
+
+
+    public static final RegistrySupplier<ddraig.net.entropica.item.ArcaneStencilItem> ARCANE_STENCIL = ITEMS.registerItem("arcane_stencil", ddraig.net.entropica.item.ArcaneStencilItem::new);
+
+    // --- SCRIBING ENGINE & RESEARCH MACHINE ITEMS ---
+    public static final RegistrySupplier<net.minecraft.world.item.BlockItem> VISCANITE_SYNTHESIZER_ITEM = ITEMS.registerItem("viscanite_synthesizer", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.VISCANITE_SYNTHESIZER.get(), properties));
+    public static final RegistrySupplier<net.minecraft.world.item.BlockItem> SCRIBING_CONTROLLER_ITEM = ITEMS.registerItem("scribing_controller", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.SCRIBING_CONTROLLER.get(), properties));
+    public static final RegistrySupplier<net.minecraft.world.item.BlockItem> VISCANITE_PISTON_PRESS_ITEM = ITEMS.registerItem("viscanite_piston_press", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.VISCANITE_PISTON_PRESS.get(), properties));
+    public static final RegistrySupplier<net.minecraft.world.item.BlockItem> DRAFTING_TABLE_ITEM = ITEMS.registerItem("drafting_table", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.DRAFTING_TABLE.get(), properties));
+    public static final RegistrySupplier<net.minecraft.world.item.BlockItem> RESEARCH_BENCH_ITEM = ITEMS.registerItem("research_bench", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.RESEARCH_BENCH.get(), properties));
+
+    // --- CRAFTING INGREDIENTS ---
+    public static final RegistrySupplier<Item> SPECTRAL_GLYPH_PLATE = ITEMS.registerItem("spectral_glyph_plate", Item::new);
+    public static final RegistrySupplier<Item> VISCANITE_PISTON = ITEMS.registerItem("viscanite_piston", Item::new);
+    public static final RegistrySupplier<Item> PRESSURE_GRADED_GASKET = ITEMS.registerItem("pressure_graded_gasket", Item::new);
+    public static final RegistrySupplier<Item> BLANK_STONE = ITEMS.registerItem("blank_stone", Item::new);
+
+    // --- FAUNA DROPS ---
+    public static final RegistrySupplier<Item> GLACIAL_AEGIS_PLATE = ITEMS.registerItem("glacial_aegis_plate", Item::new);
+    public static final RegistrySupplier<Item> PATINA_AEGIS_PLATE = ITEMS.registerItem("patina_aegis_plate", Item::new);
+    public static final RegistrySupplier<Item> MOSSY_AEGIS_PLATE = ITEMS.registerItem("mossy_aegis_plate", Item::new);
+    public static final RegistrySupplier<Item> LIVING_SPORES = ITEMS.registerItem("living_spores", Item::new);
+    public static final RegistrySupplier<Item> RIME_ANTLER_FRAGMENT = ITEMS.registerItem("rime_antler_fragment", Item::new);
+    public static final RegistrySupplier<Item> SHEPHERDS_FROST = ITEMS.registerItem("shepherds_frost", Item::new);
+    public static final RegistrySupplier<Item> CRAWLER_SHELL_FRAGMENT = ITEMS.registerItem("crawler_shell_fragment", Item::new);
 
     // Others
     public static final RegistrySupplier<BlockItem> VIS_VITAE_ANCHOR_ITEM = ITEMS.registerItem("vis_vitae_anchor", properties -> new BlockItem(ModBlocks.VIS_VITAE_ANCHOR.get(), properties));
@@ -549,7 +582,9 @@ public class ModItems {
     // ==========================================
     public static final List<RegistrySupplier<? extends Item>> SIMPLE_ITEMS = List.of(
             ARCANUM_FOCUS, MATERIA_VALUE_DETECTOR, ARCANE_BRICK_PIECE, ARCANE_CLAY, EIDOLON_PATHMARKER,
-            VEIL_SHARD, CHALK, // Added Chalk here!
+            VEIL_SHARD, CHALK, DULL_CHALK, CONDUCTIVE_CHALK, RESONANT_CHALK, EIDOLIC_CHALK,
+            ADVANCED_CHALK, ADVANCED_DULL_CHALK, ADVANCED_CONDUCTIVE_CHALK, ADVANCED_RESONANT_CHALK, ADVANCED_EIDOLIC_CHALK,
+            GLACIAL_AEGIS_PLATE, PATINA_AEGIS_PLATE, MOSSY_AEGIS_PLATE, LIVING_SPORES, RIME_ANTLER_FRAGMENT, SHEPHERDS_FROST, CRAWLER_SHELL_FRAGMENT, // Added Fauna Drops
             SMALL_AMPOULE, MEDIUM_AMPOULE, LARGE_AMPOULE, ESSENCE_HARVESTING_BLADE, SOULBOUND_BLADE,
             OBLIVION_BLADE, TIDAL_TRIDENT, VOID_SWORD, BASALT_PICKAXE, WHISPERWOOD_WAND, SHIMMERING_FOCUS,
             ARCANITE_INGOT, VISCANITE_INGOT, RESONITE_INGOT, EIDOLITE_INGOT, CHARGED_ARCANITE_INGOT, CHARGED_VISCANITE_INGOT, CHARGED_RESONITE_INGOT, CHARGED_EIDOLITE_INGOT,

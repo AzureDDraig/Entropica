@@ -42,6 +42,7 @@ public class ModCreativeTabs {
                             !(item instanceof EssenceItem) &&
                             !(item instanceof EssenceAmpouleItem) &&
                             !(item instanceof VisFumeAmpouleItem) &&
+                            !(item instanceof ddraig.net.entropica.item.ChalkItem) &&
                             !itemRegistryObject.getId().getPath().contains("ampoule_base") &&
                             item != ModItems.SOULBOUND_BLADE.get() &&
                             item != ModItems.OBLIVION_BLADE.get() &&
@@ -53,7 +54,7 @@ public class ModCreativeTabs {
                             item != ModItems.SHIMMERING_FOCUS.get() &&
                             item != ModItems.AETHERIC_MONOCLE.get() &&
                             item != ModItems.MATERIA_VALUE_DETECTOR.get()) {
-
+ 
                         output.accept(item);
                     }
                 });
@@ -135,7 +136,16 @@ public class ModCreativeTabs {
                 output.accept(ModItems.AETHERIC_MONOCLE.get());
                 output.accept(ModItems.MATERIA_VALUE_DETECTOR.get());
                 output.accept(ModItems.ARCANUM_FOCUS.get());
-                output.accept(ModItems.CHALK.get()); // Added Chalk to Tools Tab
+                output.accept(ModItems.CHALK.get());
+                output.accept(ModItems.DULL_CHALK.get());
+                output.accept(ModItems.CONDUCTIVE_CHALK.get());
+                output.accept(ModItems.RESONANT_CHALK.get());
+                output.accept(ModItems.EIDOLIC_CHALK.get());
+                output.accept(ModItems.ADVANCED_CHALK.get());
+                output.accept(ModItems.ADVANCED_DULL_CHALK.get());
+                output.accept(ModItems.ADVANCED_CONDUCTIVE_CHALK.get());
+                output.accept(ModItems.ADVANCED_RESONANT_CHALK.get());
+                output.accept(ModItems.ADVANCED_EIDOLIC_CHALK.get());
             }).build());
 
     public static final RegistrySupplier<CreativeModeTab> WEAPON_CRAFTING_TAB = CREATIVE_MODE_TABS.register("weapon_crafting_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 4)

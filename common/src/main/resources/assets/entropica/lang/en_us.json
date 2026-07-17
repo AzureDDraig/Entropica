@@ -21,6 +21,7 @@
   "_comment_effects": "================ EFFECTS ================",
   "effect.entropica.materia_toxicity": "Materia Toxicity",
   "effect.entropica.void_tear": "Void Tear",
+  "effect.entropica.haze": "Haze",
 
   "_comment_enchants": "================ ENCHANTMENTS ================",
   "enchantment.entropica.augment_slot_expansion": "Augment Slot Expansion",
@@ -645,5 +646,39 @@
   "tooltip.entropica.ancient_eidolite_core": "The absolute pinnacle of autonomous phantom metal.",
   "tooltip.entropica.shape_concept": "A physical manifestation of a weapon's spectral soul.",
   "tooltip.entropica.orbis_acceptor": "Acts as the intake valve for magical energy.",
-  "tooltip.entropica.spell_gem": "A crystallized spell matrix that can be slotted into weapons."
+  "tooltip.entropica.spell_gem": "A crystallized spell matrix that can be slotted into weapons.",
+
+  "item.entropica.glacial_aegis_plate": "Glacial Aegis Plate",
+  "item.entropica.patina_aegis_plate": "Patina Aegis Plate",
+  "item.entropica.mossy_aegis_plate": "Mossy Aegis Plate",
+  "item.entropica.living_spores": "Living Spores",
+  "item.entropica.rime_antler_fragment": "Rime Antler Fragment",
+  "item.entropica.shepherds_frost": "Shepherd's Frost",
+  "item.entropica.crawler_shell_fragment": "Crawler Shell Fragment",
+
+  "entity.entropica.spore_drifter": "Spore Drifter",
+  "entity.entropica.spore_cloud": "Spore Cloud",
+  "entity.entropica.rime_back_ovis": "Rime-Back Ovis",
+  "entity.entropica.overgrowth_ovis": "Overgrowth Ovis",
+  "entity.entropica.rime_shepherd": "Rime Shepherd",
+  "entity.entropica.bloom_crawler": "Bloom Crawler",
+  
+  "item.entropica.chalk": "Chalk",
+  "item.entropica.dull_chalk": "Dull Chalk",
+  "item.entropica.conductive_chalk": "Conductive Chalk",
+  "item.entropica.resonant_chalk": "Resonant Chalk",
+  "item.entropica.eidolic_chalk": "Eidolic Chalk",
+  "item.entropica.advanced_chalk": "Advanced Chalk",
+  "item.entropica.advanced_dull_chalk": "Advanced Dull Chalk",
+  "item.entropica.advanced_conductive_chalk": "Advanced Conductive Chalk",
+  "item.entropica.advanced_resonant_chalk": "Advanced Resonant Chalk",
+  "item.entropica.advanced_eidolic_chalk": "Advanced Eidolic Chalk",
+  "item.entropica.arcane_stencil": "Arcane Stencil",
+  "block.entropica.scribed_chalk": "Scribed Chalk",
+  "block.entropica.viscanite_synthesizer": "Viscanite Synthesizer",
+  "block.entropica.scribing_controller": "Runic Scribing Controller",
+  "block.entropica.viscanite_piston_press": "Viscanite Piston Press",
+  "block.entropica.drafting_table": "Drafting Table",
+  "block.entropica.research_bench": "Research Bench",
+  "item.entropica.blank_stone": "Blank Stone"
 }

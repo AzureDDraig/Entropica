@@ -24,7 +24,7 @@ public class ModCreativeTabs {
             .displayItems((parameters, output) -> {
                 ModBlocks.BLOCKS.getEntries().forEach(blockHolder -> {
                     Item blockItem = blockHolder.get().asItem();
-                    if (blockItem != Items.AIR) {
+                    if (blockItem != Items.AIR && !isLogisticsItem(blockItem)) {
                         output.accept(blockItem);
                     }
                 });
@@ -42,6 +42,7 @@ public class ModCreativeTabs {
                             !(item instanceof EssenceItem) &&
                             !(item instanceof EssenceAmpouleItem) &&
                             !(item instanceof VisFumeAmpouleItem) &&
+                            !(item instanceof ddraig.net.entropica.item.ChalkItem) &&
                             !itemRegistryObject.getId().getPath().contains("ampoule_base") &&
                             item != ModItems.SOULBOUND_BLADE.get() &&
                             item != ModItems.OBLIVION_BLADE.get() &&
@@ -53,14 +54,14 @@ public class ModCreativeTabs {
                             item != ModItems.SHIMMERING_FOCUS.get() &&
                             item != ModItems.AETHERIC_MONOCLE.get() &&
                             item != ModItems.MATERIA_VALUE_DETECTOR.get()) {
-
+ 
                         output.accept(item);
                     }
                 });
             }).build());
 
-    public static final RegistrySupplier<CreativeModeTab> VIS_ITEMS_TAB = CREATIVE_MODE_TABS.register("vis_items_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 2)
-            .title(Component.translatable("itemGroup.entropica.vis_items"))
+    public static final RegistrySupplier<CreativeModeTab> MATERIA_ITEMS_TAB = CREATIVE_MODE_TABS.register("materia_items_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 2)
+            .title(Component.translatable("itemGroup.entropica.materia_items"))
             .icon(() -> {
                 ItemStack iconStack = new ItemStack(ModItems.LARGE_ESSENCE_AMPOULE.get());
                 EssenceAmpouleItem.setEssenceType(iconStack, EssenceType.CHIMERA);
@@ -135,7 +136,16 @@ public class ModCreativeTabs {
                 output.accept(ModItems.AETHERIC_MONOCLE.get());
                 output.accept(ModItems.MATERIA_VALUE_DETECTOR.get());
                 output.accept(ModItems.ARCANUM_FOCUS.get());
-                output.accept(ModItems.CHALK.get()); // Added Chalk to Tools Tab
+                output.accept(ModItems.CHALK.get());
+                output.accept(ModItems.DULL_CHALK.get());
+                output.accept(ModItems.CONDUCTIVE_CHALK.get());
+                output.accept(ModItems.RESONANT_CHALK.get());
+                output.accept(ModItems.EIDOLIC_CHALK.get());
+                output.accept(ModItems.ADVANCED_CHALK.get());
+                output.accept(ModItems.ADVANCED_DULL_CHALK.get());
+                output.accept(ModItems.ADVANCED_CONDUCTIVE_CHALK.get());
+                output.accept(ModItems.ADVANCED_RESONANT_CHALK.get());
+                output.accept(ModItems.ADVANCED_EIDOLIC_CHALK.get());
             }).build());
 
     public static final RegistrySupplier<CreativeModeTab> WEAPON_CRAFTING_TAB = CREATIVE_MODE_TABS.register("weapon_crafting_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 4)
@@ -225,4 +235,30 @@ public class ModCreativeTabs {
                 output.accept(ModItems.TIDAL_TRIDENT.get());
                 output.accept(ModItems.VOID_SWORD.get());
             }).build());
+
+    public static final RegistrySupplier<CreativeModeTab> LOGISTICS_TAB = CREATIVE_MODE_TABS.register("logistics_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 6)
+            .title(Component.translatable("itemGroup.entropica.logistics"))
+            .icon(() -> ModItems.VAPOR_PNEUMATIC_PIPE_COPPER_ITEM.get().getDefaultInstance())
+            .displayItems((parameters, output) -> {
+                ModBlocks.BLOCKS.getEntries().forEach(blockHolder -> {
+                    Item blockItem = blockHolder.get().asItem();
+                    if (blockItem != Items.AIR && isLogisticsItem(blockItem)) {
+                        output.accept(blockItem);
+                    }
+                });
+            }).build());
+
+    private static boolean isLogisticsItem(Item item) {
+        String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getPath();
+        return path.contains("pipe") ||
+               path.contains("pipeline") ||
+               path.contains("conduit") ||
+               path.contains("valve") ||
+               path.contains("diverter") ||
+               path.contains("port") ||
+               path.contains("pump") ||
+               path.contains("generator") ||
+               path.contains("coupling") ||
+               path.contains("agitator");
+    }
 }
