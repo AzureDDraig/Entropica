@@ -18,6 +18,7 @@ public class HardcodedRecipes {
 
     private static List<EidolicLatheRecipe> LATHE_RECIPES = null;
     private static List<AethericSynthesizerRecipe> SYNTHESIZER_RECIPES = null;
+    private static List<MagicCircleRecipe> MAGIC_CIRCLE_RECIPES = null;
 
     // ==========================================
     // LATHE FALLBACK RECIPES
@@ -363,5 +364,35 @@ public class HardcodedRecipes {
         ItemStack stack = new ItemStack(orbItem);
         EssenceItem.setEssenceType(stack, type);
         return stack;
+    }
+
+    public static List<MagicCircleRecipe> getMagicCircleRecipes() {
+        if (MAGIC_CIRCLE_RECIPES == null) {
+            MAGIC_CIRCLE_RECIPES = new ArrayList<>();
+
+            // Example/Placeholder Magic Circle Recipe:
+            // Inputs: Iron Ingot
+            // Runes: Rune Uruz
+            // Essences: 50 Nether
+            // Required Tier: 1
+            // Output: Arcanite Ingot
+            List<Ingredient> inputs = List.of(
+                    Ingredient.of(Items.IRON_INGOT)
+            );
+            List<Ingredient> runes = List.of(
+                    Ingredient.of(ModItems.RUNE_URUZ.get())
+            );
+            Map<EssenceType, Integer> essences = new HashMap<>();
+            essences.put(EssenceType.NETHER, 50);
+
+            MAGIC_CIRCLE_RECIPES.add(new MagicCircleRecipe(
+                    inputs,
+                    runes,
+                    essences,
+                    1,
+                    new ItemStack(ModItems.ARCANITE_INGOT.get())
+            ));
+        }
+        return MAGIC_CIRCLE_RECIPES;
     }
 }

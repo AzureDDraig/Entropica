@@ -29,6 +29,15 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.redstone.Orientation;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Ingredient;
+import ddraig.net.entropica.recipe.MagicCircleRecipeInput;
+import ddraig.net.entropica.recipe.MagicCircleRecipe;
+import ddraig.net.entropica.registry.ModRecipes;
+import java.util.List;
+import java.util.Optional;
 
 public class ScribedChalkBlock extends BaseEntityBlock {
     public static final IntegerProperty TIER = IntegerProperty.create("tier", 1, 4);
@@ -205,7 +214,19 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                     int amplifiers = 0;
                     int capacitors = 0;
                     int resonators = 0;
-                    
+
+                    List<ItemEntity> inputItemEntities = new java.util.ArrayList<>();
+                    List<ItemStack> inputStacks = new java.util.ArrayList<>();
+                    List<ScribedChalkBlockEntity> runeBlockEntities = new java.util.ArrayList<>();
+                    List<ItemStack> runeStacks = new java.util.ArrayList<>();
+                    java.util.Map<EssenceType, Integer> essences = new java.util.HashMap<>();
+                    List<ScribedChalkBlockEntity> allChalkBlockEntities = new java.util.ArrayList<>();
+
+                    BlockEntity centerBE = level.getBlockEntity(pos);
+                    if (centerBE instanceof ScribedChalkBlockEntity outputBE) {
+                        allChalkBlockEntities.add(outputBE);
+                    }
+
                     for (int t = 1; t <= checkTier; t++) {
                         int[][] offsets = getOffsetsForTier(t);
                         for (int[] offset : offsets) {
@@ -214,41 +235,142 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             if (neighborState.is(state.getBlock())) {
                                 boolean isCircuit = neighborState.getValue(CIRCUIT);
                                 NodeType type = neighborState.getValue(NODE_TYPE);
-                                if (isCircuit) {
-                                    if (type == NodeType.AMPLIFIER) amplifiers++;
-                                    else if (type == NodeType.CAPACITOR) capacitors++;
-                                    else if (type == NodeType.RESONATOR) resonators++;
+                                BlockEntity be = level.getBlockEntity(p);
+                                if (be instanceof ScribedChalkBlockEntity chalkBE) {
+                                    allChalkBlockEntities.add(chalkBE);
+                                    
+                                    if (type == NodeType.INPUT) {
+                                        AABB scanArea = new AABB(p).inflate(0.2, 0.5, 0.2);
+                                        List<ItemEntity> foundItems = level.getEntitiesOfClass(ItemEntity.class, scanArea);
+                                        for (ItemEntity ent : foundItems) {
+                                            if (!ent.isRemoved() && !ent.getItem().isEmpty()) {
+                                                inputItemEntities.add(ent);
+                                                inputStacks.add(ent.getItem());
+                                            }
+                                        }
+                                    } else if (type == NodeType.RUNE) {
+                                        ItemStack rune = chalkBE.getStoredRune();
+                                        if (!rune.isEmpty()) {
+                                            runeBlockEntities.add(chalkBE);
+                                            runeStacks.add(rune);
+                                        }
+                                    }
+                                    
+                                    EssenceType affinity = chalkBE.getActiveAffinity();
+                                    if (affinity != EssenceType.REGULAR) {
+                                        essences.put(affinity, essences.getOrDefault(affinity, 0) + chalkBE.getEssenceLevel());
+                                    }
+
+                                    if (isCircuit) {
+                                        if (type == NodeType.AMPLIFIER) amplifiers++;
+                                        else if (type == NodeType.CAPACITOR) capacitors++;
+                                        else if (type == NodeType.RESONATOR) resonators++;
+                                    }
                                 }
                             }
                         }
                     }
-                    
-                    StringBuilder message = new StringBuilder("§5[Entropica] Magic Circle has begun processing the ritual!");
-                    if (amplifiers > 0) {
-                        double powerMult = 1.0 + amplifiers * 0.5;
-                        message.append("\n§6 - Power Multiplier: ").append(String.format("%.1f", powerMult)).append("x (").append(amplifiers).append(" Amplifiers)");
-                    }
-                    if (capacitors > 0) {
-                        double efficiencyMult = 1.0 - (1.0 - Math.pow(0.75, capacitors));
-                        message.append("\n§e - Essence Efficiency: ").append(String.format("%.0f", (1.0 - efficiencyMult) * 100)).append("% cost reduction (").append(capacitors).append(" Capacitors)");
-                    }
-                    if (resonators > 0) {
-                        double speedMult = 1.0 + resonators * 0.5;
-                        message.append("\n§b - Processing Speed: ").append(String.format("%.1f", speedMult)).append("x (").append(resonators).append(" Resonators)");
-                    }
-                    
-                    player.displayClientMessage(net.minecraft.network.chat.Component.literal(message.toString()), false);
-                    level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.0f);
-                    
-                    if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-                        serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.PORTAL, pos.getX() + 0.5, pos.getY() + 0.1, pos.getZ() + 0.5, 30, 0.5, 0.1, 0.5, 0.1);
-                        for (int t = 1; t <= checkTier; t++) {
-                            int[][] offsets = getOffsetsForTier(t);
-                            for (int[] offset : offsets) {
-                                BlockPos p = pos.offset(offset[0], 0, offset[1]);
-                                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.END_ROD, p.getX() + 0.5, p.getY() + 0.1, p.getZ() + 0.5, 10, 0.2, 0.1, 0.2, 0.05);
+
+                    MagicCircleRecipeInput recipeInput = new MagicCircleRecipeInput(inputStacks, runeStacks, essences, checkTier);
+                    Optional<RecipeHolder<MagicCircleRecipe>> recipeOpt = level.getServer().getRecipeManager()
+                            .getRecipeFor(ModRecipes.MAGIC_CIRCLE_TYPE.get(), recipeInput, level);
+
+                    if (recipeOpt.isPresent()) {
+                        MagicCircleRecipe recipe = recipeOpt.get().value();
+                        
+                        // 1. Consume input items from entities
+                        for (Ingredient ing : recipe.inputs()) {
+                            for (int i = 0; i < inputItemEntities.size(); i++) {
+                                ItemEntity ent = inputItemEntities.get(i);
+                                if (ing.test(ent.getItem())) {
+                                    ItemStack stack = ent.getItem();
+                                    stack.shrink(1);
+                                    if (stack.isEmpty()) {
+                                        ent.discard();
+                                    } else {
+                                        ent.setItem(stack);
+                                    }
+                                    inputItemEntities.remove(i);
+                                    break;
+                                }
                             }
                         }
+                        
+                        // 2. Consume rune items from the chalk block entities
+                        for (Ingredient ing : recipe.runes()) {
+                            for (int i = 0; i < runeBlockEntities.size(); i++) {
+                                ScribedChalkBlockEntity chalkBE = runeBlockEntities.get(i);
+                                ItemStack stack = chalkBE.getStoredRune();
+                                if (ing.test(stack)) {
+                                    stack.shrink(1);
+                                    chalkBE.setStoredRune(stack);
+                                    chalkBE.setChanged();
+                                    level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                                    runeBlockEntities.remove(i);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // 3. Clear/Drain essences on all nodes in the circle
+                        for (ScribedChalkBlockEntity chalkBE : allChalkBlockEntities) {
+                            chalkBE.setActiveAffinity(EssenceType.REGULAR);
+                            chalkBE.setEssenceLevel(0);
+                            chalkBE.setColor(0xFFCCCCCC);
+                            chalkBE.setChanged();
+                            level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                        }
+                        
+                        // 4. Spawn output item at Output node center
+                        ItemStack resultStack = recipe.output().copy();
+                        ItemEntity resultEntity = new ItemEntity(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, resultStack);
+                        resultEntity.setDeltaMovement(0, 0.25, 0);
+                        level.addFreshEntity(resultEntity);
+                        
+                        // 5. Visual/Audio effects
+                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Magic Circle has successfully performed the ritual!"), false);
+                        level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.2f);
+                        
+                        if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                            serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.PORTAL, pos.getX() + 0.5, pos.getY() + 0.1, pos.getZ() + 0.5, 60, 0.5, 0.1, 0.5, 0.2);
+                            for (int t = 1; t <= checkTier; t++) {
+                                int[][] offsets = getOffsetsForTier(t);
+                                for (int[] offset : offsets) {
+                                    BlockPos p = pos.offset(offset[0], 0, offset[1]);
+                                    serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.END_ROD, p.getX() + 0.5, p.getY() + 0.1, p.getZ() + 0.5, 20, 0.2, 0.1, 0.2, 0.08);
+                                }
+                            }
+                        }
+                    } else {
+                        StringBuilder message = new StringBuilder("§5[Entropica] Magic Circle formed, but no recipe matches these inputs!");
+                        if (!essences.isEmpty()) {
+                            message.append("\n§d - Contained Essences:");
+                            for (java.util.Map.Entry<EssenceType, Integer> entry : essences.entrySet()) {
+                                message.append(" ").append(entry.getValue()).append(" ").append(entry.getKey().name());
+                            }
+                        } else {
+                            message.append("\n§d - Contained Essences: None");
+                        }
+                        if (!runeStacks.isEmpty()) {
+                            message.append("\n§9 - Detected Runes:");
+                            for (ItemStack rune : runeStacks) {
+                                message.append(" ").append(rune.getHoverName().getString());
+                            }
+                        }
+                        if (amplifiers > 0) {
+                            double powerMult = 1.0 + amplifiers * 0.5;
+                            message.append("\n§6 - Power Multiplier: ").append(String.format("%.1f", powerMult)).append("x (").append(amplifiers).append(" Amplifiers)");
+                        }
+                        if (capacitors > 0) {
+                            double efficiencyMult = 1.0 - (1.0 - Math.pow(0.75, capacitors));
+                            message.append("\n§e - Essence Efficiency: ").append(String.format("%.0f", (1.0 - efficiencyMult) * 100)).append("% cost reduction (").append(capacitors).append(" Capacitors)");
+                        }
+                        if (resonators > 0) {
+                            double speedMult = 1.0 + resonators * 0.5;
+                            message.append("\n§b - Processing Speed: ").append(String.format("%.1f", speedMult)).append("x (").append(resonators).append(" Resonators)");
+                        }
+                        player.displayClientMessage(net.minecraft.network.chat.Component.literal(message.toString()), false);
+                        level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.5f, 0.8f);
                     }
                 }
                 return net.minecraft.world.InteractionResult.SUCCESS;
@@ -343,6 +465,20 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                     }
                     return net.minecraft.world.InteractionResult.SUCCESS;
                 }
+            }
+        }
+
+        if (player.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND).isEmpty()) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof ScribedChalkBlockEntity chalkBE) {
+                if (!level.isClientSide()) {
+                    String name = state.getValue(NODE_TYPE).getSerializedName().toUpperCase();
+                    String affName = chalkBE.getActiveAffinity().name();
+                    int essLevel = chalkBE.getEssenceLevel();
+                    String msg = String.format("§5[Entropica] %s Node | Affinity: %s | Essence Level: %d/32", name, affName, essLevel);
+                    player.displayClientMessage(net.minecraft.network.chat.Component.literal(msg), true);
+                }
+                return net.minecraft.world.InteractionResult.SUCCESS;
             }
         }
 

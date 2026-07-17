@@ -680,5 +680,6 @@
   "block.entropica.viscanite_piston_press": "Viscanite Piston Press",
   "block.entropica.drafting_table": "Drafting Table",
   "block.entropica.research_bench": "Research Bench",
-  "item.entropica.blank_stone": "Blank Stone"
+  "item.entropica.blank_stone": "Blank Stone",
+  "recipe.entropica.magic_circle": "Magic Circle Ritual"
 }

@@ -9,6 +9,8 @@ import ddraig.net.entropica.recipe.DilutedEssenceRecipe;
 import ddraig.net.entropica.recipe.EidolicLatheRecipe;
 import ddraig.net.entropica.recipe.FusionRecipe;
 import ddraig.net.entropica.recipe.PressureChamberRecipe;
+import ddraig.net.entropica.recipe.MagicCircleRecipe;
+import ddraig.net.entropica.compat.jei.MagicCircleRecipeCategory;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModFluids;
 import ddraig.net.entropica.registry.ModItems;
@@ -148,6 +150,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(new AethericSynthesizerRecipeCategory(guiHelper));
         registration.addRecipeCategories(new EidolicLatheRecipeCategory(guiHelper));
         registration.addRecipeCategories(new EssenceExtractionCategory(guiHelper));
+        registration.addRecipeCategories(new MagicCircleRecipeCategory(guiHelper));
     }
 
     @Override
@@ -156,6 +159,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
         List<PressureChamberRecipe> pcRecipes = Collections.emptyList();
         List<DilutedEssenceRecipe> deRecipes = Collections.emptyList();
         List<FusionRecipe> fusionRecipes = Collections.emptyList();
+        List<MagicCircleRecipe> magicCircleRecipes = new ArrayList<>();
         List<AethericSynthesizerRecipe> synthRecipes = new ArrayList<>();
         List<EidolicLatheRecipe> latheRecipes = new ArrayList<>();
 
@@ -174,16 +178,19 @@ public class EntropicaJEIPlugin implements IModPlugin {
             pcRecipes = allRecipes.stream().filter(holder -> holder.value() instanceof PressureChamberRecipe).map(holder -> (PressureChamberRecipe) holder.value()).toList();
             deRecipes = allRecipes.stream().filter(holder -> holder.value() instanceof DilutedEssenceRecipe).map(holder -> (DilutedEssenceRecipe) holder.value()).toList();
             fusionRecipes = allRecipes.stream().filter(holder -> holder.value() instanceof FusionRecipe).map(holder -> (FusionRecipe) holder.value()).toList();
+            magicCircleRecipes.addAll(allRecipes.stream().filter(holder -> holder.value() instanceof MagicCircleRecipe).map(holder -> (MagicCircleRecipe) holder.value()).toList());
             synthRecipes.addAll(allRecipes.stream().filter(holder -> holder.value() instanceof AethericSynthesizerRecipe).map(holder -> (AethericSynthesizerRecipe) holder.value()).toList());
             latheRecipes.addAll(allRecipes.stream().filter(holder -> holder.value() instanceof EidolicLatheRecipe).map(holder -> (EidolicLatheRecipe) holder.value()).toList());
         }
 
+        magicCircleRecipes.addAll(ddraig.net.entropica.recipe.HardcodedRecipes.getMagicCircleRecipes());
         synthRecipes.addAll(ddraig.net.entropica.recipe.HardcodedRecipes.getSynthesizerRecipes());
         latheRecipes.addAll(ddraig.net.entropica.recipe.HardcodedRecipes.getLatheRecipes());
 
         registration.addRecipes(PressureChamberRecipeCategory.TYPE, pcRecipes);
         registration.addRecipes(DilutedEssenceRecipeCategory.TYPE, deRecipes);
         registration.addRecipes(VisFusionRecipeCategory.TYPE, fusionRecipes);
+        registration.addRecipes(MagicCircleRecipeCategory.TYPE, magicCircleRecipes);
         registration.addRecipes(AethericSynthesizerRecipeCategory.TYPE, synthRecipes);
         registration.addRecipes(EidolicLatheRecipeCategory.TYPE, latheRecipes);
 
@@ -208,5 +215,11 @@ public class EntropicaJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.CRUCIBLE.get()), EssenceExtractionCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MARBLE_RITUAL_BOWL.get()), EssenceExtractionCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BASALT_RITUAL_BOWL.get()), EssenceExtractionCategory.TYPE);
+
+        registration.addRecipeCatalyst(new ItemStack(ModItems.CHALK.get()), MagicCircleRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.DULL_CHALK.get()), MagicCircleRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.CONDUCTIVE_CHALK.get()), MagicCircleRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.RESONANT_CHALK.get()), MagicCircleRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.EIDOLIC_CHALK.get()), MagicCircleRecipeCategory.TYPE);
     }
 }

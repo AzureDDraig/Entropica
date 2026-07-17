@@ -39,6 +39,60 @@ public class ChalkItem extends Item {
         BlockPos clickedPos = context.getClickedPos();
         BlockState clickedState = level.getBlockState(clickedPos);
 
+        Player player = context.getPlayer();
+        if (clickedState.is(ModBlocks.SCRIBED_CHALK.get()) && this.circuit && player != null && player.isCrouching()) {
+            if (!level.isClientSide()) {
+                BlockEntity be = level.getBlockEntity(clickedPos);
+                if (be instanceof ddraig.net.entropica.block.entity.ScribedChalkBlockEntity chalkBE) {
+                    net.minecraft.world.phys.Vec3 clickLoc = context.getClickLocation();
+                    double relativeX = clickLoc.x() - (clickedPos.getX() + 0.5);
+                    double relativeZ = clickLoc.z() - (clickedPos.getZ() + 0.5);
+                    
+                    double angle = Math.toDegrees(Math.atan2(relativeZ, relativeX));
+                    if (angle < 0) angle += 360.0;
+                    
+                    int sector = (int) ((angle + 22.5) / 45.0) % 8;
+                    ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8 clickDir8 = switch (sector) {
+                        case 0 -> ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8.EAST;
+                        case 1 -> ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8.SOUTH_EAST;
+                        case 2 -> ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8.SOUTH;
+                        case 3 -> ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8.SOUTH_WEST;
+                        case 4 -> ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8.WEST;
+                        case 5 -> ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8.NORTH_WEST;
+                        case 6 -> ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8.NORTH;
+                        case 7 -> ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8.NORTH_EAST;
+                        default -> ddraig.net.entropica.block.entity.ScribedChalkBlockEntity.Direction8.EAST;
+                    };
+                    
+                    int currentOverride = chalkBE.getConnectionOverride(clickDir8);
+                    int nextOverride = (currentOverride + 1) % 3; // 0 = DEFAULT, 1 = FORCE_CONNECT, 2 = FORCE_DISCONNECT
+                    chalkBE.setConnectionOverride(clickDir8, nextOverride);
+                    
+                    // Keep neighbor in sync
+                    BlockPos neighborPos = clickedPos.offset(clickDir8.getXOffset(), 0, clickDir8.getZOffset());
+                    BlockEntity neighborBE = level.getBlockEntity(neighborPos);
+                    if (neighborBE instanceof ddraig.net.entropica.block.entity.ScribedChalkBlockEntity neighborChalk) {
+                        neighborChalk.setConnectionOverride(clickDir8.getOpposite(), nextOverride);
+                    }
+                    
+                    String stateName = switch (nextOverride) {
+                        case 0 -> "Default (Auto)";
+                        case 1 -> "Forced Connect";
+                        case 2 -> "Forced Disconnect";
+                        default -> "Default (Auto)";
+                    };
+                    
+                    player.displayClientMessage(net.minecraft.network.chat.Component.literal("Connection " + clickDir8.getName().toUpperCase() + " override changed to: " + stateName), true);
+                    level.playSound(null, clickedPos, SoundEvents.STONE_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.5f, 1.2f);
+                    
+                    ItemStack stack = context.getItemInHand();
+                    net.minecraft.world.entity.EquipmentSlot slot = context.getHand() == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND;
+                    stack.hurtAndBreak(1, player, slot);
+                }
+            }
+            return InteractionResult.SUCCESS;
+        }
+
         // 1. If right-clicking an existing chalk block of the same circuit type, cycle its NodeType
         if (clickedState.is(ModBlocks.SCRIBED_CHALK.get()) && clickedState.getValue(ScribedChalkBlock.CIRCUIT) == this.circuit) {
             if (!level.isClientSide()) {
@@ -77,7 +131,6 @@ public class ChalkItem extends Item {
                 }
                 level.playSound(null, clickedPos, SoundEvents.GRAVEL_PLACE, SoundSource.BLOCKS, 0.5f, 1.2f);
 
-                Player player = context.getPlayer();
                 if (player != null) {
                     String nodeName = switch (nextType) {
                         case DEFAULT -> "Default Path";
@@ -112,7 +165,6 @@ public class ChalkItem extends Item {
 
         if (currentState.isAir() || currentState.canBeReplaced()) {
             if (!level.isClientSide()) {
-                Player player = context.getPlayer();
                 ScribedChalkBlock.NodeType defaultType = (player != null && player.isCrouching()) 
                         ? ScribedChalkBlock.NodeType.RUNE 
                         : ScribedChalkBlock.NodeType.DEFAULT;

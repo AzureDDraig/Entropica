@@ -39,6 +39,58 @@ public class ScribedChalkBlockEntity extends BlockEntity {
     private int essenceLevel = 0;
     private Direction facing = Direction.NORTH;
 
+    public enum Direction8 {
+        NORTH("north", 0, -1),
+        NORTH_EAST("north_east", 1, -1),
+        EAST("east", 1, 0),
+        SOUTH_EAST("south_east", 1, 1),
+        SOUTH("south", 0, 1),
+        SOUTH_WEST("south_west", -1, 1),
+        WEST("west", -1, 0),
+        NORTH_WEST("north_west", -1, -1);
+
+        private final String name;
+        private final int xOffset;
+        private final int zOffset;
+
+        Direction8(String name, int xOffset, int zOffset) {
+            this.name = name;
+            this.xOffset = xOffset;
+            this.zOffset = zOffset;
+        }
+
+        public String getName() { return this.name; }
+        public int getXOffset() { return this.xOffset; }
+        public int getZOffset() { return this.zOffset; }
+
+        public Direction8 getOpposite() {
+            return switch (this) {
+                case NORTH -> SOUTH;
+                case NORTH_EAST -> SOUTH_WEST;
+                case EAST -> WEST;
+                case SOUTH_EAST -> NORTH_WEST;
+                case SOUTH -> NORTH;
+                case SOUTH_WEST -> NORTH_EAST;
+                case WEST -> EAST;
+                case NORTH_WEST -> SOUTH_EAST;
+            };
+        }
+    }
+
+    private final int[] connectionOverrides = new int[8];
+
+    public int getConnectionOverride(Direction8 dir) {
+        return this.connectionOverrides[dir.ordinal()];
+    }
+
+    public void setConnectionOverride(Direction8 dir, int value) {
+        this.connectionOverrides[dir.ordinal()] = value;
+        this.setChanged();
+        if (this.level != null && !this.level.isClientSide()) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+        }
+    }
+
     public ScribedChalkBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.SCRIBED_CHALK_BE.get(), pos, state);
     }
@@ -150,7 +202,25 @@ public class ScribedChalkBlockEntity extends BlockEntity {
         }
     }
 
-    private boolean connectsToNeighbor(Level level, BlockPos pos, Direction dir, boolean circuit) {
+    public boolean connectsToNeighbor8(Level level, BlockPos pos, Direction8 dir8, boolean circuit) {
+        int override = getConnectionOverride(dir8);
+        if (override == 1) return true;
+        if (override == 2) return false;
+
+        if (dir8 == Direction8.NORTH_EAST || dir8 == Direction8.NORTH_WEST ||
+            dir8 == Direction8.SOUTH_EAST || dir8 == Direction8.SOUTH_WEST) {
+            return false;
+        }
+
+        Direction dir = switch (dir8) {
+            case NORTH -> Direction.NORTH;
+            case SOUTH -> Direction.SOUTH;
+            case EAST -> Direction.EAST;
+            case WEST -> Direction.WEST;
+            default -> null;
+        };
+        if (dir == null) return false;
+
         BlockState state = level.getBlockState(pos);
         if (state.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.DIODE) {
             if (dir != this.facing && dir != this.facing.getOpposite()) {
@@ -406,19 +476,29 @@ public class ScribedChalkBlockEntity extends BlockEntity {
             int bestColor = 0xFFCCCCCC;
             boolean circuit = state.getValue(ScribedChalkBlock.CIRCUIT);
 
-            for (Direction dir : Direction.Plane.HORIZONTAL) {
-                // If we are a DIODE, we can ONLY pull from our input side (opposite of facing)
-                if (nodeType == ScribedChalkBlock.NodeType.DIODE && dir != blockEntity.getFacing().getOpposite()) {
-                    continue;
+            for (Direction8 dir8 : Direction8.values()) {
+                Direction dir = switch (dir8) {
+                    case NORTH -> Direction.NORTH;
+                    case SOUTH -> Direction.SOUTH;
+                    case EAST -> Direction.EAST;
+                    case WEST -> Direction.WEST;
+                    default -> null;
+                };
+
+                if (nodeType == ScribedChalkBlock.NodeType.DIODE) {
+                    if (dir == null || dir != blockEntity.getFacing().getOpposite()) {
+                        continue;
+                    }
                 }
 
-                if (blockEntity.connectsToNeighbor(level, pos, dir, circuit)) {
-                    BlockEntity neighborBE = level.getBlockEntity(pos.relative(dir));
+                if (blockEntity.connectsToNeighbor8(level, pos, dir8, circuit)) {
+                    BlockPos neighborPos = pos.offset(dir8.getXOffset(), 0, dir8.getZOffset());
+                    BlockEntity neighborBE = level.getBlockEntity(neighborPos);
                     if (neighborBE instanceof ScribedChalkBlockEntity neighborChalk) {
-                        // If neighbor is a DIODE, we can ONLY pull from it if it faces TOWARD us
-                        if (neighborChalk.getBlockState().getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.DIODE &&
-                            neighborChalk.getFacing() != dir.getOpposite()) {
-                            continue;
+                        if (neighborChalk.getBlockState().getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.DIODE) {
+                            if (dir == null || neighborChalk.getFacing() != dir.getOpposite()) {
+                                continue;
+                            }
                         }
 
                         int neighborLevel = neighborChalk.getEssenceLevel();
@@ -576,6 +656,9 @@ public class ScribedChalkBlockEntity extends BlockEntity {
         this.essenceLevel = input.read("EssenceLevel", Codec.INT).orElse(0);
         this.facing = Direction.byName(input.read("Facing", Codec.STRING).orElse("north"));
         if (this.facing == null) this.facing = Direction.NORTH;
+        for (Direction8 dir : Direction8.values()) {
+            this.connectionOverrides[dir.ordinal()] = input.read("override_" + dir.getName(), Codec.INT).orElse(0);
+        }
     }
 
     @Override
@@ -589,6 +672,9 @@ public class ScribedChalkBlockEntity extends BlockEntity {
         output.store("IsInActiveCircle", Codec.BOOL, this.isInActiveCircle);
         output.store("EssenceLevel", Codec.INT, this.essenceLevel);
         output.store("Facing", Codec.STRING, this.facing.getName());
+        for (Direction8 dir : Direction8.values()) {
+            output.store("override_" + dir.getName(), Codec.INT, this.connectionOverrides[dir.ordinal()]);
+        }
     }
 
     @Override

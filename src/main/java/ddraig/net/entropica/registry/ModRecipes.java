@@ -57,6 +57,13 @@ public class ModRecipes {
     public static final RegistrySupplier<RecipeSerializer<ddraig.net.entropica.recipe.EidolicLatheRecipe>> EIDOLIC_LATHE_SERIALIZER =
             SERIALIZERS.register("eidolic_lathe", () -> ddraig.net.entropica.recipe.EidolicLatheRecipe.Serializer.INSTANCE);
 
+    // --- Magic Circle Recipes ---
+    public static final RegistrySupplier<RecipeType<ddraig.net.entropica.recipe.MagicCircleRecipe>> MAGIC_CIRCLE_TYPE =
+            TYPES.register("magic_circle", () -> ddraig.net.entropica.recipe.MagicCircleRecipe.Type.INSTANCE);
+
+    public static final RegistrySupplier<RecipeSerializer<ddraig.net.entropica.recipe.MagicCircleRecipe>> MAGIC_CIRCLE_SERIALIZER =
+            SERIALIZERS.register("magic_circle", () -> ddraig.net.entropica.recipe.MagicCircleRecipe.Serializer.INSTANCE);
+
     public static void register() {
         SERIALIZERS.register();
         TYPES.register();

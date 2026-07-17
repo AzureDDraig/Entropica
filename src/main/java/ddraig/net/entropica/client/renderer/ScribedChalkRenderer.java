@@ -64,8 +64,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             BlockPos pos = be.getBlockPos();
             boolean selfInCircle = be.isInActiveCircle();
             
-            BlockState northState = level.getBlockState(pos.north());
-            boolean northChalk = shouldConnectSmart(level, pos, pos.north(), Direction.NORTH, renderState.isCircuit);
+            boolean northChalk = shouldConnectSmart8(level, pos, ScribedChalkBlockEntity.Direction8.NORTH, renderState.isCircuit);
             if (northChalk && selfInCircle) {
                 BlockEntity nBE = level.getBlockEntity(pos.north());
                 if (nBE instanceof ScribedChalkBlockEntity neighborChalk && neighborChalk.isInActiveCircle()) {
@@ -74,8 +73,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             }
             renderState.connectNorth = northChalk;
 
-            BlockState southState = level.getBlockState(pos.south());
-            boolean southChalk = shouldConnectSmart(level, pos, pos.south(), Direction.SOUTH, renderState.isCircuit);
+            boolean southChalk = shouldConnectSmart8(level, pos, ScribedChalkBlockEntity.Direction8.SOUTH, renderState.isCircuit);
             if (southChalk && selfInCircle) {
                 BlockEntity sBE = level.getBlockEntity(pos.south());
                 if (sBE instanceof ScribedChalkBlockEntity neighborChalk && neighborChalk.isInActiveCircle()) {
@@ -84,8 +82,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             }
             renderState.connectSouth = southChalk;
 
-            BlockState eastState = level.getBlockState(pos.east());
-            boolean eastChalk = shouldConnectSmart(level, pos, pos.east(), Direction.EAST, renderState.isCircuit);
+            boolean eastChalk = shouldConnectSmart8(level, pos, ScribedChalkBlockEntity.Direction8.EAST, renderState.isCircuit);
             if (eastChalk && selfInCircle) {
                 BlockEntity eBE = level.getBlockEntity(pos.east());
                 if (eBE instanceof ScribedChalkBlockEntity neighborChalk && neighborChalk.isInActiveCircle()) {
@@ -94,8 +91,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             }
             renderState.connectEast = eastChalk;
 
-            BlockState westState = level.getBlockState(pos.west());
-            boolean westChalk = shouldConnectSmart(level, pos, pos.west(), Direction.WEST, renderState.isCircuit);
+            boolean westChalk = shouldConnectSmart8(level, pos, ScribedChalkBlockEntity.Direction8.WEST, renderState.isCircuit);
             if (westChalk && selfInCircle) {
                 BlockEntity wBE = level.getBlockEntity(pos.west());
                 if (wBE instanceof ScribedChalkBlockEntity neighborChalk && neighborChalk.isInActiveCircle()) {
@@ -103,6 +99,42 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                 }
             }
             renderState.connectWest = westChalk;
+
+            boolean neChalk = shouldConnectSmart8(level, pos, ScribedChalkBlockEntity.Direction8.NORTH_EAST, renderState.isCircuit);
+            if (neChalk && selfInCircle) {
+                BlockEntity neBE = level.getBlockEntity(pos.offset(1, 0, -1));
+                if (neBE instanceof ScribedChalkBlockEntity neighborChalk && neighborChalk.isInActiveCircle()) {
+                    neChalk = false;
+                }
+            }
+            renderState.connectNorthEast = neChalk;
+
+            boolean nwChalk = shouldConnectSmart8(level, pos, ScribedChalkBlockEntity.Direction8.NORTH_WEST, renderState.isCircuit);
+            if (nwChalk && selfInCircle) {
+                BlockEntity nwBE = level.getBlockEntity(pos.offset(-1, 0, -1));
+                if (nwBE instanceof ScribedChalkBlockEntity neighborChalk && neighborChalk.isInActiveCircle()) {
+                    nwChalk = false;
+                }
+            }
+            renderState.connectNorthWest = nwChalk;
+
+            boolean seChalk = shouldConnectSmart8(level, pos, ScribedChalkBlockEntity.Direction8.SOUTH_EAST, renderState.isCircuit);
+            if (seChalk && selfInCircle) {
+                BlockEntity seBE = level.getBlockEntity(pos.offset(1, 0, 1));
+                if (seBE instanceof ScribedChalkBlockEntity neighborChalk && neighborChalk.isInActiveCircle()) {
+                    seChalk = false;
+                }
+            }
+            renderState.connectSouthEast = seChalk;
+
+            boolean swChalk = shouldConnectSmart8(level, pos, ScribedChalkBlockEntity.Direction8.SOUTH_WEST, renderState.isCircuit);
+            if (swChalk && selfInCircle) {
+                BlockEntity swBE = level.getBlockEntity(pos.offset(-1, 0, 1));
+                if (swBE instanceof ScribedChalkBlockEntity neighborChalk && neighborChalk.isInActiveCircle()) {
+                    swChalk = false;
+                }
+            }
+            renderState.connectSouthWest = swChalk;
 
             // Compute animated color via BFS
             int defaultColor = getDefaultTierColor(state);
@@ -537,6 +569,23 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         }
     }
 
+    private void drawConnections(PoseStack poseStack, VertexConsumer consumer, ChalkRenderState state, float y, float r, float g, float b, float a, int light) {
+        if (!state.isCircuit) {
+            float min = 0.46f;
+            float max = 0.54f;
+            drawQuad(poseStack, consumer, min, y, min, max, y, max, r, g, b, a, light);
+            if (state.connectNorth) {
+                drawQuad(poseStack, consumer, min, y, 0.0f, max, y, min, r, g, b, a, light);
+            }
+            if (state.connectSouth) {
+                drawQuad(poseStack, consumer, min, y, max, max, y, 1.0f, r, g, b, a, light);
+            }
+            if (state.connectEast) {
+                drawQuad(poseStack, consumer, max, y, min, 1.0f, y, max, r, g, b, a, light);
+            }
+            if (state.connectWest) {
+                drawQuad(poseStack, consumer, 0.0f, y, min, min, y, max, r, g, b, a, light);
+            }
             return;
         }
 
@@ -547,7 +596,8 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         if (state.connectEast) connCount++;
         if (state.connectWest) connCount++;
         
-        boolean isCorner = (connCount == 2) && !(state.connectNorth && state.connectSouth) && !(state.connectEast && state.connectWest);
+        boolean isCorner = (connCount == 2) && !(state.connectNorth && state.connectSouth) && !(state.connectEast && state.connectWest)
+            && !state.connectNorthEast && !state.connectNorthWest && !state.connectSouthEast && !state.connectSouthWest;
 
         float sR = (((state.defaultColor >> 16) & 0xFF) / 255f) * 0.7f;
         float sG = (((state.defaultColor >> 8) & 0xFF) / 255f) * 0.7f;
@@ -555,72 +605,16 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
 
         if (isCorner) {
             if (state.connectNorth && state.connectEast) {
-                // NE Corner
-                // Center:
-                drawQuad(poseStack, consumer, 0.47f, y, 0.0f, 0.53f, y, 0.32f, r, g, b, a, light);
-                drawQuad(poseStack, consumer, 0.68f, y, 0.47f, 1.0f, y, 0.53f, r, g, b, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.47f, 0.53f, 0.32f, 0.32f, 0.68f, 0.68f, 0.53f, 0.47f, y, r, g, b, a, light);
-                
-                // Inner (W/S):
-                drawQuad(poseStack, consumer, 0.38f, y, 0.0f, 0.41f, y, 0.41f, sR, sG, sB, a, light);
-                drawQuad(poseStack, consumer, 0.59f, y, 0.59f, 1.0f, y, 0.62f, sR, sG, sB, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.38f, 0.41f, 0.41f, 0.41f, 0.59f, 0.59f, 0.62f, 0.59f, y, sR, sG, sB, a, light);
-                
-                // Outer (E/N):
-                drawQuad(poseStack, consumer, 0.59f, y, 0.0f, 0.62f, y, 0.23f, sR, sG, sB, a, light);
-                drawQuad(poseStack, consumer, 0.77f, y, 0.38f, 1.0f, y, 0.41f, sR, sG, sB, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.59f, 0.62f, 0.23f, 0.23f, 0.77f, 0.77f, 0.41f, 0.38f, y, sR, sG, sB, a, light);
+                drawCurvedCorner(poseStack, consumer, y, Direction.NORTH, Direction.EAST, r, g, b, sR, sG, sB, a, light);
             } 
             else if (state.connectNorth && state.connectWest) {
-                // NW Corner
-                // Center:
-                drawQuad(poseStack, consumer, 0.47f, y, 0.0f, 0.53f, y, 0.32f, r, g, b, a, light);
-                drawQuad(poseStack, consumer, 0.0f, y, 0.47f, 0.32f, y, 0.53f, r, g, b, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.53f, 0.47f, 0.32f, 0.32f, 0.32f, 0.32f, 0.47f, 0.53f, y, r, g, b, a, light);
-                
-                // Inner (E/S):
-                drawQuad(poseStack, consumer, 0.59f, y, 0.0f, 0.62f, y, 0.41f, sR, sG, sB, a, light);
-                drawQuad(poseStack, consumer, 0.0f, y, 0.59f, 0.41f, y, 0.62f, sR, sG, sB, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.59f, 0.62f, 0.41f, 0.41f, 0.41f, 0.41f, 0.59f, 0.62f, y, sR, sG, sB, a, light);
-                
-                // Outer (W/N):
-                drawQuad(poseStack, consumer, 0.38f, y, 0.0f, 0.41f, y, 0.23f, sR, sG, sB, a, light);
-                drawQuad(poseStack, consumer, 0.0f, y, 0.38f, 0.23f, y, 0.41f, sR, sG, sB, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.41f, 0.38f, 0.23f, 0.23f, 0.23f, 0.23f, 0.38f, 0.41f, y, sR, sG, sB, a, light);
+                drawCurvedCorner(poseStack, consumer, y, Direction.NORTH, Direction.WEST, r, g, b, sR, sG, sB, a, light);
             } 
             else if (state.connectSouth && state.connectEast) {
-                // SE Corner
-                // Center:
-                drawQuad(poseStack, consumer, 0.47f, y, 0.68f, 0.53f, y, 1.0f, r, g, b, a, light);
-                drawQuad(poseStack, consumer, 0.68f, y, 0.47f, 1.0f, y, 0.53f, r, g, b, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.47f, 0.53f, 0.68f, 0.68f, 0.68f, 0.68f, 0.53f, 0.47f, y, r, g, b, a, light);
-                
-                // Inner (W/N):
-                drawQuad(poseStack, consumer, 0.38f, y, 0.59f, 0.41f, y, 1.0f, sR, sG, sB, a, light);
-                drawQuad(poseStack, consumer, 0.59f, y, 0.38f, 1.0f, y, 0.41f, sR, sG, sB, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.38f, 0.41f, 0.59f, 0.59f, 0.59f, 0.59f, 0.41f, 0.38f, y, sR, sG, sB, a, light);
-                
-                // Outer (E/S):
-                drawQuad(poseStack, consumer, 0.59f, y, 0.77f, 0.62f, y, 1.0f, sR, sG, sB, a, light);
-                drawQuad(poseStack, consumer, 0.77f, y, 0.59f, 1.0f, y, 0.62f, sR, sG, sB, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.59f, 0.62f, 0.77f, 0.77f, 0.77f, 0.77f, 0.62f, 0.59f, y, sR, sG, sB, a, light);
+                drawCurvedCorner(poseStack, consumer, y, Direction.SOUTH, Direction.EAST, r, g, b, sR, sG, sB, a, light);
             } 
             else if (state.connectSouth && state.connectWest) {
-                // SW Corner
-                // Center:
-                drawQuad(poseStack, consumer, 0.47f, y, 0.68f, 0.53f, y, 1.0f, r, g, b, a, light);
-                drawQuad(poseStack, consumer, 0.0f, y, 0.47f, 0.32f, y, 0.53f, r, g, b, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.53f, 0.47f, 0.68f, 0.68f, 0.32f, 0.32f, 0.53f, 0.47f, y, r, g, b, a, light);
-                
-                // Inner (E/N):
-                drawQuad(poseStack, consumer, 0.59f, y, 0.59f, 0.62f, y, 1.0f, sR, sG, sB, a, light);
-                drawQuad(poseStack, consumer, 0.0f, y, 0.38f, 0.41f, y, 0.41f, sR, sG, sB, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.59f, 0.62f, 0.59f, 0.59f, 0.41f, 0.41f, 0.41f, 0.38f, y, sR, sG, sB, a, light);
-                
-                // Outer (W/S):
-                drawQuad(poseStack, consumer, 0.38f, y, 0.77f, 0.41f, y, 1.0f, sR, sG, sB, a, light);
-                drawQuad(poseStack, consumer, 0.0f, y, 0.59f, 0.23f, y, 0.62f, sR, sG, sB, a, light);
-                drawDiagonalQuad(poseStack, consumer, 0.41f, 0.38f, 0.77f, 0.77f, 0.23f, 0.23f, 0.62f, 0.59f, y, sR, sG, sB, a, light);
+                drawCurvedCorner(poseStack, consumer, y, Direction.SOUTH, Direction.WEST, r, g, b, sR, sG, sB, a, light);
             }
             return;
         }
@@ -633,38 +627,170 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         float s2Min = 0.59f;
         float s2Max = 0.62f;
 
-        sR = (((state.defaultColor >> 16) & 0xFF) / 255f) * 0.7f;
-        sG = (((state.defaultColor >> 8) & 0xFF) / 255f) * 0.7f;
-        sB = ((state.defaultColor & 0xFF) / 255f) * 0.7f;
-
-        // Draw central hub center pad and corner pads
-        drawQuad(poseStack, consumer, min, y, min, max, y, max, r, g, b, a, light);
-        drawQuad(poseStack, consumer, s1Min, y, s1Min, s1Max, y, s1Max, sR, sG, sB, a, light);
-        drawQuad(poseStack, consumer, s2Min, y, s1Min, s2Max, y, s1Max, sR, sG, sB, a, light);
-        drawQuad(poseStack, consumer, s1Min, y, s2Min, s1Max, y, s2Max, sR, sG, sB, a, light);
-        drawQuad(poseStack, consumer, s2Min, y, s2Min, s2Max, y, s2Max, sR, sG, sB, a, light);
+        // Draw central hub center pad and corner pads (using diamonds for soft corners)
+        drawDiamond(poseStack, consumer, min, y, min, max, y, max, r, g, b, a, light);
+        drawDiamond(poseStack, consumer, s1Min, y, s1Min, s1Max, y, s1Max, sR, sG, sB, a, light);
+        drawDiamond(poseStack, consumer, s2Min, y, s1Min, s2Max, y, s1Max, sR, sG, sB, a, light);
+        drawDiamond(poseStack, consumer, s1Min, y, s2Min, s1Max, y, s2Max, sR, sG, sB, a, light);
+        drawDiamond(poseStack, consumer, s2Min, y, s2Min, s2Max, y, s2Max, sR, sG, sB, a, light);
 
         // Draw segments to neighbors
         if (state.connectNorth) {
-            drawQuad(poseStack, consumer, min, y, 0.0f, max, y, min, r, g, b, a, light);
-            drawQuad(poseStack, consumer, s1Min, y, 0.0f, s1Max, y, min, sR, sG, sB, a, light);
-            drawQuad(poseStack, consumer, s2Min, y, 0.0f, s2Max, y, min, sR, sG, sB, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 0.0f, true, 0.500f, 0.06f, r, g, b, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 0.0f, true, 0.395f, 0.03f, sR, sG, sB, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 0.0f, true, 0.605f, 0.03f, sR, sG, sB, a, light);
         }
         if (state.connectSouth) {
-            drawQuad(poseStack, consumer, min, y, max, max, y, 1.0f, r, g, b, a, light);
-            drawQuad(poseStack, consumer, s1Min, y, max, s1Max, y, 1.0f, sR, sG, sB, a, light);
-            drawQuad(poseStack, consumer, s2Min, y, max, s2Max, y, 1.0f, sR, sG, sB, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 1.0f, true, 0.500f, 0.06f, r, g, b, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 1.0f, true, 0.395f, 0.03f, sR, sG, sB, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 1.0f, true, 0.605f, 0.03f, sR, sG, sB, a, light);
         }
         if (state.connectEast) {
-            drawQuad(poseStack, consumer, max, y, min, 1.0f, y, max, r, g, b, a, light);
-            drawQuad(poseStack, consumer, max, y, s1Min, 1.0f, y, s1Max, sR, sG, sB, a, light);
-            drawQuad(poseStack, consumer, max, y, s2Min, 1.0f, y, s2Max, sR, sG, sB, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 1.0f, false, 0.500f, 0.06f, r, g, b, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 1.0f, false, 0.395f, 0.03f, sR, sG, sB, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 1.0f, false, 0.605f, 0.03f, sR, sG, sB, a, light);
         }
         if (state.connectWest) {
-            drawQuad(poseStack, consumer, 0.0f, y, min, min, y, max, r, g, b, a, light);
-            drawQuad(poseStack, consumer, 0.0f, y, s1Min, min, y, s1Max, sR, sG, sB, a, light);
-            drawQuad(poseStack, consumer, 0.0f, y, s2Min, min, y, s2Max, sR, sG, sB, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 0.0f, false, 0.500f, 0.06f, r, g, b, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 0.0f, false, 0.395f, 0.03f, sR, sG, sB, a, light);
+            drawTraceSegment(poseStack, consumer, y, 0.5f, 0.0f, false, 0.605f, 0.03f, sR, sG, sB, a, light);
         }
+
+        // Draw diagonal segments
+        if (state.connectNorthEast) {
+            float px = 1.0f, pz = 1.0f;
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f, 0.5f, 1.0f, 0.0f, px, pz, 0.06f, r, g, b, a, light);
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f - 0.0778f * px, 0.5f - 0.0778f * pz, 1.0f - 0.0778f * px, 0.0f - 0.0778f * pz, px, pz, 0.03f, sR, sG, sB, a, light);
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f + 0.0778f * px, 0.5f + 0.0778f * pz, 1.0f + 0.0778f * px, 0.0f + 0.0778f * pz, px, pz, 0.03f, sR, sG, sB, a, light);
+        }
+        if (state.connectNorthWest) {
+            float px = -1.0f, pz = 1.0f;
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f, 0.5f, 0.0f, 0.0f, px, pz, 0.06f, r, g, b, a, light);
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f - 0.0778f * px, 0.5f - 0.0778f * pz, 0.0f - 0.0778f * px, 0.0f - 0.0778f * pz, px, pz, 0.03f, sR, sG, sB, a, light);
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f + 0.0778f * px, 0.5f + 0.0778f * pz, 0.0f + 0.0778f * px, 0.0f + 0.0778f * pz, px, pz, 0.03f, sR, sG, sB, a, light);
+        }
+        if (state.connectSouthEast) {
+            float px = 1.0f, pz = -1.0f;
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f, 0.5f, 1.0f, 1.0f, px, pz, 0.06f, r, g, b, a, light);
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f - 0.0778f * px, 0.5f - 0.0778f * pz, 1.0f - 0.0778f * px, 1.0f - 0.0778f * pz, px, pz, 0.03f, sR, sG, sB, a, light);
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f + 0.0778f * px, 0.5f + 0.0778f * pz, 1.0f + 0.0778f * px, 1.0f + 0.0778f * pz, px, pz, 0.03f, sR, sG, sB, a, light);
+        }
+        if (state.connectSouthWest) {
+            float px = -1.0f, pz = -1.0f;
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f, 0.5f, 0.0f, 1.0f, px, pz, 0.06f, r, g, b, a, light);
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f - 0.0778f * px, 0.5f - 0.0778f * pz, 0.0f - 0.0778f * px, 1.0f - 0.0778f * pz, px, pz, 0.03f, sR, sG, sB, a, light);
+            drawDiagonalSegment(poseStack, consumer, y, 0.5f + 0.0778f * px, 0.5f + 0.0778f * pz, 0.0f + 0.0778f * px, 1.0f + 0.0778f * pz, px, pz, 0.03f, sR, sG, sB, a, light);
+        }
+    }
+
+    private void drawTraceSegment(PoseStack poseStack, VertexConsumer consumer, float y,
+                                  float startVal, float endVal, boolean isVertical, 
+                                  float offsetAxisVal, float width, 
+                                  float r, float g, float b, float a, int light) {
+        float minX, maxX, minZ, maxZ;
+        if (isVertical) {
+            minX = offsetAxisVal - width / 2.0f;
+            maxX = offsetAxisVal + width / 2.0f;
+            minZ = Math.min(startVal, endVal);
+            maxZ = Math.max(startVal, endVal);
+        } else {
+            minX = Math.min(startVal, endVal);
+            maxX = Math.max(startVal, endVal);
+            minZ = offsetAxisVal - width / 2.0f;
+            maxZ = offsetAxisVal + width / 2.0f;
+        }
+        drawQuad(poseStack, consumer, minX, y, minZ, maxX, y, maxZ, r, g, b, a, light);
+    }
+
+    private void drawDiagonalSegment(PoseStack poseStack, VertexConsumer consumer, float y,
+                                     float xStart, float zStart, float xEnd, float zEnd,
+                                     float px, float pz, float width,
+                                     float r, float g, float b, float a, int light) {
+        float halfW = (width / 2.0f) / 1.414f;
+        float x1 = xStart - halfW * px;
+        float z1 = zStart - halfW * pz;
+        float x2 = xStart + halfW * px;
+        float z2 = zStart + halfW * pz;
+        float x3 = xEnd + halfW * px;
+        float z3 = zEnd + halfW * pz;
+        float x4 = xEnd - halfW * px;
+        float z4 = zEnd - halfW * pz;
+        drawDiagonalQuad(poseStack, consumer, x1, x2, z1, z2, x3, x4, z3, z4, y, r, g, b, a, light);
+    }
+
+    private void drawBezierCurve(PoseStack poseStack, VertexConsumer consumer, float y,
+                                 float x1, float z1, float cx, float cz, float x2, float z2,
+                                 float width, int steps, float r, float g, float b, float a, int light) {
+        float prevX = x1;
+        float prevZ = z1;
+        
+        for (int i = 1; i <= steps; i++) {
+            float t = (float) i / steps;
+            float omt = 1.0f - t;
+            
+            float currX = omt * omt * x1 + 2.0f * omt * t * cx + t * t * x2;
+            float currZ = omt * omt * z1 + 2.0f * omt * t * cz + t * t * z2;
+            
+            float dx = currX - prevX;
+            float dz = currZ - prevZ;
+            float len = (float) Math.sqrt(dx * dx + dz * dz);
+            float px = 0.0f, pz = 0.0f;
+            if (len > 0.0f) {
+                px = -dz / len;
+                pz = dx / len;
+            }
+            
+            float halfW = width / 2.0f;
+            drawDiagonalQuad(poseStack, consumer,
+                             prevX - halfW * px, prevX + halfW * px, prevZ - halfW * pz, prevZ + halfW * pz,
+                             currX + halfW * px, currX - halfW * px, currZ + halfW * pz, currZ - halfW * pz,
+                             y, r, g, b, a, light);
+            
+            prevX = currX;
+            prevZ = currZ;
+        }
+    }
+
+    private void drawCurvedCorner(PoseStack poseStack, VertexConsumer consumer, float y,
+                                  Direction d1, Direction d2,
+                                  float r, float g, float b, float sR, float sG, float sB, float a, int light) {
+        float cx = 0.5f, cz = 0.5f;
+        float x1 = cx + 0.2f * d1.getStepX();
+        float z1 = cz + 0.2f * d1.getStepY();
+        float x2 = cx + 0.2f * d2.getStepX();
+        float z2 = cz + 0.2f * d2.getStepY();
+        
+        drawBezierCurve(poseStack, consumer, y, x1, z1, cx, cz, x2, z2, 0.06f, 6, r, g, b, a, light);
+        
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d1.getStepX(), cx + 0.2f * d1.getStepX(), d1.getAxis().isVertical(), cx, 0.06f, r, g, b, a, light);
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis().isVertical(), cx, 0.06f, r, g, b, a, light);
+        
+        float offset1 = -0.105f;
+        float offset2 = 0.105f;
+        
+        // Side Line 1 (inner):
+        float s1_x1 = x1 + offset1 * d2.getStepX();
+        float s1_z1 = z1 + offset1 * d2.getStepY();
+        float s1_cx = cx + offset1 * d2.getStepX() + offset1 * d1.getStepX();
+        float s1_cz = cz + offset1 * d2.getStepY() + offset1 * d1.getStepY();
+        float s1_x2 = x2 + offset1 * d1.getStepX();
+        float s1_z2 = z2 + offset1 * d1.getStepY();
+        drawBezierCurve(poseStack, consumer, y, s1_x1, s1_z1, s1_cx, s1_cz, s1_x2, s1_z2, 0.03f, 6, sR, sG, sB, a, light);
+        
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d1.getStepX(), cx + 0.2f * d1.getStepX(), d1.getAxis().isVertical(), cx + offset1 * d2.getStepX(), 0.03f, sR, sG, sB, a, light);
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis().isVertical(), cx + offset1 * d1.getStepX(), 0.03f, sR, sG, sB, a, light);
+        
+        // Side Line 2 (outer):
+        float s2_x1 = x1 + offset2 * d2.getStepX();
+        float s2_z1 = z1 + offset2 * d2.getStepY();
+        float s2_cx = cx + offset2 * d2.getStepX() + offset2 * d1.getStepX();
+        float s2_cz = cz + offset2 * d2.getStepY() + offset2 * d1.getStepY();
+        float s2_x2 = x2 + offset2 * d1.getStepX();
+        float s2_z2 = z2 + offset2 * d1.getStepY();
+        drawBezierCurve(poseStack, consumer, y, s2_x1, s2_z1, s2_cx, s2_cz, s2_x2, s2_z2, 0.03f, 6, sR, sG, sB, a, light);
+        
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d1.getStepX(), cx + 0.2f * d1.getStepX(), d1.getAxis().isVertical(), cx + offset2 * d2.getStepX(), 0.03f, sR, sG, sB, a, light);
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis().isVertical(), cx + offset2 * d1.getStepX(), 0.03f, sR, sG, sB, a, light);
     }
 
     private void drawMagicCircle(PoseStack poseStack, VertexConsumer consumer, float radius, float y, float r, float g, float b, float a, int light, float time, float dyeTicks, boolean hasActiveDye, int dyeColor, float dyeSourceAngle) {
@@ -1027,6 +1153,31 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         }
     }
 
+    private boolean shouldConnectSmart8(Level level, BlockPos pos, ScribedChalkBlockEntity.Direction8 dir8, boolean circuit) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof ScribedChalkBlockEntity chalkBE) {
+            int override = chalkBE.getConnectionOverride(dir8);
+            if (override == 1) return true;
+            if (override == 2) return false;
+        }
+
+        if (dir8 == ScribedChalkBlockEntity.Direction8.NORTH_EAST || dir8 == ScribedChalkBlockEntity.Direction8.NORTH_WEST ||
+            dir8 == ScribedChalkBlockEntity.Direction8.SOUTH_EAST || dir8 == ScribedChalkBlockEntity.Direction8.SOUTH_WEST) {
+            return false;
+        }
+
+        Direction dir = switch (dir8) {
+            case NORTH -> Direction.NORTH;
+            case SOUTH -> Direction.SOUTH;
+            case EAST -> Direction.EAST;
+            case WEST -> Direction.WEST;
+            default -> null;
+        };
+        if (dir == null) return false;
+
+        return shouldConnectSmart(level, pos, pos.relative(dir), dir, circuit);
+    }
+
     private boolean shouldConnectSmart(Level level, BlockPos pos, BlockPos neighborPos, Direction dir, boolean circuit) {
         BlockState state = level.getBlockState(pos);
         if (state.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.DIODE) {
@@ -1104,6 +1255,10 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         public boolean connectSouth;
         public boolean connectEast;
         public boolean connectWest;
+        public boolean connectNorthEast;
+        public boolean connectNorthWest;
+        public boolean connectSouthEast;
+        public boolean connectSouthWest;
         public boolean isCircuit;
         public Direction facing = Direction.NORTH;
         public String runeUnicode = "";
