@@ -10,6 +10,20 @@
     *   When you place or cycle a chalk node to a Diode, it automatically aligns itself to face the same direction your player is looking.
     *   Magical energy and colors can only enter the Diode from its backside (input) and flow out of its frontside (output). Energy trying to flow backwards or sideways is blocked.
     *   To prevent energy from leaking to adjacent lines, the Diode will only connect to other chalk blocks located directly in front of or behind it, automatically ignoring any lines trying to connect from the sides.
+*   **8-Way Directional Overrides & 45-Degree Diagonal Branching**:
+    *   Added manual connection controls for advanced chalk. Sneak+right clicking with the advanced chalk on an existing chalk block detects the cursor angle to target one of 8 direction sectors (cardinal and diagonal).
+    *   Toggles between `DEFAULT` (auto-connect), `FORCE_CONNECT` (overriding parallel gates), and `FORCE_DISCONNECT`. Toggles are dynamically synchronized with adjacent chalk blocks.
+    *   Implemented full 8-way essence level and color propagation across diagonal/cardinal overrides during chalk ticks.
+*   **Soft Curved Corners (Bezier Fillets)**:
+    *   Modified the renderer to draw smooth, rounded fillets at 90-degree corners instead of sharp mitered angles.
+    *   Uses quadratic Bezier curve math to interpolate rendering segments between center points, while maintaining parallel offsets for side paths.
+*   **Magic Circle Recipe Type & Ritual Execution**:
+    *   Introduced a custom recipe type (`magic_circle`) using a flexible record structure containing input items, required runes, tier requirements, and required essence amounts.
+    *   Implemented full JSON serialization and network packet synchronization via `MapCodec` and `StreamCodec`.
+    *   Added a world-interaction trigger: right-clicking a Scribed Chalk block checks if it forms the center of a valid magic circle, scans the node layout for floating inputs/runes/essences, matches a recipe, consumes ingredients, and spawns the output with particle and sound effects.
+*   **Just Enough Items (JEI) Compatibility**:
+    *   Registered a custom recipe category for Magic Circles showing reagent items, rune requirements, and outputs.
+    *   Renders dynamic labels for the minimum required circle tier and color-shifting essence values corresponding to the required essence type.
 *   **PCB-Style 45-Degree Mitered Corners (Angled Bend Graphics)**:
     *   Improved the visual rendering of advanced circuit tracks when they turn a corner.
     *   Instead of drawing overlapping square blocks at 90-degree corners, the system now calculates custom coordinates to render smooth, professional-looking 45-degree mitered diagonal bends.
