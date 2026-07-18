@@ -121,7 +121,7 @@ public class ModModelProvider extends ModelProvider {
         createVisFumePipeModels(blockModels, ModBlocks.VAPOR_PNEUMATIC_VALVE.get(), "vapor_pneumatic_valve_closed");
 
         // Vapor Decompression Coupling
-        ModelTemplates.CUBE.create(ModBlocks.VAPOR_DECOMPRESSION_COUPLING.get(), 
+        ModelTemplates.CUBE.create(ModBlocks.DECOMPRESSION_COUPLING.get(), 
                 TextureMapping.cube(ResourceLocation.fromNamespaceAndPath("entropica", "block/arcanite_plating")), blockModels.modelOutput);
 
         // Vapor Pneumatic Pipes (10 Tiers)
@@ -179,7 +179,7 @@ public class ModModelProvider extends ModelProvider {
         // ==========================================
         // MANUAL BLOCK ITEM REGISTRATION
         // ==========================================
-        generate3DBlockItem(itemModels, ModItems.VAPOR_DECOMPRESSION_COUPLING_ITEM.get(), "vapor_decompression_coupling");
+        generate3DBlockItem(itemModels, ModItems.DECOMPRESSION_COUPLING_ITEM.get(), "decompression_coupling");
         generate3DBlockItem(itemModels, ModItems.VAPOR_PNEUMATIC_VALVE_ITEM.get(), "vapor_pneumatic_valve_open_core");
         generate3DBlockItem(itemModels, ModItems.VAPOR_PNEUMATIC_DIVERTER_ITEM.get(), "vapor_pneumatic_diverter_closed");
 

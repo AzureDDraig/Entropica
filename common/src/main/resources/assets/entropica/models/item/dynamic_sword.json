@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_sword"
+    "layer0": "entropica:item/gladius_shape_concept"
   }
 }

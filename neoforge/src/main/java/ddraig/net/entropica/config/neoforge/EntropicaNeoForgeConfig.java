@@ -101,6 +101,12 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.IntValue NODE_SPAWN_SPACING;
     public static final ModConfigSpec.IntValue NODE_MAX_PER_AREA;
 
+    // Essence Repulsion Ward Configs
+    public static final ModConfigSpec.IntValue WARD_CONSUMPTION_AMOUNT;
+    public static final ModConfigSpec.IntValue WARD_CONSUMPTION_INTERVAL_SECONDS;
+    public static final ModConfigSpec.DoubleValue WARD_CIRCLE_RADIUS_BASE;
+    public static final ModConfigSpec.DoubleValue WARD_BLOCK_RADIUS;
+
     static {
         // --- BASE MANA FURNACE SETTINGS ---
         BUILDER.push("mana_furnace_settings");
@@ -307,6 +313,23 @@ public class EntropicaNeoForgeConfig {
         NODE_MAX_PER_AREA = BUILDER.comment("Maximum number of nodes allowed in a 10x10 chunk area. Min: 1, Max: 100, Default: 10")
                 .translation("entropica.configuration.essence_node_settings.maxPerArea")
                 .defineInRange("nodeMaxPerArea", 10, 1, 100);
+
+        BUILDER.pop();
+
+        // --- ESSENCE REPULSION WARD SETTINGS ---
+        BUILDER.push("repulsion_ward_settings");
+
+        WARD_CONSUMPTION_AMOUNT = BUILDER.comment("Amount of Fumus consumed per consumption tick. Min: 1, Default: 1")
+                .defineInRange("wardConsumptionAmount", 1, 1, Integer.MAX_VALUE);
+
+        WARD_CONSUMPTION_INTERVAL_SECONDS = BUILDER.comment("How many seconds between Fumus consumption operations. Min: 1, Default: 120")
+                .defineInRange("wardConsumptionIntervalSeconds", 120, 1, Integer.MAX_VALUE);
+
+        WARD_CIRCLE_RADIUS_BASE = BUILDER.comment("Base radius for magic circle wards (increases per circle tier). Min: 1.0, Default: 10.0")
+                .defineInRange("wardCircleRadiusBase", 10.0, 1.0, 100.0);
+
+        WARD_BLOCK_RADIUS = BUILDER.comment("Radius of the dedicated repulsion ward block. Min: 1.0, Default: 15.0")
+                .defineInRange("wardBlockRadius", 15.0, 1.0, 100.0);
 
         BUILDER.pop();
 

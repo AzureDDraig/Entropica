@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_morning_star"
+    "layer0": "entropica:item/morning_star_shape_concept"
   }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_longbow"
+    "layer0": "entropica:item/longbow_shape_concept"
   }
 }

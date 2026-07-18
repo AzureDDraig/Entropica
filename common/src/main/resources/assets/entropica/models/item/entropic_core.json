@@ -1,6 +1,3 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "entropica:block/entropic_core"
-  }
+  "parent": "entropica:block/entropic_core"
 }

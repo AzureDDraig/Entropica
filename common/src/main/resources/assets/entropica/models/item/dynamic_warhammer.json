@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_warhammer"
+    "layer0": "entropica:item/warhammer_shape_concept"
   }
 }

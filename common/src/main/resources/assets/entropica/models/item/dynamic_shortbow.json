@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_shortbow"
+    "layer0": "entropica:item/shortbow_shape_concept"
   }
 }

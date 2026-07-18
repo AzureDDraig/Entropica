@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ZXZ"
+  ],
+  "key": {
+    "X": "entropica:pressure_graded_gasket",
+    "Z": "entropica:essence_enriched_glass"
+  },
+  "result": {
+    "id": "entropica:decompression_coupling",
+    "count": 1
+  }
+}

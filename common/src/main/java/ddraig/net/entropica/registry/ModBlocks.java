@@ -9,6 +9,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.AmethystBlock;
+import net.minecraft.world.level.block.BuddingAmethystBlock;
+import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 
@@ -45,6 +49,33 @@ public class ModBlocks {
 
     // Ores
     public static final RegistrySupplier<Block> ENTROPIC_ORE = BLOCKS.register("entropic_ore", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.STONE).destroyTime(3.0f).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> VORPALITE_ORE = BLOCKS.register("vorpalite_ore", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.STONE).destroyTime(3.0f).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> SORROWSTONE_ORE = BLOCKS.register("sorrowstone_ore", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.STONE).destroyTime(3.0f).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> UMBRALITE_ORE = BLOCKS.register("umbralite_ore", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.STONE).destroyTime(3.0f).requiresCorrectToolForDrops()));
+
+    // Crystals: Aeterium
+    public static final RegistrySupplier<Block> SMALL_AETERIUM_BUD = BLOCKS.register("small_aeterium_bud", name -> new AmethystClusterBlock(6, 3, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 1).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> MEDIUM_AETERIUM_BUD = BLOCKS.register("medium_aeterium_bud", name -> new AmethystClusterBlock(8, 2, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 2).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> LARGE_AETERIUM_BUD = BLOCKS.register("large_aeterium_bud", name -> new AmethystClusterBlock(10, 1, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 4).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> AETERIUM_CLUSTER = BLOCKS.register("aeterium_cluster", name -> new AmethystClusterBlock(12, 1, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 5).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> BUDDING_AETERIUM = BLOCKS.register("budding_aeterium", name -> new BuddingCrystalBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).randomTicks().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST).requiresCorrectToolForDrops(), () -> SMALL_AETERIUM_BUD.get(), () -> MEDIUM_AETERIUM_BUD.get(), () -> LARGE_AETERIUM_BUD.get(), () -> AETERIUM_CLUSTER.get()));
+    public static final RegistrySupplier<Block> AETERIUM_CRYSTAL_BLOCK = BLOCKS.register("aeterium_crystal_block", name -> new AmethystBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST).requiresCorrectToolForDrops()));
+
+    // Crystals: Ignisite
+    public static final RegistrySupplier<Block> SMALL_IGNISITE_BUD = BLOCKS.register("small_ignisite_bud", name -> new AmethystClusterBlock(6, 3, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_YELLOW).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 1).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> MEDIUM_IGNISITE_BUD = BLOCKS.register("medium_ignisite_bud", name -> new AmethystClusterBlock(8, 2, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_YELLOW).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 2).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> LARGE_IGNISITE_BUD = BLOCKS.register("large_ignisite_bud", name -> new AmethystClusterBlock(10, 1, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_YELLOW).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 4).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> IGNISITE_CLUSTER = BLOCKS.register("ignisite_cluster", name -> new AmethystClusterBlock(12, 1, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_YELLOW).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 5).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> BUDDING_IGNISITE = BLOCKS.register("budding_ignisite", name -> new BuddingCrystalBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_YELLOW).randomTicks().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST).requiresCorrectToolForDrops(), () -> SMALL_IGNISITE_BUD.get(), () -> MEDIUM_IGNISITE_BUD.get(), () -> LARGE_IGNISITE_BUD.get(), () -> IGNISITE_CLUSTER.get()));
+    public static final RegistrySupplier<Block> IGNISITE_CRYSTAL_BLOCK = BLOCKS.register("ignisite_crystal_block", name -> new AmethystBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_YELLOW).destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST).requiresCorrectToolForDrops()));
+
+    // Crystals: Mortisite
+    public static final RegistrySupplier<Block> SMALL_MORTISITE_BUD = BLOCKS.register("small_mortisite_bud", name -> new AmethystClusterBlock(6, 3, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_RED).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 1).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> MEDIUM_MORTISITE_BUD = BLOCKS.register("medium_mortisite_bud", name -> new AmethystClusterBlock(8, 2, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_RED).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 2).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> LARGE_MORTISITE_BUD = BLOCKS.register("large_mortisite_bud", name -> new AmethystClusterBlock(10, 1, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_RED).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 4).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> MORTISITE_CLUSTER = BLOCKS.register("mortisite_cluster", name -> new AmethystClusterBlock(12, 1, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_RED).forceSolidOn().noOcclusion().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST_CLUSTER).lightLevel(state -> 5).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<Block> BUDDING_MORTISITE = BLOCKS.register("budding_mortisite", name -> new BuddingCrystalBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_RED).randomTicks().destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST).requiresCorrectToolForDrops(), () -> SMALL_MORTISITE_BUD.get(), () -> MEDIUM_MORTISITE_BUD.get(), () -> LARGE_MORTISITE_BUD.get(), () -> MORTISITE_CLUSTER.get()));
+    public static final RegistrySupplier<Block> MORTISITE_CRYSTAL_BLOCK = BLOCKS.register("mortisite_crystal_block", name -> new AmethystBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_RED).destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST).requiresCorrectToolForDrops()));
 
     // Core Machines
     public static final RegistrySupplier<ManaFurnaceBlock> MANA_FURNACE = BLOCKS.register("mana_furnace", name -> new ManaFurnaceBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
@@ -150,7 +181,7 @@ public class ModBlocks {
     public static final RegistrySupplier<AthanorConduitBlock> ATHANOR_CONDUIT_ATHANORITE         = BLOCKS.register("athanor_conduit_athanorite",         name -> new AthanorConduitBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLACK).destroyTime(5.0f).requiresCorrectToolForDrops().noOcclusion()));
     public static final RegistrySupplier<AthanorConduitBlock> ATHANOR_CONDUIT_CHARGED_ATHANORITE = BLOCKS.register("athanor_conduit_charged_athanorite", name -> new AthanorConduitBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLACK).destroyTime(6.0f).requiresCorrectToolForDrops().noOcclusion()));
 
-    public static final RegistrySupplier<DecompressionCouplerBlock> VAPOR_DECOMPRESSION_COUPLING = BLOCKS.register("vapor_decompression_coupling", name -> new DecompressionCouplerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(2.0f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<DecompressionCouplerBlock> DECOMPRESSION_COUPLING = BLOCKS.register("decompression_coupling", name -> new DecompressionCouplerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(2.0f).requiresCorrectToolForDrops().noOcclusion()));
 
     // ==========================================
     // ADVANCED ORBIS CELLS (Vis Vitae Network — higher Materia stages)
@@ -249,15 +280,23 @@ public class ModBlocks {
     public static final RegistrySupplier<ddraig.net.entropica.block.ResearchBenchBlock> RESEARCH_BENCH =
             BLOCKS.register("research_bench", name -> new ddraig.net.entropica.block.ResearchBenchBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
 
+    public static final RegistrySupplier<ddraig.net.entropica.block.EssenceRepulsionWardBlock> ESSENCE_REPULSION_WARD =
+            BLOCKS.register("essence_repulsion_ward", name -> new ddraig.net.entropica.block.EssenceRepulsionWardBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(net.minecraft.world.level.material.MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
+
     public static final List<RegistrySupplier<?>> SIMPLE_BLOCKS = List.of(
-            ENTROPIC_ORE, ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MANA_PLUME,
+            ENTROPIC_ORE, VORPALITE_ORE, SORROWSTONE_ORE, UMBRALITE_ORE,
+            AETERIUM_CRYSTAL_BLOCK, BUDDING_AETERIUM, SMALL_AETERIUM_BUD, MEDIUM_AETERIUM_BUD, LARGE_AETERIUM_BUD, AETERIUM_CLUSTER,
+            IGNISITE_CRYSTAL_BLOCK, BUDDING_IGNISITE, SMALL_IGNISITE_BUD, MEDIUM_IGNISITE_BUD, LARGE_IGNISITE_BUD, IGNISITE_CLUSTER,
+            MORTISITE_CRYSTAL_BLOCK, BUDDING_MORTISITE, SMALL_MORTISITE_BUD, MEDIUM_MORTISITE_BUD, LARGE_MORTISITE_BUD, MORTISITE_CLUSTER,
+            ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MANA_PLUME,
             VIS_VITAE_ANCHOR, VIS_VITAE_CONDENSER, VIS_VITAE_VACUUM, VITAE_BARREL,
             MATERIA_FILTER, ARCANE_LOOM, ESSENCE_FORGE,
             ARCANE_ANVIL, MORPHIC_LOOM, MATERIA_EXHAUST, MATERIA_SIMPLE_MACHINE_BLOCK, MATERIA_COMPLEX_MACHINE_BLOCK,
             VAPOR_PNEUMATIC_INPUT_PORT, HYDRAULIC_INPUT_PORT, EXTRACTOR_OUTPUT_PORT,
             ESSENCE_NODE_IDENTIFIER_BLOCK, MATERIA_EXTRACTION_APPARATUS, MATERIA_EXTRACTOR_BASE, MATERIA_MOTOR,
             CREATIVE_PARTICLE_GENERATOR,
-            VISCANITE_SYNTHESIZER, SCRIBING_CONTROLLER, VISCANITE_PISTON_PRESS, DRAFTING_TABLE, RESEARCH_BENCH
+            VISCANITE_SYNTHESIZER, SCRIBING_CONTROLLER, VISCANITE_PISTON_PRESS, DRAFTING_TABLE, RESEARCH_BENCH,
+            ESSENCE_REPULSION_WARD
     );
 
     @ExpectPlatform

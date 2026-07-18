@@ -1,7 +1,0 @@
-{
-  "parent": "entropica:block/vapor_pneumatic_pipe_core",
-  "textures": {
-    "particle": "entropica:block/decompression_coupling",
-    "pipe": "entropica:block/decompression_coupling"
-  }
-}

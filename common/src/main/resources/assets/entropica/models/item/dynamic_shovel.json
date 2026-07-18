@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_shovel"
+    "layer0": "entropica:item/shovel_shape_concept"
   }
 }

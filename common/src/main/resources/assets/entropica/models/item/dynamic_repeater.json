@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_repeater"
+    "layer0": "entropica:item/repeater_shape_concept"
   }
 }

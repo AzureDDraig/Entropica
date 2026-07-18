@@ -6,9 +6,7 @@
     "CC"
   ],
   "key": {
-    "C": {
-      "item": "entropica:arcane_clay"
-    }
+    "C": "entropica:arcane_clay"
   },
   "result": {
     "id": "entropica:arcane_clay_block",

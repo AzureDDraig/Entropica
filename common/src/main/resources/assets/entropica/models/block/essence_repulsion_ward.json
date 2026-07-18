@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "entropica:block/essence_repulsion_ward_top",
+    "bottom": "entropica:block/essence_repulsion_ward_bottom",
+    "side": "entropica:block/essence_repulsion_ward_side"
+  }
+}

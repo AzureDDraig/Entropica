@@ -92,6 +92,12 @@ public class EntropicaConfig {
     public static final Supplier<Integer> NODE_SPAWN_SPACING = EntropicaConfig::getNodeSpawnSpacing;
     public static final Supplier<Integer> NODE_MAX_PER_AREA = EntropicaConfig::getNodeMaxPerArea;
 
+    // Essence Repulsion Wards
+    public static final Supplier<Integer> WARD_CONSUMPTION_AMOUNT = EntropicaConfig::getWardConsumptionAmount;
+    public static final Supplier<Integer> WARD_CONSUMPTION_INTERVAL_SECONDS = EntropicaConfig::getWardConsumptionIntervalSeconds;
+    public static final Supplier<Double> WARD_CIRCLE_RADIUS_BASE = EntropicaConfig::getWardCircleRadiusBase;
+    public static final Supplier<Double> WARD_BLOCK_RADIUS = EntropicaConfig::getWardBlockRadius;
+
     @ExpectPlatform public static int getManaPerEssence() { throw new AssertionError(); }
     @ExpectPlatform public static int getManaFurnaceMaxMana() { throw new AssertionError(); }
     @ExpectPlatform public static int getManaFurnaceMaxEssence() { throw new AssertionError(); }
@@ -176,4 +182,9 @@ public class EntropicaConfig {
     @ExpectPlatform public static int getAthanoritePipeTransferRate() { throw new AssertionError(); }
     @ExpectPlatform public static int getChargedAthanoritePipeCapacity() { throw new AssertionError(); }
     @ExpectPlatform public static int getChargedAthanoritePipeTransferRate() { throw new AssertionError(); }
+
+    @ExpectPlatform public static int getWardConsumptionAmount() { throw new AssertionError(); }
+    @ExpectPlatform public static int getWardConsumptionIntervalSeconds() { throw new AssertionError(); }
+    @ExpectPlatform public static double getWardCircleRadiusBase() { throw new AssertionError(); }
+    @ExpectPlatform public static double getWardBlockRadius() { throw new AssertionError(); }
 }

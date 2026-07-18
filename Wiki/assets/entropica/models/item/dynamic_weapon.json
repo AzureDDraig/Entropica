@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:special",
+  "model": {
+    "type": "entropica:dynamic_weapon"
+  },
+  "base": "minecraft:item/handheld"
+}

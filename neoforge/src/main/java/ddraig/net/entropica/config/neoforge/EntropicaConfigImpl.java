@@ -85,4 +85,9 @@ public class EntropicaConfigImpl {
     public static int getAthanoritePipeTransferRate() { return EntropicaNeoForgeConfig.ATHANORITE_PIPE_TRANSFER_RATE.get(); }
     public static int getChargedAthanoritePipeCapacity() { return EntropicaNeoForgeConfig.CHARGED_ATHANORITE_PIPE_CAPACITY.get(); }
     public static int getChargedAthanoritePipeTransferRate() { return EntropicaNeoForgeConfig.CHARGED_ATHANORITE_PIPE_TRANSFER_RATE.get(); }
+
+    public static int getWardConsumptionAmount() { return EntropicaNeoForgeConfig.WARD_CONSUMPTION_AMOUNT.get(); }
+    public static int getWardConsumptionIntervalSeconds() { return EntropicaNeoForgeConfig.WARD_CONSUMPTION_INTERVAL_SECONDS.get(); }
+    public static double getWardCircleRadiusBase() { return EntropicaNeoForgeConfig.WARD_CIRCLE_RADIUS_BASE.get(); }
+    public static double getWardBlockRadius() { return EntropicaNeoForgeConfig.WARD_BLOCK_RADIUS.get(); }
 }

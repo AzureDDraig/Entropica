@@ -49,7 +49,7 @@ public class ModBlockEntities {
 
     public static final RegistrySupplier<BlockEntityType<DecompressionCouplerBlockEntity>> DECOMPRESSION_COUPLER_BE =
             BLOCK_ENTITIES.register("decompression_coupler", () ->
-                    BlockEntityHelper.create(DecompressionCouplerBlockEntity::new, ModBlocks.VAPOR_DECOMPRESSION_COUPLING.get()));
+                    BlockEntityHelper.create(DecompressionCouplerBlockEntity::new, ModBlocks.DECOMPRESSION_COUPLING.get()));
 
     // --- Vapor Pneumatic Network ---
 
@@ -235,6 +235,10 @@ public class ModBlockEntities {
     public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.ResearchBenchBlockEntity>> RESEARCH_BENCH_BE =
             BLOCK_ENTITIES.register("research_bench", () ->
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.ResearchBenchBlockEntity::new, ModBlocks.RESEARCH_BENCH.get()));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.EssenceRepulsionWardBlockEntity>> ESSENCE_REPULSION_WARD_BE =
+            BLOCK_ENTITIES.register("essence_repulsion_ward", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.EssenceRepulsionWardBlockEntity::new, ModBlocks.ESSENCE_REPULSION_WARD.get()));
 
     // --- Glass tiers grouped into single Block Entity ---
     public static final RegistrySupplier<BlockEntityType<ManaEnrichedGlassBlockEntity>> MANA_ENRICHED_GLASS_BE =

@@ -1,5 +1,133 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-199-16-04
+
+### Added
+*   **Scribed Chalk & Magic Circles**:
+    *   Implemented smooth magic circle rotations by using system time for rendering instead of game ticks.
+    *   Added support for dynamic node counts, dynamically adjusting the circle's rendering, polygons, and star shapes based on the exact nodes placed (requiring a minimum of 1 input, 1 source, and 1 rune node, up to the maximum supported by the tier).
+    *   Allowed general item insertion and extraction on `INPUT` nodes via right-clicking, and updated alchemical recipe matching/consumption to pull from these stored item slots before searching for floating entities.
+    *   Hid individual chalk dots and connections once the magic circle is assembled.
+    *   Implemented full stored item dropping behavior on circle breakdown (manual player break or programmatic cascade) for all stored items across input, rune, and output nodes, while destroying the essence.
+
+---
+
+## Build 000-1-26-199-15-46
+
+### Fixed
+*   **Scribed Chalk Blocks**:
+    *   Resolved a potential null pointer / property lookup crash that occurs when placing, breaking, or ticking chalk lines on the ground. Added safety type checks to verify that the block state is a `ScribedChalkBlock` before attempting to retrieve its `NODE_TYPE` or `CIRCUIT` properties (protecting against air/fallback states during block state updates).
+
+---
+
+## Build 000-1-26-199-15-38
+
+### Fixed
+*   **Empty Ampoules**:
+    *   Resolved missing textures for the base/empty ampoule items (`small_ampoule_base`, `medium_ampoule_base`, `large_ampoule_base`) by updating their item model JSON files to point directly to the existing empty ampoule texture files, avoiding files duplication.
+*   **Decompression Coupling**:
+    *   Completed the renaming refactor for `VAPOR_DECOMPRESSION_COUPLING_ITEM` to `DECOMPRESSION_COUPLING_ITEM` in `ModItems.java` and `ModModelProvider.java` to align with the block registry name, resolving compile errors.
+
+---
+
+## Build 000-1-26-199-15-31
+
+### Added
+*   **Ores, Crystals & Geodes**:
+    *   Added 3 new alchemical ore blocks: Vorpalite, Sorrowstone, and Umbralite, matching the crystal-on-stone structure of Entropic Ore.
+    *   Added 7 corresponding raw ore drop items: `entropic_shard`, `vorpalite_crystal`, `sorrowstone_shard`, `umbralite_shard`, `mortisite_geode`, `aeterium_crystal`, and `ignisite_crystal`.
+    *   Registered full Amethyst-like crystal/geode blocks for Aeterium, Ignisite, and Mortisite (including Crystal Blocks, Budding Blocks, Small/Medium/Large Buds, and Crystal Clusters) that grow dynamically via custom random ticking behavior.
+    *   Generated custom blockstates, directional models, loot tables (supporting Fortune/Silk Touch), mineability tags, and unique seamless textures for all 22 blocks and 7 items.
+    *   Added cutout render types to the model JSON files of all crystal buds and clusters, and registered them on Fabric's client BlockRenderLayerMap to render their backgrounds transparently.
+    *   Implemented a mathematically solid, tapered crystal drawing algorithm in 32x32 resolution that completely eliminates outline gaps.
+    *   Introduced hand-crafted pixel-art dithering/noise and vertical gradients directly within the solid shapes to give them authentic amethyst texture depth and shading.
+    *   Significantly increased the shading contrast, diamond facets, and alchemical core brightness of the seamless crystal and budding blocks while preserving border flow.
+    *   Redesigned the item textures for shards, crystals, and geodes: created an amethyst-shard-inspired diagonal shape for shards (`entropic_shard`, `sorrowstone_shard`, `umbralite_shard`), an echo-shard-inspired slender crystal needle shape for crystals (`vorpalite_crystal`, `aeterium_crystal`, `ignisite_crystal`), and a cracked stone shell shape for geodes (`mortisite_geode`), complete with rich 9-color alchemical gradients.
+
+### Fixed
+*   **Entropic Core**:
+    *   Fixed the `entropic_core` item model redirect to render as a 3D block model in-game rather than a flat texture.
+
+---
+
+## Build 000-1-26-199-10-36
+
+### Fixed
+*   **Recipe Parsing Compatibility (MC 1.21.4)**:
+    *   Fixed data parsing errors where Minecraft 1.21.4 failed to load recipes because ingredients used the legacy `{"item": "..."}` syntax without a specified type. Updated `decompression_coupling`, `arcane_brick_block`, `arcane_clay_block`, and `smelt_arcane_clay` to use direct string values for ingredient keys (`"item_id"`) which parses correctly on the new engine.
+
+---
+
+## Build 000-1-26-199-10-31
+
+### Added
+*   **Decompression Coupling Smart Connection**:
+    *   Implemented smart alignment logic on placement and neighbor changes. The Decompression Coupling now dynamically scans adjacent axes for any connected pipe, conduit, pipeline, valve, diverter, port, or agitator blocks and automatically aligns its axis (`AXIS`) to match them, allowing seamless connections to the pipe network.
+
+---
+
+## Build 000-1-26-199-10-24
+
+### Changed
+*   **Dynamic Weapon Models**:
+    *   Mapped all 15 dynamic weapon/tool item models (`dynamic_sword`, `dynamic_axe`, `dynamic_pickaxe`, `dynamic_shovel`, `dynamic_adze`, `dynamic_paxel`, `dynamic_spear`, `dynamic_mace`, `dynamic_morning_star`, `dynamic_warhammer`, `dynamic_shortbow`, `dynamic_longbow`, `dynamic_war_bow`, `dynamic_crossbow`, `dynamic_repeater`) to display their corresponding 2D shape concept textures in-game instead of rendering missing textures.
+*   **Decompression Coupling**:
+    *   Renamed "Vapor Decompression Coupling" to "Decompression Coupling" across registry identifiers (`decompression_coupling`), localization keys, and datagen classes.
+    *   Updated the block's item model to render the pipe core model (`decompression_coupling_core`) instead of the solid block model.
+    *   Added a shaped crafting recipe (`ZXZ` where `X` is a pressure-graded gasket and `Z` is essence-enriched glass).
+
+---
+
+## Build 000-1-26-198-07-18
+
+### Added
+*   **Essence Repulsion Wards (Magic Circle & Block)**:
+    *   **Mystical-Industrial Aesthetics**:
+        *   Redesigned the Essence Repulsion Ward block faces to feature a mystical yet industrial look (heavy steel brackets, brass rivets, cosmic deep-purple backgrounds, and glowing neon-teal magic runes/circuits).
+    *   **Magic Circle Repulsion Ward**:
+        *   Can be activated by right-clicking the center `OUTPUT` node of a valid active magic circle containing a `RUNE_ALGIZ` (Protection/Warding rune) and at least 32 total essence. Consumes the Algiz rune and drains all essences on activation.
+        *   Repels hostile monsters (subclasses of `Monster`) away from the circle perimeter for a baseline duration of 10 minutes (12000 ticks).
+        *   Can be sustained / fed by right-clicking the `OUTPUT` node with `EssenceItem` (Materia Fragment adds 60s, Weak Essence adds 120s, Average Essence adds 5 mins, Strong Essence adds 20 mins).
+        *   Spawns end rod perimeter particles and plays beacon activation/deactivation sounds.
+    *   **Dedicated Repulsion Ward Block**:
+        *   Added the `essence_repulsion_ward` block and item.
+        *   Implements `IVaporHandler` and connects to any `Materia Fumus` pipe network.
+        *   Consumes Materia Fumus stack over time (configurable, default 1 Materia Fumus per 120 seconds).
+        *   Repels hostile monsters in a 15-block radius when active.
+    *   **Local JSON Configuration**:
+        *   Creates `config/entropica_ward.json` on startup to customize block consumption amounts, interval timings, and ward radii.
+*   **JSON Assets & Localisation**:
+        *   Added blockstate, block model, and item model JSON files for the ward block.
+        *   Added english localization keys for the ward block and item.
+
+---
+
+## Build 000-1-26-198-01-50
+
+### Added
+*   **Runic Logic Gates (AND, OR, NOT)**:
+    *   Integrated logic gate circuit blocks into `ScribedChalkBlockEntity` essence propagation.
+    *   `AND` and `OR` gates propagate essence based on active inputs from non-facing directions (back, left, right).
+    *   `NOT` gate acts as an inverter: blocks output if back input is powered, otherwise propagates signals from left/right inputs.
+    *   Restricted connection checking so standard chalk paths cannot pull essence from logic gates unless they align with the gate's output facing direction.
+*   **Runic Signal Modifiers (Uruz, Isa, Fehu, Thurisaz)**:
+    *   **Uruz**: Acts as a signal booster, resetting essence strength back to maximum level 32 upon crossing the node.
+    *   **Isa**: Acts as an insulator, blocking all essence level and color propagation entirely.
+    *   **Fehu**: Acts as an essence filter, blocking plain/regular essence from passing through while allowing colored/elemental essence.
+    *   **Thurisaz**: Acts as a wireless bridging portal, copying signal values and affinities between Thurisaz nodes within a 32-block radius.
+*   **Sacrificial Knife & Ritual Overclocking**:
+    *   Added the `SacrificialKnifeItem` dealing 8 points of true magic damage to the player on use.
+    *   Performing a sacrifice near an active magic circle overclocks the output node for 30 seconds (double tick rate).
+    *   Spawning of Vitae or Blood essence orbs upon successful sacrifice if no active ritual is nearby.
+    *   Added dynamic rune upgrades: Uruz (+2 damage, double output yield) and Thurisaz (+2 damage, instant completion).
+    *   Spawns a custom named "Materia-Infused Zombie" with persistent Strength I and Resistance II effects if the player dies during sacrifice.
+*   **Most-Costly Recipe Selection & Ritual Countdown**:
+    *   Implemented sorting to prioritize the most expensive matching magic circle recipe (highest sum of inputs, runes, and total essence amounts).
+    *   Magic circles now consume ingredients immediately upon click and run a 5-second (100 ticks) countdown visual/audio ritual before spawning outputs.
+*   **JSON Assets & Blockstate Permutations**:
+    *   Added the 2D item model JSON for the Sacrificial Knife.
+    *   Updated the blockstates file for Scribed Chalk to include all 13 node types (preventing missing variant errors).
+
 ---
 
 ## Build 000-1-26-197-19-55

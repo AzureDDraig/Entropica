@@ -186,7 +186,19 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(),
             ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get(),
             ModBlocks.ESSENCE_ENRICHED_GLASS.get(),
-            ModBlocks.VAPOR_PNEUMATIC_DIVERTER.get()
+            ModBlocks.VAPOR_PNEUMATIC_DIVERTER.get(),
+            ModBlocks.SMALL_AETERIUM_BUD.get(),
+            ModBlocks.MEDIUM_AETERIUM_BUD.get(),
+            ModBlocks.LARGE_AETERIUM_BUD.get(),
+            ModBlocks.AETERIUM_CLUSTER.get(),
+            ModBlocks.SMALL_IGNISITE_BUD.get(),
+            ModBlocks.MEDIUM_IGNISITE_BUD.get(),
+            ModBlocks.LARGE_IGNISITE_BUD.get(),
+            ModBlocks.IGNISITE_CLUSTER.get(),
+            ModBlocks.SMALL_MORTISITE_BUD.get(),
+            ModBlocks.MEDIUM_MORTISITE_BUD.get(),
+            ModBlocks.LARGE_MORTISITE_BUD.get(),
+            ModBlocks.MORTISITE_CLUSTER.get()
         );
 
         BlockRenderLayerMap.INSTANCE.putBlocks(

@@ -498,7 +498,7 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> VAS_CELL_ITEM = ITEMS.registerItem("vas_cell", properties -> new BlockItem(ModBlocks.VAS_CELL.get(), properties));
     public static final RegistrySupplier<BlockItem> MONAD_CORE_ITEM = ITEMS.registerItem("monad_core", properties -> new BlockItem(ModBlocks.MONAD_CORE.get(), properties));
     public static final RegistrySupplier<BlockItem> ATHANOR_CORE_ITEM = ITEMS.registerItem("athanor_core", properties -> new BlockItem(ModBlocks.ATHANOR_CORE.get(), properties));
-    public static final RegistrySupplier<BlockItem> VAPOR_DECOMPRESSION_COUPLING_ITEM = ITEMS.registerItem("vapor_decompression_coupling", properties -> new BlockItem(ModBlocks.VAPOR_DECOMPRESSION_COUPLING.get(), properties));
+    public static final RegistrySupplier<BlockItem> DECOMPRESSION_COUPLING_ITEM = ITEMS.registerItem("decompression_coupling", properties -> new BlockItem(ModBlocks.DECOMPRESSION_COUPLING.get(), properties));
 
     public static final RegistrySupplier<BlockItem> CREATIVE_PARTICLE_GENERATOR_ITEM = ITEMS.registerItem("creative_particle_generator", properties -> new BlockItem(ModBlocks.CREATIVE_PARTICLE_GENERATOR.get(), properties));
 

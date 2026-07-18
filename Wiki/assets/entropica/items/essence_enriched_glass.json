@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:block/essence_enriched_glass",
+    "tints": [
+      {
+        "type": "entropica:fume_glass_tint"
+      }
+    ]
+  }
+}

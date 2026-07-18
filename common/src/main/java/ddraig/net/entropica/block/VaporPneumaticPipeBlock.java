@@ -182,7 +182,8 @@ public class VaporPneumaticPipeBlock extends Block implements SimpleWaterloggedB
                 || neighborState.is(ModBlocks.ENTROPIC_CORE.get())
                 || neighborState.is(ModBlocks.CREATIVE_MATERIA_GENERATOR.get())
                 || neighborState.is(ModBlocks.MATERIA_VESSEL_PORT.get())
-                || neighborState.is(ModBlocks.VAPOR_PNEUMATIC_INPUT_PORT.get()); // Now correctly interfaces with the Lathe Input Port!
+                || neighborState.is(ModBlocks.VAPOR_PNEUMATIC_INPUT_PORT.get())
+                || neighborState.is(ModBlocks.ESSENCE_REPULSION_WARD.get()); // Now correctly interfaces with the Repulsion Ward!
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

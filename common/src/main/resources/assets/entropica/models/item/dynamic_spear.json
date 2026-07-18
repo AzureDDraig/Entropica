@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_spear"
+    "layer0": "entropica:item/spear_shape_concept"
   }
 }

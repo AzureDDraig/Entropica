@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_war_bow"
+    "layer0": "entropica:item/war_bow_shape_concept"
   }
 }

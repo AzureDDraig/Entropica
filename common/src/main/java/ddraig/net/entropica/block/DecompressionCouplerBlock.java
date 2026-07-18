@@ -7,6 +7,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -57,11 +60,67 @@ public class DecompressionCouplerBlock extends Block implements EntityBlock {
         builder.add(AXIS);
     }
 
+    private boolean isConnectablePipe(BlockState state) {
+        Block block = state.getBlock();
+        String name = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).getPath();
+        return name.contains("pipe") || 
+               name.contains("pipeline") || 
+               name.contains("conduit") || 
+               name.contains("valve") || 
+               name.contains("diverter") || 
+               name.contains("port") ||
+               name.contains("agitator");
+    }
+
+    private Direction.Axis getSmartAxis(LevelReader level, BlockPos pos, Direction.Axis fallbackAxis) {
+        int xCount = 0;
+        int yCount = 0;
+        int zCount = 0;
+
+        // Check X axis neighbors (EAST, WEST)
+        if (isConnectablePipe(level.getBlockState(pos.east()))) xCount++;
+        if (isConnectablePipe(level.getBlockState(pos.west()))) xCount++;
+
+        // Check Y axis neighbors (UP, DOWN)
+        if (isConnectablePipe(level.getBlockState(pos.above()))) yCount++;
+        if (isConnectablePipe(level.getBlockState(pos.below()))) yCount++;
+
+        // Check Z axis neighbors (NORTH, SOUTH)
+        if (isConnectablePipe(level.getBlockState(pos.north()))) zCount++;
+        if (isConnectablePipe(level.getBlockState(pos.south()))) zCount++;
+
+        if (xCount > yCount && xCount > zCount) {
+            return Direction.Axis.X;
+        } else if (zCount > xCount && zCount > yCount) {
+            return Direction.Axis.Z;
+        } else if (yCount > xCount && yCount > zCount) {
+            return Direction.Axis.Y;
+        }
+        
+        // If there's a tie, try to prefer any non-zero axis first
+        if (xCount > 0) return Direction.Axis.X;
+        if (zCount > 0) return Direction.Axis.Z;
+        if (yCount > 0) return Direction.Axis.Y;
+
+        return fallbackAxis;
+    }
+
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction.Axis axis = context.getClickedFace().getAxis();
-        return this.defaultBlockState().setValue(AXIS, axis);
+        Direction.Axis fallbackAxis = context.getClickedFace().getAxis();
+        Direction.Axis smartAxis = getSmartAxis(context.getLevel(), context.getClickedPos(), fallbackAxis);
+        return this.defaultBlockState().setValue(AXIS, smartAxis);
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess tickAccess, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+        Direction.Axis currentAxis = state.getValue(AXIS);
+        Direction.Axis smartAxis = getSmartAxis(level, pos, currentAxis);
+        if (smartAxis != currentAxis) {
+            return state.setValue(AXIS, smartAxis);
+        }
+        return super.updateShape(state, level, tickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
     @Nullable

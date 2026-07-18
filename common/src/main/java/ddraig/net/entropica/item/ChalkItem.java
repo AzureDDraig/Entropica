@@ -107,7 +107,10 @@ public class ChalkItem extends Item {
                         case AMPLIFIER -> ScribedChalkBlock.NodeType.CAPACITOR;
                         case CAPACITOR -> ScribedChalkBlock.NodeType.RESONATOR;
                         case RESONATOR -> ScribedChalkBlock.NodeType.DIODE;
-                        case DIODE -> ScribedChalkBlock.NodeType.OUTPUT;
+                        case DIODE -> ScribedChalkBlock.NodeType.AND_GATE;
+                        case AND_GATE -> ScribedChalkBlock.NodeType.OR_GATE;
+                        case OR_GATE -> ScribedChalkBlock.NodeType.NOT_GATE;
+                        case NOT_GATE -> ScribedChalkBlock.NodeType.OUTPUT;
                         case OUTPUT -> ScribedChalkBlock.NodeType.RUNE;
                         case RUNE -> ScribedChalkBlock.NodeType.DEFAULT;
                     };
@@ -123,7 +126,10 @@ public class ChalkItem extends Item {
                     };
                 }
                 level.setBlock(clickedPos, clickedState.setValue(ScribedChalkBlock.NODE_TYPE, nextType), 3);
-                if (nextType == ScribedChalkBlock.NodeType.DIODE) {
+                if (nextType == ScribedChalkBlock.NodeType.DIODE ||
+                    nextType == ScribedChalkBlock.NodeType.AND_GATE ||
+                    nextType == ScribedChalkBlock.NodeType.OR_GATE ||
+                    nextType == ScribedChalkBlock.NodeType.NOT_GATE) {
                     BlockEntity be = level.getBlockEntity(clickedPos);
                     if (be instanceof ddraig.net.entropica.block.entity.ScribedChalkBlockEntity chalkBE) {
                         chalkBE.setFacing(context.getPlayer() != null ? context.getPlayer().getDirection() : Direction.NORTH);
@@ -141,6 +147,9 @@ public class ChalkItem extends Item {
                         case CAPACITOR -> "Capacitor Node";
                         case RESONATOR -> "Resonator Node";
                         case DIODE -> "Diode Node";
+                        case AND_GATE -> "AND Gate Node";
+                        case OR_GATE -> "OR Gate Node";
+                        case NOT_GATE -> "NOT Gate Node";
                         case OUTPUT -> "Output Node";
                         case RUNE -> "Rune Node";
                     };

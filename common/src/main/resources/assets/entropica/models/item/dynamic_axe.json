@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/dynamic_axe"
+    "layer0": "entropica:item/hand_axe_shape_concept"
   }
 }

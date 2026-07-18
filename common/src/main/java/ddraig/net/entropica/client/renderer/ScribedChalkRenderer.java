@@ -49,15 +49,17 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         
         Level level = be.getLevel();
         BlockState state = level != null ? level.getBlockState(be.getBlockPos()) : be.getBlockState();
-        if (!state.is(ddraig.net.entropica.registry.ModBlocks.SCRIBED_CHALK.get())) {
-            state = be.getBlockState();
+        if (state.is(ddraig.net.entropica.registry.ModBlocks.SCRIBED_CHALK.get())) {
+            renderState.nodeType = state.getValue(ScribedChalkBlock.NODE_TYPE);
+            renderState.isCircuit = state.getValue(ScribedChalkBlock.CIRCUIT);
+        } else {
+            renderState.nodeType = ScribedChalkBlock.NodeType.DEFAULT;
+            renderState.isCircuit = false;
         }
-        renderState.nodeType = state.getValue(ScribedChalkBlock.NODE_TYPE);
-        renderState.isCircuit = state.getValue(ScribedChalkBlock.CIRCUIT);
         renderState.facing = be.getFacing();
         renderState.dyeTicks = be.getDyeTicks() + partialTick;
         renderState.hasActiveDye = be.getActiveAffinity() != EssenceType.REGULAR;
-        renderState.time = (level != null ? level.getGameTime() : 0) + partialTick;
+        renderState.time = System.currentTimeMillis() / 50.0f;
 
         // Set connections
         if (level != null) {
@@ -222,7 +224,11 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                     for (ScribedChalkBlockEntity nodeBE : perimeterNodeBEs) {
                         ChalkRenderState.RotatingNodeState nodeState = new ChalkRenderState.RotatingNodeState();
                         BlockState nodeBS = level.getBlockState(nodeBE.getBlockPos());
-                        nodeState.nodeType = nodeBS.getValue(ScribedChalkBlock.NODE_TYPE);
+                        if (nodeBS.is(ModBlocks.SCRIBED_CHALK.get())) {
+                            nodeState.nodeType = nodeBS.getValue(ScribedChalkBlock.NODE_TYPE);
+                        } else {
+                            nodeState.nodeType = ScribedChalkBlock.NodeType.DEFAULT;
+                        }
                         
                         String text = "";
                         if (nodeState.nodeType == ScribedChalkBlock.NodeType.INPUT) text = "I";
@@ -249,6 +255,13 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         if (nodeState.hasStoredRune) {
                             int seed = (int) nodeBE.getBlockPos().asLong();
                             this.itemModelResolver.updateForTopItem(nodeState.storedRuneState, runeItem, net.minecraft.world.item.ItemDisplayContext.GROUND, level, null, seed);
+                        }
+
+                        ItemStack inputItem = nodeBE.getStoredItem();
+                        nodeState.hasStoredItem = !inputItem.isEmpty();
+                        if (nodeState.hasStoredItem) {
+                            int seed = (int) nodeBE.getBlockPos().asLong();
+                            this.itemModelResolver.updateForTopItem(nodeState.storedItemState, inputItem, net.minecraft.world.item.ItemDisplayContext.GROUND, level, null, seed);
                         }
                         
                         renderState.rotatingNodes.add(nodeState);
@@ -284,6 +297,16 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         } else {
             renderState.runeUnicode = "";
             renderState.storedRuneState.clear();
+        }
+
+        // Get Stored Item
+        ItemStack stored = be.getStoredItem();
+        renderState.hasStoredItem = !stored.isEmpty();
+        if (renderState.hasStoredItem && be.getLevel() != null) {
+            int seed = (int) be.getBlockPos().asLong();
+            this.itemModelResolver.updateForTopItem(renderState.storedItemState, stored, ItemDisplayContext.GROUND, be.getLevel(), null, seed);
+        } else {
+            renderState.storedItemState.clear();
         }
     }
 
@@ -321,8 +344,10 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
 
             BlockEntity currentBE = level.getBlockEntity(current);
             if (currentBE instanceof ScribedChalkBlockEntity chalkBE) {
-                if (chalkBE.getActiveAffinity() != EssenceType.REGULAR && 
-                    chalkBE.getBlockState().getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.INPUT) {
+                BlockState currentState = chalkBE.getBlockState();
+                if (currentState.is(ModBlocks.SCRIBED_CHALK.get()) &&
+                    chalkBE.getActiveAffinity() != EssenceType.REGULAR && 
+                    currentState.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.INPUT) {
                     return currentDist;
                 }
 
@@ -395,7 +420,9 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         float yOffset = 0.015f;
 
         // 1. Draw connection lines to neighbors
-        drawConnections(poseStack, consumer, renderState, yOffset, r, g, b, alpha, light);
+        if (!renderState.isInMagicCircle) {
+            drawConnections(poseStack, consumer, renderState, yOffset, r, g, b, alpha, light);
+        }
 
         // 2. Draw node decoration overlays based on node type
         boolean drawNodeCircle = false;
@@ -429,6 +456,18 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             case DIODE -> {
                 drawNodeCircle = true;
                 textSymbol = "D";
+            }
+            case AND_GATE -> {
+                drawNodeCircle = true;
+                textSymbol = "&";
+            }
+            case OR_GATE -> {
+                drawNodeCircle = true;
+                textSymbol = "|";
+            }
+            case NOT_GATE -> {
+                drawNodeCircle = true;
+                textSymbol = "!";
             }
             case OUTPUT -> {
                 drawNodeCircle = true;
@@ -466,7 +505,8 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         // 3. Render Magic Circle centered on OUTPUT node if complete
         if (renderState.circleTier > 0) {
             float radius = (float) renderState.circleTier;
-            drawMagicCircle(poseStack, consumer, radius, yOffset + 0.0005f, r, g, b, alpha, light, renderState.time, renderState.circleDyeTicks, renderState.circleHasActiveDye, renderState.circleDyeColor, renderState.circleDyeSourceAngle);
+            int points = renderState.rotatingNodes.size();
+            drawMagicCircle(poseStack, consumer, radius, yOffset + 0.0005f, r, g, b, alpha, light, renderState.time, renderState.circleDyeTicks, renderState.circleHasActiveDye, renderState.circleDyeColor, renderState.circleDyeSourceAngle, points);
             
             // Draw rotating nodes inside the spinning vertex circles!
             float speed = switch (renderState.circleTier) {
@@ -478,13 +518,13 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             float offsetDegrees = -90.0f + renderState.time * speed;
             float offsetRad = (float) Math.toRadians(offsetDegrees);
             float polyRadius = (renderState.circleTier == 4) ? radius * 0.75f : radius * 0.7f;
-            int points = renderState.rotatingNodes.size();
+            int pointsCount = renderState.rotatingNodes.size();
             
-            if (points > 0) {
-                float angleStep = (float)(2.0 * Math.PI / points);
+            if (pointsCount > 0) {
+                float angleStep = (float)(2.0 * Math.PI / pointsCount);
                 Font font = mc.font;
                 
-                for (int i = 0; i < points; i++) {
+                for (int i = 0; i < pointsCount; i++) {
                     ChalkRenderState.RotatingNodeState rNode = renderState.rotatingNodes.get(i);
                     float theta = offsetRad + i * angleStep;
                     float cx = polyRadius * (float) Math.cos(theta) + 0.5f;
@@ -522,6 +562,17 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         float rotation = (renderState.time * 1.0f) % 360.0f;
                         poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(rotation));
                         rNode.storedRuneState.submit(poseStack, submitNodeCollector, light, OverlayTexture.NO_OVERLAY, 0);
+                        poseStack.popPose();
+                    }
+
+                    // Draw floating input item centered above the spinning node
+                    if (rNode.hasStoredItem) {
+                        poseStack.pushPose();
+                        poseStack.translate(cx, 0.35f, cz);
+                        poseStack.scale(0.5f, 0.5f, 0.5f);
+                        float rotation = (renderState.time * 1.5f) % 360.0f;
+                        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(rotation));
+                        rNode.storedItemState.submit(poseStack, submitNodeCollector, light, OverlayTexture.NO_OVERLAY, 0);
                         poseStack.popPose();
                     }
                 }
@@ -565,6 +616,17 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             float rotation = (renderState.time * 1.0f) % 360.0f;
             poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(rotation));
             renderState.storedRuneState.submit(poseStack, submitNodeCollector, light, OverlayTexture.NO_OVERLAY, 0);
+            poseStack.popPose();
+        }
+
+        // Render floating input item
+        if (renderState.hasStoredItem && !renderState.isInMagicCircle) {
+            poseStack.pushPose();
+            poseStack.translate(0.5f, 0.35f, 0.5f);
+            poseStack.scale(0.5f, 0.5f, 0.5f);
+            float rotation = (renderState.time * 1.5f) % 360.0f;
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(rotation));
+            renderState.storedItemState.submit(poseStack, submitNodeCollector, light, OverlayTexture.NO_OVERLAY, 0);
             poseStack.popPose();
         }
     }
@@ -793,38 +855,25 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis().isVertical(), cx + offset2 * d1.getStepX(), 0.03f, sR, sG, sB, a, light);
     }
 
-    private void drawMagicCircle(PoseStack poseStack, VertexConsumer consumer, float radius, float y, float r, float g, float b, float a, int light, float time, float dyeTicks, boolean hasActiveDye, int dyeColor, float dyeSourceAngle) {
+    private void drawMagicCircle(PoseStack poseStack, VertexConsumer consumer, float radius, float y, float r, float g, float b, float a, int light, float time, float dyeTicks, boolean hasActiveDye, int dyeColor, float dyeSourceAngle, int points) {
         int segments = 64;
         // Compute dye source color rgb
         float dr = ((dyeColor >> 16) & 0xFF) / 255.0f;
         float dg = ((dyeColor >> 8)  & 0xFF) / 255.0f;
         float db = (dyeColor & 0xFF)          / 255.0f;
 
-        // Concentric circular layers (circles in circles) and vertex circles based on 3/5/7/9 rules
+        // Concentric circular layers (circles in circles) based on tier
         if (radius < 1.5f) {
             // Tier 1 (3x3): 3 concentric layers of circles
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius, y, 0.03f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.1f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.85f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.15f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.7f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.2f);
-            
-            // 3-pointed Trigon (Triangle) outline
-            drawPolygram(poseStack, consumer, 3, 1, radius * 0.7f, -90.0f + time * 0.8f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            
-            // Circles centered at the 3 vertices
-            drawVertexCircles(poseStack, consumer, 3, radius * 0.7f, 0.15f, -90.0f + time * 0.8f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
         } else if (radius < 2.5f) {
             // Tier 2 (5x5): 4 concentric layers of circles
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius, y, 0.04f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.1f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.85f, y, 0.025f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.15f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.7f, y, 0.025f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.2f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.55f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.25f);
-
-            // 5-pointed Pentagram and Pentagon outline
-            drawPolygram(poseStack, consumer, 5, 2, radius * 0.7f, -90.0f + time * 0.6f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 5, 1, radius * 0.7f, -90.0f + time * -0.4f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            
-            // Circles centered at the 5 vertices
-            drawVertexCircles(poseStack, consumer, 5, radius * 0.7f, 0.2f, -90.0f + time * 0.6f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
         } else if (radius < 3.5f) {
             // Tier 3 (7x7): 5 concentric layers of circles
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius, y, 0.05f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.1f);
@@ -832,14 +881,6 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.7f, y, 0.03f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.2f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.5f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.25f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.33f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.3f);
-
-            // Heptagon outline and Heptagram star
-            drawPolygram(poseStack, consumer, 7, 2, radius * 0.7f, -90.0f + time * 0.5f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 7, 3, radius * 0.5f, -90.0f + time * -0.3f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 7, 1, radius * 0.7f, -90.0f + time * 0.2f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-
-            // Circles centered at the 7 vertices
-            drawVertexCircles(poseStack, consumer, 7, radius * 0.7f, 0.25f, -90.0f + time * 0.5f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
         } else {
             // Tier 4 (9x9): 6 concentric layers of circles
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius, y, 0.06f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.1f);
@@ -848,15 +889,39 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.62f, y, 0.03f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.25f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.5f, y, 0.03f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.3f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.25f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.35f);
+        }
 
-            // Nonagon outline, complex Nonagram star, and inner Trigon
-            drawPolygram(poseStack, consumer, 9, 3, radius * 0.75f, -90.0f + time * 0.4f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 9, 4, radius * 0.5f, -90.0f + time * -0.2f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 9, 1, radius * 0.75f, -90.0f + time * 0.15f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 3, 1, radius * 0.25f, -90.0f + time * -0.6f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+        // Draw polygrams, stars, and vertex circles dynamically based on points count
+        if (points > 0) {
+            float speed = (radius < 1.5f) ? 0.8f : (radius < 2.5f) ? 0.6f : (radius < 3.5f) ? 0.5f : 0.4f;
+            float rotationAngle = -90.0f + time * speed;
+            float vertexRadius = (radius >= 3.5f) ? radius * 0.75f : radius * 0.7f;
+            float vertexCircleRadius = (radius < 1.5f) ? 0.15f : (radius < 2.5f) ? 0.2f : (radius < 3.5f) ? 0.25f : 0.3f;
 
-            // Circles centered at the 9 vertices
-            drawVertexCircles(poseStack, consumer, 9, radius * 0.75f, 0.3f, -90.0f + time * 0.4f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            // Draw polygon outline (for 3+ points, or 2 points which draws a line back/forth)
+            if (points >= 2) {
+                drawPolygram(poseStack, consumer, points, 1, vertexRadius, rotationAngle, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            }
+
+            // Draw star outline for 5+ points
+            if (points >= 5) {
+                int starStep = points / 2;
+                drawPolygram(poseStack, consumer, points, starStep, vertexRadius, rotationAngle, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            }
+
+            // Draw inner star for 7+ points
+            if (points >= 7) {
+                int innerStep = (points - 1) / 2;
+                drawPolygram(poseStack, consumer, points, innerStep, vertexRadius * 0.7f, rotationAngle * -1.2f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            }
+
+            // Draw inner polygon for 9+ points
+            if (points >= 9) {
+                drawPolygram(poseStack, consumer, 3, 1, vertexRadius * 0.33f, rotationAngle * -1.5f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            }
+
+            // Draw circles at the vertices
+            drawVertexCircles(poseStack, consumer, points, vertexRadius, vertexCircleRadius, rotationAngle, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
         }
     }
 
@@ -1087,6 +1152,9 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
 
     private boolean shouldConnectSmart(Level level, BlockPos pos, BlockPos neighborPos, Direction dir, boolean circuit) {
         BlockState state = level.getBlockState(pos);
+        if (!state.is(ModBlocks.SCRIBED_CHALK.get())) {
+            return false;
+        }
         if (state.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.DIODE) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
@@ -1259,6 +1327,8 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         public final ItemStackRenderState storedOrbisCellState = new ItemStackRenderState();
         public boolean hasStoredRune;
         public final ItemStackRenderState storedRuneState = new ItemStackRenderState();
+        public boolean hasStoredItem;
+        public final ItemStackRenderState storedItemState = new ItemStackRenderState();
         public float time;
         // Connections:
         public boolean connectNorth;
@@ -1292,6 +1362,8 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             public final ItemStackRenderState storedOrbisCellState = new ItemStackRenderState();
             public boolean hasStoredRune;
             public final ItemStackRenderState storedRuneState = new ItemStackRenderState();
+            public boolean hasStoredItem;
+            public final ItemStackRenderState storedItemState = new ItemStackRenderState();
         }
         public final java.util.List<RotatingNodeState> rotatingNodes = new java.util.ArrayList<>();
     }

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/small_ampoule_base"
+    "layer0": "entropica:item/small_ampoule"
   }
 }

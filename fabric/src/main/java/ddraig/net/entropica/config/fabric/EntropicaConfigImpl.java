@@ -159,6 +159,12 @@ public class EntropicaConfigImpl {
         public IntOption nodeSpawnSpacing = new IntOption("Minimum chunk distance between naturally spawning nodes. Min: 1, Max: 100, Default: 6", 1, 100, 6);
         public IntOption nodeMaxPerArea = new IntOption("Maximum number of nodes allowed in a 10x10 chunk area. Min: 1, Max: 100, Default: 10", 1, 100, 10);
 
+        // Essence Repulsion Wards
+        public IntOption wardConsumptionAmount = new IntOption("Amount of Fumus consumed per consumption tick. Min: 1, Default: 1", 1, Integer.MAX_VALUE, 1);
+        public IntOption wardConsumptionIntervalSeconds = new IntOption("How many seconds between Fumus consumption operations. Min: 1, Default: 120", 1, Integer.MAX_VALUE, 120);
+        public DoubleOption wardCircleRadiusBase = new DoubleOption("Base radius for magic circle wards (increases per circle tier). Min: 1.0, Default: 10.0", 1.0, 100.0, 10.0);
+        public DoubleOption wardBlockRadius = new DoubleOption("Radius of the dedicated repulsion ward block. Min: 1.0, Default: 15.0", 1.0, 100.0, 15.0);
+
         public void validateAll() {
             manaPerEssence.validate();
             manaFurnaceMaxMana.validate();
@@ -239,6 +245,10 @@ public class EntropicaConfigImpl {
             nodeInfiniteCapacity.validate();
             nodeSpawnSpacing.validate();
             nodeMaxPerArea.validate();
+            wardConsumptionAmount.validate();
+            wardConsumptionIntervalSeconds.validate();
+            wardCircleRadiusBase.validate();
+            wardBlockRadius.validate();
         }
     }
 
@@ -354,4 +364,9 @@ public class EntropicaConfigImpl {
     public static int getAthanoritePipeTransferRate() { return data.athanoritePipeTransferRate.value; }
     public static int getChargedAthanoritePipeCapacity() { return data.chargedAthanoritePipeCapacity.value; }
     public static int getChargedAthanoritePipeTransferRate() { return data.chargedAthanoritePipeTransferRate.value; }
+
+    public static int getWardConsumptionAmount() { return data.wardConsumptionAmount.value; }
+    public static int getWardConsumptionIntervalSeconds() { return data.wardConsumptionIntervalSeconds.value; }
+    public static double getWardCircleRadiusBase() { return data.wardCircleRadiusBase.value; }
+    public static double getWardBlockRadius() { return data.wardBlockRadius.value; }
 }

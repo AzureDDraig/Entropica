@@ -199,8 +199,42 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             }
         }
 
-        // If they click the OUTPUT node with an empty hand, trigger the processing ritual!
-        if (state.getValue(NODE_TYPE) == NodeType.OUTPUT && player.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND).isEmpty()) {
+        // If they click the OUTPUT node, trigger processing or ward logic
+        if (state.getValue(NODE_TYPE) == NodeType.OUTPUT) {
+            ItemStack heldItem = player.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND);
+            BlockEntity centerBE = level.getBlockEntity(pos);
+            if (centerBE instanceof ScribedChalkBlockEntity outputBE) {
+                if (outputBE.isWard() && outputBE.getWardTicks() > 0) {
+                    if (heldItem.getItem() instanceof ddraig.net.entropica.item.EssenceItem essenceItem) {
+                        if (!level.isClientSide()) {
+                            int tier = essenceItem.getTier();
+                            int addTicks = switch (tier) {
+                                case 0 -> 1200; // Materia Fragment
+                                case 1 -> 2400; // Weak Essence
+                                case 2 -> 6000; // Average Essence
+                                default -> 24000; // Strong / Grand Essence
+                            };
+                            outputBE.setWardTicks(outputBE.getWardTicks() + addTicks);
+                            if (!player.getAbilities().instabuild) {
+                                heldItem.shrink(1);
+                            }
+                            level.playSound(null, pos, SoundEvents.BEACON_POWER_SELECT, SoundSource.BLOCKS, 1.0f, 1.2f);
+                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Fed repulsion ward. Remaining duration: " + (outputBE.getWardTicks() / 20) + " seconds."), true);
+                        }
+                        return net.minecraft.world.InteractionResult.SUCCESS;
+                    } else if (heldItem.isEmpty()) {
+                        if (!level.isClientSide()) {
+                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Active Repulsion Ward. Remaining duration: " + (outputBE.getWardTicks() / 20) + " seconds."), false);
+                        }
+                        return net.minecraft.world.InteractionResult.SUCCESS;
+                    }
+                }
+            }
+
+            if (!heldItem.isEmpty()) {
+                return net.minecraft.world.InteractionResult.PASS;
+            }
+
             int checkTier = 0;
             for (int t = 4; t >= 1; t--) {
                 if (checkPatternStatic(level, pos, state.getValue(CIRCUIT), t) &&
@@ -216,13 +250,13 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                     int resonators = 0;
 
                     List<ItemEntity> inputItemEntities = new java.util.ArrayList<>();
+                    List<ScribedChalkBlockEntity> inputBlockEntities = new java.util.ArrayList<>();
                     List<ItemStack> inputStacks = new java.util.ArrayList<>();
                     List<ScribedChalkBlockEntity> runeBlockEntities = new java.util.ArrayList<>();
                     List<ItemStack> runeStacks = new java.util.ArrayList<>();
                     java.util.Map<EssenceType, Integer> essences = new java.util.HashMap<>();
                     List<ScribedChalkBlockEntity> allChalkBlockEntities = new java.util.ArrayList<>();
 
-                    BlockEntity centerBE = level.getBlockEntity(pos);
                     if (centerBE instanceof ScribedChalkBlockEntity outputBE) {
                         allChalkBlockEntities.add(outputBE);
                     }
@@ -240,12 +274,18 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                     allChalkBlockEntities.add(chalkBE);
                                     
                                     if (type == NodeType.INPUT) {
-                                        AABB scanArea = new AABB(p).inflate(0.2, 0.5, 0.2);
-                                        List<ItemEntity> foundItems = level.getEntitiesOfClass(ItemEntity.class, scanArea);
-                                        for (ItemEntity ent : foundItems) {
-                                            if (!ent.isRemoved() && !ent.getItem().isEmpty()) {
-                                                inputItemEntities.add(ent);
-                                                inputStacks.add(ent.getItem());
+                                        ItemStack stored = chalkBE.getStoredItem();
+                                        if (!stored.isEmpty()) {
+                                            inputBlockEntities.add(chalkBE);
+                                            inputStacks.add(stored);
+                                        } else {
+                                            AABB scanArea = new AABB(p).inflate(0.2, 0.5, 0.2);
+                                            List<ItemEntity> foundItems = level.getEntitiesOfClass(ItemEntity.class, scanArea);
+                                            for (ItemEntity ent : foundItems) {
+                                                if (!ent.isRemoved() && !ent.getItem().isEmpty()) {
+                                                    inputItemEntities.add(ent);
+                                                    inputStacks.add(ent.getItem());
+                                                }
                                             }
                                         }
                                     } else if (type == NodeType.RUNE) {
@@ -272,26 +312,70 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                     }
 
                     MagicCircleRecipeInput recipeInput = new MagicCircleRecipeInput(inputStacks, runeStacks, essences, checkTier);
-                    Optional<RecipeHolder<MagicCircleRecipe>> recipeOpt = level.getServer().getRecipeManager()
-                            .getRecipeFor(ModRecipes.MAGIC_CIRCLE_TYPE.get(), recipeInput, level);
+                    List<RecipeHolder<MagicCircleRecipe>> allRecipes = new java.util.ArrayList<>();
+                    for (RecipeHolder<?> holder : level.getServer().getRecipeManager().getRecipes()) {
+                        if (holder.value() instanceof MagicCircleRecipe) {
+                            allRecipes.add((RecipeHolder<MagicCircleRecipe>) holder);
+                        }
+                    }
+                    
+                    List<RecipeHolder<MagicCircleRecipe>> matchingRecipes = new java.util.ArrayList<>();
+                    for (RecipeHolder<MagicCircleRecipe> holder : allRecipes) {
+                        if (holder.value().matches(recipeInput, level)) {
+                            matchingRecipes.add(holder);
+                        }
+                    }
 
-                    if (recipeOpt.isPresent()) {
-                        MagicCircleRecipe recipe = recipeOpt.get().value();
+                    if (!matchingRecipes.isEmpty()) {
+                        // Sort matching recipes by cost descending: highest sum of inputs + runes + essences
+                        matchingRecipes.sort((r1, r2) -> {
+                            MagicCircleRecipe val1 = r1.value();
+                            MagicCircleRecipe val2 = r2.value();
+                            
+                            int essenceCost1 = val1.essences().values().stream().mapToInt(Integer::intValue).sum();
+                            int essenceCost2 = val2.essences().values().stream().mapToInt(Integer::intValue).sum();
+                            
+                            int cost1 = val1.inputs().size() + val1.runes().size() + essenceCost1;
+                            int cost2 = val2.inputs().size() + val2.runes().size() + essenceCost2;
+                            
+                            if (cost1 != cost2) {
+                                return Integer.compare(cost2, cost1); // descending
+                            }
+                            return Integer.compare(val2.tier(), val1.tier()); // descending
+                        });
+
+                        MagicCircleRecipe recipe = matchingRecipes.get(0).value();
                         
                         // 1. Consume input items from entities
                         for (Ingredient ing : recipe.inputs()) {
-                            for (int i = 0; i < inputItemEntities.size(); i++) {
-                                ItemEntity ent = inputItemEntities.get(i);
-                                if (ing.test(ent.getItem())) {
-                                    ItemStack stack = ent.getItem();
+                            boolean consumed = false;
+                            for (int i = 0; i < inputBlockEntities.size(); i++) {
+                                ScribedChalkBlockEntity chalkBE = inputBlockEntities.get(i);
+                                ItemStack stack = chalkBE.getStoredItem();
+                                if (ing.test(stack)) {
                                     stack.shrink(1);
-                                    if (stack.isEmpty()) {
-                                        ent.discard();
-                                    } else {
-                                        ent.setItem(stack);
-                                    }
-                                    inputItemEntities.remove(i);
+                                    chalkBE.setStoredItem(stack);
+                                    chalkBE.setChanged();
+                                    level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                                    inputBlockEntities.remove(i);
+                                    consumed = true;
                                     break;
+                                }
+                            }
+                            if (!consumed) {
+                                for (int i = 0; i < inputItemEntities.size(); i++) {
+                                    ItemEntity ent = inputItemEntities.get(i);
+                                    if (ing.test(ent.getItem())) {
+                                        ItemStack stack = ent.getItem();
+                                        stack.shrink(1);
+                                        if (stack.isEmpty()) {
+                                            ent.discard();
+                                        } else {
+                                            ent.setItem(stack);
+                                        }
+                                        inputItemEntities.remove(i);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -321,14 +405,13 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
                         }
                         
-                        // 4. Spawn output item at Output node center
-                        ItemStack resultStack = recipe.output().copy();
-                        ItemEntity resultEntity = new ItemEntity(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, resultStack);
-                        resultEntity.setDeltaMovement(0, 0.25, 0);
-                        level.addFreshEntity(resultEntity);
+                        // 4. Start active ritual processing on center Output node (100 ticks = 5 seconds)
+                        if (centerBE instanceof ScribedChalkBlockEntity outputBE) {
+                            outputBE.startRitual(recipe.output(), 100);
+                        }
                         
                         // 5. Visual/Audio effects
-                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Magic Circle has successfully performed the ritual!"), false);
+                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Magic Circle has successfully initiated the ritual!"), false);
                         level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.2f);
                         
                         if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
@@ -342,7 +425,57 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             }
                         }
                     } else {
-                        StringBuilder message = new StringBuilder("§5[Entropica] Magic Circle formed, but no recipe matches these inputs!");
+                        boolean hasAlgiz = false;
+                        for (ItemStack rune : runeStacks) {
+                            if (rune.getItem() == ddraig.net.entropica.registry.ModItems.RUNE_ALGIZ.get()) {
+                                hasAlgiz = true;
+                                break;
+                            }
+                        }
+                        int totalEssence = essences.values().stream().mapToInt(Integer::intValue).sum();
+                        
+                        if (hasAlgiz && totalEssence >= 32) {
+                            // Consume RUNE_ALGIZ
+                            for (int i = 0; i < runeBlockEntities.size(); i++) {
+                                ScribedChalkBlockEntity chalkBE = runeBlockEntities.get(i);
+                                ItemStack stack = chalkBE.getStoredRune();
+                                if (stack.getItem() == ddraig.net.entropica.registry.ModItems.RUNE_ALGIZ.get()) {
+                                    stack.shrink(1);
+                                    chalkBE.setStoredRune(stack);
+                                    chalkBE.setChanged();
+                                    level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                                    break;
+                                }
+                            }
+                            // Consume essences
+                            for (ScribedChalkBlockEntity chalkBE : allChalkBlockEntities) {
+                                chalkBE.setActiveAffinity(EssenceType.REGULAR);
+                                chalkBE.setEssenceLevel(0);
+                                chalkBE.setColor(0xFFCCCCCC);
+                                chalkBE.setChanged();
+                                level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                            }
+                            // Set ward status
+                            if (centerBE instanceof ScribedChalkBlockEntity outputBE) {
+                                outputBE.setWard(true);
+                                outputBE.setWardTicks(12000);
+                            }
+                            
+                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] The essence repulsion ward has been activated!"), false);
+                            level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.2f);
+                            
+                            if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.PORTAL, pos.getX() + 0.5, pos.getY() + 0.1, pos.getZ() + 0.5, 60, 0.5, 0.1, 0.5, 0.2);
+                                for (int t = 1; t <= checkTier; t++) {
+                                    int[][] offsets = getOffsetsForTier(t);
+                                    for (int[] offset : offsets) {
+                                        BlockPos p = pos.offset(offset[0], 0, offset[1]);
+                                        serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.END_ROD, p.getX() + 0.5, p.getY() + 0.1, p.getZ() + 0.5, 20, 0.2, 0.1, 0.2, 0.08);
+                                    }
+                                }
+                            }
+                        } else {
+                            StringBuilder message = new StringBuilder("§5[Entropica] Magic Circle formed, but no recipe matches these inputs!");
                         if (!essences.isEmpty()) {
                             message.append("\n§d - Contained Essences:");
                             for (java.util.Map.Entry<EssenceType, Integer> entry : essences.entrySet()) {
@@ -373,11 +506,12 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.5f, 0.8f);
                     }
                 }
-                return net.minecraft.world.InteractionResult.SUCCESS;
             }
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
         }
 
-        if (state.getValue(NODE_TYPE) == NodeType.INPUT || state.getValue(NODE_TYPE) == NodeType.SOURCE) {
+        if (state.getValue(NODE_TYPE) == NodeType.SOURCE) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
                 net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
@@ -428,6 +562,41 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         chalkBE.setColor(0xFFCCCCCC);
 
                         level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5f, 1.5f);
+                    }
+                    return net.minecraft.world.InteractionResult.SUCCESS;
+                }
+            }
+        }
+
+        if (state.getValue(NODE_TYPE) == NodeType.INPUT) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof ScribedChalkBlockEntity chalkBE) {
+                net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
+                ItemStack heldItem = player.getItemInHand(hand);
+
+                // Try to insert general item
+                if (chalkBE.getStoredItem().isEmpty() && !heldItem.isEmpty()) {
+                    if (!level.isClientSide()) {
+                        ItemStack toStore = heldItem.copy();
+                        toStore.setCount(1);
+                        chalkBE.setStoredItem(toStore);
+
+                        heldItem.shrink(1);
+                        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5f, 1.0f);
+                    }
+                    return net.minecraft.world.InteractionResult.SUCCESS;
+                }
+
+                // Try to extract general item
+                if (!chalkBE.getStoredItem().isEmpty() && heldItem.isEmpty()) {
+                    if (!level.isClientSide()) {
+                        ItemStack extracted = chalkBE.getStoredItem();
+                        if (!player.addItem(extracted)) {
+                            player.drop(extracted, false);
+                        }
+                        chalkBE.setStoredItem(ItemStack.EMPTY);
+
+                        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5f, 1.2f);
                     }
                     return net.minecraft.world.InteractionResult.SUCCESS;
                 }
@@ -485,19 +654,33 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         return net.minecraft.world.InteractionResult.PASS;
     }
 
+    private void dropStoredContents(Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof ScribedChalkBlockEntity chalkBE) {
+            if (!chalkBE.getStoredOrbisCell().isEmpty()) {
+                Block.popResource(level, pos, chalkBE.getStoredOrbisCell());
+                chalkBE.setStoredOrbisCell(ItemStack.EMPTY);
+            }
+            if (!chalkBE.getStoredRune().isEmpty()) {
+                Block.popResource(level, pos, chalkBE.getStoredRune());
+                chalkBE.setStoredRune(ItemStack.EMPTY);
+            }
+            if (!chalkBE.getStoredItem().isEmpty()) {
+                Block.popResource(level, pos, chalkBE.getStoredItem());
+                chalkBE.setStoredItem(ItemStack.EMPTY);
+            }
+            if (!chalkBE.getActiveRecipeOutput().isEmpty()) {
+                Block.popResource(level, pos, chalkBE.getActiveRecipeOutput());
+                chalkBE.setActiveRecipeOutput(ItemStack.EMPTY);
+            }
+        }
+    }
+
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, net.minecraft.world.entity.player.Player player) {
         if (!level.isClientSide()) {
+            dropStoredContents(level, pos);
             checkForAndDestroyCircle(level, pos, state);
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof ScribedChalkBlockEntity chalkBE) {
-                if (!chalkBE.getStoredOrbisCell().isEmpty()) {
-                    Block.popResource(level, pos, chalkBE.getStoredOrbisCell());
-                }
-                if (!chalkBE.getStoredRune().isEmpty()) {
-                    Block.popResource(level, pos, chalkBE.getStoredRune());
-                }
-            }
         }
         return super.playerWillDestroy(level, pos, state, player);
     }
@@ -515,6 +698,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         for (int[] offset : offsets) {
                             BlockPos p = brokenPos.offset(offset[0], 0, offset[1]);
                             if (level.getBlockState(p).is(brokenState.getBlock())) {
+                                dropStoredContents(level, p);
                                 level.destroyBlock(p, true);
                             }
                         }
@@ -533,12 +717,14 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                 if (centerState.is(brokenState.getBlock()) && centerState.getValue(NODE_TYPE) == NodeType.OUTPUT && centerState.getValue(CIRCUIT) == circuit) {
                     if (checkPatternStaticExcept(level, centerPos, circuit, tier, brokenPos)) {
                         // Destroy center and all other remaining perimeter blocks across all layers
+                        dropStoredContents(level, centerPos);
                         level.destroyBlock(centerPos, true);
                         for (int t = 1; t <= tier; t++) {
                             int[][] o = getOffsetsForTier(t);
                             for (int[] offset2 : o) {
                                 BlockPos p = centerPos.offset(offset2[0], 0, offset2[1]);
                                 if (level.getBlockState(p).is(brokenState.getBlock())) {
+                                    dropStoredContents(level, p);
                                     level.destroyBlock(p, true);
                                 }
                             }
@@ -577,7 +763,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         int totalNodes = inputCount + sourceCount + runeCount + specialCount;
         int expectedTotal = 2 * tier + 1;
         
-        return inputCount >= 1 && sourceCount >= 1 && totalNodes == expectedTotal;
+        return inputCount >= 1 && sourceCount >= 1 && runeCount >= 1 && totalNodes <= expectedTotal;
     }
 
     public static boolean checkPatternStatic(Level level, BlockPos center, boolean circuit, int tier) {
@@ -643,7 +829,10 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         AMPLIFIER("amplifier"),
         CAPACITOR("capacitor"),
         RESONATOR("resonator"),
-        DIODE("diode");
+        DIODE("diode"),
+        AND_GATE("and_gate"),
+        OR_GATE("or_gate"),
+        NOT_GATE("not_gate");
 
         private final String name;
 

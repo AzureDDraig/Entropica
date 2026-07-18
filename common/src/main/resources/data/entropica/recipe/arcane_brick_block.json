@@ -6,9 +6,7 @@
     "BB"
   ],
   "key": {
-    "B": {
-      "item": "entropica:arcane_brick_piece"
-    }
+    "B": "entropica:arcane_brick_piece"
   },
   "result": {
     "id": "entropica:arcane_brick",
