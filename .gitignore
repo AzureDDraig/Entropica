@@ -25,3 +25,14 @@ run-data
 
 repo
 .agents/
+
+# VSCode and entry list
+.vscode/
+entries.txt
+
+# Docs and Wiki
+docs/
+Wiki/
+
+# Github workflows
+.github/workflows/
