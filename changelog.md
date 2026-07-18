@@ -1,5 +1,16 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-199-16-25
+
+### Fixed
+*   **Magic Circle Rendering (Geometry & Timing)**:
+    *   Resolved rendering geometry distortion and infinitely-stretched polygram lines by fixing float precision loss in rotation calculations. Swapped raw system time for a smooth sub-tick game time modulo calculation (`(level.getGameTime() % 360000L) + partialTick`).
+    *   Overloaded `getCurrentRGB` in `EssenceType` to support `double` values, enabling smooth client-side alchemical color cycles.
+*   **Node Input Lockout**:
+    *   Restricted general item, essence, and rune insertion/extraction on `INPUT`, `SOURCE`, and `RUNE` nodes to active magic circles only (`isInActiveCircle() == true`). This prevents nodes from taking chalk or other materials out of the player's hand while they are cycling node types.
+
+---
+
 ## Build 000-1-26-199-16-04
 
 ### Added

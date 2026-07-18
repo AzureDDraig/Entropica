@@ -514,6 +514,9 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         if (state.getValue(NODE_TYPE) == NodeType.SOURCE) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
+                if (!chalkBE.isInActiveCircle()) {
+                    return net.minecraft.world.InteractionResult.PASS;
+                }
                 net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
                 ItemStack heldItem = player.getItemInHand(hand);
 
@@ -571,6 +574,9 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         if (state.getValue(NODE_TYPE) == NodeType.INPUT) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
+                if (!chalkBE.isInActiveCircle()) {
+                    return net.minecraft.world.InteractionResult.PASS;
+                }
                 net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
                 ItemStack heldItem = player.getItemInHand(hand);
 
@@ -607,6 +613,9 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         if (state.getValue(NODE_TYPE) == NodeType.RUNE) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
+                if (!chalkBE.isInActiveCircle()) {
+                    return net.minecraft.world.InteractionResult.PASS;
+                }
                 net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
                 ItemStack heldItem = player.getItemInHand(hand);
 

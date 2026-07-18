@@ -170,6 +170,27 @@ public enum EssenceType implements StringRepresentable {
         };
     }
 
+    public int[] getCurrentRGB(double gameTime) {
+        if (isDynamic()) return new int[]{255, 255, 255};
+        if (colorCycle.length == 1) return colorCycle[0];
+
+        double time = (gameTime % 40.0) / 40.0;
+        int stages = colorCycle.length;
+        double scaledTime = time * stages;
+        int index1 = (int) scaledTime;
+        int index2 = (index1 + 1) % stages;
+        double blend = scaledTime - index1;
+
+        int[] c1 = colorCycle[index1];
+        int[] c2 = colorCycle[index2];
+
+        return new int[]{
+                (int) (c1[0] + (c2[0] - c1[0]) * blend),
+                (int) (c1[1] + (c2[1] - c1[1]) * blend),
+                (int) (c1[2] + (c2[2] - c1[2]) * blend)
+        };
+    }
+
     public int getR() { return colorCycle.length > 0 ? colorCycle[0][0] : 255; }
     public int getG() { return colorCycle.length > 0 ? colorCycle[0][1] : 255; }
     public int getB() { return colorCycle.length > 0 ? colorCycle[0][2] : 255; }

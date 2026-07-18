@@ -59,7 +59,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         renderState.facing = be.getFacing();
         renderState.dyeTicks = be.getDyeTicks() + partialTick;
         renderState.hasActiveDye = be.getActiveAffinity() != EssenceType.REGULAR;
-        renderState.time = System.currentTimeMillis() / 50.0f;
+        renderState.time = (level != null ? (level.getGameTime() % 360000L) : 0) + partialTick;
 
         // Set connections
         if (level != null) {
@@ -143,7 +143,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             renderState.defaultColor = defaultColor;
             int targetColor = defaultColor;
             if (be.getActiveAffinity() != EssenceType.REGULAR) {
-                targetColor = getDynamicColor(be);
+                targetColor = getDynamicColor(be, renderState.time);
             }
 
             int distance = findDistanceToDyeSource(be, renderState.isCircuit);
@@ -182,7 +182,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                             if (neighborBE instanceof ScribedChalkBlockEntity neighborChalk) {
                                 if (neighborChalk.getActiveAffinity() != EssenceType.REGULAR) {
                                     renderState.circleHasActiveDye = true;
-                                    renderState.circleDyeColor = getDynamicColor(neighborChalk);
+                                    renderState.circleDyeColor = getDynamicColor(neighborChalk, renderState.time);
                                     renderState.circleDyeTicks = be.getDyeTicks() + partialTick;
                                     renderState.circleDyeSourceAngle = (float) Math.atan2(p.getZ() - pos.getZ(), p.getX() - pos.getX());
                                     break;
@@ -241,7 +241,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         nodeState.textSymbol = text;
                         
                         int defCol = getDefaultTierColor(nodeBS);
-                        nodeState.color = nodeBE.getActiveAffinity() != EssenceType.REGULAR ? getDynamicColor(nodeBE) : defCol;
+                        nodeState.color = nodeBE.getActiveAffinity() != EssenceType.REGULAR ? getDynamicColor(nodeBE, renderState.time) : defCol;
                         
                         ItemStack cellItem = nodeBE.getStoredOrbisCell();
                         nodeState.hasStoredOrbisCell = !cellItem.isEmpty();
@@ -269,7 +269,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                 }
             }
         } else {
-            renderState.color = getDynamicColor(be);
+            renderState.color = getDynamicColor(be, renderState.time);
             renderState.connectNorth = false;
             renderState.connectSouth = false;
             renderState.connectEast = false;
@@ -1107,20 +1107,20 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         poseStack.popPose();
     }
 
-    private int getDynamicColor(ScribedChalkBlockEntity chalkBE) {
+    private int getDynamicColor(ScribedChalkBlockEntity chalkBE, float time) {
         EssenceType affinity = chalkBE.getActiveAffinity();
         if (affinity == EssenceType.REGULAR) {
             return chalkBE.getColor();
         }
         if (affinity.isDynamic()) {
             float speed = 0.05f;
-            float cycle = (System.currentTimeMillis() / 50) * speed;
+            float cycle = time * speed;
             int r = (int) ((Math.sin(cycle) * 0.5f + 0.5f) * 255.0f);
             int g = (int) ((Math.sin(cycle + 2.094f) * 0.5f + 0.5f) * 255.0f);
             int b = (int) ((Math.sin(cycle + 4.188f) * 0.5f + 0.5f) * 255.0f);
             return (r << 16) | (g << 8) | b;
         } else {
-            int[] rgb = affinity.getCurrentRGB(System.currentTimeMillis() / 50);
+            int[] rgb = affinity.getCurrentRGB(time);
             return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
         }
     }
