@@ -1,11 +1,15 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
-## Build 000-1-26-200-02-29
+## Build 000-1-26-200-02-31
 
 ### Fixed
 *   **Magic Circle Ritual Recipes**:
     *   Fixed a bug where hardcoded fallback recipes (such as the Iron Ingot + Rune of Uruz + 50 Nether -> Arcanite Ingot placeholder) were not evaluated during ritual execution. Added a search fallback in `ScribedChalkBlock` to scan both registered datapack recipes and hardcoded fallback recipes.
     *   Added a datapack JSON recipe for the `arcanite_ingot` magic circle ritual to ensure native datapack support and correct JEI synchronization.
+*   **Wildcard Essence Matching**:
+    *   Enabled wildcard essence matching on magic circle recipes. Specifying `EssenceType.REGULAR` (serialized as `"regular"` in JSON) now dynamically matches and sums all active, infused essences in the circle.
+    *   Updated the Arcanite Ingot placeholder recipe to require 50 of any essence (using `REGULAR` wildcard) instead of requiring Nether essence.
+    *   Updated the JEI magic circle recipe category to render the wildcard requirement as "Any: <amount>".
 
 ---
 

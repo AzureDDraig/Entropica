@@ -112,10 +112,14 @@ public class MagicCircleRecipeCategory implements IRecipeCategory<MagicCircleRec
         int count = 0;
         for (Map.Entry<EssenceType, Integer> entry : recipe.essences().entrySet()) {
             if (entry.getValue() > 0) {
-                String name = entry.getKey().name().toLowerCase();
-                // Capitalize first letter
-                if (name.length() > 0) {
-                    name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+                String name;
+                if (entry.getKey() == EssenceType.REGULAR) {
+                    name = "Any";
+                } else {
+                    name = entry.getKey().name().toLowerCase();
+                    if (name.length() > 0) {
+                        name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+                    }
                 }
                 String essenceText = name + ": " + entry.getValue();
                 int color = entry.getKey().getColorInt();

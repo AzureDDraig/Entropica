@@ -61,9 +61,20 @@ public record MagicCircleRecipe(
         // 3. Verify essences
         for (Map.Entry<EssenceType, Integer> entry : this.essences.entrySet()) {
             int requiredAmount = entry.getValue();
-            int providedAmount = input.essences().getOrDefault(entry.getKey(), 0);
-            if (providedAmount < requiredAmount) {
-                return false;
+            if (entry.getKey() == EssenceType.REGULAR) {
+                // Wildcard: sum all non-REGULAR essences
+                int totalProvided = input.essences().entrySet().stream()
+                        .filter(e -> e.getKey() != EssenceType.REGULAR)
+                        .mapToInt(Map.Entry::getValue)
+                        .sum();
+                if (totalProvided < requiredAmount) {
+                    return false;
+                }
+            } else {
+                int providedAmount = input.essences().getOrDefault(entry.getKey(), 0);
+                if (providedAmount < requiredAmount) {
+                    return false;
+                }
             }
         }
 

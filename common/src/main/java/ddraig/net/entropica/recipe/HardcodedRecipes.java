@@ -383,7 +383,7 @@ public class HardcodedRecipes {
                     Ingredient.of(ModItems.RUNE_URUZ.get())
             );
             Map<EssenceType, Integer> essences = new HashMap<>();
-            essences.put(EssenceType.NETHER, 50);
+            essences.put(EssenceType.REGULAR, 50);
 
             MAGIC_CIRCLE_RECIPES.add(new MagicCircleRecipe(
                     inputs,
