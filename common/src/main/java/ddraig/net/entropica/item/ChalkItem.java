@@ -110,7 +110,8 @@ public class ChalkItem extends Item {
                         case DIODE -> ScribedChalkBlock.NodeType.AND_GATE;
                         case AND_GATE -> ScribedChalkBlock.NodeType.OR_GATE;
                         case OR_GATE -> ScribedChalkBlock.NodeType.NOT_GATE;
-                        case NOT_GATE -> ScribedChalkBlock.NodeType.OUTPUT;
+                        case NOT_GATE -> ScribedChalkBlock.NodeType.EXTRACTION;
+                        case EXTRACTION -> ScribedChalkBlock.NodeType.OUTPUT;
                         case OUTPUT -> ScribedChalkBlock.NodeType.RUNE;
                         case RUNE -> ScribedChalkBlock.NodeType.DEFAULT;
                     };
@@ -127,6 +128,7 @@ public class ChalkItem extends Item {
                 }
                 level.setBlock(clickedPos, clickedState.setValue(ScribedChalkBlock.NODE_TYPE, nextType), 3);
                 if (nextType == ScribedChalkBlock.NodeType.DIODE ||
+                    nextType == ScribedChalkBlock.NodeType.EXTRACTION ||
                     nextType == ScribedChalkBlock.NodeType.AND_GATE ||
                     nextType == ScribedChalkBlock.NodeType.OR_GATE ||
                     nextType == ScribedChalkBlock.NodeType.NOT_GATE) {
@@ -150,6 +152,7 @@ public class ChalkItem extends Item {
                         case AND_GATE -> "AND Gate Node";
                         case OR_GATE -> "OR Gate Node";
                         case NOT_GATE -> "NOT Gate Node";
+                        case EXTRACTION -> "Extraction Node";
                         case OUTPUT -> "Output Node";
                         case RUNE -> "Rune Node";
                     };

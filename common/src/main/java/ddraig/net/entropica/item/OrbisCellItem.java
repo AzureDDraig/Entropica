@@ -47,6 +47,12 @@ public class OrbisCellItem extends BlockItem {
         return customData.copyTag().getInt("StoredVis").orElse(0);
     }
 
+    public static void setStoredVisAmount(ItemStack stack, int amount) {
+        net.minecraft.nbt.CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        tag.putInt("StoredVis", amount);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+    }
+
     // --- DYNAMIC TOOLTIP ---
 
     @Override

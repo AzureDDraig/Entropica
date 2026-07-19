@@ -51,6 +51,13 @@ public class ScribedChalkBlockEntity extends BlockEntity {
     private boolean isWard = false;
     private int wardTicks = 0;
     private int activeCircleTier = 0;
+    private int amplifierCount = 0;
+    private int capacitorCount = 0;
+
+    public int getAmplifierCount() { return this.amplifierCount; }
+    public void setAmplifierCount(int count) { this.amplifierCount = count; this.setChanged(); }
+    public int getCapacitorCount() { return this.capacitorCount; }
+    public void setCapacitorCount(int count) { this.capacitorCount = count; this.setChanged(); }
 
     public enum Direction8 {
         NORTH("north", 0, -1),
@@ -557,9 +564,14 @@ public class ScribedChalkBlockEntity extends BlockEntity {
             if (blockEntity.processingProgress >= blockEntity.processingTimeTotal) {
                 // Complete active recipe!
                 ItemStack result = blockEntity.activeRecipeOutput.copy();
+                int count = result.getCount();
                 if (blockEntity.doubleYield) {
-                    result.setCount(result.getCount() * 2);
+                    count *= 2;
                 }
+                if (blockEntity.amplifierCount > 0) {
+                    count = Math.max(1, (int) Math.round(count * (1.0 + blockEntity.amplifierCount * 0.5)));
+                }
+                result.setCount(count);
                 
                 ItemEntity resultEntity = new ItemEntity(level, 
                     pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 
@@ -573,6 +585,8 @@ public class ScribedChalkBlockEntity extends BlockEntity {
                 blockEntity.processingProgress = 0;
                 blockEntity.processingTimeTotal = 0;
                 blockEntity.doubleYield = false;
+                blockEntity.amplifierCount = 0;
+                blockEntity.capacitorCount = 0;
                 blockEntity.setChanged();
                 level.sendBlockUpdated(pos, state, state, 3);
             } else {
@@ -582,13 +596,13 @@ public class ScribedChalkBlockEntity extends BlockEntity {
 
         ScribedChalkBlock.NodeType nodeType = state.getValue(ScribedChalkBlock.NODE_TYPE);
         
-        // Passive collection node ticking
+        // Passive collection node ticking: Suggestion B (Slow Accumulation) - charge for 120 ticks, emit 1-tick pulse of level 32
         if (nodeType == ScribedChalkBlock.NodeType.COLLECTION) {
             blockEntity.scanCooldown++;
-            if (blockEntity.scanCooldown >= 100) {
+            if (blockEntity.scanCooldown >= 120) {
                 blockEntity.scanCooldown = 0;
                 EssenceType biomeEssence = blockEntity.getEssenceTypeForBiome(level, pos);
-                if (biomeEssence != EssenceType.REGULAR && blockEntity.activeAffinity != biomeEssence) {
+                if (biomeEssence != EssenceType.REGULAR) {
                     blockEntity.dyeTicks = 0;
                     blockEntity.activeAffinity = biomeEssence;
                     blockEntity.color = biomeEssence.getColorInt();
@@ -596,16 +610,70 @@ public class ScribedChalkBlockEntity extends BlockEntity {
                     blockEntity.setChanged();
                     level.sendBlockUpdated(pos, state, state, 3);
                 }
+            } else {
+                if (blockEntity.essenceLevel > 0) {
+                    blockEntity.essenceLevel = 0;
+                    blockEntity.setChanged();
+                    level.sendBlockUpdated(pos, state, state, 3);
+                }
+            }
+        }
+
+        // Extraction node ticking: accumulates and extracts essence
+        if (nodeType == ScribedChalkBlock.NodeType.EXTRACTION) {
+            if (blockEntity.essenceLevel >= 16 && blockEntity.activeAffinity != EssenceType.REGULAR) {
+                blockEntity.scanCooldown++;
+                if (blockEntity.scanCooldown >= 40) { // Every 2 seconds
+                    blockEntity.scanCooldown = 0;
+                    if (!level.isClientSide()) {
+                        Direction facing = blockEntity.getFacing();
+                        BlockPos targetPos = pos.relative(facing);
+                        BlockEntity targetBE = level.getBlockEntity(targetPos);
+                        boolean pushedIntoCell = false;
+                        
+                        if (targetBE instanceof ScribedChalkBlockEntity inputBE && 
+                            inputBE.getBlockState().is(ddraig.net.entropica.registry.ModBlocks.SCRIBED_CHALK.get()) &&
+                            inputBE.getBlockState().getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.INPUT) {
+                            
+                            ItemStack cellStack = inputBE.getStoredItem();
+                            if (!cellStack.isEmpty() && blockEntity.tryPushVis(cellStack, blockEntity.activeAffinity)) {
+                                inputBE.setStoredItem(cellStack);
+                                level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.5f, 1.0f);
+                                pushedIntoCell = true;
+                            }
+                        }
+                        
+                        if (!pushedIntoCell) {
+                            ItemStack orbStack = new ItemStack(ddraig.net.entropica.registry.ModItems.WEAK_ESSENCE.get());
+                            ddraig.net.entropica.item.EssenceItem.setEssenceType(orbStack, blockEntity.activeAffinity);
+                            ddraig.net.entropica.entity.EssenceOrbEntity orb = new ddraig.net.entropica.entity.EssenceOrbEntity(level, pos.getX() + 0.5, pos.getY() + 0.3, pos.getZ() + 0.5, orbStack);
+                            level.addFreshEntity(orb);
+                            level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 0.5f, 1.2f);
+                        }
+                        
+                        // Consume/drain the essence
+                        blockEntity.essenceLevel = 0;
+                        blockEntity.activeAffinity = EssenceType.REGULAR;
+                        blockEntity.color = 0xFFCCCCCC;
+                        blockEntity.setChanged();
+                        level.sendBlockUpdated(pos, state, state, 3);
+                    }
+                }
+            } else {
+                blockEntity.scanCooldown = 0;
             }
         }
 
         // Check if we are a direct source
         boolean isDirectSource = false;
+        boolean hasVisCell = false;
         if (!blockEntity.getStoredOrbisCell().isEmpty()) {
-            isDirectSource = true;
-        } else if (nodeType == ScribedChalkBlock.NodeType.INPUT || 
-                   nodeType == ScribedChalkBlock.NodeType.SOURCE || 
-                   nodeType == ScribedChalkBlock.NodeType.COLLECTION) {
+            int currentVis = ddraig.net.entropica.item.OrbisCellItem.getStoredVisAmount(blockEntity.getStoredOrbisCell());
+            if (currentVis > 0) {
+                isDirectSource = true;
+                hasVisCell = true;
+            }
+        } else if (nodeType == ScribedChalkBlock.NodeType.SOURCE) {
             if (blockEntity.activeAffinity != EssenceType.REGULAR) {
                 isDirectSource = true;
             }
@@ -616,6 +684,25 @@ public class ScribedChalkBlockEntity extends BlockEntity {
                 blockEntity.essenceLevel = 32;
                 blockEntity.setChanged();
                 level.sendBlockUpdated(pos, state, state, 3);
+            }
+            if (hasVisCell && !level.isClientSide()) {
+                // Drain vis from the Orbis Cell
+                ItemStack cell = blockEntity.getStoredOrbisCell();
+                int currentVis = ddraig.net.entropica.item.OrbisCellItem.getStoredVisAmount(cell);
+                int connectedAmps = blockEntity.countConnectedAmplifiers(level, pos);
+                int drainRate = 1 + connectedAmps * 2; // Default 1, +2 per amplifier
+                int newVis = Math.max(0, currentVis - drainRate);
+                ddraig.net.entropica.item.OrbisCellItem.setStoredVisAmount(cell, newVis);
+                blockEntity.setStoredOrbisCell(cell); // Updates and calls setChanged()
+                
+                if (newVis <= 0) {
+                    blockEntity.activeAffinity = EssenceType.REGULAR;
+                    blockEntity.essenceLevel = 0;
+                    blockEntity.color = 0xFFCCCCCC;
+                    blockEntity.setChanged();
+                    level.sendBlockUpdated(pos, state, state, 3);
+                    level.playSound(null, pos, SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 1.0F, 0.8F);
+                }
             }
         } else {
             // Pull essence level and color from neighbors or logic gates
@@ -784,12 +871,35 @@ public class ScribedChalkBlockEntity extends BlockEntity {
                             }
                         }
                     }
+
+                    // 3. If RESONATOR, search within 16 blocks for another RESONATOR node
+                    if (nodeType == ScribedChalkBlock.NodeType.RESONATOR) {
+                        for (int dx = -16; dx <= 16; dx++) {
+                            for (int dz = -16; dz <= 16; dz++) {
+                                if (dx == 0 && dz == 0) continue;
+                                BlockPos otherPos = pos.offset(dx, 0, dz);
+                                BlockEntity otherBE = level.getBlockEntity(otherPos);
+                                if (otherBE instanceof ScribedChalkBlockEntity otherChalk) {
+                                    BlockState otherState = otherChalk.getBlockState();
+                                    if (otherState.is(ddraig.net.entropica.registry.ModBlocks.SCRIBED_CHALK.get()) && 
+                                        otherState.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.RESONATOR) {
+                                        int otherLevel = otherChalk.getEssenceLevel();
+                                        if (otherLevel > maxNeighborLevel && otherChalk.getActiveAffinity() != EssenceType.REGULAR) {
+                                            maxNeighborLevel = otherLevel;
+                                            bestAffinity = otherChalk.getActiveAffinity();
+                                            bestColor = otherChalk.getColor();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Calculate next level
                 if (maxNeighborLevel > 0) {
-                    if (isUruz) {
-                        // Uruz amplifies signal back to max (32)
+                    if (isUruz || nodeType == ScribedChalkBlock.NodeType.AMPLIFIER) {
+                        // Uruz or Amplifier node amplifies signal back to max (32)
                         newLevel = 32;
                     } else {
                         // Normal signal decay
@@ -960,6 +1070,8 @@ public class ScribedChalkBlockEntity extends BlockEntity {
         this.isWard = input.read("IsWard", Codec.BOOL).orElse(false);
         this.wardTicks = input.read("WardTicks", Codec.INT).orElse(0);
         this.activeCircleTier = input.read("ActiveCircleTier", Codec.INT).orElse(0);
+        this.amplifierCount = input.read("AmplifierCount", Codec.INT).orElse(0);
+        this.capacitorCount = input.read("CapacitorCount", Codec.INT).orElse(0);
     }
 
     @Override
@@ -985,6 +1097,8 @@ public class ScribedChalkBlockEntity extends BlockEntity {
         output.store("IsWard", Codec.BOOL, this.isWard);
         output.store("WardTicks", Codec.INT, this.wardTicks);
         output.store("ActiveCircleTier", Codec.INT, this.activeCircleTier);
+        output.store("AmplifierCount", Codec.INT, this.amplifierCount);
+        output.store("CapacitorCount", Codec.INT, this.capacitorCount);
     }
 
     @Override
@@ -1100,5 +1214,98 @@ public class ScribedChalkBlockEntity extends BlockEntity {
 
     public void setActiveCircleTier(int tier) {
         this.activeCircleTier = tier;
+    }
+
+    private int countConnectedAmplifiers(Level level, BlockPos start) {
+        int count = 0;
+        java.util.Queue<BlockPos> queue = new java.util.LinkedList<>();
+        java.util.Set<BlockPos> visited = new java.util.HashSet<>();
+        queue.add(start);
+        visited.add(start);
+        while (!queue.isEmpty() && visited.size() < 64) {
+            BlockPos current = queue.poll();
+            BlockState state = level.getBlockState(current);
+            if (state.is(ddraig.net.entropica.registry.ModBlocks.SCRIBED_CHALK.get())) {
+                if (state.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.AMPLIFIER) {
+                    count++;
+                }
+                boolean circuit = state.getValue(ScribedChalkBlock.CIRCUIT);
+                for (Direction dir : Direction.values()) {
+                    BlockPos neighbor = current.relative(dir);
+                    if (!visited.contains(neighbor)) {
+                        BlockState neighborState = level.getBlockState(neighbor);
+                        if (neighborState.is(ddraig.net.entropica.registry.ModBlocks.SCRIBED_CHALK.get()) &&
+                            neighborState.getValue(ScribedChalkBlock.CIRCUIT) == circuit) {
+                            visited.add(neighbor);
+                            queue.add(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
+    private boolean tryPushVis(ItemStack cellStack, EssenceType type) {
+        if (cellStack.isEmpty()) return false;
+        
+        // 1. Orbis Cell Item
+        if (cellStack.getItem() instanceof ddraig.net.entropica.item.OrbisCellItem) {
+            EssenceType storedType = ddraig.net.entropica.item.OrbisCellItem.getStoredVisType(cellStack);
+            if (storedType != null && storedType != type) {
+                return false; // Type mismatch
+            }
+            int maxVis = ((ddraig.net.entropica.item.OrbisCellItem) cellStack.getItem()).getMaxVis();
+            int currentVis = ddraig.net.entropica.item.OrbisCellItem.getStoredVisAmount(cellStack);
+            if (currentVis < maxVis) {
+                if (storedType == null) {
+                    CompoundTag tag = cellStack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
+                    tag.putString("EssenceType", type.name());
+                    cellStack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(tag));
+                }
+                int newVis = Math.min(maxVis, currentVis + 100);
+                ddraig.net.entropica.item.OrbisCellItem.setStoredVisAmount(cellStack, newVis);
+                return true;
+            }
+            return false;
+        }
+        
+        // 2. Generic BlockItem or other items that store StoredMana / ManaType
+        net.minecraft.world.item.component.CustomData customData = cellStack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        CompoundTag tag = customData.copyTag();
+        net.minecraft.world.item.Item item = cellStack.getItem();
+        if (item instanceof net.minecraft.world.item.BlockItem blockItem) {
+            net.minecraft.world.level.block.Block block = blockItem.getBlock();
+            if (block instanceof ddraig.net.entropica.block.SublimatedOrbisCellBlock ||
+                block instanceof ddraig.net.entropica.block.VasCellBlock ||
+                block instanceof ddraig.net.entropica.block.ThecaCellBlock ||
+                block instanceof ddraig.net.entropica.block.OrbisCellBlock) {
+                
+                String manaTypeStr = tag.getString("ManaType").orElse("");
+                if (!manaTypeStr.isEmpty()) {
+                    try {
+                        EssenceType storedType = EssenceType.valueOf(manaTypeStr);
+                        if (storedType != type) {
+                            return false; // Type mismatch
+                        }
+                    } catch (IllegalArgumentException ignored) {}
+                }
+                
+                int storedMana = tag.getInt("StoredMana").orElse(0);
+                int maxMana = 10000; // default for cells
+                if (block instanceof ddraig.net.entropica.block.SublimatedOrbisCellBlock) {
+                    maxMana = 100000; // Sublimated is high tier!
+                }
+                
+                if (storedMana < maxMana) {
+                    tag.putString("ManaType", type.name());
+                    tag.putInt("StoredMana", Math.min(maxMana, storedMana + 100));
+                    cellStack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(tag));
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
 }

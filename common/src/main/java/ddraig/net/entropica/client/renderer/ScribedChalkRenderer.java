@@ -147,6 +147,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             }
 
             int distance = findDistanceToDyeSource(be, renderState.isCircuit);
+            renderState.distance = distance;
             if (distance >= 0 && renderState.hasActiveDye) {
                 float propagationTicks = distance * 8.0f;
                 if (renderState.dyeTicks < propagationTicks) {
@@ -347,7 +348,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                 BlockState currentState = chalkBE.getBlockState();
                 if (currentState.is(ModBlocks.SCRIBED_CHALK.get()) &&
                     chalkBE.getActiveAffinity() != EssenceType.REGULAR && 
-                    currentState.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.INPUT) {
+                    currentState.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.SOURCE) {
                     return currentDist;
                 }
 
@@ -664,6 +665,19 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         float sR = (((state.defaultColor >> 16) & 0xFF) / 255f) * 0.7f;
         float sG = (((state.defaultColor >> 8) & 0xFF) / 255f) * 0.7f;
         float sB = ((state.defaultColor & 0xFF) / 255f) * 0.7f;
+
+        if (state.isCircuit && state.distance >= 0) {
+            float wavePhase = (state.time * 0.2f) % 16.0f; // 0.2f speed = ~4 ticks per block, loops every 16 blocks
+            float diff = Math.abs(state.distance - wavePhase);
+            if (diff > 8.0f) diff = 16.0f - diff;
+            if (diff < 2.0f) {
+                float highlight = 1.0f - (diff / 2.0f);
+                float waveBrightness = highlight * 0.4f; // up to 40% brighter/lighter wave
+                r = Math.min(1.0f, r + waveBrightness);
+                g = Math.min(1.0f, g + waveBrightness);
+                b = Math.min(1.0f, b + waveBrightness);
+            }
+        }
 
         if (isCorner) {
             if (state.connectNorth && state.connectEast) {
@@ -1345,6 +1359,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         public float dyeTicks;
         public boolean hasActiveDye;
         public int activeDyeColor;
+        public int distance;
 
         // Magic circle state:
         public int circleTier = 0;

@@ -1,5 +1,24 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-200-02-56
+
+### Added
+*   **Extraction Node**: Added a dedicated `NodeType.EXTRACTION` node to advanced circuits.
+    *   Automatically extracts matching essence/materia when `essenceLevel >= 16` (2-second cooldown).
+    *   Pushes the extracted essence into an Orbis Cell (or sublimated/vas/theca cell) if a connected `INPUT` node is placed directly in the direction the Extraction node is facing.
+    *   If the cell is full or not present, it spawns a physical `EssenceOrbEntity` in the world.
+    *   Drains the node's essence level to 0 after successful extraction.
+
+### Fixed & Improved
+*   **Circuit Node Interactions**: Allowed placing/extracting items, Orbis cells, and runes on circuit nodes (`INPUT`, `SOURCE`, `RUNE`) by checking if the player is holding a `ChalkItem` instead of locking interactions entirely on active circuits.
+*   **Path Wave Rendering**: Implemented a lighter, dynamic alchemical wave traveling outwards along the copper traces from active `SOURCE` nodes.
+*   **Collection Node Pulse**: Balanced collection nodes to slowly accumulate ambient energy (120 ticks) and emit a level 32 pulse.
+*   **Amplifier Overdrive**: Amplifiers now act as repeaters and multiply the ritual recipe output by `1.5x` per amplifier. Connected sources/capacitors drain twice as fast (`1 + 2 * amplifiers` per tick).
+*   **Capacitor Recycling**: Capacitor nodes retain 20% of their essence when the ritual completes, recycling it back into the circuit.
+*   **Resonator Wireless Sync**: Resonator nodes automatically search for and sync signal levels wirelessly with any other Resonator node placed up to 16 blocks away.
+
+---
+
 ## Build 000-1-26-200-02-31
 
 ### Fixed

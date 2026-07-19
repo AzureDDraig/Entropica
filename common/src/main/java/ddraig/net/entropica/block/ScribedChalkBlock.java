@@ -409,15 +409,29 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         
                         // 3. Clear/Drain essences on all nodes in the circle
                         for (ScribedChalkBlockEntity chalkBE : allChalkBlockEntities) {
-                            chalkBE.setActiveAffinity(EssenceType.REGULAR);
-                            chalkBE.setEssenceLevel(0);
-                            chalkBE.setColor(0xFFCCCCCC);
+                            NodeType nodeType = chalkBE.getBlockState().getValue(NODE_TYPE);
+                            if (nodeType == NodeType.CAPACITOR) {
+                                int retained = (int) (chalkBE.getEssenceLevel() * 0.2); // Suggestion C: Retains 20% essence
+                                if (retained > 0) {
+                                    chalkBE.setEssenceLevel(retained);
+                                } else {
+                                    chalkBE.setActiveAffinity(EssenceType.REGULAR);
+                                    chalkBE.setEssenceLevel(0);
+                                    chalkBE.setColor(0xFFCCCCCC);
+                                }
+                            } else {
+                                chalkBE.setActiveAffinity(EssenceType.REGULAR);
+                                chalkBE.setEssenceLevel(0);
+                                chalkBE.setColor(0xFFCCCCCC);
+                            }
                             chalkBE.setChanged();
                             level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
                         }
                         
                         // 4. Start active ritual processing on center Output node (100 ticks = 5 seconds)
                         if (centerBE instanceof ScribedChalkBlockEntity outputBE) {
+                            outputBE.setAmplifierCount(amplifiers);
+                            outputBE.setCapacitorCount(capacitors);
                             outputBE.startRitual(recipe.output(), 100);
                         }
                         
@@ -525,7 +539,8 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         if (state.getValue(NODE_TYPE) == NodeType.SOURCE) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
-                if (!chalkBE.isInActiveCircle()) {
+                ItemStack heldItemCheck = player.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND);
+                if (heldItemCheck.getItem() instanceof ddraig.net.entropica.item.ChalkItem) {
                     return net.minecraft.world.InteractionResult.PASS;
                 }
                 net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
@@ -585,7 +600,8 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         if (state.getValue(NODE_TYPE) == NodeType.INPUT) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
-                if (!chalkBE.isInActiveCircle()) {
+                ItemStack heldItemCheck = player.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND);
+                if (heldItemCheck.getItem() instanceof ddraig.net.entropica.item.ChalkItem) {
                     return net.minecraft.world.InteractionResult.PASS;
                 }
                 net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
@@ -624,7 +640,8 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         if (state.getValue(NODE_TYPE) == NodeType.RUNE) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
-                if (!chalkBE.isInActiveCircle()) {
+                ItemStack heldItemCheck = player.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND);
+                if (heldItemCheck.getItem() instanceof ddraig.net.entropica.item.ChalkItem) {
                     return net.minecraft.world.InteractionResult.PASS;
                 }
                 net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
@@ -852,7 +869,8 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         DIODE("diode"),
         AND_GATE("and_gate"),
         OR_GATE("or_gate"),
-        NOT_GATE("not_gate");
+        NOT_GATE("not_gate"),
+        EXTRACTION("extraction");
 
         private final String name;
 
