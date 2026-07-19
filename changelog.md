@@ -1,5 +1,14 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-200-02-29
+
+### Fixed
+*   **Magic Circle Ritual Recipes**:
+    *   Fixed a bug where hardcoded fallback recipes (such as the Iron Ingot + Rune of Uruz + 50 Nether -> Arcanite Ingot placeholder) were not evaluated during ritual execution. Added a search fallback in `ScribedChalkBlock` to scan both registered datapack recipes and hardcoded fallback recipes.
+    *   Added a datapack JSON recipe for the `arcanite_ingot` magic circle ritual to ensure native datapack support and correct JEI synchronization.
+
+---
+
 ## Build 000-1-26-199-16-25
 
 ### Fixed

@@ -1,0 +1,21 @@
+{
+  "type": "entropica:magic_circle",
+  "inputs": [
+    {
+      "item": "minecraft:iron_ingot"
+    }
+  ],
+  "runes": [
+    {
+      "item": "entropica:rune_uruz"
+    }
+  ],
+  "essences": {
+    "nether": 50
+  },
+  "tier": 1,
+  "result": {
+    "id": "entropica:arcanite_ingot",
+    "count": 1
+  }
+}

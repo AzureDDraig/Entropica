@@ -313,10 +313,21 @@ public class ScribedChalkBlock extends BaseEntityBlock {
 
                     MagicCircleRecipeInput recipeInput = new MagicCircleRecipeInput(inputStacks, runeStacks, essences, checkTier);
                     List<RecipeHolder<MagicCircleRecipe>> allRecipes = new java.util.ArrayList<>();
-                    for (RecipeHolder<?> holder : level.getServer().getRecipeManager().getRecipes()) {
-                        if (holder.value() instanceof MagicCircleRecipe) {
-                            allRecipes.add((RecipeHolder<MagicCircleRecipe>) holder);
+                    if (level.getServer() != null && level.getServer().getRecipeManager() != null) {
+                        for (RecipeHolder<?> holder : level.getServer().getRecipeManager().getRecipes()) {
+                            if (holder.value() instanceof MagicCircleRecipe) {
+                                allRecipes.add((RecipeHolder<MagicCircleRecipe>) holder);
+                            }
                         }
+                    }
+                    for (MagicCircleRecipe r : ddraig.net.entropica.recipe.HardcodedRecipes.getMagicCircleRecipes()) {
+                        allRecipes.add(new RecipeHolder<>(
+                            net.minecraft.resources.ResourceKey.create(
+                                net.minecraft.core.registries.Registries.RECIPE,
+                                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "hardcoded_magic_circle_" + r.hashCode())
+                            ),
+                            r
+                        ));
                     }
                     
                     List<RecipeHolder<MagicCircleRecipe>> matchingRecipes = new java.util.ArrayList<>();
