@@ -1,5 +1,13 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-201-10-31
+
+### Added & Polished
+*   **Full Multi-Language Support**:
+    *   Added complete translation files for all 629+ keys (totaling 650 lines) of the mod's localization catalog.
+    *   Supported languages include: German (`de_de.json`), French (`fr_fr.json`), Spanish (`es_es.json`), Portuguese (`pt_br.json`), Russian (`ru_ru.json`), Simplified Chinese (`zh_cn.json`), Japanese (`ja_jp.json`), and Korean (`ko_kr.json`).
+    *   Fully preserved all layout formatting codes (e.g. `§a`, `§c`), placeholders (e.g. `%s`, `%d`), and newlines (`\n`) for clean rendering in-game.
+
 ## Build 000-1-26-201-09-55
 
 ### Added & Polished
