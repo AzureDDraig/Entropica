@@ -146,7 +146,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
 
         registration.addRecipeCategories(new PressureChamberRecipeCategory(guiHelper));
         registration.addRecipeCategories(new DilutedEssenceRecipeCategory(guiHelper));
-        registration.addRecipeCategories(new VisFusionRecipeCategory(guiHelper));
+        registration.addRecipeCategories(new MateriaFusionRecipeCategory(guiHelper));
         registration.addRecipeCategories(new AethericSynthesizerRecipeCategory(guiHelper));
         registration.addRecipeCategories(new EidolicLatheRecipeCategory(guiHelper));
         registration.addRecipeCategories(new EssenceExtractionCategory(guiHelper));
@@ -189,7 +189,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
 
         registration.addRecipes(PressureChamberRecipeCategory.TYPE, pcRecipes);
         registration.addRecipes(DilutedEssenceRecipeCategory.TYPE, deRecipes);
-        registration.addRecipes(VisFusionRecipeCategory.TYPE, fusionRecipes);
+        registration.addRecipes(MateriaFusionRecipeCategory.TYPE, fusionRecipes);
         registration.addRecipes(MagicCircleRecipeCategory.TYPE, magicCircleRecipes);
         registration.addRecipes(AethericSynthesizerRecipeCategory.TYPE, synthRecipes);
         registration.addRecipes(EidolicLatheRecipeCategory.TYPE, latheRecipes);
@@ -206,7 +206,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get()), PressureChamberRecipeCategory.TYPE);
         registration.addRecipeCatalyst(NeoForgeTypes.FLUID_STACK, new FluidStack(ModFluids.DILUTED_ESSENCE_FLUID.get(), 1000), DilutedEssenceRecipeCategory.TYPE);
-        registration.addRecipeCatalyst(new ItemStack(ModBlocks.ENTROPIC_CORE.get()), VisFusionRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.ENTROPIC_CORE.get()), MateriaFusionRecipeCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.AETHERIC_SYNTHESIZER.get()), AethericSynthesizerRecipeCategory.TYPE);
 
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get()), EidolicLatheRecipeCategory.TYPE);

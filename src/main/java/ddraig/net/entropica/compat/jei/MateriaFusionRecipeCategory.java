@@ -24,18 +24,18 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Map;
 
 @SuppressWarnings("removal")
-public class VisFusionRecipeCategory implements IRecipeCategory<FusionRecipe> {
-    public static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "vis_fusion");
+public class MateriaFusionRecipeCategory implements IRecipeCategory<FusionRecipe> {
+    public static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "materia_fusion");
     public static final RecipeType<FusionRecipe> TYPE = new RecipeType<>(UID, FusionRecipe.class);
 
     private final IDrawable background;
     private final IDrawable icon;
     private final Component title;
 
-    public VisFusionRecipeCategory(IGuiHelper guiHelper) {
+    public MateriaFusionRecipeCategory(IGuiHelper guiHelper) {
         this.background = guiHelper.createBlankDrawable(160, 60);
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(ModBlocks.ENTROPIC_CORE.get()));
-        this.title = Component.literal("Entropic Core: Vis Fusion");
+        this.title = Component.literal("Entropic Core: Materia Fusion");
     }
 
     @Override

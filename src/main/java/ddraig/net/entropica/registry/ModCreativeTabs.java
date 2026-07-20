@@ -110,7 +110,7 @@ public class ModCreativeTabs {
                         EssenceAmpouleItem.setEssenceType(largeEssenceAmp, type);
                         output.accept(largeEssenceAmp);
 
-                        // Vis Fume Ampoules (Gaseous Material)
+                        // Materia Fume Ampoules (Gaseous Material)
                         ItemStack smallFumeAmp = new ItemStack(ModItems.SMALL_MATERIA_FUMUS_AMPOULE.get());
                         VisFumeAmpouleItem.setEssenceType(smallFumeAmp, type);
                         output.accept(smallFumeAmp);

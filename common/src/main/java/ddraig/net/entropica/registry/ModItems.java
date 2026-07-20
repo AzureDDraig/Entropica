@@ -435,12 +435,12 @@ public class ModItems {
     public static final RegistrySupplier<Item> MEDIUM_AMPOULE_BASE = ITEMS.registerItem("medium_ampoule_base", properties -> new Item(properties.stacksTo(64)));
     public static final RegistrySupplier<Item> LARGE_AMPOULE_BASE = ITEMS.registerItem("large_ampoule_base", properties -> new Item(properties.stacksTo(64)));
 
-    // Vis Fume Ampoules (Filled) - RENAMED FROM MANA_AMPOULE
+    // Materia Fume Ampoules (Filled) - RENAMED FROM MANA_AMPOULE
     public static final RegistrySupplier<VisFumeAmpouleItem> SMALL_MATERIA_FUMUS_AMPOULE = ITEMS.registerItem("small_materia_fumus_ampoule", properties -> new VisFumeAmpouleItem(properties.stacksTo(16), 4, SMALL_AMPOULE_BASE));
     public static final RegistrySupplier<VisFumeAmpouleItem> MEDIUM_MATERIA_FUMUS_AMPOULE = ITEMS.registerItem("medium_materia_fumus_ampoule", properties -> new VisFumeAmpouleItem(properties.stacksTo(16), 16, MEDIUM_AMPOULE_BASE));
     public static final RegistrySupplier<VisFumeAmpouleItem> LARGE_MATERIA_FUMUS_AMPOULE = ITEMS.registerItem("large_materia_fumus_ampoule", properties -> new VisFumeAmpouleItem(properties.stacksTo(16), 64, LARGE_AMPOULE_BASE));
 
-    // Vis Fume Network Items
+    // Materia Fume Network Items
     public static final RegistrySupplier<BlockItem> VAPOR_PNEUMATIC_PIPE_COPPER_ITEM = ITEMS.registerItem("vapor_pneumatic_pipe_copper", properties -> new BlockItem(ModBlocks.VAPOR_PNEUMATIC_PIPE_COPPER.get(), properties));
     public static final RegistrySupplier<BlockItem> VAPOR_PNEUMATIC_VALVE_ITEM = ITEMS.registerItem("vapor_pneumatic_valve", properties -> new BlockItem(ModBlocks.VAPOR_PNEUMATIC_VALVE.get(), properties));
     public static final RegistrySupplier<BlockItem> VAPOR_PNEUMATIC_ONE_WAY_VALVE_ITEM = ITEMS.registerItem("vapor_pneumatic_one_way_valve", properties -> new BlockItem(ModBlocks.VAPOR_PNEUMATIC_ONE_WAY_VALVE.get(), properties));
@@ -502,7 +502,7 @@ public class ModItems {
 
     public static final RegistrySupplier<BlockItem> CREATIVE_PARTICLE_GENERATOR_ITEM = ITEMS.registerItem("creative_particle_generator", properties -> new BlockItem(ModBlocks.CREATIVE_PARTICLE_GENERATOR.get(), properties));
 
-    // ---  Vis Fume Pressure Vessel Items ---
+    // ---  Materia Fume Pressure Vessel Items ---
     public static final RegistrySupplier<BlockItem> MATERIA_VESSEL_CONTROLLER_ITEM = ITEMS.registerItem("materia_vessel_controller", properties -> new BlockItem(ModBlocks.MATERIA_VESSEL_CONTROLLER.get(), properties));
     public static final RegistrySupplier<BlockItem> MATERIA_VESSEL_PORT_ITEM = ITEMS.registerItem("materia_vessel_port", properties -> new BlockItem(ModBlocks.MATERIA_VESSEL_PORT.get(), properties));
     public static final RegistrySupplier<BlockItem> ESSENCE_ENRICHED_GLASS_ITEM = ITEMS.registerItem("essence_enriched_glass", properties -> new BlockItem(ModBlocks.ESSENCE_ENRICHED_GLASS.get(), properties));
@@ -510,7 +510,7 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> MATERIA_LIQUIDA_ENRICHED_GLASS_ITEM = ITEMS.registerItem("materia_liquida_enriched_glass", properties -> new BlockItem(ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(), properties));
     public static final RegistrySupplier<BlockItem> FRAGMENT_LATTICE_GLASS_ITEM = ITEMS.registerItem("fragment_lattice_glass", properties -> new BlockItem(ModBlocks.FRAGMENT_LATTICE_GLASS.get(), properties));
 
-    // --- Vis Fume Pressure Chamber Items ---
+    // --- Materia Fume Pressure Chamber Items ---
     public static final RegistrySupplier<BlockItem> MATERIA_PRESSURE_CHAMBER_CONTROLLER_ITEM = ITEMS.registerItem("materia_pressure_chamber_controller", properties -> new BlockItem(ModBlocks.MATERIA_PRESSURE_CHAMBER_CONTROLLER.get(), properties));
     public static final RegistrySupplier<BlockItem> ENRICHMENT_TABLE_ITEM = ITEMS.registerItem("enrichment_table", properties -> new BlockItem(ModBlocks.ENRICHMENT_TABLE.get(), properties));
 

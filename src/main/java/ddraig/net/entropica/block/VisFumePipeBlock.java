@@ -150,7 +150,7 @@ public class VisFumePipeBlock extends Block implements SimpleWaterloggedBlock, E
             return neighborState.getValue(BlockStateProperties.AXIS) == dirToNeighbor.getAxis();
         }
 
-        // Connect to any block in the Vis Fume pipe family
+        // Connect to any block in the Materia Fume pipe family
         if (neighborBlock instanceof VisFumePipeBlock ||
                 neighborBlock instanceof VisFumeDiverterBlock) {
             return true;

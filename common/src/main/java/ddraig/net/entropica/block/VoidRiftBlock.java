@@ -76,7 +76,7 @@ public class VoidRiftBlock extends Block implements EntityBlock {
                 level.destroyBlock(pos, true);
                 level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.0f, 0.5f);
             } else {
-                player.displayClientMessage(Component.literal("Not enough Vis to collapse Rift! Requires " + VoidResonantTuningForkItem.BREAK_COST).withStyle(ChatFormatting.RED), true);
+                player.displayClientMessage(Component.literal("Not enough Materia to collapse Rift! Requires " + VoidResonantTuningForkItem.BREAK_COST).withStyle(ChatFormatting.RED), true);
             }
         } else {
             player.displayClientMessage(Component.literal("Void Rifts can only be collapsed using a Void-Resonant Tuning Fork.").withStyle(ChatFormatting.RED), true);

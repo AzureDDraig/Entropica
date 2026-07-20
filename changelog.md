@@ -1,5 +1,15 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-201-11-34
+
+### Added & Polished
+*   **Vis-to-Materia Renaming Completeness**:
+    *   Renamed all remaining standalone references of `Vis` or `vis` inside GUI overlay text, JEI recipe categories, tooltips, and chat feedback messages to `Materia` or `materia`.
+    *   Renamed `VisFusionRecipeCategory.java` to `MateriaFusionRecipeCategory.java` and `VisReadoutRenderer.java` to `MateriaReadoutRenderer.java` across modules.
+    *   Updated the global translation keys and target language files (`de_de.json`, `fr_fr.json`, etc.) to map these term changes across all 8 translation catalogs.
+*   **Fehu Filter Tuning Fork Exclusion**:
+    *   Removed the `VoidResonantTuningForkItem` from Fehu filter node interaction, aligning strictly with the directive that tuning forks are excluded from alchemical circuit operations (leaving empty hand interaction as the exclusive reset method).
+
 ## Build 000-1-26-201-10-31
 
 ### Added & Polished

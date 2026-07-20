@@ -121,7 +121,7 @@ public class EidolicLatheRecipeCategory implements IRecipeCategory<EidolicLatheR
         int b = (int) ((Math.sin(t + 4.188) * 0.5 + 0.5) * 255);
         int dynamicColor = (0xFF << 24) | (r << 16) | (g << 8) | b;
 
-        String fuelText = "500 - 100,000 Vis";
+        String fuelText = "500 - 100,000 Materia";
         int fuelTextWidth = font.width(fuelText);
         guiGraphics.drawString(font, fuelText, 90 - (fuelTextWidth / 2), 5, dynamicColor, false);
 

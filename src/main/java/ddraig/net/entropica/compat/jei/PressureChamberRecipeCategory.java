@@ -99,7 +99,7 @@ public class PressureChamberRecipeCategory implements IRecipeCategory<PressureCh
                 : "Any Type";
 
         // Applies the requested string structure
-        String costText = recipe.fumeAmount() + " Vis Fume of " + gasName;
+        String costText = recipe.fumeAmount() + " Materia Fume of " + gasName;
         String timeText = recipe.processingTime()/20 + " seconds";
 
         int textColor = 0xFF888888;

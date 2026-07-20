@@ -163,7 +163,7 @@ public class VaporPneumaticPipeBlock extends Block implements SimpleWaterloggedB
             return true;
         }
 
-        // Also connect to the legacy Vis Fume pipe family for backwards compatibility during transition
+        // Also connect to the legacy Materia Fume pipe family for backwards compatibility during transition
         if (neighborBlock instanceof VaporPneumaticPipeBlock ||
                 neighborBlock instanceof VaporPneumaticDiverterBlock) {
             return true;

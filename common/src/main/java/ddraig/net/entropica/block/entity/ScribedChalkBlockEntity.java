@@ -800,7 +800,7 @@ public class ScribedChalkBlockEntity extends BlockEntity {
                                 int filled = targetPressureBE.fill(fumus, false);
                                 
                                 if (filled > 0) {
-                                    // Consume 1 essence or Orbis Cell vis
+                                    // Consume 1 essence or Orbis Cell materia
                                     if (sourceBE.getStoredOrbisCell().isEmpty()) {
                                         sourceBE.setEssenceLevel(Math.max(0, sourceBE.getEssenceLevel() - 1));
                                         if (sourceBE.getEssenceLevel() <= 0) {

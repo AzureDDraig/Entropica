@@ -51,7 +51,7 @@ public class ManaFilterBlockEntity extends BlockEntity {
 
             BlockEntity neighbor = level.getBlockEntity(pos.relative(dir));
 
-            // If the neighbor can accept Vis Fumes (like our Pipes or Diverters)
+            // If the neighbor can accept Materia Fumes (like our Pipes or Diverters)
             if (neighbor instanceof IFumeHandler handler) {
                 VisFumeStack pushStack = new VisFumeStack(this.filterType, amountToPush);
 

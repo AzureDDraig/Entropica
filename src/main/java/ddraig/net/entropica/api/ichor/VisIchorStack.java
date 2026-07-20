@@ -3,7 +3,7 @@ package ddraig.net.entropica.api.ichor;
 import ddraig.net.entropica.api.EssenceType;
 
 /**
- * Represents a discrete quantity of liquid Vis Ichor.
+ * Represents a discrete quantity of liquid Materia Ichor.
  * Functions similarly to a FluidStack or ItemStack.
  */
 public class VisIchorStack {

@@ -119,14 +119,14 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
                     if (equivalentFumes >= MAX_VIS_CAPACITY) {
                         this.waitForClick = false;
                         this.craftingProgress++;
-                        broadcastMessage("§dPhase 2: Distributing Essences... (Max Vis Reached!)");
+                        broadcastMessage("§dPhase 2: Distributing Essences... (Max Materia Reached!)");
                         this.setChanged();
                         if (this.level != null && !this.level.isClientSide()) {
                             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
                         }
                     }
                 }
-                return; // Still waiting for either a click or for Vis to max out!
+                return; // Still waiting for either a click or for Materia to max out!
             }
 
             this.craftingProgress++;
@@ -270,7 +270,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
 
         if (hasMismatch) {
             if (player != null) {
-                player.displayClientMessage(Component.literal("§cVolatile Resonance! Mismatched Vis types detected!"), true);
+                player.displayClientMessage(Component.literal("§cVolatile Resonance! Mismatched Materia types detected!"), true);
 
                 for (BlockPos pPos : this.connectedPedestals) {
                     if (this.level.getBlockEntity(pPos) instanceof AttunementPedestalBlockEntity ped) {
@@ -309,7 +309,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
         else if (this.storedFume != null && !this.storedFume.isEmpty()) networkType = this.storedFume.getType();
 
         if (networkType != null && detectedAmpouleType != null && networkType != detectedAmpouleType) {
-            if (player != null) player.displayClientMessage(Component.literal("§cMismatched Vis types between Lathe residue and ampoules."), true);
+            if (player != null) player.displayClientMessage(Component.literal("§cMismatched Materia types between Lathe residue and ampoules."), true);
             return;
         }
 
@@ -456,7 +456,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
             }
         }
 
-        // 4. CALCULATE VIS DAMAGE SCALING
+        // 4. CALCULATE MATERIA DAMAGE SCALING
         if (this.craftingEssenceType == null) {
             this.craftingEssenceType = EssenceType.REGULAR;
         }
@@ -575,7 +575,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
         // Insert Final Result into the dedicated hovering output slot (Slot 4)
         this.inventory.setItem(4, result);
 
-        // Empty the network tanks to prevent leftover Vis!
+        // Empty the network tanks to prevent leftover Materia!
         this.storedFume = MateriaFumusStack.EMPTY;
         this.storedIchor = MateriaLiquidaStack.EMPTY;
 

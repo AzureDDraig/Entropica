@@ -59,12 +59,12 @@ public class MateriaReadoutRenderer implements BlockEntityRenderer<MateriaReadou
                         // 1. Check for Entropic Core Block
                         if (targetEntity instanceof EntropicCoreBlockEntity core) {
                             renderState.hasTarget = true;
-                            renderState.targetName = "Core Vis Levels";
+                            renderState.targetName = "Core Materia Levels";
                             renderState.visPool.putAll(core.getMateriaFumusPool());
                             return; // Stop searching once found
                         }
 
-                        // 2. Check for Vis Fume Vessels or Chambers via IVaporHandler
+                        // 2. Check for Materia Fume Vessels or Chambers via IVaporHandler
                         else if (targetEntity instanceof IVaporHandler fumeHandler) {
                             String className = targetEntity.getClass().getSimpleName();
 

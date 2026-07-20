@@ -240,7 +240,7 @@ public class VaporPneumaticPipeBlockEntity extends BlockEntity implements IVapor
             return;
         }
 
-        // 2. OVERPRESSURE LEAKING (Vis Toxicity)
+        // 2. OVERPRESSURE LEAKING (Materia Toxicity)
         if (myAmount > safeCap) {
             float overpressureRatio = (float)(myAmount - safeCap) / (absoluteCap - safeCap);
             // Up to 15% chance to vent every single tick depending on severity

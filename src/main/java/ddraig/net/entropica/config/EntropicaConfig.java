@@ -13,7 +13,7 @@ public class EntropicaConfig {
     public static final Supplier<Boolean> ENABLE_CORE_OVERLOAD = EntropicaConfig::getEnableCoreOverload;
     public static final Supplier<Integer> ORBIS_CELL_MAX_MATERIA = EntropicaConfig::getOrbisCellMaxMateria;
 
-    // Vis Fume Network
+    // Materia Fume Network
     public static final Supplier<Integer> COPPER_PIPE_CAPACITY = EntropicaConfig::getCopperPipeCapacity;
     public static final Supplier<Integer> COPPER_PIPE_TRANSFER_RATE = EntropicaConfig::getCopperPipeTransferRate;
     public static final Supplier<Integer> IRON_PIPE_CAPACITY = EntropicaConfig::getIronPipeCapacity;
@@ -38,7 +38,7 @@ public class EntropicaConfig {
     public static final Supplier<Integer> MATERIA_FUMUS_TRANSFER_RATE = EntropicaConfig::getMateriaFumusTransferRate;
     public static final Supplier<Integer> MATERIA_FUMUS_TICK_RATE = EntropicaConfig::getMateriaFumusTickRate;
     public static final Supplier<Integer> VAPOR_PNEUMATIC_DIVERTER_CAPACITY = EntropicaConfig::getVaporPneumaticDiverterCapacity;
-    public static final Supplier<Integer> VIS_FUME_OVERPRESSURE_LIMIT = EntropicaConfig::getVisFumeOverpressureLimit;
+    public static final Supplier<Integer> MATERIA_FUME_OVERPRESSURE_LIMIT = EntropicaConfig::getMateriaFumeOverpressureLimit;
 
     // Vessel & Chamber
     public static final Supplier<Integer> VESSEL_GLASS_BASE_CAPACITY = EntropicaConfig::getVesselGlassBaseCapacity;
@@ -96,7 +96,7 @@ public class EntropicaConfig {
     @ExpectPlatform public static int getMateriaFumusTransferRate() { throw new AssertionError(); }
     @ExpectPlatform public static int getMateriaFumusTickRate() { throw new AssertionError(); }
     @ExpectPlatform public static int getVaporPneumaticDiverterCapacity() { throw new AssertionError(); }
-    @ExpectPlatform public static int getVisFumeOverpressureLimit() { throw new AssertionError(); }
+    @ExpectPlatform public static int getMateriaFumeOverpressureLimit() { throw new AssertionError(); }
 
     @ExpectPlatform public static int getVesselGlassBaseCapacity() { throw new AssertionError(); }
     @ExpectPlatform public static int getVesselGlassStrengthenedCapacity() { throw new AssertionError(); }

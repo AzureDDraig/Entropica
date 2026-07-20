@@ -110,9 +110,9 @@ public class FurnaceHatchBlock extends Block {
                             tag.putString("EssenceType", targetType.name());
                             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
-                            player.displayClientMessage(Component.literal("§bExtracted " + extracted + " " + targetType.name().toLowerCase() + " Vis! (Cell: " + (currentCellVis + extracted) + "/" + cellCapacity + ")"), true);
+                            player.displayClientMessage(Component.literal("§bExtracted " + extracted + " " + targetType.name().toLowerCase() + " Materia! (Cell: " + (currentCellVis + extracted) + "/" + cellCapacity + ")"), true);
                         } else {
-                            player.displayClientMessage(Component.literal("§cCore has no more " + targetType.name().toLowerCase() + " vis!"), true);
+                            player.displayClientMessage(Component.literal("§cCore has no more " + targetType.name().toLowerCase() + " materia!"), true);
                         }
                     } else {
                         player.displayClientMessage(Component.literal("§eOrbis Cell is already full!"), true);

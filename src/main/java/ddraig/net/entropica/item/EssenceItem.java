@@ -58,7 +58,7 @@ public class EssenceItem extends Item {
         EssenceType type = getEssenceType(stack);
         if (type != null) {
             if (this.tier == 0) {
-                return Component.literal("Vis Fragment: " + type.getDisplayName())
+                return Component.literal("Materia Fragment: " + type.getDisplayName())
                         .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(type.getTextColorInt()));
             } else {
                 String tierPrefix = tier == 1 ? "Weak " : tier == 2 ? "Average " : "Strong ";

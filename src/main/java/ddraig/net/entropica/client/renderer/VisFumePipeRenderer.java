@@ -30,10 +30,10 @@ import org.joml.Matrix4f;
 
 /**
  * The VisFumePipeRenderer class serves as a custom renderer for the VisFumePipeBlockEntity.
- * It handles rendering visual representations of Vis fume flow and associated states such as capacity,
+ * It handles rendering visual representations of Materia fume flow and associated states such as capacity,
  * flow direction, and visual alerts for certain conditions (e.g., purging or low-pressure warnings).
  *
- * This renderer dynamically manages the appearance of Vis fume animation, attached pipe connections,
+ * This renderer dynamically manages the appearance of Materia fume animation, attached pipe connections,
  * one-way valve arrows, and diagnostic text readouts, providing a cohesive visual representation
  * of the block entity's functionality within a game.
  */

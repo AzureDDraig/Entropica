@@ -673,7 +673,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         }
                         return net.minecraft.world.InteractionResult.SUCCESS;
                     }
-                    if (heldItem.isEmpty() || heldItem.getItem() instanceof ddraig.net.entropica.item.VoidResonantTuningForkItem) {
+                    if (heldItem.isEmpty()) {
                         if (chalkBE.getFilterType() != null) {
                             if (!level.isClientSide()) {
                                 chalkBE.setFilterType(null);

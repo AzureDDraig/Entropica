@@ -61,7 +61,7 @@ public class CreativeVisFumeGeneratorBlock extends BaseEntityBlock {
                 generator.cycleType(1);
 
                 player.displayClientMessage(
-                        Component.literal("§dCreative Vis Fume: ").append(Component.literal(generator.getCurrentType().getFormattedName())),
+                        Component.literal("§dCreative Materia Fume: ").append(Component.literal(generator.getCurrentType().getFormattedName())),
                         true
                 );
 

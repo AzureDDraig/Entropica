@@ -24,7 +24,7 @@ public class OrbisCellItem extends BlockItem {
     }
 
     public int getMaxVis() {
-        // Assuming config keeps the original internal variable name, but logically returning Vis
+        // Assuming config keeps the original internal variable name, but logically returning Materia
         return EntropicaConfig.ORBIS_CELL_MAX_MATERIA.get();
     }
 

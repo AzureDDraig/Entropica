@@ -51,7 +51,7 @@ public class MateriaFilterBlockEntity extends BlockEntity {
 
             BlockEntity neighbor = level.getBlockEntity(pos.relative(dir));
 
-            // If the neighbor can accept Vis Fumes (like our Pipes or Diverters)
+            // If the neighbor can accept Materia Fumes (like our Pipes or Diverters)
             if (neighbor instanceof IVaporHandler handler) {
                 MateriaFumusStack pushStack = new MateriaFumusStack(this.filterType, amountToPush);
 

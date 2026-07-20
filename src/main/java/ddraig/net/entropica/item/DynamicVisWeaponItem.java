@@ -105,7 +105,7 @@ public class DynamicVisWeaponItem extends Item {
 
     @Override
     public int getBarColor(ItemStack stack) {
-        return 0x00FFFF; // Bright Cyan/Teal to represent raw Vis
+        return 0x00FFFF; // Bright Cyan/Teal to represent raw Materia
     }
 
     @Override

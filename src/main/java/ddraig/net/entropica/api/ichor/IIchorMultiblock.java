@@ -40,7 +40,7 @@ public interface IIchorMultiblock extends IIchorHandler {
     /**
      * STRICT LOCK-OUT: Determines if the specific EssenceType of Ichor is allowed in this multiblock.
      * Prevents incompatible or highly volatile Ichor from entering machines not rated for it.
-     * @param type The type of Vis Ichor attempting to enter.
+     * @param type The type of Materia Ichor attempting to enter.
      * @return true if the multiblock can process this specific Ichor, false to lock it out.
      */
     boolean isIchorValid(EssenceType type);

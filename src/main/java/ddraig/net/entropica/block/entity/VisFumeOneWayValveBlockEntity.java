@@ -14,11 +14,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Represents a block entity for the Vis Fume One-Way Valve,
- * which is a specialized pipe allowing unidirectional transfer or venting of Vis Fumes.
+ * Represents a block entity for the Materia Fume One-Way Valve,
+ * which is a specialized pipe allowing unidirectional transfer or venting of Materia Fumes.
  * It extends the functionality of the VisFumePipeBlockEntity.
  *
- * This block entity operates by handling the flow of Vis Fume gases using a one-way mechanism
+ * This block entity operates by handling the flow of Materia Fume gases using a one-way mechanism
  * defined by its facing direction and its valve state (open or closed).
  * It can either transfer fumes to a valid connected block entity in its facing direction or vent fumes into the air.
  *

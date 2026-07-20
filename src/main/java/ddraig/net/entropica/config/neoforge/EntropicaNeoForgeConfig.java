@@ -16,10 +16,10 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.IntValue CORE_PROCESS_TICK_RATE;
     public static final ModConfigSpec.BooleanValue ENABLE_CORE_OVERLOAD;
 
-    // Vis Vitae Network Configs
+    // Materia Vitae Network Configs
     public static final ModConfigSpec.IntValue ORBIS_CELL_MAX_MATERIA;
 
-    // Vis Fume Network Configs
+    // Materia Fume Network Configs
     public static final ModConfigSpec.IntValue COPPER_PIPE_CAPACITY;
     public static final ModConfigSpec.IntValue COPPER_PIPE_TRANSFER_RATE;
     public static final ModConfigSpec.IntValue IRON_PIPE_CAPACITY;
@@ -74,9 +74,9 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.IntValue MATERIA_FUMUS_TRANSFER_RATE;
     public static final ModConfigSpec.IntValue MATERIA_FUMUS_TICK_RATE;
     public static final ModConfigSpec.IntValue VAPOR_PNEUMATIC_DIVERTER_CAPACITY;
-    public static final ModConfigSpec.IntValue VIS_FUME_OVERPRESSURE_LIMIT;
+    public static final ModConfigSpec.IntValue MATERIA_FUME_OVERPRESSURE_LIMIT;
 
-    // Vis Fume Pressure Vessel Configs
+    // Materia Fume Pressure Vessel Configs
     public static final ModConfigSpec.IntValue VESSEL_GLASS_BASE_CAPACITY;
     public static final ModConfigSpec.IntValue VESSEL_GLASS_STRENGTHENED_CAPACITY;
     public static final ModConfigSpec.IntValue VESSEL_GLASS_ICHOR_CAPACITY;
@@ -84,7 +84,7 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.DoubleValue VESSEL_CAPACITY_DECAY_MULTIPLIER;
     public static final ModConfigSpec.IntValue VESSEL_DECAY_STARTING_BLOCK;
 
-    // Vis Fume Pressure Chamber Configs
+    // Materia Fume Pressure Chamber Configs
     public static final ModConfigSpec.DoubleValue CHAMBER_PARTICLE_DENSITY;
 
     // Diluted Essence Configs
@@ -140,7 +140,7 @@ public class EntropicaNeoForgeConfig {
 
         BUILDER.pop();
 
-        // --- VIS VITAE NETWORK SETTINGS ---
+        // --- MATERIA VITAE NETWORK SETTINGS ---
         BUILDER.push("vis_vitae_network_settings");
 
         ORBIS_CELL_MAX_MATERIA = BUILDER.comment("Maximum materia storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000")
@@ -149,7 +149,7 @@ public class EntropicaNeoForgeConfig {
 
         BUILDER.pop();
 
-        // --- VIS FUME NETWORK SETTINGS ---
+        // --- MATERIA FUME NETWORK SETTINGS ---
         BUILDER.push("vis_fume_network_settings");
 
         COPPER_PIPE_CAPACITY = BUILDER.comment("Safe capacity (1.0 Pressure) for Copper Fume Pipes. Min: 1, Max: 2147483647, Default: 20").defineInRange("copperPipeCapacity", 20, 1, Integer.MAX_VALUE);
@@ -218,26 +218,26 @@ public class EntropicaNeoForgeConfig {
                 .translation("entropica.configuration.vis_fume_network_settings.tickRate")
                 .defineInRange("materiaFumusTickRate", 5, 1, 200);
 
-        VAPOR_PNEUMATIC_DIVERTER_CAPACITY = BUILDER.comment("Maximum amount of Vis Fumes a Diverter block can safely process. Min: 1, Max: 2147483647, Default: 2500")
+        VAPOR_PNEUMATIC_DIVERTER_CAPACITY = BUILDER.comment("Maximum amount of Materia Fumes a Diverter block can safely process. Min: 1, Max: 2147483647, Default: 2500")
                 .translation("entropica.configuration.vis_fume_network_settings.diverterCapacity")
                 .defineInRange("vaporPneumaticDiverterCapacity", 2500, 1, Integer.MAX_VALUE);
 
-        VIS_FUME_OVERPRESSURE_LIMIT = BUILDER.comment("The amount of Fumes inside a Diverter that will cause it to break from overpressure. Min: 1, Max: 2147483647, Default: 2000")
+        MATERIA_FUME_OVERPRESSURE_LIMIT = BUILDER.comment("The amount of Fumes inside a Diverter that will cause it to break from overpressure. Min: 1, Max: 2147483647, Default: 2000")
                 .translation("entropica.configuration.vis_fume_network_settings.overpressureLimit")
                 .defineInRange("visFumeOverpressureLimit", 2000, 1, Integer.MAX_VALUE);
 
         BUILDER.pop();
 
-        // --- VIS FUME PRESSURE VESSEL SETTINGS ---
+        // --- MATERIA FUME PRESSURE VESSEL SETTINGS ---
         BUILDER.push("vis_fume_vessel_settings");
 
         VESSEL_GLASS_BASE_CAPACITY = BUILDER.comment("Capacity added by standard Base Essence Enriched Glass. Min: 1, Max: 2147483647, Default: 1000")
                 .defineInRange("vesselGlassBaseCapacity", 1000, 1, Integer.MAX_VALUE);
 
-        VESSEL_GLASS_STRENGTHENED_CAPACITY = BUILDER.comment("Capacity added by Vis Fume Strengthened Glass. Min: 1, Max: 2147483647, Default: 2500")
+        VESSEL_GLASS_STRENGTHENED_CAPACITY = BUILDER.comment("Capacity added by Materia Fume Strengthened Glass. Min: 1, Max: 2147483647, Default: 2500")
                 .defineInRange("vesselGlassStrengthenedCapacity", 2500, 1, Integer.MAX_VALUE);
 
-        VESSEL_GLASS_ICHOR_CAPACITY = BUILDER.comment("Capacity added by Vis Ichor Enriched Glass. Min: 1, Max: 2147483647, Default: 5000")
+        VESSEL_GLASS_ICHOR_CAPACITY = BUILDER.comment("Capacity added by Materia Ichor Enriched Glass. Min: 1, Max: 2147483647, Default: 5000")
                 .defineInRange("vesselGlassIchorCapacity", 5000, 1, Integer.MAX_VALUE);
 
         VESSEL_GLASS_LATTICE_CAPACITY = BUILDER.comment("Capacity added by Fragment Lattice Glass. Min: 1, Max: 2147483647, Default: 10000")
@@ -251,7 +251,7 @@ public class EntropicaNeoForgeConfig {
 
         BUILDER.pop();
 
-        // --- VIS FUME PRESSURE CHAMBER SETTINGS ---
+        // --- MATERIA FUME PRESSURE CHAMBER SETTINGS ---
         BUILDER.push("vis_fume_pressure_chamber_settings");
 
         CHAMBER_PARTICLE_DENSITY = BUILDER.comment("(COSMETIC) Multiplier for the amount of gas particles inside the Pressure Chamber. 0.0 turns them off. Min: 0.0, Max: 10.0, Default: 1.0")

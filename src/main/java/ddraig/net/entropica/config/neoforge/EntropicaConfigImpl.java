@@ -34,7 +34,7 @@ public class EntropicaConfigImpl {
     public static int getMateriaFumusTransferRate() { return EntropicaNeoForgeConfig.MATERIA_FUMUS_TRANSFER_RATE.get(); }
     public static int getMateriaFumusTickRate() { return EntropicaNeoForgeConfig.MATERIA_FUMUS_TICK_RATE.get(); }
     public static int getVaporPneumaticDiverterCapacity() { return EntropicaNeoForgeConfig.VAPOR_PNEUMATIC_DIVERTER_CAPACITY.get(); }
-    public static int getVisFumeOverpressureLimit() { return EntropicaNeoForgeConfig.VIS_FUME_OVERPRESSURE_LIMIT.get(); }
+    public static int getMateriaFumeOverpressureLimit() { return EntropicaNeoForgeConfig.MATERIA_FUME_OVERPRESSURE_LIMIT.get(); }
 
     public static int getVesselGlassBaseCapacity() { return EntropicaNeoForgeConfig.VESSEL_GLASS_BASE_CAPACITY.get(); }
     public static int getVesselGlassStrengthenedCapacity() { return EntropicaNeoForgeConfig.VESSEL_GLASS_STRENGTHENED_CAPACITY.get(); }

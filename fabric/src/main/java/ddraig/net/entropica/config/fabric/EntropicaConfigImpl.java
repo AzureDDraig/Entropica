@@ -79,7 +79,7 @@ public class EntropicaConfigImpl {
         public BooleanOption enableCoreOverload = new BooleanOption("If true, the Entropic Core will eventually explode if left active while its Materia Buffer is 100% full. Default: true", true);
         public IntOption orbisCellMaxMateria = new IntOption("Maximum materia storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000", 1, Integer.MAX_VALUE, 10000);
 
-        // Vis Fume Network
+        // Materia Fume Network
         public IntOption copperPipeCapacity = new IntOption("Safe capacity (1.0 Pressure) for Copper Fume Pipes. Min: 1, Max: 2147483647, Default: 20", 1, Integer.MAX_VALUE, 20);
         public IntOption copperPipeTransferRate = new IntOption("Transfer rate for Copper Fume Pipes. Min: 1, Max: 2147483647, Default: 5", 1, Integer.MAX_VALUE, 5);
         public IntOption ironPipeCapacity = new IntOption("Safe capacity (1.0 Pressure) for Iron Fume Pipes. Min: 1, Max: 2147483647, Default: 40", 1, Integer.MAX_VALUE, 40);
@@ -133,13 +133,13 @@ public class EntropicaConfigImpl {
 
         public IntOption materiaFumusTransferRate = new IntOption("Base transfer rate for generators and machines pushing Fumes into the network. Min: 1, Max: 2147483647, Default: 100", 1, Integer.MAX_VALUE, 100);
         public IntOption materiaFumusTickRate = new IntOption("How many ticks between each gas transfer operation in the pipe network. Min: 1, Max: 200, Default: 5", 1, 200, 5);
-        public IntOption vaporPneumaticDiverterCapacity = new IntOption("Maximum amount of Vis Fumes a Diverter block can safely process. Min: 1, Max: 2147483647, Default: 2500", 1, Integer.MAX_VALUE, 2500);
+        public IntOption vaporPneumaticDiverterCapacity = new IntOption("Maximum amount of Materia Fumes a Diverter block can safely process. Min: 1, Max: 2147483647, Default: 2500", 1, Integer.MAX_VALUE, 2500);
         public IntOption visFumeOverpressureLimit = new IntOption("The amount of Fumes inside a Diverter that will cause it to break from overpressure. Min: 1, Max: 2147483647, Default: 2000", 1, Integer.MAX_VALUE, 2000);
 
         // Vessel & Chamber
         public IntOption vesselGlassBaseCapacity = new IntOption("Capacity added by standard Base Essence Enriched Glass. Min: 1, Max: 2147483647, Default: 1000", 1, Integer.MAX_VALUE, 1000);
-        public IntOption vesselGlassStrengthenedCapacity = new IntOption("Capacity added by Vis Fume Strengthened Glass. Min: 1, Max: 2147483647, Default: 2500", 1, Integer.MAX_VALUE, 2500);
-        public IntOption vesselGlassIchorCapacity = new IntOption("Capacity added by Vis Ichor Enriched Glass. Min: 1, Max: 2147483647, Default: 5000", 1, Integer.MAX_VALUE, 5000);
+        public IntOption vesselGlassStrengthenedCapacity = new IntOption("Capacity added by Materia Fume Strengthened Glass. Min: 1, Max: 2147483647, Default: 2500", 1, Integer.MAX_VALUE, 2500);
+        public IntOption vesselGlassIchorCapacity = new IntOption("Capacity added by Materia Ichor Enriched Glass. Min: 1, Max: 2147483647, Default: 5000", 1, Integer.MAX_VALUE, 5000);
         public IntOption vesselGlassLatticeCapacity = new IntOption("Capacity added by Fragment Lattice Glass. Min: 1, Max: 2147483647, Default: 10000", 1, Integer.MAX_VALUE, 10000);
         public DoubleOption vesselCapacityDecayMultiplier = new DoubleOption("The diminishing returns multiplier applied to each subsequent glass block. (0.95 = 5% loss per block). Min: 0.01, Max: 1.0, Default: 0.95", 0.01, 1.0, 0.95);
         public IntOption vesselDecayStartingBlock = new IntOption("The amount of glass blocks placed before the diminishing returns multiplier starts applying. Min: 0, Max: 2147483647, Default: 0", 0, Integer.MAX_VALUE, 0);
@@ -313,7 +313,7 @@ public class EntropicaConfigImpl {
     public static int getMateriaFumusTransferRate() { return data.materiaFumusTransferRate.value; }
     public static int getMateriaFumusTickRate() { return data.materiaFumusTickRate.value; }
     public static int getVaporPneumaticDiverterCapacity() { return data.vaporPneumaticDiverterCapacity.value; }
-    public static int getVisFumeOverpressureLimit() { return data.visFumeOverpressureLimit.value; }
+    public static int getMateriaFumeOverpressureLimit() { return data.visFumeOverpressureLimit.value; }
 
     public static int getVesselGlassBaseCapacity() { return data.vesselGlassBaseCapacity.value; }
     public static int getVesselGlassStrengthenedCapacity() { return data.vesselGlassStrengthenedCapacity.value; }

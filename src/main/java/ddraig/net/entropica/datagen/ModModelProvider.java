@@ -73,7 +73,7 @@ public class ModModelProvider extends ModelProvider {
         blockModels.createNonTemplateModelBlock(ModBlocks.ATTUNEMENT_PEDESTAL.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.CRUCIBLE.get());
 
-        // Vis Fume Network Blocks
+        // Materia Fume Network Blocks
         blockModels.createNonTemplateModelBlock(ModBlocks.VAPOR_PNEUMATIC_DIVERTER.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.VAPOR_PNEUMATIC_VALVE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.VAPOR_PNEUMATIC_ONE_WAY_VALVE.get());
@@ -239,7 +239,7 @@ public class ModModelProvider extends ModelProvider {
                 TextureSlot.LAYER0, TextureSlot.LAYER1
         );
 
-        // Vis Fume Ampoules
+        // Materia Fume Ampoules
         createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.SMALL_MATERIA_FUMUS_AMPOULE.get(), "small_ampoule", "small_ampoule_gas", new ddraig.net.entropica.client.ModItemTintSources.AmpouleTint());
         createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.MEDIUM_MATERIA_FUMUS_AMPOULE.get(), "medium_ampoule", "medium_ampoule_gas", new ddraig.net.entropica.client.ModItemTintSources.AmpouleTint());
         createTwoLayerTintedItem(itemModels, twoLayerTemplate, ModItems.LARGE_MATERIA_FUMUS_AMPOULE.get(), "large_ampoule", "large_ampoule_gas", new ddraig.net.entropica.client.ModItemTintSources.AmpouleTint());

@@ -13,7 +13,7 @@ public class ModDataComponents {
     public static final DeferredRegister<DataComponentType<?>> COMPONENTS =
             DeferredRegister.create("entropica", Registries.DATA_COMPONENT_TYPE);
 
-    // Component for Armor/Curios handling raw Vis Resistances
+    // Component for Armor/Curios handling raw Materia Resistances
     public static final RegistrySupplier<DataComponentType<EssenceCombatStats>> ESSENCE_STATS = COMPONENTS.register("essence_stats",
             () -> DataComponentType.<EssenceCombatStats>builder()
                     .persistent(EssenceCombatStats.CODEC)

@@ -216,7 +216,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
             }
 
             if (currentVis < LINK_COST) {
-                if (level.isClientSide()) player.displayClientMessage(Component.literal("Not enough Vis to link! Requires " + LINK_COST).withStyle(ChatFormatting.RED), true);
+                if (level.isClientSide()) player.displayClientMessage(Component.literal("Not enough Materia to link! Requires " + LINK_COST).withStyle(ChatFormatting.RED), true);
                 return InteractionResult.FAIL;
             }
 
@@ -239,7 +239,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
 
                     level.playSound(null, clickedPos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 0.5f, 1.5f);
                 } else {
-                    player.displayClientMessage(Component.literal("Inventory successfully linked to Rift! (-" + LINK_COST + " Vis)").withStyle(ChatFormatting.GREEN), true);
+                    player.displayClientMessage(Component.literal("Inventory successfully linked to Rift! (-" + LINK_COST + " Materia)").withStyle(ChatFormatting.GREEN), true);
                 }
             } else {
                 if (level.isClientSide()) player.displayClientMessage(Component.literal("Inventory too far! Must be within 4 blocks (9x9x9 area) of the Rift.").withStyle(ChatFormatting.RED), true);
@@ -248,7 +248,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
         }
 
         if (currentVis < RIFT_COST) {
-            if (level.isClientSide()) player.displayClientMessage(Component.literal("Not enough Vis! Requires " + RIFT_COST).withStyle(ChatFormatting.RED), true);
+            if (level.isClientSide()) player.displayClientMessage(Component.literal("Not enough Materia! Requires " + RIFT_COST).withStyle(ChatFormatting.RED), true);
             return InteractionResult.FAIL;
         }
 
@@ -330,9 +330,9 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = data.copyTag();
-        int vis = tag.getInt("StoredMateria2").orElse(0);
+        int materia = tag.getInt("StoredMateria2").orElse(0);
 
-        tooltipComponents.accept(Component.literal("Stored Materia: " + vis + " / " + MAX_VIS).withStyle(ChatFormatting.DARK_PURPLE));
+        tooltipComponents.accept(Component.literal("Stored Materia: " + materia + " / " + MAX_VIS).withStyle(ChatFormatting.DARK_PURPLE));
         if (tag.contains("BoundX")) {
             tooltipComponents.accept(Component.literal("Rift Anchor: [" + tag.getInt("BoundX").orElse(0) + ", " + tag.getInt("BoundY").orElse(0) + ", " + tag.getInt("BoundZ").orElse(0) + "]").withStyle(ChatFormatting.GRAY));
         }

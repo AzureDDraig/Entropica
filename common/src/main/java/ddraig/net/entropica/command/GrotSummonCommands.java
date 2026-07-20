@@ -37,7 +37,7 @@ public class GrotSummonCommands {
         var sizeArg = Commands.argument("size", IntegerArgumentType.integer(1, 16));
         var scaleArg = Commands.argument("scale", FloatArgumentType.floatArg(0.1f, 10.0f));
         var strArg = Commands.argument("strength", FloatArgumentType.floatArg(0.1f, 10.0f));
-        var visArg = Commands.argument("vis", FloatArgumentType.floatArg(0.1f, 10.0f));
+        var visArg = Commands.argument("materia", FloatArgumentType.floatArg(0.1f, 10.0f));
         var speedArg = Commands.argument("speed", FloatArgumentType.floatArg(0.1f, 10.0f));
         var waterSpeedArg = Commands.argument("waterspeed", FloatArgumentType.floatArg(0.1f, 10.0f));
         var intArg = Commands.argument("intelligence", IntegerArgumentType.integer(1, 20));
@@ -113,7 +113,7 @@ public class GrotSummonCommands {
 
             if (argsProvided >= 3) grot.setScaleFactor(FloatArgumentType.getFloat(context, "scale"));
             if (argsProvided >= 4) grot.setStrengthFactor(FloatArgumentType.getFloat(context, "strength"));
-            if (argsProvided >= 5) grot.setVisFactor(FloatArgumentType.getFloat(context, "vis"));
+            if (argsProvided >= 5) grot.setVisFactor(FloatArgumentType.getFloat(context, "materia"));
             if (argsProvided >= 6) grot.setSpeedFactor(FloatArgumentType.getFloat(context, "speed"));
             if (argsProvided >= 7) grot.setWaterSpeedFactor(FloatArgumentType.getFloat(context, "waterspeed"));
             if (argsProvided >= 8) grot.setIntelligence(IntegerArgumentType.getInteger(context, "intelligence"));

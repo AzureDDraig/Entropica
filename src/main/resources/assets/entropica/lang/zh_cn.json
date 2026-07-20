@@ -335,7 +335,7 @@
   "item.entropica.materia_extractor_base": "质能提取器底座",
   "item.entropica.materia_motor": "质能马达",
 
-  "_comment_vis_vitae_items": "================ ITEMS (VIS VITAE) ================",
+  "_comment_vis_vitae_items": "================ ITEMS (MATERIA VITAE) ================",
   "item.entropica.vis_vitae_pipe": "质能生命线管道",
   "item.entropica.vis_vitae_bend": "质能生命线弯管",
   "item.entropica.vis_vitae_splitter": "质能生命线分流器",

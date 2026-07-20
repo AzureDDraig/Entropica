@@ -206,7 +206,7 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("vapor_pneumatic_input_port", () ->
                     BlockEntityHelper.create(VaporPneumaticInputPortBlockEntity::new, ModBlocks.VAPOR_PNEUMATIC_INPUT_PORT.get()));
 
-    // --- VIS FUME PRESSURE VESSEL ---
+    // --- MATERIA FUME PRESSURE VESSEL ---
     public static final RegistrySupplier<BlockEntityType<MateriaVesselControllerBlockEntity>> MATERIA_VESSEL_CONTROLLER_BE =
             BLOCK_ENTITIES.register("materia_vessel_controller", () ->
                     BlockEntityHelper.create(MateriaVesselControllerBlockEntity::new, ModBlocks.MATERIA_VESSEL_CONTROLLER.get()));
@@ -250,7 +250,7 @@ public class ModBlockEntities {
                             ModBlocks.FRAGMENT_LATTICE_GLASS.get()
                     ));
 
-    // --- VIS FUME PRESSURE CHAMBER ---
+    // --- MATERIA FUME PRESSURE CHAMBER ---
     public static final RegistrySupplier<BlockEntityType<MateriaPressureChamberControllerBlockEntity>> MATERIA_PRESSURE_CHAMBER_CONTROLLER_BE =
             BLOCK_ENTITIES.register("materia_pressure_chamber_controller", () ->
                     BlockEntityHelper.create(MateriaPressureChamberControllerBlockEntity::new, ModBlocks.MATERIA_PRESSURE_CHAMBER_CONTROLLER.get()));

@@ -4,7 +4,7 @@ import ddraig.net.entropica.api.EssenceType;
 import net.minecraft.nbt.CompoundTag;
 
 /**
- * Represents a stack of intangible essence, also known as Vis Fumes, which contains a type of
+ * Represents a stack of intangible essence, also known as Materia Fumes, which contains a type of
  * essence and its associated quantity. Provides utility functions for managing, modifying,
  * and interacting with the stack. All operations account for empty or invalid stacks.
  */
