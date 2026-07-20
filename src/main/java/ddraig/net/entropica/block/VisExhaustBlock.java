@@ -92,7 +92,7 @@ public class VisExhaustBlock extends Block {
                 EssenceType typeToVent = null;
                 int maxMana = 0;
 
-                for (Map.Entry<EssenceType, Integer> entry : master.getManaPool().entrySet()) {
+                for (Map.Entry<EssenceType, Integer> entry : master.getMateriaFumusPool().entrySet()) {
                     if (entry.getValue() > maxMana) {
                         maxMana = entry.getValue();
                         typeToVent = entry.getKey();
@@ -101,9 +101,9 @@ public class VisExhaustBlock extends Block {
 
                 if (typeToVent != null && maxMana > 0) {
                     // Calculate how full the core is (0.0 to 1.0)
-                    double fillPercentage = Math.min(1.0, (double) maxMana / (double) master.getMaxMana());
+                    double fillPercentage = Math.min(1.0, (double) maxMana / (double) master.getMaxMateriaFumus());
 
-                    int extracted = master.extractMana(typeToVent, 50);
+                    int extracted = master.extractMateriaFumus(typeToVent, 50);
 
                     if (extracted > 0) {
                         // Scale sound pitch based on pressure (higher pressure = higher pitch squeal)

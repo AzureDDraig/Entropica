@@ -48,10 +48,9 @@ public class EssenceOrbEntity extends ItemEntity {
     public int getChargeAmount() {
         int tier = getTier();
         return switch (tier) {
-            case 3 -> 32;
-            case 2 -> 8;
-            case 0 -> 1;  // Fragment Yield
-            default -> 2; // Weak Yield
+            case 3 -> 16;
+            case 2 -> 4;
+            default -> 1;
         };
     }
 

@@ -24,8 +24,48 @@ public class OrbisCellItem extends BlockItem {
     }
 
     public int getMaxVis() {
-        // Assuming config keeps the original internal variable name, but logically returning Vis
-        return EntropicaConfig.ORBIS_CELL_MAX_MANA.get();
+        Block block = this.getBlock();
+        if (block instanceof ddraig.net.entropica.block.OrbisCellBlock) return EntropicaConfig.ORBIS_CELL_MAX_MATERIA.get();
+        if (block instanceof ddraig.net.entropica.block.SublimatedOrbisCellBlock) return 100000;
+        if (block instanceof ddraig.net.entropica.block.PneumaticCalixBlock) return 250000;
+        if (block instanceof ddraig.net.entropica.block.VoltaicCalixBlock) return 500000;
+        if (block instanceof ddraig.net.entropica.block.MatrixCalixBlock) return 1000000;
+        if (block instanceof ddraig.net.entropica.block.ThecaCellBlock) return 2500000;
+        if (block instanceof ddraig.net.entropica.block.VasCellBlock) return 5000000;
+        if (block instanceof ddraig.net.entropica.block.MonadCoreBlock) return 10000000;
+        if (block instanceof ddraig.net.entropica.block.AthanorCoreBlock) return 25000000;
+        return EntropicaConfig.ORBIS_CELL_MAX_MATERIA.get();
+    }
+
+    public static int getTier(ItemStack stack) {
+        if (stack.getItem() instanceof BlockItem blockItem) {
+            Block block = blockItem.getBlock();
+            if (block instanceof ddraig.net.entropica.block.OrbisCellBlock) return 2;
+            if (block instanceof ddraig.net.entropica.block.SublimatedOrbisCellBlock) return 3;
+            if (block instanceof ddraig.net.entropica.block.PneumaticCalixBlock) return 4;
+            if (block instanceof ddraig.net.entropica.block.VoltaicCalixBlock) return 5;
+            if (block instanceof ddraig.net.entropica.block.MatrixCalixBlock) return 6;
+            if (block instanceof ddraig.net.entropica.block.ThecaCellBlock) return 7;
+            if (block instanceof ddraig.net.entropica.block.VasCellBlock) return 8;
+            if (block instanceof ddraig.net.entropica.block.MonadCoreBlock) return 9;
+            if (block instanceof ddraig.net.entropica.block.AthanorCoreBlock) return 10;
+        }
+        return 2;
+    }
+
+    public static int getMaxMateria(ItemStack stack) {
+        int tier = getTier(stack);
+        return switch (tier) {
+            case 3 -> 100000;
+            case 4 -> 250000;
+            case 5 -> 500000;
+            case 6 -> 1000000;
+            case 7 -> 2500000;
+            case 8 -> 5000000;
+            case 9 -> 10000000;
+            case 10 -> 25000000;
+            default -> EntropicaConfig.ORBIS_CELL_MAX_MATERIA.get();
+        };
     }
 
     // --- HELPER METHODS FOR DATA COMPONENTS ---
@@ -33,7 +73,7 @@ public class OrbisCellItem extends BlockItem {
     @Nullable
     public static EssenceType getStoredVisType(ItemStack stack) {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        String typeStr = customData.copyTag().getString("EssenceType").orElse("");
+        String typeStr = customData.copyTag().getString("MateriaType").orElse("");
         if (!typeStr.isEmpty()) {
             try {
                 return EssenceType.valueOf(typeStr);
@@ -44,12 +84,14 @@ public class OrbisCellItem extends BlockItem {
 
     public static int getStoredVisAmount(ItemStack stack) {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        return customData.copyTag().getInt("StoredVis").orElse(0);
+        int tier = getTier(stack);
+        return customData.copyTag().getInt("StoredMateria" + tier).orElse(0);
     }
 
     public static void setStoredVisAmount(ItemStack stack, int amount) {
         net.minecraft.nbt.CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        tag.putInt("StoredVis", amount);
+        int tier = getTier(stack);
+        tag.putInt("StoredMateria" + tier, amount);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
@@ -61,7 +103,8 @@ public class OrbisCellItem extends BlockItem {
 
         int currentCellVis = getStoredVisAmount(stack);
         EssenceType type = getStoredVisType(stack);
-        int maxVis = getMaxVis();
+        int maxVis = getMaxMateria(stack);
+        int tier = getTier(stack);
 
         if (currentCellVis > 0 && type != null) {
             long time = System.currentTimeMillis() / 50;
@@ -70,9 +113,9 @@ public class OrbisCellItem extends BlockItem {
 
             Style essenceStyle = Style.EMPTY.withColor(hexColor);
 
-            tooltipComponents.accept(Component.literal("Stored Vis (").withStyle(ChatFormatting.GRAY)
+            tooltipComponents.accept(Component.literal("Stored Materia (").withStyle(ChatFormatting.GRAY)
                     .append(Component.literal(type.getDisplayName()).withStyle(essenceStyle))
-                    .append(Component.literal("): ").withStyle(ChatFormatting.GRAY))
+                    .append(Component.literal(") - Tier " + tier + ": ").withStyle(ChatFormatting.GRAY))
                     .append(Component.literal(currentCellVis + " / " + maxVis).withStyle(essenceStyle)));
 
             // Text Progress Bar
@@ -90,7 +133,7 @@ public class OrbisCellItem extends BlockItem {
             tooltipComponents.accept(progressBar);
         } else {
             // Empty State
-            tooltipComponents.accept(Component.literal("Stored Vis (Empty): 0 / " + maxVis).withStyle(ChatFormatting.DARK_GRAY));
+            tooltipComponents.accept(Component.literal("Stored Materia (Empty) - Tier " + tier + ": 0 / " + maxVis).withStyle(ChatFormatting.DARK_GRAY));
             Component emptyBar = Component.literal("[" + "|".repeat(20) + "]").withStyle(ChatFormatting.DARK_GRAY);
             tooltipComponents.accept(emptyBar);
         }

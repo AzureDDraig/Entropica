@@ -25,7 +25,7 @@ public class OrbisCellItem extends BlockItem {
 
     public int getMaxVis() {
         // Assuming config keeps the original internal variable name, but logically returning Vis
-        return EntropicaConfig.ORBIS_CELL_MAX_MANA.get();
+        return EntropicaConfig.ORBIS_CELL_MAX_MATERIA.get();
     }
 
     // --- HELPER METHODS FOR DATA COMPONENTS ---
@@ -33,7 +33,7 @@ public class OrbisCellItem extends BlockItem {
     @Nullable
     public static EssenceType getStoredVisType(ItemStack stack) {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        String typeStr = customData.copyTag().getString("EssenceType").orElse("");
+        String typeStr = customData.copyTag().getString("MateriaType").orElse("");
         if (!typeStr.isEmpty()) {
             try {
                 return EssenceType.valueOf(typeStr);
@@ -44,7 +44,7 @@ public class OrbisCellItem extends BlockItem {
 
     public static int getStoredVisAmount(ItemStack stack) {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        return customData.copyTag().getInt("StoredVis").orElse(0);
+        return customData.copyTag().getInt("StoredMateria2").orElse(0);
     }
 
     // --- DYNAMIC TOOLTIP ---
@@ -64,7 +64,7 @@ public class OrbisCellItem extends BlockItem {
 
             Style essenceStyle = Style.EMPTY.withColor(hexColor);
 
-            tooltipComponents.accept(Component.literal("Stored Vis (").withStyle(ChatFormatting.GRAY)
+            tooltipComponents.accept(Component.literal("Stored Materia (").withStyle(ChatFormatting.GRAY)
                     .append(Component.literal(type.getDisplayName()).withStyle(essenceStyle))
                     .append(Component.literal("): ").withStyle(ChatFormatting.GRAY))
                     .append(Component.literal(currentCellVis + " / " + maxVis).withStyle(essenceStyle)));
@@ -84,7 +84,7 @@ public class OrbisCellItem extends BlockItem {
             tooltipComponents.accept(progressBar);
         } else {
             // Empty State
-            tooltipComponents.accept(Component.literal("Stored Vis (Empty): 0 / " + maxVis).withStyle(ChatFormatting.DARK_GRAY));
+            tooltipComponents.accept(Component.literal("Stored Materia (Empty): 0 / " + maxVis).withStyle(ChatFormatting.DARK_GRAY));
             Component emptyBar = Component.literal("[" + "|".repeat(20) + "]").withStyle(ChatFormatting.DARK_GRAY);
             tooltipComponents.accept(emptyBar);
         }

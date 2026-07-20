@@ -345,7 +345,7 @@ public class ModItems {
 
     // --- Block Items ---
     public static final RegistrySupplier<BlockItem> ENTROPIC_ORE_ITEM = ITEMS.registerItem("entropic_ore", properties -> new BlockItem(ModBlocks.ENTROPIC_ORE.get(), properties));
-    public static final RegistrySupplier<BlockItem> MANA_FURNACE_ITEM = ITEMS.registerItem("mana_furnace", properties -> new BlockItem(ModBlocks.MANA_FURNACE.get(), properties));
+    public static final RegistrySupplier<BlockItem> MATERIA_FURNACE_ITEM = ITEMS.registerItem("materia_furnace", properties -> new BlockItem(ModBlocks.MATERIA_FURNACE.get(), properties));
     public static final RegistrySupplier<BlockItem> ENTROPIC_AUTO_SMELTER_ITEM = ITEMS.registerItem("entropic_auto_smelter", properties -> new BlockItem(ModBlocks.ENTROPIC_AUTO_SMELTER.get(), properties));
 
     // Multiblock Components
@@ -355,7 +355,7 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> ARCANE_CLAY_BLOCK_ITEM = ITEMS.registerItem("arcane_clay_block", properties -> new BlockItem(ModBlocks.ARCANE_CLAY_BLOCK.get(), properties));
     public static final RegistrySupplier<BlockItem> ARCANE_FORGE_BASE_ITEM = ITEMS.registerItem("arcane_forge_base", properties -> new BlockItem(ModBlocks.ARCANE_FORGE_BASE.get(), properties));
 
-    public static final RegistrySupplier<BlockItem> MANA_PLUME_ITEM = ITEMS.registerItem("mana_plume", properties -> new BlockItem(ModBlocks.MANA_PLUME.get(), properties));
+    public static final RegistrySupplier<BlockItem> MATERIA_PLUME_ITEM = ITEMS.registerItem("materia_plume", properties -> new BlockItem(ModBlocks.MATERIA_PLUME.get(), properties));
     public static final RegistrySupplier<BlockItem> ESSENCE_RECEPTACLE_ITEM = ITEMS.registerItem("essence_receptacle", properties -> new BlockItem(ModBlocks.ESSENCE_RECEPTACLE.get(), properties));
     public static final RegistrySupplier<BlockItem> FURNACE_HATCH_ITEM = ITEMS.registerItem("furnace_hatch", properties -> new BlockItem(ModBlocks.FURNACE_HATCH.get(), properties));
     public static final RegistrySupplier<BlockItem> MATERIA_READOUT_ITEM = ITEMS.registerItem("materia_readout", properties -> new BlockItem(ModBlocks.VIS_READOUT.get(), properties));
@@ -490,14 +490,14 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> PRISTINE_CONDUIT_CHARGED_EUCLIDITE_ITEM = ITEMS.registerItem("pristine_conduit_charged_euclidite", properties -> new BlockItem(ModBlocks.PRISTINE_CONDUIT_CHARGED_EUCLIDITE.get(), properties));
     public static final RegistrySupplier<BlockItem> ATHANOR_CONDUIT_ATHANORITE_ITEM = ITEMS.registerItem("athanor_conduit_athanorite", properties -> new BlockItem(ModBlocks.ATHANOR_CONDUIT_ATHANORITE.get(), properties));
     public static final RegistrySupplier<BlockItem> ATHANOR_CONDUIT_CHARGED_ATHANORITE_ITEM = ITEMS.registerItem("athanor_conduit_charged_athanorite", properties -> new BlockItem(ModBlocks.ATHANOR_CONDUIT_CHARGED_ATHANORITE.get(), properties));
-    public static final RegistrySupplier<BlockItem> SUBLIMATED_ORBIS_CELL_ITEM = ITEMS.registerItem("sublimated_orbis_cell", properties -> new BlockItem(ModBlocks.SUBLIMATED_ORBIS_CELL.get(), properties));
-    public static final RegistrySupplier<BlockItem> PNEUMATIC_CALIX_ITEM = ITEMS.registerItem("pneumatic_calix", properties -> new BlockItem(ModBlocks.PNEUMATIC_CALIX.get(), properties));
-    public static final RegistrySupplier<BlockItem> VOLTAIC_CALIX_ITEM = ITEMS.registerItem("voltaic_calix", properties -> new BlockItem(ModBlocks.VOLTAIC_CALIX.get(), properties));
-    public static final RegistrySupplier<BlockItem> MATRIX_CALIX_ITEM = ITEMS.registerItem("matrix_calix", properties -> new BlockItem(ModBlocks.MATRIX_CALIX.get(), properties));
-    public static final RegistrySupplier<BlockItem> THECA_CELL_ITEM = ITEMS.registerItem("theca_cell", properties -> new BlockItem(ModBlocks.THECA_CELL.get(), properties));
-    public static final RegistrySupplier<BlockItem> VAS_CELL_ITEM = ITEMS.registerItem("vas_cell", properties -> new BlockItem(ModBlocks.VAS_CELL.get(), properties));
-    public static final RegistrySupplier<BlockItem> MONAD_CORE_ITEM = ITEMS.registerItem("monad_core", properties -> new BlockItem(ModBlocks.MONAD_CORE.get(), properties));
-    public static final RegistrySupplier<BlockItem> ATHANOR_CORE_ITEM = ITEMS.registerItem("athanor_core", properties -> new BlockItem(ModBlocks.ATHANOR_CORE.get(), properties));
+    public static final RegistrySupplier<OrbisCellItem> SUBLIMATED_ORBIS_CELL_ITEM = ITEMS.registerItem("sublimated_orbis_cell", properties -> new OrbisCellItem(ModBlocks.SUBLIMATED_ORBIS_CELL.get(), properties));
+    public static final RegistrySupplier<OrbisCellItem> PNEUMATIC_CALIX_ITEM = ITEMS.registerItem("pneumatic_calix", properties -> new OrbisCellItem(ModBlocks.PNEUMATIC_CALIX.get(), properties));
+    public static final RegistrySupplier<OrbisCellItem> VOLTAIC_CALIX_ITEM = ITEMS.registerItem("voltaic_calix", properties -> new OrbisCellItem(ModBlocks.VOLTAIC_CALIX.get(), properties));
+    public static final RegistrySupplier<OrbisCellItem> MATRIX_CALIX_ITEM = ITEMS.registerItem("matrix_calix", properties -> new OrbisCellItem(ModBlocks.MATRIX_CALIX.get(), properties));
+    public static final RegistrySupplier<OrbisCellItem> THECA_CELL_ITEM = ITEMS.registerItem("theca_cell", properties -> new OrbisCellItem(ModBlocks.THECA_CELL.get(), properties));
+    public static final RegistrySupplier<OrbisCellItem> VAS_CELL_ITEM = ITEMS.registerItem("vas_cell", properties -> new OrbisCellItem(ModBlocks.VAS_CELL.get(), properties));
+    public static final RegistrySupplier<OrbisCellItem> MONAD_CORE_ITEM = ITEMS.registerItem("monad_core", properties -> new OrbisCellItem(ModBlocks.MONAD_CORE.get(), properties));
+    public static final RegistrySupplier<OrbisCellItem> ATHANOR_CORE_ITEM = ITEMS.registerItem("athanor_core", properties -> new OrbisCellItem(ModBlocks.ATHANOR_CORE.get(), properties));
     public static final RegistrySupplier<BlockItem> VAPOR_DECOMPRESSION_COUPLING_ITEM = ITEMS.registerItem("vapor_decompression_coupling", properties -> new BlockItem(ModBlocks.VAPOR_DECOMPRESSION_COUPLING.get(), properties));
 
     public static final RegistrySupplier<BlockItem> CREATIVE_PARTICLE_GENERATOR_ITEM = ITEMS.registerItem("creative_particle_generator", properties -> new BlockItem(ModBlocks.CREATIVE_PARTICLE_GENERATOR.get(), properties));

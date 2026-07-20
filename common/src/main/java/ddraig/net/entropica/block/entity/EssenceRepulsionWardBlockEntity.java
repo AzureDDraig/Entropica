@@ -55,15 +55,28 @@ public class EssenceRepulsionWardBlockEntity extends BlockEntity implements IVap
                         net.minecraft.world.entity.monster.Monster.class,
                         new net.minecraft.world.phys.AABB(pos).inflate(radius)
                 );
-                for (net.minecraft.world.entity.monster.Monster monster : monsters) {
-                    double dx = monster.getX() - (pos.getX() + 0.5);
-                    double dz = monster.getZ() - (pos.getZ() + 0.5);
-                    double distSq = dx * dx + dz * dz;
-                    if (distSq > 0.01) {
-                        double dist = Math.sqrt(distSq);
-                        double force = (1.0 - (dist / radius)) * 0.35;
-                        monster.push((dx / dist) * force, 0.08, (dz / dist) * force);
-                        monster.hurtMarked = true;
+                if (!monsters.isEmpty()) {
+                    level.playSound(null, pos, SoundEvents.EVOKER_CAST_SPELL, SoundSource.BLOCKS, 0.35F, 0.5F);
+                    if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                        for (int i = 0; i < 12; i++) {
+                            double angle = (i * 2.0 * Math.PI) / 12.0;
+                            double vx = Math.cos(angle) * 0.15;
+                            double vz = Math.sin(angle) * 0.15;
+                            serverLevel.sendParticles(ParticleTypes.CLOUD, 
+                                pos.getX() + 0.5, pos.getY() + 0.15, pos.getZ() + 0.5, 
+                                1, vx, 0.0, vz, 0.1);
+                        }
+                    }
+                    for (net.minecraft.world.entity.monster.Monster monster : monsters) {
+                        double dx = monster.getX() - (pos.getX() + 0.5);
+                        double dz = monster.getZ() - (pos.getZ() + 0.5);
+                        double distSq = dx * dx + dz * dz;
+                        if (distSq > 0.01) {
+                            double dist = Math.sqrt(distSq);
+                            double force = (1.0 - (dist / radius)) * 0.35;
+                            monster.push((dx / dist) * force, 0.08, (dz / dist) * force);
+                            monster.hurtMarked = true;
+                        }
                     }
                 }
             }

@@ -35,19 +35,19 @@ public class OrbisCellBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("StoredMana", this.mana);
+        output.putInt("StoredMateria2", this.mana);
         if (this.manaType != null) {
-            output.putString("ManaType", this.manaType.name());
+            output.putString("MateriaType", this.manaType.name());
         }
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.mana = input.getIntOr("StoredMana", 0);
+        this.mana = input.getIntOr("StoredMateria2", 0);
 
         // NeoForge latest ValueInput uses getStringOr for a default value
-        String typeStr = input.getStringOr("ManaType", "");
+        String typeStr = input.getStringOr("MateriaType", "");
         if (!typeStr.isEmpty()) {
             try {
                 this.manaType = EssenceType.valueOf(typeStr);
@@ -67,9 +67,9 @@ public class OrbisCellBlockEntity extends BlockEntity {
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         // The UpdateTag (for network syncing) still uses CompoundTag in most builds
         CompoundTag tag = new CompoundTag();
-        tag.putInt("StoredMana", this.mana);
+        tag.putInt("StoredMateria2", this.mana);
         if (this.manaType != null) {
-            tag.putString("ManaType", this.manaType.name());
+            tag.putString("MateriaType", this.manaType.name());
         }
         return tag;
     }

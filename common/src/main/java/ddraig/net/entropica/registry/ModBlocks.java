@@ -78,7 +78,7 @@ public class ModBlocks {
     public static final RegistrySupplier<Block> MORTISITE_CRYSTAL_BLOCK = BLOCKS.register("mortisite_crystal_block", name -> new AmethystBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_RED).destroyTime(1.5f).explosionResistance(1.5f).sound(SoundType.AMETHYST).requiresCorrectToolForDrops()));
 
     // Core Machines
-    public static final RegistrySupplier<ManaFurnaceBlock> MANA_FURNACE = BLOCKS.register("mana_furnace", name -> new ManaFurnaceBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
+    public static final RegistrySupplier<MateriaFurnaceBlock> MATERIA_FURNACE = BLOCKS.register("materia_furnace", name -> new MateriaFurnaceBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
     public static final RegistrySupplier<Block> ENTROPIC_AUTO_SMELTER = BLOCKS.register("entropic_auto_smelter", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops()));
 
     // Mana Furnace Multiblock Components & Arcane Blocks
@@ -87,7 +87,7 @@ public class ModBlocks {
     public static final RegistrySupplier<Block> ARCANITE_PLATING = BLOCKS.register("arcanite_plating", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final RegistrySupplier<Block> ARCANE_CLAY_BLOCK = BLOCKS.register("arcane_clay_block", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.CLAY).destroyTime(0.6f)));
     public static final RegistrySupplier<Block> ARCANE_FORGE_BASE = BLOCKS.register("arcane_forge_base", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.STONE).destroyTime(1.5f).requiresCorrectToolForDrops()));
-    public static final RegistrySupplier<ManaPlumeBlock> MANA_PLUME = BLOCKS.register("mana_plume", name -> new ManaPlumeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<MateriaPlumeBlock> MATERIA_PLUME = BLOCKS.register("materia_plume", name -> new MateriaPlumeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
 
     public static final RegistrySupplier<MateriaExhaustBlock> MATERIA_EXHAUST = BLOCKS.register("materia_exhaust", name -> new MateriaExhaustBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final RegistrySupplier<CatalystReceptacleBlock> CATALYST_RECEPTACLE = BLOCKS.register("catalyst_receptacle", name -> new CatalystReceptacleBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops().noOcclusion()));
@@ -202,10 +202,10 @@ public class ModBlocks {
     // ---  Vis Fume Pressure Vessel ---
     public static final RegistrySupplier<MateriaVesselControllerBlock> MATERIA_VESSEL_CONTROLLER = BLOCKS.register("materia_vessel_controller", name -> new MateriaVesselControllerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final RegistrySupplier<MateriaVesselPortBlock> MATERIA_VESSEL_PORT = BLOCKS.register("materia_vessel_port", name -> new MateriaVesselPortBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
-    public static final RegistrySupplier<ManaEnrichedGlassBlock> ESSENCE_ENRICHED_GLASS = BLOCKS.register("essence_enriched_glass", name -> new ManaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(1.5f).requiresCorrectToolForDrops().noOcclusion()));
-    public static final RegistrySupplier<ManaEnrichedGlassBlock> MATERIA_FUMUS_STRENGTHENED_GLASS = BLOCKS.register("materia_fumus_strengthened_glass", name -> new ManaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(2.0f).requiresCorrectToolForDrops().noOcclusion()));
-    public static final RegistrySupplier<ManaEnrichedGlassBlock> MATERIA_LIQUIDA_ENRICHED_GLASS = BLOCKS.register("materia_liquida_enriched_glass", name -> new ManaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(2.5f).requiresCorrectToolForDrops().noOcclusion()));
-    public static final RegistrySupplier<ManaEnrichedGlassBlock> FRAGMENT_LATTICE_GLASS = BLOCKS.register("fragment_lattice_glass", name -> new ManaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<MateriaEnrichedGlassBlock> ESSENCE_ENRICHED_GLASS = BLOCKS.register("essence_enriched_glass", name -> new MateriaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(1.5f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<MateriaEnrichedGlassBlock> MATERIA_FUMUS_STRENGTHENED_GLASS = BLOCKS.register("materia_fumus_strengthened_glass", name -> new MateriaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(2.0f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<MateriaEnrichedGlassBlock> MATERIA_LIQUIDA_ENRICHED_GLASS = BLOCKS.register("materia_liquida_enriched_glass", name -> new MateriaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(2.5f).requiresCorrectToolForDrops().noOcclusion()));
+    public static final RegistrySupplier<MateriaEnrichedGlassBlock> FRAGMENT_LATTICE_GLASS = BLOCKS.register("fragment_lattice_glass", name -> new MateriaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
 
     // --- Vis Fume Pressure Chamber ---
     public static final RegistrySupplier<Block> MATERIA_PRESSURE_CHAMBER_CONTROLLER = BLOCKS.register("materia_pressure_chamber_controller", name -> new MateriaPressureChamberControllerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));
@@ -288,7 +288,7 @@ public class ModBlocks {
             AETERIUM_CRYSTAL_BLOCK, BUDDING_AETERIUM, SMALL_AETERIUM_BUD, MEDIUM_AETERIUM_BUD, LARGE_AETERIUM_BUD, AETERIUM_CLUSTER,
             IGNISITE_CRYSTAL_BLOCK, BUDDING_IGNISITE, SMALL_IGNISITE_BUD, MEDIUM_IGNISITE_BUD, LARGE_IGNISITE_BUD, IGNISITE_CLUSTER,
             MORTISITE_CRYSTAL_BLOCK, BUDDING_MORTISITE, SMALL_MORTISITE_BUD, MEDIUM_MORTISITE_BUD, LARGE_MORTISITE_BUD, MORTISITE_CLUSTER,
-            ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MANA_PLUME,
+            ARCANE_BRICK, ARCANITE_PLATING, ARCANE_CLAY_BLOCK, MATERIA_PLUME,
             VIS_VITAE_ANCHOR, VIS_VITAE_CONDENSER, VIS_VITAE_VACUUM, VITAE_BARREL,
             MATERIA_FILTER, ARCANE_LOOM, ESSENCE_FORGE,
             ARCANE_ANVIL, MORPHIC_LOOM, MATERIA_EXHAUST, MATERIA_SIMPLE_MACHINE_BLOCK, MATERIA_COMPLEX_MACHINE_BLOCK,

@@ -4,7 +4,7 @@ import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.block.entity.CreativeMateriaGeneratorBlockEntity;
 import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity;
-import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
+import ddraig.net.entropica.block.entity.MateriaEnrichedGlassBlockEntity;
 import ddraig.net.entropica.client.ModItemTintSources;
 import ddraig.net.entropica.client.gui.SynthesizerUserInterfaceScreen;
 import ddraig.net.entropica.client.model.AshenStalkerModel;
@@ -43,7 +43,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         // --- 1. Block Entity Renderers ---
-        BlockEntityRenderers.register(ModBlockEntities.MANA_FURNACE_BE.get(), ManaFurnaceRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.MATERIA_FURNACE_BE.get(), MateriaFurnaceRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.ENTROPIC_CORE_BE.get(), EntropicCoreRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.ESSENCE_READOUT_BE.get(), EssenceReadoutRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.MANA_READOUT_BE.get(), MateriaReadoutRenderer::new);
@@ -62,7 +62,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
         BlockEntityRenderers.register(ModBlockEntities.ATHANOR_CONDUIT_BE.get(), VaporPneumaticPipeRenderer::new);
 
         BlockEntityRenderers.register(ModBlockEntities.MATERIA_VESSEL_CONTROLLER_BE.get(), MateriaVesselControllerRenderer::new);
-        BlockEntityRenderers.register(ModBlockEntities.MANA_ENRICHED_GLASS_BE.get(), ManaEnrichedGlassRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.MATERIA_ENRICHED_GLASS_BE.get(), MateriaEnrichedGlassRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.ENRICHMENT_TABLE_BE.get(), EnrichmentTableRenderer::new);
 
         BlockEntityRenderers.register(ModBlockEntities.AETHERIC_SYNTHESIZER_BE.get(), AethericSynthesizerRenderer::new);
@@ -122,7 +122,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
         ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
             if (level != null && pos != null && tintIndex == 0) {
-                if (level.getBlockEntity(pos) instanceof ManaEnrichedGlassBlockEntity glassBE) {
+                if (level.getBlockEntity(pos) instanceof MateriaEnrichedGlassBlockEntity glassBE) {
                     EssenceType type = glassBE.getEssenceType();
                     if (type != null) {
                         return type.getColorInt();

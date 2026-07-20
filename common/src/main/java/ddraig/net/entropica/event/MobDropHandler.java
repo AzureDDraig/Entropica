@@ -61,6 +61,21 @@ public class MobDropHandler {
     public static void onMobDeath(LivingEntity entity, DamageSource source) {
         if (entity.level().isClientSide()) return;
 
+        if (entity instanceof net.minecraft.world.entity.monster.Zombie zombie && 
+            zombie.hasCustomName() && 
+            "Materia-Infused Zombie".equals(zombie.getCustomName().getString())) {
+            
+            ItemStack dropStack = new ItemStack(ModItems.WEAK_ESSENCE.get());
+            ddraig.net.entropica.api.EssenceType essenceType = zombie.getRandom().nextBoolean() ? ddraig.net.entropica.api.EssenceType.VITAE : ddraig.net.entropica.api.EssenceType.BLOOD;
+            ddraig.net.entropica.item.EssenceItem.setEssenceType(dropStack, essenceType);
+            
+            double x = zombie.getX();
+            double y = zombie.getY() + 0.5;
+            double z = zombie.getZ();
+            net.minecraft.world.entity.item.ItemEntity itemEntity = new net.minecraft.world.entity.item.ItemEntity(zombie.level(), x, y, z, dropStack);
+            zombie.level().addFreshEntity(itemEntity);
+        }
+
         boolean holdingBlade = false;
         int reapLevel = 0;
 

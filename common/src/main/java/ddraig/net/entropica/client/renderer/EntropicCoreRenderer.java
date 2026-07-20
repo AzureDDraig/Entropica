@@ -64,12 +64,12 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
 
                 renderState.isActive = blockEntity.isActive();
                 renderState.maxEssence = blockEntity.getMaxEssencePerType();
-                renderState.maxMana = blockEntity.getMaxMana();
+                renderState.maxMana = blockEntity.getMaxMateriaFumus();
 
                 renderState.essencePool.clear();
-                renderState.manaPool.clear();
+                renderState.materiaFumusPool.clear();
                 renderState.essencePool.putAll(blockEntity.getEssencePool());
-                renderState.manaPool.putAll(blockEntity.getManaPool());
+                renderState.materiaFumusPool.putAll(blockEntity.getMateriaFumusPool());
 
                 renderState.isOverloaded = blockEntity.isOverloaded();
                 renderState.overloadTicks = blockEntity.getOverloadTicks();
@@ -152,7 +152,7 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
         // LAYER 2: MANA CIRCLES (Now using Weighted Volume Logic)
         List<EssenceType> activeManaTypes = new ArrayList<>();
         for (EssenceType type : EssenceType.values()) {
-            if (coreRenderState.manaPool.getOrDefault(type, 0) > 0) activeManaTypes.add(type);
+            if (coreRenderState.materiaFumusPool.getOrDefault(type, 0) > 0) activeManaTypes.add(type);
         }
 
         if (!activeManaTypes.isEmpty()) {
@@ -165,7 +165,7 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
                 int weight = EntropicCoreBlockEntity.getEssenceWeight(type);
 
                 // Calculates the ring fill based on the ACTUAL space the density is taking up!
-                float fillPct = Math.min(1.0f, (float) (coreRenderState.manaPool.get(type) * weight) / Math.max(1, coreRenderState.maxMana));
+                float fillPct = Math.min(1.0f, (float) (coreRenderState.materiaFumusPool.get(type) * weight) / Math.max(1, coreRenderState.maxMana));
 
                 float innerR = totalInner + (i * ringThickness);
                 float outerR = innerR + ringThickness - 0.005f;
@@ -275,7 +275,7 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
         public BlockPos hatchPos;
         public int maxEssence, maxMana;
         public final Map<EssenceType, Integer> essencePool = new EnumMap<>(EssenceType.class);
-        public final Map<EssenceType, Integer> manaPool = new EnumMap<>(EssenceType.class);
+        public final Map<EssenceType, Integer> materiaFumusPool = new EnumMap<>(EssenceType.class);
         public Direction hatchFacing = Direction.NORTH;
 
         public boolean isOverloaded;

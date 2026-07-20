@@ -20,7 +20,7 @@ import ddraig.net.entropica.registry.ModFluids;
 import ddraig.net.entropica.registry.neoforge.ModFluidsNeoForge;
 import ddraig.net.entropica.registry.ModMenuTypes;
 import ddraig.net.entropica.block.entity.CreativeMateriaGeneratorBlockEntity;
-import ddraig.net.entropica.block.entity.ManaEnrichedGlassBlockEntity;
+import ddraig.net.entropica.block.entity.MateriaEnrichedGlassBlockEntity;
 import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity;
 import ddraig.net.entropica.client.gui.SynthesizerUserInterfaceScreen;
 import ddraig.net.entropica.client.gui.WeaponNamingScreen;
@@ -112,7 +112,7 @@ public class ModClientEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ModBlockEntities.MANA_FURNACE_BE.get(), ManaFurnaceRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.MATERIA_FURNACE_BE.get(), MateriaFurnaceRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENTROPIC_CORE_BE.get(), EntropicCoreRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ESSENCE_READOUT_BE.get(), EssenceReadoutRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.MANA_READOUT_BE.get(), MateriaReadoutRenderer::new);
@@ -131,7 +131,7 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.ATHANOR_CONDUIT_BE.get(), VaporPneumaticPipeRenderer::new);
 
         event.registerBlockEntityRenderer(ModBlockEntities.MATERIA_VESSEL_CONTROLLER_BE.get(), MateriaVesselControllerRenderer::new);
-        event.registerBlockEntityRenderer(ModBlockEntities.MANA_ENRICHED_GLASS_BE.get(), ManaEnrichedGlassRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.MATERIA_ENRICHED_GLASS_BE.get(), MateriaEnrichedGlassRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENRICHMENT_TABLE_BE.get(), EnrichmentTableRenderer::new);
 
         event.registerBlockEntityRenderer(ModBlockEntities.AETHERIC_SYNTHESIZER_BE.get(), AethericSynthesizerRenderer::new);
@@ -190,7 +190,7 @@ public class ModClientEvents {
 
         event.register((state, level, pos, tintIndex) -> {
                     if (level != null && pos != null && tintIndex == 0) {
-                        if (level.getBlockEntity(pos) instanceof ManaEnrichedGlassBlockEntity glassBE) {
+                        if (level.getBlockEntity(pos) instanceof MateriaEnrichedGlassBlockEntity glassBE) {
                             EssenceType type = glassBE.getEssenceType();
                             if (type != null) {
                                 return type.getColorInt();

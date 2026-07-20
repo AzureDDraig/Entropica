@@ -41,7 +41,7 @@ public class MateriaFilterBlockEntity extends BlockEntity {
         if (master == null || !master.isFormed()) return;
 
         // Check how much of the filtered mana the core actually has
-        int availableMana = master.getManaPool().getOrDefault(this.filterType, 0);
+        int availableMana = master.getMateriaFumusPool().getOrDefault(this.filterType, 0);
         if (availableMana <= 0) return;
 
         int amountToPush = Math.min(availableMana, EntropicaConfig.MATERIA_FUMUS_TRANSFER_RATE.get());
@@ -60,7 +60,7 @@ public class MateriaFilterBlockEntity extends BlockEntity {
 
                 if (accepted > 0) {
                     // Safely extract the exact amount the pipe accepted from the core
-                    master.extractMana(this.filterType, accepted);
+                    master.extractMateriaFumus(this.filterType, accepted);
                     amountToPush -= accepted; // Deduct so we don't over-push if we find a second pipe
                 }
             }
@@ -75,7 +75,7 @@ public class MateriaFilterBlockEntity extends BlockEntity {
         if (level == null) return null;
         for (Direction dir : Direction.values()) {
             BlockEntity be = level.getBlockEntity(worldPosition.relative(dir));
-            if (be instanceof ManaPlumeBlockEntity plume) {
+            if (be instanceof MateriaPlumeBlockEntity plume) {
                 return plume.getMaster();
             } else if (be instanceof EntropicCoreBlockEntity core) {
                 return core.getMaster();
@@ -92,7 +92,7 @@ public class MateriaFilterBlockEntity extends BlockEntity {
 
         if (master != null && master.isFormed()) {
             // Only add types that have mana > 0
-            for (Map.Entry<EssenceType, Integer> entry : master.getManaPool().entrySet()) {
+            for (Map.Entry<EssenceType, Integer> entry : master.getMateriaFumusPool().entrySet()) {
                 if (entry.getValue() > 0) {
                     availableTypes.add(entry.getKey());
                 }
@@ -119,7 +119,7 @@ public class MateriaFilterBlockEntity extends BlockEntity {
         if (level == null) return 0;
         EntropicCoreBlockEntity master = getMasterCore();
         if (master != null && master.isFormed()) {
-            return master.extractMana(this.filterType, amount);
+            return master.extractMateriaFumus(this.filterType, amount);
         }
         return 0;
     }
@@ -142,10 +142,10 @@ public class MateriaFilterBlockEntity extends BlockEntity {
                     (capacity == 8) ? ModItems.SMALL_MATERIA_FUMUS_AMPOULE.get() :
                             (capacity == 32) ? ModItems.MEDIUM_MATERIA_FUMUS_AMPOULE.get() : ModItems.LARGE_MATERIA_FUMUS_AMPOULE.get());
 
-            int currentMana = master.getManaPool().getOrDefault(this.filterType, 0);
+            int currentMana = master.getMateriaFumusPool().getOrDefault(this.filterType, 0);
 
             if (currentMana >= capacity) {
-                master.extractMana(this.filterType, capacity);
+                master.extractMateriaFumus(this.filterType, capacity);
 
                 ItemStack filled = new ItemStack(targetFilledItem);
                 VisFumeAmpouleItem.setEssenceType(filled, this.filterType);

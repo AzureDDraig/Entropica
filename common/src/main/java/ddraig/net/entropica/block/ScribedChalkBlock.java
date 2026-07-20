@@ -564,13 +564,28 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                     return net.minecraft.world.InteractionResult.SUCCESS;
                 }
 
-                // Try to insert Essence Item
-                if (heldItem.getItem() instanceof ddraig.net.entropica.item.EssenceItem) {
+                // Try to insert Essence Item or Ampoule
+                boolean isEssence = heldItem.getItem() instanceof ddraig.net.entropica.item.EssenceItem;
+                boolean isAmpoule = heldItem.getItem() instanceof ddraig.net.entropica.item.EssenceAmpouleItem;
+                if (isEssence || isAmpoule) {
                     if (!level.isClientSide()) {
-                        EssenceType type = ddraig.net.entropica.item.EssenceItem.getEssenceType(heldItem);
+                        EssenceType type = isEssence 
+                            ? ddraig.net.entropica.item.EssenceItem.getEssenceType(heldItem)
+                            : ddraig.net.entropica.item.EssenceAmpouleItem.getEssenceType(heldItem);
                         if (type != null) {
                             chalkBE.setActiveAffinity(type);
                             chalkBE.setColor(type.getColorInt());
+
+                            int tier = isEssence 
+                                ? ((ddraig.net.entropica.item.EssenceItem) heldItem.getItem()).getTier()
+                                : ((ddraig.net.entropica.item.EssenceAmpouleItem) heldItem.getItem()).getTier();
+                            
+                            int yield = switch (tier) {
+                                case 3 -> 16;
+                                case 2 -> 4;
+                                default -> 1;
+                            };
+                            chalkBE.setEssenceLevel(chalkBE.getEssenceLevel() + yield);
 
                             heldItem.shrink(1);
                             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5f, 1.2f);
@@ -647,6 +662,29 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                 net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
                 ItemStack heldItem = player.getItemInHand(hand);
 
+                // Fehu Filter Node Specialization
+                if (!chalkBE.getStoredRune().isEmpty() && chalkBE.getStoredRune().getItem() == ddraig.net.entropica.registry.ModItems.RUNE_FEHU.get()) {
+                    ddraig.net.entropica.api.EssenceType type = ddraig.net.entropica.item.EssenceItem.getEssenceType(heldItem);
+                    if (type != null) {
+                        if (!level.isClientSide()) {
+                            chalkBE.setFilterType(type);
+                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§aFilter specialized to: " + type.getDisplayName()), true);
+                            level.playSound(null, pos, SoundEvents.DYE_USE, SoundSource.BLOCKS, 0.7f, 1.2f);
+                        }
+                        return net.minecraft.world.InteractionResult.SUCCESS;
+                    }
+                    if (heldItem.isEmpty() || heldItem.getItem() instanceof ddraig.net.entropica.item.VoidResonantTuningForkItem) {
+                        if (chalkBE.getFilterType() != null) {
+                            if (!level.isClientSide()) {
+                                chalkBE.setFilterType(null);
+                                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§eFilter reset to default (All colored essence)"), true);
+                                level.playSound(null, pos, SoundEvents.DYE_USE, SoundSource.BLOCKS, 0.7f, 0.8f);
+                            }
+                            return net.minecraft.world.InteractionResult.SUCCESS;
+                        }
+                    }
+                }
+
                 // Try to insert Rune
                 if (heldItem.getItem() instanceof ddraig.net.entropica.item.RuneItem && chalkBE.getStoredRune().isEmpty()) {
                     if (!level.isClientSide()) {
@@ -667,6 +705,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             player.drop(extracted, false);
                         }
                         chalkBE.setStoredRune(ItemStack.EMPTY);
+                        chalkBE.setFilterType(null);
                         level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5f, 1.2f);
                     }
                     return net.minecraft.world.InteractionResult.SUCCESS;

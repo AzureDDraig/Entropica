@@ -58,7 +58,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         }
     }
 
-    private final Map<EssenceType, Integer> manaPool = new EnumMap<>(EssenceType.class);
+    private final Map<EssenceType, Integer> materiaFumusPool = new EnumMap<>(EssenceType.class);
     private final Map<EssenceType, Integer> essencePool = new EnumMap<>(EssenceType.class);
 
     public final SimpleContainer sharedReceptacleBuffer = new SimpleContainer(54) {
@@ -93,7 +93,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
     public EntropicCoreBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.ENTROPIC_CORE_BE.get(), pos, state);
         for (EssenceType type : EssenceType.values()) {
-            manaPool.put(type, 0);
+            materiaFumusPool.put(type, 0);
             essencePool.put(type, 0);
         }
     }
@@ -132,7 +132,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         master.isActive = !master.isActive;
 
         if (master.isActive) {
-            if (master.getTotalEssence() < 10 || (!EntropicaConfig.ENABLE_CORE_OVERLOAD.get() && master.getWeightedTotalMana() >= master.getMaxMana())) {
+            if (master.getTotalEssence() < 10 || (!EntropicaConfig.ENABLE_CORE_OVERLOAD.get() && master.getWeightedTotalMana() >= master.getMaxMateriaFumus())) {
                 master.isActive = false;
             }
         }
@@ -146,7 +146,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
     public int getComparatorOutput() {
         EntropicCoreBlockEntity master = getMaster();
         if (!master.isFormed) return 0;
-        int maxMana = master.getMaxMana();
+        int maxMana = master.getMaxMateriaFumus();
         if (maxMana == 0) return 0;
         return Math.max(0, (int) Math.floor(((double) master.getWeightedTotalMana() / maxMana) * 15.0));
     }
@@ -166,7 +166,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
 
                 // --- OVERLOAD LOGIC ---
                 if (EntropicaConfig.ENABLE_CORE_OVERLOAD.get()) {
-                    if (this.getWeightedTotalMana() >= this.getMaxMana()) {
+                    if (this.getWeightedTotalMana() >= this.getMaxMateriaFumus()) {
                         if (!this.isOverloaded) {
                             this.isOverloaded = true;
                             this.recalculateOverloadTime();
@@ -197,7 +197,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
                         this.setChanged();
                         level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
                     }
-                    if (this.getWeightedTotalMana() >= this.getMaxMana()) {
+                    if (this.getWeightedTotalMana() >= this.getMaxMateriaFumus()) {
                         this.isActive = false;
                         this.setChanged();
                         level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
@@ -230,7 +230,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
     private void recalculateOverloadTime() {
         int baseSeconds = 120 * Math.max(1, this.coreCount);
 
-        int activeManaTypes = (int) this.manaPool.values().stream().filter(v -> v > 0).count();
+        int activeManaTypes = (int) this.materiaFumusPool.values().stream().filter(v -> v > 0).count();
         int activeEssenceTypes = (int) this.essencePool.values().stream().filter(v -> v > 0).count();
 
         // Halves per extra type above 1 (Mana) and 2 (Essence)
@@ -268,7 +268,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         }
 
         // Clear the mana entirely so it doesn't instantly re-blow up if rebuilt
-        for (Map.Entry<EssenceType, Integer> entry : this.manaPool.entrySet()) {
+        for (Map.Entry<EssenceType, Integer> entry : this.materiaFumusPool.entrySet()) {
             entry.setValue(0);
         }
 
@@ -287,7 +287,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         int maxMana = 0;
 
         // Find the most abundant mana type
-        for (Map.Entry<EssenceType, Integer> entry : this.manaPool.entrySet()) {
+        for (Map.Entry<EssenceType, Integer> entry : this.materiaFumusPool.entrySet()) {
             if (entry.getValue() > maxMana) {
                 maxMana = entry.getValue();
                 typeToPush = entry.getKey();
@@ -301,11 +301,11 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         // Gather all UNIQUE fume handlers attached to the top of all plumes
         Set<IVaporHandler> handlersSet = new HashSet<>();
         for (BlockPos plumePos : this.connectedPlumes) {
-            if (level.getBlockState(plumePos).is(ModBlocks.MANA_PLUME.get())) {
+            if (level.getBlockState(plumePos).is(ModBlocks.MATERIA_PLUME.get())) {
                 BlockPos targetPos = plumePos.above(); // Only check directly above
                 BlockEntity targetBE = level.getBlockEntity(targetPos);
 
-                if (targetBE instanceof IVaporHandler handler && !(targetBE instanceof ManaPlumeBlockEntity) && !(targetBE instanceof EntropicCoreBlockEntity)) {
+                if (targetBE instanceof IVaporHandler handler && !(targetBE instanceof MateriaPlumeBlockEntity) && !(targetBE instanceof EntropicCoreBlockEntity)) {
                     handlersSet.add(handler);
                 }
             }
@@ -335,7 +335,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
                 int accepted = handler.fill(pushStack, false);
 
                 if (accepted > 0) {
-                    this.extractMana(typeToPush, accepted);
+                    this.extractMateriaFumus(typeToPush, accepted);
                     amountLeftToPush -= accepted;
                     if (remainder > 0) remainder--;
                     pushedAny = true;
@@ -404,7 +404,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
 
     private void processProcessing(Level level, BlockPos pos, BlockState state) {
         boolean stateChanged = false;
-        int maxMana = getMaxMana();
+        int maxMana = getMaxMateriaFumus();
         int operations = this.coreCount;
         boolean overloadEnabled = EntropicaConfig.ENABLE_CORE_OVERLOAD.get();
 
@@ -415,7 +415,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
                 break;
             }
 
-            int generated = Math.round(EntropicaConfig.MANA_PER_ESSENCE.get() * (1.0f + (0.20f * (activeTypes - 1))));
+            int generated = Math.round(EntropicaConfig.MATERIA_PER_ESSENCE.get() * (1.0f + (0.20f * (activeTypes - 1))));
 
             if (this.currentMode == BurnMode.REGULAR || this.currentMode == BurnMode.ELEMENTAL) {
                 boolean performedOp = false;
@@ -431,7 +431,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
                         if (overloadEnabled || spaceRaw >= generated) {
                             this.essencePool.put(type, essenceAmount - 1);
                             int actualAdded = Math.min(generated, spaceRaw);
-                            this.manaPool.put(targetType, this.manaPool.getOrDefault(targetType, 0) + actualAdded);
+                            this.materiaFumusPool.put(targetType, this.materiaFumusPool.getOrDefault(targetType, 0) + actualAdded);
                             stateChanged = true;
                             performedOp = true;
                         } else {
@@ -469,7 +469,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
                             if (overloadEnabled || spaceRaw >= recipe.yield()) {
                                 recipe.inputs().forEach((t, amt) -> this.essencePool.put(t, this.essencePool.get(t) - amt));
                                 int actualAdded = Math.min(recipe.yield(), spaceRaw);
-                                this.manaPool.put(out, this.manaPool.getOrDefault(out, 0) + actualAdded);
+                                this.materiaFumusPool.put(out, this.materiaFumusPool.getOrDefault(out, 0) + actualAdded);
                                 stateChanged = true;
                                 fusionSuccess = true;
                                 break;
@@ -509,7 +509,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
             BlockPos current = toVisit.poll();
             Block block = level.getBlockState(current).getBlock();
             if (block == ModBlocks.ENTROPIC_CORE.get()) foundCores.add(current);
-            else if (block == ModBlocks.MANA_PLUME.get()) foundPlumes.add(current);
+            else if (block == ModBlocks.MATERIA_PLUME.get()) foundPlumes.add(current);
             else if (block == ModBlocks.FURNACE_HATCH.get()) foundHatches.add(current);
             else if (block == ModBlocks.ESSENCE_RECEPTACLE.get()) foundReceptacles.add(current);
             else if (block == ModBlocks.CATALYST_RECEPTACLE.get()) catalysts++;
@@ -605,7 +605,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         }
 
         for (BlockPos plumePos : foundPlumes) {
-            if (level.getBlockEntity(plumePos) instanceof ManaPlumeBlockEntity plumeBE) {
+            if (level.getBlockEntity(plumePos) instanceof MateriaPlumeBlockEntity plumeBE) {
                 plumeBE.setMasterPos(newMasterPos);
                 plumeBE.setChanged();
             }
@@ -622,7 +622,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
     }
 
     private boolean isFurnaceComponent(Block block) {
-        return block == ModBlocks.ENTROPIC_CORE.get() || block == ModBlocks.MANA_PLUME.get() ||
+        return block == ModBlocks.ENTROPIC_CORE.get() || block == ModBlocks.MATERIA_PLUME.get() ||
                 block == ModBlocks.FURNACE_HATCH.get() || block == ModBlocks.ESSENCE_RECEPTACLE.get() ||
                 block == ModBlocks.CATALYST_RECEPTACLE.get() || block == ModBlocks.ARCANE_BRICK.get() ||
                 block == ModBlocks.ARCANITE_PLATING.get() || block == ModBlocks.VIS_READOUT.get() ||
@@ -646,7 +646,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
     }
 
     public int getWeightedTotalMana() {
-        return getMaster().manaPool.entrySet().stream()
+        return getMaster().materiaFumusPool.entrySet().stream()
                 .mapToInt(e -> e.getValue() * getEssenceWeight(e.getKey()))
                 .sum();
     }
@@ -662,7 +662,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
 
         int weight = getEssenceWeight(resource.getType());
         int currentWeighted = master.getWeightedTotalMana();
-        int spaceWeighted = master.getMaxMana() - currentWeighted;
+        int spaceWeighted = master.getMaxMateriaFumus() - currentWeighted;
 
         if (spaceWeighted <= 0) return 0;
 
@@ -670,7 +670,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         int amountToFill = Math.min(resource.getAmount(), spaceRaw);
 
         if (!simulate && amountToFill > 0) {
-            master.manaPool.put(resource.getType(), master.manaPool.getOrDefault(resource.getType(), 0) + amountToFill);
+            master.materiaFumusPool.put(resource.getType(), master.materiaFumusPool.getOrDefault(resource.getType(), 0) + amountToFill);
             master.setChanged();
             if (master.level != null && !master.level.isClientSide()) {
                 master.level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
@@ -687,7 +687,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         EssenceType bestType = null;
         int maxFound = 0;
 
-        for (Map.Entry<EssenceType, Integer> entry : master.manaPool.entrySet()) {
+        for (Map.Entry<EssenceType, Integer> entry : master.materiaFumusPool.entrySet()) {
             if (entry.getValue() > maxFound) {
                 maxFound = entry.getValue();
                 bestType = entry.getKey();
@@ -699,7 +699,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         int amountToDrain = Math.min(maxFound, maxDrain);
 
         if (!simulate && amountToDrain > 0) {
-            master.manaPool.put(bestType, maxFound - amountToDrain);
+            master.materiaFumusPool.put(bestType, maxFound - amountToDrain);
             master.setChanged();
             if (master.level != null && !master.level.isClientSide()) {
                 master.level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
@@ -715,7 +715,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         EssenceType bestType = null;
         int maxFound = 0;
 
-        for (Map.Entry<EssenceType, Integer> entry : master.manaPool.entrySet()) {
+        for (Map.Entry<EssenceType, Integer> entry : master.materiaFumusPool.entrySet()) {
             if (entry.getValue() > maxFound) {
                 maxFound = entry.getValue();
                 bestType = entry.getKey();
@@ -728,22 +728,22 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
 
     @Override
     public int getSafeCapacity() {
-        return getMaster().getMaxMana();
+        return getMaster().getMaxMateriaFumus();
     }
 
     @Override
     public int getAbsoluteCapacity() {
         // We set the absolute structural limit to 3x the safe capacity,
         // mirroring the standard 3.0 pressure breaking point of other tanks.
-        return getMaster().getMaxMana() * 3;
+        return getMaster().getMaxMateriaFumus() * 3;
     }
 
-    public int extractMana(EssenceType type, int maxExtract) {
+    public int extractMateriaFumus(EssenceType type, int maxExtract) {
         EntropicCoreBlockEntity master = getMaster();
-        int current = master.manaPool.getOrDefault(type, 0);
+        int current = master.materiaFumusPool.getOrDefault(type, 0);
         int ext = Math.min(current, maxExtract);
         if (ext > 0) {
-            master.manaPool.put(type, current - ext);
+            master.materiaFumusPool.put(type, current - ext);
             master.setChanged();
             if (level != null && !level.isClientSide()) level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
         }
@@ -768,7 +768,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
             EssenceType bestType = null;
             int maxFound = -1;
 
-            for (Map.Entry<EssenceType, Integer> entry : master.manaPool.entrySet()) {
+            for (Map.Entry<EssenceType, Integer> entry : master.materiaFumusPool.entrySet()) {
                 if (entry.getValue() >= capacity && entry.getValue() > maxFound) {
                     maxFound = entry.getValue();
                     bestType = entry.getKey();
@@ -776,7 +776,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
             }
 
             if (bestType != null) {
-                master.manaPool.put(bestType, master.manaPool.get(bestType) - capacity);
+                master.materiaFumusPool.put(bestType, master.materiaFumusPool.get(bestType) - capacity);
                 master.setChanged();
 
                 ItemStack filled = new ItemStack(targetFilledItem);
@@ -805,8 +805,8 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
             int capacity = ampoule.getCapacity();
             int weight = getEssenceWeight(type);
 
-            if (master.getWeightedTotalMana() + (capacity * weight) <= master.getMaxMana()) {
-                master.manaPool.put(type, master.manaPool.getOrDefault(type, 0) + capacity);
+            if (master.getWeightedTotalMana() + (capacity * weight) <= master.getMaxMateriaFumus()) {
+                master.materiaFumusPool.put(type, master.materiaFumusPool.getOrDefault(type, 0) + capacity);
                 master.setChanged();
 
                 ItemStack empty = new ItemStack(ampoule.getBaseItem());
@@ -839,7 +839,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
 
         if (!master.isActive) {
             // Respect Config for toggling activation
-            if (!EntropicaConfig.ENABLE_CORE_OVERLOAD.get() && master.getWeightedTotalMana() >= master.getMaxMana()) {
+            if (!EntropicaConfig.ENABLE_CORE_OVERLOAD.get() && master.getWeightedTotalMana() >= master.getMaxMateriaFumus()) {
                 player.displayClientMessage(Component.literal("§cCannot activate: Mana capacity is full."), true);
                 return;
             }
@@ -895,14 +895,14 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
     }
 
     public boolean isActive() { return getMaster().isActive; }
-    public int getMaxMana() { return EntropicaConfig.ENTROPIC_CORE_MAX_MANA.get() * getMaster().coreCount; }
+    public int getMaxMateriaFumus() { return EntropicaConfig.ENTROPIC_CORE_MAX_MATERIA.get() * getMaster().coreCount; }
     public int getMaxEssencePerType() { return EntropicaConfig.RECEPTACLE_MAX_ESSENCE.get() * getMaster().receptacleCount; }
 
-    public int getTotalMana() { return getMaster().manaPool.values().stream().mapToInt(Integer::intValue).sum(); }
+    public int getTotalMateriaFumus() { return getMaster().materiaFumusPool.values().stream().mapToInt(Integer::intValue).sum(); }
 
     private int getTotalEssence() { return getEssencePool().values().stream().mapToInt(Integer::intValue).sum(); }
     private int getActiveEssenceTypes() { return (int) getEssencePool().values().stream().filter(v -> v > 0).count(); }
-    public Map<EssenceType, Integer> getManaPool() { return getMaster().manaPool; }
+    public Map<EssenceType, Integer> getMateriaFumusPool() { return getMaster().materiaFumusPool; }
     public Map<EssenceType, Integer> getEssencePool() { return getMaster().essencePool; }
     public boolean isFormed() { return getMaster().isFormed; }
     public String getLastValidationError() { return getMaster().lastValidationError; }
@@ -934,7 +934,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         }
 
         for (EssenceType type : EssenceType.values()) {
-            output.putInt(type.name() + "_Mana", this.manaPool.getOrDefault(type, 0));
+            output.putInt(type.name() + "_MateriaFumus", this.materiaFumusPool.getOrDefault(type, 0));
             output.putInt(type.name() + "_Essence", this.essencePool.getOrDefault(type, 0));
         }
         for (int i = 0; i < sharedReceptacleBuffer.getContainerSize(); i++) {
@@ -969,7 +969,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         }
 
         for (EssenceType type : EssenceType.values()) {
-            this.manaPool.put(type, input.getIntOr(type.name() + "_Mana", 0));
+            this.materiaFumusPool.put(type, input.getIntOr(type.name() + "_MateriaFumus", 0));
             this.essencePool.put(type, input.getIntOr(type.name() + "_Essence", 0));
         }
         for (int i = 0; i < sharedReceptacleBuffer.getContainerSize(); i++) {

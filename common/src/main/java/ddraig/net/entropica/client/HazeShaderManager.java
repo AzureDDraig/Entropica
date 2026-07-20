@@ -17,6 +17,25 @@ public class HazeShaderManager {
             shutdownHazeShader(mc.gameRenderer);
             wasActive = false;
         }
+
+        // Custom client tick trails for Materia-Infused Zombie
+        if (mc.level != null && mc.level.getGameTime() % 2 == 0) {
+            for (net.minecraft.world.entity.Entity entity : mc.level.entitiesForRendering()) {
+                if (entity instanceof net.minecraft.world.entity.monster.Zombie zombie) {
+                    if (zombie.hasCustomName() && "Materia-Infused Zombie".equals(zombie.getCustomName().getString())) {
+                        double px = zombie.getX() + (zombie.getRandom().nextDouble() - 0.5) * 0.6;
+                        double py = zombie.getY() + zombie.getRandom().nextDouble() * zombie.getBbHeight();
+                        double pz = zombie.getZ() + (zombie.getRandom().nextDouble() - 0.5) * 0.6;
+                        
+                        if (zombie.getRandom().nextBoolean()) {
+                            mc.level.addParticle(net.minecraft.core.particles.ParticleTypes.WITCH, px, py, pz, 0, 0.02, 0);
+                        } else {
+                            mc.level.addParticle(new net.minecraft.core.particles.DustParticleOptions(0x8A0303, 1.0F), px, py, pz, 0, 0.01, 0);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void loadHazeShader(net.minecraft.client.renderer.GameRenderer renderer) {

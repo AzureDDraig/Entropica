@@ -37,8 +37,8 @@ public class OrbisCellBlock extends Block implements EntityBlock {
             CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
             CompoundTag tag = customData.copyTag();
 
-            int storedMana = tag.getInt("StoredMana").orElse(0);
-            String manaTypeStr = tag.getString("ManaType").orElse("");
+            int storedMana = tag.getInt("StoredMateria2").orElse(0);
+            String manaTypeStr = tag.getString("MateriaType").orElse("");
 
             cellBlockEntity.setMana(storedMana);
             if (!manaTypeStr.isEmpty()) {
@@ -57,9 +57,9 @@ public class OrbisCellBlock extends Block implements EntityBlock {
                 ItemStack dropStack = new ItemStack(this);
 
                 CompoundTag tag = new CompoundTag();
-                tag.putInt("StoredMana", cellBlockEntity.getMana());
+                tag.putInt("StoredMateria2", cellBlockEntity.getMana());
                 if (cellBlockEntity.getManaType() != null) {
-                    tag.putString("ManaType", cellBlockEntity.getManaType().name());
+                    tag.putString("MateriaType", cellBlockEntity.getManaType().name());
                 }
 
                 dropStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
@@ -80,10 +80,10 @@ public class OrbisCellBlock extends Block implements EntityBlock {
         // If the game says includeData (or we just want to ensure it always happens)
         if (level.getBlockEntity(pos) instanceof OrbisCellBlockEntity cellBlockEntity) {
             CompoundTag tag = new CompoundTag();
-            tag.putInt("StoredMana", cellBlockEntity.getMana());
+            tag.putInt("StoredMateria2", cellBlockEntity.getMana());
 
             if (cellBlockEntity.getManaType() != null) {
-                tag.putString("ManaType", cellBlockEntity.getManaType().name());
+                tag.putString("MateriaType", cellBlockEntity.getManaType().name());
             }
 
             // Apply the data to the stack so middle-clicking preserves the battery charge

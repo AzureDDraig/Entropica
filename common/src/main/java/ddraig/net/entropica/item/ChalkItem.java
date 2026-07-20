@@ -93,6 +93,64 @@ public class ChalkItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
+        // Automatic alchemical shell drawing around predrawn magic circles
+        if (clickedState.is(ModBlocks.SCRIBED_CHALK.get()) && 
+            clickedState.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.OUTPUT &&
+            !clickedState.getValue(ScribedChalkBlock.CIRCUIT) && 
+            this.circuit) {
+            
+            BlockEntity be = level.getBlockEntity(clickedPos);
+            if (be instanceof ddraig.net.entropica.block.entity.ScribedChalkBlockEntity chalkBE) {
+                int activeTier = chalkBE.getActiveCircleTier();
+                if (activeTier > 0 && activeTier < 4) {
+                    if (!level.isClientSide()) {
+                        int outerTier = activeTier + 1;
+                        int[][] offsets = ScribedChalkBlock.getOffsetsForTier(outerTier);
+                        
+                        BlockPos closestOffsetPos = null;
+                        if (player != null) {
+                            double minDist = Double.MAX_VALUE;
+                            for (int[] offset : offsets) {
+                                BlockPos p = clickedPos.offset(offset[0], 0, offset[1]);
+                                double dist = p.distSqr(player.blockPosition());
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    closestOffsetPos = p;
+                                }
+                            }
+                        }
+                        
+                        int blocksScribed = 0;
+                        for (int[] offset : offsets) {
+                            BlockPos p = clickedPos.offset(offset[0], 0, offset[1]);
+                            if (closestOffsetPos != null && p.equals(closestOffsetPos)) {
+                                continue;
+                            }
+                            
+                            BlockState currentState = level.getBlockState(p);
+                            if (currentState.isAir() || currentState.canBeReplaced()) {
+                                BlockState chalkState = ModBlocks.SCRIBED_CHALK.get().defaultBlockState()
+                                        .setValue(ScribedChalkBlock.TIER, 1)
+                                        .setValue(ScribedChalkBlock.NODE_TYPE, ScribedChalkBlock.NodeType.DEFAULT)
+                                        .setValue(ScribedChalkBlock.CIRCUIT, true);
+                                level.setBlock(p, chalkState, 3);
+                                blocksScribed++;
+                            }
+                        }
+                        
+                        if (blocksScribed > 0 && player != null) {
+                            ItemStack stack = context.getItemInHand();
+                            net.minecraft.world.entity.EquipmentSlot slot = context.getHand() == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND;
+                            stack.hurtAndBreak(blocksScribed, player, slot);
+                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§aDrawing alchemical circuit shell around magic circle!"), true);
+                        }
+                        level.playSound(null, clickedPos, SoundEvents.GRAVEL_PLACE, SoundSource.BLOCKS, 0.7f, 1.2f);
+                    }
+                    return InteractionResult.SUCCESS;
+                }
+            }
+        }
+
         // 1. If right-clicking an existing chalk block of the same circuit type, cycle its NodeType
         if (clickedState.is(ModBlocks.SCRIBED_CHALK.get()) && clickedState.getValue(ScribedChalkBlock.CIRCUIT) == this.circuit) {
             if (!level.isClientSide()) {

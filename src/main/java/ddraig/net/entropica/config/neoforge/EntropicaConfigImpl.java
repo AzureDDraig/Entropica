@@ -1,14 +1,14 @@
 package ddraig.net.entropica.config.neoforge;
 
 public class EntropicaConfigImpl {
-    public static int getManaPerEssence() { return EntropicaNeoForgeConfig.MANA_PER_ESSENCE.get(); }
-    public static int getManaFurnaceMaxMana() { return EntropicaNeoForgeConfig.MANA_FURNACE_MAX_MANA.get(); }
-    public static int getManaFurnaceMaxEssence() { return EntropicaNeoForgeConfig.MANA_FURNACE_MAX_ESSENCE.get(); }
-    public static int getEntropicCoreMaxMana() { return EntropicaNeoForgeConfig.ENTROPIC_CORE_MAX_MANA.get(); }
+    public static int getMateriaPerEssence() { return EntropicaNeoForgeConfig.MATERIA_PER_ESSENCE.get(); }
+    public static int getMateriaFurnaceMaxMateria() { return EntropicaNeoForgeConfig.MATERIA_FURNACE_MAX_MANA.get(); }
+    public static int getMateriaFurnaceMaxEssence() { return EntropicaNeoForgeConfig.MATERIA_FURNACE_MAX_ESSENCE.get(); }
+    public static int getEntropicCoreMaxMateria() { return EntropicaNeoForgeConfig.ENTROPIC_CORE_MAX_MATERIA.get(); }
     public static int getReceptacleMaxEssence() { return EntropicaNeoForgeConfig.RECEPTACLE_MAX_ESSENCE.get(); }
     public static int getCoreProcessTickRate() { return EntropicaNeoForgeConfig.CORE_PROCESS_TICK_RATE.get(); }
     public static boolean getEnableCoreOverload() { return EntropicaNeoForgeConfig.ENABLE_CORE_OVERLOAD.get(); }
-    public static int getOrbisCellMaxMana() { return EntropicaNeoForgeConfig.ORBIS_CELL_MAX_MANA.get(); }
+    public static int getOrbisCellMaxMateria() { return EntropicaNeoForgeConfig.ORBIS_CELL_MAX_MATERIA.get(); }
 
     public static int getCopperPipeCapacity() { return EntropicaNeoForgeConfig.COPPER_PIPE_CAPACITY.get(); }
     public static int getCopperPipeTransferRate() { return EntropicaNeoForgeConfig.COPPER_PIPE_TRANSFER_RATE.get(); }

@@ -20,7 +20,7 @@ public class ModCreativeTabs {
 
     public static final RegistrySupplier<CreativeModeTab> BLOCKS_TAB = CREATIVE_MODE_TABS.register("blocks_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
             .title(Component.translatable("itemGroup.entropica.blocks"))
-            .icon(() -> ModItems.MANA_FURNACE_ITEM.get().getDefaultInstance())
+            .icon(() -> ModItems.MATERIA_FURNACE_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 ModBlocks.BLOCKS.getEntries().forEach(blockHolder -> {
                     Item blockItem = blockHolder.get().asItem();

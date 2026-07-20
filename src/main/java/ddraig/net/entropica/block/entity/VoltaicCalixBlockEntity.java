@@ -35,18 +35,18 @@ public class VoltaicCalixBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("StoredMana", this.mana);
+        output.putInt("StoredMateria5", this.mana);
         if (this.manaType != null) {
-            output.putString("ManaType", this.manaType.name());
+            output.putString("MateriaType", this.manaType.name());
         }
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.mana = input.getIntOr("StoredMana", 0);
+        this.mana = input.getIntOr("StoredMateria5", 0);
 
-        String typeStr = input.getStringOr("ManaType", "");
+        String typeStr = input.getStringOr("MateriaType", "");
         if (!typeStr.isEmpty()) {
             try {
                 this.manaType = EssenceType.valueOf(typeStr);
@@ -65,9 +65,9 @@ public class VoltaicCalixBlockEntity extends BlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        tag.putInt("StoredMana", this.mana);
+        tag.putInt("StoredMateria5", this.mana);
         if (this.manaType != null) {
-            tag.putString("ManaType", this.manaType.name());
+            tag.putString("MateriaType", this.manaType.name());
         }
         return tag;
     }

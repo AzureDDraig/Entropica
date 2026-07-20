@@ -493,7 +493,7 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
         for (BlockPos pos : validStructureBlocks) {
             if (pos.equals(this.worldPosition)) continue;
             BlockEntity be = this.level.getBlockEntity(pos);
-            if (be instanceof ManaEnrichedGlassBlockEntity glass && glass.getControllerPos() != null && !glass.getControllerPos().equals(this.worldPosition)) return failFormationAndExplode();
+            if (be instanceof MateriaEnrichedGlassBlockEntity glass && glass.getControllerPos() != null && !glass.getControllerPos().equals(this.worldPosition)) return failFormationAndExplode();
             if (be instanceof VisFumeVesselPortBlockEntity port && port.getControllerPos() != null && !port.getControllerPos().equals(this.worldPosition)) return failFormationAndExplode();
         }
 
@@ -515,7 +515,7 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
 
         for (BlockPos pos : this.connectedBlocks) {
             BlockEntity be = this.level.getBlockEntity(pos);
-            if (be instanceof ManaEnrichedGlassBlockEntity glass) {
+            if (be instanceof MateriaEnrichedGlassBlockEntity glass) {
                 glass.setControllerPos(this.worldPosition);
             } else if (be instanceof VisFumeVesselPortBlockEntity port) {
                 port.setControllerPos(this.worldPosition);
@@ -605,7 +605,7 @@ public class VisFumePressureChamberControllerBlockEntity extends BlockEntity imp
         if (this.level != null) {
             for (BlockPos pos : this.connectedBlocks) {
                 BlockEntity be = this.level.getBlockEntity(pos);
-                if (be instanceof ManaEnrichedGlassBlockEntity glass) glass.setControllerPos(null);
+                if (be instanceof MateriaEnrichedGlassBlockEntity glass) glass.setControllerPos(null);
                 else if (be instanceof VisFumeVesselPortBlockEntity port) port.setControllerPos(null);
             }
         }

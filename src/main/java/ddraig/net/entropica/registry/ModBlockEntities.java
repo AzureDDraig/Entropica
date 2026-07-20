@@ -11,9 +11,9 @@ public class ModBlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(Entropica.MODID, Registries.BLOCK_ENTITY_TYPE);
 
-    public static final RegistrySupplier<BlockEntityType<ManaFurnaceBlockEntity>> MANA_FURNACE_BE =
-            BLOCK_ENTITIES.register("mana_furnace", () ->
-                    BlockEntityHelper.create(ManaFurnaceBlockEntity::new, ModBlocks.MANA_FURNACE.get()));
+    public static final RegistrySupplier<BlockEntityType<MateriaFurnaceBlockEntity>> MATERIA_FURNACE_BE =
+            BLOCK_ENTITIES.register("materia_furnace", () ->
+                    BlockEntityHelper.create(MateriaFurnaceBlockEntity::new, ModBlocks.MATERIA_FURNACE.get()));
 
     public static final RegistrySupplier<BlockEntityType<EntropicCoreBlockEntity>> ENTROPIC_CORE_BE =
             BLOCK_ENTITIES.register("entropic_core", () ->
@@ -39,9 +39,9 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("raw_materia_readout", () ->
                     BlockEntityHelper.create(EssenceReadoutBlockEntity::new, ModBlocks.ESSENCE_READOUT.get()));
 
-    public static final RegistrySupplier<BlockEntityType<ManaPlumeBlockEntity>> MANA_PLUME_BE =
-            BLOCK_ENTITIES.register("mana_plume", () ->
-                    BlockEntityHelper.create(ManaPlumeBlockEntity::new, ModBlocks.MANA_PLUME.get()));
+    public static final RegistrySupplier<BlockEntityType<MateriaPlumeBlockEntity>> MATERIA_PLUME_BE =
+            BLOCK_ENTITIES.register("materia_plume", () ->
+                    BlockEntityHelper.create(MateriaPlumeBlockEntity::new, ModBlocks.MATERIA_PLUME.get()));
 
     public static final RegistrySupplier<BlockEntityType<MateriaFilterBlockEntity>> MATERIA_FILTER_BE =
             BLOCK_ENTITIES.register("materia_filter", () ->
@@ -237,9 +237,9 @@ public class ModBlockEntities {
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.ResearchBenchBlockEntity::new, ModBlocks.RESEARCH_BENCH.get()));
 
     // --- Glass tiers grouped into single Block Entity ---
-    public static final RegistrySupplier<BlockEntityType<ManaEnrichedGlassBlockEntity>> MANA_ENRICHED_GLASS_BE =
-            BLOCK_ENTITIES.register("mana_enriched_glass", () ->
-                    BlockEntityHelper.create(ManaEnrichedGlassBlockEntity::new,
+    public static final RegistrySupplier<BlockEntityType<MateriaEnrichedGlassBlockEntity>> MATERIA_ENRICHED_GLASS_BE =
+            BLOCK_ENTITIES.register("materia_enriched_glass", () ->
+                    BlockEntityHelper.create(MateriaEnrichedGlassBlockEntity::new,
                             ModBlocks.ESSENCE_ENRICHED_GLASS.get(),
                             ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get(),
                             ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(),

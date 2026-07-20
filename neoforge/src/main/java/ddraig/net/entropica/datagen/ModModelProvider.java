@@ -54,13 +54,13 @@ public class ModModelProvider extends ModelProvider {
         // Generates a simple baseline BlockState mapping to satisfy the validation
         // You can manually overwrite the resulting JSON files if you need directional facing!
         blockModels.createNonTemplateModelBlock(ModBlocks.VOID_RIFT.get()); // Added to satisfy validation!
-        blockModels.createNonTemplateModelBlock(ModBlocks.MANA_FURNACE.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.MATERIA_FURNACE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_AUTO_SMELTER.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_CORE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.CATALYST_RECEPTACLE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ESSENCE_RECEPTACLE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.VOID_RIFT.get()); // Added to satisfy validation!
-        blockModels.createNonTemplateModelBlock(ModBlocks.MANA_FURNACE.get());
+        blockModels.createNonTemplateModelBlock(ModBlocks.MATERIA_FURNACE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_AUTO_SMELTER.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.ENTROPIC_CORE.get());
         blockModels.createNonTemplateModelBlock(ModBlocks.CATALYST_RECEPTACLE.get());

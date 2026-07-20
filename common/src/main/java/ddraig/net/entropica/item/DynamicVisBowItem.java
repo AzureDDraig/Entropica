@@ -91,7 +91,7 @@ public class DynamicVisBowItem extends BowItem {
         if (state != null && state.hasOrbisSlot() && !state.orbisCell().isEmpty()) {
             ItemStack cell = state.orbisCell();
             net.minecraft.world.item.component.CustomData data = cell.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
-            int stored = data.copyTag().getInt("StoredVis").orElse(0);
+            int stored = data.copyTag().getInt("StoredMateria2").orElse(0);
             int max = 10000;
             if (stored > 0) {
                 return Math.round(13.0f * ((float)stored / max));
@@ -159,7 +159,7 @@ public class DynamicVisBowItem extends BowItem {
                         net.minecraft.world.item.component.CustomData data = cell.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
 
                         // Cleanly unwraps the Optional using orElse!
-                        int storedVis = data.copyTag().getInt("StoredVis").orElse(0);
+                        int storedVis = data.copyTag().getInt("StoredMateria2").orElse(0);
 
                         String typeStr = data.copyTag().getString("EssenceType").orElse("REGULAR");
                         EssenceType parsedType;
@@ -172,7 +172,7 @@ public class DynamicVisBowItem extends BowItem {
                         String filled = "|".repeat(bars);
                         String empty = "|".repeat(20 - bars);
 
-                        tooltipComponents.accept(Component.literal(" Stored Vis ").withStyle(ChatFormatting.GRAY)
+                        tooltipComponents.accept(Component.literal(" Stored Materia ").withStyle(ChatFormatting.GRAY)
                                 .append(Component.literal(filled).withStyle(style -> style.withColor(cellType.getColorInt())))
                                 .append(Component.literal(empty).withStyle(ChatFormatting.DARK_GRAY))
                         );

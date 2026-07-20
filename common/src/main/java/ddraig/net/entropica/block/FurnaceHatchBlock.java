@@ -80,13 +80,13 @@ public class FurnaceHatchBlock extends Block {
                 CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
                 CompoundTag tag = customData.copyTag();
 
-                int currentCellVis = tag.getInt("StoredVis").orElse(0);
+                int currentCellVis = tag.getInt("StoredMateria2").orElse(0);
                 String storedTypeStr = tag.getString("EssenceType").orElse("");
 
                 EssenceType targetType = null;
 
                 if (currentCellVis == 0 || storedTypeStr.isEmpty()) {
-                    for (Map.Entry<EssenceType, Integer> entry : master.getManaPool().entrySet()) {
+                    for (Map.Entry<EssenceType, Integer> entry : master.getMateriaFumusPool().entrySet()) {
                         if (entry.getValue() > 0) {
                             targetType = entry.getKey();
                             break;
@@ -103,10 +103,10 @@ public class FurnaceHatchBlock extends Block {
                 if (targetType != null) {
                     if (currentCellVis < cellCapacity) {
                         int spaceLeft = cellCapacity - currentCellVis;
-                        int extracted = master.extractMana(targetType, spaceLeft);
+                        int extracted = master.extractMateriaFumus(targetType, spaceLeft);
 
                         if (extracted > 0) {
-                            tag.putInt("StoredVis", currentCellVis + extracted);
+                            tag.putInt("StoredMateria2", currentCellVis + extracted);
                             tag.putString("EssenceType", targetType.name());
                             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 

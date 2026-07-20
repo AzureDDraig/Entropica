@@ -59,7 +59,7 @@ public class VisReadoutRenderer implements BlockEntityRenderer<VisReadoutBlockEn
                         if (targetEntity instanceof EntropicCoreBlockEntity core) {
                             renderState.hasTarget = true;
                             renderState.targetName = "Core Vis Levels";
-                            renderState.visPool.putAll(core.getManaPool());
+                            renderState.visPool.putAll(core.getMateriaFumusPool());
                             return; // Stop searching once found
                         }
 

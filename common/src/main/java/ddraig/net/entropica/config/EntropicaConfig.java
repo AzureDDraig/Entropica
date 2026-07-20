@@ -4,14 +4,14 @@ import dev.architectury.injectables.annotations.ExpectPlatform;
 import java.util.function.Supplier;
 
 public class EntropicaConfig {
-    public static final Supplier<Integer> MANA_PER_ESSENCE = EntropicaConfig::getManaPerEssence;
-    public static final Supplier<Integer> MANA_FURNACE_MAX_MANA = EntropicaConfig::getManaFurnaceMaxMana;
-    public static final Supplier<Integer> MANA_FURNACE_MAX_ESSENCE = EntropicaConfig::getManaFurnaceMaxEssence;
-    public static final Supplier<Integer> ENTROPIC_CORE_MAX_MANA = EntropicaConfig::getEntropicCoreMaxMana;
+    public static final Supplier<Integer> MATERIA_PER_ESSENCE = EntropicaConfig::getMateriaPerEssence;
+    public static final Supplier<Integer> MATERIA_FURNACE_MAX_MANA = EntropicaConfig::getMateriaFurnaceMaxMateria;
+    public static final Supplier<Integer> MATERIA_FURNACE_MAX_ESSENCE = EntropicaConfig::getMateriaFurnaceMaxEssence;
+    public static final Supplier<Integer> ENTROPIC_CORE_MAX_MATERIA = EntropicaConfig::getEntropicCoreMaxMateria;
     public static final Supplier<Integer> RECEPTACLE_MAX_ESSENCE = EntropicaConfig::getReceptacleMaxEssence;
     public static final Supplier<Integer> CORE_PROCESS_TICK_RATE = EntropicaConfig::getCoreProcessTickRate;
     public static final Supplier<Boolean> ENABLE_CORE_OVERLOAD = EntropicaConfig::getEnableCoreOverload;
-    public static final Supplier<Integer> ORBIS_CELL_MAX_MANA = EntropicaConfig::getOrbisCellMaxMana;
+    public static final Supplier<Integer> ORBIS_CELL_MAX_MATERIA = EntropicaConfig::getOrbisCellMaxMateria;
 
     // Vis Fume Network
     public static final Supplier<Integer> COPPER_PIPE_CAPACITY = EntropicaConfig::getCopperPipeCapacity;
@@ -98,14 +98,14 @@ public class EntropicaConfig {
     public static final Supplier<Double> WARD_CIRCLE_RADIUS_BASE = EntropicaConfig::getWardCircleRadiusBase;
     public static final Supplier<Double> WARD_BLOCK_RADIUS = EntropicaConfig::getWardBlockRadius;
 
-    @ExpectPlatform public static int getManaPerEssence() { throw new AssertionError(); }
-    @ExpectPlatform public static int getManaFurnaceMaxMana() { throw new AssertionError(); }
-    @ExpectPlatform public static int getManaFurnaceMaxEssence() { throw new AssertionError(); }
-    @ExpectPlatform public static int getEntropicCoreMaxMana() { throw new AssertionError(); }
+    @ExpectPlatform public static int getMateriaPerEssence() { throw new AssertionError(); }
+    @ExpectPlatform public static int getMateriaFurnaceMaxMateria() { throw new AssertionError(); }
+    @ExpectPlatform public static int getMateriaFurnaceMaxEssence() { throw new AssertionError(); }
+    @ExpectPlatform public static int getEntropicCoreMaxMateria() { throw new AssertionError(); }
     @ExpectPlatform public static int getReceptacleMaxEssence() { throw new AssertionError(); }
     @ExpectPlatform public static int getCoreProcessTickRate() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getEnableCoreOverload() { throw new AssertionError(); }
-    @ExpectPlatform public static int getOrbisCellMaxMana() { throw new AssertionError(); }
+    @ExpectPlatform public static int getOrbisCellMaxMateria() { throw new AssertionError(); }
 
     @ExpectPlatform public static int getCopperPipeCapacity() { throw new AssertionError(); }
     @ExpectPlatform public static int getCopperPipeTransferRate() { throw new AssertionError(); }

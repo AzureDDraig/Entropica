@@ -86,7 +86,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
     private boolean absorbVis(ItemStack forkStack, ItemStack essenceStack, int visPerItem, Player player) {
         CustomData data = forkStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = data.copyTag();
-        int currentVis = tag.getInt("StoredVis").orElse(0);
+        int currentVis = tag.getInt("StoredMateria2").orElse(0);
 
         if (currentVis >= MAX_VIS) return false;
 
@@ -115,7 +115,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
         }
 
         essenceStack.shrink(itemsToConsume);
-        tag.putInt("StoredVis", currentVis + totalVisGained);
+        tag.putInt("StoredMateria2", currentVis + totalVisGained);
         CustomData.set(DataComponents.CUSTOM_DATA, forkStack, tag);
         player.playSound(SoundEvents.BUNDLE_INSERT, 0.8F, 0.8F + player.level().getRandom().nextFloat() * 0.4F);
         return true;
@@ -131,7 +131,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
             if (visPerItem > 0) {
                 CustomData data = forkStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
                 CompoundTag tag = data.copyTag();
-                int currentVis = tag.getInt("StoredVis").orElse(0);
+                int currentVis = tag.getInt("StoredMateria2").orElse(0);
 
                 int spaceRemaining = MAX_VIS - currentVis;
                 int itemsToConsume = Math.min(offhandStack.getCount(), spaceRemaining / visPerItem);
@@ -157,7 +157,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
 
                         int totalVisGained = itemsToConsume * visPerItem;
                         offhandStack.shrink(itemsToConsume);
-                        tag.putInt("StoredVis", currentVis + totalVisGained);
+                        tag.putInt("StoredMateria2", currentVis + totalVisGained);
                         CustomData.set(DataComponents.CUSTOM_DATA, forkStack, tag);
                         level.playSound(null, player.blockPosition(), SoundEvents.ENDER_EYE_DEATH, SoundSource.PLAYERS, 0.5f, 1.5f);
                     }
@@ -180,7 +180,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
 
         CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = data.copyTag();
-        int currentVis = tag.getInt("StoredVis").orElse(0);
+        int currentVis = tag.getInt("StoredMateria2").orElse(0);
 
         boolean isRift = level.getBlockState(clickedPos).getBlock() instanceof VoidRiftBlock;
 
@@ -234,7 +234,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
                         riftBE.addAttachedInventory(clickedPos);
                     }
                     tag.remove("LinkRiftX"); tag.remove("LinkRiftY"); tag.remove("LinkRiftZ"); tag.remove("LinkRiftDim");
-                    tag.putInt("StoredVis", currentVis - LINK_COST);
+                    tag.putInt("StoredMateria2", currentVis - LINK_COST);
                     CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
 
                     level.playSound(null, clickedPos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 0.5f, 1.5f);
@@ -302,7 +302,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
             }
 
             if (!level.isClientSide()) {
-                tag.putInt("StoredVis", currentVis - RIFT_COST);
+                tag.putInt("StoredMateria2", currentVis - RIFT_COST);
                 tag.remove("BoundX"); tag.remove("BoundY"); tag.remove("BoundZ");
                 tag.remove("InvX"); tag.remove("InvY"); tag.remove("InvZ");
                 tag.remove("BoundDim");
@@ -330,9 +330,9 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = data.copyTag();
-        int vis = tag.getInt("StoredVis").orElse(0);
+        int vis = tag.getInt("StoredMateria2").orElse(0);
 
-        tooltipComponents.accept(Component.literal("Stored Vis: " + vis + " / " + MAX_VIS).withStyle(ChatFormatting.DARK_PURPLE));
+        tooltipComponents.accept(Component.literal("Stored Materia: " + vis + " / " + MAX_VIS).withStyle(ChatFormatting.DARK_PURPLE));
         if (tag.contains("BoundX")) {
             tooltipComponents.accept(Component.literal("Rift Anchor: [" + tag.getInt("BoundX").orElse(0) + ", " + tag.getInt("BoundY").orElse(0) + ", " + tag.getInt("BoundZ").orElse(0) + "]").withStyle(ChatFormatting.GRAY));
         }

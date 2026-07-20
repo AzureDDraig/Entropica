@@ -66,10 +66,10 @@ public class VoidRiftBlock extends Block implements EntityBlock {
         if (handStack.getItem() instanceof VoidResonantTuningForkItem) {
             CustomData data = handStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
             CompoundTag tag = data.copyTag();
-            int currentVis = tag.getInt("StoredVis").orElse(0);
+            int currentVis = tag.getInt("StoredMateria2").orElse(0);
 
             if (currentVis >= VoidResonantTuningForkItem.BREAK_COST) {
-                tag.putInt("StoredVis", currentVis - VoidResonantTuningForkItem.BREAK_COST);
+                tag.putInt("StoredMateria2", currentVis - VoidResonantTuningForkItem.BREAK_COST);
                 CustomData.set(DataComponents.CUSTOM_DATA, handStack, tag);
 
                 // Safely destroy the block, dropping the Rift item itself

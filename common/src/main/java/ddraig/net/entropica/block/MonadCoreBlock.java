@@ -37,8 +37,8 @@ public class MonadCoreBlock extends Block implements EntityBlock {
             CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
             CompoundTag tag = customData.copyTag();
 
-            int storedMana = tag.getInt("StoredMana").orElse(0);
-            String manaTypeStr = tag.getString("ManaType").orElse("");
+            int storedMana = tag.getInt("StoredMateria9").orElse(0);
+            String manaTypeStr = tag.getString("MateriaType").orElse("");
 
             cellBlockEntity.setMana(storedMana);
             if (!manaTypeStr.isEmpty()) {
@@ -57,9 +57,9 @@ public class MonadCoreBlock extends Block implements EntityBlock {
                 ItemStack dropStack = new ItemStack(this);
 
                 CompoundTag tag = new CompoundTag();
-                tag.putInt("StoredMana", cellBlockEntity.getMana());
+                tag.putInt("StoredMateria9", cellBlockEntity.getMana());
                 if (cellBlockEntity.getManaType() != null) {
-                    tag.putString("ManaType", cellBlockEntity.getManaType().name());
+                    tag.putString("MateriaType", cellBlockEntity.getManaType().name());
                 }
 
                 dropStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
@@ -78,10 +78,10 @@ public class MonadCoreBlock extends Block implements EntityBlock {
 
         if (level.getBlockEntity(pos) instanceof MonadCoreBlockEntity cellBlockEntity) {
             CompoundTag tag = new CompoundTag();
-            tag.putInt("StoredMana", cellBlockEntity.getMana());
+            tag.putInt("StoredMateria9", cellBlockEntity.getMana());
 
             if (cellBlockEntity.getManaType() != null) {
-                tag.putString("ManaType", cellBlockEntity.getManaType().name());
+                tag.putString("MateriaType", cellBlockEntity.getManaType().name());
             }
 
             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));

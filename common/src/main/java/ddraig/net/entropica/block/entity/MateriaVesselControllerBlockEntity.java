@@ -5,7 +5,7 @@ import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.IVaporMultiblockController;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
 import ddraig.net.entropica.api.materia.MateriaStack;
-import ddraig.net.entropica.block.ManaEnrichedGlassBlock;
+import ddraig.net.entropica.block.MateriaEnrichedGlassBlock;
 import ddraig.net.entropica.block.VaporPneumaticOneWayValveBlock;
 import ddraig.net.entropica.block.MateriaVesselControllerBlock;
 import ddraig.net.entropica.block.MateriaVesselPortBlock;
@@ -166,10 +166,10 @@ public class MateriaVesselControllerBlockEntity extends BlockEntity implements I
                     continue;
                 }
 
-                if (neighborBlock instanceof ManaEnrichedGlassBlock || neighborBlock instanceof MateriaVesselPortBlock) {
+                if (neighborBlock instanceof MateriaEnrichedGlassBlock || neighborBlock instanceof MateriaVesselPortBlock) {
                     BlockEntity be = this.level.getBlockEntity(neighborPos);
                     BlockPos claimedPos = null;
-                    if (be instanceof ManaEnrichedGlassBlockEntity glass) claimedPos = glass.getControllerPos();
+                    if (be instanceof MateriaEnrichedGlassBlockEntity glass) claimedPos = glass.getControllerPos();
                     else if (be instanceof MateriaVesselPortBlockEntity port) claimedPos = port.getControllerPos();
 
                     if (claimedPos != null && !claimedPos.equals(this.worldPosition)) {
@@ -182,7 +182,7 @@ public class MateriaVesselControllerBlockEntity extends BlockEntity implements I
                     visited.add(neighborPos);
                     queue.add(neighborPos);
 
-                    if (neighborBlock instanceof ManaEnrichedGlassBlock) {
+                    if (neighborBlock instanceof MateriaEnrichedGlassBlock) {
                         foundGlass.add(neighborBlock);
                     } else {
                         foundPorts.add(neighborPos);
@@ -211,7 +211,7 @@ public class MateriaVesselControllerBlockEntity extends BlockEntity implements I
 
         for (BlockPos pos : this.connectedBlocks) {
             BlockEntity be = this.level.getBlockEntity(pos);
-            if (be instanceof ManaEnrichedGlassBlockEntity glass) {
+            if (be instanceof MateriaEnrichedGlassBlockEntity glass) {
                 glass.setControllerPos(this.worldPosition);
                 glass.setChanged();
                 this.level.sendBlockUpdated(pos, glass.getBlockState(), glass.getBlockState(), 3);
@@ -248,7 +248,7 @@ public class MateriaVesselControllerBlockEntity extends BlockEntity implements I
         if (this.level != null) {
             for (BlockPos pos : this.connectedBlocks) {
                 BlockEntity be = this.level.getBlockEntity(pos);
-                if (be instanceof ManaEnrichedGlassBlockEntity glass) {
+                if (be instanceof MateriaEnrichedGlassBlockEntity glass) {
                     glass.setControllerPos(null);
                     glass.setChanged();
                     this.level.sendBlockUpdated(pos, glass.getBlockState(), glass.getBlockState(), 3);

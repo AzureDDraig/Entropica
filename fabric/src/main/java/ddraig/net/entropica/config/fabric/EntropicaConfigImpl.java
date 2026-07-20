@@ -70,14 +70,14 @@ public class EntropicaConfigImpl {
     }
 
     public static class EntropicaConfigData {
-        public IntOption manaPerEssence = new IntOption("The amount of Mana produced per 1 Essence consumed every 5 ticks. Min: 1, Max: 1000, Default: 8", 1, 1000, 8);
-        public IntOption manaFurnaceMaxMana = new IntOption("Maximum mana storage capacity for the standalone Mana Furnace. Min: 1, Max: 2147483647, Default: 1024", 1, Integer.MAX_VALUE, 1024);
-        public IntOption manaFurnaceMaxEssence = new IntOption("Maximum essence storage capacity for the standalone Mana Furnace. Capped at 32. Min: 1, Max: 32, Default: 32", 1, 32, 32);
-        public IntOption entropicCoreMaxMana = new IntOption("Maximum mana storage capacity for the Entropic Mana Furnace multiblock. Min: 1, Max: 2147483647, Default: 100000", 1, Integer.MAX_VALUE, 100000);
+        public IntOption materiaPerEssence = new IntOption("The amount of Mana produced per 1 Essence consumed every 5 ticks. Min: 1, Max: 1000, Default: 8", 1, 1000, 8);
+        public IntOption materiaFurnaceMaxMateria = new IntOption("Maximum mana storage capacity for the standalone Mana Furnace. Min: 1, Max: 2147483647, Default: 1024", 1, Integer.MAX_VALUE, 1024);
+        public IntOption materiaFurnaceMaxEssence = new IntOption("Maximum essence storage capacity for the standalone Mana Furnace. Capped at 32. Min: 1, Max: 32, Default: 32", 1, 32, 32);
+        public IntOption entropicCoreMaxMateria = new IntOption("Maximum mana storage capacity for the Entropic Mana Furnace multiblock. Min: 1, Max: 2147483647, Default: 100000", 1, Integer.MAX_VALUE, 100000);
         public IntOption receptacleMaxEssence = new IntOption("The amount of essence storage capacity added per Essence Receptacle in the multiblock. Min: 1, Max: 2147483647, Default: 64", 1, Integer.MAX_VALUE, 64);
         public IntOption coreProcessTickRate = new IntOption("How many ticks between each processing operation of the furnace (20 = 1 second, 5 = 1/4th second). Min: 1, Max: 200, Default: 5", 1, 200, 5);
         public BooleanOption enableCoreOverload = new BooleanOption("If true, the Entropic Core will eventually explode if left active while its Mana Buffer is 100% full. Default: true", true);
-        public IntOption orbisCellMaxMana = new IntOption("Maximum mana storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000", 1, Integer.MAX_VALUE, 10000);
+        public IntOption orbisCellMaxMateria = new IntOption("Maximum mana storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000", 1, Integer.MAX_VALUE, 10000);
 
         // Vis Fume Network
         public IntOption copperPipeCapacity = new IntOption("Safe capacity (1.0 Pressure) for Copper Fume Pipes. Min: 1, Max: 2147483647, Default: 20", 1, Integer.MAX_VALUE, 20);
@@ -166,14 +166,14 @@ public class EntropicaConfigImpl {
         public DoubleOption wardBlockRadius = new DoubleOption("Radius of the dedicated repulsion ward block. Min: 1.0, Default: 15.0", 1.0, 100.0, 15.0);
 
         public void validateAll() {
-            manaPerEssence.validate();
-            manaFurnaceMaxMana.validate();
-            manaFurnaceMaxEssence.validate();
-            entropicCoreMaxMana.validate();
+            materiaPerEssence.validate();
+            materiaFurnaceMaxMateria.validate();
+            materiaFurnaceMaxEssence.validate();
+            entropicCoreMaxMateria.validate();
             receptacleMaxEssence.validate();
             coreProcessTickRate.validate();
             enableCoreOverload.validate();
-            orbisCellMaxMana.validate();
+            orbisCellMaxMateria.validate();
             copperPipeCapacity.validate();
             copperPipeTransferRate.validate();
             ironPipeCapacity.validate();
@@ -280,14 +280,14 @@ public class EntropicaConfigImpl {
         }
     }
 
-    public static int getManaPerEssence() { return data.manaPerEssence.value; }
-    public static int getManaFurnaceMaxMana() { return data.manaFurnaceMaxMana.value; }
-    public static int getManaFurnaceMaxEssence() { return data.manaFurnaceMaxEssence.value; }
-    public static int getEntropicCoreMaxMana() { return data.entropicCoreMaxMana.value; }
+    public static int getMateriaPerEssence() { return data.materiaPerEssence.value; }
+    public static int getMateriaFurnaceMaxMateria() { return data.materiaFurnaceMaxMateria.value; }
+    public static int getMateriaFurnaceMaxEssence() { return data.materiaFurnaceMaxEssence.value; }
+    public static int getEntropicCoreMaxMateria() { return data.entropicCoreMaxMateria.value; }
     public static int getReceptacleMaxEssence() { return data.receptacleMaxEssence.value; }
     public static int getCoreProcessTickRate() { return data.coreProcessTickRate.value; }
     public static boolean getEnableCoreOverload() { return data.enableCoreOverload.value; }
-    public static int getOrbisCellMaxMana() { return data.orbisCellMaxMana.value; }
+    public static int getOrbisCellMaxMateria() { return data.orbisCellMaxMateria.value; }
 
     public static int getCopperPipeCapacity() { return data.copperPipeCapacity.value; }
     public static int getCopperPipeTransferRate() { return data.copperPipeTransferRate.value; }

@@ -1,5 +1,79 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-201-08-59
+
+### Added & Polished
+*   **Specialized Fehu Filters**:
+    *   Added `filterType` property to `ScribedChalkBlockEntity` (with full NBT serialization).
+    *   Right-clicking a Fehu (Filter) node with an elemental `EssenceItem` binds the filter to that specific element. Right-clicking with empty hand/Tuning Fork resets it.
+    *   Dyeing/specialization limits passing signals strictly to elements matching the filter type.
+    *   Emits custom-colored `DustParticleOptions` particles matching the active element around the specialized node on client.
+    *   **Dynamic Shifting**: The unpowered chalk line color of specialized Fehu filters cycles/shifts through the element's colors (including prismatic shifting for true dynamic/ENTROPICA types) based on level gameTime, matching the active essence channels.
+*   **Concentric Alchemical Shell Auto-Drawing**:
+    *   Right-clicking an active magic circle `OUTPUT` center node (`CIRCUIT == false`) with `Advanced Chalk` automatically traces/scribes a concentric outer ring of advanced alchemical circuit chalk lines (`CIRCUIT == true`) around the magic circle.
+    *   Automatically calculates the distance of offset blocks to the player and leaves the closest block empty as a **connection gap**, allowing you to immediately connect the shell to your alchemical circuit lines. Consumes durability from the held chalk stack.
+*   **Diagonal Connection Support**:
+    *   Enabled diagonal connections (NE, NW, SE, SW) between alchemical chalk circuit nodes. Non-diode/non-gate chalk blocks placed diagonally now connect and render lines to each other, allowing circles and complex diagonal routing to work correctly.
+    *   Restored coaxial shell drawing to place concentric circle offsets (which now connect diagonally to form actual circular loops).
+*   **Propagation Strength & Reservoir Charge Separation**:
+    *   Introduced a separate `propagationStrength` field (saved/loaded in NBT) to propagate alchemical signals and handle decay (by 1 per block) across the circuit.
+    *   Stored essence level (`essenceLevel`) resides solely in the `SOURCE` node. Placing an `EssenceItem` or `EssenceAmpouleItem` into the `SOURCE` node charges its reservoir by its alchemical yield based on size (Tier 0/1 = 1, Tier 2 = 4, Tier 3 = 16).
+    *   `EXTRACTION` nodes find connected sources using Breadth-First Search (BFS) and consume matching essence charge (or drain Orbis Cell vis based on `orb.getChargeAmount()`) per extraction, preventing infinite extraction loops from a single essence.
+*   **Essence Orb Scaling Alignment**:
+    *   Aligned the essence amount of `EssenceOrbEntity` and alchemical circuit `ScribedChalkBlock` insertion with the Entropic Core/Furnace size-based scaling values (Weak/Small = 1, Average/Medium = 4, Strong/Large = 16).
+    *   Source nodes now accept both `EssenceItem` and `EssenceAmpouleItem`.
+    *   Fallback extraction node orb spawning consumes essence/vis from the source matching the spawned orb's charge amount (`orb.getChargeAmount()`).
+*   **Upgraded Extraction Nodes (Pipeline Transfer)**:
+    *   Upgrades automatically when placing a pressure conduit or vapor pipe directly **above** the Extraction Node.
+    *   Boosts extraction tick rate from 40 ticks to 15 ticks.
+    *   Drains and pipes essence directly into the conduit above as gaseous `Materia Fumus` (conserving surplus essence if network is full).
+    *   Spawns a vertical rising particle stream of `WITCH` sparkles and plays alchemical chime audio on transfer.
+*   **Materia-Infused Zombie Drops & Aesthetics**:
+    *   Custom zombie drops a `WEAK_ESSENCE` (Tier 2 essence item level) with random `VITAE` or `BLOOD` element type when slain.
+    *   Zombies emit a persistent glowing client trail of purple `WITCH` sparks and red `DustParticleOptions` particles.
+*   **Documentation Flowcharts**:
+    *   Updated the advanced alchemical circuits guide with clear mermaid flowcharts illustrating connections, logic gate routing, and demultiplexing.
+
+---
+
+## Build 000-1-26-201-08-16
+
+### Added & Polished
+*   **Logic Gate Visual Feedback**:
+    *   Implemented active/inactive client-side particles on alchemical logic gates (`AND`, `OR`, `NOT`).
+    *   Powered gates (`essenceLevel > 0`) emit green alchemical sparkles (`HAPPY_VILLAGER`).
+    *   Unpowered connected gates emit occasional grey smoke particles to clearly display signal status.
+*   **Repulsion Ward Enhancements**:
+    *   Added physical push feedback on both circle-based Algiz wards and dedicated ward blocks.
+    *   Spawns expanding cloud shockwave particles and plays a low-frequency hum/whoosh sound when hostile entities are repelled.
+*   **Multi-Tier Storage Cells Tooltips**:
+    *   Refactored `OrbisCellItem` to dynamically calculate capacity and tier based on block type.
+    *   Registered sublimated cells and all higher-tier calixes/cores as `OrbisCellItem` to automatically display beautiful, color-coded Materia capacities and progress bar tooltips.
+*   **Terminal Extraction Nodes**:
+    *   Restricted `EXTRACTION` nodes to only receive essence from traces, ignoring queries from adjacent nodes to prevent extraction nodes from acting as normal wire trace paths.
+
+---
+
+## Build 000-1-26-200-09-43
+
+### Renamed & Refactored
+*   **Materia Renaming**:
+    *   Renamed `ManaEnrichedGlass` blocks, block entities, and renderers to `MateriaEnrichedGlass` across all packages and registries.
+    *   Renamed `ManaPlume` blocks, block entities, and assets to `MateriaPlume`.
+    *   Renamed `ManaFurnace` blocks, block entities, renderers, and assets to `MateriaFurnace`.
+    *   Updated the Entropic Core multiblock logic to use Materia Fumus in place of Mana in all locations (`manaPool` to `materiaFumusPool`, NBT saving/loading, etc.).
+*   **Config Keys**:
+    *   Renamed all configuration fields and registry entries from "Mana" to "Materia" (e.g. `MANA_PER_ESSENCE` to `MATERIA_PER_ESSENCE`, `ORBIS_CELL_MAX_MANA` to `ORBIS_CELL_MAX_MATERIA`).
+*   **Storage Cells NBT**:
+    *   Updated storage cell NBT storage tags from `"StoredVis"` and `"StoredMana"` to a unified `"StoredMateria<Tier>"` format mapping directly to cell tiers 2-10 (e.g., `StoredMateria2` for Orbis Cells, `StoredMateria3` for Sublimated Orbis Cells).
+    *   Renamed `"ManaType"` to `"MateriaType"` in all cell and calix entities.
+    *   Updated referencing items, blocks, and the Extraction Node `tryPushVis` ticking logic to dynamically read and write the new NBT keys.
+*   **Localization**:
+    *   Corrected all translations in `en_us.json` for the renamed items and blocks.
+    *   Added translation mapping for `small_materia_fumus_ampoule` and higher tiers to resolve missing item names.
+
+---
+
 ## Build 000-1-26-200-02-56
 
 ### Added

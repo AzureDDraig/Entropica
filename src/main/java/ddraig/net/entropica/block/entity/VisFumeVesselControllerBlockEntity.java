@@ -4,7 +4,7 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.fumes.IFumeHandler;
 import ddraig.net.entropica.api.fumes.IFumeMultiblockController;
 import ddraig.net.entropica.api.fumes.VisFumeStack;
-import ddraig.net.entropica.block.ManaEnrichedGlassBlock;
+import ddraig.net.entropica.block.MateriaEnrichedGlassBlock;
 import ddraig.net.entropica.block.VisFumeOneWayValveBlock;
 import ddraig.net.entropica.block.VisFumeVesselControllerBlock;
 import ddraig.net.entropica.block.VisFumeVesselPortBlock;
@@ -165,10 +165,10 @@ public class VisFumeVesselControllerBlockEntity extends BlockEntity implements I
                     continue;
                 }
 
-                if (neighborBlock instanceof ManaEnrichedGlassBlock || neighborBlock instanceof VisFumeVesselPortBlock) {
+                if (neighborBlock instanceof MateriaEnrichedGlassBlock || neighborBlock instanceof VisFumeVesselPortBlock) {
                     BlockEntity be = this.level.getBlockEntity(neighborPos);
                     BlockPos claimedPos = null;
-                    if (be instanceof ManaEnrichedGlassBlockEntity glass) claimedPos = glass.getControllerPos();
+                    if (be instanceof MateriaEnrichedGlassBlockEntity glass) claimedPos = glass.getControllerPos();
                     else if (be instanceof VisFumeVesselPortBlockEntity port) claimedPos = port.getControllerPos();
 
                     if (claimedPos != null && !claimedPos.equals(this.worldPosition)) {
@@ -181,7 +181,7 @@ public class VisFumeVesselControllerBlockEntity extends BlockEntity implements I
                     visited.add(neighborPos);
                     queue.add(neighborPos);
 
-                    if (neighborBlock instanceof ManaEnrichedGlassBlock) {
+                    if (neighborBlock instanceof MateriaEnrichedGlassBlock) {
                         foundGlass.add(neighborBlock);
                     } else {
                         foundPorts.add(neighborPos);
@@ -210,7 +210,7 @@ public class VisFumeVesselControllerBlockEntity extends BlockEntity implements I
 
         for (BlockPos pos : this.connectedBlocks) {
             BlockEntity be = this.level.getBlockEntity(pos);
-            if (be instanceof ManaEnrichedGlassBlockEntity glass) {
+            if (be instanceof MateriaEnrichedGlassBlockEntity glass) {
                 glass.setControllerPos(this.worldPosition);
                 glass.setChanged();
                 this.level.sendBlockUpdated(pos, glass.getBlockState(), glass.getBlockState(), 3);
@@ -247,7 +247,7 @@ public class VisFumeVesselControllerBlockEntity extends BlockEntity implements I
         if (this.level != null) {
             for (BlockPos pos : this.connectedBlocks) {
                 BlockEntity be = this.level.getBlockEntity(pos);
-                if (be instanceof ManaEnrichedGlassBlockEntity glass) {
+                if (be instanceof MateriaEnrichedGlassBlockEntity glass) {
                     glass.setControllerPos(null);
                     glass.setChanged();
                     this.level.sendBlockUpdated(pos, glass.getBlockState(), glass.getBlockState(), 3);

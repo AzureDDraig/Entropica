@@ -1147,8 +1147,10 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             if (override == 2) return false;
         }
 
-        if (dir8 == ScribedChalkBlockEntity.Direction8.NORTH_EAST || dir8 == ScribedChalkBlockEntity.Direction8.NORTH_WEST ||
-            dir8 == ScribedChalkBlockEntity.Direction8.SOUTH_EAST || dir8 == ScribedChalkBlockEntity.Direction8.SOUTH_WEST) {
+        BlockPos neighborPos = pos.offset(dir8.getXOffset(), 0, dir8.getZOffset());
+        BlockState state = level.getBlockState(pos);
+        BlockState neighborState = level.getBlockState(neighborPos);
+        if (!state.is(ModBlocks.SCRIBED_CHALK.get()) || !neighborState.is(ModBlocks.SCRIBED_CHALK.get())) {
             return false;
         }
 
@@ -1159,9 +1161,23 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             case WEST -> Direction.WEST;
             default -> null;
         };
-        if (dir == null) return false;
 
-        return shouldConnectSmart(level, pos, pos.relative(dir), dir, circuit);
+        if (dir == null) {
+            // Diagonal connection
+            if (state.getValue(ScribedChalkBlock.NODE_TYPE) == ScribedChalkBlock.NodeType.DIODE) {
+                return false;
+            }
+            ScribedChalkBlock.NodeType neighborType = neighborState.getValue(ScribedChalkBlock.NODE_TYPE);
+            if (neighborType == ScribedChalkBlock.NodeType.DIODE || 
+                neighborType == ScribedChalkBlock.NodeType.AND_GATE ||
+                neighborType == ScribedChalkBlock.NodeType.OR_GATE ||
+                neighborType == ScribedChalkBlock.NodeType.NOT_GATE) {
+                return false;
+            }
+            return shouldConnectSmart(level, pos, neighborPos, null, circuit);
+        }
+
+        return shouldConnectSmart(level, pos, neighborPos, dir, circuit);
     }
 
     private boolean shouldConnectSmart(Level level, BlockPos pos, BlockPos neighborPos, Direction dir, boolean circuit) {
