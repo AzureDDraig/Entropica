@@ -40,7 +40,7 @@ public class VoltaicCalixBlock extends Block implements EntityBlock {
             int storedMana = tag.getInt("StoredMateria5").orElse(0);
             String manaTypeStr = tag.getString("MateriaType").orElse("");
 
-            cellBlockEntity.setMana(storedMana);
+            cellBlockEntity.setMateria(storedMana);
             if (!manaTypeStr.isEmpty()) {
                 try {
                     cellBlockEntity.setManaType(EssenceType.valueOf(manaTypeStr));
@@ -57,7 +57,7 @@ public class VoltaicCalixBlock extends Block implements EntityBlock {
                 ItemStack dropStack = new ItemStack(this);
 
                 CompoundTag tag = new CompoundTag();
-                tag.putInt("StoredMateria5", cellBlockEntity.getMana());
+                tag.putInt("StoredMateria5", cellBlockEntity.getMateria());
                 if (cellBlockEntity.getManaType() != null) {
                     tag.putString("MateriaType", cellBlockEntity.getManaType().name());
                 }
@@ -78,7 +78,7 @@ public class VoltaicCalixBlock extends Block implements EntityBlock {
 
         if (level.getBlockEntity(pos) instanceof VoltaicCalixBlockEntity cellBlockEntity) {
             CompoundTag tag = new CompoundTag();
-            tag.putInt("StoredMateria5", cellBlockEntity.getMana());
+            tag.putInt("StoredMateria5", cellBlockEntity.getMateria());
 
             if (cellBlockEntity.getManaType() != null) {
                 tag.putString("MateriaType", cellBlockEntity.getManaType().name());

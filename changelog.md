@@ -1,5 +1,17 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-201-09-55
+
+### Added & Polished
+*   **Global Renaming Alignment**:
+    *   Renamed remaining occurrences of `Mana` or `mana` inside variables, fields, NBT methods, and comments to `Materia` or `materia` across the entire java codebase (including both `common/` and legacy `src/` modules).
+    *   Renamed config comments and options (both Fabric and NeoForge configurations) to refer strictly to `Materia` instead of `Mana` to enforce consistent terminology.
+    *   Updated comments in the language catalog `en_us.json` to reference `MATERIA AMPOULES` rather than `MANA AMPOULES`.
+*   **Documentation Flowcharts & Reference**:
+    *   Added detailed node-by-node setup diagrams for all 10 specialized alchemical circuit node types (Source, Input, Output, Rune, Amplifier, Capacitor, Collection, Extraction, Resonator, Diode, and Logic Gates).
+    *   Omitted and replaced all legacy references to `Vis` or `vis` in document text, tooltips, and setup diagrams to strictly refer to `Materia` or `materia`.
+    *   Removed references to `Tuning Forks` for starting/interacting with alchemical circuits (clarifying that rituals are triggered and Fehu filters are cleared via empty hand right-clicks).
+
 ## Build 000-1-26-201-08-59
 
 ### Added & Polished

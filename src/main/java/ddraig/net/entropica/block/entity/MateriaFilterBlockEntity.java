@@ -40,7 +40,7 @@ public class MateriaFilterBlockEntity extends BlockEntity {
         EntropicCoreBlockEntity master = getMasterCore();
         if (master == null || !master.isFormed()) return;
 
-        // Check how much of the filtered mana the core actually has
+        // Check how much of the filtered materia the core actually has
         int availableMana = master.getMateriaFumusPool().getOrDefault(this.filterType, 0);
         if (availableMana <= 0) return;
 
@@ -91,7 +91,7 @@ public class MateriaFilterBlockEntity extends BlockEntity {
         EntropicCoreBlockEntity master = getMasterCore();
 
         if (master != null && master.isFormed()) {
-            // Only add types that have mana > 0
+            // Only add types that have materia > 0
             for (Map.Entry<EssenceType, Integer> entry : master.getMateriaFumusPool().entrySet()) {
                 if (entry.getValue() > 0) {
                     availableTypes.add(entry.getKey());
@@ -157,10 +157,10 @@ public class MateriaFilterBlockEntity extends BlockEntity {
                     player.drop(filled, false);
                 }
 
-                player.displayClientMessage(Component.literal("§aFiltered " + capacity + " " + this.filterType.getFormattedName() + " mana into ampoule."), true);
+                player.displayClientMessage(Component.literal("§aFiltered " + capacity + " " + this.filterType.getFormattedName() + " materia into ampoule."), true);
                 return true;
             } else {
-                player.displayClientMessage(Component.literal("§cCore only has " + currentMana + " / " + capacity + " " + this.filterType.getFormattedName() + " mana."), true);
+                player.displayClientMessage(Component.literal("§cCore only has " + currentMana + " / " + capacity + " " + this.filterType.getFormattedName() + " materia."), true);
                 return true;
             }
         }

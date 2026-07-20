@@ -75,7 +75,7 @@ public class EntropicCoreBlock extends Block implements EntityBlock {
 
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         BlockEntity be = level.getBlockEntity(pos);
-        // This call now calculates based on the Master core's shared mana pool
+        // This call now calculates based on the Master core's shared materia pool
         return (be instanceof EntropicCoreBlockEntity coreBE) ? coreBE.getComparatorOutput() : 0;
     }
 

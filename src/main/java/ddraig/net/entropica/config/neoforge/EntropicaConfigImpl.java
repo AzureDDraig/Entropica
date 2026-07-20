@@ -2,7 +2,7 @@ package ddraig.net.entropica.config.neoforge;
 
 public class EntropicaConfigImpl {
     public static int getMateriaPerEssence() { return EntropicaNeoForgeConfig.MATERIA_PER_ESSENCE.get(); }
-    public static int getMateriaFurnaceMaxMateria() { return EntropicaNeoForgeConfig.MATERIA_FURNACE_MAX_MANA.get(); }
+    public static int getMateriaFurnaceMaxMateria() { return EntropicaNeoForgeConfig.MATERIA_FURNACE_MAX_MATERIA.get(); }
     public static int getMateriaFurnaceMaxEssence() { return EntropicaNeoForgeConfig.MATERIA_FURNACE_MAX_ESSENCE.get(); }
     public static int getEntropicCoreMaxMateria() { return EntropicaNeoForgeConfig.ENTROPIC_CORE_MAX_MATERIA.get(); }
     public static int getReceptacleMaxEssence() { return EntropicaNeoForgeConfig.RECEPTACLE_MAX_ESSENCE.get(); }

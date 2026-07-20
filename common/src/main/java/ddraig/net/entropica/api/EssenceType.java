@@ -91,7 +91,7 @@ public enum EssenceType implements StringRepresentable {
     APOTHEOSIS(new int[][]{{255, 255, 255}, {255, 234, 120}, {255, 107, 157}, {152, 220, 242}}), // Rebirth Light Cycle
     ENTROPICA(new int[][]{}), // True Equilibrium - Empty array triggers isDynamic() for full prismatic shifting!
 
-    // Sub-Mana (Conceptual Fragments)
+    // Sub-Materia (Conceptual Fragments)
     ETHER(new int[][]{{168, 134, 84}}),
     RESONANCE(new int[][]{{160, 160, 160}}),
     GRAVITY(new int[][]{{119, 50, 20}}),

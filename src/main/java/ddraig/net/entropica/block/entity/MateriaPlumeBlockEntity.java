@@ -20,7 +20,7 @@ public class MateriaPlumeBlockEntity extends BlockEntity {
         this.setChanged();
     }
 
-    // Public so the Filter can use it to check available mana types
+    // Public so the Filter can use it to check available materia types
     public EntropicCoreBlockEntity getMaster() {
         if (level != null && masterPos != null && level.getBlockEntity(masterPos) instanceof EntropicCoreBlockEntity core) {
             return core.getMaster();

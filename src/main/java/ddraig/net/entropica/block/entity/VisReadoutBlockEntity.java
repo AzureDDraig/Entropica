@@ -6,18 +6,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Represents a block entity for the Mana Readout block. This block entity is responsible
- * for interacting with nearby blocks, particularly those that can store mana, to gather
- * and display mana information via a renderer.
+ * Represents a block entity for the Materia Readout block. This block entity is responsible
+ * for interacting with nearby blocks, particularly those that can store materia, to gather
+ * and display materia information via a renderer.
  *
- * The ManaReadoutBlockEntity is registered and instanced within the Mana Readout block
+ * The ManaReadoutBlockEntity is registered and instanced within the Materia Readout block
  * setup and operates within defined parameters of the Minecraft world to query surrounding
- * blocks for their mana levels. This may include checking for the presence of a connected
+ * blocks for their materia levels. This may include checking for the presence of a connected
  * entropic core and updating its render state accordingly.
  *
- * Usage of this block entity includes rendering mana-related data onto the corresponding
+ * Usage of this block entity includes rendering materia-related data onto the corresponding
  * block model in world space. The data displayed typically originates from linked or
- * nearby blocks capable of storing or interacting with mana.
+ * nearby blocks capable of storing or interacting with materia.
  */
 public class VisReadoutBlockEntity extends BlockEntity {
     public VisReadoutBlockEntity(BlockPos pos, BlockState state) {

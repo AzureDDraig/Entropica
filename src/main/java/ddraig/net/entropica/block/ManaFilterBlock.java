@@ -63,7 +63,7 @@ public class ManaFilterBlock extends BaseEntityBlock {
             if (be instanceof ManaFilterBlockEntity filter) {
                 ItemStack stack = player.getMainHandItem();
 
-                // 1. If the player is holding an ampoule, try to extract mana
+                // 1. If the player is holding an ampoule, try to extract materia
                 if (!stack.isEmpty() && filter.interactWithAmpoule(player, stack, InteractionHand.MAIN_HAND)) {
                     return InteractionResult.SUCCESS;
                 }

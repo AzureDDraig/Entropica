@@ -40,7 +40,7 @@ public class OrbisCellBlock extends Block implements EntityBlock {
             int storedMana = tag.getInt("StoredMateria2").orElse(0);
             String manaTypeStr = tag.getString("MateriaType").orElse("");
 
-            cellBlockEntity.setMana(storedMana);
+            cellBlockEntity.setMateria(storedMana);
             if (!manaTypeStr.isEmpty()) {
                 try {
                     cellBlockEntity.setManaType(EssenceType.valueOf(manaTypeStr));
@@ -57,7 +57,7 @@ public class OrbisCellBlock extends Block implements EntityBlock {
                 ItemStack dropStack = new ItemStack(this);
 
                 CompoundTag tag = new CompoundTag();
-                tag.putInt("StoredMateria2", cellBlockEntity.getMana());
+                tag.putInt("StoredMateria2", cellBlockEntity.getMateria());
                 if (cellBlockEntity.getManaType() != null) {
                     tag.putString("MateriaType", cellBlockEntity.getManaType().name());
                 }
@@ -80,7 +80,7 @@ public class OrbisCellBlock extends Block implements EntityBlock {
         // If the game says includeData (or we just want to ensure it always happens)
         if (level.getBlockEntity(pos) instanceof OrbisCellBlockEntity cellBlockEntity) {
             CompoundTag tag = new CompoundTag();
-            tag.putInt("StoredMateria2", cellBlockEntity.getMana());
+            tag.putInt("StoredMateria2", cellBlockEntity.getMateria());
 
             if (cellBlockEntity.getManaType() != null) {
                 tag.putString("MateriaType", cellBlockEntity.getManaType().name());

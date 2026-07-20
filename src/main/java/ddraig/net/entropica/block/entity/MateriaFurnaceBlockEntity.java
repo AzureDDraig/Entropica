@@ -18,7 +18,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class MateriaFurnaceBlockEntity extends BlockEntity {
-    private int mana = 0;
+    private int materia = 0;
     private int essence = 0;
 
     private boolean isActive = false;
@@ -59,12 +59,12 @@ public class MateriaFurnaceBlockEntity extends BlockEntity {
     public void toggleFurnace(Player player) {
         if (this.isActive) {
             this.isActive = false;
-            player.displayClientMessage(Component.literal("Mana Furnace: §cDeactivated"), true);
+            player.displayClientMessage(Component.literal("Materia Furnace: §cDeactivated"), true);
         } else if (this.essence >= 10) {
             this.isActive = true;
-            player.displayClientMessage(Component.literal("Mana Furnace: §aActivated"), true);
+            player.displayClientMessage(Component.literal("Materia Furnace: §aActivated"), true);
         } else {
-            player.displayClientMessage(Component.literal("Mana Furnace: §eNot enough essence to start (Requires 10)"), true);
+            player.displayClientMessage(Component.literal("Materia Furnace: §eNot enough essence to start (Requires 10)"), true);
         }
 
         this.setChanged();
@@ -82,15 +82,15 @@ public class MateriaFurnaceBlockEntity extends BlockEntity {
             if (this.tickCounter >= 5) {
                 this.tickCounter = 0;
 
-                int generatedMana = EntropicaConfig.MATERIA_PER_ESSENCE.get();
+                int generatedMateria = EntropicaConfig.MATERIA_PER_ESSENCE.get();
 
-                if (this.essence > 0 && this.mana + generatedMana <= EntropicaConfig.MATERIA_FURNACE_MAX_MANA.get()) {
+                if (this.essence > 0 && this.materia + generatedMateria <= EntropicaConfig.MATERIA_FURNACE_MAX_MATERIA.get()) {
                     this.essence -= 1;
-                    this.mana += generatedMana;
+                    this.materia += generatedMateria;
                     this.setChanged();
                     level.sendBlockUpdated(pos, state, state, 3);
-                } else if (this.essence <= 0 || this.mana >= EntropicaConfig.MATERIA_FURNACE_MAX_MANA.get()) {
-                    // Auto-shutdown if out of fuel or full of mana
+                } else if (this.essence <= 0 || this.materia >= EntropicaConfig.MATERIA_FURNACE_MAX_MATERIA.get()) {
+                    // Auto-shutdown if out of fuel or full of materia
                     this.isActive = false;
                     this.setChanged();
                     level.sendBlockUpdated(pos, state, state, 3);
@@ -106,7 +106,7 @@ public class MateriaFurnaceBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("FurnaceMana", this.mana);
+        output.putInt("FurnaceMateria", this.materia);
         output.putInt("FurnaceEssence", this.essence);
         output.putBoolean("FurnaceActive", this.isActive);
     }
@@ -114,7 +114,7 @@ public class MateriaFurnaceBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.mana = input.getIntOr("FurnaceMana", 0);
+        this.materia = input.getIntOr("FurnaceMateria", 0);
         this.essence = input.getIntOr("FurnaceEssence", 0);
         this.isActive = input.getBooleanOr("FurnaceActive", false);
     }
@@ -139,7 +139,7 @@ public class MateriaFurnaceBlockEntity extends BlockEntity {
     // ====================================================================
 
     public float getManaPercent() {
-        return (float) this.mana / EntropicaConfig.MATERIA_FURNACE_MAX_MANA.get();
+        return (float) this.materia / EntropicaConfig.MATERIA_FURNACE_MAX_MATERIA.get();
     }
 
     public int getMaxEssence() {

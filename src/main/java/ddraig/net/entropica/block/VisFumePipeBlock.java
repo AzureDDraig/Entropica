@@ -156,7 +156,7 @@ public class VisFumePipeBlock extends Block implements SimpleWaterloggedBlock, E
             return true;
         }
 
-        // Specific direction check for the Mana Plume.
+        // Specific direction check for the Materia Plume.
         // The pipe must be pointing DOWN into the plume for it to connect.
         if (neighborState.is(ModBlocks.MATERIA_PLUME.get())) {
             return dirToNeighbor == Direction.DOWN;

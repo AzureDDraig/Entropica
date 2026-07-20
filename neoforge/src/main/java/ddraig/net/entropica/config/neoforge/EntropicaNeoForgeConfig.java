@@ -7,7 +7,7 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec SPEC;
 
     public static final ModConfigSpec.IntValue MATERIA_PER_ESSENCE;
-    public static final ModConfigSpec.IntValue MATERIA_FURNACE_MAX_MANA;
+    public static final ModConfigSpec.IntValue MATERIA_FURNACE_MAX_MATERIA;
     public static final ModConfigSpec.IntValue MATERIA_FURNACE_MAX_ESSENCE;
 
     // Multiblock Configs
@@ -108,27 +108,27 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.DoubleValue WARD_BLOCK_RADIUS;
 
     static {
-        // --- BASE MANA FURNACE SETTINGS ---
+        // --- BASE MATERIA FURNACE SETTINGS ---
         BUILDER.push("materia_furnace_settings");
 
-        MATERIA_PER_ESSENCE = BUILDER.comment("The amount of Mana produced per 1 Essence consumed every 5 ticks. Min: 1, Max: 1000, Default: 8")
+        MATERIA_PER_ESSENCE = BUILDER.comment("The amount of Materia produced per 1 Essence consumed every 5 ticks. Min: 1, Max: 1000, Default: 8")
                 .translation("entropica.configuration.materia_furnace_settings.materiaPerEssence")
                 .defineInRange("materiaPerEssence", 8, 1, 1000);
 
-        MATERIA_FURNACE_MAX_MANA = BUILDER.comment("Maximum mana storage capacity for the standalone Mana Furnace. Min: 1, Max: 2147483647, Default: 1024")
+        MATERIA_FURNACE_MAX_MATERIA = BUILDER.comment("Maximum materia storage capacity for the standalone Materia Furnace. Min: 1, Max: 2147483647, Default: 1024")
                 .translation("entropica.configuration.materia_furnace_settings.materiaFurnaceMaxMateria")
                 .defineInRange("materiaFurnaceMaxMateria", 1024, 1, Integer.MAX_VALUE);
 
-        MATERIA_FURNACE_MAX_ESSENCE = BUILDER.comment("Maximum essence storage capacity for the standalone Mana Furnace. Capped at 32. Min: 1, Max: 32, Default: 32")
+        MATERIA_FURNACE_MAX_ESSENCE = BUILDER.comment("Maximum essence storage capacity for the standalone Materia Furnace. Capped at 32. Min: 1, Max: 32, Default: 32")
                 .translation("entropica.configuration.materia_furnace_settings.materiaFurnaceMaxEssence")
                 .defineInRange("materiaFurnaceMaxEssence", 32, 1, 32);
 
         BUILDER.pop();
 
-        // --- ENTROPIC MANA FURNACE (MULTIBLOCK) SETTINGS ---
+        // --- ENTROPIC MATERIA FURNACE (MULTIBLOCK) SETTINGS ---
         BUILDER.push("entropic_materia_furnace_settings");
 
-        ENTROPIC_CORE_MAX_MATERIA = BUILDER.comment("Maximum mana storage capacity for the Entropic Mana Furnace multiblock. Min: 1, Max: 2147483647, Default: 100000")
+        ENTROPIC_CORE_MAX_MATERIA = BUILDER.comment("Maximum materia storage capacity for the Entropic Materia Furnace multiblock. Min: 1, Max: 2147483647, Default: 100000")
                 .translation("entropica.configuration.entropic_materia_furnace_settings.entropicCoreMaxMateria")
                 .defineInRange("entropicCoreMaxMateria", 100000, 1, Integer.MAX_VALUE);
 
@@ -140,7 +140,7 @@ public class EntropicaNeoForgeConfig {
                 .translation("entropica.configuration.entropic_materia_furnace_settings.coreProcessTickRate")
                 .defineInRange("coreProcessTickRate", 5, 1, 200);
 
-        ENABLE_CORE_OVERLOAD = BUILDER.comment("If true, the Entropic Core will eventually explode if left active while its Mana Buffer is 100% full. Default: true")
+        ENABLE_CORE_OVERLOAD = BUILDER.comment("If true, the Entropic Core will eventually explode if left active while its Materia Buffer is 100% full. Default: true")
                 .translation("entropica.configuration.entropic_materia_furnace_settings.enableCoreOverload")
                 .define("enableCoreOverload", true);
 
@@ -149,7 +149,7 @@ public class EntropicaNeoForgeConfig {
         // --- VIS VITAE NETWORK SETTINGS ---
         BUILDER.push("vis_vitae_network_settings");
 
-        ORBIS_CELL_MAX_MATERIA = BUILDER.comment("Maximum mana storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000")
+        ORBIS_CELL_MAX_MATERIA = BUILDER.comment("Maximum materia storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000")
                 .translation("entropica.configuration.vis_vitae_network_settings.orbisCellMaxMateria")
                 .defineInRange("orbisCellMaxMateria", 10000, 1, Integer.MAX_VALUE);
 

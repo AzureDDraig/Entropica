@@ -149,7 +149,7 @@ public class EntropicCoreRenderer implements BlockEntityRenderer<EntropicCoreBlo
         }
         bufferSource.endBatch();
 
-        // LAYER 2: MANA CIRCLES (Now using Weighted Volume Logic)
+        // LAYER 2: MATERIA CIRCLES (Now using Weighted Volume Logic)
         List<EssenceType> activeManaTypes = new ArrayList<>();
         for (EssenceType type : EssenceType.values()) {
             if (coreRenderState.materiaFumusPool.getOrDefault(type, 0) > 0) activeManaTypes.add(type);

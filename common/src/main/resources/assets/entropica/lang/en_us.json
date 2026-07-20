@@ -54,7 +54,7 @@
   "item.entropica.dynamic_crossbow": "Dynamic Crossbow",
   "item.entropica.dynamic_repeater": "Dynamic Repeater",
 
-  "_comment_base_ampoules": "================ EMPTY & MANA AMPOULES ================",
+  "_comment_base_ampoules": "================ EMPTY & MATERIA AMPOULES ================",
   "item.entropica.small_ampoule": "Small Ampoule (Empty)",
   "item.entropica.medium_ampoule": "Medium Ampoule (Empty)",
   "item.entropica.large_ampoule": "Large Ampoule (Empty)",

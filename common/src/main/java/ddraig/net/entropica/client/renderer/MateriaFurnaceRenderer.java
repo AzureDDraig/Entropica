@@ -44,7 +44,7 @@ public class MateriaFurnaceRenderer implements BlockEntityRenderer<MateriaFurnac
         renderState.currentEssence = (int) Math.round(renderState.essencePercent * EntropicaConfig.MATERIA_FURNACE_MAX_ESSENCE.get());
         renderState.isActive = blockEntity.isActive();
 
-        // It is actively burning if it is active, has fuel, and the mana isn't full
+        // It is actively burning if it is active, has fuel, and the materia isn't full
         renderState.isBurning = renderState.isActive && renderState.currentEssence > 0 && renderState.manaPercent < 1.0f;
 
         // Safely extract the block's facing direction. Defaults to NORTH if the property is missing.
@@ -98,7 +98,7 @@ public class MateriaFurnaceRenderer implements BlockEntityRenderer<MateriaFurnac
             drawQuad(matrix, vertexConsumer, startX, endX, startY, endY, 1.001f, barR, barG, barB, 200, light, overlay);
         }
 
-        // --- 2. RADIAL MANA CIRCLE (Dead Center) ---
+        // --- 2. RADIAL MATERIA CIRCLE (Dead Center) ---
         if (furnaceRenderState.manaPercent > 0) {
             float centerX = 0.5f, centerY = 0.5f;
             float innerRadius = 0.10f, outerRadius = 0.20f;

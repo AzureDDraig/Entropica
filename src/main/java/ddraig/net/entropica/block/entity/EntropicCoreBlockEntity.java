@@ -37,8 +37,8 @@ import java.util.*;
 public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandler {
 
     public enum BurnMode {
-        REGULAR("Regular Mana Production", "§d"),
-        ELEMENTAL("Elemental Mana Production", "§b"),
+        REGULAR("Regular Materia Production", "§d"),
+        ELEMENTAL("Elemental Materia Production", "§b"),
         FUSION("Elemental Fusion", "§5");
 
         private final String displayName;
@@ -233,7 +233,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         int activeManaTypes = (int) this.materiaFumusPool.values().stream().filter(v -> v > 0).count();
         int activeEssenceTypes = (int) this.essencePool.values().stream().filter(v -> v > 0).count();
 
-        // Halves per extra type above 1 (Mana) and 2 (Essence)
+        // Halves per extra type above 1 (Materia) and 2 (Essence)
         int extraManaTypes = Math.max(0, activeManaTypes - 1);
         int extraEssenceTypes = Math.max(0, activeEssenceTypes - 2);
 
@@ -267,7 +267,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
             entry.setValue(remaining);
         }
 
-        // Clear the mana entirely so it doesn't instantly re-blow up if rebuilt
+        // Clear the materia entirely so it doesn't instantly re-blow up if rebuilt
         for (Map.Entry<EssenceType, Integer> entry : this.materiaFumusPool.entrySet()) {
             entry.setValue(0);
         }
@@ -286,7 +286,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         EssenceType typeToPush = null;
         int maxMana = 0;
 
-        // Find the most abundant mana type
+        // Find the most abundant materia type
         for (Map.Entry<EssenceType, Integer> entry : this.materiaFumusPool.entrySet()) {
             if (entry.getValue() > maxMana) {
                 maxMana = entry.getValue();
@@ -313,7 +313,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
 
         List<IVaporHandler> validHandlers = new ArrayList<>(handlersSet);
 
-        // Iteratively distribute the mana evenly across all valid handlers
+        // Iteratively distribute the materia evenly across all valid handlers
         boolean pushedAny;
         do {
             pushedAny = false;
@@ -534,7 +534,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
             error = "No Entropic Cores found.";
             formed = false;
         } else if (foundPlumes.size() < foundCores.size()) {
-            error = "Missing Mana Plumes (Need " + foundCores.size() + ")";
+            error = "Missing Materia Plumes (Need " + foundCores.size() + ")";
             formed = false;
         } else if (foundHatches.isEmpty()) {
             error = "Missing Furnace Hatch (At least 1 required)";
@@ -789,11 +789,11 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
                     player.drop(filled, false);
                 }
 
-                player.displayClientMessage(Component.literal("§aFilled ampoule with " + capacity + " " + bestType.getFormattedName() + " mana."), true);
+                player.displayClientMessage(Component.literal("§aFilled ampoule with " + capacity + " " + bestType.getFormattedName() + " materia."), true);
                 if (level != null && !level.isClientSide()) level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
                 return true;
             } else {
-                player.displayClientMessage(Component.literal("§cNot enough mana of a single type to fill ampoule size (" + capacity + ")."), true);
+                player.displayClientMessage(Component.literal("§cNot enough materia of a single type to fill ampoule size (" + capacity + ")."), true);
                 return true;
             }
         }
@@ -817,11 +817,11 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
                     player.drop(empty, false);
                 }
 
-                player.displayClientMessage(Component.literal("§aInserted " + capacity + " " + type.getFormattedName() + " mana."), true);
+                player.displayClientMessage(Component.literal("§aInserted " + capacity + " " + type.getFormattedName() + " materia."), true);
                 if (level != null && !level.isClientSide()) level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
                 return true;
             } else {
-                player.displayClientMessage(Component.literal("§cCore mana capacity is full. Too much density."), true);
+                player.displayClientMessage(Component.literal("§cCore materia capacity is full. Too much density."), true);
                 return true;
             }
         }
@@ -840,7 +840,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         if (!master.isActive) {
             // Respect Config for toggling activation
             if (!EntropicaConfig.ENABLE_CORE_OVERLOAD.get() && master.getWeightedTotalMana() >= master.getMaxMateriaFumus()) {
-                player.displayClientMessage(Component.literal("§cCannot activate: Mana capacity is full."), true);
+                player.displayClientMessage(Component.literal("§cCannot activate: Materia capacity is full."), true);
                 return;
             }
             if (master.getTotalEssence() < 10) {

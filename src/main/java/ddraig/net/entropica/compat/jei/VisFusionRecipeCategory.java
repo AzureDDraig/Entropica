@@ -87,7 +87,7 @@ public class VisFusionRecipeCategory implements IRecipeCategory<FusionRecipe> {
             builder.addSlot(RecipeIngredientRole.OUTPUT, 100, 10)
                     .addItemStack(successOrb)
                     .addTooltipCallback((recipeSlotView, tooltip) -> {
-                        tooltip.add(Component.literal("§aSuccess Yield: §f" + recipe.yield() + " §a" + recipe.success().getDisplayName() + " Mana"));
+                        tooltip.add(Component.literal("§aSuccess Yield: §f" + recipe.yield() + " §a" + recipe.success().getDisplayName() + " Materia"));
                     });
         }
 
@@ -98,7 +98,7 @@ public class VisFusionRecipeCategory implements IRecipeCategory<FusionRecipe> {
             builder.addSlot(RecipeIngredientRole.OUTPUT, 100, 35)
                     .addItemStack(failureOrb)
                     .addTooltipCallback((recipeSlotView, tooltip) -> {
-                        tooltip.add(Component.literal("§cFailure Yield: §f" + recipe.yield() + " §c" + recipe.failure().getDisplayName() + " Mana"));
+                        tooltip.add(Component.literal("§cFailure Yield: §f" + recipe.yield() + " §c" + recipe.failure().getDisplayName() + " Materia"));
                     });
         }
     }

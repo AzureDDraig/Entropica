@@ -70,14 +70,14 @@ public class EntropicaConfigImpl {
     }
 
     public static class EntropicaConfigData {
-        public IntOption materiaPerEssence = new IntOption("The amount of Mana produced per 1 Essence consumed every 5 ticks. Min: 1, Max: 1000, Default: 8", 1, 1000, 8);
-        public IntOption materiaFurnaceMaxMateria = new IntOption("Maximum mana storage capacity for the standalone Mana Furnace. Min: 1, Max: 2147483647, Default: 1024", 1, Integer.MAX_VALUE, 1024);
-        public IntOption materiaFurnaceMaxEssence = new IntOption("Maximum essence storage capacity for the standalone Mana Furnace. Capped at 32. Min: 1, Max: 32, Default: 32", 1, 32, 32);
-        public IntOption entropicCoreMaxMateria = new IntOption("Maximum mana storage capacity for the Entropic Mana Furnace multiblock. Min: 1, Max: 2147483647, Default: 100000", 1, Integer.MAX_VALUE, 100000);
+        public IntOption materiaPerEssence = new IntOption("The amount of Materia produced per 1 Essence consumed every 5 ticks. Min: 1, Max: 1000, Default: 8", 1, 1000, 8);
+        public IntOption materiaFurnaceMaxMateria = new IntOption("Maximum materia storage capacity for the standalone Materia Furnace. Min: 1, Max: 2147483647, Default: 1024", 1, Integer.MAX_VALUE, 1024);
+        public IntOption materiaFurnaceMaxEssence = new IntOption("Maximum essence storage capacity for the standalone Materia Furnace. Capped at 32. Min: 1, Max: 32, Default: 32", 1, 32, 32);
+        public IntOption entropicCoreMaxMateria = new IntOption("Maximum materia storage capacity for the Entropic Materia Furnace multiblock. Min: 1, Max: 2147483647, Default: 100000", 1, Integer.MAX_VALUE, 100000);
         public IntOption receptacleMaxEssence = new IntOption("The amount of essence storage capacity added per Essence Receptacle in the multiblock. Min: 1, Max: 2147483647, Default: 64", 1, Integer.MAX_VALUE, 64);
         public IntOption coreProcessTickRate = new IntOption("How many ticks between each processing operation of the furnace (20 = 1 second, 5 = 1/4th second). Min: 1, Max: 200, Default: 5", 1, 200, 5);
-        public BooleanOption enableCoreOverload = new BooleanOption("If true, the Entropic Core will eventually explode if left active while its Mana Buffer is 100% full. Default: true", true);
-        public IntOption orbisCellMaxMateria = new IntOption("Maximum mana storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000", 1, Integer.MAX_VALUE, 10000);
+        public BooleanOption enableCoreOverload = new BooleanOption("If true, the Entropic Core will eventually explode if left active while its Materia Buffer is 100% full. Default: true", true);
+        public IntOption orbisCellMaxMateria = new IntOption("Maximum materia storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000", 1, Integer.MAX_VALUE, 10000);
 
         // Vis Fume Network
         public IntOption copperPipeCapacity = new IntOption("Safe capacity (1.0 Pressure) for Copper Fume Pipes. Min: 1, Max: 2147483647, Default: 20", 1, Integer.MAX_VALUE, 20);

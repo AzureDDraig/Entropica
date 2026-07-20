@@ -40,7 +40,7 @@ public class MatrixCalixBlock extends Block implements EntityBlock {
             int storedMana = tag.getInt("StoredMateria6").orElse(0);
             String manaTypeStr = tag.getString("MateriaType").orElse("");
 
-            cellBlockEntity.setMana(storedMana);
+            cellBlockEntity.setMateria(storedMana);
             if (!manaTypeStr.isEmpty()) {
                 try {
                     cellBlockEntity.setManaType(EssenceType.valueOf(manaTypeStr));
@@ -57,7 +57,7 @@ public class MatrixCalixBlock extends Block implements EntityBlock {
                 ItemStack dropStack = new ItemStack(this);
 
                 CompoundTag tag = new CompoundTag();
-                tag.putInt("StoredMateria6", cellBlockEntity.getMana());
+                tag.putInt("StoredMateria6", cellBlockEntity.getMateria());
                 if (cellBlockEntity.getManaType() != null) {
                     tag.putString("MateriaType", cellBlockEntity.getManaType().name());
                 }
@@ -78,7 +78,7 @@ public class MatrixCalixBlock extends Block implements EntityBlock {
 
         if (level.getBlockEntity(pos) instanceof MatrixCalixBlockEntity cellBlockEntity) {
             CompoundTag tag = new CompoundTag();
-            tag.putInt("StoredMateria6", cellBlockEntity.getMana());
+            tag.putInt("StoredMateria6", cellBlockEntity.getMateria());
 
             if (cellBlockEntity.getManaType() != null) {
                 tag.putString("MateriaType", cellBlockEntity.getManaType().name());

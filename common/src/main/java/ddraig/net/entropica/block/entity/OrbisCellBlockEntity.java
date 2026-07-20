@@ -13,46 +13,46 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class OrbisCellBlockEntity extends BlockEntity {
-    private int mana = 0;
-    private EssenceType manaType = null;
+    private int materia = 0;
+    private EssenceType materiaType = null;
 
     public OrbisCellBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.ORBIS_CELL_BE.get(), pos, state);
     }
 
-    public int getMana() { return mana; }
-    public void setMana(int mana) {
-        this.mana = mana;
+    public int getMateria() { return materia; }
+    public void setMateria(int materia) {
+        this.materia = materia;
         this.setChanged();
     }
 
-    public EssenceType getManaType() { return manaType; }
+    public EssenceType getManaType() { return materiaType; }
     public void setManaType(EssenceType type) {
-        this.manaType = type;
+        this.materiaType = type;
         this.setChanged();
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("StoredMateria2", this.mana);
-        if (this.manaType != null) {
-            output.putString("MateriaType", this.manaType.name());
+        output.putInt("StoredMateria2", this.materia);
+        if (this.materiaType != null) {
+            output.putString("MateriaType", this.materiaType.name());
         }
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.mana = input.getIntOr("StoredMateria2", 0);
+        this.materia = input.getIntOr("StoredMateria2", 0);
 
         // NeoForge latest ValueInput uses getStringOr for a default value
         String typeStr = input.getStringOr("MateriaType", "");
         if (!typeStr.isEmpty()) {
             try {
-                this.manaType = EssenceType.valueOf(typeStr);
+                this.materiaType = EssenceType.valueOf(typeStr);
             } catch (IllegalArgumentException e) {
-                this.manaType = null;
+                this.materiaType = null;
             }
         }
     }
@@ -67,9 +67,9 @@ public class OrbisCellBlockEntity extends BlockEntity {
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         // The UpdateTag (for network syncing) still uses CompoundTag in most builds
         CompoundTag tag = new CompoundTag();
-        tag.putInt("StoredMateria2", this.mana);
-        if (this.manaType != null) {
-            tag.putString("MateriaType", this.manaType.name());
+        tag.putInt("StoredMateria2", this.materia);
+        if (this.materiaType != null) {
+            tag.putString("MateriaType", this.materiaType.name());
         }
         return tag;
     }

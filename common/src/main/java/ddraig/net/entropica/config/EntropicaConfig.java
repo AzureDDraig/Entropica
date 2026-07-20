@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 public class EntropicaConfig {
     public static final Supplier<Integer> MATERIA_PER_ESSENCE = EntropicaConfig::getMateriaPerEssence;
-    public static final Supplier<Integer> MATERIA_FURNACE_MAX_MANA = EntropicaConfig::getMateriaFurnaceMaxMateria;
+    public static final Supplier<Integer> MATERIA_FURNACE_MAX_MATERIA = EntropicaConfig::getMateriaFurnaceMaxMateria;
     public static final Supplier<Integer> MATERIA_FURNACE_MAX_ESSENCE = EntropicaConfig::getMateriaFurnaceMaxEssence;
     public static final Supplier<Integer> ENTROPIC_CORE_MAX_MATERIA = EntropicaConfig::getEntropicCoreMaxMateria;
     public static final Supplier<Integer> RECEPTACLE_MAX_ESSENCE = EntropicaConfig::getReceptacleMaxEssence;
