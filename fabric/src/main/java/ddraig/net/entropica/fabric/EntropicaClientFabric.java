@@ -222,11 +222,14 @@ public class EntropicaClientFabric implements ClientModInitializer {
         // --- 9. Custom Client Haze Shader Tick ---
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
             ddraig.net.entropica.client.HazeShaderManager.clientTick(client);
+            ddraig.net.entropica.client.ParalyzedParticleHandler.clientTick(client);
         });
 
         // Register GUI Overlay HUD Renderer
         net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback.EVENT.register((guiGraphics, tickCounter) -> {
             ddraig.net.entropica.client.HazeOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+            ddraig.net.entropica.client.ParalyzedOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+            ddraig.net.entropica.client.LensOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
         });
     }
 

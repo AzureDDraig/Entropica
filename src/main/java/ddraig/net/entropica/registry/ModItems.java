@@ -343,6 +343,12 @@ public class ModItems {
     public static final RegistrySupplier<EssenceAmpouleItem> MEDIUM_ESSENCE_AMPOULE = ITEMS.registerItem("medium_essence_ampoule", properties -> new EssenceAmpouleItem(properties, 2));
     public static final RegistrySupplier<EssenceAmpouleItem> LARGE_ESSENCE_AMPOULE = ITEMS.registerItem("large_essence_ampoule", properties -> new EssenceAmpouleItem(properties, 3));
 
+    public static final RegistrySupplier<Item> PROPAGATION_LENS = ITEMS.registerItem("propagation_lens", properties -> new ddraig.net.entropica.item.PropagationLensItem(properties));
+    public static final RegistrySupplier<Item> AETHERIC_LENS = ITEMS.registerItem("aetheric_lens", properties -> new ddraig.net.entropica.item.AethericLensItem(properties));
+    public static final RegistrySupplier<Item> VITAE_LENS = ITEMS.registerItem("vitae_lens", properties -> new ddraig.net.entropica.item.VitaeLensItem(properties));
+    public static final RegistrySupplier<Item> MATERIA_LENS = ITEMS.registerItem("materia_lens", properties -> new ddraig.net.entropica.item.MateriaLensItem(properties));
+    public static final RegistrySupplier<Item> ARKANIST_MONOCLE = ITEMS.registerItem("arkanist_monocle", properties -> new ddraig.net.entropica.item.ArkanistMonocleItem(properties));
+
     // --- Block Items ---
     public static final RegistrySupplier<BlockItem> ENTROPIC_ORE_ITEM = ITEMS.registerItem("entropic_ore", properties -> new BlockItem(ModBlocks.ENTROPIC_ORE.get(), properties));
     public static final RegistrySupplier<BlockItem> MATERIA_FURNACE_ITEM = ITEMS.registerItem("materia_furnace", properties -> new BlockItem(ModBlocks.MATERIA_FURNACE.get(), properties));

@@ -12,6 +12,7 @@ public class EntropicaConfig {
     public static final Supplier<Integer> CORE_PROCESS_TICK_RATE = EntropicaConfig::getCoreProcessTickRate;
     public static final Supplier<Boolean> ENABLE_CORE_OVERLOAD = EntropicaConfig::getEnableCoreOverload;
     public static final Supplier<Integer> ORBIS_CELL_MAX_MATERIA = EntropicaConfig::getOrbisCellMaxMateria;
+    public static final Supplier<Boolean> FANCY_MAGIC_CIRCLE_PROCESSING = EntropicaConfig::getFancyMagicCircleProcessing;
 
     // Materia Fume Network
     public static final Supplier<Integer> COPPER_PIPE_CAPACITY = EntropicaConfig::getCopperPipeCapacity;
@@ -91,12 +92,14 @@ public class EntropicaConfig {
     public static final Supplier<Boolean> NODE_INFINITE_CAPACITY = EntropicaConfig::getNodeInfiniteCapacity;
     public static final Supplier<Integer> NODE_SPAWN_SPACING = EntropicaConfig::getNodeSpawnSpacing;
     public static final Supplier<Integer> NODE_MAX_PER_AREA = EntropicaConfig::getNodeMaxPerArea;
+    public static final Supplier<Integer> EXTRACTION_NODE_COOLDOWN = EntropicaConfig::getExtractionNodeCooldown;
 
     // Essence Repulsion Wards
     public static final Supplier<Integer> WARD_CONSUMPTION_AMOUNT = EntropicaConfig::getWardConsumptionAmount;
     public static final Supplier<Integer> WARD_CONSUMPTION_INTERVAL_SECONDS = EntropicaConfig::getWardConsumptionIntervalSeconds;
     public static final Supplier<Double> WARD_CIRCLE_RADIUS_BASE = EntropicaConfig::getWardCircleRadiusBase;
     public static final Supplier<Double> WARD_BLOCK_RADIUS = EntropicaConfig::getWardBlockRadius;
+    public static final Supplier<Integer> MAX_DELAY_TICKS = EntropicaConfig::getMaxDelayTicks;
 
     @ExpectPlatform public static int getMateriaPerEssence() { throw new AssertionError(); }
     @ExpectPlatform public static int getMateriaFurnaceMaxMateria() { throw new AssertionError(); }
@@ -152,6 +155,7 @@ public class EntropicaConfig {
     @ExpectPlatform public static boolean getNodeInfiniteCapacity() { throw new AssertionError(); }
     @ExpectPlatform public static int getNodeSpawnSpacing() { throw new AssertionError(); }
     @ExpectPlatform public static int getNodeMaxPerArea() { throw new AssertionError(); }
+    @ExpectPlatform public static int getExtractionNodeCooldown() { throw new AssertionError(); }
 
     @ExpectPlatform public static int getConduitBaseSafeCapacity() { throw new AssertionError(); }
     @ExpectPlatform public static double getChargedConduitCapacityMultiplier() { throw new AssertionError(); }
@@ -187,4 +191,6 @@ public class EntropicaConfig {
     @ExpectPlatform public static int getWardConsumptionIntervalSeconds() { throw new AssertionError(); }
     @ExpectPlatform public static double getWardCircleRadiusBase() { throw new AssertionError(); }
     @ExpectPlatform public static double getWardBlockRadius() { throw new AssertionError(); }
+    @ExpectPlatform public static int getMaxDelayTicks() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getFancyMagicCircleProcessing() { throw new AssertionError(); }
 }

@@ -1,5 +1,110 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-202-01-56
+
+### Added & Polished
+*   **Magic Circle Aesthetics**:
+    *   Replaced outer boundary ring alchemical symbols with supported Unicode glyphs (`☼`, `☾`, `✦`, `★`, `Ω`, etc.) to guarantee they render correctly in the standard Minecraft font.
+    *   Node characters inside active ground-level magic circle vertex circles are now drawn in solid black (`0xFF000000`) for clear readability.
+    *   Vertex circles on the ground now render node-specific 2D schematic layouts (Amplifier, Capacitor, Resonator, Diode, Essence Bank) instead of letters.
+    *   Floating 3D spheres on perimeter nodes are replaced with flat horizontal miniature magic circles when not processing (or when fancy processing is disabled).
+*   **Fancy Magic Circle Processing Animations**:
+    *   Registered `"Fancy Magic Circle Processing"` boolean configuration spec for both Fabric and NeoForge.
+    *   Implemented 4-stage processing animation sequence:
+        *   **Phase 1 (f: 0.0 - 0.3)**: Spheres slowly raise from the item positions on the ground (`y = 0.35` to `y = 1.2`) and scale up vertically (growing from flat 2D discs into 3D spheres). Items shrink from scale `1.0` to `0.0`.
+        *   **Phase 2 (f: 0.3 - 0.6)**: Spheres move horizontally towards the center and stack vertically in a 2.5-block span (`y = 0.5` to `y = 3.0`).
+        *   **Phase 3 (f: 0.6 - 0.8)**: Spheres shrink to `30%` of their original size, and their miniature flat magic circles are revealed at their stacked heights.
+        *   **Phase 4 (f: 0.8 - 1.0)**: The miniature magic circles and their smaller spheres cascade and smash down on top of each other towards the center ground where the final crafted item is spawned.
+
+## Build 000-1-26-201-23-10
+
+### Added & Polished
+*   **Essence Bank Node System**:
+    *   Registered `NodeType.ESSENCE_BANK` in both common and legacy registries.
+    *   Implemented 128 essence capacity limit per bank node, adding 128 to the circuit's total capacity.
+    *   Added interaction to extract 8 (small), 32 (medium), or 128 (large) essence from the bank node with an empty ampoule.
+    *   Added 2-minute (`2400` ticks) `PARALYZED` effect on living entities in range when an essence-filled bank node is broken.
+    *   Rendered bank nodes with a custom double-hexagon cage with 6 spokes and a "B" letter symbol.
+*   **Arkanist Monocle 5-Slot System**:
+    *   Implemented client-side keybinding (X by default) to cycle the active slot (0-4) and send a serverbound custom payload.
+    *   Tooltips show active selection arrow (`  > `) and details: first 3 slots display slotted lens or empty `___`, last 2 slots display `?????`.
+    *   Added in-inventory right-click combination slotting: drop lenses onto the monocle (or click monocle on a lens) to insert into slots 0, 1, 2, and right-click on empty slots to extract them.
+*   **New Monocle Lenses & Visual Overlays**:
+    *   Added **Propagation Lens** (Silver and Purple: handles circuit flow lines and decay rendering).
+    *   Added **Aetheric Lens** (Gold and Blue-green: copies aetheric vision to show hidden nodes and crystals).
+    *   Added **Vitae Lens** (Gold and Red: renders blue billboard and red healthbar above living entities).
+    *   Added **Materia Lens** (Brass and Blue: renders item Materia yield overlays in world and tooltips).
+
+## Build 000-1-26-201-18-04
+
+### Added & Polished
+*   **Essence Bank Node System**:
+    *   Registered `NodeType.ESSENCE_BANK` in both common and legacy registries.
+    *   Implemented 128 essence capacity limit per bank node, adding 128 to the circuit's total capacity.
+    *   Added interaction to extract 8 (small), 32 (medium), or 128 (large) essence from the bank node with an empty ampoule.
+    *   Added 2-minute (`2400` ticks) `PARALYZED` effect on living entities in range when an essence-filled bank node is broken.
+    *   Rendered bank nodes with a custom double-hexagon cage with 6 spokes and a "B" letter symbol.
+*   **Collection Node Decoupled Flow**:
+    *   Decoupled collection node harvesting: now distributes collected essence to the entire circuit up to capacity instead of storing it locally.
+    *   Empty collection and bank nodes behave like wires/repeaters, propagating signals downstream, while not accepting incoming signals when containing essence.
+*   **Arkanist Monocle 5-Slot System**:
+    *   Implemented client-side keybinding (V) to cycle the active slot (0-4) and send a serverbound custom payload.
+    *   Tooltips show active selection arrow (`  > `) and details: first 3 slots display slotted lens or empty `___`, last 2 slots display `?????`.
+    *   Added in-inventory right-click combination slotting: drop lenses onto the monocle (or click monocle on a lens) to insert into slots 0, 1, 2, and right-click on empty slots to extract them.
+*   **New Monocle Lenses & Visual Overlays**:
+    *   Added **Propagation Lens** (renamed from Alchemical Lens), **Aetheric Lens**, **Vitae Lens** (shows RPG-style healthbars above entities), and **Materia Lens** (shows item Materia yields on tooltip).
+    *   Processed transparent 16x16 icon textures: purple and silver frame for Materia, deep blue for Vitae, teal for Aetheric.
+
+## Build 000-1-26-201-17-15
+
+### Added & Polished
+*   **Alchemical Circuit Shared Essence Pool & Capacity Rules**:
+    *   Implemented full alchemical circuit validation traversing all connected trace paths and nodes using a breadth-first search (BFS) starting from the output/source node.
+    *   Essence requirements in recipes are now checked and consumed across the entire connected circuit as a single unified pool, instead of being limited to individual circle nodes.
+    *   Enforced the alchemical circuit capacity rule: maximum essence limit of `8 * N` (where `N` is the total number of connected chalk blocks, including both nodes and paths).
+    *   Clicking a `SOURCE` node with an empty hand now displays detailed circuit filling information in chat: `"Circuit Essence: X/Y (AFFINITY)"`.
+    *   Added visual chat feedback upon manual essence insertion: `"Added A essence to circuit (B/C)"`.
+    *   Protected `SOURCE` nodes and nodes containing active `Orbis Cells` from being cleared to 0 upon magic circle craft completions, preventing item essence reservoirs from being destroyed.
+*   **Collection Node Harvesting & Isolation**:
+    *   Refactored `NodeType.COLLECTION` logic to scan the circuit and add 1 essence of the local biome's element when the circuit is below its total capacity limit.
+    *   Decoupled the collection node from accepting neighbor signal propagation, ensuring it never accepts any essence inwards.
+    *   Allow the collection node to act as a direct signal source propagating at strength 32 downstream as long as it has any gathered essence.
+    *   Updated extraction node traversal to detect and drain from both `SOURCE` and `COLLECTION` nodes.
+
+## Build 000-1-26-201-19-05
+
+### Added & Polished
+*   **Paralyzed Event Handler Platform-Native Registration**:
+    *   Completely decoupled event listeners for the `PARALYZED` effect from Architectury's shared `InteractionEvent` module to prevent loader-specific binary signature mismatches (e.g. `EventResult` vs `InteractionResult`).
+    *   Emptyicized common `ParalyzedEventHandler` and implemented native event subscribers: registered standard NeoForge `PlayerInteractEvent` handlers (LeftClickBlock, RightClickBlock, RightClickItem, EntityInteract) in `NeoForgeEventSubscriber`, and standard Fabric API callbacks (`UseBlockCallback`, `AttackBlockCallback`) in `EntropicaFabric`. This eliminates any runtime class-transformation or remapping issues on NeoForge and Fabric, completely resolving `AbstractMethodError` crashes.
+*   **BufferBuilder "Not building!" Rendering Fix**:
+    *   Refactored the drawing sequence in `ScribedChalkRenderer` to guarantee that all line and ring geometry (using `VertexConsumer`) finishes building completely before any alchemical symbols, orbiting characters, or node labels (using `Font.drawInBatch`) start rendering. This prevents font draw calls from prematurely closing the active geometry buffer builder, eliminating the `IllegalStateException: Not building!` world-join crash.
+*   **Magic Circle Always-Visible Rendering**:
+    *   Overrode `shouldRenderOffScreen` inside `ScribedChalkRenderer` to return `true`, completely bypassing frustum culling for active chalk nodes. This ensures that the magic circle remains fully visible as long as any part of its lines are on-screen, even if the center output node is off-screen.
+*   **Expanded Magic Circle Node Limits & X-Gon Scale**:
+    *   Increased maximum perimeter node count limits and the drawn X-Gons to: Tier 1: 8 nodes (1 input, 1 source, 6 runes), Tier 2: 16 nodes, Tier 3: 24 nodes, Tier 4: 32 nodes.
+    *   Updated concentric circle offset definitions and validation checks in `ScribedChalkBlock` to support the full larger rings (Octagon, 16-Gon, 24-Gon, 32-Gon configurations).
+*   **Arcane Alchemical Symbols & Inverted Glowing Overlays**:
+    *   Implemented flat, slowly rotating alchemical symbols (☉, ☽, ☿, ♀, ♂, ♃, ♄, ♾, etc.) rendered along the boundary of active magic circles.
+    *   Dynamically scaled the number of outer perimeter symbols based on circle size/tier: Tier 1 (3x3): 18 symbols, Tier 2 (5x5): 30 symbols, Tier 3 (7x7): 42 symbols, Tier 4 (9x9): 54 symbols.
+    *   Symbols render with full self-illumination (glow) in the dark and feature inverted colors matching the opposite spectrum of the circle's affinity color.
+    *   Added four glowing, orbiting alchemical glyphs (α, δ, λ, Ω) around the perimeter circle of both standard circuit nodes and active magic circle vertex nodes.
+*   **Magic Circle Wildcard Essence Matching**:
+    *   Updated magic circle recipe matching logic (`MagicCircleRecipe.matches`) to sum all provided essences (including regular/plain and elemental) when checking wildcard (`REGULAR`) essence requirements.
+    *   Fixed circle scan to include regular/plain essence levels inside the input essence map instead of explicitly skipping them.
+*   **Paralyzed Status Effect**:
+    *   Implemented status effect behavior restricting entity horizontal velocity, jumping, and interactions.
+    *   Added beautiful client-side head/limb purple electric particle arcs in third-person.
+    *   Added GUI viewport overlay with procedurally flashing neon lightning borders.
+*   **Propagation Lens & Arkanist Monocle**:
+    *   Custom crafted items registered and integrated with Curios monocle slot tags.
+    *   Added viewport overlay rendering a chromatic oil-slick color cycle when equipped.
+    *   Implemented 3D neon flow indicators/arrows projecting above chalk circuit paths to guide players in tracing signal decay and direction.
+*   **Alchemical Containment Breach**:
+    *   Breaking active circuit blocks triggers a gaseous cloud/essence particle burst.
+    *   Applies Materia Toxicity and Paralyzed effects (durations proportional to block essence level).
+    *   Moved logic to `dropStoredContents` to ensure multi-version signature compatibility.
+
 ## Build 000-1-26-201-11-34
 
 ### Added & Polished

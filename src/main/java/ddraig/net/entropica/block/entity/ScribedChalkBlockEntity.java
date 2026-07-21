@@ -440,14 +440,48 @@ public class ScribedChalkBlockEntity extends BlockEntity {
             if (blockEntity.scanCooldown >= 100) {
                 blockEntity.scanCooldown = 0;
                 EssenceType biomeEssence = blockEntity.getEssenceTypeForBiome(level, pos);
-                if (biomeEssence != EssenceType.REGULAR && blockEntity.activeAffinity != biomeEssence) {
-                    blockEntity.dyeTicks = 0;
-                    blockEntity.activeAffinity = biomeEssence;
-                    blockEntity.color = biomeEssence.getColorInt();
-                    blockEntity.essenceLevel = 32;
-                    blockEntity.setChanged();
-                    level.sendBlockUpdated(pos, state, state, 3);
+                if (biomeEssence != EssenceType.REGULAR) {
+                    java.util.Set<ScribedChalkBlockEntity> circuit = ScribedChalkBlock.getConnectedCircuit(level, pos);
+                    int capacity = ScribedChalkBlock.getCircuitCapacity(circuit);
+                    int currentTotal = 0;
+                    for (ScribedChalkBlockEntity beInCircuit : circuit) {
+                        currentTotal += beInCircuit.getEssenceLevel();
+                    }
+                    
+                    if (currentTotal < capacity) {
+                        // Verify affinity compatibility
+                        EssenceType circuitAff = EssenceType.REGULAR;
+                        for (ScribedChalkBlockEntity beInCircuit : circuit) {
+                            if (beInCircuit.getEssenceLevel() > 0 && beInCircuit.getActiveAffinity() != EssenceType.REGULAR) {
+                                circuitAff = beInCircuit.getActiveAffinity();
+                            }
+                        }
+                        if (circuitAff == EssenceType.REGULAR || circuitAff == biomeEssence) {
+                            blockEntity.dyeTicks = 0;
+                            ScribedChalkBlock.addEssenceToCircuit(circuit, biomeEssence, 1);
+                        }
+                    }
                 }
+            }
+        }
+
+        // Deactivate SOURCE node if out of essence
+        if (nodeType == ScribedChalkBlock.NodeType.SOURCE) {
+            if (blockEntity.getStoredOrbisCell().isEmpty() && blockEntity.essenceLevel <= 0 && blockEntity.activeAffinity != EssenceType.REGULAR) {
+                blockEntity.activeAffinity = EssenceType.REGULAR;
+                blockEntity.color = 0xFFCCCCCC;
+                blockEntity.setChanged();
+                level.sendBlockUpdated(pos, state, state, 3);
+            }
+        }
+
+        // Deactivate ESSENCE_BANK node if out of essence
+        if (nodeType == ScribedChalkBlock.NodeType.ESSENCE_BANK) {
+            if (blockEntity.essenceLevel <= 0 && blockEntity.activeAffinity != EssenceType.REGULAR) {
+                blockEntity.activeAffinity = EssenceType.REGULAR;
+                blockEntity.color = 0xFFCCCCCC;
+                blockEntity.setChanged();
+                level.sendBlockUpdated(pos, state, state, 3);
             }
         }
 
@@ -457,8 +491,9 @@ public class ScribedChalkBlockEntity extends BlockEntity {
             isDirectSource = true;
         } else if (nodeType == ScribedChalkBlock.NodeType.INPUT || 
                    nodeType == ScribedChalkBlock.NodeType.SOURCE || 
-                   nodeType == ScribedChalkBlock.NodeType.COLLECTION) {
-            if (blockEntity.activeAffinity != EssenceType.REGULAR) {
+                   nodeType == ScribedChalkBlock.NodeType.COLLECTION ||
+                   nodeType == ScribedChalkBlock.NodeType.ESSENCE_BANK) {
+            if (blockEntity.activeAffinity != EssenceType.REGULAR && blockEntity.essenceLevel > 0) {
                 isDirectSource = true;
             }
         }

@@ -33,5 +33,17 @@ public class EntropicaClient {
                 ddraig.net.entropica.client.HazeOverlayRenderer.render(guiGraphics, deltaTracker.getGameTimeDeltaTicks());
             }
         );
+        event.registerAboveAll(
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "paralyzed_overlay"),
+            (guiGraphics, deltaTracker) -> {
+                ddraig.net.entropica.client.ParalyzedOverlayRenderer.render(guiGraphics, deltaTracker.getGameTimeDeltaTicks());
+            }
+        );
+        event.registerAboveAll(
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "lens_overlay"),
+            (guiGraphics, deltaTracker) -> {
+                ddraig.net.entropica.client.LensOverlayRenderer.render(guiGraphics, deltaTracker.getGameTimeDeltaTicks());
+            }
+        );
     }
 }

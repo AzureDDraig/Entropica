@@ -8,6 +8,7 @@
   "itemGroup.entropica.weapon_crafting": "Entropica: Weapon Crafting",
   "itemGroup.entropica.logistics": "Entropica: Logistics",
   "key.entropica.debug": "Entropica Debug",
+  "key.entropica.swap_lens": "Swap Monocle Lens",
   "key.categories.entropica": "Entropica",
   "tooltip.entropica.any_fume": "Any Type",
 
@@ -22,6 +23,7 @@
   "effect.entropica.materia_toxicity": "Materia Toxicity",
   "effect.entropica.void_tear": "Void Tear",
   "effect.entropica.haze": "Haze",
+  "effect.entropica.paralyzed": "Paralyzed",
 
   "_comment_enchants": "================ ENCHANTMENTS ================",
   "enchantment.entropica.augment_slot_expansion": "Augment Slot Expansion",
@@ -38,6 +40,11 @@
   "item.entropica.whisperwood_wand": "Whisperwood Wand",
   "item.entropica.shimmering_focus": "Shimmering Focus",
   "item.entropica.aetheric_monocle": "Aetheric Monocle",
+  "item.entropica.propagation_lens": "Propagation Lens",
+  "item.entropica.aetheric_lens": "Aetheric Lens",
+  "item.entropica.vitae_lens": "Vitae Lens",
+  "item.entropica.materia_lens": "Materia Lens",
+  "item.entropica.arkanist_monocle": "Arkanist Monocle",
   "item.entropica.dynamic_sword": "Dynamic Sword",
   "item.entropica.dynamic_axe": "Dynamic Axe",
   "item.entropica.dynamic_pickaxe": "Dynamic Pickaxe",

@@ -22,4 +22,8 @@ public class ModEffects {
     // Registers the new Haze effect with a custom color
     public static final RegistrySupplier<MobEffect> HAZE = EFFECTS.register("haze",
             ddraig.net.entropica.effect.HazeEffect::new);
+
+    // Registers the new Paralyzed effect with a purple electric color
+    public static final RegistrySupplier<MobEffect> PARALYZED = EFFECTS.register("paralyzed",
+            () -> new ddraig.net.entropica.effect.ParalyzedEffect(MobEffectCategory.HARMFUL, 0x9D4EDD));
 }

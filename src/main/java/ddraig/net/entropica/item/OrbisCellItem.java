@@ -23,7 +23,7 @@ public class OrbisCellItem extends BlockItem {
         super(block, properties);
     }
 
-    public int getMaxVis() {
+    public int getMaxMateria() {
         // Assuming config keeps the original internal variable name, but logically returning Materia
         return EntropicaConfig.ORBIS_CELL_MAX_MATERIA.get();
     }
@@ -31,7 +31,7 @@ public class OrbisCellItem extends BlockItem {
     // --- HELPER METHODS FOR DATA COMPONENTS ---
 
     @Nullable
-    public static EssenceType getStoredVisType(ItemStack stack) {
+    public static EssenceType getStoredMateriaType(ItemStack stack) {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         String typeStr = customData.copyTag().getString("MateriaType").orElse("");
         if (!typeStr.isEmpty()) {
@@ -42,7 +42,7 @@ public class OrbisCellItem extends BlockItem {
         return null;
     }
 
-    public static int getStoredVisAmount(ItemStack stack) {
+    public static int getStoredMateriaAmount(ItemStack stack) {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         return customData.copyTag().getInt("StoredMateria2").orElse(0);
     }
@@ -53,11 +53,11 @@ public class OrbisCellItem extends BlockItem {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, display, tooltipComponents, tooltipFlag);
 
-        int currentCellVis = getStoredVisAmount(stack);
-        EssenceType type = getStoredVisType(stack);
-        int maxVis = getMaxVis();
+        int currentCellMateria = getStoredMateriaAmount(stack);
+        EssenceType type = getStoredMateriaType(stack);
+        int maxMateria = getMaxMateria();
 
-        if (currentCellVis > 0 && type != null) {
+        if (currentCellMateria > 0 && type != null) {
             long time = System.currentTimeMillis() / 50;
             int[] rgb = type.getCurrentRGB(time);
             int hexColor = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
@@ -67,11 +67,11 @@ public class OrbisCellItem extends BlockItem {
             tooltipComponents.accept(Component.literal("Stored Materia (").withStyle(ChatFormatting.GRAY)
                     .append(Component.literal(type.getDisplayName()).withStyle(essenceStyle))
                     .append(Component.literal("): ").withStyle(ChatFormatting.GRAY))
-                    .append(Component.literal(currentCellVis + " / " + maxVis).withStyle(essenceStyle)));
+                    .append(Component.literal(currentCellMateria + " / " + maxMateria).withStyle(essenceStyle)));
 
             // Text Progress Bar
             int barSegments = 20;
-            int filledSegments = (int) Math.round(((double) currentCellVis / maxVis) * barSegments);
+            int filledSegments = (int) Math.round(((double) currentCellMateria / maxMateria) * barSegments);
             filledSegments = Math.clamp(filledSegments, 0, barSegments);
             int emptySegments = barSegments - filledSegments;
 
@@ -84,7 +84,7 @@ public class OrbisCellItem extends BlockItem {
             tooltipComponents.accept(progressBar);
         } else {
             // Empty State
-            tooltipComponents.accept(Component.literal("Stored Materia (Empty): 0 / " + maxVis).withStyle(ChatFormatting.DARK_GRAY));
+            tooltipComponents.accept(Component.literal("Stored Materia (Empty): 0 / " + maxMateria).withStyle(ChatFormatting.DARK_GRAY));
             Component emptyBar = Component.literal("[" + "|".repeat(20) + "]").withStyle(ChatFormatting.DARK_GRAY);
             tooltipComponents.accept(emptyBar);
         }

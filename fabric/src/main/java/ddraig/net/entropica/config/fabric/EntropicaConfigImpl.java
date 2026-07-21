@@ -77,6 +77,7 @@ public class EntropicaConfigImpl {
         public IntOption receptacleMaxEssence = new IntOption("The amount of essence storage capacity added per Essence Receptacle in the multiblock. Min: 1, Max: 2147483647, Default: 64", 1, Integer.MAX_VALUE, 64);
         public IntOption coreProcessTickRate = new IntOption("How many ticks between each processing operation of the furnace (20 = 1 second, 5 = 1/4th second). Min: 1, Max: 200, Default: 5", 1, 200, 5);
         public BooleanOption enableCoreOverload = new BooleanOption("If true, the Entropic Core will eventually explode if left active while its Materia Buffer is 100% full. Default: true", true);
+        public BooleanOption fancyMagicCircleProcessing = new BooleanOption("If true, enables complex raising, growing, fading, and cascading smash animations during magic circle ritual processing. Default: true", true);
         public IntOption orbisCellMaxMateria = new IntOption("Maximum materia storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000", 1, Integer.MAX_VALUE, 10000);
 
         // Materia Fume Network
@@ -158,12 +159,14 @@ public class EntropicaConfigImpl {
         public BooleanOption nodeInfiniteCapacity = new BooleanOption("If true, Essence Nodes never run out of essence from extraction. Default: false", false);
         public IntOption nodeSpawnSpacing = new IntOption("Minimum chunk distance between naturally spawning nodes. Min: 1, Max: 100, Default: 6", 1, 100, 6);
         public IntOption nodeMaxPerArea = new IntOption("Maximum number of nodes allowed in a 10x10 chunk area. Min: 1, Max: 100, Default: 10", 1, 100, 10);
+        public IntOption extractionNodeCooldown = new IntOption("Default cooldown in ticks for Extraction Nodes when transferring essence. Min: 1, Max: 1000, Default: 40", 1, 1000, 40);
 
         // Essence Repulsion Wards
         public IntOption wardConsumptionAmount = new IntOption("Amount of Fumus consumed per consumption tick. Min: 1, Default: 1", 1, Integer.MAX_VALUE, 1);
         public IntOption wardConsumptionIntervalSeconds = new IntOption("How many seconds between Fumus consumption operations. Min: 1, Default: 120", 1, Integer.MAX_VALUE, 120);
         public DoubleOption wardCircleRadiusBase = new DoubleOption("Base radius for magic circle wards (increases per circle tier). Min: 1.0, Default: 10.0", 1.0, 100.0, 10.0);
         public DoubleOption wardBlockRadius = new DoubleOption("Radius of the dedicated repulsion ward block. Min: 1.0, Default: 15.0", 1.0, 100.0, 15.0);
+        public IntOption maxDelayTicks = new IntOption("Maximum delay ticks allowed for a Delay Node. Min: 1, Max: 100, Default: 6", 1, 100, 6);
 
         public void validateAll() {
             materiaPerEssence.validate();
@@ -245,10 +248,12 @@ public class EntropicaConfigImpl {
             nodeInfiniteCapacity.validate();
             nodeSpawnSpacing.validate();
             nodeMaxPerArea.validate();
+            extractionNodeCooldown.validate();
             wardConsumptionAmount.validate();
             wardConsumptionIntervalSeconds.validate();
             wardCircleRadiusBase.validate();
             wardBlockRadius.validate();
+            maxDelayTicks.validate();
         }
     }
 
@@ -369,4 +374,7 @@ public class EntropicaConfigImpl {
     public static int getWardConsumptionIntervalSeconds() { return data.wardConsumptionIntervalSeconds.value; }
     public static double getWardCircleRadiusBase() { return data.wardCircleRadiusBase.value; }
     public static double getWardBlockRadius() { return data.wardBlockRadius.value; }
+    public static int getExtractionNodeCooldown() { return data.extractionNodeCooldown.value; }
+    public static int getMaxDelayTicks() { return data.maxDelayTicks.value; }
+    public static boolean getFancyMagicCircleProcessing() { return data.fancyMagicCircleProcessing.value; }
 }

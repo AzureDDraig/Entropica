@@ -63,10 +63,17 @@ public class ModClientEvents {
             GLFW.GLFW_KEY_L,
             KeyMapping.Category.MISC
     );
+    public static final KeyMapping SWAP_LENS_KEY = new KeyMapping(
+            "key.entropica.swap_lens",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_V,
+            KeyMapping.Category.MISC
+    );
 
     @SubscribeEvent
     public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(DEBUG_KEY);
+        event.register(SWAP_LENS_KEY);
     }
 
     @SubscribeEvent
@@ -76,6 +83,15 @@ public class ModClientEvents {
             Minecraft.getInstance().gui.setOverlayMessage(
                     Component.literal("Entropica Debug: " + (debugMode ? "§aON" : "§cOFF")),
                     false);
+        }
+        if (SWAP_LENS_KEY.consumeClick()) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null) {
+                ItemStack head = mc.player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+                if (head.is(ddraig.net.entropica.registry.ModItems.ARKANIST_MONOCLE.get())) {
+                    dev.architectury.networking.NetworkManager.sendToServer(new ddraig.net.entropica.network.MonocleLensSwapPayload(false));
+                }
+            }
         }
     }
 

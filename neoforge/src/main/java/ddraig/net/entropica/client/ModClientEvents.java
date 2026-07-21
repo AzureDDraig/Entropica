@@ -33,6 +33,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
@@ -40,6 +41,10 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.neoforge.client.event.RenderLivingEvent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.gui.Font;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -49,6 +54,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import com.mojang.serialization.MapCodec;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -63,10 +70,17 @@ public class ModClientEvents {
             GLFW.GLFW_KEY_L,
             KeyMapping.Category.MISC
     );
+    public static final KeyMapping SWAP_LENS_KEY = new KeyMapping(
+            "key.entropica.swap_lens",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_V,
+            KeyMapping.Category.MISC
+    );
 
     @SubscribeEvent
     public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(DEBUG_KEY);
+        event.register(SWAP_LENS_KEY);
     }
 
     @SubscribeEvent
@@ -77,6 +91,15 @@ public class ModClientEvents {
                     Component.literal("Entropica Debug: " + (debugMode ? "§aON" : "§cOFF")),
                     false);
         }
+        if (SWAP_LENS_KEY.consumeClick()) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null) {
+                ItemStack head = mc.player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+                if (head.is(ddraig.net.entropica.registry.ModItems.ARKANIST_MONOCLE.get())) {
+                    dev.architectury.networking.NetworkManager.sendToServer(new ddraig.net.entropica.network.MonocleLensSwapPayload(false));
+                }
+            }
+        }
     }
 
     @SubscribeEvent
@@ -85,6 +108,7 @@ public class ModClientEvents {
         
         // Custom Haze shader tick manager
         HazeShaderManager.clientTick(mc);
+        ddraig.net.entropica.client.ParalyzedParticleHandler.clientTick(mc);
 
         if (mc.player != null && mc.level != null && mc.screen == null && mc.level.getGameTime() % 10 == 0) {
             for (int i = 0; i < mc.player.getInventory().getContainerSize(); i++) {
@@ -261,5 +285,79 @@ public class ModClientEvents {
         event.registerLayerDefinition(RimeShepherdModel.LAYER_LOCATION, RimeShepherdModel::createBodyLayer);
         event.registerLayerDefinition(SporeDrifterModel.LAYER_LOCATION, SporeDrifterModel::createBodyLayer);
         event.registerLayerDefinition(BloomCrawlerModel.LAYER_LOCATION, BloomCrawlerModel::createBodyLayer);
+    }
+
+    @SubscribeEvent
+    public static void onRenderLiving(RenderLivingEvent.Post<?, ?, ?> event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) return;
+        if (!ddraig.net.entropica.client.LensOverlayRenderer.isVitaeVisionActive(mc.player)) return;
+
+        LivingEntityRenderState state = event.getRenderState();
+        double x = state.x;
+        double y = state.y;
+        double z = state.z;
+
+        net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(x - 0.05, y - 0.05, z - 0.05, x + 0.05, y + 0.05, z + 0.05);
+        java.util.List<LivingEntity> entities = mc.level.getEntitiesOfClass(LivingEntity.class, area);
+        if (entities.isEmpty()) return;
+
+        LivingEntity entity = entities.get(0);
+        if (entity == mc.player) return;
+        if (mc.player.distanceToSqr(entity) > 32 * 32) return;
+
+        float health = entity.getHealth();
+        float maxHealth = entity.getMaxHealth();
+        
+        int totalSegments = 10;
+        int filledSegments = Math.clamp(Math.round((health / maxHealth) * totalSegments), 0, totalSegments);
+        
+        StringBuilder bar = new StringBuilder("§8[§c");
+        for (int i = 0; i < totalSegments; i++) {
+            if (i == filledSegments) {
+                bar.append("§8");
+            }
+            bar.append("■");
+        }
+        bar.append("§8]");
+        
+        String text = String.format("HP: %.1f/%.1f %s", health, maxHealth, bar.toString());
+        
+        PoseStack poseStack = event.getPoseStack();
+        MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
+        Font font = mc.font;
+        
+        poseStack.pushPose();
+        poseStack.translate(0.0d, state.boundingBoxHeight + 0.4d, 0.0d);
+        poseStack.mulPose(mc.gameRenderer.getMainCamera().rotation());
+        poseStack.scale(-0.02f, -0.02f, 0.02f);
+        
+        float xOffset = -font.width(text) / 2f;
+        int light = state.lightCoords;
+        
+        int bg = 0x50000088;
+        font.drawInBatch(text, xOffset, 0.0F, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.SEE_THROUGH, bg, light);
+        font.drawInBatch(text, xOffset, 0.0F, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+        
+        poseStack.popPose();
+    }
+
+    @SubscribeEvent
+    public static void onItemTooltip(ItemTooltipEvent event) {
+        Player player = event.getEntity();
+        if (player == null) return;
+        if (!ddraig.net.entropica.client.LensOverlayRenderer.isMateriaVisionActive(player)) return;
+        
+        ItemStack stack = event.getItemStack();
+        if (stack.isEmpty()) return;
+        
+        java.util.List<ddraig.net.entropica.api.ItemEssenceMap.EssenceValue> values = ddraig.net.entropica.api.ItemEssenceMap.getEssenceFor(stack);
+        if (values != null && !values.isEmpty()) {
+            event.getToolTip().add(Component.literal("§5Materia Yield:"));
+            for (ddraig.net.entropica.api.ItemEssenceMap.EssenceValue val : values) {
+                String name = val.type().getColorCode() + val.type().getDisplayName();
+                event.getToolTip().add(Component.literal(String.format("  §7- %.2f %s", val.amount(), name)));
+            }
+        }
     }
 }

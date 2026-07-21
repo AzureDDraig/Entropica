@@ -37,6 +37,7 @@ public class Entropica {
         ModEntityEvents.register();
         EssenceMappingEvents.register();
         MobDropHandler.register();
+        ddraig.net.entropica.event.ParalyzedEventHandler.register();
 
         LOGGER.info("Entropica: Common Initialization completed.");
     }

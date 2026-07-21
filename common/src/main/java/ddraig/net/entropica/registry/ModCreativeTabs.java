@@ -134,6 +134,11 @@ public class ModCreativeTabs {
                 output.accept(ModItems.WHISPERWOOD_WAND.get());
                 output.accept(ModItems.SHIMMERING_FOCUS.get());
                 output.accept(ModItems.AETHERIC_MONOCLE.get());
+                output.accept(ModItems.PROPAGATION_LENS.get());
+                output.accept(ModItems.AETHERIC_LENS.get());
+                output.accept(ModItems.VITAE_LENS.get());
+                output.accept(ModItems.MATERIA_LENS.get());
+                output.accept(ModItems.ARKANIST_MONOCLE.get());
                 output.accept(ModItems.MATERIA_VALUE_DETECTOR.get());
                 output.accept(ModItems.ARCANUM_FOCUS.get());
                 output.accept(ModItems.CHALK.get());

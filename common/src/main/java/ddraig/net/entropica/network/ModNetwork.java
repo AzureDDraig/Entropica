@@ -44,6 +44,13 @@ public class ModNetwork {
                 WeaponNamingPayload.STREAM_CODEC,
                 ModNetwork::handleNaming
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                MonocleLensSwapPayload.TYPE,
+                MonocleLensSwapPayload.STREAM_CODEC,
+                ModNetwork::handleMonocleLensSwap
+        );
     }
 
     public static void handleGeneratorScroll(final GeneratorScrollPayload data, final NetworkManager.PacketContext context) {
@@ -125,6 +132,17 @@ public class ModNetwork {
                         break;
                     }
                 }
+            }
+        });
+    }
+
+    public static void handleMonocleLensSwap(final MonocleLensSwapPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player == null) return;
+            ItemStack head = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+            if (head.is(ddraig.net.entropica.registry.ModItems.ARKANIST_MONOCLE.get())) {
+                ddraig.net.entropica.item.ArkanistMonocleItem.cycleLens(head, player);
             }
         });
     }

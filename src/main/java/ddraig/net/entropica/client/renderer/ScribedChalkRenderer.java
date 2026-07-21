@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 
 public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlockEntity, ScribedChalkRenderer.ChalkRenderState> {
     private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
@@ -36,6 +37,11 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
 
     public ScribedChalkRenderer(BlockEntityRendererProvider.Context context) {
         this.itemModelResolver = context.itemModelResolver();
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
     }
 
     @Override
@@ -173,7 +179,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                     renderState.circleTier = tier;
                     // Scan all concentric layers up to tier for active dyeing input
                     for (int t = 1; t <= tier; t++) {
-                        int[][] offsets = getOffsetsForTier(t);
+                        int[][] offsets = ScribedChalkBlock.getOffsetsForTier(t);
                         for (int[] offset : offsets) {
                             BlockPos p = pos.offset(offset[0], 0, offset[1]);
                             BlockEntity neighborBE = level.getBlockEntity(p);
@@ -194,7 +200,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                     renderState.rotatingNodes.clear();
                     java.util.List<ScribedChalkBlockEntity> perimeterNodeBEs = new java.util.ArrayList<>();
                     for (int t = 1; t <= tier; t++) {
-                        int[][] offsets = getOffsetsForTier(t);
+                        int[][] offsets = ScribedChalkBlock.getOffsetsForTier(t);
                         for (int[] offset : offsets) {
                             BlockPos p = pos.offset(offset[0], 0, offset[1]);
                             BlockEntity neighborBE = level.getBlockEntity(p);
@@ -228,6 +234,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         if (nodeState.nodeType == ScribedChalkBlock.NodeType.INPUT) text = "I";
                         else if (nodeState.nodeType == ScribedChalkBlock.NodeType.SOURCE) text = "S";
                         else if (nodeState.nodeType == ScribedChalkBlock.NodeType.COLLECTION) text = "C";
+                        else if (nodeState.nodeType == ScribedChalkBlock.NodeType.DELAY) text = String.valueOf(nodeBE.getDelayTicks());
                         else if (nodeState.nodeType == ScribedChalkBlock.NodeType.RUNE) {
                             ItemStack r = nodeBE.getStoredRune();
                             text = (r.getItem() instanceof ddraig.net.entropica.item.RuneItem runeItem) ? runeItem.getUnicodeChar() : "E";
@@ -236,6 +243,8 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         
                         int defCol = getDefaultTierColor(nodeBS);
                         nodeState.color = nodeBE.getActiveAffinity() != EssenceType.REGULAR ? getDynamicColor(nodeBE) : defCol;
+                        nodeState.isProcessing = nodeBE.isProcessing();
+                        nodeState.essenceLevel = nodeBE.getEssenceLevel();
                         
                         ItemStack cellItem = nodeBE.getStoredOrbisCell();
                         nodeState.hasStoredOrbisCell = !cellItem.isEmpty();
@@ -262,6 +271,65 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             renderState.connectEast = false;
             renderState.connectWest = false;
             renderState.circleTier = 0;
+        }
+
+        // Extract basic fields
+        renderState.isProcessing = be.isProcessing();
+        renderState.essenceLevel = be.getEssenceLevel();
+        renderState.propagationStrength = be.getPropagationStrength();
+        renderState.delayTicks = be.getDelayTicks();
+        renderState.timePulseOffset = (level != null ? (level.getGameTime() % 40) / 40.0f : 0.0f);
+
+        BlockPos nextNodePos = null;
+        if (renderState.isCircuit && renderState.nodeType != ScribedChalkBlock.NodeType.DEFAULT) {
+            int currentStrength = be.getPropagationStrength();
+            if (currentStrength > 0 && level != null) {
+                BlockPos currentPos = be.getBlockPos();
+                ScribedChalkBlockEntity currentBE = be;
+                for (int step = 0; step < 32; step++) {
+                    Direction nextStepDir = null;
+                    int bestStrength = -1;
+                    for (Direction dir : Direction.values()) {
+                        if (dir.getAxis().isHorizontal()) {
+                            BlockPos checkPos = currentPos.relative(dir);
+                            BlockEntity checkBE = level.getBlockEntity(checkPos);
+                            if (checkBE instanceof ScribedChalkBlockEntity neighborChalk) {
+                                int neighborStrength = neighborChalk.getPropagationStrength();
+                                if (neighborStrength > 0 && neighborStrength < currentBE.getPropagationStrength()) {
+                                    if (neighborStrength > bestStrength) {
+                                        bestStrength = neighborStrength;
+                                        nextStepDir = dir;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (nextStepDir != null) {
+                        currentPos = currentPos.relative(nextStepDir);
+                        BlockEntity stepBE = level.getBlockEntity(currentPos);
+                        if (stepBE instanceof ScribedChalkBlockEntity stepChalk) {
+                            currentBE = stepChalk;
+                            if (level.getBlockState(currentPos).getValue(ScribedChalkBlock.NODE_TYPE) != ScribedChalkBlock.NodeType.DEFAULT) {
+                                nextNodePos = currentPos;
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        if (nextNodePos != null) {
+            renderState.targetNodeOffset = new Vec3(
+                nextNodePos.getX() - be.getBlockPos().getX(),
+                0,
+                nextNodePos.getZ() - be.getBlockPos().getZ()
+            );
+        } else {
+            renderState.targetNodeOffset = null;
         }
 
         // Get Orbis Cell
@@ -346,10 +414,10 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
     }
 
     private int detectCircleTier(Level level, BlockPos center, boolean circuit) {
-        if (checkPattern(level, center, circuit, getOffsetsForTier(4)) && ScribedChalkBlock.validateNodeCountsStatic(level, center, 4)) return 4;
-        if (checkPattern(level, center, circuit, getOffsetsForTier(3)) && ScribedChalkBlock.validateNodeCountsStatic(level, center, 3)) return 3;
-        if (checkPattern(level, center, circuit, getOffsetsForTier(2)) && ScribedChalkBlock.validateNodeCountsStatic(level, center, 2)) return 2;
-        if (checkPattern(level, center, circuit, getOffsetsForTier(1)) && ScribedChalkBlock.validateNodeCountsStatic(level, center, 1)) return 1;
+        if (checkPattern(level, center, circuit, ScribedChalkBlock.getOffsetsForTier(4)) && ScribedChalkBlock.validateNodeCountsStatic(level, center, 4)) return 4;
+        if (checkPattern(level, center, circuit, ScribedChalkBlock.getOffsetsForTier(3)) && ScribedChalkBlock.validateNodeCountsStatic(level, center, 3)) return 3;
+        if (checkPattern(level, center, circuit, ScribedChalkBlock.getOffsetsForTier(2)) && ScribedChalkBlock.validateNodeCountsStatic(level, center, 2)) return 2;
+        if (checkPattern(level, center, circuit, ScribedChalkBlock.getOffsetsForTier(1)) && ScribedChalkBlock.validateNodeCountsStatic(level, center, 1)) return 1;
         return 0;
     }
 
@@ -362,19 +430,6 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             }
         }
         return true;
-    }
-
-    private int[][] getOffsetsForTier(int tier) {
-        return switch (tier) {
-            case 1 -> new int[][]{{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
-            case 2 -> new int[][]{{0, -2}, {1, -1}, {2, 0}, {1, 1}, {0, 2}, {-1, 1}, {-2, 0}, {-1, -1}};
-            case 3 -> new int[][]{
-                {0, -3}, {1, -3}, {2, -2}, {3, -1}, {3, 1}, {2, 2}, {1, 3}, {0, 3}, {-1, 3}, {-2, 2}, {-3, 1}, {-3, -1}, {-2, -2}, {-1, -3}
-            };
-            default -> new int[][]{
-                {0, -4}, {1, -4}, {2, -3}, {3, -2}, {4, -1}, {4, 0}, {4, 1}, {3, 2}, {2, 3}, {1, 4}, {0, 4}, {-1, 4}, {-2, 3}, {-3, 2}, {-4, 1}, {-4, 0}, {-4, -1}, {-3, -2}, {-2, -3}, {-1, -4}
-            };
-        };
     }
 
     @Override
@@ -395,7 +450,22 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         float yOffset = 0.015f;
 
         // 1. Draw connection lines to neighbors
-        drawConnections(poseStack, consumer, renderState, yOffset, r, g, b, alpha, light);
+        if (!renderState.isInMagicCircle) {
+            drawConnections(poseStack, consumer, renderState, yOffset, r, g, b, alpha, light);
+            if (renderState.isCircuit && renderState.targetNodeOffset != null) {
+                if (ddraig.net.entropica.client.LensOverlayRenderer.isPropagationVisionActive(mc.player)) {
+                    float ar = r;
+                    float ag = g;
+                    float ab = b;
+                    if (!renderState.hasActiveDye) {
+                        ar = 0.2f;
+                        ag = 0.9f;
+                        ab = 1.0f;
+                    }
+                    drawNeonArrow(poseStack, consumer, renderState.targetNodeOffset, ar, ag, ab, renderState.time, light);
+                }
+            }
+        }
 
         // 2. Draw node decoration overlays based on node type
         boolean drawNodeCircle = false;
@@ -430,6 +500,10 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                 drawNodeCircle = true;
                 textSymbol = "D";
             }
+            case DELAY -> {
+                drawNodeCircle = true;
+                textSymbol = String.valueOf(renderState.delayTicks);
+            }
             case OUTPUT -> {
                 drawNodeCircle = true;
                 textSymbol = "O";
@@ -441,6 +515,10 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                 } else {
                     textSymbol = "E"; // E for Editable Node, matching legend and references
                 }
+            }
+            case ESSENCE_BANK -> {
+                drawNodeCircle = true;
+                textSymbol = "B";
             }
             default -> {
                 // For default paths, we just draw the central connection hub, no circles or text symbols
@@ -460,15 +538,17 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                 drawLocalResonator(poseStack, consumer, 0.22f, yOffset + 0.002f, r, g, b, alpha, light);
             } else if (renderState.nodeType == ScribedChalkBlock.NodeType.DIODE) {
                 drawLocalDiode(poseStack, consumer, 0.18f, yOffset + 0.002f, r, g, b, alpha, light, renderState.facing);
+            } else if (renderState.nodeType == ScribedChalkBlock.NodeType.ESSENCE_BANK) {
+                drawLocalEssenceBank(poseStack, consumer, 0.22f, yOffset + 0.002f, r, g, b, alpha, light);
             }
         }
 
         // 3. Render Magic Circle centered on OUTPUT node if complete
         if (renderState.circleTier > 0) {
             float radius = (float) renderState.circleTier;
-            drawMagicCircle(poseStack, consumer, radius, yOffset + 0.0005f, r, g, b, alpha, light, renderState.time, renderState.circleDyeTicks, renderState.circleHasActiveDye, renderState.circleDyeColor, renderState.circleDyeSourceAngle);
+            int points = renderState.rotatingNodes.size();
+            drawMagicCircle(poseStack, consumer, radius, yOffset + 0.0005f, r, g, b, alpha, light, renderState.time, renderState.circleDyeTicks, renderState.circleHasActiveDye, renderState.circleDyeColor, renderState.circleDyeSourceAngle, points);
             
-            // Draw rotating nodes inside the spinning vertex circles!
             float speed = switch (renderState.circleTier) {
                 case 1 -> 0.8f;
                 case 2 -> 0.6f;
@@ -478,19 +558,66 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             float offsetDegrees = -90.0f + renderState.time * speed;
             float offsetRad = (float) Math.toRadians(offsetDegrees);
             float polyRadius = (renderState.circleTier == 4) ? radius * 0.75f : radius * 0.7f;
-            int points = renderState.rotatingNodes.size();
+            int pointsCount = renderState.rotatingNodes.size();
             
-            if (points > 0) {
-                float angleStep = (float)(2.0 * Math.PI / points);
-                Font font = mc.font;
-                
-                for (int i = 0; i < points; i++) {
+            if (pointsCount > 0) {
+                float angleStep = (float)(2.0 * Math.PI / pointsCount);
+                for (int i = 0; i < pointsCount; i++) {
                     ChalkRenderState.RotatingNodeState rNode = renderState.rotatingNodes.get(i);
                     float theta = offsetRad + i * angleStep;
                     float cx = polyRadius * (float) Math.cos(theta) + 0.5f;
                     float cz = polyRadius * (float) Math.sin(theta) + 0.5f;
                     
-                    // Draw text symbol (e.g. "I", "S", Rune Unicode, or "E")
+                    if (rNode.nodeType != ScribedChalkBlock.NodeType.DEFAULT) {
+                        float nr = ((rNode.color >> 16) & 0xFF) / 255.0f;
+                        float ng = ((rNode.color >> 8) & 0xFF) / 255.0f;
+                        float nb = (rNode.color & 0xFF) / 255.0f;
+                        drawFloatingNodeGeometry(poseStack, consumer, cx, 1.2f, cz, nr, ng, nb, renderState.time, light, rNode.isProcessing, false, null, 0.0f);
+                    }
+                }
+            }
+        }
+
+        if (renderState.nodeType != ScribedChalkBlock.NodeType.DEFAULT && !renderState.isInMagicCircle) {
+            drawFloatingNodeGeometry(poseStack, consumer, 0.5f, 1.2f, 0.5f, r, g, b, renderState.time, light, renderState.isProcessing, renderState.isCircuit, renderState.targetNodeOffset, renderState.timePulseOffset);
+        }
+
+        // --- 4. Render All Text/Font Overlays ---
+        Font font = mc.font;
+        if (drawNodeCircle && !renderState.isInMagicCircle) {
+            int nodeColor = (Math.clamp((int)(r*255), 0, 255) << 16) | (Math.clamp((int)(g*255), 0, 255) << 8) | Math.clamp((int)(b*255), 0, 255);
+            drawOrbitingSymbols(poseStack, font, bufferSource, 0.5f, 0.5f, yOffset + 0.001f, 0.22f, nodeColor, renderState.time, light);
+        }
+        if (drawNodeCircle && !textSymbol.isEmpty() && !renderState.isInMagicCircle) {
+            poseStack.pushPose();
+            poseStack.translate(0.5f, yOffset + 0.005f, 0.5f);
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0f));
+            float textScale = (renderState.nodeType == ScribedChalkBlock.NodeType.RUNE && renderState.hasStoredRune) ? 0.018f : 0.015f;
+            poseStack.scale(textScale, -textScale, textScale);
+            int width = font.width(textSymbol);
+            font.drawInBatch(textSymbol, -width / 2.0f, -font.lineHeight / 2.0f, color | 0xFF000000, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+            poseStack.popPose();
+        }
+        if (renderState.nodeType != ScribedChalkBlock.NodeType.DEFAULT && !renderState.isInMagicCircle) {
+            drawFloatingNodeText(poseStack, bufferSource, 0.5f, 1.2f, 0.5f, r, g, b, renderState.time, light, renderState.nodeType, renderState.isProcessing, renderState.isCircuit, renderState.targetNodeOffset);
+        }
+        if (renderState.circleTier > 0) {
+            float radius = (float) renderState.circleTier;
+            int pointsCount = renderState.rotatingNodes.size();
+            drawMagicCircleSymbols(poseStack, font, bufferSource, radius, yOffset + 0.0005f, r, g, b, renderState.time, renderState.circleHasActiveDye, renderState.circleDyeColor);
+            if (pointsCount > 0) {
+                float speed = switch (renderState.circleTier) { case 1 -> 0.8f; case 2 -> 0.6f; case 3 -> 0.5f; default -> 0.4f; };
+                float offsetDegrees = -90.0f + renderState.time * speed;
+                float offsetRad = (float) Math.toRadians(offsetDegrees);
+                float polyRadius = (renderState.circleTier == 4) ? radius * 0.75f : radius * 0.7f;
+                float angleStep = (float)(2.0 * Math.PI / pointsCount);
+                for (int i = 0; i < pointsCount; i++) {
+                    ChalkRenderState.RotatingNodeState rNode = renderState.rotatingNodes.get(i);
+                    float theta = offsetRad + i * angleStep;
+                    float cx = polyRadius * (float) Math.cos(theta) + 0.5f;
+                    float cz = polyRadius * (float) Math.sin(theta) + 0.5f;
+                    float vertexCircleRadius = (radius < 1.5f) ? 0.15f : (radius < 2.5f) ? 0.2f : (radius < 3.5f) ? 0.25f : 0.3f;
+                    drawOrbitingSymbols(poseStack, font, bufferSource, cx, cz, yOffset + 0.001f, vertexCircleRadius, rNode.color, renderState.time, light);
                     if (!rNode.textSymbol.isEmpty()) {
                         poseStack.pushPose();
                         poseStack.translate(cx, yOffset + 0.005f, cz);
@@ -498,12 +625,36 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         float textScale = (rNode.nodeType == ScribedChalkBlock.NodeType.RUNE && rNode.textSymbol.length() > 1) ? 0.018f : 0.015f;
                         poseStack.scale(textScale, -textScale, textScale);
                         int w = font.width(rNode.textSymbol);
-                        int nodeColor = rNode.color;
-                        font.drawInBatch(rNode.textSymbol, -w / 2.0f, -font.lineHeight / 2.0f, nodeColor | 0xFF000000, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+                        font.drawInBatch(rNode.textSymbol, -w / 2.0f, -font.lineHeight / 2.0f, rNode.color | 0xFF000000, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
                         poseStack.popPose();
                     }
-                    
-                    // Draw floating Orbis Cell centered above the spinning node
+                    if (rNode.nodeType != ScribedChalkBlock.NodeType.DEFAULT) {
+                        float nr = ((rNode.color >> 16) & 0xFF) / 255.0f;
+                        float ng = ((rNode.color >> 8) & 0xFF) / 255.0f;
+                        float nb = (rNode.color & 0xFF) / 255.0f;
+                        drawFloatingNodeText(poseStack, bufferSource, cx, 1.2f, cz, nr, ng, nb, renderState.time, light, rNode.nodeType, rNode.isProcessing, false, null);
+                    }
+                }
+            }
+        }
+        bufferSource.endBatch();
+        poseStack.popPose();
+
+        // 5. Draw Floating Item models
+        if (renderState.circleTier > 0) {
+            float radius = (float) renderState.circleTier;
+            int pointsCount = renderState.rotatingNodes.size();
+            if (pointsCount > 0) {
+                float speed = switch (renderState.circleTier) { case 1 -> 0.8f; case 2 -> 0.6f; case 3 -> 0.5f; default -> 0.4f; };
+                float offsetDegrees = -90.0f + renderState.time * speed;
+                float offsetRad = (float) Math.toRadians(offsetDegrees);
+                float polyRadius = (renderState.circleTier == 4) ? radius * 0.75f : radius * 0.7f;
+                float angleStep = (float)(2.0 * Math.PI / pointsCount);
+                for (int i = 0; i < pointsCount; i++) {
+                    ChalkRenderState.RotatingNodeState rNode = renderState.rotatingNodes.get(i);
+                    float theta = offsetRad + i * angleStep;
+                    float cx = polyRadius * (float) Math.cos(theta) + 0.5f;
+                    float cz = polyRadius * (float) Math.sin(theta) + 0.5f;
                     if (rNode.hasStoredOrbisCell) {
                         poseStack.pushPose();
                         poseStack.translate(cx, 0.35f, cz);
@@ -513,8 +664,6 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         rNode.storedOrbisCellState.submit(poseStack, submitNodeCollector, light, OverlayTexture.NO_OVERLAY, 0);
                         poseStack.popPose();
                     }
-
-                    // Draw floating Rune item centered above the spinning node
                     if (rNode.hasStoredRune) {
                         poseStack.pushPose();
                         poseStack.translate(cx, 0.3f, cz);
@@ -523,6 +672,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(rotation));
                         rNode.storedRuneState.submit(poseStack, submitNodeCollector, light, OverlayTexture.NO_OVERLAY, 0);
                         poseStack.popPose();
+                    }
                     }
                 }
                 bufferSource.endBatch();
@@ -542,6 +692,10 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             font.drawInBatch(textSymbol, -width / 2.0f, -font.lineHeight / 2.0f, color | 0xFF000000, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
             poseStack.popPose();
             bufferSource.endBatch();
+        }
+
+        if (renderState.nodeType != ScribedChalkBlock.NodeType.DEFAULT && !renderState.isInMagicCircle) {
+            drawFloatingNodeVisuals(poseStack, bufferSource, consumer, 0.5f, 1.2f, 0.5f, r, g, b, renderState.time, light, renderState.nodeType, renderState.isProcessing, renderState.isCircuit, renderState.targetNodeOffset, renderState.timePulseOffset);
         }
 
         poseStack.popPose();
@@ -751,81 +905,226 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         }
     }
 
+    private void drawSphere(VertexConsumer consumer, Matrix4f matrix, float radius, float r, float g, float b, float a, int light) {
+        int lats = 12;
+        int longs = 12;
+        int overlay = OverlayTexture.NO_OVERLAY;
+        for (int i = 0; i < lats; i++) {
+            float lat0 = (float) (Math.PI * (-0.5 + (double) i / lats));
+            float z0 = radius * (float) Math.sin(lat0);
+            float zr0 = radius * (float) Math.cos(lat0);
+
+            float lat1 = (float) (Math.PI * (-0.5 + (double) (i + 1) / lats));
+            float z1 = radius * (float) Math.sin(lat1);
+            float zr1 = radius * (float) Math.cos(lat1);
+
+            for (int j = 0; j < longs; j++) {
+                float lng = (float) (2 * Math.PI * (double) j / longs);
+                float x = (float) Math.cos(lng);
+                float y = (float) Math.sin(lng);
+
+                float lng1 = (float) (2 * Math.PI * (double) (j + 1) / longs);
+                float x1 = (float) Math.cos(lng1);
+                float y1 = (float) Math.sin(lng1);
+
+                consumer.addVertex(matrix, x * zr0, z0, y * zr0).setColor(r, g, b, a).setUv(0, 0).setOverlay(overlay).setLight(light).setNormal(x, z0/radius, y);
+                consumer.addVertex(matrix, x1 * zr0, z0, y1 * zr0).setColor(r, g, b, a).setUv(1, 0).setOverlay(overlay).setLight(light).setNormal(x1, z0/radius, y1);
+                consumer.addVertex(matrix, x1 * zr1, z1, y1 * zr1).setColor(r, g, b, a).setUv(1, 1).setOverlay(overlay).setLight(light).setNormal(x1, z1/radius, y1);
+                consumer.addVertex(matrix, x * zr1, z1, y * zr1).setColor(r, g, b, a).setUv(0, 1).setOverlay(overlay).setLight(light).setNormal(x, z1/radius, y);
+            }
+        }
+    }
+
+    private void drawHalo(PoseStack poseStack, MultiBufferSource bufferSource, float radius, float yawDegrees, float pitchDegrees, float r, float g, float b, float time, int light) {
+        Minecraft mc = Minecraft.getInstance();
+        Font font = mc.font;
+        String runes = "ᚠᚢᚦᚨᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ";
+        int count = runes.length();
+        float angleStep = 360.0f / count;
+
+        poseStack.pushPose();
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(yawDegrees));
+        poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(pitchDegrees));
+        poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(time * 2.0f));
+
+        int colorVal = ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
+
+        for (int i = 0; i < count; i++) {
+            poseStack.pushPose();
+            float angle = i * angleStep;
+            poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(angle));
+            poseStack.translate(0, radius, 0);
+            
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0f));
+            poseStack.scale(0.015f, -0.015f, 0.015f);
+            
+            String charStr = String.valueOf(runes.charAt(i));
+            int w = font.width(charStr);
+            font.drawInBatch(charStr, -w / 2.0f, -font.lineHeight / 2.0f, colorVal | 0xFF000000, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+            poseStack.popPose();
+        }
+        poseStack.popPose();
+    }
+
+    private void drawSymbolInsideSphere(PoseStack poseStack, MultiBufferSource bufferSource, String symbol, float r, float g, float b, int light) {
+        Minecraft mc = Minecraft.getInstance();
+        Font font = mc.font;
+        poseStack.pushPose();
+        int colorVal = ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
+        
+        for (int angle = 0; angle < 360; angle += 90) {
+            poseStack.pushPose();
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(angle));
+            poseStack.scale(0.018f, -0.018f, 0.018f);
+            int w = font.width(symbol);
+            font.drawInBatch(symbol, -w / 2.0f, -font.lineHeight / 2.0f, colorVal | 0xFF000000, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
+            poseStack.popPose();
+        }
+        poseStack.popPose();
+    }
+
+    private void drawFloatingNodeGeometry(PoseStack poseStack, VertexConsumer consumer,
+                                         float tx, float ty, float tz,
+                                         float r, float g, float b, float time, int light,
+                                         boolean isProcessing, boolean isCircuit,
+                                         @Nullable Vec3 nextNodeOffset, float timePulseOffset) {
+        poseStack.pushPose();
+        poseStack.translate(tx, ty, tz);
+        
+        float alpha = 0.7f + 0.15f * (float) Math.sin(time * 0.1f);
+        drawSphere(consumer, poseStack.last().pose(), 0.18f, r, g, b, alpha, light);
+        poseStack.popPose();
+
+        if (isCircuit && nextNodeOffset != null && isProcessing) {
+            poseStack.pushPose();
+            Vec3 start = new Vec3(tx, ty, tz);
+            Vec3 end = start.add(nextNodeOffset);
+            Vec3 wispPos = start.lerp(end, timePulseOffset);
+            poseStack.translate(wispPos.x, wispPos.y, wispPos.z);
+            
+            float wispSize = 0.05f + 0.02f * (float) Math.sin(time * 0.3f);
+            drawSphere(consumer, poseStack.last().pose(), wispSize, r * 1.2f, g * 1.2f, b * 1.2f, 0.9f, light);
+            poseStack.popPose();
+        }
+    }
+
+    private void drawFloatingNodeText(PoseStack poseStack, MultiBufferSource bufferSource,
+                                     float tx, float ty, float tz,
+                                     float r, float g, float b, float time, int light,
+                                     ScribedChalkBlock.NodeType nodeType, boolean isProcessing,
+                                     boolean isCircuit, @Nullable Vec3 nextNodeOffset) {
+        poseStack.pushPose();
+        poseStack.translate(tx, ty, tz);
+        
+        String symbol = switch (nodeType) {
+            case AND_GATE -> "⚭";
+            case OR_GATE -> "▽";
+            case NOT_GATE -> "⦸";
+            default -> "";
+        };
+        if (!symbol.isEmpty()) {
+            drawSymbolInsideSphere(poseStack, bufferSource, symbol, r, g, b, light);
+        }
+        
+        float haloRadius = 0.24f;
+        float yaw = 0.0f;
+        float pitch = isProcessing ? 90.0f : 0.0f;
+
+        if (nextNodeOffset != null) {
+            yaw = (float) Math.toDegrees(Math.atan2(nextNodeOffset.z, nextNodeOffset.x));
+        } else if (!isCircuit) {
+            float dx = 0.5f - tx;
+            float dz = 0.5f - tz;
+            yaw = (float) Math.toDegrees(Math.atan2(dz, dx));
+        }
+        
+        drawHalo(poseStack, bufferSource, haloRadius, yaw, pitch, r, g, b, time, light);
+        poseStack.popPose();
+    }
+
+    private void drawNeonArrow(PoseStack poseStack, VertexConsumer consumer, Vec3 direction, float r, float g, float b, float time, int light) {
+        poseStack.pushPose();
+        poseStack.translate(0.5f, 0.06f, 0.5f);
+        
+        float yaw = (float) Math.toDegrees(Math.atan2(direction.z, direction.x));
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-yaw));
+        
+        float pulse = (time * 0.15f) % 1.0f;
+        poseStack.translate(-0.3f + pulse * 0.6f, 0.0f, 0.0f);
+        
+        int overlay = OverlayTexture.NO_OVERLAY;
+        Matrix4f mat = poseStack.last().pose();
+        float a = 0.8f + 0.2f * (float) Math.sin(time * 0.5f);
+        
+        consumer.addVertex(mat, -0.05f, 0.0f, 0.08f).setColor(r, g, b, a).setUv(0, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(mat, 0.15f, 0.0f, 0.0f).setColor(r, g, b, a).setUv(1, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(mat, -0.05f, 0.0f, -0.08f).setColor(r, g, b, a).setUv(1, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(mat, 0.02f, 0.0f, 0.0f).setColor(r, g, b, a).setUv(0, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        
+        poseStack.popPose();
+    }
+
     private void drawCurvedCorner(PoseStack poseStack, VertexConsumer consumer, float y,
                                   Direction d1, Direction d2,
                                   float r, float g, float b, float sR, float sG, float sB, float a, int light) {
         float cx = 0.5f, cz = 0.5f;
         float x1 = cx + 0.2f * d1.getStepX();
-        float z1 = cz + 0.2f * d1.getStepY();
+        float z1 = cz + 0.2f * d1.getStepZ();
         float x2 = cx + 0.2f * d2.getStepX();
-        float z2 = cz + 0.2f * d2.getStepY();
+        float z2 = cz + 0.2f * d2.getStepZ();
         
         drawBezierCurve(poseStack, consumer, y, x1, z1, cx, cz, x2, z2, 0.06f, 6, r, g, b, a, light);
         
-        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d1.getStepX(), cx + 0.2f * d1.getStepX(), d1.getAxis().isVertical(), cx, 0.06f, r, g, b, a, light);
-        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis().isVertical(), cx, 0.06f, r, g, b, a, light);
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d1.getStepX(), cx + 0.2f * d1.getStepX(), d1.getAxis() == Direction.Axis.Z, cx, 0.06f, r, g, b, a, light);
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis() == Direction.Axis.Z, cx, 0.06f, r, g, b, a, light);
         
         float offset1 = -0.105f;
         float offset2 = 0.105f;
         
         // Side Line 1 (inner):
         float s1_x1 = x1 + offset1 * d2.getStepX();
-        float s1_z1 = z1 + offset1 * d2.getStepY();
+        float s1_z1 = z1 + offset1 * d2.getStepZ();
         float s1_cx = cx + offset1 * d2.getStepX() + offset1 * d1.getStepX();
-        float s1_cz = cz + offset1 * d2.getStepY() + offset1 * d1.getStepY();
+        float s1_cz = cz + offset1 * d2.getStepZ() + offset1 * d1.getStepZ();
         float s1_x2 = x2 + offset1 * d1.getStepX();
-        float s1_z2 = z2 + offset1 * d1.getStepY();
+        float s1_z2 = z2 + offset1 * d1.getStepZ();
         drawBezierCurve(poseStack, consumer, y, s1_x1, s1_z1, s1_cx, s1_cz, s1_x2, s1_z2, 0.03f, 6, sR, sG, sB, a, light);
         
-        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d1.getStepX(), cx + 0.2f * d1.getStepX(), d1.getAxis().isVertical(), cx + offset1 * d2.getStepX(), 0.03f, sR, sG, sB, a, light);
-        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis().isVertical(), cx + offset1 * d1.getStepX(), 0.03f, sR, sG, sB, a, light);
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d1.getStepX(), cx + 0.2f * d1.getStepX(), d1.getAxis() == Direction.Axis.Z, cx + offset1 * d2.getStepX(), 0.03f, sR, sG, sB, a, light);
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis() == Direction.Axis.Z, cx + offset1 * d1.getStepX(), 0.03f, sR, sG, sB, a, light);
         
         // Side Line 2 (outer):
         float s2_x1 = x1 + offset2 * d2.getStepX();
-        float s2_z1 = z1 + offset2 * d2.getStepY();
+        float s2_z1 = z1 + offset2 * d2.getStepZ();
         float s2_cx = cx + offset2 * d2.getStepX() + offset2 * d1.getStepX();
-        float s2_cz = cz + offset2 * d2.getStepY() + offset2 * d1.getStepY();
+        float s2_cz = cz + offset2 * d2.getStepZ() + offset2 * d1.getStepZ();
         float s2_x2 = x2 + offset2 * d1.getStepX();
-        float s2_z2 = z2 + offset2 * d1.getStepY();
+        float s2_z2 = z2 + offset2 * d1.getStepZ();
         drawBezierCurve(poseStack, consumer, y, s2_x1, s2_z1, s2_cx, s2_cz, s2_x2, s2_z2, 0.03f, 6, sR, sG, sB, a, light);
         
-        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d1.getStepX(), cx + 0.2f * d1.getStepX(), d1.getAxis().isVertical(), cx + offset2 * d2.getStepX(), 0.03f, sR, sG, sB, a, light);
-        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis().isVertical(), cx + offset2 * d1.getStepX(), 0.03f, sR, sG, sB, a, light);
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d1.getStepX(), cx + 0.2f * d1.getStepX(), d1.getAxis() == Direction.Axis.Z, cx + offset2 * d2.getStepX(), 0.03f, sR, sG, sB, a, light);
+        drawTraceSegment(poseStack, consumer, y, cx + 0.5f * d2.getStepX(), cx + 0.2f * d2.getStepX(), d2.getAxis() == Direction.Axis.Z, cx + offset2 * d1.getStepX(), 0.03f, sR, sG, sB, a, light);
     }
 
-    private void drawMagicCircle(PoseStack poseStack, VertexConsumer consumer, float radius, float y, float r, float g, float b, float a, int light, float time, float dyeTicks, boolean hasActiveDye, int dyeColor, float dyeSourceAngle) {
+    private void drawMagicCircle(PoseStack poseStack, VertexConsumer consumer, float radius, float y, float r, float g, float b, float a, int light, float time, float dyeTicks, boolean hasActiveDye, int dyeColor, float dyeSourceAngle, int points) {
         int segments = 64;
-        
         // Compute dye source color rgb
         float dr = ((dyeColor >> 16) & 0xFF) / 255.0f;
         float dg = ((dyeColor >> 8)  & 0xFF) / 255.0f;
         float db = (dyeColor & 0xFF)          / 255.0f;
 
-        // Concentric circular layers (circles in circles) and vertex circles based on 3/5/7/9 rules
+        // Concentric circular layers (circles in circles) based on tier
         if (radius < 1.5f) {
             // Tier 1 (3x3): 3 concentric layers of circles
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius, y, 0.03f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.1f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.85f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.15f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.7f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.2f);
-            
-            // 3-pointed Trigon (Triangle) outline
-            drawPolygram(poseStack, consumer, 3, 1, radius * 0.7f, -90.0f + time * 0.8f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            
-            // Circles centered at the 3 vertices
-            drawVertexCircles(poseStack, consumer, 3, radius * 0.7f, 0.15f, -90.0f + time * 0.8f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
         } else if (radius < 2.5f) {
             // Tier 2 (5x5): 4 concentric layers of circles
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius, y, 0.04f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.1f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.85f, y, 0.025f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.15f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.7f, y, 0.025f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.2f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.55f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.25f);
-
-            // 5-pointed Pentagram and Pentagon outline
-            drawPolygram(poseStack, consumer, 5, 2, radius * 0.7f, -90.0f + time * 0.6f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 5, 1, radius * 0.7f, -90.0f + time * -0.4f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            
-            // Circles centered at the 5 vertices
-            drawVertexCircles(poseStack, consumer, 5, radius * 0.7f, 0.2f, -90.0f + time * 0.6f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
         } else if (radius < 3.5f) {
             // Tier 3 (7x7): 5 concentric layers of circles
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius, y, 0.05f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.1f);
@@ -833,14 +1132,6 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.7f, y, 0.03f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.2f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.5f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.25f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.33f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.3f);
-
-            // Heptagon outline and Heptagram star
-            drawPolygram(poseStack, consumer, 7, 2, radius * 0.7f, -90.0f + time * 0.5f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 7, 3, radius * 0.5f, -90.0f + time * -0.3f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 7, 1, radius * 0.7f, -90.0f + time * 0.2f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-
-            // Circles centered at the 7 vertices
-            drawVertexCircles(poseStack, consumer, 7, radius * 0.7f, 0.25f, -90.0f + time * 0.5f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
         } else {
             // Tier 4 (9x9): 6 concentric layers of circles
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius, y, 0.06f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.1f);
@@ -849,15 +1140,39 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.62f, y, 0.03f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.25f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.5f, y, 0.03f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * 0.3f);
             drawRing(poseStack, consumer, 0.5f, 0.5f, radius * 0.25f, y, 0.02f, segments, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle, time * -0.35f);
+        }
 
-            // Nonagon outline, complex Nonagram star, and inner Trigon
-            drawPolygram(poseStack, consumer, 9, 3, radius * 0.75f, -90.0f + time * 0.4f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 9, 4, radius * 0.5f, -90.0f + time * -0.2f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 9, 1, radius * 0.75f, -90.0f + time * 0.15f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
-            drawPolygram(poseStack, consumer, 3, 1, radius * 0.25f, -90.0f + time * -0.6f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+        // Draw polygrams, stars, and vertex circles dynamically based on points count
+        if (points > 0) {
+            float speed = (radius < 1.5f) ? 0.8f : (radius < 2.5f) ? 0.6f : (radius < 3.5f) ? 0.5f : 0.4f;
+            float rotationAngle = -90.0f + time * speed;
+            float vertexRadius = (radius >= 3.5f) ? radius * 0.75f : radius * 0.7f;
+            float vertexCircleRadius = (radius < 1.5f) ? 0.15f : (radius < 2.5f) ? 0.2f : (radius < 3.5f) ? 0.25f : 0.3f;
 
-            // Circles centered at the 9 vertices
-            drawVertexCircles(poseStack, consumer, 9, radius * 0.75f, 0.3f, -90.0f + time * 0.4f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            // Draw polygon outline (for 3+ points, or 2 points which draws a line back/forth)
+            if (points >= 2) {
+                drawPolygram(poseStack, consumer, points, 1, vertexRadius, rotationAngle, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            }
+
+            // Draw star outline for 5+ points
+            if (points >= 5) {
+                int starStep = points / 2;
+                drawPolygram(poseStack, consumer, points, starStep, vertexRadius, rotationAngle, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            }
+
+            // Draw inner star for 7+ points
+            if (points >= 7) {
+                int innerStep = (points - 1) / 2;
+                drawPolygram(poseStack, consumer, points, innerStep, vertexRadius * 0.7f, rotationAngle * -1.2f, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            }
+
+            // Draw inner polygon for 9+ points
+            if (points >= 9) {
+                drawPolygram(poseStack, consumer, 3, 1, vertexRadius * 0.33f, rotationAngle * -1.5f, y, 0.02f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
+            }
+
+            // Draw circles at the vertices
+            drawVertexCircles(poseStack, consumer, points, vertexRadius, vertexCircleRadius, rotationAngle, y, 0.015f, r, g, b, dr, dg, db, a, light, dyeTicks, hasActiveDye, radius, dyeSourceAngle);
         }
     }
 
@@ -1265,6 +1580,12 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         public float dyeTicks;
         public boolean hasActiveDye;
         public int activeDyeColor;
+        public boolean isProcessing;
+        public int essenceLevel;
+        public int propagationStrength;
+        public Vec3 targetNodeOffset;
+        public float timePulseOffset = 0.0f; // for pulse wisp traveling animation
+        public int delayTicks = 1;
 
         // Magic circle state:
         public int circleTier = 0;
@@ -1282,7 +1603,138 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             public final ItemStackRenderState storedOrbisCellState = new ItemStackRenderState();
             public boolean hasStoredRune;
             public final ItemStackRenderState storedRuneState = new ItemStackRenderState();
+            public boolean isProcessing;
+            public int essenceLevel;
         }
         public final java.util.List<RotatingNodeState> rotatingNodes = new java.util.ArrayList<>();
+    }
+
+    private static final String[] ALCHEMICAL_SYMBOLS = {
+        "☉", "☽", "☿", "♀", "♂", "♃", "♄", "♾", "⚚", "⚙", "⚖", "☯", "☸", "α", "δ", "λ", "Ω", "Ψ", "Φ", "θ", "σ", "☼", "☾"
+    };
+
+    private static int getInvertedColor(int color) {
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
+        return 0xFF000000 | ((255 - r) << 16) | ((255 - g) << 8) | (255 - b);
+    }
+
+    private void drawOrbitingSymbols(PoseStack poseStack, Font font, MultiBufferSource bufferSource, float cx, float cz, float y, float orbitRadius, int color, float time, int light) {
+        int numOrbitSymbols = 4;
+        float angleStep = (float)(2.0 * Math.PI / numOrbitSymbols);
+        float rotation = time * 0.5f; // orbit speed
+        int invCol = getInvertedColor(color);
+        
+        String[] symbols = {"α", "δ", "λ", "Ω"}; // orbiting glyphs
+        
+        for (int j = 0; j < numOrbitSymbols; j++) {
+            float theta = rotation + j * angleStep;
+            float sx = cx + orbitRadius * (float) Math.cos(theta);
+            float sz = cz + orbitRadius * (float) Math.sin(theta);
+            
+            poseStack.pushPose();
+            poseStack.translate(sx, y + 0.003f, sz);
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0f));
+            poseStack.mulPose(com.mojang.math.Axis.ZP.rotation((float)(theta + Math.PI / 2.0)));
+            poseStack.scale(0.008f, -0.008f, 0.008f);
+            
+            String sym = symbols[j % symbols.length];
+            int w = font.width(sym);
+            font.drawInBatch(sym, -w / 2.0f, -font.lineHeight / 2.0f, invCol, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 15728880); // full bright glow!
+            poseStack.popPose();
+        }
+    }
+
+    private void drawMagicCircleSymbols(PoseStack poseStack, Font font, MultiBufferSource bufferSource, float radius, float y, float r, float g, float b, float time, boolean hasActiveDye, int dyeColor) {
+        int numSymbols = (radius < 1.5f) ? 18 : (radius < 2.5f) ? 30 : (radius < 3.5f) ? 42 : 54;
+        float symbolAngleStep = (float)(2.0 * Math.PI / numSymbols);
+        float symbolRotation = time * (0.4f / radius); // rotate slower for larger circles for premium feel
+        
+        int circleColor;
+        if (hasActiveDye) {
+            circleColor = dyeColor;
+        } else {
+            int cr = Math.clamp((int)(r * 255), 0, 255);
+            int cg = Math.clamp((int)(g * 255), 0, 255);
+            int cb = Math.clamp((int)(b * 255), 0, 255);
+            circleColor = (cr << 16) | (cg << 8) | cb;
+        }
+        int circleInvCol = getInvertedColor(circleColor);
+
+        for (int j = 0; j < numSymbols; j++) {
+            float theta = symbolRotation + j * symbolAngleStep;
+            float sx = radius * 0.93f * (float) Math.cos(theta) + 0.5f;
+            float sz = radius * 0.93f * (float) Math.sin(theta) + 0.5f;
+            
+            String sym = ALCHEMICAL_SYMBOLS[j % ALCHEMICAL_SYMBOLS.length];
+            
+            poseStack.pushPose();
+            poseStack.translate(sx, y + 0.002f, sz);
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0f));
+            poseStack.mulPose(com.mojang.math.Axis.ZP.rotation((float)(theta + Math.PI / 2.0)));
+            poseStack.scale(0.012f, -0.012f, 0.012f);
+            
+            int w = font.width(sym);
+            font.drawInBatch(sym, -w / 2.0f, -font.lineHeight / 2.0f, circleInvCol, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 15728880); // full bright glow!
+            poseStack.popPose();
+        }
+    }
+
+    private void drawLocalEssenceBank(PoseStack poseStack, VertexConsumer consumer, float size, float y, float r, float g, float b, float a, int light) {
+        float r1 = size * 0.4f;
+        float r2 = size * 0.8f;
+        float thickness = 0.015f;
+        
+        for (int i = 0; i < 6; i++) {
+            double angle = Math.toRadians(i * 60.0);
+            float dx1 = 0.5f + (float) Math.cos(angle) * r1;
+            float dz1 = 0.5f + (float) Math.sin(angle) * r1;
+            float dx2 = 0.5f + (float) Math.cos(angle) * r2;
+            float dz2 = 0.5f + (float) Math.sin(angle) * r2;
+            
+            drawLocalLine(poseStack, consumer, dx1, dz1, dx2, dz2, y, thickness, r, g, b, a, light);
+        }
+        
+        drawHexagon(poseStack, consumer, r1, y, thickness, r, g, b, a, light);
+        drawHexagon(poseStack, consumer, r2, y, thickness, r, g, b, a, light);
+    }
+    
+    private void drawHexagon(PoseStack poseStack, VertexConsumer consumer, float radius, float y, float thickness, float r, float g, float b, float a, int light) {
+        for (int i = 0; i < 6; i++) {
+            double angle1 = Math.toRadians(i * 60.0);
+            double angle2 = Math.toRadians(((i + 1) % 6) * 60.0);
+            float x1 = 0.5f + (float) Math.cos(angle1) * radius;
+            float z1 = 0.5f + (float) Math.sin(angle1) * radius;
+            float x2 = 0.5f + (float) Math.cos(angle2) * radius;
+            float z2 = 0.5f + (float) Math.sin(angle2) * radius;
+            
+            drawLocalLine(poseStack, consumer, x1, z1, x2, z2, y, thickness, r, g, b, a, light);
+        }
+    }
+
+    private void drawLocalLine(PoseStack poseStack, VertexConsumer consumer, float x1, float z1, float x2, float z2, float y, float thickness, float r, float g, float b, float a, int light) {
+        float dx = x2 - x1;
+        float dz = z2 - z1;
+        float len = (float) Math.sqrt(dx * dx + dz * dz);
+        if (len < 1e-5) return;
+        
+        float nx = -dz / len * (thickness / 2f);
+        float nz = dx / len * (thickness / 2f);
+        
+        float xa = x1 - nx;
+        float za = z1 - nz;
+        float xb = x1 + nx;
+        float zb = z1 + nz;
+        float xc = x2 + nx;
+        float zc = z2 + nz;
+        float xd = x2 - nx;
+        float zd = z2 - nz;
+        
+        PoseStack.Pose pose = poseStack.last();
+        consumer.addVertex(pose, xa, y, za).setColor(r, g, b, a).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, 0, 1, 0);
+        consumer.addVertex(pose, xb, y, zb).setColor(r, g, b, a).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, 0, 1, 0);
+        consumer.addVertex(pose, xc, y, zc).setColor(r, g, b, a).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, 0, 1, 0);
+        consumer.addVertex(pose, xd, y, zd).setColor(r, g, b, a).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, 0, 1, 0);
     }
 }

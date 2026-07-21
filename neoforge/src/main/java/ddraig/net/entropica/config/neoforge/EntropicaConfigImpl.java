@@ -9,6 +9,7 @@ public class EntropicaConfigImpl {
     public static int getCoreProcessTickRate() { return EntropicaNeoForgeConfig.CORE_PROCESS_TICK_RATE.get(); }
     public static boolean getEnableCoreOverload() { return EntropicaNeoForgeConfig.ENABLE_CORE_OVERLOAD.get(); }
     public static int getOrbisCellMaxMateria() { return EntropicaNeoForgeConfig.ORBIS_CELL_MAX_MATERIA.get(); }
+    public static boolean getFancyMagicCircleProcessing() { return EntropicaNeoForgeConfig.FANCY_MAGIC_CIRCLE_PROCESSING.get(); }
 
     public static int getCopperPipeCapacity() { return EntropicaNeoForgeConfig.COPPER_PIPE_CAPACITY.get(); }
     public static int getCopperPipeTransferRate() { return EntropicaNeoForgeConfig.COPPER_PIPE_TRANSFER_RATE.get(); }
@@ -89,5 +90,7 @@ public class EntropicaConfigImpl {
     public static int getWardConsumptionAmount() { return EntropicaNeoForgeConfig.WARD_CONSUMPTION_AMOUNT.get(); }
     public static int getWardConsumptionIntervalSeconds() { return EntropicaNeoForgeConfig.WARD_CONSUMPTION_INTERVAL_SECONDS.get(); }
     public static double getWardCircleRadiusBase() { return EntropicaNeoForgeConfig.WARD_CIRCLE_RADIUS_BASE.get(); }
-    public static double getWardBlockRadius() { return EntropicaNeoForgeConfig.WARD_BLOCK_RADIUS.get(); }
+    public static int getWardBlockRadius() { return EntropicaNeoForgeConfig.WARD_BLOCK_RADIUS.get().intValue(); }
+    public static int getExtractionNodeCooldown() { return EntropicaNeoForgeConfig.EXTRACTION_NODE_COOLDOWN.get(); }
+    public static int getMaxDelayTicks() { return EntropicaNeoForgeConfig.MAX_DELAY_TICKS.get(); }
 }

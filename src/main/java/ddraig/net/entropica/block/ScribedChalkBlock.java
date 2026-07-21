@@ -256,11 +256,6 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                         }
                                     }
                                     
-                                    EssenceType affinity = chalkBE.getActiveAffinity();
-                                    if (affinity != EssenceType.REGULAR) {
-                                        essences.put(affinity, essences.getOrDefault(affinity, 0) + chalkBE.getEssenceLevel());
-                                    }
-
                                     if (isCircuit) {
                                         if (type == NodeType.AMPLIFIER) amplifiers++;
                                         else if (type == NodeType.CAPACITOR) capacitors++;
@@ -269,6 +264,12 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                 }
                             }
                         }
+                    }
+
+                    java.util.Set<ScribedChalkBlockEntity> circuitBEs = getConnectedCircuit(level, pos);
+                    for (ScribedChalkBlockEntity circuitBE : circuitBEs) {
+                        EssenceType affinity = circuitBE.getActiveAffinity();
+                        essences.put(affinity, essences.getOrDefault(affinity, 0) + circuitBE.getEssenceLevel());
                     }
 
                     MagicCircleRecipeInput recipeInput = new MagicCircleRecipeInput(inputStacks, runeStacks, essences, checkTier);
@@ -312,13 +313,45 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             }
                         }
                         
-                        // 3. Clear/Drain essences on all nodes in the circle
-                        for (ScribedChalkBlockEntity chalkBE : allChalkBlockEntities) {
-                            chalkBE.setActiveAffinity(EssenceType.REGULAR);
-                            chalkBE.setEssenceLevel(0);
-                            chalkBE.setColor(0xFFCCCCCC);
-                            chalkBE.setChanged();
-                            level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                        // 2b. Consume essences from the connected circuit
+                        for (java.util.Map.Entry<EssenceType, Integer> entry : recipe.essences().entrySet()) {
+                            EssenceType type = entry.getKey();
+                            int toConsume = entry.getValue();
+                            
+                            for (ScribedChalkBlockEntity chalkBE : circuitBEs) {
+                                if (toConsume <= 0) break;
+                                if (chalkBE.getActiveAffinity() == type || (type == EssenceType.REGULAR)) {
+                                    int available = chalkBE.getEssenceLevel();
+                                    if (available > 0) {
+                                        int consumed = Math.min(toConsume, available);
+                                        chalkBE.setEssenceLevel(available - consumed);
+                                        if (chalkBE.getEssenceLevel() <= 0 && 
+                                            chalkBE.getBlockState().getValue(NODE_TYPE) != NodeType.SOURCE && 
+                                            chalkBE.getStoredOrbisCell().isEmpty()) {
+                                            chalkBE.setActiveAffinity(EssenceType.REGULAR);
+                                            chalkBE.setColor(0xFFCCCCCC);
+                                        }
+                                        chalkBE.setChanged();
+                                        level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                                        toConsume -= consumed;
+                                    }
+                                }
+                            }
+                        }
+
+                        // 3. Clear/Drain essences on all nodes in the circle (for simple magic circles only)
+                        if (!state.getValue(CIRCUIT)) {
+                            for (ScribedChalkBlockEntity chalkBE : allChalkBlockEntities) {
+                                NodeType nodeType = chalkBE.getBlockState().getValue(NODE_TYPE);
+                                if (nodeType == NodeType.SOURCE || !chalkBE.getStoredOrbisCell().isEmpty()) {
+                                    continue;
+                                }
+                                chalkBE.setActiveAffinity(EssenceType.REGULAR);
+                                chalkBE.setEssenceLevel(0);
+                                chalkBE.setColor(0xFFCCCCCC);
+                                chalkBE.setChanged();
+                                level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                            }
                         }
                         
                         // 4. Spawn output item at Output node center
@@ -377,7 +410,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             }
         }
 
-        if (state.getValue(NODE_TYPE) == NodeType.INPUT || state.getValue(NODE_TYPE) == NodeType.SOURCE) {
+        if (state.getValue(NODE_TYPE) == NodeType.SOURCE) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
                 net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
@@ -406,11 +439,46 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                     if (!level.isClientSide()) {
                         EssenceType type = ddraig.net.entropica.item.EssenceItem.getEssenceType(heldItem);
                         if (type != null) {
-                            chalkBE.setActiveAffinity(type);
-                            chalkBE.setColor(type.getColorInt());
+                            java.util.Set<ScribedChalkBlockEntity> circuit = getConnectedCircuit(level, pos);
+                            int capacity = getCircuitCapacity(circuit);
+                            int currentTotal = 0;
+                            for (ScribedChalkBlockEntity beInCircuit : circuit) {
+                                currentTotal += beInCircuit.getEssenceLevel();
+                            }
+                            
+                            int maxAdd = capacity - currentTotal;
+                            if (maxAdd <= 0) {
+                                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Entropica] Circuit essence capacity reached (" + currentTotal + "/" + capacity + ")."), true);
+                                return net.minecraft.world.InteractionResult.FAIL;
+                            }
 
-                            heldItem.shrink(1);
-                            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5f, 1.2f);
+                            // Verify affinity compatibility
+                            EssenceType circuitAff = EssenceType.REGULAR;
+                            for (ScribedChalkBlockEntity beInCircuit : circuit) {
+                                if (beInCircuit.getEssenceLevel() > 0 && beInCircuit.getActiveAffinity() != EssenceType.REGULAR) {
+                                    circuitAff = beInCircuit.getActiveAffinity();
+                                }
+                            }
+                            if (circuitAff != EssenceType.REGULAR && circuitAff != type) {
+                                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Entropica] Cannot mix different affinities in the same circuit!"), true);
+                                return net.minecraft.world.InteractionResult.FAIL;
+                            }
+
+                            int tier = ((ddraig.net.entropica.item.EssenceItem) heldItem.getItem()).getTier();
+                            int yield = switch (tier) {
+                                case 3 -> 16;
+                                case 2 -> 4;
+                                default -> 1;
+                            };
+                            
+                            int added = addEssenceToCircuit(circuit, type, yield);
+                            if (added > 0) {
+                                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Added " + added + " essence to circuit (" + (currentTotal + added) + "/" + capacity + ")."), true);
+                                heldItem.shrink(1);
+                                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5f, 1.2f);
+                            } else {
+                                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Entropica] Failed to add essence to circuit."), true);
+                            }
                         }
                     }
                     return net.minecraft.world.InteractionResult.SUCCESS;
@@ -428,6 +496,86 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         chalkBE.setColor(0xFFCCCCCC);
 
                         level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5f, 1.5f);
+                    }
+                    return net.minecraft.world.InteractionResult.SUCCESS;
+                } else if (chalkBE.getStoredOrbisCell().isEmpty() && heldItem.isEmpty()) {
+                    if (!level.isClientSide()) {
+                        java.util.Set<ScribedChalkBlockEntity> circuit = getConnectedCircuit(level, pos);
+                        int capacity = getCircuitCapacity(circuit);
+                        int currentTotal = 0;
+                        for (ScribedChalkBlockEntity beInCircuit : circuit) {
+                            currentTotal += beInCircuit.getEssenceLevel();
+                        }
+                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Circuit Essence: " + currentTotal + "/" + capacity + " (" + chalkBE.getActiveAffinity().name() + ")"), false);
+                    }
+                    return net.minecraft.world.InteractionResult.SUCCESS;
+                }
+            }
+        }
+
+        if (state.getValue(NODE_TYPE) == NodeType.ESSENCE_BANK) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof ScribedChalkBlockEntity chalkBE) {
+                net.minecraft.world.InteractionHand hand = net.minecraft.world.InteractionHand.MAIN_HAND;
+                ItemStack heldItem = player.getItemInHand(hand);
+
+                boolean isBaseAmpoule = heldItem.is(ddraig.net.entropica.registry.ModItems.SMALL_AMPOULE_BASE.get()) ||
+                                         heldItem.is(ddraig.net.entropica.registry.ModItems.MEDIUM_AMPOULE_BASE.get()) ||
+                                         heldItem.is(ddraig.net.entropica.registry.ModItems.LARGE_AMPOULE_BASE.get());
+
+                if (isBaseAmpoule) {
+                    if (!level.isClientSide()) {
+                        java.util.Set<ScribedChalkBlockEntity> circuit = getConnectedCircuit(level, pos);
+                        EssenceType affinity = EssenceType.REGULAR;
+                        int totalEssence = 0;
+                        for (ScribedChalkBlockEntity beInCircuit : circuit) {
+                            totalEssence += beInCircuit.getEssenceLevel();
+                            if (beInCircuit.getEssenceLevel() > 0 && beInCircuit.getActiveAffinity() != EssenceType.REGULAR) {
+                                affinity = beInCircuit.getActiveAffinity();
+                            }
+                        }
+
+                        if (affinity == EssenceType.REGULAR || totalEssence <= 0) {
+                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Entropica] Circuit has no specialized essence to extract."), true);
+                            return net.minecraft.world.InteractionResult.FAIL;
+                        }
+
+                        int required = 8;
+                        net.minecraft.world.item.Item filledItem = ddraig.net.entropica.registry.ModItems.SMALL_ESSENCE_AMPOULE.get();
+                        if (heldItem.is(ddraig.net.entropica.registry.ModItems.MEDIUM_AMPOULE_BASE.get())) {
+                            required = 32;
+                            filledItem = ddraig.net.entropica.registry.ModItems.MEDIUM_ESSENCE_AMPOULE.get();
+                        } else if (heldItem.is(ddraig.net.entropica.registry.ModItems.LARGE_AMPOULE_BASE.get())) {
+                            required = 128;
+                            filledItem = ddraig.net.entropica.registry.ModItems.LARGE_ESSENCE_AMPOULE.get();
+                        }
+
+                        if (totalEssence < required) {
+                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Entropica] Not enough essence to fill ampoule (Requires " + required + ", circuit has " + totalEssence + ")."), true);
+                            return net.minecraft.world.InteractionResult.FAIL;
+                        }
+
+                        consumeEssenceFromCircuit(circuit, affinity, required);
+                        ItemStack filled = new ItemStack(filledItem);
+                        ddraig.net.entropica.item.EssenceAmpouleItem.setEssenceType(filled, affinity);
+
+                        heldItem.shrink(1);
+                        if (!player.addItem(filled)) {
+                            player.drop(filled, false);
+                        }
+                        level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.5f, 1.0f);
+                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Extracted " + required + " " + affinity.getDisplayName() + " essence into ampoule."), true);
+                    }
+                    return net.minecraft.world.InteractionResult.SUCCESS;
+                } else if (heldItem.isEmpty()) {
+                    if (!level.isClientSide()) {
+                        java.util.Set<ScribedChalkBlockEntity> circuit = getConnectedCircuit(level, pos);
+                        int capacity = getCircuitCapacity(circuit);
+                        int currentTotal = 0;
+                        for (ScribedChalkBlockEntity beInCircuit : circuit) {
+                            currentTotal += beInCircuit.getEssenceLevel();
+                        }
+                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Circuit Essence: " + currentTotal + "/" + capacity + " (" + chalkBE.getActiveAffinity().name() + ") [Bank stored: " + chalkBE.getEssenceLevel() + "/128]"), false);
                     }
                     return net.minecraft.world.InteractionResult.SUCCESS;
                 }
@@ -491,6 +639,13 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             checkForAndDestroyCircle(level, pos, state);
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ScribedChalkBlockEntity chalkBE) {
+                if (chalkBE.getEssenceLevel() > 0 && chalkBE.getBlockState().getValue(NODE_TYPE) == NodeType.ESSENCE_BANK) {
+                    double range = 3.0 + (chalkBE.getEssenceLevel() / 100.0);
+                    net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(pos).inflate(range);
+                    for (net.minecraft.world.entity.LivingEntity entity : level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, area)) {
+                        entity.addEffect(new net.minecraft.world.effect.MobEffectInstance(ddraig.net.entropica.registry.ModEffects.PARALYZED, 2400, 0));
+                    }
+                }
                 if (!chalkBE.getStoredOrbisCell().isEmpty()) {
                     Block.popResource(level, pos, chalkBE.getStoredOrbisCell());
                 }
@@ -575,9 +730,11 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         }
         
         int totalNodes = inputCount + sourceCount + runeCount + specialCount;
-        int expectedTotal = 2 * tier + 1;
+        int expectedTotal = 8 * tier;
         
-        return inputCount >= 1 && sourceCount >= 1 && totalNodes == expectedTotal;
+        return inputCount >= 1 && sourceCount >= 1 && runeCount >= 1 && 
+               inputCount <= tier && sourceCount <= tier && runeCount <= 6 * tier && 
+               totalNodes <= expectedTotal;
     }
 
     public static boolean checkPatternStatic(Level level, BlockPos center, boolean circuit, int tier) {
@@ -611,13 +768,23 @@ public class ScribedChalkBlock extends BaseEntityBlock {
 
     public static int[][] getOffsetsForTier(int tier) {
         return switch (tier) {
-            case 1 -> new int[][]{{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
-            case 2 -> new int[][]{{0, -2}, {1, -1}, {2, 0}, {1, 1}, {0, 2}, {-1, 1}, {-2, 0}, {-1, -1}};
+            case 1 -> new int[][]{
+                {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}
+            };
+            case 2 -> new int[][]{
+                {0, -2}, {1, -2}, {2, -2}, {2, -1}, {2, 0}, {2, 1}, {2, 2}, {1, 2},
+                {0, 2}, {-1, 2}, {-2, 2}, {-2, 1}, {-2, 0}, {-2, -1}, {-2, -2}, {-1, -2}
+            };
             case 3 -> new int[][]{
-                {0, -3}, {1, -3}, {2, -2}, {3, -1}, {3, 1}, {2, 2}, {1, 3}, {0, 3}, {-1, 3}, {-2, 2}, {-3, 1}, {-3, -1}, {-2, -2}, {-1, -3}
+                {0, -3}, {1, -3}, {2, -3}, {3, -3}, {3, -2}, {3, -1}, {3, 0}, {3, 1}, {3, 2}, {3, 3},
+                {2, 3}, {1, 3}, {0, 3}, {-1, 3}, {-2, 3}, {-3, 3}, {-3, 2}, {-3, 1}, {-3, 0}, {-3, -1},
+                {-3, -2}, {-3, -3}, {-2, -3}, {-1, -3}
             };
             default -> new int[][]{
-                {0, -4}, {1, -4}, {2, -3}, {3, -2}, {4, -1}, {4, 0}, {4, 1}, {3, 2}, {2, 3}, {1, 4}, {0, 4}, {-1, 4}, {-2, 3}, {-3, 2}, {-4, 1}, {-4, 0}, {-4, -1}, {-3, -2}, {-2, -3}, {-1, -4}
+                {0, -4}, {1, -4}, {2, -4}, {3, -4}, {4, -4}, {4, -3}, {4, -2}, {4, -1}, {4, 0}, {4, 1},
+                {4, 2}, {4, 3}, {4, 4}, {3, 4}, {2, 4}, {1, 4}, {0, 4}, {-1, 4}, {-2, 4}, {-3, 4},
+                {-4, 4}, {-4, 3}, {-4, 2}, {-4, 1}, {-4, 0}, {-4, -1}, {-4, -2}, {-4, -3}, {-4, -4},
+                {-3, -4}, {-2, -4}, {-1, -4}
             };
         };
     }
@@ -633,6 +800,194 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         return createTickerHelper(blockEntityType, ModBlockEntities.SCRIBED_CHALK_BE.get(), ScribedChalkBlockEntity::tick);
     }
 
+    public static int getCircuitCapacity(java.util.Set<ScribedChalkBlockEntity> circuit) {
+        int capacity = 0;
+        for (ScribedChalkBlockEntity be : circuit) {
+            NodeType type = be.getBlockState().getValue(NODE_TYPE);
+            if (type == NodeType.ESSENCE_BANK) {
+                capacity += 128;
+            } else {
+                capacity += 8;
+            }
+        }
+        return capacity;
+    }
+
+    public static int addEssenceToCircuit(java.util.Set<ScribedChalkBlockEntity> circuit, EssenceType type, int amount) {
+        if (amount <= 0) return 0;
+        
+        EssenceType circuitAffinity = EssenceType.REGULAR;
+        int totalEssence = 0;
+        for (ScribedChalkBlockEntity be : circuit) {
+            totalEssence += be.getEssenceLevel();
+            if (be.getEssenceLevel() > 0 && be.getActiveAffinity() != EssenceType.REGULAR) {
+                circuitAffinity = be.getActiveAffinity();
+            }
+        }
+        
+        if (totalEssence > 0 && circuitAffinity != EssenceType.REGULAR && circuitAffinity != type) {
+            return 0;
+        }
+        
+        int capacity = getCircuitCapacity(circuit);
+        int toAdd = Math.min(amount, capacity - totalEssence);
+        if (toAdd <= 0) return 0;
+        
+        int remaining = toAdd;
+        
+        // Phase 1: Prioritize SOURCE and ESSENCE_BANK nodes
+        for (ScribedChalkBlockEntity be : circuit) {
+            NodeType nt = be.getBlockState().getValue(NODE_TYPE);
+            if (nt == NodeType.SOURCE || nt == NodeType.ESSENCE_BANK) {
+                int maxNodeCap = (nt == NodeType.ESSENCE_BANK) ? 128 : 8;
+                int current = be.getEssenceLevel();
+                int space = maxNodeCap - current;
+                if (space > 0) {
+                    int add = Math.min(remaining, space);
+                    be.setEssenceLevel(current + add);
+                    be.setActiveAffinity(type);
+                    be.setColor(type.getColorInt());
+                    be.setChanged();
+                    remaining -= add;
+                    if (remaining <= 0) break;
+                }
+            }
+        }
+        
+        // Phase 2: Fill other nodes/paths in the circuit if needed
+        if (remaining > 0) {
+            for (ScribedChalkBlockEntity be : circuit) {
+                NodeType nt = be.getBlockState().getValue(NODE_TYPE);
+                if (nt != NodeType.SOURCE && nt != NodeType.ESSENCE_BANK) {
+                    int current = be.getEssenceLevel();
+                    int space = 8 - current;
+                    if (space > 0) {
+                        int add = Math.min(remaining, space);
+                        be.setEssenceLevel(current + add);
+                        be.setActiveAffinity(type);
+                        be.setColor(type.getColorInt());
+                        be.setChanged();
+                        remaining -= add;
+                        if (remaining <= 0) break;
+                    }
+                }
+            }
+        }
+        
+        for (ScribedChalkBlockEntity be : circuit) {
+            be.setActiveAffinity(type);
+            be.setColor(type.getColorInt());
+            be.setChanged();
+            if (be.getLevel() != null) {
+                be.getLevel().sendBlockUpdated(be.getBlockPos(), be.getBlockState(), be.getBlockState(), 3);
+            }
+        }
+        
+        return toAdd;
+    }
+
+    public static int consumeEssenceFromCircuit(java.util.Set<ScribedChalkBlockEntity> circuit, EssenceType type, int amount) {
+        if (amount <= 0) return 0;
+        
+        int totalEssence = 0;
+        for (ScribedChalkBlockEntity be : circuit) {
+            if (be.getActiveAffinity() == type || type == EssenceType.REGULAR) {
+                totalEssence += be.getEssenceLevel();
+            }
+        }
+        
+        int toConsume = Math.min(amount, totalEssence);
+        if (toConsume <= 0) return 0;
+        
+        int remaining = toConsume;
+        
+        // Phase 1: Consume from path/standard nodes (non-SOURCE, non-ESSENCE_BANK)
+        for (ScribedChalkBlockEntity be : circuit) {
+            NodeType nt = be.getBlockState().getValue(NODE_TYPE);
+            if (nt != NodeType.SOURCE && nt != NodeType.ESSENCE_BANK) {
+                int current = be.getEssenceLevel();
+                if (current > 0) {
+                    int consume = Math.min(remaining, current);
+                    be.setEssenceLevel(current - consume);
+                    be.setChanged();
+                    remaining -= consume;
+                    if (remaining <= 0) break;
+                }
+            }
+        }
+        
+        // Phase 2: Consume from SOURCE and ESSENCE_BANK nodes
+        if (remaining > 0) {
+            for (ScribedChalkBlockEntity be : circuit) {
+                NodeType nt = be.getBlockState().getValue(NODE_TYPE);
+                if (nt == NodeType.SOURCE || nt == NodeType.ESSENCE_BANK) {
+                    int current = be.getEssenceLevel();
+                    if (current > 0) {
+                        int consume = Math.min(remaining, current);
+                        be.setEssenceLevel(current - consume);
+                        be.setChanged();
+                        remaining -= consume;
+                        if (remaining <= 0) break;
+                    }
+                }
+            }
+        }
+        
+        int newTotal = 0;
+        for (ScribedChalkBlockEntity be : circuit) {
+            newTotal += be.getEssenceLevel();
+        }
+        
+        if (newTotal <= 0) {
+            for (ScribedChalkBlockEntity be : circuit) {
+                be.setEssenceLevel(0);
+                be.setActiveAffinity(EssenceType.REGULAR);
+                be.setColor(0xFFCCCCCC);
+                be.setChanged();
+            }
+        }
+        
+        for (ScribedChalkBlockEntity be : circuit) {
+            if (be.getLevel() != null) {
+                be.getLevel().sendBlockUpdated(be.getBlockPos(), be.getBlockState(), be.getBlockState(), 3);
+            }
+        }
+        
+        return toConsume;
+    }
+
+    public static java.util.Set<ScribedChalkBlockEntity> getConnectedCircuit(Level level, BlockPos startPos) {
+        java.util.Set<BlockPos> visited = new java.util.HashSet<>();
+        java.util.Set<ScribedChalkBlockEntity> circuitBEs = new java.util.HashSet<>();
+        java.util.Queue<BlockPos> queue = new java.util.LinkedList<>();
+        
+        queue.add(startPos);
+        visited.add(startPos);
+        
+        while (!queue.isEmpty()) {
+            BlockPos current = queue.poll();
+            BlockEntity be = level.getBlockEntity(current);
+            if (be instanceof ScribedChalkBlockEntity chalkBE) {
+                circuitBEs.add(chalkBE);
+                
+                boolean currentCircuit = chalkBE.getBlockState().getValue(CIRCUIT);
+                for (ScribedChalkBlockEntity.Direction8 dir8 : ScribedChalkBlockEntity.Direction8.values()) {
+                    BlockPos neighborPos = current.offset(dir8.getXOffset(), 0, dir8.getZOffset());
+                    if (visited.contains(neighborPos)) continue;
+                    
+                    BlockState neighborState = level.getBlockState(neighborPos);
+                    if (neighborState.getBlock() instanceof ScribedChalkBlock) {
+                        if (chalkBE.connectsToNeighbor8(level, current, dir8, currentCircuit)) {
+                            queue.add(neighborPos);
+                            visited.add(neighborPos);
+                        }
+                    }
+                }
+            }
+        }
+        return circuitBEs;
+    }
+
     public enum NodeType implements StringRepresentable {
         DEFAULT("default"),
         INPUT("input"),
@@ -643,7 +998,13 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         AMPLIFIER("amplifier"),
         CAPACITOR("capacitor"),
         RESONATOR("resonator"),
-        DIODE("diode");
+        DIODE("diode"),
+        AND_GATE("and_gate"),
+        OR_GATE("or_gate"),
+        NOT_GATE("not_gate"),
+        EXTRACTION("extraction"),
+        DELAY("delay"),
+        ESSENCE_BANK("essence_bank");
 
         private final String name;
 

@@ -15,6 +15,7 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.IntValue RECEPTACLE_MAX_ESSENCE;
     public static final ModConfigSpec.IntValue CORE_PROCESS_TICK_RATE;
     public static final ModConfigSpec.BooleanValue ENABLE_CORE_OVERLOAD;
+    public static final ModConfigSpec.BooleanValue FANCY_MAGIC_CIRCLE_PROCESSING;
 
     // Materia Vitae Network Configs
     public static final ModConfigSpec.IntValue ORBIS_CELL_MAX_MATERIA;
@@ -100,12 +101,14 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.BooleanValue NODE_INFINITE_CAPACITY;
     public static final ModConfigSpec.IntValue NODE_SPAWN_SPACING;
     public static final ModConfigSpec.IntValue NODE_MAX_PER_AREA;
+    public static final ModConfigSpec.IntValue EXTRACTION_NODE_COOLDOWN;
 
     // Essence Repulsion Ward Configs
     public static final ModConfigSpec.IntValue WARD_CONSUMPTION_AMOUNT;
     public static final ModConfigSpec.IntValue WARD_CONSUMPTION_INTERVAL_SECONDS;
     public static final ModConfigSpec.DoubleValue WARD_CIRCLE_RADIUS_BASE;
     public static final ModConfigSpec.DoubleValue WARD_BLOCK_RADIUS;
+    public static final ModConfigSpec.IntValue MAX_DELAY_TICKS;
 
     static {
         // --- BASE MATERIA FURNACE SETTINGS ---
@@ -143,6 +146,10 @@ public class EntropicaNeoForgeConfig {
         ENABLE_CORE_OVERLOAD = BUILDER.comment("If true, the Entropic Core will eventually explode if left active while its Materia Buffer is 100% full. Default: true")
                 .translation("entropica.configuration.entropic_materia_furnace_settings.enableCoreOverload")
                 .define("enableCoreOverload", true);
+
+        FANCY_MAGIC_CIRCLE_PROCESSING = BUILDER.comment("If true, enables complex raising, growing, fading, and cascading smash animations during magic circle ritual processing. Default: true")
+                .translation("entropica.configuration.entropic_materia_furnace_settings.fancyMagicCircleProcessing")
+                .define("fancyMagicCircleProcessing", true);
 
         BUILDER.pop();
 
@@ -314,6 +321,10 @@ public class EntropicaNeoForgeConfig {
                 .translation("entropica.configuration.essence_node_settings.maxPerArea")
                 .defineInRange("nodeMaxPerArea", 10, 1, 100);
 
+        EXTRACTION_NODE_COOLDOWN = BUILDER.comment("Default cooldown in ticks for Extraction Nodes when transferring essence. Min: 1, Max: 1000, Default: 40")
+                .translation("entropica.configuration.essence_node_settings.extractionNodeCooldown")
+                .defineInRange("extractionNodeCooldown", 40, 1, 1000);
+
         BUILDER.pop();
 
         // --- ESSENCE REPULSION WARD SETTINGS ---
@@ -330,6 +341,9 @@ public class EntropicaNeoForgeConfig {
 
         WARD_BLOCK_RADIUS = BUILDER.comment("Radius of the dedicated repulsion ward block. Min: 1.0, Default: 15.0")
                 .defineInRange("wardBlockRadius", 15.0, 1.0, 100.0);
+
+        MAX_DELAY_TICKS = BUILDER.comment("Maximum delay ticks allowed for a Delay Node. Min: 1, Max: 100, Default: 6")
+                .defineInRange("maxDelayTicks", 6, 1, 100);
 
         BUILDER.pop();
 

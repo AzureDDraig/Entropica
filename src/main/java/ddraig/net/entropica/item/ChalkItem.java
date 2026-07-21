@@ -108,7 +108,8 @@ public class ChalkItem extends Item {
                         case CAPACITOR -> ScribedChalkBlock.NodeType.RESONATOR;
                         case RESONATOR -> ScribedChalkBlock.NodeType.DIODE;
                         case DIODE -> ScribedChalkBlock.NodeType.OUTPUT;
-                        case OUTPUT -> ScribedChalkBlock.NodeType.RUNE;
+                        case OUTPUT -> ScribedChalkBlock.NodeType.ESSENCE_BANK;
+                        case ESSENCE_BANK -> ScribedChalkBlock.NodeType.RUNE;
                         case RUNE -> ScribedChalkBlock.NodeType.DEFAULT;
                     };
                 } else {
@@ -142,6 +143,7 @@ public class ChalkItem extends Item {
                         case RESONATOR -> "Resonator Node";
                         case DIODE -> "Diode Node";
                         case OUTPUT -> "Output Node";
+                        case ESSENCE_BANK -> "Essence Bank Node";
                         case RUNE -> "Rune Node";
                     };
                     player.displayClientMessage(net.minecraft.network.chat.Component.literal("Node Type changed to: " + nodeName), true);
