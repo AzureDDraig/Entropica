@@ -643,28 +643,31 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                     float sphereAlpha = 0.7f + 0.15f * (float) Math.sin(renderState.time * 0.1f);
                     
                     boolean drawSphere = true;
-                    boolean drawMiniCircle = false;
+                    boolean drawMiniCircle = fancyAnimation && isProcessing;
                     float miniCircleRadius = 0.25f;
                     float miniCircleAlpha = 1.0f;
 
                     if (fancyAnimation && isProcessing) {
                         if (animProgress <= 0.3f) {
                             // Phase 1: Grow & Raise from y = 0.35 to y = 1.2
-                            float t = animProgress / 0.3f;
+                            float rawT = animProgress / 0.3f;
+                            float t = rawT * rawT * (3.0f - 2.0f * rawT); // easeInOut
                             animY = 0.35f + (1.2f - 0.35f) * t;
                             sphereScaleX = 0.18f;
                             sphereScaleY = 0.18f * t; // vertical scale grows from 0 to full sphere!
                             sphereScaleZ = 0.18f;
                         } else if (animProgress <= 0.6f) {
                             // Phase 2: Move to Center & Stack from y = 0.5 to y = 3.0
-                            float t = (animProgress - 0.3f) / 0.3f;
+                            float rawT = (animProgress - 0.3f) / 0.3f;
+                            float t = rawT * rawT * (3.0f - 2.0f * rawT); // easeInOut
                             animX = cx + (0.5f - cx) * t;
                             animZ = cz + (0.5f - cz) * t;
                             float targetY = 0.5f + (pointsCount > 1 ? 2.5f * (i / (float)(pointsCount - 1)) : 1.25f);
                             animY = 1.2f + (targetY - 1.2f) * t;
                         } else if (animProgress <= 0.8f) {
                             // Phase 3: Fading / Shrinking of spheres & showing miniature magic circles
-                            float t = (animProgress - 0.6f) / 0.2f;
+                            float rawT = (animProgress - 0.6f) / 0.2f;
+                            float t = 1.0f - (float) Math.pow(1.0f - rawT, 3.0); // easeOutCubic
                             animX = 0.5f;
                             animZ = 0.5f;
                             float targetY = 0.5f + (pointsCount > 1 ? 2.5f * (i / (float)(pointsCount - 1)) : 1.25f);
@@ -677,7 +680,8 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                             miniCircleAlpha = 1.0f;
                         } else {
                             // Phase 4: Cascading Smash
-                            float t = (animProgress - 0.8f) / 0.2f;
+                            float rawT = (animProgress - 0.8f) / 0.2f;
+                            float t = rawT * rawT * rawT; // easeInCubic
                             animX = 0.5f;
                             animZ = 0.5f;
                             float targetY = 0.5f + (pointsCount > 1 ? 2.5f * (i / (float)(pointsCount - 1)) : 1.25f);
@@ -689,6 +693,12 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                             drawMiniCircle = true;
                             miniCircleAlpha = 1.0f;
                         }
+
+                        // Add organic pulsing/breathing glow scale to the sphere
+                        float pulse = 1.0f + 0.05f * (float) Math.sin(renderState.time * 0.12f + i * 0.4f);
+                        sphereScaleX *= pulse;
+                        sphereScaleY *= pulse;
+                        sphereScaleZ *= pulse;
                     } else {
                         // Not processing or fancyAnimation disabled
                         if (fancyAnimation) {
@@ -720,6 +730,21 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         drawMagicCircle(poseStack, consumer, miniCircleRadius, animY, nr, ng, nb, miniCircleAlpha * 0.85f, light, renderState.time, renderState.circleDyeTicks, renderState.circleHasActiveDye, renderState.circleDyeColor, renderState.circleDyeSourceAngle, subPoints);
                         poseStack.popPose();
                     }
+                }
+
+                // Draw central vertical energy containment column during Phase 2/3/4 of ritual (fluid containment cylinder)
+                if (fancyAnimation && isProcessing && animProgress > 0.3f) {
+                    float beamAlpha = 0.15f * (float) Math.sin(Math.PI * (animProgress - 0.3f) / 0.7f);
+                    poseStack.pushPose();
+                    int beamRings = 8;
+                    for (int rIndex = 0; rIndex <= beamRings; rIndex++) {
+                        float ringY = 0.5f + (2.5f * (rIndex / (float) beamRings));
+                        poseStack.pushPose();
+                        poseStack.translate(0.0f, 0.0f, 0.0f);
+                        drawMagicCircle(poseStack, consumer, 0.15f, ringY, r, g, b, beamAlpha, light, renderState.time, 0, false, 0, 0.0f, 6);
+                        poseStack.popPose();
+                    }
+                    poseStack.popPose();
                 }
             }
         }
@@ -754,11 +779,6 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             int width = font.width(textSymbol);
             font.drawInBatch(textSymbol, -width / 2.0f, -font.lineHeight / 2.0f, color | 0xFF000000, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
             poseStack.popPose();
-        }
-
-        // B2. Node floating symbol text (for standard circuit nodes)
-        if (renderState.nodeType != ScribedChalkBlock.NodeType.DEFAULT && !renderState.isInMagicCircle) {
-            drawFloatingNodeText(poseStack, bufferSource, 0.5f, 1.2f, 0.5f, r, g, b, renderState.time, light, renderState.nodeType, renderState.isProcessing, renderState.isCircuit, renderState.targetNodeOffset);
         }
 
         // C. Magic Circle boundary symbols & Vertex orbiting symbols & Text symbols
@@ -841,8 +861,8 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         poseStack.popPose();
                     }
 
-                    // Vertex floating symbol text
-                    if (rNode.nodeType != ScribedChalkBlock.NodeType.DEFAULT) {
+                    // Vertex floating symbol text (only when processing!)
+                    if (rNode.nodeType != ScribedChalkBlock.NodeType.DEFAULT && renderState.isProcessing) {
                         float nr = ((rNode.color >> 16) & 0xFF) / 255.0f;
                         float ng = ((rNode.color >> 8) & 0xFF) / 255.0f;
                         float nb = (rNode.color & 0xFF) / 255.0f;
@@ -1206,6 +1226,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
             poseStack.translate(0, radius, 0);
             
             poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0f));
+            poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90.0f));
             poseStack.scale(0.015f, -0.015f, 0.015f);
             
             String charStr = String.valueOf(runes.charAt(i));
