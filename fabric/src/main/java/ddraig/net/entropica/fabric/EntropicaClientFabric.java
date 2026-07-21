@@ -231,6 +231,23 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ddraig.net.entropica.client.ParalyzedOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.LensOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
         });
+
+        // Materia Yield Tooltip
+        net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player == null) return;
+            if (!ddraig.net.entropica.client.LensOverlayRenderer.isMateriaVisionActive(mc.player)) return;
+            if (stack.isEmpty()) return;
+
+            java.util.List<ddraig.net.entropica.api.ItemEssenceMap.EssenceValue> values = ddraig.net.entropica.api.ItemEssenceMap.getEssenceFor(stack);
+            if (values != null && !values.isEmpty()) {
+                lines.add(net.minecraft.network.chat.Component.literal("§5Materia Yield:"));
+                for (ddraig.net.entropica.api.ItemEssenceMap.EssenceValue val : values) {
+                    String name = val.type().getColorCode() + val.type().getDisplayName();
+                    lines.add(net.minecraft.network.chat.Component.literal(String.format("  §7- %.2f %s", val.amount(), name)));
+                }
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")

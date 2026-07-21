@@ -294,12 +294,11 @@ public class ModClientEvents {
         if (!ddraig.net.entropica.client.LensOverlayRenderer.isVitaeVisionActive(mc.player)) return;
 
         LivingEntityRenderState state = event.getRenderState();
-        net.minecraft.world.phys.Vec3 cameraPos = mc.gameRenderer.getMainCamera().getPosition();
-        double worldX = cameraPos.x + state.x;
-        double worldY = cameraPos.y + state.y;
-        double worldZ = cameraPos.z + state.z;
+        double worldX = state.x;
+        double worldY = state.y;
+        double worldZ = state.z;
 
-        net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(worldX - 0.1, worldY - 0.1, worldZ - 0.1, worldX + 0.1, worldY + 0.1, worldZ + 0.1);
+        net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(worldX - 0.5, worldY - 0.5, worldZ - 0.5, worldX + 0.5, worldY + 0.5, worldZ + 0.5);
         java.util.List<LivingEntity> entities = mc.level.getEntitiesOfClass(LivingEntity.class, area);
         if (entities.isEmpty()) return;
 

@@ -24,12 +24,11 @@ public class EntityRendererMixin {
         if (mc.player == null || mc.level == null) return;
         if (!ddraig.net.entropica.client.LensOverlayRenderer.isVitaeVisionActive(mc.player)) return;
 
-        net.minecraft.world.phys.Vec3 cameraPos = mc.gameRenderer.getMainCamera().getPosition();
-        double worldX = cameraPos.x + livingState.x;
-        double worldY = cameraPos.y + livingState.y;
-        double worldZ = cameraPos.z + livingState.z;
+        double worldX = livingState.x;
+        double worldY = livingState.y;
+        double worldZ = livingState.z;
 
-        net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(worldX - 0.1, worldY - 0.1, worldZ - 0.1, worldX + 0.1, worldY + 0.1, worldZ + 0.1);
+        net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(worldX - 0.5, worldY - 0.5, worldZ - 0.5, worldX + 0.5, worldY + 0.5, worldZ + 0.5);
         java.util.List<LivingEntity> entities = mc.level.getEntitiesOfClass(LivingEntity.class, area);
         if (entities.isEmpty()) return;
 

@@ -12,8 +12,10 @@
     *   Implemented server-friendly `isAethericVisionActiveCommon` and `isLensActiveCommon` in `ArkanistMonocleItem`.
     *   Updated `EssenceNodeRenderer` (client) and `EssenceNodeEntity` (placement protection check) to use the new common helper, allowing the slotted **Aetheric Lens** to render hidden essence nodes and crystals correctly just like the legacy Aetheric Monocle does.
 *   **Vitae Lens Health Bars**:
-    *   Optimized healthbar rendering on NeoForge by using `event.getEntity()` with camera position offsets to accurately resolve world entity lookups.
+    *   Corrected the entity coordinate lookup logic on both NeoForge and Fabric by treating the render state coordinates as absolute world coordinates and using an expanded bounding box search radius (`0.5` blocks) to guarantee visual healthbar billboards render above all entities.
     *   Implemented `EntityRendererMixin` for Fabric to support identical Vitae Lens healthbar overlays natively on Fabric client.
+*   **Materia Lens Tooltips**:
+    *   Registered `ItemTooltipCallback` on Fabric to display the Materia Yield breakdown under tooltips when the Materia Lens is active (matching the NeoForge behavior).
 *   **Polished Magic Circle Animations**:
     *   Extended magic circle ritual processing duration to `360` ticks (18 seconds) for a slow, elegant, and smooth animation progression.
     *   Added local progress and overclock ticking on the client side in `ScribedChalkBlockEntity` to ensure the animations interpolate smoothly in lockstep with the server without network overhead.
