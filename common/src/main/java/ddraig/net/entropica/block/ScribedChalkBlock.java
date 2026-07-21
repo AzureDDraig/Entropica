@@ -503,11 +503,11 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             }
                         }
                         
-                        // 4. Start active ritual processing on center Output node (100 ticks = 5 seconds)
+                        // 4. Start active ritual processing on center Output node (360 ticks = 18 seconds)
                         if (centerBE instanceof ScribedChalkBlockEntity outputBE) {
                             outputBE.setAmplifierCount(amplifiers);
                             outputBE.setCapacitorCount(capacitors);
-                            outputBE.startRitual(recipe.output(), 100);
+                            outputBE.startRitual(recipe.output(), 360);
                         }
                         
                         // 5. Visual/Audio effects

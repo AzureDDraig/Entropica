@@ -216,4 +216,27 @@ public class ArkanistMonocleItem extends Item {
         }
         return ItemStack.EMPTY;
     }
+
+    public static boolean isLensActiveCommon(net.minecraft.world.entity.player.Player player, net.minecraft.world.item.Item lensItem) {
+        if (player == null) return false;
+        ItemStack head = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+        if (head.is(lensItem)) return true;
+        if (player.getMainHandItem().is(lensItem) || player.getOffhandItem().is(lensItem)) return true;
+        
+        if (head.is(ModItems.ARKANIST_MONOCLE.get())) {
+            ItemStack activeLens = getActiveLens(player);
+            if (!activeLens.isEmpty() && activeLens.is(lensItem)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isAethericVisionActiveCommon(net.minecraft.world.entity.player.Player player) {
+        if (player == null) return false;
+        ItemStack head = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+        if (head.getItem() instanceof AethericVisionItem) return true;
+        if (player.getMainHandItem().getItem() instanceof AethericVisionItem || player.getOffhandItem().getItem() instanceof AethericVisionItem) return true;
+        return isLensActiveCommon(player, ModItems.AETHERIC_LENS.get());
+    }
 }

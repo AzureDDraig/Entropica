@@ -666,6 +666,15 @@ public class ScribedChalkBlockEntity extends BlockEntity {
                     }
                 }
             }
+
+            // Client-side local interpolation of ritual progress and overclock ticks
+            if (blockEntity.processingTimeTotal > 0) {
+                int progressIncrement = (blockEntity.overclockTicks > 0) ? 2 : 1;
+                blockEntity.processingProgress = Math.min(blockEntity.processingTimeTotal, blockEntity.processingProgress + progressIncrement);
+                if (blockEntity.overclockTicks > 0) {
+                    blockEntity.overclockTicks--;
+                }
+            }
             return;
         }
 

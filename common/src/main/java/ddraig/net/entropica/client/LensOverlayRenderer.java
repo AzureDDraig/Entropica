@@ -61,29 +61,27 @@ public class LensOverlayRenderer {
     }
 
     public static boolean isAethericVisionActive(Player player) {
-        if (player == null) return false;
-        ItemStack head = player.getItemBySlot(EquipmentSlot.HEAD);
-        if (head.is(ModItems.AETHERIC_MONOCLE.get())) return true;
-        if (player.getMainHandItem().is(ModItems.AETHERIC_MONOCLE.get()) || player.getOffhandItem().is(ModItems.AETHERIC_MONOCLE.get())) return true;
-        return hasLensActive(player, ModItems.AETHERIC_LENS.get());
+        return ddraig.net.entropica.item.ArkanistMonocleItem.isAethericVisionActiveCommon(player);
     }
 
     public static boolean isPropagationVisionActive(Player player) {
-        return hasLensActive(player, ModItems.PROPAGATION_LENS.get());
+        return ddraig.net.entropica.item.ArkanistMonocleItem.isLensActiveCommon(player, ModItems.PROPAGATION_LENS.get());
     }
 
     public static boolean isVitaeVisionActive(Player player) {
-        return hasLensActive(player, ModItems.VITAE_LENS.get());
+        return ddraig.net.entropica.item.ArkanistMonocleItem.isLensActiveCommon(player, ModItems.VITAE_LENS.get());
     }
 
     public static boolean isMateriaVisionActive(Player player) {
-        return hasLensActive(player, ModItems.MATERIA_LENS.get());
+        return ddraig.net.entropica.item.ArkanistMonocleItem.isLensActiveCommon(player, ModItems.MATERIA_LENS.get());
     }
 
     public static void render(GuiGraphics guiGraphics, float partialTicks) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
-        if (!isWearingOrHoldingLens(mc.player)) return;
+        boolean hasActiveScumLens = hasLensActive(mc.player, ModItems.AETHERIC_LENS.get()) || 
+                                     hasLensActive(mc.player, ModItems.PROPAGATION_LENS.get());
+        if (!hasActiveScumLens) return;
 
         int width = guiGraphics.guiWidth();
         int height = guiGraphics.guiHeight();

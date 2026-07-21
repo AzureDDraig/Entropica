@@ -288,7 +288,7 @@ public class EssenceNodeEntity extends Entity {
     // ==========================================
 
     public static boolean checkPlacementProtection(Level level, BlockPos pos, Player player) {
-        if (player.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof AethericVisionItem) {
+        if (ddraig.net.entropica.item.ArkanistMonocleItem.isAethericVisionActiveCommon(player)) {
             AABB placementBox = new AABB(pos);
             List<EssenceNodeEntity> nodes = level.getEntitiesOfClass(EssenceNodeEntity.class, placementBox);
             if (!nodes.isEmpty()) {

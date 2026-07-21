@@ -725,7 +725,14 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         }
 
         if (renderState.nodeType != ScribedChalkBlock.NodeType.DEFAULT && !renderState.isInMagicCircle) {
-            drawFloatingNodeGeometry(poseStack, consumer, 0.5f, 1.2f, 0.5f, r, g, b, renderState.time, light, renderState.isProcessing, renderState.isCircuit, renderState.targetNodeOffset, renderState.timePulseOffset);
+            boolean fancyAnimation = ddraig.net.entropica.config.EntropicaConfig.FANCY_MAGIC_CIRCLE_PROCESSING.get();
+            if (!fancyAnimation) {
+                poseStack.pushPose();
+                // Since this is independent node, we just render it at (0.5f, 0.5f) relative to the block
+                poseStack.translate(0.0f, 0.0f, 0.0f);
+                drawMagicCircle(poseStack, consumer, 0.25f, 1.2f, r, g, b, 0.85f, light, renderState.time, renderState.circleDyeTicks, renderState.circleHasActiveDye, renderState.circleDyeColor, renderState.circleDyeSourceAngle, 3);
+                poseStack.popPose();
+            }
         }
 
         // --- 4. Render All Text/Font Overlays ---
@@ -1271,7 +1278,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
         
         float haloRadius = 0.24f;
         float yaw = 0.0f;
-        float pitch = isProcessing ? 90.0f : 0.0f;
+        float pitch = 90.0f;
 
         if (nextNodeOffset != null) {
             yaw = (float) Math.toDegrees(Math.atan2(nextNodeOffset.z, nextNodeOffset.x));

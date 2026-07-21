@@ -1,5 +1,23 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-202-06-05
+
+### Added & Polished
+*   **Visual Overlays Restructured**:
+    *   Restricted the shifting soap-scum/oil-slick iridescence screen overlay to ONLY active Aetheric Lens and Propagation Lens. The Aetheric Monocle, Vitae Lens, and Materia Lens no longer render this screen effect.
+*   **Horizontal Runes Halo**:
+    *   Corrected the rotating runes halo (floating text overlay) to always lie flat horizontally (`pitch = 90.0f`) around the nodes/spheres at all times instead of standing vertically.
+*   **Aetheric Lens Nodes Visibility**:
+    *   Implemented server-friendly `isAethericVisionActiveCommon` and `isLensActiveCommon` in `ArkanistMonocleItem`.
+    *   Updated `EssenceNodeRenderer` (client) and `EssenceNodeEntity` (placement protection check) to use the new common helper, allowing the slotted **Aetheric Lens** to render hidden essence nodes and crystals correctly just like the legacy Aetheric Monocle does.
+*   **Vitae Lens Health Bars**:
+    *   Optimized healthbar rendering on NeoForge by using `event.getEntity()` with camera position offsets to accurately resolve world entity lookups.
+    *   Implemented `LivingEntityRendererMixin` for Fabric to support identical Vitae Lens healthbar overlays natively on Fabric client.
+*   **Polished Magic Circle Animations**:
+    *   Extended magic circle ritual processing duration to `360` ticks (18 seconds) for a slow, elegant, and smooth animation progression.
+    *   Added local progress and overclock ticking on the client side in `ScribedChalkBlockEntity` to ensure the animations interpolate smoothly in lockstep with the server without network overhead.
+    *   Restricted floating spheres from rendering when creating a circle or when the circle is idle.
+
 ## Build 000-1-26-202-01-56
 
 ### Added & Polished

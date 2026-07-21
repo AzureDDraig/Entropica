@@ -55,8 +55,7 @@ public class EssenceNodeRenderer extends EntityRenderer<EssenceNodeEntity, Essen
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
 
-        ItemStack headSlot = player.getItemBySlot(EquipmentSlot.HEAD);
-        if (!(headSlot.getItem() instanceof AethericVisionItem)) {
+        if (!ddraig.net.entropica.item.ArkanistMonocleItem.isAethericVisionActiveCommon(player)) {
             return; // Invisible if not wearing the Monocle/Goggles!
         }
 
