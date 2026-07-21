@@ -287,60 +287,7 @@ public class ModClientEvents {
         event.registerLayerDefinition(BloomCrawlerModel.LAYER_LOCATION, BloomCrawlerModel::createBodyLayer);
     }
 
-    @SubscribeEvent
-    public static void onRenderLiving(RenderLivingEvent.Post<?, ?, ?> event) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.level == null) return;
-        if (!ddraig.net.entropica.client.LensOverlayRenderer.isVitaeVisionActive(mc.player)) return;
 
-        LivingEntityRenderState state = event.getRenderState();
-        double worldX = state.x;
-        double worldY = state.y;
-        double worldZ = state.z;
-
-        net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(worldX - 0.5, worldY - 0.5, worldZ - 0.5, worldX + 0.5, worldY + 0.5, worldZ + 0.5);
-        java.util.List<LivingEntity> entities = mc.level.getEntitiesOfClass(LivingEntity.class, area);
-        if (entities.isEmpty()) return;
-
-        LivingEntity entity = entities.get(0);
-        if (entity == mc.player) return;
-        if (mc.player.distanceToSqr(entity) > 32 * 32) return;
-
-        float health = entity.getHealth();
-        float maxHealth = entity.getMaxHealth();
-        
-        int totalSegments = 10;
-        int filledSegments = Math.clamp(Math.round((health / maxHealth) * totalSegments), 0, totalSegments);
-        
-        StringBuilder bar = new StringBuilder("§8[§c");
-        for (int i = 0; i < totalSegments; i++) {
-            if (i == filledSegments) {
-                bar.append("§8");
-            }
-            bar.append("■");
-        }
-        bar.append("§8]");
-        
-        String text = String.format("HP: %.1f/%.1f %s", health, maxHealth, bar.toString());
-        
-        PoseStack poseStack = event.getPoseStack();
-        MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
-        Font font = mc.font;
-        
-        poseStack.pushPose();
-        poseStack.translate(0.0d, state.boundingBoxHeight + 0.4d, 0.0d);
-        poseStack.mulPose(mc.gameRenderer.getMainCamera().rotation());
-        poseStack.scale(-0.02f, -0.02f, 0.02f);
-        
-        float xOffset = -font.width(text) / 2f;
-        int light = state.lightCoords;
-        
-        int bg = 0x50000088;
-        font.drawInBatch(text, xOffset, 0.0F, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.SEE_THROUGH, bg, light);
-        font.drawInBatch(text, xOffset, 0.0F, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
-        
-        poseStack.popPose();
-    }
 
     @SubscribeEvent
     public static void onItemTooltip(ItemTooltipEvent event) {
