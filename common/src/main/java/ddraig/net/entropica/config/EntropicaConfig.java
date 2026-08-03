@@ -11,6 +11,7 @@ public class EntropicaConfig {
     public static final Supplier<Integer> RECEPTACLE_MAX_ESSENCE = EntropicaConfig::getReceptacleMaxEssence;
     public static final Supplier<Integer> CORE_PROCESS_TICK_RATE = EntropicaConfig::getCoreProcessTickRate;
     public static final Supplier<Boolean> ENABLE_CORE_OVERLOAD = EntropicaConfig::getEnableCoreOverload;
+    public static final Supplier<Boolean> REQUIRE_RESEARCH_TO_CRAFT = EntropicaConfig::getRequireResearchToCraft;
     public static final Supplier<Integer> ORBIS_CELL_MAX_MATERIA = EntropicaConfig::getOrbisCellMaxMateria;
     public static final Supplier<Boolean> FANCY_MAGIC_CIRCLE_PROCESSING = EntropicaConfig::getFancyMagicCircleProcessing;
 
@@ -193,4 +194,5 @@ public class EntropicaConfig {
     @ExpectPlatform public static double getWardBlockRadius() { throw new AssertionError(); }
     @ExpectPlatform public static int getMaxDelayTicks() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getFancyMagicCircleProcessing() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getRequireResearchToCraft() { throw new AssertionError(); }
 }

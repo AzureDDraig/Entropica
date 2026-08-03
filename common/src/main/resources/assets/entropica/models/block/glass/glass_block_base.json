@@ -1,0 +1,9 @@
+{
+  "render_type": "translucent",
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "#texture",
+    "texture": "entropica:block/glass_essence_enriched",
+    "particle": "entropica:block/glass_essence_enriched"
+  }
+}

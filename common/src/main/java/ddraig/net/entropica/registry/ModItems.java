@@ -56,6 +56,8 @@ public class ModItems {
     public static final RegistrySupplier<Item> ARCANUM_FOCUS = ITEMS.registerItem("arcanum_focus", Item::new);
     public static final RegistrySupplier<Item> MATERIA_VALUE_DETECTOR = ITEMS.registerItem("materia_value_detector", Item::new);
     public static final RegistrySupplier<Item> EIDOLON_PATHMARKER = ITEMS.registerItem("eidolon_pathmarker", properties -> new EidolonPathmarkerItem(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> ENTROPIC_CODEX = ITEMS.registerItem("entropic_codex", properties -> new EntropicCodexItem(properties.stacksTo(1).rarity(net.minecraft.world.item.Rarity.RARE)));
+    public static final RegistrySupplier<Item> SACRIFICIAL_KNIFE = ITEMS.registerItem("sacrificial_knife", properties -> new SacrificialKnifeItem(properties.stacksTo(1).durability(100)));
 
     // Veil Fox Items
     public static final RegistrySupplier<Item> VEIL_SHARD = ITEMS.registerItem("veil_shard", Item::new);
@@ -511,10 +513,10 @@ public class ModItems {
     // ---  Materia Fume Pressure Vessel Items ---
     public static final RegistrySupplier<BlockItem> MATERIA_VESSEL_CONTROLLER_ITEM = ITEMS.registerItem("materia_vessel_controller", properties -> new BlockItem(ModBlocks.MATERIA_VESSEL_CONTROLLER.get(), properties));
     public static final RegistrySupplier<BlockItem> MATERIA_VESSEL_PORT_ITEM = ITEMS.registerItem("materia_vessel_port", properties -> new BlockItem(ModBlocks.MATERIA_VESSEL_PORT.get(), properties));
-    public static final RegistrySupplier<BlockItem> ESSENCE_ENRICHED_GLASS_ITEM = ITEMS.registerItem("essence_enriched_glass", properties -> new BlockItem(ModBlocks.ESSENCE_ENRICHED_GLASS.get(), properties));
-    public static final RegistrySupplier<BlockItem> MATERIA_FUMUS_STRENGTHENED_GLASS_ITEM = ITEMS.registerItem("materia_fumus_strengthened_glass", properties -> new BlockItem(ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get(), properties));
-    public static final RegistrySupplier<BlockItem> MATERIA_LIQUIDA_ENRICHED_GLASS_ITEM = ITEMS.registerItem("materia_liquida_enriched_glass", properties -> new BlockItem(ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(), properties));
-    public static final RegistrySupplier<BlockItem> FRAGMENT_LATTICE_GLASS_ITEM = ITEMS.registerItem("fragment_lattice_glass", properties -> new BlockItem(ModBlocks.FRAGMENT_LATTICE_GLASS.get(), properties));
+    public static final RegistrySupplier<BlockItem> ESSENCE_ENRICHED_GLASS_ITEM = ITEMS.registerItem("essence_enriched_glass", properties -> new BlockItem(AestheticGlassRegistry.ESSENCE_ENRICHED_GLASS.get(), properties));
+    public static final RegistrySupplier<BlockItem> MATERIA_FUMUS_STRENGTHENED_GLASS_ITEM = ITEMS.registerItem("materia_fumus_strengthened_glass", properties -> new BlockItem(AestheticGlassRegistry.MATERIA_FUMUS_STRENGTHENED_GLASS.get(), properties));
+    public static final RegistrySupplier<BlockItem> MATERIA_LIQUIDA_ENRICHED_GLASS_ITEM = ITEMS.registerItem("materia_liquida_enriched_glass", properties -> new BlockItem(AestheticGlassRegistry.MATERIA_LIQUIDA_ENRICHED_GLASS.get(), properties));
+    public static final RegistrySupplier<BlockItem> FRAGMENT_LATTICE_GLASS_ITEM = ITEMS.registerItem("fragment_lattice_glass", properties -> new BlockItem(AestheticGlassRegistry.FRAGMENT_LATTICE_GLASS.get(), properties));
 
     // --- Materia Fume Pressure Chamber Items ---
     public static final RegistrySupplier<BlockItem> MATERIA_PRESSURE_CHAMBER_CONTROLLER_ITEM = ITEMS.registerItem("materia_pressure_chamber_controller", properties -> new BlockItem(ModBlocks.MATERIA_PRESSURE_CHAMBER_CONTROLLER.get(), properties));

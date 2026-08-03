@@ -23,4 +23,9 @@ public class EntityHelper {
     public static void setEssenceDropped(Entity entity, boolean dropped) {
         throw new AssertionError();
     }
+
+    @ExpectPlatform
+    public static net.minecraft.nbt.CompoundTag getPersistentData(Entity entity) {
+        throw new AssertionError();
+    }
 }

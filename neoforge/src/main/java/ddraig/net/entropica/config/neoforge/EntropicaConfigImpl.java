@@ -8,6 +8,7 @@ public class EntropicaConfigImpl {
     public static int getReceptacleMaxEssence() { return EntropicaNeoForgeConfig.RECEPTACLE_MAX_ESSENCE.get(); }
     public static int getCoreProcessTickRate() { return EntropicaNeoForgeConfig.CORE_PROCESS_TICK_RATE.get(); }
     public static boolean getEnableCoreOverload() { return EntropicaNeoForgeConfig.ENABLE_CORE_OVERLOAD.get(); }
+    public static boolean getRequireResearchToCraft() { return EntropicaNeoForgeConfig.REQUIRE_RESEARCH_TO_CRAFT.get(); }
     public static int getOrbisCellMaxMateria() { return EntropicaNeoForgeConfig.ORBIS_CELL_MAX_MATERIA.get(); }
     public static boolean getFancyMagicCircleProcessing() { return EntropicaNeoForgeConfig.FANCY_MAGIC_CIRCLE_PROCESSING.get(); }
 

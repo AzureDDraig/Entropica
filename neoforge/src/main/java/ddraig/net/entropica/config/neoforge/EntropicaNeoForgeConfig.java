@@ -15,6 +15,7 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.IntValue RECEPTACLE_MAX_ESSENCE;
     public static final ModConfigSpec.IntValue CORE_PROCESS_TICK_RATE;
     public static final ModConfigSpec.BooleanValue ENABLE_CORE_OVERLOAD;
+    public static final ModConfigSpec.BooleanValue REQUIRE_RESEARCH_TO_CRAFT;
     public static final ModConfigSpec.BooleanValue FANCY_MAGIC_CIRCLE_PROCESSING;
 
     // Materia Vitae Network Configs
@@ -146,6 +147,10 @@ public class EntropicaNeoForgeConfig {
         ENABLE_CORE_OVERLOAD = BUILDER.comment("If true, the Entropic Core will eventually explode if left active while its Materia Buffer is 100% full. Default: true")
                 .translation("entropica.configuration.entropic_materia_furnace_settings.enableCoreOverload")
                 .define("enableCoreOverload", true);
+
+        REQUIRE_RESEARCH_TO_CRAFT = BUILDER.comment("If true, players must unlock research in the Entropic Codex to craft associated items. Default: true")
+                .translation("entropica.configuration.codex_settings.requireResearchToCraft")
+                .define("requireResearchToCraft", true);
 
         FANCY_MAGIC_CIRCLE_PROCESSING = BUILDER.comment("If true, enables complex raising, growing, fading, and cascading smash animations during magic circle ritual processing. Default: true")
                 .translation("entropica.configuration.entropic_materia_furnace_settings.fancyMagicCircleProcessing")

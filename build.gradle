@@ -38,6 +38,12 @@ subprojects {
     java {
         withSourcesJar()
     }
+
+    // Ensure remapSourcesJar always depends on sourcesJar execution
+    tasks.matching { it.name == "remapSourcesJar" }.configureEach {
+        dependsOn(tasks.named("sourcesJar"))
+        inputFile.set(tasks.named("sourcesJar").flatMap { it.archiveFile })
+    }
 }
 
 allprojects {

@@ -1,5 +1,1 @@
-{
-  "variants": {
-    "": { "model": "entropica:block/vis_fume_strengthened_glass" }
-  }
-}
+{"variants":{"":{"model":"entropica:block/base/base"}}}

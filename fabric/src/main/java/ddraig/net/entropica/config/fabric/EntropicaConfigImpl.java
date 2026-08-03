@@ -77,6 +77,7 @@ public class EntropicaConfigImpl {
         public IntOption receptacleMaxEssence = new IntOption("The amount of essence storage capacity added per Essence Receptacle in the multiblock. Min: 1, Max: 2147483647, Default: 64", 1, Integer.MAX_VALUE, 64);
         public IntOption coreProcessTickRate = new IntOption("How many ticks between each processing operation of the furnace (20 = 1 second, 5 = 1/4th second). Min: 1, Max: 200, Default: 5", 1, 200, 5);
         public BooleanOption enableCoreOverload = new BooleanOption("If true, the Entropic Core will eventually explode if left active while its Materia Buffer is 100% full. Default: true", true);
+        public BooleanOption requireResearchToCraft = new BooleanOption("If true, players must unlock research in the Entropic Codex to craft associated items. Default: true", true);
         public BooleanOption fancyMagicCircleProcessing = new BooleanOption("If true, enables complex raising, growing, fading, and cascading smash animations during magic circle ritual processing. Default: true", true);
         public IntOption orbisCellMaxMateria = new IntOption("Maximum materia storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000", 1, Integer.MAX_VALUE, 10000);
 
@@ -254,6 +255,7 @@ public class EntropicaConfigImpl {
             wardCircleRadiusBase.validate();
             wardBlockRadius.validate();
             maxDelayTicks.validate();
+            requireResearchToCraft.validate();
         }
     }
 
@@ -292,7 +294,9 @@ public class EntropicaConfigImpl {
     public static int getReceptacleMaxEssence() { return data.receptacleMaxEssence.value; }
     public static int getCoreProcessTickRate() { return data.coreProcessTickRate.value; }
     public static boolean getEnableCoreOverload() { return data.enableCoreOverload.value; }
+    public static boolean getRequireResearchToCraft() { return data.requireResearchToCraft.value; }
     public static int getOrbisCellMaxMateria() { return data.orbisCellMaxMateria.value; }
+
 
     public static int getCopperPipeCapacity() { return data.copperPipeCapacity.value; }
     public static int getCopperPipeTransferRate() { return data.copperPipeTransferRate.value; }

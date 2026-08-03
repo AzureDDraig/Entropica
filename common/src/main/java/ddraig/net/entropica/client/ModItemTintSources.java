@@ -80,4 +80,16 @@ public class ModItemTintSources {
         @Override
         public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
     }
+
+    public record AestheticGlassTint() implements ItemTintSource {
+        public static final MapCodec<AestheticGlassTint> MAP_CODEC = MapCodec.unit(new AestheticGlassTint());
+
+        @Override
+        public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
+            return ddraig.net.entropica.registry.AestheticGlassRegistry.getGlassColor(stack.getItem());
+        }
+
+        @Override
+        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
+    }
 }

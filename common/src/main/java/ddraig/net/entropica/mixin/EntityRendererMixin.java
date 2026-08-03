@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(EntityRenderer.class)
 public class EntityRendererMixin {
 
-    @Inject(method = "render", at = @At("TAIL"))
+    @Inject(method = "render", at = @At("TAIL"), require = 0)
     private void entropica$onRender(EntityRenderState state, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;

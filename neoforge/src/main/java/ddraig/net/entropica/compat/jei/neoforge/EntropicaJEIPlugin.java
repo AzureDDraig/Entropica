@@ -140,6 +140,51 @@ public class EntropicaJEIPlugin implements IModPlugin {
                 Entropica.LOGGER.info("Successfully injected " + dynamicRecipes.size() + " Essence Extraction recipes into JEI!");
             }
         }
+
+        // Periodically update JEI ingredient visibility based on REQUIRE_RESEARCH_TO_CRAFT config
+        if (mc.level.getGameTime() % 40 == 0) {
+            updateResearchVisibility();
+        }
+    }
+
+    private static final java.util.Set<Item> CURRENTLY_HIDDEN_ITEMS = new java.util.HashSet<>();
+
+    public static void updateResearchVisibility() {
+        if (jeiRuntime == null) return;
+
+        boolean requireResearch = Boolean.TRUE.equals(ddraig.net.entropica.config.EntropicaConfig.REQUIRE_RESEARCH_TO_CRAFT.get());
+        var ingredientManager = jeiRuntime.getIngredientManager();
+
+        List<ItemStack> toHide = new ArrayList<>();
+        List<ItemStack> toUnhide = new ArrayList<>();
+
+        for (Item item : BuiltInRegistries.ITEM) {
+            ItemStack stack = new ItemStack(item);
+            var node = ddraig.net.entropica.event.CodexCraftingLockHandler.getRequiredNodeForStack(stack);
+            if (node != null) {
+                boolean isLocked = ddraig.net.entropica.data.CodexPlayerData.CLIENT_DATA.isNodeLocked(node.id)
+                        || node.requiredTier > ddraig.net.entropica.data.CodexPlayerData.CLIENT_DATA.getResearchTierLevel()
+                        || (node.prerequisiteId != null && ddraig.net.entropica.data.CodexPlayerData.CLIENT_DATA.isNodeLocked(node.prerequisiteId));
+
+                boolean shouldHide = requireResearch && isLocked;
+                boolean isHidden = CURRENTLY_HIDDEN_ITEMS.contains(item);
+
+                if (shouldHide && !isHidden) {
+                    toHide.add(stack);
+                    CURRENTLY_HIDDEN_ITEMS.add(item);
+                } else if (!shouldHide && isHidden) {
+                    toUnhide.add(stack);
+                    CURRENTLY_HIDDEN_ITEMS.remove(item);
+                }
+            }
+        }
+
+        if (!toHide.isEmpty()) {
+            ingredientManager.removeIngredientsAtRuntime(mezz.jei.api.constants.VanillaTypes.ITEM_STACK, toHide);
+        }
+        if (!toUnhide.isEmpty()) {
+            ingredientManager.addIngredientsAtRuntime(mezz.jei.api.constants.VanillaTypes.ITEM_STACK, toUnhide);
+        }
     }
 
     @Override

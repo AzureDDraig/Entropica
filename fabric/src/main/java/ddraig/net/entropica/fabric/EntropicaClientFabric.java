@@ -23,6 +23,7 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.minecraft.client.renderer.RenderType;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
 import net.minecraft.client.Minecraft;
@@ -121,20 +122,11 @@ public class EntropicaClientFabric implements ClientModInitializer {
         }, ModBlocks.CREATIVE_MATERIA_GENERATOR.get());
 
         ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
-            if (level != null && pos != null && tintIndex == 0) {
-                if (level.getBlockEntity(pos) instanceof MateriaEnrichedGlassBlockEntity glassBE) {
-                    EssenceType type = glassBE.getEssenceType();
-                    if (type != null) {
-                        return type.getColorInt();
-                    }
-                }
+            if (tintIndex == 0) {
+                return ddraig.net.entropica.registry.AestheticGlassRegistry.getGlassColor(state.getBlock());
             }
             return 0xFFFFFF;
-        },
-        ModBlocks.FRAGMENT_LATTICE_GLASS.get(),
-        ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(),
-        ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get(),
-        ModBlocks.ESSENCE_ENRICHED_GLASS.get());
+        }, ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_BLOCKS.stream().map(dev.architectury.registry.registries.RegistrySupplier::get).toArray(net.minecraft.world.level.block.Block[]::new));
 
         // --- 6. Custom Fluid Render Handler & Render Layer ---
         FluidRenderHandlerRegistry.INSTANCE.register(
@@ -181,11 +173,12 @@ public class EntropicaClientFabric implements ClientModInitializer {
         );
 
         BlockRenderLayerMap.INSTANCE.putBlocks(
+            RenderType.translucentMovingBlock(),
+            ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_BLOCKS.stream().map(dev.architectury.registry.registries.RegistrySupplier::get).toArray(net.minecraft.world.level.block.Block[]::new)
+        );
+
+        BlockRenderLayerMap.INSTANCE.putBlocks(
             net.minecraft.client.renderer.RenderType.cutout(),
-            ModBlocks.FRAGMENT_LATTICE_GLASS.get(),
-            ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get(),
-            ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get(),
-            ModBlocks.ESSENCE_ENRICHED_GLASS.get(),
             ModBlocks.VAPOR_PNEUMATIC_DIVERTER.get(),
             ModBlocks.SMALL_AETERIUM_BUD.get(),
             ModBlocks.MEDIUM_AETERIUM_BUD.get(),
@@ -215,6 +208,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "generator_tint"), ModItemTintSources.GeneratorTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "fume_glass_tint"), ModItemTintSources.FumeGlassTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "essence_tint"), ModItemTintSources.EssenceTint.MAP_CODEC);
+        registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "aesthetic_glass_tint"), ModItemTintSources.AestheticGlassTint.MAP_CODEC);
 
         // --- 8. Special Model Renderer ---
         registerLoomSpecialModelRenderer(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "dynamic_weapon"), DynamicWeaponRenderer.Unbaked.MAP_CODEC);

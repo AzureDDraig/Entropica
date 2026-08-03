@@ -1,5 +1,1 @@
-{
-  "variants": {
-    "": { "model": "entropica:block/materia_liquida_enriched_glass" }
-  }
-}
+{"variants":{"":{"model":"entropica:block/base/base"}}}

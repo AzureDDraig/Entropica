@@ -20,4 +20,8 @@ public class EntityHelperImpl {
     public static void setEssenceDropped(Entity entity, boolean dropped) {
         entity.getPersistentData().putBoolean("EntropicaEssenceDropped", dropped);
     }
+
+    public static net.minecraft.nbt.CompoundTag getPersistentData(Entity entity) {
+        return entity.getPersistentData();
+    }
 }

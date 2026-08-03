@@ -53,3 +53,7 @@ tasks.matching { it.name.startsWith("transformProduction") }.configureEach { tas
         }
     }
 }
+
+tasks.matching { it.name == "remapSourcesJar" }.configureEach {
+    dependsOn(tasks.named("sourcesJar"))
+}

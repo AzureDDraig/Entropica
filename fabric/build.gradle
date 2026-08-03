@@ -49,6 +49,12 @@ tasks.register('deploy', Copy) {
     into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods"
 }
 
+tasks.register('deploytoDev', Copy) {
+    dependsOn remapJar
+    from remapJar.archiveFile
+    into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods"
+}
+
 processResources {
     var replaceProperties = [
         version: "${mod_version_major}-build-${mod_version_build}-${mod_version_designation}"

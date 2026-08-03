@@ -30,4 +30,11 @@ public class EntityHelperImpl {
             holder.entropica$getPersistentData().putBoolean("EntropicaEssenceDropped", dropped);
         }
     }
+
+    public static net.minecraft.nbt.CompoundTag getPersistentData(Entity entity) {
+        if (entity instanceof PersistentDataHolder holder) {
+            return holder.entropica$getPersistentData();
+        }
+        return new net.minecraft.nbt.CompoundTag();
+    }
 }

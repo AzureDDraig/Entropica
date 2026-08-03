@@ -202,10 +202,13 @@ public class ModBlocks {
     // ---  Materia Fume Pressure Vessel ---
     public static final RegistrySupplier<MateriaVesselControllerBlock> MATERIA_VESSEL_CONTROLLER = BLOCKS.register("materia_vessel_controller", name -> new MateriaVesselControllerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final RegistrySupplier<MateriaVesselPortBlock> MATERIA_VESSEL_PORT = BLOCKS.register("materia_vessel_port", name -> new MateriaVesselPortBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
-    public static final RegistrySupplier<MateriaEnrichedGlassBlock> ESSENCE_ENRICHED_GLASS = BLOCKS.register("essence_enriched_glass", name -> new MateriaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(1.5f).requiresCorrectToolForDrops().noOcclusion()));
-    public static final RegistrySupplier<MateriaEnrichedGlassBlock> MATERIA_FUMUS_STRENGTHENED_GLASS = BLOCKS.register("materia_fumus_strengthened_glass", name -> new MateriaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(2.0f).requiresCorrectToolForDrops().noOcclusion()));
-    public static final RegistrySupplier<MateriaEnrichedGlassBlock> MATERIA_LIQUIDA_ENRICHED_GLASS = BLOCKS.register("materia_liquida_enriched_glass", name -> new MateriaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(2.5f).requiresCorrectToolForDrops().noOcclusion()));
-    public static final RegistrySupplier<MateriaEnrichedGlassBlock> FRAGMENT_LATTICE_GLASS = BLOCKS.register("fragment_lattice_glass", name -> new MateriaEnrichedGlassBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.NONE).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
+    static {
+        AestheticGlassRegistry.init();
+    }
+    public static final RegistrySupplier<Block> ESSENCE_ENRICHED_GLASS = AestheticGlassRegistry.ESSENCE_ENRICHED_GLASS;
+    public static final RegistrySupplier<Block> MATERIA_FUMUS_STRENGTHENED_GLASS = AestheticGlassRegistry.MATERIA_FUMUS_STRENGTHENED_GLASS;
+    public static final RegistrySupplier<Block> MATERIA_LIQUIDA_ENRICHED_GLASS = AestheticGlassRegistry.MATERIA_LIQUIDA_ENRICHED_GLASS;
+    public static final RegistrySupplier<Block> FRAGMENT_LATTICE_GLASS = AestheticGlassRegistry.FRAGMENT_LATTICE_GLASS;
 
     // --- Materia Fume Pressure Chamber ---
     public static final RegistrySupplier<Block> MATERIA_PRESSURE_CHAMBER_CONTROLLER = BLOCKS.register("materia_pressure_chamber_controller", name -> new MateriaPressureChamberControllerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops()));

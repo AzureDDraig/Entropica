@@ -36,7 +36,7 @@ public class VaporPneumaticValveBlock extends VaporPneumaticPipeBlock implements
                 .setValue(NORTH, false).setValue(EAST, false)
                 .setValue(SOUTH, false).setValue(WEST, false)
                 .setValue(UP, false).setValue(DOWN, false)
-                .setValue(WATERLOGGED, false)
+                
                 .setValue(OPEN, false) // Default to closed for better Redstone predictability!
                 .setValue(POWERED, false)
                 .setValue(AXIS, Direction.Axis.Y)); // Default to upright
@@ -107,7 +107,7 @@ public class VaporPneumaticValveBlock extends VaporPneumaticPipeBlock implements
                 .setValue(AXIS, axis)
                 .setValue(OPEN, hasPower) // Snap open if placed next to Redstone!
                 .setValue(POWERED, hasPower)
-                .setValue(WATERLOGGED, level.getFluidState(pos).getType() == net.minecraft.world.level.material.Fluids.WATER)
+                
                 .setValue(UP, axis == Direction.Axis.Y && canConnectTo(level.getBlockState(pos.above()), Direction.UP))
                 .setValue(DOWN, axis == Direction.Axis.Y && canConnectTo(level.getBlockState(pos.below()), Direction.DOWN))
                 .setValue(NORTH, axis == Direction.Axis.Z && canConnectTo(level.getBlockState(pos.north()), Direction.NORTH))

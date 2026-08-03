@@ -7,6 +7,7 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.recipe.AethericSynthesizerRecipe;
 import ddraig.net.entropica.recipe.DilutedEssenceRecipe;
 import ddraig.net.entropica.recipe.FusionRecipe;
+import ddraig.net.entropica.recipe.GlassRedyeRecipe;
 import ddraig.net.entropica.recipe.PressureChamberRecipe;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -63,6 +64,10 @@ public class ModRecipes {
 
     public static final RegistrySupplier<RecipeSerializer<ddraig.net.entropica.recipe.MagicCircleRecipe>> MAGIC_CIRCLE_SERIALIZER =
             SERIALIZERS.register("magic_circle", () -> ddraig.net.entropica.recipe.MagicCircleRecipe.Serializer.INSTANCE);
+
+    // --- Aesthetic Glass Re-Dyeing Recipe ---
+    public static final RegistrySupplier<RecipeSerializer<GlassRedyeRecipe>> GLASS_REDYE_SERIALIZER =
+            SERIALIZERS.register("glass_redye", GlassRedyeRecipe.Serializer::new);
 
     public static void register() {
         SERIALIZERS.register();

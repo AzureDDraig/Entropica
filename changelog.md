@@ -1,5 +1,94 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-215-18-53 (August 3, 2026 Consolidated Update)
+
+### Fixed & Deployed (HorizontalPaneBlock System, Master Base Model Architecture, Aesthetic Glass Suite & Non-Glass Restoration)
+
+* **HorizontalPaneBlock Architecture**:
+  - Implemented `HorizontalPaneBlock.java` extending `Block` and implementing `SimpleWaterloggedBlock` (replacing `VerticalPaneBlock`).
+  - Defined full 16x2x2 panel VoxelShapes lying flat on the X-Z plane at height `Y=7..9` (`PANEL_X`: `[0,7,7]` to `[16,9,9]` on East-West axis; `PANEL_Z`: `[7,7,0]` to `[9,9,16]` on North-South axis) matching placement facing.
+  - Re-architected connection arms to **full 16-wide panel arms** (`PANEL_ARM_NORTH`: `[0,7,0]` to `[16,9,7]`; `PANEL_ARM_SOUTH`: `[0,7,9]` to `[16,9,16]`; `PANEL_ARM_WEST`: `[0,7,0]` to `[7,9,16]`; `PANEL_ARM_EAST`: `[9,7,0]` to `[16,9,16]`), bridging adjacent horizontal panes into continuous 16-wide flat glass surfaces.
+  - Implemented full **UP and DOWN vertical connection panels** (`PANEL_ARM_UP_X`: `[0,9,7]` to `[16,16,9]`; `PANEL_ARM_DOWN_X`: `[0,0,7]` to `[16,7,9]`), enabling Horizontal Panes to connect vertically upwards (`Y=9..16`) and downwards (`Y=0..7`) to adjacent panes or solid ceilings/floors to build multi-tier glass roofs, domes, and stepped structures.
+  - Implemented solid block connection detection (`canConnectTo(state, sideSolid)`) checking `BlockTags.IMPERMEABLE` and `isFaceSturdy()`, ensuring horizontal panes connect flush against solid blocks and walls in all 6 directions.
+
+* **Generic Master Base Model Architecture & Asset Optimization**:
+  - Organized all shape base models into generic, material-agnostic master base models in `models/block/base/` (`cube_base`, `slab_base`, `slab_top_base`, `vertical_slab_base`, `quarter_slab_base`, `stairs_base`, `stairs_inner_base`, `stairs_outer_base`, `horizontal_pane_base`, `horizontal_pane_side_base`, `horizontal_pane_up_base`, `horizontal_pane_down_base`). These master models can be reused by any material block family in Entropica (wood, stone, metal, crystal, materia, glass).
+  - Deleted **1,583 redundant individual glass block model JSON files** in `models/block/` and updated 710 blockstate definitions to point directly to generic master base models (`entropica:block/base/*`), dramatically reducing asset footprint.
+  - Completely removed `RampBlock` (Full/Half Ramps) and `WallBlock` (Glass Walls) across all 139 glass families per design directive.
+  - Updated `AestheticGlassRegistry.SHAPES_PER_FAMILY = 9` (Block, Pane, Door, Trapdoor, Slab, Vertical Slab, Quarter Slab, Stairs, Horizontal Pane; total 1,251 registered blocks & items).
+  - Extended asset generation across all **87 `EssenceType` enum constants**, 16 Vanilla dyes, 28 Dyenamics colors, 7 tech glasses, and clear glass.
+
+* **Hitboxes, Rotations & Geometry Sync**:
+  - **Doors**: Re-built master door models along the North face (`z=0..3`), matching Vanilla `door_bottom.json` geometry and bringing door models 100% in sync with `DoorBlock` VoxelShape hitboxes.
+  - **Trapdoors**: Fixed open trapdoor models (`glass_trapdoor_open_base`) and removed erroneous `x=90` blockstate rotations, enabling open trapdoors to render vertically flush with block faces when opened.
+  - **Stairs**: Re-aligned [glass_stairs_base.json](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/resources/assets/entropica/models/block/glass/glass_stairs_base.json) top step (`x=8..16`) and blockstate `y` rotation angles (`east=0`, `south=90`, `west=180`, `north=270`), resolving the 90° renderer-to-hitbox offset.
+  - **Vertical Slabs**: Restored double vertical slab placement in [VerticalSlabBlock.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/block/VerticalSlabBlock.java) (`DOUBLE_NS`, `DOUBLE_EW`), allowing players to combine two vertical slabs in one block space.
+
+* **World Join Crash & Registry Fix**:
+  - Resolved `IndexOutOfBoundsException` on world join in `AestheticGlassRegistry.populateColorMaps()`.
+
+* **Pipes, Conduits, Pipelines & Agitators Optimization**:
+  - Removed `WATERLOGGED` property across all 45 pipe/conduit classes and generated clean multipart blockstates pointing to shared master model `entropica:block/vapor_pneumatic_pipe`.
+
+* **Dynamic BlockEntity & Log Warning Cleanups**:
+  - **Scribed Chalk**: Replaced explicit variant blockstate in [scribed_chalk.json](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/resources/assets/entropica/blockstates/scribed_chalk.json) with wildcard catch-all key `""` mapping to `minecraft:block/air`, silencing 2,048+ dynamic model log warnings.
+  - **Non-Glass Assets**: Fully restored 100% of non-glass blockstates, models, machines, chalks, ores, and item models from Git HEAD.
+
+* **Performance & JEI Log Optimization**:
+  - **Dynamic Glass Client Color Ticking**: Added a client tick section dirty handler in [ModClientEvents.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/neoforge/src/main/java/ddraig/net/entropica/neoforge/client/ModClientEvents.java) every 4 ticks (~200ms) to continuously update dynamic essence glass color cycles in real-time.
+  - **Glass Texture Alpha Mipmapping**: Sharpened alpha contrast on glass PNG lines to prevent distance mipmap fading.
+  - **JEI Research Log Spam**: Added `CURRENTLY_HIDDEN_ITEMS` state tracking in [EntropicaJEIPlugin.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/neoforge/src/main/java/ddraig/net/entropica/compat/jei/neoforge/EntropicaJEIPlugin.java), preventing JEI from logging ingredient removals every 2 seconds.
+
+* **Build & Deployment Verification**:
+  - Successfully built and deployed to dev instances via `./gradlew deploytoDev`.
+
+## Build 000-1-26-214-23-59 (August 2, 2026 Consolidated Update)
+
+### Fixed & Deployed (Entropic Codex UI, Viewport Frustum Culling, Line Batching, Item Textures & OKF Vault Sync)
+
+* **Entropic Codex UI & Render Performance**:
+  - **Viewport Frustum Culling (`isNodeInViewport`)**: Calculates screen-projected bounds for all research nodes and connecting lines, skipping draw execution for off-screen elements during panning.
+  - **12px Line Segment Batching (`drawLineWorld`)**: Batches linear quad fills into 12-pixel strides, reducing line draw calls by ~85%.
+  - **Single 32x32 Alpha Mask & Background**: Created [entropic_codex_item.png](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/resources/assets/entropica/textures/item/entropic_codex_item.png) with precise pixel-art outline and pure 100% transparent background.
+  - **Black Hole Background Seamless Expansion**: Created [codex_black_hole_bg.png](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/resources/assets/entropica/textures/gui/codex_black_hole_bg.png) with edge vignette fading to pitch black (`#000000`), preventing hard edge clipping in 16:9 and ultrawide viewports.
+
+* **OKF Obsidian Vault Synchronization**:
+  - Updated notes in `C:\Users\Ddraig__\Downloads\OBSIDIAN WIKIS\Entropica\Entropica\` across `concepts/Entropica Codex.md`, `concepts/Materia.md`, `concepts/Diluted Essence.md`, and `concepts/Void Rift Logistics.md`.
+  - Added embedded image references linking high-resolution background assets into the vault documentation.
+
+## Build 000-1-26-213-22-32
+
+### Added & Implemented (Phase 1: The Entropic Codex)
+* **Entropic Codex Item & Crafting**:
+  - Registered `entropica:entropic_codex` item (`Rare` rarity) with custom tooltip and right-click interactions.
+  - Implemented Shapeless crafting recipe (`minecraft:book` + Any Essence Orb T1–T6).
+  - Implemented auto-give event (`CodexJoinHandler`) granting 1x Entropic Codex on first world join.
+  - Added right-click pairing to `Materia Terminal` blocks with particle and audio feedback.
+* **16-Bit Pixel Art Frutiger Metro Draggable Canvas Screen**:
+  - Created full-screen 2D spatial canvas (`EntropicCodexScreen`) with mouse panning and scroll zooming.
+  - Rendered central animated 16-bit Black Hole & Accretion Disk with cosmic particle distortion.
+  - Implemented orbiting Research Category Nodes along concentric rings.
+  - Implemented smooth camera lerp focusing directly onto clicked nodes.
+  - Built slide-out 16-bit Frutiger Metro glass reading panel with strict scissor clipping (`guiGraphics.enableScissor`) to prevent text bleed.
+  - Added dynamic central gem header rendering matching inventory's highest-tier Essence Orb.
+* **Interactive Tools & Blueprints**:
+  - **Fusion Simulator Tab**: Built-in *Reaction Yield* sub-tab (fluid volume yield & stability %) and *Damage Scaling* sub-tab (Additive Resonance vs target mob affinity).
+  - **Network Diagnostics Tab**: Displays remote telemetry for paired Materia Terminals (pressure bars, volume levels, red alert leak coordinates).
+  - **2D Multiblock Blueprints Widget**: Layer-by-layer 2D grid rendering (Y=1, Y=2, Y=3) for multiblocks.
+* **Progression, Observation & Restrictions**:
+  - Implemented `MobObservationHandler` (partial silhouette unlock on looking at unknown mobs; full unlock on kill/tame) with HUD toast notifications.
+  - Added `REQUIRE_RESEARCH_TO_CRAFT` config toggle in `EntropicaConfig` across common, fabric, and neoforge modules.
+  - Intercepted crafting grid events to set output to `ItemStack.EMPTY` for unresearched items when research restriction is enabled.
+
+## Build 000-1-26-210-09-14
+
+### Fixed & Remediated
+- Remediated all progression tier claims ("Tier 0/1/2/3", "10 chalk tiers") across `Essence Orb`, `Small Ampoule`, `Medium Ampoule`, `Large Ampoule`, and `Runic Arts & Scribing Index`.
+- Refactored terminology non-compliance across 16 files, replacing legacy `liquid essence` with `Materia Liquida` and generic `fumes`/`void fumes` with `Materia Fumus`.
+
+### Added
+- Created missing entity note `Materia Filter` (`wiki/entities/blocks/logistics/Materia Filter.md`), resolving all broken `[[Materia Filter]]` wikilinks.
+
 ## Build 000-1-26-202-06-05
 
 ### Added & Polished
@@ -330,8 +419,8 @@
 ## Build 000-1-26-199-10-36
 
 ### Fixed
-*   **Recipe Parsing Compatibility (MC 1.21.4)**:
-    *   Fixed data parsing errors where Minecraft 1.21.4 failed to load recipes because ingredients used the legacy `{"item": "..."}` syntax without a specified type. Updated `decompression_coupling`, `arcane_brick_block`, `arcane_clay_block`, and `smelt_arcane_clay` to use direct string values for ingredient keys (`"item_id"`) which parses correctly on the new engine.
+*   **Recipe Parsing Compatibility (MC )**:
+    *   Fixed data parsing errors where Minecraft  failed to load recipes because ingredients used the legacy `{"item": "..."}` syntax without a specified type. Updated `decompression_coupling`, `arcane_brick_block`, `arcane_clay_block`, and `smelt_arcane_clay` to use direct string values for ingredient keys (`"item_id"`) which parses correctly on the new engine.
 
 ---
 
@@ -479,8 +568,8 @@
     *   Added `DecompressionCouplerBlock` and `DecompressionCouplerBlockEntity` to perform straight-line, axis-aligned one-way Materia conversions (draining from higher tier, converting, and filling lower tier neighbor).
     *   Added coupler block models (`vapor_decompression_coupling_core.json`, `vapor_decompression_coupling_arm.json`), item model, and a `multipart` blockstate that renders the core and opposite-facing arms along its axis.
     *   Generated a custom 16x16 gradient texture (`decompression_coupling.png`) transitioning from silver to sky-blueish grey with a subtle brushed metal finish.
-*   **1.21.10 Flattened Asset Support**:
-    *   Converted resource directories to support Minecraft 1.21.10 asset specifications.
+*   ** Flattened Asset Support**:
+    *   Converted resource directories to support Minecraft asset specifications.
     *   Generated model definitions under `assets/entropica/items/` containing the new `"model": {"type": "minecraft:model", "model": "..."}` JSON layout structure.
     *   Generated matching 3D and 2D model parents under `assets/entropica/models/item/` and custom multi-part blockstates/models for all blocks.
 *   **Dynamic Item Tinting**:
@@ -520,7 +609,7 @@
     *   Implemented a Gradle hook in [common/build.gradle](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/build.gradle) that dynamically extracts `compileClasspath` URL paths, registers them into the task ClassLoader at runtime in `doFirst`, and re-runs the class transformation in `doLast` to cleanly compile production jars for Fabric and NeoForge.
 *   **Fabric Translucency Rendering Crash**:
     *   Resolved a compilation and launch crash inside [EntropicaClientFabric.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/fabric/src/main/java/ddraig/net/entropica/fabric/EntropicaClientFabric.java) where obsolete `RenderType.translucent()` references caused classloader failures on startup.
-    *   Mapped block rendering translucency sheets to Minecraft 1.21.10 standard render map sheets `Sheets.translucentItemSheet()`.
+    *   Mapped block rendering translucency sheets to Minecraft standard render map sheets `Sheets.translucentItemSheet()`.
 *   **Missing Legacy Assets**:
     *   Resolved an asset loading issue where the new multi-loader sub-modules failed to pull assets from the legacy mod directories.
     *   Migrated **358 missing asset files** (comprising textures, block models, blockstates, item animations, and sound loops) from the root legacy folder path to `common/src/main/resources/assets/` to ensure all elements compile.
