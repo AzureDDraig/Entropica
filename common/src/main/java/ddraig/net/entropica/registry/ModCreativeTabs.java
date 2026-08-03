@@ -24,7 +24,7 @@ public class ModCreativeTabs {
             .displayItems((parameters, output) -> {
                 ModBlocks.BLOCKS.getEntries().forEach(blockHolder -> {
                     Item blockItem = blockHolder.get().asItem();
-                    if (blockItem != Items.AIR && !isLogisticsItem(blockItem)) {
+                    if (blockItem != Items.AIR && !isLogisticsItem(blockItem) && !isAestheticItem(blockItem)) {
                         output.accept(blockItem);
                     }
                 });
@@ -266,4 +266,16 @@ public class ModCreativeTabs {
                path.contains("coupling") ||
                path.contains("agitator");
     }
+
+    public static final RegistrySupplier<CreativeModeTab> AESTHETICA_TAB = CREATIVE_MODE_TABS.register("aesthetica_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.BOTTOM, 0)
+            .title(Component.translatable("itemGroup.entropica.aesthetica"))
+            .icon(() -> ddraig.net.entropica.registry.AestheticGlassRegistry.ESSENCE_ENRICHED_GLASS.get().asItem().getDefaultInstance())
+            .displayItems((parameters, output) -> {
+                ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_ITEMS.forEach(itemSup -> output.accept(itemSup.get()));
+            }).build());
+
+    private static boolean isAestheticItem(Item item) {
+        return ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_ITEMS.stream().anyMatch(sup -> sup.get() == item);
+    }
+
 }

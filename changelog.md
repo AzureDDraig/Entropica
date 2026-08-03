@@ -12,6 +12,9 @@
   - Implemented solid block connection detection (`canConnectTo(state, sideSolid)`) checking `BlockTags.IMPERMEABLE` and `isFaceSturdy()`, ensuring horizontal panes connect flush against solid blocks and walls in all 6 directions.
 
 * **Generic Master Base Model Architecture & Asset Optimization**:
+  - Registered dedicated Creative Mode Tab **`Entropica: Aesthetica`** (`AESTHETICA_TAB`) in [ModCreativeTabs.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/registry/ModCreativeTabs.java) displaying all 1,251 aesthetic glass blocks, panes, doors, trapdoors, slabs, vertical slabs, quarter slabs, stairs, and horizontal panes.
+  - Filtered all aesthetic items out of the main `Entropica: Blocks` tab (`BLOCKS_TAB`), keeping functional blocks, machines, ores, and multiblocks cleanly organized.
+  - Added translation key `"itemGroup.entropica.aesthetica": "Entropica: Aesthetica"` to `en_us.json`.
   - Organized all shape base models into generic, material-agnostic master base models in `models/block/base/` (`cube_base`, `slab_base`, `slab_top_base`, `vertical_slab_base`, `quarter_slab_base`, `stairs_base`, `stairs_inner_base`, `stairs_outer_base`, `horizontal_pane_base`, `horizontal_pane_side_base`, `horizontal_pane_up_base`, `horizontal_pane_down_base`). These master models can be reused by any material block family in Entropica (wood, stone, metal, crystal, materia, glass).
   - Deleted **1,583 redundant individual glass block model JSON files** in `models/block/` and updated 710 blockstate definitions to point directly to generic master base models (`entropica:block/base/*`), dramatically reducing asset footprint.
   - Completely removed `RampBlock` (Full/Half Ramps) and `WallBlock` (Glass Walls) across all 139 glass families per design directive.

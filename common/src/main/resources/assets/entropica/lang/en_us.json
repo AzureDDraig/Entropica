@@ -11,24 +11,20 @@
   "key.entropica.swap_lens": "Swap Monocle Lens",
   "key.categories.entropica": "Entropica",
   "tooltip.entropica.any_fume": "Any Type",
-
   "_comment_jei": "================ JEI & RECIPES ================",
   "jei.entropica.info.diluted_essence": "Diluted Essence Fluid is capable of transforming matter.\n\nTo create it, simply toss raw Essence items directly into a pool of Water.\n\nOnce the water transforms into Diluted Essence Fluid, you can toss specific items into the fluid to trigger transformations.",
   "jei.entropica.info.dynamic_weapon_crafting": "To forge a Dynamic Weapon, you must place a Shape Concept, a Core, an Orbis Acceptor, and 4 Base Material Ingots in the center of the Eidolic Lathe.\n\nOptionally, surround it with up to 16 modifiers (like Spell Gems or Quartz) on Attunement Pedestals.\n\nPipe between 500 and 100,000 Materia Fumus into the Lathe to begin forging!",
   "recipe.entropica.diluted_essence": "Diluted Essence Fluid Pool",
   "jei.entropica.pressure_chamber.fume_cost": "%s Materia Fumus of %s",
   "jei.entropica.pressure_chamber.time": "Processing: %s Ticks",
-
   "_comment_effects": "================ EFFECTS ================",
   "effect.entropica.materia_toxicity": "Materia Toxicity",
   "effect.entropica.void_tear": "Void Tear",
   "effect.entropica.haze": "Haze",
   "effect.entropica.paralyzed": "Paralyzed",
-
   "_comment_enchants": "================ ENCHANTMENTS ================",
   "enchantment.entropica.augment_slot_expansion": "Augment Slot Expansion",
   "enchantment.entropica.essence_reap": "Essence Reap",
-
   "_comment_equipment": "================ TOOLS, WEAPONS & ENCHANTS ================",
   "item.entropica.arcanum_focus": "Arcanum Focus",
   "item.entropica.materia_value_detector": "Materia Value Detector",
@@ -61,7 +57,6 @@
   "item.entropica.dynamic_war_bow": "Dynamic War Bow",
   "item.entropica.dynamic_crossbow": "Dynamic Crossbow",
   "item.entropica.dynamic_repeater": "Dynamic Repeater",
-
   "_comment_base_ampoules": "================ EMPTY & MATERIA AMPOULES ================",
   "item.entropica.small_ampoule": "Small Ampoule (Empty)",
   "item.entropica.medium_ampoule": "Medium Ampoule (Empty)",
@@ -72,7 +67,6 @@
   "item.entropica.small_materia_fumus_ampoule": "Small Materia Fumus Ampoule",
   "item.entropica.medium_materia_fumus_ampoule": "Medium Materia Fumus Ampoule",
   "item.entropica.large_materia_fumus_ampoule": "Large Materia Fumus Ampoule",
-
   "_comment_weak_essence": "================ WEAK ESSENCES ================",
   "item.entropica.weak_undead_essence": "Weak Undead Essence",
   "item.entropica.weak_water_essence": "Weak Water Essence",
@@ -100,7 +94,6 @@
   "item.entropica.small_lightning_ampoule": "Small Lightning Ampoule",
   "item.entropica.small_radiant_ampoule": "Small Radiant Ampoule",
   "item.entropica.small_umbral_ampoule": "Small Umbral Ampoule",
-
   "_comment_average_essence": "================ AVERAGE ESSENCES ================",
   "item.entropica.average_undead_essence": "Average Undead Essence",
   "item.entropica.average_water_essence": "Average Water Essence",
@@ -128,7 +121,6 @@
   "item.entropica.medium_lightning_ampoule": "Medium Lightning Ampoule",
   "item.entropica.medium_radiant_ampoule": "Medium Radiant Ampoule",
   "item.entropica.medium_umbral_ampoule": "Medium Umbral Ampoule",
-
   "_comment_strong_essence": "================ STRONG ESSENCES ================",
   "item.entropica.strong_undead_essence": "Strong Undead Essence",
   "item.entropica.strong_water_essence": "Strong Water Essence",
@@ -156,7 +148,6 @@
   "item.entropica.large_lightning_ampoule": "Large Lightning Ampoule",
   "item.entropica.large_radiant_ampoule": "Large Radiant Ampoule",
   "item.entropica.large_umbral_ampoule": "Large Umbral Ampoule",
-
   "_comment_components": "================ CRAFTING COMPONENTS ================",
   "item.entropica.arcanite_ingot": "Arcanite Ingot",
   "item.entropica.viscanite_ingot": "Viscanite Ingot",
@@ -240,7 +231,6 @@
   "item.entropica.void_resonant_tuning_fork": "Void-Resonant Tuning Fork",
   "item.entropica.spectral_glyph_plate": "Spectral Glyph-Plate",
   "item.entropica.tether_anchor_pin": "Tether Anchor Pin",
-
   "_comment_fluid_gas_components": "================ FLUID & GAS COMPONENTS ================",
   "item.entropica.arcanite_ichor_valve": "Arcanite Ichor Valve",
   "item.entropica.viscanite_hydraulic_valve": "Viscanite Ichor Valve",
@@ -252,7 +242,6 @@
   "item.entropica.void_sealed_o_ring": "Void-Sealed O-Ring",
   "item.entropica.fume_condenser_coil": "Fume Condenser Coil",
   "item.entropica.ichor_evaporator_coil": "Ichor Evaporator Coil",
-
   "_comment_dynamic_weapons": "================ DYNAMIC WEAPONS & FORGING ================",
   "block.entropica.eidolic_focal_pedestal": "Eidolic Focal Pedestal",
   "item.entropica.eidolic_focal_pedestal": "Eidolic Focal Pedestal",
@@ -305,7 +294,6 @@
   "item.entropica.mace_shape_concept": "Mace Shape Concept",
   "item.entropica.morning_star_shape_concept": "Morning Star Shape Concept",
   "item.entropica.warhammer_shape_concept": "Warhammer Shape Concept",
-
   "_comment_machine_items": "================ ITEMS (MACHINES & COMPONENTS) ================",
   "item.entropica.entropic_ore": "Entropic Ore",
   "item.entropica.materia_furnace": "Materia Furnace",
@@ -342,7 +330,6 @@
   "item.entropica.materia_extraction_apparatus": "Materia Extraction Apparatus",
   "item.entropica.materia_extractor_base": "Materia Extractor Base",
   "item.entropica.materia_motor": "Materia Motor",
-
   "_comment_vis_vitae_items": "================ ITEMS (MATERIA VITAE) ================",
   "item.entropica.vis_vitae_pipe": "Materia Vitae Pipe",
   "item.entropica.vis_vitae_bend": "Materia Vitae Bend",
@@ -351,7 +338,6 @@
   "item.entropica.vis_vitae_condenser": "Materia Vitae Condenser",
   "item.entropica.vis_vitae_vacuum": "Materia Vitae Vacuum",
   "item.entropica.vitae_barrel": "Vitae Barrel",
-
   "_comment_vapor_pneumatic_items": "================ ITEMS (VAPOR PNEUMATIC) ================",
   "item.entropica.vapor_pneumatic_valve": "Vapor Pneumatic Valve",
   "item.entropica.vapor_pneumatic_one_way_valve": "Vapor Pneumatic One-Way Valve",
@@ -365,7 +351,6 @@
   "item.entropica.materia_fumus_strengthened_glass": "Materia Fumus Strengthened Glass",
   "item.entropica.materia_liquida_enriched_glass": "Materia Liquida Enriched Glass",
   "item.entropica.fragment_lattice_glass": "Fragment Lattice Glass",
-
   "_comment_materia_pipes": "================ ITEMS (MATERIA CYCLE TRANSPORT) ================",
   "block.entropica.vapor_pneumatic_pipe_copper": "Vapor Pneumatic Pipe (Copper)",
   "item.entropica.vapor_pneumatic_pipe_copper": "Vapor Pneumatic Pipe (Copper)",
@@ -407,7 +392,6 @@
   "item.entropica.vapor_pneumatic_pipe_athanorite": "Vapor Pneumatic Pipe (Athanorite)",
   "block.entropica.vapor_pneumatic_pipe_charged_athanorite": "Vapor Pneumatic Pipe (Charged Athanorite)",
   "item.entropica.vapor_pneumatic_pipe_charged_athanorite": "Vapor Pneumatic Pipe (Charged Athanorite)",
-
   "block.entropica.hydraulic_pipeline_iron": "Hydraulic Pipeline (Iron)",
   "item.entropica.hydraulic_pipeline_iron": "Hydraulic Pipeline (Iron)",
   "block.entropica.hydraulic_pipeline_arcanite": "Hydraulic Pipeline (Arcanite)",
@@ -422,7 +406,6 @@
   "item.entropica.hydraulic_pipeline_charged_viscanite": "Hydraulic Pipeline (Charged Viscanite)",
   "block.entropica.hydraulic_pipeline_charged_resonite": "Hydraulic Pipeline (Charged Resonite)",
   "item.entropica.hydraulic_pipeline_charged_resonite": "Hydraulic Pipeline (Charged Resonite)",
-
   "block.entropica.voltaic_conduit_arcanite": "Voltaic Conduit (Arcanite)",
   "item.entropica.voltaic_conduit_arcanite": "Voltaic Conduit (Arcanite)",
   "block.entropica.voltaic_conduit_viscanite": "Voltaic Conduit (Viscanite)",
@@ -435,35 +418,28 @@
   "item.entropica.voltaic_conduit_charged_viscanite": "Voltaic Conduit (Charged Viscanite)",
   "block.entropica.voltaic_conduit_charged_resonite": "Voltaic Conduit (Charged Resonite)",
   "item.entropica.voltaic_conduit_charged_resonite": "Voltaic Conduit (Charged Resonite)",
-
   "block.entropica.viscous_agitator_caputite": "Viscous Agitator (Caputite)",
   "item.entropica.viscous_agitator_caputite": "Viscous Agitator (Caputite)",
   "block.entropica.viscous_agitator_charged_caputite": "Viscous Agitator (Charged Caputite)",
   "item.entropica.viscous_agitator_charged_caputite": "Viscous Agitator (Charged Caputite)",
-
   "block.entropica.sanguine_conduit_sanguinite": "Sanguine Conduit (Sanguinite)",
   "item.entropica.sanguine_conduit_sanguinite": "Sanguine Conduit (Sanguinite)",
   "block.entropica.sanguine_conduit_charged_sanguinite": "Sanguine Conduit (Charged Sanguinite)",
   "item.entropica.sanguine_conduit_charged_sanguinite": "Sanguine Conduit (Charged Sanguinite)",
-
   "block.entropica.equilibrium_conduit_mercurite": "Equilibrium Conduit (Mercurite)",
   "item.entropica.equilibrium_conduit_mercurite": "Equilibrium Conduit (Mercurite)",
   "block.entropica.equilibrium_conduit_charged_mercurite": "Equilibrium Conduit (Charged Mercurite)",
   "item.entropica.equilibrium_conduit_charged_mercurite": "Equilibrium Conduit (Charged Mercurite)",
-
   "block.entropica.pristine_conduit_euclidite": "Pristine Conduit (Euclidite)",
   "item.entropica.pristine_conduit_euclidite": "Pristine Conduit (Euclidite)",
   "block.entropica.pristine_conduit_charged_euclidite": "Pristine Conduit (Charged Euclidite)",
   "item.entropica.pristine_conduit_charged_euclidite": "Pristine Conduit (Charged Euclidite)",
-
   "block.entropica.athanor_conduit_athanorite": "Athanor Conduit (Athanorite)",
   "item.entropica.athanor_conduit_athanorite": "Athanor Conduit (Athanorite)",
   "block.entropica.athanor_conduit_charged_athanorite": "Athanor Conduit (Charged Athanorite)",
   "item.entropica.athanor_conduit_charged_athanorite": "Athanor Conduit (Charged Athanorite)",
-
   "block.entropica.vapor_decompression_coupling": "Vapor Decompression Coupling",
   "item.entropica.vapor_decompression_coupling": "Vapor Decompression Coupling",
-
   "block.entropica.sublimated_orbis_cell": "Sublimated Orbis Cell",
   "item.entropica.sublimated_orbis_cell": "Sublimated Orbis Cell",
   "block.entropica.pneumatic_calix": "Pneumatic Calix",
@@ -480,7 +456,6 @@
   "item.entropica.monad_core": "Monad Core",
   "block.entropica.athanor_core": "Athanor Core",
   "item.entropica.athanor_core": "Athanor Core",
-
   "_comment_runes_logistics": "================ RUNES & LOGISTICS ================",
   "item.entropica.rune_fehu": "Rune of Fehu",
   "item.entropica.rune_uruz": "Rune of Uruz",
@@ -509,7 +484,6 @@
   "item.entropica.void_rift": "Void Rift",
   "block.entropica.void_rift": "Void Rift",
   "tooltip.entropica.rune": "An ancient runestone imbued with conceptual power.",
-
   "_comment_machine_blocks": "================ BLOCKS ================",
   "block.entropica.aetheric_synthesizer": "Aetheric Synthesizer",
   "block.entropica.aetheric_automator": "Aetheric Automator",
@@ -517,12 +491,10 @@
   "item.entropica.materia_pump": "Materia Pump",
   "block.entropica.materia_exhaust": "Materia Exhaust",
   "block.entropica.creative_particle_generator": "Creative Particle Generator",
-
   "_comment_fluids": "================ FLUIDS ================",
   "item.entropica.diluted_essence_bucket": "Diluted Essence Bucket",
   "fluid_type.entropica.diluted_essence": "Diluted Essence",
   "block.entropica.diluted_essence_fluid_block": "Diluted Essence",
-
   "_comment_configs": "================ CONFIGURATION MENUS ================",
   "entropica.configuration.materia_furnace_settings": "Materia Furnace Settings",
   "entropica.configuration.materia_furnace_settings.materiaPerEssence": "Materia Per Essence",
@@ -547,7 +519,6 @@
   "entropica.configuration.vis_fume_vessel_settings.vesselGlassLatticeCapacity": "Lattice Glass Capacity",
   "entropica.configuration.vis_fume_vessel_settings.vesselCapacityDecayMultiplier": "Capacity Decay Multiplier",
   "entropica.configuration.vis_fume_vessel_settings.vesselDecayStartingBlock": "Decay Starting Block",
-
   "_comment_component_tooltips": "================ COMPONENT LORE ================",
   "tooltip.entropica.arcanite_ingot": "The definitive magical conductor.",
   "tooltip.entropica.viscanite_ingot": "A dense, weapon-grade industrial alloy.",
@@ -630,7 +601,6 @@
   "tooltip.entropica.void_sealed_o_ring": "An absolute vacuum seal that prevents even the smallest conceptual leaks.",
   "tooltip.entropica.fume_condenser_coil": "Rapidly cools raw Materia Fumus back into a stable liquid state.",
   "tooltip.entropica.ichor_evaporator_coil": "Superheats liquid Ichor to cleanly sublimate it into raw Materia Fumus.",
-
   "tooltip.entropica.arcanite_weapon_core": "A sleek, spherical core of cyan-tinted magical metal.",
   "tooltip.entropica.charged_arcanite_weapon_core": "An overclocked Arcanite core with expanded modular capacity.",
   "tooltip.entropica.ancient_arcanite_weapon_core": "The absolute pinnacle of magical conductivity.",
@@ -655,7 +625,6 @@
   "tooltip.entropica.shape_concept": "A physical manifestation of a weapon's spectral soul.",
   "tooltip.entropica.orbis_acceptor": "Acts as the intake valve for magical energy.",
   "tooltip.entropica.spell_gem": "A crystallized spell matrix that can be slotted into weapons.",
-
   "item.entropica.glacial_aegis_plate": "Glacial Aegis Plate",
   "item.entropica.patina_aegis_plate": "Patina Aegis Plate",
   "item.entropica.mossy_aegis_plate": "Mossy Aegis Plate",
@@ -663,14 +632,12 @@
   "item.entropica.rime_antler_fragment": "Rime Antler Fragment",
   "item.entropica.shepherds_frost": "Shepherd's Frost",
   "item.entropica.crawler_shell_fragment": "Crawler Shell Fragment",
-
   "entity.entropica.spore_drifter": "Spore Drifter",
   "entity.entropica.spore_cloud": "Spore Cloud",
   "entity.entropica.rime_back_ovis": "Rime-Back Ovis",
   "entity.entropica.overgrowth_ovis": "Overgrowth Ovis",
   "entity.entropica.rime_shepherd": "Rime Shepherd",
   "entity.entropica.bloom_crawler": "Bloom Crawler",
-  
   "item.entropica.chalk": "Chalk",
   "item.entropica.dull_chalk": "Dull Chalk",
   "item.entropica.conductive_chalk": "Conductive Chalk",
@@ -689,5 +656,6 @@
   "block.entropica.drafting_table": "Drafting Table",
   "block.entropica.research_bench": "Research Bench",
   "item.entropica.blank_stone": "Blank Stone",
-  "recipe.entropica.magic_circle": "Magic Circle Ritual"
+  "recipe.entropica.magic_circle": "Magic Circle Ritual",
+  "itemGroup.entropica.aesthetica": "Entropica: Aesthetica"
 }
