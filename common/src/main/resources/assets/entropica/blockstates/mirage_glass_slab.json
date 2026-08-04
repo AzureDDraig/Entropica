@@ -1,1 +1,1 @@
-{"variants":{"type=bottom":{"model":"entropica:block/base/slab_base"},"type=top":{"model":"entropica:block/base/slab_top_base"},"type=double":{"model":"entropica:block/base/base"}}}
+{"variants":{"type=bottom":{"model":"entropica:block/mirage_glass_slab"},"type=top":{"model":"entropica:block/mirage_glass_slab_top"},"type=double":{"model":"entropica:block/mirage_glass"}}}

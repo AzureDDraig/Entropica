@@ -1,1 +1,1 @@
-{"parent":"entropica:block/materia_liquida_enriched_glass_pane"}
+{"parent":"minecraft:item/generated","textures":{"layer0":"entropica:block/glass_materia_liquida_enriched"}}

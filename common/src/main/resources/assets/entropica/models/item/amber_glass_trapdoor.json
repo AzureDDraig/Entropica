@@ -1,1 +1,1 @@
-{"parent":"entropica:block/glass/glass_trapdoor_bottom_base"}
+{"parent":"minecraft:item/generated","textures":{"layer0":"entropica:block/glass_essence_enriched"}}

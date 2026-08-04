@@ -1,11 +1,1 @@
-{
-  "model": {
-    "type": "minecraft:model",
-    "model": "entropica:block/vis_ichor_enriched_glass",
-    "tints": [
-      {
-        "type": "entropica:fume_glass_tint"
-      }
-    ]
-  }
-}
+{"model":{"type":"minecraft:model","model":"entropica:item/vis_ichor_enriched_glass"}}

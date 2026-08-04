@@ -1,1 +1,1 @@
-{"parent":"entropica:block/materia_fumus_strengthened_glass_trapdoor"}
+{"parent":"minecraft:item/generated","textures":{"layer0":"entropica:block/glass_materia_fumus_strengthened"}}
