@@ -42,10 +42,10 @@
   - **Glass Texture Alpha Mipmapping**: Sharpened alpha contrast on glass PNG lines to prevent distance mipmap fading.
   - **JEI Research Log Spam**: Added `CURRENTLY_HIDDEN_ITEMS` state tracking in [EntropicaJEIPlugin.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/neoforge/src/main/java/ddraig/net/entropica/compat/jei/neoforge/EntropicaJEIPlugin.java), preventing JEI from logging ingredient removals every 2 seconds.
 
-* **Stretched White Edge Texture System (`white.png`)**:
-  - **White Texture PNG Asset**: Created pure 16x16 white texture file at `common/src/main/resources/assets/entropica/textures/block/white.png`.
-  - **Master Base Edge Mapping**: Re-architected master base models in `models/block/base/` (`slab_base`, `slab_top_base`, `quarter_slab_l0..l3`, `door_bottom_base`, `door_top_base`, `door_bottom_rh_base`, `door_top_rh_base`, `horizontal_pane_base`) and all 568 vertical pane models to map `#edge` faces to `entropica:block/white` with `tintindex: 0` stretched to fit full face UV bounds (`[0, 0, 16, 16]`).
-  - **High-Contrast Edge Visibility**: All 2-pixel and 3-pixel edges across quarter slabs, slabs, doors, trapdoors, and panes now render crisp, high-contrast tinted outer borders in-world and in inventory.
+* **70% Alpha & Horizontal Pane Edge Geometry Fixes**:
+  - **70% Alpha Edge Texture**: Re-generated `white.png` texture at `common/src/main/resources/assets/entropica/textures/block/white.png` with 70% opacity alpha (`RGBA(255, 255, 255, 178)`), matching standard glass texture alpha density for subtle, elegant edge highlights.
+  - **Horizontal Pane 3D Geometry**: Fixed `horizontal_pane_base.json` central beam bounds from a 16x16 full block slab (`0..16 x 7..9 x 0..16`) down to a precise 2x2 thin beam (`0..16 x 7..9 x 7..9`), eliminating unwanted solid block walls on unconnected horizontal panes.
+  - **Horizontal Pane Arm Edges**: Re-architected `horizontal_pane_side_base.json`, `horizontal_pane_up_base.json`, and `horizontal_pane_down_base.json` so `#edge` white borders render strictly on outer terminating faces (`cullface: north/south/east/west/up/down`).
 
 * **Build & Deployment Verification**:
   - Successfully built and deployed to dev instances via `./gradlew deploytoDev`.
