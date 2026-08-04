@@ -64,7 +64,7 @@ public record MagicCircleRecipe(
             if (requiredAmount <= 0) continue;
 
             if (entry.getKey() == EssenceType.REGULAR) {
-                // Wildcard: sum all essences (including REGULAR and elemental)
+                // Wildcard requirement: sum of ALL essence types in circuit/circle
                 int totalProvided = input.essences().values().stream()
                         .mapToInt(Integer::intValue)
                         .sum();
@@ -72,9 +72,9 @@ public record MagicCircleRecipe(
                     return false;
                 }
             } else {
-                int specificAmount = input.essences().getOrDefault(entry.getKey(), 0);
-                int regularAmount = input.essences().getOrDefault(EssenceType.REGULAR, 0);
-                if (specificAmount + regularAmount < requiredAmount) {
+                // Specific requirement: MUST match this exact essence type specifically!
+                int providedAmount = input.essences().getOrDefault(entry.getKey(), 0);
+                if (providedAmount < requiredAmount) {
                     return false;
                 }
             }

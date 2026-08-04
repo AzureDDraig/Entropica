@@ -329,19 +329,18 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                 if (be instanceof ScribedChalkBlockEntity chalkBE) {
                                     allChalkBlockEntities.add(chalkBE);
                                     
-                                    if (type == NodeType.INPUT) {
+                                    if (type == NodeType.INPUT || type == NodeType.COLLECTION) {
                                         ItemStack stored = chalkBE.getStoredItem();
                                         if (!stored.isEmpty()) {
                                             inputBlockEntities.add(chalkBE);
                                             inputStacks.add(stored);
-                                        } else {
-                                            AABB scanArea = new AABB(p).inflate(0.2, 0.5, 0.2);
-                                            List<ItemEntity> foundItems = level.getEntitiesOfClass(ItemEntity.class, scanArea);
-                                            for (ItemEntity ent : foundItems) {
-                                                if (!ent.isRemoved() && !ent.getItem().isEmpty()) {
-                                                    inputItemEntities.add(ent);
-                                                    inputStacks.add(ent.getItem());
-                                                }
+                                        }
+                                        AABB scanArea = new AABB(p).inflate(0.5, 0.8, 0.5);
+                                        List<ItemEntity> foundItems = level.getEntitiesOfClass(ItemEntity.class, scanArea);
+                                        for (ItemEntity ent : foundItems) {
+                                            if (!ent.isRemoved() && !ent.getItem().isEmpty()) {
+                                                inputItemEntities.add(ent);
+                                                inputStacks.add(ent.getItem());
                                             }
                                         }
                                     } else if (type == NodeType.RUNE) {
@@ -431,12 +430,14 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             for (int i = 0; i < inputBlockEntities.size(); i++) {
                                 ScribedChalkBlockEntity chalkBE = inputBlockEntities.get(i);
                                 ItemStack stack = chalkBE.getStoredItem();
-                                if (ing.test(stack)) {
+                                if (!stack.isEmpty() && ing.test(stack)) {
                                     stack.shrink(1);
                                     chalkBE.setStoredItem(stack);
                                     chalkBE.setChanged();
                                     level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
-                                    inputBlockEntities.remove(i);
+                                    if (chalkBE.getStoredItem().isEmpty()) {
+                                        inputBlockEntities.remove(i);
+                                    }
                                     consumed = true;
                                     break;
                                 }
@@ -444,15 +445,16 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             if (!consumed) {
                                 for (int i = 0; i < inputItemEntities.size(); i++) {
                                     ItemEntity ent = inputItemEntities.get(i);
-                                    if (ing.test(ent.getItem())) {
+                                    if (!ent.isRemoved() && !ent.getItem().isEmpty() && ing.test(ent.getItem())) {
                                         ItemStack stack = ent.getItem();
                                         stack.shrink(1);
                                         if (stack.isEmpty()) {
                                             ent.discard();
+                                            inputItemEntities.remove(i);
                                         } else {
                                             ent.setItem(stack);
                                         }
-                                        inputItemEntities.remove(i);
+                                        consumed = true;
                                         break;
                                     }
                                 }
@@ -464,27 +466,28 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             for (int i = 0; i < runeBlockEntities.size(); i++) {
                                 ScribedChalkBlockEntity chalkBE = runeBlockEntities.get(i);
                                 ItemStack stack = chalkBE.getStoredRune();
-                                if (ing.test(stack)) {
+                                if (!stack.isEmpty() && ing.test(stack)) {
                                     stack.shrink(1);
                                     chalkBE.setStoredRune(stack);
                                     chalkBE.setChanged();
                                     level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
-                                    runeBlockEntities.remove(i);
+                                    if (chalkBE.getStoredRune().isEmpty()) {
+                                        runeBlockEntities.remove(i);
+                                    }
                                     break;
                                 }
                             }
                         }
                         
-                        // 2b. Consume essences from the same nodes used for detection
+                        // 2b. Consume essences (strict matching for specific types; wildcard for REGULAR)
                         for (java.util.Map.Entry<EssenceType, Integer> entry : recipe.essences().entrySet()) {
                             EssenceType requiredType = entry.getKey();
                             int toConsume = entry.getValue();
                             if (toConsume <= 0) continue;
                             
-                            // Pass 1: consume matching affinity or any if REGULAR
                             for (ScribedChalkBlockEntity chalkBE : essenceSourceNodes) {
                                 if (toConsume <= 0) break;
-                                if (chalkBE.getActiveAffinity() == requiredType || requiredType == EssenceType.REGULAR) {
+                                if (requiredType == EssenceType.REGULAR || chalkBE.getActiveAffinity() == requiredType) {
                                     int available = chalkBE.getEssenceLevel();
                                     if (available > 0) {
                                         int consumed = Math.min(toConsume, available);
@@ -498,28 +501,6 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                         chalkBE.setChanged();
                                         level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
                                         toConsume -= consumed;
-                                    }
-                                }
-                            }
-                            // Pass 2: fallback to REGULAR essence if specific type ran short
-                            if (toConsume > 0 && requiredType != EssenceType.REGULAR) {
-                                for (ScribedChalkBlockEntity chalkBE : essenceSourceNodes) {
-                                    if (toConsume <= 0) break;
-                                    if (chalkBE.getActiveAffinity() == EssenceType.REGULAR) {
-                                        int available = chalkBE.getEssenceLevel();
-                                        if (available > 0) {
-                                            int consumed = Math.min(toConsume, available);
-                                            chalkBE.setEssenceLevel(available - consumed);
-                                            if (chalkBE.getEssenceLevel() <= 0 && 
-                                                chalkBE.getBlockState().getValue(NODE_TYPE) != NodeType.SOURCE && 
-                                                chalkBE.getStoredOrbisCell().isEmpty()) {
-                                                chalkBE.setActiveAffinity(EssenceType.REGULAR);
-                                                chalkBE.setColor(0xFFCCCCCC);
-                                            }
-                                            chalkBE.setChanged();
-                                            level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
-                                            toConsume -= consumed;
-                                        }
                                     }
                                 }
                             }
@@ -1416,19 +1397,18 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             BlockPos p = chalkBE.getBlockPos();
             NodeType type = chalkBE.getBlockState().getValue(NODE_TYPE);
 
-            if (type == NodeType.INPUT) {
+            if (type == NodeType.INPUT || type == NodeType.COLLECTION) {
                 ItemStack stored = chalkBE.getStoredItem();
                 if (!stored.isEmpty()) {
                     inputBlockEntities.add(chalkBE);
                     inputStacks.add(stored);
-                } else {
-                    AABB scanArea = new AABB(p).inflate(0.2, 0.5, 0.2);
-                    List<ItemEntity> foundItems = level.getEntitiesOfClass(ItemEntity.class, scanArea);
-                    for (ItemEntity ent : foundItems) {
-                        if (!ent.isRemoved() && !ent.getItem().isEmpty()) {
-                            inputItemEntities.add(ent);
-                            inputStacks.add(ent.getItem());
-                        }
+                }
+                AABB scanArea = new AABB(p).inflate(0.5, 0.8, 0.5);
+                List<ItemEntity> foundItems = level.getEntitiesOfClass(ItemEntity.class, scanArea);
+                for (ItemEntity ent : foundItems) {
+                    if (!ent.isRemoved() && !ent.getItem().isEmpty()) {
+                        inputItemEntities.add(ent);
+                        inputStacks.add(ent.getItem());
                     }
                 }
             } else if (type == NodeType.RUNE) {
@@ -1498,12 +1478,14 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                 for (int i = 0; i < inputBlockEntities.size(); i++) {
                     ScribedChalkBlockEntity chalkBE = inputBlockEntities.get(i);
                     ItemStack stack = chalkBE.getStoredItem();
-                    if (ing.test(stack)) {
+                    if (!stack.isEmpty() && ing.test(stack)) {
                         stack.shrink(1);
                         chalkBE.setStoredItem(stack);
                         chalkBE.setChanged();
                         level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
-                        inputBlockEntities.remove(i);
+                        if (chalkBE.getStoredItem().isEmpty()) {
+                            inputBlockEntities.remove(i);
+                        }
                         consumed = true;
                         break;
                     }
@@ -1511,12 +1493,16 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                 if (!consumed) {
                     for (int i = 0; i < inputItemEntities.size(); i++) {
                         ItemEntity ent = inputItemEntities.get(i);
-                        if (ing.test(ent.getItem())) {
+                        if (!ent.isRemoved() && !ent.getItem().isEmpty() && ing.test(ent.getItem())) {
                             ItemStack stack = ent.getItem();
                             stack.shrink(1);
-                            if (stack.isEmpty()) ent.discard();
-                            else ent.setItem(stack);
-                            inputItemEntities.remove(i);
+                            if (stack.isEmpty()) {
+                                ent.discard();
+                                inputItemEntities.remove(i);
+                            } else {
+                                ent.setItem(stack);
+                            }
+                            consumed = true;
                             break;
                         }
                     }
@@ -1528,27 +1514,28 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                 for (int i = 0; i < runeBlockEntities.size(); i++) {
                     ScribedChalkBlockEntity chalkBE = runeBlockEntities.get(i);
                     ItemStack stack = chalkBE.getStoredRune();
-                    if (ing.test(stack)) {
+                    if (!stack.isEmpty() && ing.test(stack)) {
                         stack.shrink(1);
                         chalkBE.setStoredRune(stack);
                         chalkBE.setChanged();
                         level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
-                        runeBlockEntities.remove(i);
+                        if (chalkBE.getStoredRune().isEmpty()) {
+                            runeBlockEntities.remove(i);
+                        }
                         break;
                     }
                 }
             }
 
-            // 3. Consume essences from connected circuit nodes
+            // 3. Consume essences from connected circuit nodes (strict matching for specific types; wildcard for REGULAR)
             for (java.util.Map.Entry<EssenceType, Integer> entry : recipe.essences().entrySet()) {
                 EssenceType requiredType = entry.getKey();
                 int toConsume = entry.getValue();
                 if (toConsume <= 0) continue;
 
-                // Pass 1: consume matching affinity or any if REGULAR
                 for (ScribedChalkBlockEntity chalkBE : circuitBEs) {
                     if (toConsume <= 0) break;
-                    if (chalkBE.getActiveAffinity() == requiredType || requiredType == EssenceType.REGULAR) {
+                    if (requiredType == EssenceType.REGULAR || chalkBE.getActiveAffinity() == requiredType) {
                         int available = chalkBE.getEssenceLevel();
                         if (available > 0) {
                             int consumed = Math.min(toConsume, available);
@@ -1562,28 +1549,6 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             chalkBE.setChanged();
                             level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
                             toConsume -= consumed;
-                        }
-                    }
-                }
-                // Pass 2: fallback to REGULAR essence if specific type ran short
-                if (toConsume > 0 && requiredType != EssenceType.REGULAR) {
-                    for (ScribedChalkBlockEntity chalkBE : circuitBEs) {
-                        if (toConsume <= 0) break;
-                        if (chalkBE.getActiveAffinity() == EssenceType.REGULAR) {
-                            int available = chalkBE.getEssenceLevel();
-                            if (available > 0) {
-                                int consumed = Math.min(toConsume, available);
-                                chalkBE.setEssenceLevel(available - consumed);
-                                if (chalkBE.getEssenceLevel() <= 0 &&
-                                    chalkBE.getBlockState().getValue(NODE_TYPE) != NodeType.SOURCE &&
-                                    chalkBE.getStoredOrbisCell().isEmpty()) {
-                                    chalkBE.setActiveAffinity(EssenceType.REGULAR);
-                                    chalkBE.setColor(0xFFCCCCCC);
-                                }
-                                chalkBE.setChanged();
-                                level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
-                                toConsume -= consumed;
-                            }
                         }
                     }
                 }
