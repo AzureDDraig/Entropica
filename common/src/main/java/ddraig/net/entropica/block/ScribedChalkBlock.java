@@ -1173,7 +1173,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             if (type == NodeType.ESSENCE_BANK) {
                 capacity += 128;
             } else {
-                capacity += 8;
+                capacity += 16;
             }
         }
         return capacity;
@@ -1205,7 +1205,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         for (ScribedChalkBlockEntity be : circuit) {
             NodeType nt = be.getBlockState().getValue(NODE_TYPE);
             if (nt == NodeType.SOURCE || nt == NodeType.ESSENCE_BANK) {
-                int maxNodeCap = (nt == NodeType.ESSENCE_BANK) ? 128 : 8;
+                int maxNodeCap = (nt == NodeType.ESSENCE_BANK) ? 128 : 16;
                 int current = be.getEssenceLevel();
                 int space = maxNodeCap - current;
                 if (space > 0) {
@@ -1226,7 +1226,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                 NodeType nt = be.getBlockState().getValue(NODE_TYPE);
                 if (nt != NodeType.SOURCE && nt != NodeType.ESSENCE_BANK) {
                     int current = be.getEssenceLevel();
-                    int space = 8 - current;
+                    int space = 16 - current;
                     if (space > 0) {
                         int add = Math.min(remaining, space);
                         be.setEssenceLevel(current + add);

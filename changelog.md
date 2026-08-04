@@ -1,5 +1,26 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-216-12-17 (August 4, 2026 Update)
+
+### Fixed & Deployed (Node Essence Capacity Expansion & Rich Diagnostic System)
+
+* **Node Essence Capacity Doubled (8 -> 16 Essence per Node)**:
+  - Increased base essence holding capacity for all standard nodes and source nodes in Magic Circuits from **8 to 16 Essence per node** in [ScribedChalkBlock.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/block/ScribedChalkBlock.java).
+  - Updated `getCircuitCapacity()` and `addEssenceToCircuit()` to calculate and fill circuit node capacity at 16 essence per node, allowing compact 4-node circuits to hold up to 64 essence.
+
+* **Rich Recipe Candidate Diagnostic System**:
+  - Implemented `getDiagnosticReport()` and `getMatchScore()` in [MagicCircleRecipe.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/recipe/MagicCircleRecipe.java).
+  - Upgraded failure diagnostic messages when right-clicking output nodes or sneak-clicking circuits to display:
+    - **Detected Input Items** (e.g. `1x Iron Ingot` or `None`).
+    - **Detected Runes** (e.g. `Rune of Uruz` or `None`).
+    - **Circuit Essences & Total** (e.g. `12 NATURE (Total: 12)`).
+    - **Closest Matching Recipe Candidate**: Step-by-step checklist of satisfied inputs/runes and exact essence deficit details (e.g. `❌ Essence Deficit: Have 12/50 Essence (Need 38 more Essence)`).
+
+* **NodeType.INPUT Scope Correction**:
+  - Confirmed and restricted item scanning strictly to `NodeType.INPUT` nodes; `NodeType.COLLECTION` nodes strictly collect passive ambient essence.
+
+---
+
 ## Build 000-1-26-216-10-32 (August 4, 2026 Update)
 
 ### Fixed & Deployed (Magic Circuit Processing, Essence Detection & Glass Culling)
