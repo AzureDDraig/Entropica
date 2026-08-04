@@ -42,10 +42,10 @@
   - **Glass Texture Alpha Mipmapping**: Sharpened alpha contrast on glass PNG lines to prevent distance mipmap fading.
   - **JEI Research Log Spam**: Added `CURRENTLY_HIDDEN_ITEMS` state tracking in [EntropicaJEIPlugin.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/neoforge/src/main/java/ddraig/net/entropica/compat/jei/neoforge/EntropicaJEIPlugin.java), preventing JEI from logging ingredient removals every 2 seconds.
 
-* **In-World & Inventory Door Fixes**:
-  - **Master Door Base Models**: Created material-agnostic 3D master door quad models (`door_bottom_base`, `door_top_base`, `door_bottom_rh_base`, `door_top_rh_base`) in `models/block/base/`, featuring explicit element geometry (`0..16 x 0..16 x 0..3`), face culling, and `tintindex: 0` color mapping.
-  - **Door Block Model Inheritance**: Re-bound all 142 glass door variant models (`*_door_bottom`, `*_door_top`, `*_door_bottom_rh`, `*_door_top_rh`) to inherit from `entropica:block/base/door_*_base` with `"textures": {"texture": tex, "particle": tex}`, enabling full in-world door rendering with dynamic glass color tinting.
-  - **Door Inventory Visibility**: Re-architected door item models (`models/item/*_door.json`) to use generated `layer0` textures with dynamic tinting, ensuring clear, high-contrast visibility across player inventory and creative tabs.
+* **Stretched White Edge Texture System (`white.png`)**:
+  - **White Texture PNG Asset**: Created pure 16x16 white texture file at `common/src/main/resources/assets/entropica/textures/block/white.png`.
+  - **Master Base Edge Mapping**: Re-architected master base models in `models/block/base/` (`slab_base`, `slab_top_base`, `quarter_slab_l0..l3`, `door_bottom_base`, `door_top_base`, `door_bottom_rh_base`, `door_top_rh_base`, `horizontal_pane_base`) and all 568 vertical pane models to map `#edge` faces to `entropica:block/white` with `tintindex: 0` stretched to fit full face UV bounds (`[0, 0, 16, 16]`).
+  - **High-Contrast Edge Visibility**: All 2-pixel and 3-pixel edges across quarter slabs, slabs, doors, trapdoors, and panes now render crisp, high-contrast tinted outer borders in-world and in inventory.
 
 * **Build & Deployment Verification**:
   - Successfully built and deployed to dev instances via `./gradlew deploytoDev`.

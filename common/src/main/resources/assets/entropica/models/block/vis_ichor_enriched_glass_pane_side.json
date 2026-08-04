@@ -1,1 +1,1 @@
-{"render_type":"translucent","parent":"minecraft:block/template_glass_pane_side","textures":{"pane":"entropica:block/glass_vis_ichor_enriched","edge":"entropica:block/glass_vis_ichor_enriched"}}
+{"render_type":"translucent","parent":"minecraft:block/template_glass_pane_side","textures":{"pane":"entropica:block/glass_vis_ichor_enriched","edge":"entropica:block/white"}}
