@@ -14,7 +14,7 @@ public class AestheticGlassSlabBlock extends SlabBlock {
 
     @Override
     public boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
-        if (AestheticGlassRegistry.isMatchingGlassBlock(state.getBlock(), adjacentState.getBlock())) {
+        if (adjacentState.is(state.getBlock())) {
             if (adjacentState.getBlock() instanceof SlabBlock) {
                 SlabType type = state.getValue(TYPE);
                 SlabType adjType = adjacentState.getValue(TYPE);

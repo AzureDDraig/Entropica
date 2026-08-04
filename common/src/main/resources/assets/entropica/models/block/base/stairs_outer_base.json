@@ -1,1 +1,1 @@
-{"render_type":"translucent","parent":"minecraft:block/outer_stairs","textures":{"particle":"entropica:block/glass_essence_enriched","bottom":"entropica:block/glass_essence_enriched","top":"entropica:block/glass_essence_enriched","side":"entropica:block/glass_essence_enriched"}}
+{"render_type":"translucent","parent":"minecraft:block/outer_stairs","textures":{"bottom":"entropica:block/glass_essence_enriched","top":"entropica:block/glass_essence_enriched","side":"entropica:block/glass_essence_enriched"}}

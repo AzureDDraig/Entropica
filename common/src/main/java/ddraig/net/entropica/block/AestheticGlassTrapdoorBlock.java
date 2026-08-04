@@ -14,7 +14,7 @@ public class AestheticGlassTrapdoorBlock extends TrapDoorBlock {
 
     @Override
     public boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
-        if (AestheticGlassRegistry.isMatchingGlassBlock(state.getBlock(), adjacentState.getBlock())) {
+        if (adjacentState.is(state.getBlock())) {
             return true;
         }
         return super.skipRendering(state, adjacentState, direction);
