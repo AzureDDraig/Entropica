@@ -329,7 +329,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                 if (be instanceof ScribedChalkBlockEntity chalkBE) {
                                     allChalkBlockEntities.add(chalkBE);
                                     
-                                    if (type == NodeType.INPUT || type == NodeType.COLLECTION) {
+                                    if (type == NodeType.INPUT) {
                                         ItemStack stored = chalkBE.getStoredItem();
                                         if (!stored.isEmpty()) {
                                             inputBlockEntities.add(chalkBE);
@@ -1397,7 +1397,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             BlockPos p = chalkBE.getBlockPos();
             NodeType type = chalkBE.getBlockState().getValue(NODE_TYPE);
 
-            if (type == NodeType.INPUT || type == NodeType.COLLECTION) {
+            if (type == NodeType.INPUT) {
                 ItemStack stored = chalkBE.getStoredItem();
                 if (!stored.isEmpty()) {
                     inputBlockEntities.add(chalkBE);
