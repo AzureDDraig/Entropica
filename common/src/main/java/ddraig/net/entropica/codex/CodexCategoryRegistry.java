@@ -266,6 +266,30 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
+                "spell_third_hand", "Arkanist's Third Hand", "MAGIC",
+                "Utility summon gathering dropped items.",
+                "Summons a floating hand that gathers ground items within sight, prioritizing items matching your inventory. Enhanced by Void, Air, and Nether Essences.",
+                "magic_spellcrafting", 2, new ItemStack(Items.SPECTRAL_ARROW),
+                380f, 0.0f, a_magic - 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_lucky_day", "Arkanist's Lucky Day", "MAGIC",
+                "Temporary offhand Looting/Fortune enchant.",
+                "Enchants offhand weapon/tool with temporary Looting/Fortune for 30 uses before self-removing.",
+                "magic_spellcrafting", 2, new ItemStack(Items.GOLDEN_PICKAXE),
+                380f, 0.0f, a_magic, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_dagger", "Arkanist's Dagger", "MAGIC",
+                "Autonomous spectral blade seeking mobs.",
+                "Summons an autonomous dagger seeking mobs within 16 blocks, dealing Essence-typed damage (Levels 1-3).",
+                "magic_spellcrafting", 2, new ItemStack(Items.DIAMOND_SWORD),
+                380f, 0.0f, a_magic + 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
                 "magic_astral", "Astral Signs", "MAGIC",
                 "Constellation alignments and celestial power.",
                 "Align your scribing engine with active celestial constellations.",

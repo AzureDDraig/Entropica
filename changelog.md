@@ -42,6 +42,14 @@
   - **Glass Texture Alpha Mipmapping**: Sharpened alpha contrast on glass PNG lines to prevent distance mipmap fading.
   - **JEI Research Log Spam**: Added `CURRENTLY_HIDDEN_ITEMS` state tracking in [EntropicaJEIPlugin.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/neoforge/src/main/java/ddraig/net/entropica/compat/jei/neoforge/EntropicaJEIPlugin.java), preventing JEI from logging ingredient removals every 2 seconds.
 
+* **Entropic Codex & OKF Obsidian Vault Updates**:
+  - Registered 3 Pre-Defined Spell research sub-nodes in `CodexCategoryRegistry.java` under `MAGIC` hub: `spell_third_hand` (*Arkanist's Third Hand*), `spell_lucky_day` (*Arkanist's Lucky Day*), and `spell_dagger` (*Arkanist's Dagger*).
+  - Created OKF Obsidian Vault concept note `concepts/Pre-Defined Spells.md` documenting detailed mechanics:
+    - **Arkanist's Third Hand (Summon)**: Floating item-gathering summon targeting ground items within sight (prioritizes items matching player's inventory, falls back to nearest). Enhanced by Void (direct item teleportation), Air (travel speed boost), and Nether (automatic ore smelting) Essences. Custom particle trails & hand colors. Configurable 300s duration and cooldown.
+    - **Arkanist's Lucky Day (Temporary Enchant)**: Offhand weapon/tool enchantment granting temporary Looting/Fortune for 30 uses before self-revoking.
+    - **Arkanist's Dagger (Summon)**: Autonomous spectral blade seeking mobs within a 16-block radius, dealing Essence-typed elemental damage across Tiers 1–3. Configurable 300s duration and cooldown.
+  - Updated `wiki/articles/Future Roadmap & Planned Features.md` under Phase 3 Active Spellcrafting System in the OKF Obsidian Vault.
+
 * **Build & Deployment Verification**:
   - Successfully built and deployed to dev instances via `./gradlew deploytoDev`.
 
