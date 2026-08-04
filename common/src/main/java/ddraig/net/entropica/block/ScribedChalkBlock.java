@@ -350,21 +350,20 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                     }
 
                     // Collect essence - different strategies for circles vs circuits
-                    java.util.Set<ScribedChalkBlockEntity> circuitBEs = java.util.Collections.emptySet();
                     boolean isAdvancedCircuit = state.getValue(CIRCUIT);
+                    java.util.Set<ScribedChalkBlockEntity> essenceSourceNodes = new java.util.LinkedHashSet<>();
                     if (isAdvancedCircuit) {
                         // CIRCUITS: BFS from output node, respects connection overrides, diodes, logic gates
-                        circuitBEs = getConnectedCircuit(level, pos);
-                        for (ScribedChalkBlockEntity circuitBE : circuitBEs) {
-                            EssenceType affinity = circuitBE.getActiveAffinity();
-                            essences.put(affinity, essences.getOrDefault(affinity, 0) + circuitBE.getEssenceLevel());
-                        }
+                        essenceSourceNodes.addAll(getConnectedCircuit(level, pos));
                     } else {
-                        // CIRCLES: scan all tier ring perimeter nodes (not BFS-connected, fixed offset positions)
-                        for (ScribedChalkBlockEntity chalkBE : allChalkBlockEntities) {
-                            EssenceType affinity = chalkBE.getActiveAffinity();
-                            essences.put(affinity, essences.getOrDefault(affinity, 0) + chalkBE.getEssenceLevel());
-                        }
+                        // CIRCLES: union of tier ring perimeter nodes + BFS-reachable nodes
+                        // (ring scan catches nodes at fixed offsets; BFS catches any non-perimeter connected nodes)
+                        essenceSourceNodes.addAll(allChalkBlockEntities);
+                        essenceSourceNodes.addAll(getConnectedCircuit(level, pos));
+                    }
+                    for (ScribedChalkBlockEntity srcBE : essenceSourceNodes) {
+                        EssenceType affinity = srcBE.getActiveAffinity();
+                        essences.put(affinity, essences.getOrDefault(affinity, 0) + srcBE.getEssenceLevel());
                     }
 
                     MagicCircleRecipeInput recipeInput = new MagicCircleRecipeInput(inputStacks, runeStacks, essences, checkTier);
@@ -463,8 +462,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             }
                         }
                         
-                        // 2b. Consume essences - circuits use BFS set, circles use ring nodes
-                        java.util.Collection<ScribedChalkBlockEntity> essenceSourceNodes = isAdvancedCircuit ? circuitBEs : allChalkBlockEntities;
+                        // 2b. Consume essences from the same nodes used for detection
                         for (java.util.Map.Entry<EssenceType, Integer> entry : recipe.essences().entrySet()) {
                             EssenceType type = entry.getKey();
                             int toConsume = entry.getValue();
@@ -562,7 +560,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             }
                             // Consume essences from the connected circuit
                             int toConsume = 32;
-                            for (ScribedChalkBlockEntity chalkBE : circuitBEs) {
+                            for (ScribedChalkBlockEntity chalkBE : essenceSourceNodes) {
                                 if (toConsume <= 0) break;
                                 int available = chalkBE.getEssenceLevel();
                                 if (available > 0) {
