@@ -1,5 +1,18 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-216-12-25 (August 4, 2026 Update)
+
+### New Feature: Proximity Activation Node (`NodeType.ACTIVATION`)
+
+* **Proximity Activation Node (`NodeType.ACTIVATION`)**:
+  - Added `ACTIVATION` node type (`"activation"`) to `NodeType` enum in [ScribedChalkBlock.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/block/ScribedChalkBlock.java).
+  - Integrated `ACTIVATION` node into chalk node cycling sequence in [ChalkItem.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/item/ChalkItem.java) (`ESSENCE_BANK -> ACTIVATION -> RUNE -> DEFAULT`).
+  - Added 3-block radius proximity detection (`AABB.inflate(3.0)` / `distanceToSqr <= 9.0`) in [ScribedChalkBlockEntity.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/block/entity/ScribedChalkBlockEntity.java), scanning for any alive `LivingEntity` (players, mobs, or animals).
+  - Emits magical enchanted hit particles, powers the node line (`propagationStrength = 16`), and automatically triggers ritual/circuit processing (`processCircuitTrigger`) with a 2-second cooldown when a mob or player enters within 3 blocks.
+  - Added text symbol `"V"` label rendering in [ScribedChalkRenderer.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/client/renderer/ScribedChalkRenderer.java).
+
+---
+
 ## Build 000-1-26-216-12-17 (August 4, 2026 Update)
 
 ### Fixed & Deployed (Node Essence Capacity Expansion & Rich Diagnostic System)

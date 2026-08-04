@@ -40,6 +40,7 @@ public class ScribedChalkBlockEntity extends BlockEntity {
     private ItemStack storedRune = ItemStack.EMPTY;
     private ItemStack storedItem = ItemStack.EMPTY;
     private int scanCooldown = 0;
+    private int activationCooldown = 0;
     private int dyeTicks = 0;
     private boolean isInActiveCircle = false;
     private int essenceLevel = 0;
@@ -839,6 +840,50 @@ public class ScribedChalkBlockEntity extends BlockEntity {
                 blockEntity.propagationStrength = 0;
                 blockEntity.setChanged();
                 level.sendBlockUpdated(pos, state, state, 3);
+            }
+        }
+
+        // ACTIVATION node ticking: detects mob or player within 3 blocks
+        if (nodeType == ScribedChalkBlock.NodeType.ACTIVATION) {
+            blockEntity.scanCooldown++;
+            if (blockEntity.scanCooldown >= 5) { // Check every 5 ticks (0.25 sec)
+                blockEntity.scanCooldown = 0;
+                if (!level.isClientSide()) {
+                    net.minecraft.world.phys.AABB scanArea = new net.minecraft.world.phys.AABB(pos).inflate(3.0);
+                    java.util.List<net.minecraft.world.entity.LivingEntity> nearby = level.getEntitiesOfClass(
+                        net.minecraft.world.entity.LivingEntity.class, 
+                        scanArea,
+                        e -> !e.isSpectator() && e.isAlive() && pos.getCenter().distanceToSqr(e.position()) <= 9.0
+                    );
+
+                    boolean hasNearbyTarget = !nearby.isEmpty();
+                    if (hasNearbyTarget) {
+                        blockEntity.propagationStrength = 16;
+                        blockEntity.setChanged();
+                        level.sendBlockUpdated(pos, state, state, 3);
+
+                        if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                            serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.ENCHANTED_HIT, pos.getX() + 0.5, pos.getY() + 0.2, pos.getZ() + 0.5, 3, 0.2, 0.1, 0.2, 0.05);
+                        }
+
+                        if (state.getValue(ScribedChalkBlock.CIRCUIT) && blockEntity.activationCooldown <= 0) {
+                            blockEntity.activationCooldown = 40; // 2 seconds cooldown between triggers
+                            if (state.getBlock() instanceof ScribedChalkBlock chalkBlock) {
+                                net.minecraft.world.entity.player.Player nearestPlayer = level.getNearestPlayer(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 16.0, false);
+                                chalkBlock.processCircuitTrigger(state, level, pos, nearestPlayer);
+                            }
+                        }
+                    } else {
+                        if (blockEntity.propagationStrength > 0) {
+                            blockEntity.propagationStrength = 0;
+                            blockEntity.setChanged();
+                            level.sendBlockUpdated(pos, state, state, 3);
+                        }
+                    }
+                }
+            }
+            if (blockEntity.activationCooldown > 0) {
+                blockEntity.activationCooldown--;
             }
         }
 

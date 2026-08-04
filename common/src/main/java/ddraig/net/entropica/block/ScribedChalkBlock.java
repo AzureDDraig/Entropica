@@ -1534,7 +1534,9 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             }
 
             // 5. Visual and sound effects
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Magic Circuit has successfully initiated processing!"), false);
+            if (player != null) {
+                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Magic Circuit has successfully initiated processing!"), false);
+            }
             level.playSound(null, outputPos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.2f);
 
             if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
@@ -1551,7 +1553,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
     }
 
     private void sendDiagnosticReport(
-        Player player, 
+        @Nullable Player player, 
         Level level, 
         BlockPos pos, 
         String systemName,
@@ -1622,7 +1624,9 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             }
         }
 
-        player.displayClientMessage(net.minecraft.network.chat.Component.literal(message.toString()), false);
+        if (player != null) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal(message.toString()), false);
+        }
         level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.5f, 0.8f);
     }
 
@@ -1674,7 +1678,8 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         NOT_GATE("not_gate"),
         EXTRACTION("extraction"),
         DELAY("delay"),
-        ESSENCE_BANK("essence_bank");
+        ESSENCE_BANK("essence_bank"),
+        ACTIVATION("activation");
 
         private final String name;
 

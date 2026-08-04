@@ -172,7 +172,8 @@ public class ChalkItem extends Item {
                         case EXTRACTION -> ScribedChalkBlock.NodeType.DELAY;
                         case DELAY -> ScribedChalkBlock.NodeType.OUTPUT;
                         case OUTPUT -> ScribedChalkBlock.NodeType.ESSENCE_BANK;
-                        case ESSENCE_BANK -> ScribedChalkBlock.NodeType.RUNE;
+                        case ESSENCE_BANK -> ScribedChalkBlock.NodeType.ACTIVATION;
+                        case ACTIVATION -> ScribedChalkBlock.NodeType.RUNE;
                         case RUNE -> ScribedChalkBlock.NodeType.DEFAULT;
                     };
                 } else {
@@ -216,6 +217,7 @@ public class ChalkItem extends Item {
                         case DELAY -> "Delay Node";
                         case OUTPUT -> "Output Node";
                         case ESSENCE_BANK -> "Essence Bank Node";
+                        case ACTIVATION -> "Activation Node";
                         case RUNE -> "Rune Node";
                     };
                     player.displayClientMessage(net.minecraft.network.chat.Component.literal("Node Type changed to: " + nodeName), true);

@@ -251,6 +251,7 @@ public class ScribedChalkRenderer implements BlockEntityRenderer<ScribedChalkBlo
                         else if (nodeState.nodeType == ScribedChalkBlock.NodeType.OUTPUT) text = "O";
                         else if (nodeState.nodeType == ScribedChalkBlock.NodeType.ESSENCE_BANK) text = "B";
                         else if (nodeState.nodeType == ScribedChalkBlock.NodeType.EXTRACTION) text = "X";
+                        else if (nodeState.nodeType == ScribedChalkBlock.NodeType.ACTIVATION) text = "V";
                         else if (nodeState.nodeType == ScribedChalkBlock.NodeType.DELAY) text = String.valueOf(nodeBE.getDelayTicks());
                         else if (nodeState.nodeType == ScribedChalkBlock.NodeType.RUNE) {
                             ItemStack r = nodeBE.getStoredRune();
