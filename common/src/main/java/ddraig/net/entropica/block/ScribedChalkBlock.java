@@ -136,6 +136,15 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             }
         }
 
+        // Sneak + right click with empty hand on any chalk block in a magic circuit triggers circuit recipe processing!
+        if (state.getValue(CIRCUIT) && player.isSecondaryUseActive()) {
+            ItemStack mainHandItem = player.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND);
+            ItemStack offHandItem = player.getItemInHand(net.minecraft.world.InteractionHand.OFF_HAND);
+            if (mainHandItem.isEmpty() && offHandItem.isEmpty()) {
+                return processCircuitTrigger(state, level, pos, player);
+            }
+        }
+
         // Redirection logic for magic circles: click anywhere on the circle redirects to the closest node!
         BlockPos centerPos = null;
         int circleTier = 0;
@@ -276,6 +285,10 @@ public class ScribedChalkBlock extends BaseEntityBlock {
 
             if (!heldItem.isEmpty()) {
                 return net.minecraft.world.InteractionResult.PASS;
+            }
+
+            if (state.getValue(CIRCUIT)) {
+                return processCircuitTrigger(state, level, pos, player);
             }
 
             int checkTier = 0;
@@ -1330,6 +1343,248 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         }
         
         return toConsume;
+    }
+
+    public net.minecraft.world.InteractionResult processCircuitTrigger(BlockState state, Level level, BlockPos pos, net.minecraft.world.entity.player.Player player) {
+        if (level.isClientSide()) {
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+
+        // 1. Find all connected circuit block entities via BFS
+        java.util.Set<ScribedChalkBlockEntity> circuitBEs = getConnectedCircuit(level, pos);
+        if (circuitBEs.isEmpty()) {
+            return net.minecraft.world.InteractionResult.PASS;
+        }
+
+        // 2. Locate the OUTPUT node in the circuit (if any)
+        BlockPos outputPos = pos;
+        ScribedChalkBlockEntity outputBE = null;
+        for (ScribedChalkBlockEntity be : circuitBEs) {
+            if (be.getBlockState().getValue(NODE_TYPE) == NodeType.OUTPUT) {
+                outputPos = be.getBlockPos();
+                outputBE = be;
+                break;
+            }
+        }
+        if (outputBE == null && level.getBlockEntity(pos) instanceof ScribedChalkBlockEntity clickedBE) {
+            outputBE = clickedBE;
+        }
+
+        // 3. Ward check on the output node if active
+        if (outputBE != null && outputBE.isWard() && outputBE.getWardTicks() > 0) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Active Repulsion Ward. Remaining duration: " + (outputBE.getWardTicks() / 20) + " seconds."), false);
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+
+        // 4. Gather circuit components
+        int amplifiers = 0;
+        int capacitors = 0;
+        int resonators = 0;
+
+        List<ItemEntity> inputItemEntities = new java.util.ArrayList<>();
+        List<ScribedChalkBlockEntity> inputBlockEntities = new java.util.ArrayList<>();
+        List<ItemStack> inputStacks = new java.util.ArrayList<>();
+        List<ScribedChalkBlockEntity> runeBlockEntities = new java.util.ArrayList<>();
+        List<ItemStack> runeStacks = new java.util.ArrayList<>();
+        java.util.Map<EssenceType, Integer> essences = new java.util.HashMap<>();
+
+        for (ScribedChalkBlockEntity chalkBE : circuitBEs) {
+            BlockPos p = chalkBE.getBlockPos();
+            NodeType type = chalkBE.getBlockState().getValue(NODE_TYPE);
+
+            if (type == NodeType.INPUT) {
+                ItemStack stored = chalkBE.getStoredItem();
+                if (!stored.isEmpty()) {
+                    inputBlockEntities.add(chalkBE);
+                    inputStacks.add(stored);
+                } else {
+                    AABB scanArea = new AABB(p).inflate(0.2, 0.5, 0.2);
+                    List<ItemEntity> foundItems = level.getEntitiesOfClass(ItemEntity.class, scanArea);
+                    for (ItemEntity ent : foundItems) {
+                        if (!ent.isRemoved() && !ent.getItem().isEmpty()) {
+                            inputItemEntities.add(ent);
+                            inputStacks.add(ent.getItem());
+                        }
+                    }
+                }
+            } else if (type == NodeType.RUNE) {
+                ItemStack rune = chalkBE.getStoredRune();
+                if (!rune.isEmpty()) {
+                    runeBlockEntities.add(chalkBE);
+                    runeStacks.add(rune);
+                }
+            } else if (type == NodeType.AMPLIFIER) {
+                amplifiers++;
+            } else if (type == NodeType.CAPACITOR) {
+                capacitors++;
+            } else if (type == NodeType.RESONATOR) {
+                resonators++;
+            }
+
+            // Essence accumulation
+            EssenceType affinity = chalkBE.getActiveAffinity();
+            essences.put(affinity, essences.getOrDefault(affinity, 0) + chalkBE.getEssenceLevel());
+        }
+
+        int checkTier = 4; // Circuits support all recipes (tier 1..4)
+        MagicCircleRecipeInput recipeInput = new MagicCircleRecipeInput(inputStacks, runeStacks, essences, checkTier);
+
+        List<RecipeHolder<MagicCircleRecipe>> allRecipes = new java.util.ArrayList<>();
+        if (level.getServer() != null && level.getServer().getRecipeManager() != null) {
+            for (RecipeHolder<?> holder : level.getServer().getRecipeManager().getRecipes()) {
+                if (holder.value() instanceof MagicCircleRecipe) {
+                    allRecipes.add((RecipeHolder<MagicCircleRecipe>) holder);
+                }
+            }
+        }
+        for (MagicCircleRecipe r : ddraig.net.entropica.recipe.HardcodedRecipes.getMagicCircleRecipes()) {
+            allRecipes.add(new RecipeHolder<>(
+                net.minecraft.resources.ResourceKey.create(
+                    net.minecraft.core.registries.Registries.RECIPE,
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "hardcoded_magic_circle_" + r.hashCode())
+                ),
+                r
+            ));
+        }
+
+        List<RecipeHolder<MagicCircleRecipe>> matchingRecipes = new java.util.ArrayList<>();
+        for (RecipeHolder<MagicCircleRecipe> holder : allRecipes) {
+            if (holder.value().matches(recipeInput, level)) {
+                matchingRecipes.add(holder);
+            }
+        }
+
+        if (!matchingRecipes.isEmpty()) {
+            matchingRecipes.sort((r1, r2) -> {
+                MagicCircleRecipe val1 = r1.value();
+                MagicCircleRecipe val2 = r2.value();
+                int essenceCost1 = val1.essences().values().stream().mapToInt(Integer::intValue).sum();
+                int essenceCost2 = val2.essences().values().stream().mapToInt(Integer::intValue).sum();
+                int cost1 = val1.inputs().size() + val1.runes().size() + essenceCost1;
+                int cost2 = val2.inputs().size() + val2.runes().size() + essenceCost2;
+                if (cost1 != cost2) return Integer.compare(cost2, cost1);
+                return Integer.compare(val2.tier(), val1.tier());
+            });
+
+            MagicCircleRecipe recipe = matchingRecipes.get(0).value();
+
+            // 1. Consume input items
+            for (Ingredient ing : recipe.inputs()) {
+                boolean consumed = false;
+                for (int i = 0; i < inputBlockEntities.size(); i++) {
+                    ScribedChalkBlockEntity chalkBE = inputBlockEntities.get(i);
+                    ItemStack stack = chalkBE.getStoredItem();
+                    if (ing.test(stack)) {
+                        stack.shrink(1);
+                        chalkBE.setStoredItem(stack);
+                        chalkBE.setChanged();
+                        level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                        inputBlockEntities.remove(i);
+                        consumed = true;
+                        break;
+                    }
+                }
+                if (!consumed) {
+                    for (int i = 0; i < inputItemEntities.size(); i++) {
+                        ItemEntity ent = inputItemEntities.get(i);
+                        if (ing.test(ent.getItem())) {
+                            ItemStack stack = ent.getItem();
+                            stack.shrink(1);
+                            if (stack.isEmpty()) ent.discard();
+                            else ent.setItem(stack);
+                            inputItemEntities.remove(i);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 2. Consume rune items
+            for (Ingredient ing : recipe.runes()) {
+                for (int i = 0; i < runeBlockEntities.size(); i++) {
+                    ScribedChalkBlockEntity chalkBE = runeBlockEntities.get(i);
+                    ItemStack stack = chalkBE.getStoredRune();
+                    if (ing.test(stack)) {
+                        stack.shrink(1);
+                        chalkBE.setStoredRune(stack);
+                        chalkBE.setChanged();
+                        level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                        runeBlockEntities.remove(i);
+                        break;
+                    }
+                }
+            }
+
+            // 3. Consume essences from connected circuit nodes
+            for (java.util.Map.Entry<EssenceType, Integer> entry : recipe.essences().entrySet()) {
+                EssenceType type = entry.getKey();
+                int toConsume = entry.getValue();
+
+                for (ScribedChalkBlockEntity chalkBE : circuitBEs) {
+                    if (toConsume <= 0) break;
+                    if (chalkBE.getActiveAffinity() == type || (type == EssenceType.REGULAR)) {
+                        int available = chalkBE.getEssenceLevel();
+                        if (available > 0) {
+                            int consumed = Math.min(toConsume, available);
+                            chalkBE.setEssenceLevel(available - consumed);
+                            if (chalkBE.getEssenceLevel() <= 0 &&
+                                chalkBE.getBlockState().getValue(NODE_TYPE) != NodeType.SOURCE &&
+                                chalkBE.getStoredOrbisCell().isEmpty()) {
+                                chalkBE.setActiveAffinity(EssenceType.REGULAR);
+                                chalkBE.setColor(0xFFCCCCCC);
+                            }
+                            chalkBE.setChanged();
+                            level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                            toConsume -= consumed;
+                        }
+                    }
+                }
+            }
+
+            // 4. Start ritual processing at output node position
+            if (outputBE != null) {
+                outputBE.setAmplifierCount(amplifiers);
+                outputBE.setCapacitorCount(capacitors);
+                outputBE.startRitual(recipe.output(), 360);
+            }
+
+            // 5. Visual and sound effects
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Magic Circuit has successfully initiated processing!"), false);
+            level.playSound(null, outputPos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.2f);
+
+            if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.PORTAL, outputPos.getX() + 0.5, outputPos.getY() + 0.1, outputPos.getZ() + 0.5, 60, 0.5, 0.1, 0.5, 0.2);
+                for (ScribedChalkBlockEntity cBE : circuitBEs) {
+                    BlockPos p = cBE.getBlockPos();
+                    serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.END_ROD, p.getX() + 0.5, p.getY() + 0.1, p.getZ() + 0.5, 5, 0.2, 0.1, 0.2, 0.08);
+                }
+            }
+        } else {
+            // Diagnostic report
+            StringBuilder message = new StringBuilder("§5[Entropica] Magic Circuit active, but no recipe matches these inputs!");
+            if (!essences.isEmpty()) {
+                message.append("\n§d - Circuit Essences:");
+                for (java.util.Map.Entry<EssenceType, Integer> entry : essences.entrySet()) {
+                    if (entry.getValue() > 0) {
+                        message.append(" ").append(entry.getValue()).append(" ").append(entry.getKey().name());
+                    }
+                }
+            } else {
+                message.append("\n§d - Circuit Essences: None");
+            }
+            if (!runeStacks.isEmpty()) {
+                message.append("\n§9 - Circuit Runes:");
+                for (ItemStack rune : runeStacks) {
+                    message.append(" ").append(rune.getHoverName().getString());
+                }
+            }
+            if (amplifiers > 0) message.append("\n§6 - Amplifiers: ").append(amplifiers);
+            if (capacitors > 0) message.append("\n§e - Capacitors: ").append(capacitors);
+            if (resonators > 0) message.append("\n§b - Resonators: ").append(resonators);
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal(message.toString()), false);
+            level.playSound(null, outputPos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.5f, 0.8f);
+        }
+        return net.minecraft.world.InteractionResult.SUCCESS;
     }
 
     public static java.util.Set<ScribedChalkBlockEntity> getConnectedCircuit(Level level, BlockPos startPos) {

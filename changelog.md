@@ -1,5 +1,25 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-216-10-32 (August 4, 2026 Update)
+
+### Fixed & Deployed (Magic Circuit Processing, Essence Detection & Glass Culling)
+
+* **Magic Circuit Recipe Trigger & Circuit Execution**:
+  - Implemented `processCircuitTrigger` in [ScribedChalkBlock.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/block/ScribedChalkBlock.java) for free-form Magic Circuits (`CIRCUIT=true`).
+  - Added **Sneak + Right-Click** (empty hand) trigger on ANY chalk block in a magic circuit, initiating processing by tracing connected circuit nodes via BFS (`getConnectedCircuit`).
+  - Added empty-hand right-click handling on circuit **OUTPUT** nodes to bypass magic circle concentric ring pattern checks (`checkPatternStatic` / `validateNodeCountsStatic`), enabling circuits of any free-form layout to execute recipes.
+  - Automatically locates the circuit's OUTPUT node for ritual processing and particle output; falls back to the clicked block if no OUTPUT node exists.
+  - Gathers inputs, runes, essence, amplifiers, capacitors, and resonators across the BFS-connected circuit topology, matching against tier 1..4 recipes.
+
+* **Circle vs Circuit Essence Detection & Consumption**:
+  - **Magic Circles** (`CIRCUIT=false`): Essence is gathered from the union of tier ring perimeter nodes (`allChalkBlockEntities`) and BFS-reachable nodes.
+  - **Magic Circuits** (`CIRCUIT=true`): Essence detection and consumption strictly use `getConnectedCircuit()` BFS, respecting force connect/disconnect overrides, diode directionality, and logic gates.
+
+* **Stair Culling Fix**:
+  - Updated [AestheticGlassStairBlock.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/block/AestheticGlassStairBlock.java) to remove blanket `skipRendering` between adjacent stairs, restoring full geometry rendering for complex L-shaped stair blocks.
+
+---
+
 ## Build 000-1-26-215-18-53 (August 3, 2026 Consolidated Update)
 
 ### Fixed & Deployed (HorizontalPaneBlock System, Master Base Model Architecture, Aesthetic Glass Suite & Non-Glass Restoration)
