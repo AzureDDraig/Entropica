@@ -630,36 +630,8 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                 }
                             }
                         } else {
-                            StringBuilder message = new StringBuilder("§5[Entropica] Magic Circle formed, but no recipe matches these inputs!");
-                        if (!essences.isEmpty()) {
-                            message.append("\n§d - Contained Essences:");
-                            for (java.util.Map.Entry<EssenceType, Integer> entry : essences.entrySet()) {
-                                message.append(" ").append(entry.getValue()).append(" ").append(entry.getKey().name());
-                            }
-                        } else {
-                            message.append("\n§d - Contained Essences: None");
+                            sendDiagnosticReport(player, level, pos, "Magic Circle", inputStacks, runeStacks, essences, amplifiers, capacitors, resonators, recipeInput, allRecipes);
                         }
-                        if (!runeStacks.isEmpty()) {
-                            message.append("\n§9 - Detected Runes:");
-                            for (ItemStack rune : runeStacks) {
-                                message.append(" ").append(rune.getHoverName().getString());
-                            }
-                        }
-                        if (amplifiers > 0) {
-                            double powerMult = 1.0 + amplifiers * 0.5;
-                            message.append("\n§6 - Power Multiplier: ").append(String.format("%.1f", powerMult)).append("x (").append(amplifiers).append(" Amplifiers)");
-                        }
-                        if (capacitors > 0) {
-                            double efficiencyMult = 1.0 - (1.0 - Math.pow(0.75, capacitors));
-                            message.append("\n§e - Essence Efficiency: ").append(String.format("%.0f", (1.0 - efficiencyMult) * 100)).append("% cost reduction (").append(capacitors).append(" Capacitors)");
-                        }
-                        if (resonators > 0) {
-                            double speedMult = 1.0 + resonators * 0.5;
-                            message.append("\n§b - Processing Speed: ").append(String.format("%.1f", speedMult)).append("x (").append(resonators).append(" Resonators)");
-                        }
-                        player.displayClientMessage(net.minecraft.network.chat.Component.literal(message.toString()), false);
-                        level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.5f, 0.8f);
-                    }
                 }
             }
             return net.minecraft.world.InteractionResult.SUCCESS;
@@ -1573,31 +1545,85 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                 }
             }
         } else {
-            // Diagnostic report
-            StringBuilder message = new StringBuilder("§5[Entropica] Magic Circuit active, but no recipe matches these inputs!");
-            if (!essences.isEmpty()) {
-                message.append("\n§d - Circuit Essences:");
-                for (java.util.Map.Entry<EssenceType, Integer> entry : essences.entrySet()) {
-                    if (entry.getValue() > 0) {
-                        message.append(" ").append(entry.getValue()).append(" ").append(entry.getKey().name());
-                    }
-                }
-            } else {
-                message.append("\n§d - Circuit Essences: None");
-            }
-            if (!runeStacks.isEmpty()) {
-                message.append("\n§9 - Circuit Runes:");
-                for (ItemStack rune : runeStacks) {
-                    message.append(" ").append(rune.getHoverName().getString());
-                }
-            }
-            if (amplifiers > 0) message.append("\n§6 - Amplifiers: ").append(amplifiers);
-            if (capacitors > 0) message.append("\n§e - Capacitors: ").append(capacitors);
-            if (resonators > 0) message.append("\n§b - Resonators: ").append(resonators);
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal(message.toString()), false);
-            level.playSound(null, outputPos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.5f, 0.8f);
+            sendDiagnosticReport(player, level, outputPos, "Magic Circuit", inputStacks, runeStacks, essences, amplifiers, capacitors, resonators, recipeInput, allRecipes);
         }
         return net.minecraft.world.InteractionResult.SUCCESS;
+    }
+
+    private void sendDiagnosticReport(
+        Player player, 
+        Level level, 
+        BlockPos pos, 
+        String systemName,
+        List<ItemStack> inputStacks, 
+        List<ItemStack> runeStacks, 
+        java.util.Map<EssenceType, Integer> essences, 
+        int amplifiers, 
+        int capacitors, 
+        int resonators,
+        MagicCircleRecipeInput recipeInput,
+        List<RecipeHolder<MagicCircleRecipe>> allRecipes
+    ) {
+        StringBuilder message = new StringBuilder("§5[Entropica] " + systemName + " active, but no recipe matches current inputs!");
+        
+        // 1. Input Items
+        if (!inputStacks.isEmpty()) {
+            message.append("\n§b - Input Items:");
+            for (ItemStack item : inputStacks) {
+                message.append(" ").append(item.getCount()).append("x ").append(item.getHoverName().getString());
+            }
+        } else {
+            message.append("\n§b - Input Items: None (Right-click item onto Input Node)");
+        }
+
+        // 2. Runes
+        if (!runeStacks.isEmpty()) {
+            message.append("\n§9 - Runes:");
+            for (ItemStack rune : runeStacks) {
+                message.append(" ").append(rune.getHoverName().getString());
+            }
+        } else {
+            message.append("\n§9 - Runes: None");
+        }
+
+        // 3. Essences
+        if (!essences.isEmpty()) {
+            message.append("\n§d - Essences:");
+            int totalEssence = 0;
+            for (java.util.Map.Entry<EssenceType, Integer> entry : essences.entrySet()) {
+                if (entry.getValue() > 0) {
+                    message.append(" ").append(entry.getValue()).append(" ").append(entry.getKey().name());
+                    totalEssence += entry.getValue();
+                }
+            }
+            message.append(" (Total: ").append(totalEssence).append(")");
+        } else {
+            message.append("\n§d - Essences: None");
+        }
+
+        // 4. Modifiers
+        if (amplifiers > 0) message.append("\n§6 - Amplifiers: ").append(amplifiers);
+        if (capacitors > 0) message.append("\n§e - Capacitors: ").append(capacitors);
+        if (resonators > 0) message.append("\n§b - Resonators: ").append(resonators);
+
+        // 5. Closest Recipe Candidate Analysis
+        if (!allRecipes.isEmpty()) {
+            RecipeHolder<MagicCircleRecipe> bestCandidate = null;
+            double bestScore = -1.0;
+            for (RecipeHolder<MagicCircleRecipe> holder : allRecipes) {
+                double score = holder.value().getMatchScore(recipeInput);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestCandidate = holder;
+                }
+            }
+            if (bestCandidate != null) {
+                message.append("\n§e - Closest Candidate:\n").append(bestCandidate.value().getDiagnosticReport(recipeInput));
+            }
+        }
+
+        player.displayClientMessage(net.minecraft.network.chat.Component.literal(message.toString()), false);
+        level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.5f, 0.8f);
     }
 
     public static java.util.Set<ScribedChalkBlockEntity> getConnectedCircuit(Level level, BlockPos startPos) {

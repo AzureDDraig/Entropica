@@ -83,6 +83,123 @@ public record MagicCircleRecipe(
         return true;
     }
 
+    public double getMatchScore(MagicCircleRecipeInput input) {
+        double score = 0.0;
+        if (input.circleTier() >= this.tier) score += 1.0;
+
+        List<ItemStack> availInputs = new java.util.ArrayList<>(input.inputs());
+        for (Ingredient ing : this.inputs) {
+            for (int i = 0; i < availInputs.size(); i++) {
+                if (ing.test(availInputs.get(i))) {
+                    availInputs.remove(i);
+                    score += 2.0;
+                    break;
+                }
+            }
+        }
+
+        List<ItemStack> availRunes = new java.util.ArrayList<>(input.runes());
+        for (Ingredient ing : this.runes) {
+            for (int i = 0; i < availRunes.size(); i++) {
+                if (ing.test(availRunes.get(i))) {
+                    availRunes.remove(i);
+                    score += 2.0;
+                    break;
+                }
+            }
+        }
+
+        for (Map.Entry<EssenceType, Integer> entry : this.essences.entrySet()) {
+            int req = entry.getValue();
+            if (req <= 0) continue;
+            int prov = (entry.getKey() == EssenceType.REGULAR) ? 
+                input.essences().values().stream().mapToInt(Integer::intValue).sum() :
+                input.essences().getOrDefault(entry.getKey(), 0);
+            score += Math.min(1.0, (double) prov / req);
+        }
+
+        return score;
+    }
+
+    public String getDiagnosticReport(MagicCircleRecipeInput input) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("§dRecipe: §f").append(this.output.getHoverName().getString()).append(" §7(Tier ").append(this.tier).append(")\n");
+
+        if (input.circleTier() < this.tier) {
+            sb.append("  §c❌ Circle/Circuit Tier too low: Have ").append(input.circleTier()).append(", Need ").append(this.tier).append("\n");
+        }
+
+        // Check inputs
+        List<ItemStack> availInputs = new java.util.ArrayList<>(input.inputs());
+        int matchedInputs = 0;
+        for (Ingredient ing : this.inputs) {
+            boolean matched = false;
+            for (int i = 0; i < availInputs.size(); i++) {
+                if (ing.test(availInputs.get(i))) {
+                    availInputs.remove(i);
+                    matched = true;
+                    matchedInputs++;
+                    break;
+                }
+            }
+            if (!matched) {
+                sb.append("  §c❌ Missing Input Item: ").append(getItemNameForIngredient(ing)).append("\n");
+            }
+        }
+        if (matchedInputs == this.inputs.size() && !this.inputs.isEmpty()) {
+            sb.append("  §a✔ Inputs satisfied (").append(matchedInputs).append("/").append(this.inputs.size()).append(")\n");
+        }
+
+        // Check runes
+        List<ItemStack> availRunes = new java.util.ArrayList<>(input.runes());
+        int matchedRunes = 0;
+        for (Ingredient ing : this.runes) {
+            boolean matched = false;
+            for (int i = 0; i < availRunes.size(); i++) {
+                if (ing.test(availRunes.get(i))) {
+                    availRunes.remove(i);
+                    matched = true;
+                    matchedRunes++;
+                    break;
+                }
+            }
+            if (!matched) {
+                sb.append("  §c❌ Missing Rune: ").append(getItemNameForIngredient(ing)).append("\n");
+            }
+        }
+        if (matchedRunes == this.runes.size() && !this.runes.isEmpty()) {
+            sb.append("  §a✔ Runes satisfied (").append(matchedRunes).append("/").append(this.runes.size()).append(")\n");
+        }
+
+        // Check essences
+        for (Map.Entry<EssenceType, Integer> entry : this.essences.entrySet()) {
+            int req = entry.getValue();
+            if (req <= 0) continue;
+
+            if (entry.getKey() == EssenceType.REGULAR) {
+                int totalProvided = input.essences().values().stream().mapToInt(Integer::intValue).sum();
+                if (totalProvided < req) {
+                    sb.append("  §c❌ Essence Deficit: Have ").append(totalProvided).append("/").append(req).append(" Essence (Need ").append(req - totalProvided).append(" more)\n");
+                } else {
+                    sb.append("  §a✔ Essence satisfied (").append(totalProvided).append("/").append(req).append(")\n");
+                }
+            } else {
+                int provided = input.essences().getOrDefault(entry.getKey(), 0);
+                if (provided < req) {
+                    sb.append("  §c❌ Essence Deficit: Have ").append(provided).append("/").append(req).append(" ").append(entry.getKey().name()).append(" Essence (Need ").append(req - provided).append(" more)\n");
+                } else {
+                    sb.append("  §a✔ Essence satisfied (").append(provided).append("/").append(req).append(" ").append(entry.getKey().name()).append(")\n");
+                }
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private String getItemNameForIngredient(Ingredient ing) {
+        return "Required Ingredient";
+    }
+
     @Override
     public ItemStack assemble(MagicCircleRecipeInput input, HolderLookup.Provider registries) {
         return this.output.copy();
