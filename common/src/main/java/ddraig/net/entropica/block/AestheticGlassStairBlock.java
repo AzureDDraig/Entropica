@@ -1,6 +1,5 @@
 package ddraig.net.entropica.block;
 
-import ddraig.net.entropica.registry.AestheticGlassRegistry;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -13,9 +12,8 @@ public class AestheticGlassStairBlock extends StairBlock {
 
     @Override
     public boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
-        if (adjacentState.is(state.getBlock())) {
-            return true;
-        }
+        // Stairs have complex L-shaped geometry - never skip rendering
+        // between adjacent stairs as faces are rarely fully covered
         return super.skipRendering(state, adjacentState, direction);
     }
 }
