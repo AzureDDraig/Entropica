@@ -477,12 +477,14 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         
                         // 2b. Consume essences from the same nodes used for detection
                         for (java.util.Map.Entry<EssenceType, Integer> entry : recipe.essences().entrySet()) {
-                            EssenceType type = entry.getKey();
+                            EssenceType requiredType = entry.getKey();
                             int toConsume = entry.getValue();
+                            if (toConsume <= 0) continue;
                             
+                            // Pass 1: consume matching affinity or any if REGULAR
                             for (ScribedChalkBlockEntity chalkBE : essenceSourceNodes) {
                                 if (toConsume <= 0) break;
-                                if (chalkBE.getActiveAffinity() == type || (type == EssenceType.REGULAR)) {
+                                if (chalkBE.getActiveAffinity() == requiredType || requiredType == EssenceType.REGULAR) {
                                     int available = chalkBE.getEssenceLevel();
                                     if (available > 0) {
                                         int consumed = Math.min(toConsume, available);
@@ -496,6 +498,28 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                         chalkBE.setChanged();
                                         level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
                                         toConsume -= consumed;
+                                    }
+                                }
+                            }
+                            // Pass 2: fallback to REGULAR essence if specific type ran short
+                            if (toConsume > 0 && requiredType != EssenceType.REGULAR) {
+                                for (ScribedChalkBlockEntity chalkBE : essenceSourceNodes) {
+                                    if (toConsume <= 0) break;
+                                    if (chalkBE.getActiveAffinity() == EssenceType.REGULAR) {
+                                        int available = chalkBE.getEssenceLevel();
+                                        if (available > 0) {
+                                            int consumed = Math.min(toConsume, available);
+                                            chalkBE.setEssenceLevel(available - consumed);
+                                            if (chalkBE.getEssenceLevel() <= 0 && 
+                                                chalkBE.getBlockState().getValue(NODE_TYPE) != NodeType.SOURCE && 
+                                                chalkBE.getStoredOrbisCell().isEmpty()) {
+                                                chalkBE.setActiveAffinity(EssenceType.REGULAR);
+                                                chalkBE.setColor(0xFFCCCCCC);
+                                            }
+                                            chalkBE.setChanged();
+                                            level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                                            toConsume -= consumed;
+                                        }
                                     }
                                 }
                             }
@@ -1517,12 +1541,14 @@ public class ScribedChalkBlock extends BaseEntityBlock {
 
             // 3. Consume essences from connected circuit nodes
             for (java.util.Map.Entry<EssenceType, Integer> entry : recipe.essences().entrySet()) {
-                EssenceType type = entry.getKey();
+                EssenceType requiredType = entry.getKey();
                 int toConsume = entry.getValue();
+                if (toConsume <= 0) continue;
 
+                // Pass 1: consume matching affinity or any if REGULAR
                 for (ScribedChalkBlockEntity chalkBE : circuitBEs) {
                     if (toConsume <= 0) break;
-                    if (chalkBE.getActiveAffinity() == type || (type == EssenceType.REGULAR)) {
+                    if (chalkBE.getActiveAffinity() == requiredType || requiredType == EssenceType.REGULAR) {
                         int available = chalkBE.getEssenceLevel();
                         if (available > 0) {
                             int consumed = Math.min(toConsume, available);
@@ -1536,6 +1562,28 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             chalkBE.setChanged();
                             level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
                             toConsume -= consumed;
+                        }
+                    }
+                }
+                // Pass 2: fallback to REGULAR essence if specific type ran short
+                if (toConsume > 0 && requiredType != EssenceType.REGULAR) {
+                    for (ScribedChalkBlockEntity chalkBE : circuitBEs) {
+                        if (toConsume <= 0) break;
+                        if (chalkBE.getActiveAffinity() == EssenceType.REGULAR) {
+                            int available = chalkBE.getEssenceLevel();
+                            if (available > 0) {
+                                int consumed = Math.min(toConsume, available);
+                                chalkBE.setEssenceLevel(available - consumed);
+                                if (chalkBE.getEssenceLevel() <= 0 &&
+                                    chalkBE.getBlockState().getValue(NODE_TYPE) != NodeType.SOURCE &&
+                                    chalkBE.getStoredOrbisCell().isEmpty()) {
+                                    chalkBE.setActiveAffinity(EssenceType.REGULAR);
+                                    chalkBE.setColor(0xFFCCCCCC);
+                                }
+                                chalkBE.setChanged();
+                                level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
+                                toConsume -= consumed;
+                            }
                         }
                     }
                 }
