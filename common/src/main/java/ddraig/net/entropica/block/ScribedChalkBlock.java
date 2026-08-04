@@ -349,10 +349,18 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         }
                     }
 
+                    // Collect essence from all perimeter nodes (allChalkBlockEntities covers all tier rings)
+                    for (ScribedChalkBlockEntity chalkBE : allChalkBlockEntities) {
+                        EssenceType affinity = chalkBE.getActiveAffinity();
+                        essences.put(affinity, essences.getOrDefault(affinity, 0) + chalkBE.getEssenceLevel());
+                    }
+                    // Also include any connected circuit nodes (e.g. essence banks attached via circuit lines)
                     java.util.Set<ScribedChalkBlockEntity> circuitBEs = getConnectedCircuit(level, pos);
                     for (ScribedChalkBlockEntity circuitBE : circuitBEs) {
-                        EssenceType affinity = circuitBE.getActiveAffinity();
-                        essences.put(affinity, essences.getOrDefault(affinity, 0) + circuitBE.getEssenceLevel());
+                        if (!allChalkBlockEntities.contains(circuitBE)) {
+                            EssenceType affinity = circuitBE.getActiveAffinity();
+                            essences.put(affinity, essences.getOrDefault(affinity, 0) + circuitBE.getEssenceLevel());
+                        }
                     }
 
                     MagicCircleRecipeInput recipeInput = new MagicCircleRecipeInput(inputStacks, runeStacks, essences, checkTier);
@@ -451,12 +459,14 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                             }
                         }
                         
-                        // 2b. Consume essences from the connected circuit
+                        // 2b. Consume essences from all circle nodes + connected circuit
+                        java.util.Set<ScribedChalkBlockEntity> allEssenceNodes = new java.util.LinkedHashSet<>(allChalkBlockEntities);
+                        allEssenceNodes.addAll(circuitBEs);
                         for (java.util.Map.Entry<EssenceType, Integer> entry : recipe.essences().entrySet()) {
                             EssenceType type = entry.getKey();
                             int toConsume = entry.getValue();
                             
-                            for (ScribedChalkBlockEntity chalkBE : circuitBEs) {
+                            for (ScribedChalkBlockEntity chalkBE : allEssenceNodes) {
                                 if (toConsume <= 0) break;
                                 if (chalkBE.getActiveAffinity() == type || (type == EssenceType.REGULAR)) {
                                     int available = chalkBE.getEssenceLevel();
