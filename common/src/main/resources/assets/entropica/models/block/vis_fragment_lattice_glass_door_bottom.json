@@ -1,1 +1,1 @@
-{"render_type":"translucent","parent":"minecraft:block/door_bottom","textures":{"bottom":"entropica:block/glass_vis_fragment_lattice","top":"entropica:block/glass_vis_fragment_lattice"}}
+{"render_type":"translucent","parent":"entropica:block/base/door_bottom_base","textures":{"texture":"entropica:block/glass_vis_fragment_lattice","particle":"entropica:block/glass_vis_fragment_lattice"}}

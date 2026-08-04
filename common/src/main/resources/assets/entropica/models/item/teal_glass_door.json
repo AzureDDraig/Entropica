@@ -1,1 +1,1 @@
-{"parent":"entropica:block/teal_glass_door_bottom"}
+{"parent":"minecraft:item/generated","textures":{"layer0":"entropica:block/glass_essence_enriched"}}
