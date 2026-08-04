@@ -44,6 +44,14 @@ public class HorizontalPaneBlock extends Block implements SimpleWaterloggedBlock
     protected static final VoxelShape PANEL_ARM_DOWN_X = Block.box(0.0D, 0.0D, 7.0D, 16.0D, 7.0D, 9.0D);
     protected static final VoxelShape PANEL_ARM_DOWN_Z = Block.box(7.0D, 0.0D, 0.0D, 9.0D, 7.0D, 16.0D);
 
+    @Override
+    public boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
+        if (ddraig.net.entropica.registry.AestheticGlassRegistry.isMatchingGlassBlock(state.getBlock(), adjacentState.getBlock())) {
+            return true;
+        }
+        return super.skipRendering(state, adjacentState, direction);
+    }
+
     public HorizontalPaneBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.defaultBlockState()

@@ -42,6 +42,14 @@ public class VerticalSlabBlock extends Block {
     }
 
     @Override
+    public boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
+        if (ddraig.net.entropica.registry.AestheticGlassRegistry.isMatchingGlassBlock(state.getBlock(), adjacentState.getBlock())) {
+            return true;
+        }
+        return super.skipRendering(state, adjacentState, direction);
+    }
+
+    @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(TYPE);
     }

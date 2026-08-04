@@ -1,0 +1,1 @@
+{"render_type":"translucent","parent":"minecraft:block/block","textures":{"particle":"entropica:block/glass_essence_enriched_pane","pane":"entropica:block/glass_essence_enriched_pane","edge":"entropica:block/glass_essence_enriched_edge"},"elements":[{"from":[7,0,0],"to":[9,16,0],"faces":{"north":{"uv":[7,0,9,16],"texture":"#edge","tintindex":0}}}]}

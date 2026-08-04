@@ -195,19 +195,19 @@ public class AestheticGlassRegistry {
 
         // 1. Block
         RegistrySupplier<Block> blockSup = ModBlocks.BLOCKS.register(blockName, loc ->
-                new TransparentBlock(createProperties(blockName, spec.lightEmission(), spec.hardness())));
+                new ddraig.net.entropica.block.AestheticGlassBlock(createProperties(blockName, spec.lightEmission(), spec.hardness())));
         // 2. Pane
         RegistrySupplier<Block> paneSup = ModBlocks.BLOCKS.register(paneName, loc ->
-                new IronBarsBlock(createProperties(paneName, spec.lightEmission(), spec.hardness())));
+                new ddraig.net.entropica.block.AestheticGlassPaneBlock(createProperties(paneName, spec.lightEmission(), spec.hardness())));
         // 3. Door
         RegistrySupplier<Block> doorSup = ModBlocks.BLOCKS.register(doorName, loc ->
-                new DoorBlock(GLASS_BLOCK_SET_TYPE, createProperties(doorName, spec.lightEmission(), spec.hardness())));
+                new ddraig.net.entropica.block.AestheticGlassDoorBlock(GLASS_BLOCK_SET_TYPE, createProperties(doorName, spec.lightEmission(), spec.hardness())));
         // 4. Trapdoor
         RegistrySupplier<Block> trapdoorSup = ModBlocks.BLOCKS.register(trapdoorName, loc ->
-                new TrapDoorBlock(GLASS_BLOCK_SET_TYPE, createProperties(trapdoorName, spec.lightEmission(), spec.hardness())));
+                new ddraig.net.entropica.block.AestheticGlassTrapdoorBlock(GLASS_BLOCK_SET_TYPE, createProperties(trapdoorName, spec.lightEmission(), spec.hardness())));
         // 5. Slab
         RegistrySupplier<Block> slabSup = ModBlocks.BLOCKS.register(slabName, loc ->
-                new SlabBlock(createProperties(slabName, spec.lightEmission(), spec.hardness())));
+                new ddraig.net.entropica.block.AestheticGlassSlabBlock(createProperties(slabName, spec.lightEmission(), spec.hardness())));
         // 6. Vertical Slab
         RegistrySupplier<Block> vSlabSup = ModBlocks.BLOCKS.register(vSlabName, loc ->
                 new VerticalSlabBlock(createProperties(vSlabName, spec.lightEmission(), spec.hardness())));
@@ -216,7 +216,7 @@ public class AestheticGlassRegistry {
                 new QuarterSlabBlock(createProperties(qSlabName, spec.lightEmission(), spec.hardness())));
         // 8. Stairs
         RegistrySupplier<Block> stairsSup = ModBlocks.BLOCKS.register(stairsName, loc ->
-                new StairBlock(blockSup.get().defaultBlockState(), createProperties(stairsName, spec.lightEmission(), spec.hardness())));
+                new ddraig.net.entropica.block.AestheticGlassStairBlock(blockSup.get().defaultBlockState(), createProperties(stairsName, spec.lightEmission(), spec.hardness())));
         // 9. Horizontal Pane
         RegistrySupplier<Block> hPaneSup = ModBlocks.BLOCKS.register(hPaneName, loc ->
                 new HorizontalPaneBlock(createProperties(hPaneName, spec.lightEmission(), spec.hardness())));
@@ -279,6 +279,15 @@ public class AestheticGlassRegistry {
                 ITEM_TO_INDEX_MAP.put(item, i + j);
             }
         }
+    }
+
+    public static boolean isGlassBlock(Block block) {
+        populateColorMaps();
+        return BLOCK_COLOR_MAP.containsKey(block);
+    }
+
+    public static boolean isMatchingGlassBlock(Block block, Block adjacentBlock) {
+        return isGlassBlock(block) && isGlassBlock(adjacentBlock);
     }
 
     public static int getGlassColor(Block block) {

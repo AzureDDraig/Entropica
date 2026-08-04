@@ -34,6 +34,14 @@ public class QuarterSlabBlock extends Block {
     }
 
     @Override
+    public boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
+        if (ddraig.net.entropica.registry.AestheticGlassRegistry.isMatchingGlassBlock(state.getBlock(), adjacentState.getBlock())) {
+            return true;
+        }
+        return super.skipRendering(state, adjacentState, direction);
+    }
+
+    @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(LAYERS_MASK);
     }

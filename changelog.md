@@ -47,6 +47,10 @@
   - **Radial Symmetry & Black Hardware**: Integrated 4-fold radial symmetry across Cube Glass and crisp black iron hardware (hinge plates, pin barrels, escutcheons, lever handles, strap hinges, catch latches) across Doors and Trapdoors.
   - **Master Base Model Bindings**: All master base models in `models/block/base/` (`door_bottom_base`, `door_top_base`, `door_bottom_rh_base`, `door_top_rh_base`, `slab_base`, `slab_top_base`, `quarter_slab_l0..l3`, `horizontal_pane_base`, `horizontal_pane_side_base`, `horizontal_pane_noside_base`) consume their dedicated texture assets with dynamic `tintindex: 0` essence color tinting.
 
+* **Dynamic Color-Shifting & Matching Glass Edge Culling Implementation**:
+  - **Model Face `tintindex: 0` Restoration**: Re-architected `cube_base.json`, `trapdoor_bottom_base.json`, `trapdoor_top_base.json`, `trapdoor_open_base.json`, `pane_post_base.json`, `pane_side_base.json`, `pane_noside_base.json`, and `stairs_base.json` to explicitly include `"tintindex": 0` on every quad face. Blocks, double slabs, trapdoors, and vertical panes now dynamically calculate animated time-based color shifting when using dynamic essence types.
+  - **Custom Glass Block Edge Culling Classes**: Created `AestheticGlassBlock`, `AestheticGlassSlabBlock`, `AestheticGlassPaneBlock`, `AestheticGlassDoorBlock`, `AestheticGlassTrapdoorBlock`, and `AestheticGlassStairBlock`, and updated `QuarterSlabBlock`, `HorizontalPaneBlock`, and `VerticalSlabBlock`. Overrode `@Override skipRendering(state, adjacentState, direction)` to automatically cull touching interior faces between adjacent matching glass blocks, slabs, doors, trapdoors, and panes.
+
 * **Build & Deployment Verification**:
   - Successfully built and deployed to dev instances via `./gradlew deploytoDev`.
 
