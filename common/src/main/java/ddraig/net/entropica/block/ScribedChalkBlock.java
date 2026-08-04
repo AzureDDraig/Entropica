@@ -361,6 +361,37 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         }
                     }
 
+                    // Scan nearby Ritual Bowls (within 3 blocks of any chalk block in the circle)
+                    List<BlockPos> circleChalkPositions = new java.util.ArrayList<>();
+                    for (ScribedChalkBlockEntity cBE : allChalkBlockEntities) {
+                        circleChalkPositions.add(cBE.getBlockPos());
+                    }
+                    List<ddraig.net.entropica.block.entity.RitualBowlBlockEntity> nearbyBowls = findNearbyRitualBowls(level, circleChalkPositions, 3.0);
+                    List<BowlSlotReference> bowlInputSlots = new java.util.ArrayList<>();
+                    List<BowlSlotReference> bowlRuneSlots = new java.util.ArrayList<>();
+
+                    for (ddraig.net.entropica.block.entity.RitualBowlBlockEntity bowlBE : nearbyBowls) {
+                        if (!bowlBE.isBasalt) {
+                            // Marble Ritual Bowl -> Items
+                            for (int slot = 0; slot < 5; slot++) {
+                                ItemStack stack = bowlBE.inventory.getItem(slot);
+                                if (!stack.isEmpty()) {
+                                    inputStacks.add(stack);
+                                    bowlInputSlots.add(new BowlSlotReference(bowlBE, slot, stack));
+                                }
+                            }
+                        } else {
+                            // Basalt Ritual Bowl -> Runes
+                            for (int slot = 0; slot < 5; slot++) {
+                                ItemStack stack = bowlBE.inventory.getItem(slot);
+                                if (!stack.isEmpty()) {
+                                    runeStacks.add(stack);
+                                    bowlRuneSlots.add(new BowlSlotReference(bowlBE, slot, stack));
+                                }
+                            }
+                        }
+                    }
+
                     // Collect essence - different strategies for circles vs circuits
                     boolean isAdvancedCircuit = state.getValue(CIRCUIT);
                     java.util.Set<ScribedChalkBlockEntity> essenceSourceNodes = new java.util.LinkedHashSet<>();
@@ -424,7 +455,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
 
                         MagicCircleRecipe recipe = matchingRecipes.get(0).value();
                         
-                        // 1. Consume input items from entities
+                        // 1. Consume input items from nodes, entities & Marble Bowls
                         for (Ingredient ing : recipe.inputs()) {
                             boolean consumed = false;
                             for (int i = 0; i < inputBlockEntities.size(); i++) {
@@ -459,10 +490,32 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                     }
                                 }
                             }
+                            if (!consumed) {
+                                for (int i = 0; i < bowlInputSlots.size(); i++) {
+                                    BowlSlotReference ref = bowlInputSlots.get(i);
+                                    ItemStack s = ref.bowlBE().inventory.getItem(ref.slot());
+                                    if (!s.isEmpty() && ing.test(s)) {
+                                        s.shrink(1);
+                                        ref.bowlBE().inventory.setItem(ref.slot(), s.isEmpty() ? ItemStack.EMPTY : s);
+                                        ref.bowlBE().setChanged();
+                                        level.sendBlockUpdated(ref.bowlBE().getBlockPos(), ref.bowlBE().getBlockState(), ref.bowlBE().getBlockState(), 3);
+
+                                        BlockPos targetPos = inputBlockEntities.isEmpty() ? pos : inputBlockEntities.get(0).getBlockPos();
+                                        spawnFloatingItemEffect(level, ref.bowlBE().getBlockPos(), targetPos);
+
+                                        if (ref.bowlBE().inventory.getItem(ref.slot()).isEmpty()) {
+                                            bowlInputSlots.remove(i);
+                                        }
+                                        consumed = true;
+                                        break;
+                                    }
+                                }
+                            }
                         }
                         
-                        // 2. Consume rune items from the chalk block entities
+                        // 2. Consume rune items from chalk block entities & Basalt Bowls
                         for (Ingredient ing : recipe.runes()) {
+                            boolean consumed = false;
                             for (int i = 0; i < runeBlockEntities.size(); i++) {
                                 ScribedChalkBlockEntity chalkBE = runeBlockEntities.get(i);
                                 ItemStack stack = chalkBE.getStoredRune();
@@ -474,7 +527,29 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                     if (chalkBE.getStoredRune().isEmpty()) {
                                         runeBlockEntities.remove(i);
                                     }
+                                    consumed = true;
                                     break;
+                                }
+                            }
+                            if (!consumed) {
+                                for (int i = 0; i < bowlRuneSlots.size(); i++) {
+                                    BowlSlotReference ref = bowlRuneSlots.get(i);
+                                    ItemStack s = ref.bowlBE().inventory.getItem(ref.slot());
+                                    if (!s.isEmpty() && ing.test(s)) {
+                                        s.shrink(1);
+                                        ref.bowlBE().inventory.setItem(ref.slot(), s.isEmpty() ? ItemStack.EMPTY : s);
+                                        ref.bowlBE().setChanged();
+                                        level.sendBlockUpdated(ref.bowlBE().getBlockPos(), ref.bowlBE().getBlockState(), ref.bowlBE().getBlockState(), 3);
+
+                                        BlockPos targetPos = runeBlockEntities.isEmpty() ? pos : runeBlockEntities.get(0).getBlockPos();
+                                        spawnFloatingItemEffect(level, ref.bowlBE().getBlockPos(), targetPos);
+
+                                        if (ref.bowlBE().inventory.getItem(ref.slot()).isEmpty()) {
+                                            bowlRuneSlots.remove(i);
+                                        }
+                                        consumed = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -1402,6 +1477,37 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             essences.put(affinity, essences.getOrDefault(affinity, 0) + chalkBE.getEssenceLevel());
         }
 
+        // Scan nearby Ritual Bowls (within 3 blocks of any chalk block in the circuit)
+        List<BlockPos> circuitChalkPositions = new java.util.ArrayList<>();
+        for (ScribedChalkBlockEntity cBE : circuitBEs) {
+            circuitChalkPositions.add(cBE.getBlockPos());
+        }
+        List<ddraig.net.entropica.block.entity.RitualBowlBlockEntity> nearbyBowls = findNearbyRitualBowls(level, circuitChalkPositions, 3.0);
+        List<BowlSlotReference> bowlInputSlots = new java.util.ArrayList<>();
+        List<BowlSlotReference> bowlRuneSlots = new java.util.ArrayList<>();
+
+        for (ddraig.net.entropica.block.entity.RitualBowlBlockEntity bowlBE : nearbyBowls) {
+            if (!bowlBE.isBasalt) {
+                // Marble Ritual Bowl -> Items
+                for (int slot = 0; slot < 5; slot++) {
+                    ItemStack stack = bowlBE.inventory.getItem(slot);
+                    if (!stack.isEmpty()) {
+                        inputStacks.add(stack);
+                        bowlInputSlots.add(new BowlSlotReference(bowlBE, slot, stack));
+                    }
+                }
+            } else {
+                // Basalt Ritual Bowl -> Runes
+                for (int slot = 0; slot < 5; slot++) {
+                    ItemStack stack = bowlBE.inventory.getItem(slot);
+                    if (!stack.isEmpty()) {
+                        runeStacks.add(stack);
+                        bowlRuneSlots.add(new BowlSlotReference(bowlBE, slot, stack));
+                    }
+                }
+            }
+        }
+
         int checkTier = 4; // Circuits support all recipes (tier 1..4)
         MagicCircleRecipeInput recipeInput = new MagicCircleRecipeInput(inputStacks, runeStacks, essences, checkTier);
 
@@ -1479,10 +1585,32 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         }
                     }
                 }
+                if (!consumed) {
+                    for (int i = 0; i < bowlInputSlots.size(); i++) {
+                        BowlSlotReference ref = bowlInputSlots.get(i);
+                        ItemStack s = ref.bowlBE().inventory.getItem(ref.slot());
+                        if (!s.isEmpty() && ing.test(s)) {
+                            s.shrink(1);
+                            ref.bowlBE().inventory.setItem(ref.slot(), s.isEmpty() ? ItemStack.EMPTY : s);
+                            ref.bowlBE().setChanged();
+                            level.sendBlockUpdated(ref.bowlBE().getBlockPos(), ref.bowlBE().getBlockState(), ref.bowlBE().getBlockState(), 3);
+
+                            BlockPos targetPos = inputBlockEntities.isEmpty() ? outputPos : inputBlockEntities.get(0).getBlockPos();
+                            spawnFloatingItemEffect(level, ref.bowlBE().getBlockPos(), targetPos);
+
+                            if (ref.bowlBE().inventory.getItem(ref.slot()).isEmpty()) {
+                                bowlInputSlots.remove(i);
+                            }
+                            consumed = true;
+                            break;
+                        }
+                    }
+                }
             }
 
             // 2. Consume rune items
             for (Ingredient ing : recipe.runes()) {
+                boolean consumed = false;
                 for (int i = 0; i < runeBlockEntities.size(); i++) {
                     ScribedChalkBlockEntity chalkBE = runeBlockEntities.get(i);
                     ItemStack stack = chalkBE.getStoredRune();
@@ -1494,7 +1622,29 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         if (chalkBE.getStoredRune().isEmpty()) {
                             runeBlockEntities.remove(i);
                         }
+                        consumed = true;
                         break;
+                    }
+                }
+                if (!consumed) {
+                    for (int i = 0; i < bowlRuneSlots.size(); i++) {
+                        BowlSlotReference ref = bowlRuneSlots.get(i);
+                        ItemStack s = ref.bowlBE().inventory.getItem(ref.slot());
+                        if (!s.isEmpty() && ing.test(s)) {
+                            s.shrink(1);
+                            ref.bowlBE().inventory.setItem(ref.slot(), s.isEmpty() ? ItemStack.EMPTY : s);
+                            ref.bowlBE().setChanged();
+                            level.sendBlockUpdated(ref.bowlBE().getBlockPos(), ref.bowlBE().getBlockState(), ref.bowlBE().getBlockState(), 3);
+
+                            BlockPos targetPos = runeBlockEntities.isEmpty() ? outputPos : runeBlockEntities.get(0).getBlockPos();
+                            spawnFloatingItemEffect(level, ref.bowlBE().getBlockPos(), targetPos);
+
+                            if (ref.bowlBE().inventory.getItem(ref.slot()).isEmpty()) {
+                                bowlRuneSlots.remove(i);
+                            }
+                            consumed = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1628,6 +1778,51 @@ public class ScribedChalkBlock extends BaseEntityBlock {
             player.displayClientMessage(net.minecraft.network.chat.Component.literal(message.toString()), false);
         }
         level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.5f, 0.8f);
+    }
+    public record BowlSlotReference(
+        ddraig.net.entropica.block.entity.RitualBowlBlockEntity bowlBE,
+        int slot,
+        ItemStack stack
+    ) {}
+
+    public static List<ddraig.net.entropica.block.entity.RitualBowlBlockEntity> findNearbyRitualBowls(Level level, java.util.Collection<BlockPos> chalkPositions, double maxDistance) {
+        List<ddraig.net.entropica.block.entity.RitualBowlBlockEntity> result = new java.util.ArrayList<>();
+        java.util.Set<BlockPos> checkedBowls = new java.util.HashSet<>();
+        double maxDistSq = maxDistance * maxDistance;
+
+        for (BlockPos p : chalkPositions) {
+            int r = (int) Math.ceil(maxDistance);
+            for (BlockPos checkPos : BlockPos.betweenClosed(p.getX() - r, p.getY() - r, p.getZ() - r, p.getX() + r, p.getY() + r, p.getZ() + r)) {
+                if (checkedBowls.contains(checkPos)) continue;
+                if (p.distSqr(checkPos) <= maxDistSq) {
+                    BlockEntity be = level.getBlockEntity(checkPos);
+                    if (be instanceof ddraig.net.entropica.block.entity.RitualBowlBlockEntity bowlBE) {
+                        checkedBowls.add(checkPos.immutable());
+                        result.add(bowlBE);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public static void spawnFloatingItemEffect(Level level, BlockPos fromPos, BlockPos toPos) {
+        if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            net.minecraft.world.phys.Vec3 start = net.minecraft.world.phys.Vec3.atCenterOf(fromPos).add(0, 0.25, 0);
+            net.minecraft.world.phys.Vec3 end = net.minecraft.world.phys.Vec3.atCenterOf(toPos).add(0, 0.15, 0);
+
+            int steps = 16;
+            for (int i = 0; i <= steps; i++) {
+                double t = (double) i / steps;
+                double x = net.minecraft.util.Mth.lerp(t, start.x, end.x);
+                double y = net.minecraft.util.Mth.lerp(t, start.y, end.y) + Math.sin(t * Math.PI) * 0.6;
+                double z = net.minecraft.util.Mth.lerp(t, start.z, end.z);
+
+                serverLevel.sendParticles(ParticleTypes.END_ROD, x, y, z, 2, 0.02, 0.02, 0.02, 0.01);
+                serverLevel.sendParticles(ParticleTypes.ENCHANTED_HIT, x, y, z, 1, 0.01, 0.01, 0.01, 0.01);
+            }
+            level.playSound(null, fromPos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 0.6f, 1.4f);
+        }
     }
 
     public static java.util.Set<ScribedChalkBlockEntity> getConnectedCircuit(Level level, BlockPos startPos) {

@@ -1,5 +1,18 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-216-13-45 (August 4, 2026 Update)
+
+### New Feature: Automatic Ritual Bowl Ingredient Pulling & Floating Particle Trajectory
+
+* **Automatic Ritual Bowl Proximity Integration**:
+  - Magic Circles and Magic Circuits now automatically scan for nearby **Ritual Bowls** within a 3-block radius of any chalk block in the circle/network via `findNearbyRitualBowls` in [ScribedChalkBlock.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/block/ScribedChalkBlock.java).
+  - **Marble Ritual Bowls** (`!isBasalt`): Automatically supply recipe input items (`inputStacks`).
+  - **Basalt Ritual Bowls** (`isBasalt`): Automatically supply recipe runes (`runeStacks`).
+* **Visual Floating Item Particle Animation**:
+  - Added `spawnFloatingItemEffect` producing a parabolic arc trajectory of `END_ROD`, `ENCHANTED_HIT`, and amethyst chimes traveling from the Ritual Bowl's position to the target circle/circuit node position upon recipe initiation/consumption.
+
+---
+
 ## Build 000-1-26-216-12-25 (August 4, 2026 Update)
 
 ### New Feature: Proximity Activation Node (`NodeType.ACTIVATION`)
