@@ -1,1 +1,1 @@
-{"render_type":"translucent","parent":"entropica:block/base/door_bottom_rh_base","textures":{"texture":"entropica:block/glass_vis_fume_strengthened","particle":"entropica:block/glass_vis_fume_strengthened"}}
+{"render_type":"translucent","parent":"entropica:block/base/door_bottom_rh_base","textures":{"texture":"entropica:block/glass_essence_enriched_door_bottom","particle":"entropica:block/glass_essence_enriched_door_bottom"}}
