@@ -1,1 +1,1 @@
-{"render_type":"translucent","parent":"minecraft:block/template_glass_pane_noside","textures":{"pane":"entropica:block/glass_materia_liquida_enriched","edge":"entropica:block/white"}}
+{"render_type":"translucent","parent":"entropica:block/base/pane_noside_base","textures":{"pane":"entropica:block/glass_essence_enriched","edge":"entropica:block/glass_essence_enriched_edge","particle":"entropica:block/glass_essence_enriched"}}
