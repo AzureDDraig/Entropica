@@ -43,7 +43,22 @@ public class VerticalSlabBlock extends Block {
 
     @Override
     public boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
-        if (ddraig.net.entropica.registry.AestheticGlassRegistry.isMatchingGlassBlock(state.getBlock(), adjacentState.getBlock())) {
+        if (adjacentState.is(state.getBlock())) {
+            if (adjacentState.getBlock() instanceof VerticalSlabBlock) {
+                VerticalSlabType type = state.getValue(TYPE);
+                VerticalSlabType adjType = adjacentState.getValue(TYPE);
+                // Double type is full block - always cull
+                if (adjType == VerticalSlabType.DOUBLE_NS || adjType == VerticalSlabType.DOUBLE_EW
+                        || type == VerticalSlabType.DOUBLE_NS || type == VerticalSlabType.DOUBLE_EW) {
+                    return true;
+                }
+                // Same orientation - cull shared faces
+                if (type == adjType) {
+                    return true;
+                }
+                // Different orientation (90 degrees) - don't cull (partial overlap)
+                return false;
+            }
             return true;
         }
         return super.skipRendering(state, adjacentState, direction);

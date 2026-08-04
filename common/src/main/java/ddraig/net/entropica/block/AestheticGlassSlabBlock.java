@@ -24,12 +24,6 @@ public class AestheticGlassSlabBlock extends SlabBlock {
                 if (type == adjType) {
                     return direction.getAxis().isHorizontal();
                 }
-                if (direction == Direction.UP && type == SlabType.BOTTOM && adjType == SlabType.TOP) {
-                    return true;
-                }
-                if (direction == Direction.DOWN && type == SlabType.TOP && adjType == SlabType.BOTTOM) {
-                    return true;
-                }
             } else {
                 return true;
             }
