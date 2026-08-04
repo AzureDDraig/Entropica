@@ -42,10 +42,10 @@
   - **Glass Texture Alpha Mipmapping**: Sharpened alpha contrast on glass PNG lines to prevent distance mipmap fading.
   - **JEI Research Log Spam**: Added `CURRENTLY_HIDDEN_ITEMS` state tracking in [EntropicaJEIPlugin.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/neoforge/src/main/java/ddraig/net/entropica/compat/jei/neoforge/EntropicaJEIPlugin.java), preventing JEI from logging ingredient removals every 2 seconds.
 
-* **Horizontal Pane Internal Seam Elimination (Vanilla Glass Pane Architecture)**:
-  - **Eliminated Internal Edge Faces**: Removed internal Z/X edge quad faces from `horizontal_pane_base.json` and `horizontal_pane_side_base.json` in `models/block/base/`.
-  - **Conditional `noside` Outer Edge Model**: Created `horizontal_pane_noside_base.json`, which renders 70% alpha white edge borders ONLY when an edge is unconnected (`north=false`, `south=false`, `east=false`, `west=false`).
-  - **Seamless Connected Glass**: Adjacent horizontal panes connected in roofs, domes, or floors now join seamlessly without rendering unwanted internal white edge lines or internal block faces. White edge borders render strictly around the outer perimeter of connected structures.
+* **Complete Stage 1 Custom Glass Texture System Deployment**:
+  - **90/10 Blend Base Texture**: Applied approved 90% clean glass / 10% orthographic runic blend texture system across Stage 1 Essence Enriched Glass (max **10% alpha**, `alpha <= 25 / 255`).
+  - **Dedicated Shape Textures**: Created and bound 5 dedicated PNG texture assets: `glass_essence_enriched_door_bottom.png` (with latch & bottom hinge), `glass_essence_enriched_door_top.png` (with top hinge), `glass_essence_enriched_trapdoor.png` (with dual hinges & latch), `glass_essence_enriched_edge.png` (for door, trapdoor, quarter slab, and pane profile edges), and `glass_essence_enriched_slab_edge.png` (dedicated 8-pixel side edge texture for half-slabs).
+  - **Master Base Model Bindings**: Re-bound all master base models in `models/block/base/` (`door_bottom_base`, `door_top_base`, `door_bottom_rh_base`, `door_top_rh_base`, `slab_base`, `slab_top_base`, `quarter_slab_l0..l3`, `horizontal_pane_base`, `horizontal_pane_side_base`, `horizontal_pane_noside_base`) to consume their dedicated texture assets with dynamic `tintindex: 0` essence color tinting.
 
 * **Build & Deployment Verification**:
   - Successfully built and deployed to dev instances via `./gradlew deploytoDev`.
