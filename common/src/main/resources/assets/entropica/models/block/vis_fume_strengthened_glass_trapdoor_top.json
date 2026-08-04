@@ -1,1 +1,1 @@
-{"render_type":"translucent","parent":"minecraft:block/door_top","textures":{"bottom":"entropica:block/glass_vis_fume_strengthened","top":"entropica:block/glass_vis_fume_strengthened"}}
+{"render_type":"translucent","parent":"minecraft:block/template_orientable_trapdoor_top","textures":{"texture":"entropica:block/glass_vis_fume_strengthened"}}

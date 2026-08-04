@@ -42,10 +42,10 @@
   - **Glass Texture Alpha Mipmapping**: Sharpened alpha contrast on glass PNG lines to prevent distance mipmap fading.
   - **JEI Research Log Spam**: Added `CURRENTLY_HIDDEN_ITEMS` state tracking in [EntropicaJEIPlugin.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/neoforge/src/main/java/ddraig/net/entropica/compat/jei/neoforge/EntropicaJEIPlugin.java), preventing JEI from logging ingredient removals every 2 seconds.
 
-* **Entropic Codex & Glass Item/Block Model Fixes**:
-  - Re-built item model definitions `models/item/entropic_codex.json` (`parent: minecraft:item/generated`, `layer0: entropica:item/entropic_codex`) and `items/entropic_codex.json`, resolving the missing item texture on the Entropic Codex guidebook.
-  - Resolved missing textures across all 1,251 glass block and item shapes by generating lightweight model files in `models/block/` for every family shape (`*_glass`, `*_slab`, `*_vertical_slab`, `*_quarter_slab`, `*_stairs`, `*_horizontal_pane`, `*_pane`, `*_door`, `*_trapdoor`), binding each family's exact texture PNG while inheriting 3D quad geometry from `models/block/base/*`.
-  - Re-bound item models in `models/item/` and component item definitions in `items/` to point directly to their parent block models.
+* **In-World Quarter Slabs, Doors, Trapdoors & 3D Inventory Visibility Fixes**:
+  - **Quarter Slabs**: Re-architected `QuarterSlabBlock` blockstates to use `multipart` layer matching for bitmask properties (`layers="1|3|5|7|9|11|13|15"`, `layers="2|3|6|7|10|11|14|15"`, etc.) with master layer models (`quarter_slab_l0`, `quarter_slab_l1`, `quarter_slab_l2`, `quarter_slab_l3`), enabling 1 to 4 quarter slabs stacked in one block space to render in-world seamlessly.
+  - **Doors & Trapdoors**: Fixed `"door"` vs `"trapdoor"` blockstate generator substring collision. Trapdoors now use `template_orientable_trapdoor_*` models with `facing=north|south|east|west`, `half=bottom|top`, `open=true|false` variants. Doors use `door_bottom` and `door_top` models with `bottom` and `top` texture keys.
+  - **3D Inventory Item Visibility**: Re-bound inventory item models for doors, trapdoors, slabs, and quarter slabs to point directly to 3D block models in GUI (`parent: entropica:block/<bname>_bottom` / `entropica:block/<bname>_l0`), making transparent glass items highly visible and distinct in player inventory and creative tabs.
 
 * **Build & Deployment Verification**:
   - Successfully built and deployed to dev instances via `./gradlew deploytoDev`.

@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"entropica:block/glass_vis_fume_strengthened"}}
+{"parent":"entropica:block/vis_fume_strengthened_glass_door_bottom"}

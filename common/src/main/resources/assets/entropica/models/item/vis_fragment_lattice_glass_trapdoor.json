@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"entropica:block/glass_vis_fragment_lattice"}}
+{"parent":"entropica:block/vis_fragment_lattice_glass_trapdoor_bottom"}
