@@ -1,5 +1,22 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-217-09-11 (August 5, 2026 Update)
+
+### New Feature: Lens Textures & 3D Arkanist Monocle Retexture Suite
+
+* **Custom Lens Textures**:
+  - Created high-quality pixel art textures for all 5 lens items in `common/src/main/resources/assets/entropica/textures/item/`:
+    - **`aetheric_lens.png`**: Polished cyan glass lens with silver alloy rim, specular highlights, and cyan vis focus ring.
+    - **`propagation_lens.png`**: Polished magenta/purple lens with viscanite alloy rim, energy lattice, and specular highlights.
+    - **`vitae_lens.png`**: Polished emerald & crimson living energy lens in organic bronze rim.
+    - **`materia_lens.png`**: Polished gold & amber elemental lens in viscanite gold rim with hex lattice.
+    - **`focal_lens_assembly.png`**: Brass and gold dual-aperture mechanical housing with screws and cyan lens aperture.
+* **3D Arkanist Monocle Retexture & Model Upgrade**:
+  - Upgraded [arkanist_monocle.json](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/resources/assets/entropica/models/item/arkanist_monocle.json) from 2D item generated model to full 3D Blockbench model inheriting the Blockbench geometry suite of the Aetheric Monocle.
+  - Crafted `arkanist_monocle.png` (32x32) as a rich retexture featuring royal Viscanite Gold frame, Arcana Purple leather strap, polished steel hardware, and multi-frequency prismatic crystal highlights.
+
+---
+
 ## Build 000-1-26-216-13-45 (August 4, 2026 Update)
 
 ### New Feature: Automatic Ritual Bowl Ingredient Pulling & Floating Particle Trajectory
