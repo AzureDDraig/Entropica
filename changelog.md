@@ -1,5 +1,26 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-217-09-19 (August 5, 2026 Update)
+
+### Fixed & Deployed: 1.21.4 Item Definition JSON Registrations
+
+* **Minecraft 1.21.4 Item Definition Registration Fix**:
+  - Identified missing 1.21.4 item definition files in `common/src/main/resources/assets/entropica/items/`.
+  - Created missing item definition JSON files (`assets/entropica/items/<name>.json`) pointing to `entropica:item/<name>` for:
+    - `arkanist_monocle.json`
+    - `aetheric_lens.json`
+    - `propagation_lens.json`
+    - `vitae_lens.json`
+    - `materia_lens.json`
+    - `sacrificial_knife.json`
+    - `arcane_stencil.json`
+    - `blank_stone.json`
+    - `crawler_shell_fragment.json`
+  - Created missing item model files (`assets/entropica/models/item/<name>.json`) for `arcane_stencil`, `blank_stone`, and `crawler_shell_fragment`.
+  - Audited 100% of all 333 registered items in `ModItems.java`, ensuring all item models render cleanly in-game!
+
+---
+
 ## Build 000-1-26-217-09-16 (August 5, 2026 Update)
 
 ### Refined Feature: Arkanist Monocle Arcane Flame Plume & Viscanite Gunmetal Retexture
