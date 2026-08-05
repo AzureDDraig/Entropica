@@ -53,56 +53,8 @@ public class RitualBowlBlockEntity extends BlockEntity {
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
-        if (level.isClientSide()) return;
-
-        ItemStack inputStack = inventory.getItem(0);
-
-        if (!inputStack.isEmpty()) {
-            // Safe O(1) Instant Lookup! Level parameter removed!
-            List<ItemEssenceMap.EssenceValue> values = ItemEssenceMap.getEssenceFor(inputStack);
-
-            if (!values.isEmpty()) {
-                this.burningProgress++;
-                if (this.burningProgress >= this.maxBurningTime) {
-
-                    List<ItemStack> toOutput = new ArrayList<>();
-
-                    for (ItemEssenceMap.EssenceValue val : values) {
-                        int count = (int) val.amount();
-                        if (level.random.nextFloat() < (val.amount() - count)) {
-                            count++;
-                        }
-                        if (count > 0) {
-                            ItemStack essence = new ItemStack(ModItems.WEAK_ESSENCE.get(), count);
-                            EssenceItem.setEssenceType(essence, val.type());
-                            toOutput.add(essence);
-                        }
-                    }
-
-                    if (toOutput.isEmpty()) {
-                        inputStack.shrink(1);
-                        inventory.setItem(0, inputStack.isEmpty() ? ItemStack.EMPTY : inputStack);
-                        this.burningProgress = 0;
-                        level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.1F, 2.0F);
-                        this.setChanged();
-                    } else if (canFitOutputs(toOutput)) {
-                        mergeOutputs(toOutput);
-                        inputStack.shrink(1);
-                        inventory.setItem(0, inputStack.isEmpty() ? ItemStack.EMPTY : inputStack);
-                        this.burningProgress = 0;
-                        level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.1F, 2.0F);
-                        level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 0.4F, 1.4F);
-                        this.setChanged();
-                    } else {
-                        this.burningProgress = this.maxBurningTime - 1;
-                    }
-                }
-            } else {
-                this.burningProgress = 0;
-            }
-        } else {
-            this.burningProgress = 0;
-        }
+        // Ritual bowls hold items and runes safely without passively burning them.
+        // Essence extraction is handled by the Crucible.
     }
 
     private boolean canFitOutputs(List<ItemStack> outputs) {

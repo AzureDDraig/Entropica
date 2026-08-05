@@ -1,5 +1,15 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-217-16-04 (August 5, 2026 Update)
+
+### Fixed & Deployed: Ritual Bowl Item Storage (Disabled Passive Essence Burning)
+
+* **Ritual Bowl Passive Burning Fix**:
+  - Removed legacy passive essence burning tick logic from [RitualBowlBlockEntity.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/block/entity/RitualBowlBlockEntity.java).
+  - Items (like Iron Ingots in Marble Bowls) and Runes (in Basalt Bowls) placed into Ritual Bowls are now safely preserved for Magic Circle/Circuit recipes without being destroyed/burned into Weak Essence items every 5 seconds. (Essence extraction remains strictly on the Crucible).
+
+---
+
 ## Build 000-1-26-217-09-19 (August 5, 2026 Update)
 
 ### Fixed & Deployed: 1.21.4 Item Definition JSON Registrations
