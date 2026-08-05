@@ -1,5 +1,16 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-217-09-16 (August 5, 2026 Update)
+
+### Refined Feature: Arkanist Monocle Arcane Flame Plume & Viscanite Gunmetal Retexture
+
+* **Arcane Elemental Flame Plume**:
+  - Redesigned the feather accent in `arkanist_monocle.png` into a dynamic **Arcane Elemental Flame** plume blending emerald green at the base (`RGB(30, 220, 100)`), shifting into vis-cyan energy (`RGB(60, 230, 255)`), and culminating in shimmering gold/amber flame tips (`RGB(255, 210, 70)`).
+* **Viscanite Gunmetal Frame & Dark Leather Finish**:
+  - Retextured the 3D monocle metallic frame in authentic **Viscanite Gunmetal** sampled from `viscanite_ingot.png` in the Obsidian Vault (`RGB(55, 47, 52)` ➔ `RGB(121, 125, 133)`), paired with dark charcoal arcane leather and polished steel pins.
+
+---
+
 ## Build 000-1-26-217-09-11 (August 5, 2026 Update)
 
 ### New Feature: Lens Textures & 3D Arkanist Monocle Retexture Suite
