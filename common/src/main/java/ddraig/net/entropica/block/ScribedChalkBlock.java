@@ -370,8 +370,10 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                     List<BowlSlotReference> bowlInputSlots = new java.util.ArrayList<>();
                     List<BowlSlotReference> bowlRuneSlots = new java.util.ArrayList<>();
 
+                    List<BowlEssenceReference> bowlEssenceSlots = new java.util.ArrayList<>();
                     for (ddraig.net.entropica.block.entity.RitualBowlBlockEntity bowlBE : nearbyBowls) {
-                        if (!bowlBE.isBasalt) {
+                        RitualBowlBlock.BowlVariant variant = bowlBE.getVariant();
+                        if (variant == RitualBowlBlock.BowlVariant.MARBLE) {
                             // Marble Ritual Bowl -> Items
                             for (int slot = 0; slot < 5; slot++) {
                                 ItemStack stack = bowlBE.inventory.getItem(slot);
@@ -380,13 +382,23 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                     bowlInputSlots.add(new BowlSlotReference(bowlBE, slot, stack));
                                 }
                             }
-                        } else {
+                        } else if (variant == RitualBowlBlock.BowlVariant.BASALT) {
                             // Basalt Ritual Bowl -> Runes
                             for (int slot = 0; slot < 5; slot++) {
                                 ItemStack stack = bowlBE.inventory.getItem(slot);
                                 if (!stack.isEmpty()) {
                                     runeStacks.add(stack);
                                     bowlRuneSlots.add(new BowlSlotReference(bowlBE, slot, stack));
+                                }
+                            }
+                        } else if (variant == RitualBowlBlock.BowlVariant.GRANITE) {
+                            // Granite Ritual Bowl -> Essence Items
+                            for (int slot = 0; slot < 5; slot++) {
+                                ItemStack stack = bowlBE.inventory.getItem(slot);
+                                if (!stack.isEmpty() && stack.getItem() instanceof ddraig.net.entropica.item.EssenceItem) {
+                                    EssenceType type = ddraig.net.entropica.item.EssenceItem.getEssenceType(stack);
+                                    essences.put(type, essences.getOrDefault(type, 0) + stack.getCount());
+                                    bowlEssenceSlots.add(new BowlEssenceReference(bowlBE, slot, type, stack));
                                 }
                             }
                         }
@@ -576,6 +588,32 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                         chalkBE.setChanged();
                                         level.sendBlockUpdated(chalkBE.getBlockPos(), chalkBE.getBlockState(), chalkBE.getBlockState(), 3);
                                         toConsume -= consumed;
+                                    }
+                                }
+                            }
+
+                            if (toConsume > 0) {
+                                for (int i = 0; i < bowlEssenceSlots.size(); i++) {
+                                    if (toConsume <= 0) break;
+                                    BowlEssenceReference ref = bowlEssenceSlots.get(i);
+                                    if (requiredType == EssenceType.REGULAR || ref.essenceType() == requiredType) {
+                                        ItemStack s = ref.bowlBE().inventory.getItem(ref.slot());
+                                        if (!s.isEmpty()) {
+                                            int available = s.getCount();
+                                            int consumed = Math.min(toConsume, available);
+                                            s.shrink(consumed);
+                                            ref.bowlBE().inventory.setItem(ref.slot(), s.isEmpty() ? ItemStack.EMPTY : s);
+                                            ref.bowlBE().setChanged();
+                                            level.sendBlockUpdated(ref.bowlBE().getBlockPos(), ref.bowlBE().getBlockState(), ref.bowlBE().getBlockState(), 3);
+
+                                            spawnFloatingItemEffect(level, ref.bowlBE().getBlockPos(), pos);
+
+                                            toConsume -= consumed;
+                                            if (ref.bowlBE().inventory.getItem(ref.slot()).isEmpty()) {
+                                                bowlEssenceSlots.remove(i);
+                                                i--;
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1486,8 +1524,10 @@ public class ScribedChalkBlock extends BaseEntityBlock {
         List<BowlSlotReference> bowlInputSlots = new java.util.ArrayList<>();
         List<BowlSlotReference> bowlRuneSlots = new java.util.ArrayList<>();
 
+        List<BowlEssenceReference> bowlEssenceSlots = new java.util.ArrayList<>();
         for (ddraig.net.entropica.block.entity.RitualBowlBlockEntity bowlBE : nearbyBowls) {
-            if (!bowlBE.isBasalt) {
+            RitualBowlBlock.BowlVariant variant = bowlBE.getVariant();
+            if (variant == RitualBowlBlock.BowlVariant.MARBLE) {
                 // Marble Ritual Bowl -> Items
                 for (int slot = 0; slot < 5; slot++) {
                     ItemStack stack = bowlBE.inventory.getItem(slot);
@@ -1496,13 +1536,23 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         bowlInputSlots.add(new BowlSlotReference(bowlBE, slot, stack));
                     }
                 }
-            } else {
+            } else if (variant == RitualBowlBlock.BowlVariant.BASALT) {
                 // Basalt Ritual Bowl -> Runes
                 for (int slot = 0; slot < 5; slot++) {
                     ItemStack stack = bowlBE.inventory.getItem(slot);
                     if (!stack.isEmpty()) {
                         runeStacks.add(stack);
                         bowlRuneSlots.add(new BowlSlotReference(bowlBE, slot, stack));
+                    }
+                }
+            } else if (variant == RitualBowlBlock.BowlVariant.GRANITE) {
+                // Granite Ritual Bowl -> Essence Items
+                for (int slot = 0; slot < 5; slot++) {
+                    ItemStack stack = bowlBE.inventory.getItem(slot);
+                    if (!stack.isEmpty() && stack.getItem() instanceof ddraig.net.entropica.item.EssenceItem) {
+                        EssenceType type = ddraig.net.entropica.item.EssenceItem.getEssenceType(stack);
+                        essences.put(type, essences.getOrDefault(type, 0) + stack.getCount());
+                        bowlEssenceSlots.add(new BowlEssenceReference(bowlBE, slot, type, stack));
                     }
                 }
             }
@@ -1674,6 +1724,32 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         }
                     }
                 }
+
+                if (toConsume > 0) {
+                    for (int i = 0; i < bowlEssenceSlots.size(); i++) {
+                        if (toConsume <= 0) break;
+                        BowlEssenceReference ref = bowlEssenceSlots.get(i);
+                        if (requiredType == EssenceType.REGULAR || ref.essenceType() == requiredType) {
+                            ItemStack s = ref.bowlBE().inventory.getItem(ref.slot());
+                            if (!s.isEmpty()) {
+                                int available = s.getCount();
+                                int consumed = Math.min(toConsume, available);
+                                s.shrink(consumed);
+                                ref.bowlBE().inventory.setItem(ref.slot(), s.isEmpty() ? ItemStack.EMPTY : s);
+                                ref.bowlBE().setChanged();
+                                level.sendBlockUpdated(ref.bowlBE().getBlockPos(), ref.bowlBE().getBlockState(), ref.bowlBE().getBlockState(), 3);
+
+                                spawnFloatingItemEffect(level, ref.bowlBE().getBlockPos(), outputPos);
+
+                                toConsume -= consumed;
+                                if (ref.bowlBE().inventory.getItem(ref.slot()).isEmpty()) {
+                                    bowlEssenceSlots.remove(i);
+                                    i--;
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // 4. Start ritual processing at output node position
@@ -1782,6 +1858,12 @@ public class ScribedChalkBlock extends BaseEntityBlock {
     public record BowlSlotReference(
         ddraig.net.entropica.block.entity.RitualBowlBlockEntity bowlBE,
         int slot,
+        ItemStack stack
+    ) {}
+    public record BowlEssenceReference(
+        ddraig.net.entropica.block.entity.RitualBowlBlockEntity bowlBE,
+        int slot,
+        EssenceType essenceType,
         ItemStack stack
     ) {}
 

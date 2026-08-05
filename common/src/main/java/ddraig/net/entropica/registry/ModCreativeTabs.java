@@ -164,6 +164,7 @@ public class ModCreativeTabs {
                 output.accept(ModBlocks.CRUCIBLE.get());
                 output.accept(ModBlocks.MARBLE_RITUAL_BOWL.get()); // Ritual Bowls
                 output.accept(ModBlocks.BASALT_RITUAL_BOWL.get());
+                output.accept(ModBlocks.GRANITE_RITUAL_BOWL.get());
                 output.accept(ModItems.SPELL_GEM.get());
 
                 // Weapon Cores

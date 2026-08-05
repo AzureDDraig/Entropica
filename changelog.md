@@ -1,5 +1,22 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-217-16-07 (August 5, 2026 Update)
+
+### New Feature: Granite Ritual Bowl (Passive Essence Extractor & Essence Supplier)
+
+* **Granite Ritual Bowl (`granite_ritual_bowl`)**:
+  - Registered `GRANITE_RITUAL_BOWL` in `ModBlocks.java`, `ModItems.java`, `ModBlockEntities.java`, and `ModCreativeTabs.java`.
+  - Uses the same 3D Blockbench model geometry as Marble/Basalt bowls, retextured with authentic Granite map textures (`ritual_bowl_granite.png`).
+* **Passive Essence Burning & Supply System**:
+  - **Granite Ritual Bowls** passively dissolve items placed into slot 0 into `Weak Essence` items stored in output slots 1..4.
+  - Scribed Magic Circles and Magic Circuits within 3 blocks automatically pull required essence types directly from nearby Granite Ritual Bowls, executing parabolic floating essence particle trajectories upon recipe completion!
+* **Complete Symmetrical Ritual Bowl Triad**:
+  - **Marble Ritual Bowl**: Holds Item Inputs.
+  - **Basalt Ritual Bowl**: Holds Runes.
+  - **Granite Ritual Bowl**: Extracts & Supplies Essences.
+
+---
+
 ## Build 000-1-26-217-16-04 (August 5, 2026 Update)
 
 ### Fixed & Deployed: Ritual Bowl Item Storage (Disabled Passive Essence Burning)

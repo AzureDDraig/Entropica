@@ -296,6 +296,7 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("ritual_bowl", () ->
                     BlockEntityHelper.create(RitualBowlBlockEntity::new,
                             ModBlocks.MARBLE_RITUAL_BOWL.get(),
-                            ModBlocks.BASALT_RITUAL_BOWL.get()
+                            ModBlocks.BASALT_RITUAL_BOWL.get(),
+                            ModBlocks.GRANITE_RITUAL_BOWL.get()
                     ));
 }

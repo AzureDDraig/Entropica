@@ -24,6 +24,17 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class RitualBowlBlock extends BaseEntityBlock {
+    public enum BowlVariant implements net.minecraft.util.StringRepresentable {
+        MARBLE("marble"),
+        BASALT("basalt"),
+        GRANITE("granite");
+
+        private final String name;
+        BowlVariant(String name) { this.name = name; }
+        @Override public String getSerializedName() { return this.name; }
+    }
+
+    public final BowlVariant variant;
     public final boolean isBasalt;
 
     public static final MapCodec<RitualBowlBlock> CODEC = RecordCodecBuilder.mapCodec(instance ->
@@ -36,8 +47,13 @@ public class RitualBowlBlock extends BaseEntityBlock {
     private static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 5.0D, 14.0D);
 
     public RitualBowlBlock(boolean isBasalt, Properties properties) {
+        this(isBasalt ? BowlVariant.BASALT : BowlVariant.MARBLE, properties);
+    }
+
+    public RitualBowlBlock(BowlVariant variant, Properties properties) {
         super(properties);
-        this.isBasalt = isBasalt;
+        this.variant = variant;
+        this.isBasalt = (variant == BowlVariant.BASALT);
     }
 
     @Override

@@ -52,9 +52,66 @@ public class RitualBowlBlockEntity extends BlockEntity {
         }
     }
 
+    public ddraig.net.entropica.block.RitualBowlBlock.BowlVariant getVariant() {
+        if (this.getBlockState().getBlock() instanceof ddraig.net.entropica.block.RitualBowlBlock bowl) {
+            return bowl.variant;
+        }
+        return ddraig.net.entropica.block.RitualBowlBlock.BowlVariant.MARBLE;
+    }
+
     public void tick(Level level, BlockPos pos, BlockState state) {
-        // Ritual bowls hold items and runes safely without passively burning them.
-        // Essence extraction is handled by the Crucible.
+        if (level.isClientSide()) return;
+
+        // Granite Ritual Bowls passively burn items in slot 0 into Essence items (output slots 1..4)
+        if (getVariant() == ddraig.net.entropica.block.RitualBowlBlock.BowlVariant.GRANITE) {
+            ItemStack inputStack = inventory.getItem(0);
+
+            if (!inputStack.isEmpty()) {
+                List<ItemEssenceMap.EssenceValue> values = ItemEssenceMap.getEssenceFor(inputStack);
+
+                if (!values.isEmpty()) {
+                    this.burningProgress++;
+                    if (this.burningProgress >= this.maxBurningTime) {
+
+                        List<ItemStack> toOutput = new ArrayList<>();
+
+                        for (ItemEssenceMap.EssenceValue val : values) {
+                            int count = (int) val.amount();
+                            if (level.random.nextFloat() < (val.amount() - count)) {
+                                count++;
+                            }
+                            if (count > 0) {
+                                ItemStack essence = new ItemStack(ModItems.WEAK_ESSENCE.get(), count);
+                                EssenceItem.setEssenceType(essence, val.type());
+                                toOutput.add(essence);
+                            }
+                        }
+
+                        if (toOutput.isEmpty()) {
+                            inputStack.shrink(1);
+                            inventory.setItem(0, inputStack.isEmpty() ? ItemStack.EMPTY : inputStack);
+                            this.burningProgress = 0;
+                            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.1F, 2.0F);
+                            this.setChanged();
+                        } else if (canFitOutputs(toOutput)) {
+                            mergeOutputs(toOutput);
+                            inputStack.shrink(1);
+                            inventory.setItem(0, inputStack.isEmpty() ? ItemStack.EMPTY : inputStack);
+                            this.burningProgress = 0;
+                            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.1F, 2.0F);
+                            level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 0.4F, 1.4F);
+                            this.setChanged();
+                        } else {
+                            this.burningProgress = this.maxBurningTime - 1;
+                        }
+                    }
+                } else {
+                    this.burningProgress = 0;
+                }
+            } else {
+                this.burningProgress = 0;
+            }
+        }
     }
 
     private boolean canFitOutputs(List<ItemStack> outputs) {

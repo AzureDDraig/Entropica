@@ -529,6 +529,7 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> CRUCIBLE_ITEM = ITEMS.registerItem("crucible", properties -> new BlockItem(ModBlocks.CRUCIBLE.get(), properties));
     public static final RegistrySupplier<BlockItem> MARBLE_RITUAL_BOWL_ITEM = ITEMS.registerItem("marble_ritual_bowl", properties -> new BlockItem(ModBlocks.MARBLE_RITUAL_BOWL.get(), properties));
     public static final RegistrySupplier<BlockItem> BASALT_RITUAL_BOWL_ITEM = ITEMS.registerItem("basalt_ritual_bowl", properties -> new BlockItem(ModBlocks.BASALT_RITUAL_BOWL.get(), properties));
+    public static final RegistrySupplier<BlockItem> GRANITE_RITUAL_BOWL_ITEM = ITEMS.registerItem("granite_ritual_bowl", properties -> new BlockItem(ModBlocks.GRANITE_RITUAL_BOWL.get(), properties));
 
     // --- RITUAL CHALK ---
     public static final RegistrySupplier<ddraig.net.entropica.item.ChalkItem> CHALK = ITEMS.registerItem("chalk", properties -> new ddraig.net.entropica.item.ChalkItem(properties.durability(32), 1, false));
