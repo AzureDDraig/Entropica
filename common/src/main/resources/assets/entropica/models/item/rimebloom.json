@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:block/rimebloom_stem",
+    "layer1": "entropica:block/rimebloom_head"
+  }
+}

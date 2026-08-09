@@ -184,6 +184,8 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.SCRIBED_CHALK_BE.get(), ScribedChalkRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.SCRIBING_CONTROLLER_BE.get(), ScribingControllerRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.VISCANITE_PISTON_PRESS_BE.get(), ViscanitePistonPressRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.MATERIA_BLESSING_BE.get(), MateriaBlessingRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.RUBBER_LOG_BE.get(), ddraig.net.entropica.client.renderer.RubberLogBlockEntityRenderer::new);
 
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
@@ -207,7 +209,11 @@ public class ModClientEvents {
     @SubscribeEvent
     public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ModParticles.FUME_PARTICLE.get(), FumeParticle.Provider::new);
+        event.registerSpriteSet(ModParticles.SPECTRUM_SPARKLE.get(), ddraig.net.entropica.client.particle.SpectrumSparkleParticle.Provider::new);
+        event.registerSpriteSet(ModParticles.GALE_SWIRL_PUFF.get(), ddraig.net.entropica.client.particle.GaleSwirlPuffParticle.Provider::new);
     }
+
+
 
     @SubscribeEvent
     public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
@@ -273,8 +279,11 @@ public class ModClientEvents {
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "generator_tint"), ModItemTintSources.GeneratorTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "fume_glass_tint"), ModItemTintSources.FumeGlassTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "essence_tint"), ModItemTintSources.EssenceTint.MAP_CODEC);
+        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "shard_tint"), ModItemTintSources.ShardTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "aesthetic_glass_tint"), ModItemTintSources.AestheticGlassTint.MAP_CODEC);
+        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "spectral_dye_tint"), ModItemTintSources.SpectralDyeTint.MAP_CODEC);
     }
+
 
     @SubscribeEvent
     public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {

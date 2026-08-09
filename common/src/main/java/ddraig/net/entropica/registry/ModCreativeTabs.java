@@ -24,7 +24,7 @@ public class ModCreativeTabs {
             .displayItems((parameters, output) -> {
                 ModBlocks.BLOCKS.getEntries().forEach(blockHolder -> {
                     Item blockItem = blockHolder.get().asItem();
-                    if (blockItem != Items.AIR && !isLogisticsItem(blockItem) && !isAestheticItem(blockItem)) {
+                    if (blockItem != Items.AIR && !isLogisticsItem(blockItem) && !isAestheticItem(blockItem) && !isWorldItem(blockItem)) {
                         output.accept(blockItem);
                     }
                 });
@@ -131,6 +131,7 @@ public class ModCreativeTabs {
             .icon(() -> ModItems.WHISPERWOOD_WAND.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(ModItems.BASALT_PICKAXE.get());
+                output.accept(ModItems.RUBBER_TAP.get());
                 output.accept(ModItems.WHISPERWOOD_WAND.get());
                 output.accept(ModItems.SHIMMERING_FOCUS.get());
                 output.accept(ModItems.AETHERIC_MONOCLE.get());
@@ -275,8 +276,145 @@ public class ModCreativeTabs {
                 ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_ITEMS.forEach(itemSup -> output.accept(itemSup.get()));
             }).build());
 
+    public static final RegistrySupplier<CreativeModeTab> WORLD_TAB = CREATIVE_MODE_TABS.register("world_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.BOTTOM, 1)
+            .title(Component.translatable("itemGroup.entropica.world"))
+            .icon(() -> ModItems.GREATER_MATERIA_BLESSING_ITEM.get().getDefaultInstance())
+            .displayItems((parameters, output) -> {
+                // Materia Blessings
+                output.accept(ModItems.MATERIA_BLESSING_ITEM.get());
+                output.accept(ModItems.GREATER_MATERIA_BLESSING_ITEM.get());
+
+                // Ores
+                output.accept(ModBlocks.ENTROPIC_ORE.get().asItem());
+                if (ModItems.VORPALITE_ORE_ITEM.get() != null) output.accept(ModItems.VORPALITE_ORE_ITEM.get());
+                if (ModItems.SORROWSTONE_ORE_ITEM.get() != null) output.accept(ModItems.SORROWSTONE_ORE_ITEM.get());
+                if (ModItems.UMBRALITE_ORE_ITEM.get() != null) output.accept(ModItems.UMBRALITE_ORE_ITEM.get());
+
+                // Aeterium Crystals & Buds
+                output.accept(ModItems.AETERIUM_CRYSTAL_BLOCK_ITEM.get());
+                output.accept(ModItems.BUDDING_AETERIUM_ITEM.get());
+                output.accept(ModItems.AETERIUM_CLUSTER_ITEM.get());
+                output.accept(ModItems.LARGE_AETERIUM_BUD_ITEM.get());
+                output.accept(ModItems.MEDIUM_AETERIUM_BUD_ITEM.get());
+                output.accept(ModItems.SMALL_AETERIUM_BUD_ITEM.get());
+
+                // Ignisite Crystals & Buds
+                output.accept(ModItems.IGNISITE_CRYSTAL_BLOCK_ITEM.get());
+                output.accept(ModItems.BUDDING_IGNISITE_ITEM.get());
+                output.accept(ModItems.IGNISITE_CLUSTER_ITEM.get());
+                output.accept(ModItems.LARGE_IGNISITE_BUD_ITEM.get());
+                output.accept(ModItems.MEDIUM_IGNISITE_BUD_ITEM.get());
+                output.accept(ModItems.SMALL_IGNISITE_BUD_ITEM.get());
+
+                // Mortisite Crystals & Buds
+                output.accept(ModItems.MORTISITE_CRYSTAL_BLOCK_ITEM.get());
+                output.accept(ModItems.BUDDING_MORTISITE_ITEM.get());
+                output.accept(ModItems.MORTISITE_CLUSTER_ITEM.get());
+                output.accept(ModItems.LARGE_MORTISITE_BUD_ITEM.get());
+                output.accept(ModItems.MEDIUM_MORTISITE_BUD_ITEM.get());
+                output.accept(ModItems.SMALL_MORTISITE_BUD_ITEM.get());
+
+                // Flora & Plants
+                output.accept(ModItems.RUBBER_LOG_ITEM.get());
+                output.accept(ModItems.RUBBER_WOOD_ITEM.get());
+                output.accept(ModItems.STRIPPED_RUBBER_LOG_ITEM.get());
+                output.accept(ModItems.STRIPPED_RUBBER_WOOD_ITEM.get());
+                output.accept(ModItems.RUBBER_PLANKS_ITEM.get());
+                output.accept(ModItems.RUBBER_LEAVES_ITEM.get());
+                output.accept(ModItems.RUBBER_SAPLING_ITEM.get());
+                output.accept(ModItems.RAW_RUBBER.get());
+                output.accept(ModItems.SHIMMERPETAL_ITEM.get());
+                output.accept(ModItems.SILVER_PINE_LOG_ITEM.get());
+                output.accept(ModItems.SILVER_PINE_WOOD_ITEM.get());
+                output.accept(ModItems.STRIPPED_SILVER_PINE_LOG_ITEM.get());
+                output.accept(ModItems.STRIPPED_SILVER_PINE_WOOD_ITEM.get());
+                output.accept(ModItems.SILVER_PINE_PLANKS_ITEM.get());
+                output.accept(ModItems.SILVER_PINE_LEAVES_ITEM.get());
+                output.accept(ModItems.SILVER_PINE_SAPLING_ITEM.get());
+                output.accept(ModItems.RIMEBLOOM_ITEM.get());
+                output.accept(ModItems.AEGIS_ROSE_ITEM.get());
+                output.accept(ModItems.AEGIS_ROSE_PETALS.get());
+                output.accept(ModItems.AMBER_NECTAR_BLOSSOM_ITEM.get());
+                output.accept(ModItems.AMBER_NECTAR_CUP.get());
+                output.accept(ModItems.AMBER_NECTAR.get());
+                output.accept(ModItems.SOUL_FLAME_ORCHID_ITEM.get());
+                output.accept(ModItems.SOUL_FLAME_PETAL.get());
+                output.accept(ModItems.SOULFIRE_NECTAR.get());
+                output.accept(ModItems.AURORAL_BUTTERCUP_ITEM.get());
+                output.accept(ModItems.AURORAL_PETAL.get());
+                output.accept(ModItems.AURORAL_POLLEN.get());
+                output.accept(ModItems.STARDUST_BELL_ITEM.get());
+                output.accept(ModItems.STARDUST_BELL_PETAL.get());
+                output.accept(ModItems.STARDUST_NECTAR.get());
+                output.accept(ModItems.FULGURITE_SWAMP_BLOOM_ITEM.get());
+                output.accept(ModItems.FULGURITE_PETAL.get());
+                output.accept(ModItems.FULGURITE_STIGMA.get());
+                output.accept(ModItems.GALE_BLOOM_DANDELION_ITEM.get());
+                output.accept(ModItems.GALE_SPORE_PUFF.get());
+                output.accept(ModItems.GALE_POPPED_SPORE.get());
+                output.accept(ModItems.CRYO_STATIC_SHRUB_ITEM.get());
+                output.accept(ModItems.CRYO_STATIC_TWIG.get());
+                output.accept(ModItems.CRYO_STATIC_LEAF.get());
+                output.accept(ModItems.CRYO_STATIC_ROOTLING.get());
+                output.accept(ModItems.VITREOUS_CACTUS_ITEM.get());
+                output.accept(ModItems.VITREOUS_NEEDLE.get());
+                output.accept(ModItems.VITREOUS_CACTUS_FLESH.get());
+                output.accept(ModItems.BARROW_MOSS_ITEM.get());
+                output.accept(ModItems.BARROW_MOSS_CARPET_ITEM.get());
+                output.accept(ModItems.BARROW_MOSS_FIBER.get());
+
+
+
+
+
+
+
+
+
+
+                // Dynamic Spectral Dye Category
+                for (var dyeSupplier : ModItems.SPECTRAL_DYES.values()) {
+                    output.accept(dyeSupplier.get());
+                }
+
+
+
+
+                // Indigenous Fauna Spawn Eggs
+                output.accept(ModItems.GROT_SPAWN_EGG.get());
+                output.accept(ModItems.VEIL_FOX_SPAWN_EGG.get());
+                output.accept(ModItems.ASHEN_STALKER_SPAWN_EGG.get());
+                output.accept(ModItems.SPORE_DRIFTER_SPAWN_EGG.get());
+                output.accept(ModItems.RIME_BACK_OVIS_SPAWN_EGG.get());
+                output.accept(ModItems.OVERGROWTH_OVIS_SPAWN_EGG.get());
+                output.accept(ModItems.RIME_SHEPHERD_SPAWN_EGG.get());
+                output.accept(ModItems.BLOOM_CRAWLER_SPAWN_EGG.get());
+            }).build());
+
     private static boolean isAestheticItem(Item item) {
         return ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_ITEMS.stream().anyMatch(sup -> sup.get() == item);
+    }
+
+    private static boolean isWorldItem(Item item) {
+        net.minecraft.resources.ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
+        if (key == null) return false;
+        String path = key.getPath();
+
+        // Strictly exclude machine cores, glass, machines, and pipes
+        if (path.contains("core") || path.contains("glass") || path.contains("machine") || path.contains("pipe")) {
+            return false;
+        }
+
+        return path.equals("materia_blessing") ||
+               path.equals("greater_materia_blessing") ||
+               path.endsWith("_ore") ||
+               path.contains("aeterium") ||
+               path.contains("ignisite") ||
+               path.contains("mortisite") ||
+               path.contains("rubber_tree") ||
+               path.contains("blossom") ||
+               path.contains("sapling") ||
+               path.contains("spawn_egg");
     }
 
 }

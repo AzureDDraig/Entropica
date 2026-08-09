@@ -13,6 +13,9 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.AmethystBlock;
 import net.minecraft.world.level.block.BuddingAmethystBlock;
 import net.minecraft.world.level.block.AmethystClusterBlock;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 
@@ -245,6 +248,47 @@ public class ModBlocks {
     public static final RegistrySupplier<MateriaSimpleMachineBlock> MATERIA_SIMPLE_MACHINE_BLOCK = BLOCKS.register("materia_simple_machine_block", name -> new MateriaSimpleMachineBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final RegistrySupplier<MateriaComplexMachineBlock> MATERIA_COMPLEX_MACHINE_BLOCK = BLOCKS.register("materia_complex_machine_block", name -> new MateriaComplexMachineBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(4.0f).requiresCorrectToolForDrops()));
 
+    // --- Flora & Wood ---
+    public static final RegistrySupplier<Block> RUBBER_LOG = BLOCKS.register("rubber_log", name -> new ddraig.net.entropica.block.RubberLogBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD).randomTicks()));
+    public static final RegistrySupplier<Block> RUBBER_WOOD = BLOCKS.register("rubber_wood", name -> new RotatedPillarBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD)));
+    public static final RegistrySupplier<Block> STRIPPED_RUBBER_LOG = BLOCKS.register("stripped_rubber_log", name -> new RotatedPillarBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD)));
+    public static final RegistrySupplier<Block> STRIPPED_RUBBER_WOOD = BLOCKS.register("stripped_rubber_wood", name -> new RotatedPillarBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD)));
+    public static final RegistrySupplier<Block> RUBBER_PLANKS = BLOCKS.register("rubber_planks", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD)));
+    public static final RegistrySupplier<Block> RUBBER_LEAVES = BLOCKS.register("rubber_leaves", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.PLANT).destroyTime(0.2f).sound(SoundType.GRASS).noOcclusion().isSuffocating((state, level, pos) -> false).isViewBlocking((state, level, pos) -> false)));
+    public static final RegistrySupplier<Block> RUBBER_SAPLING = BLOCKS.register("rubber_sapling", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.PLANT).noCollision().instabreak().sound(SoundType.GRASS).noOcclusion()));
+    public static final RegistrySupplier<Block> SHIMMERPETAL = BLOCKS.register("shimmerpetal", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 10).noOcclusion()));
+
+    // --- Silver Pine Wood Set & Rimebloom ---
+    public static final RegistrySupplier<Block> SILVER_PINE_LOG = BLOCKS.register("silver_pine_log", name -> new RotatedPillarBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD)));
+    public static final RegistrySupplier<Block> SILVER_PINE_WOOD = BLOCKS.register("silver_pine_wood", name -> new RotatedPillarBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD)));
+    public static final RegistrySupplier<Block> STRIPPED_SILVER_PINE_LOG = BLOCKS.register("stripped_silver_pine_log", name -> new RotatedPillarBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD)));
+    public static final RegistrySupplier<Block> STRIPPED_SILVER_PINE_WOOD = BLOCKS.register("stripped_silver_pine_wood", name -> new RotatedPillarBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD)));
+    public static final RegistrySupplier<Block> SILVER_PINE_PLANKS = BLOCKS.register("silver_pine_planks", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).destroyTime(2.0f).sound(SoundType.WOOD)));
+    public static final RegistrySupplier<Block> SILVER_PINE_LEAVES = BLOCKS.register("silver_pine_leaves", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.PLANT).destroyTime(0.2f).sound(SoundType.GRASS).noOcclusion().isSuffocating((state, level, pos) -> false).isViewBlocking((state, level, pos) -> false)));
+    public static final RegistrySupplier<Block> SILVER_PINE_SAPLING = BLOCKS.register("silver_pine_sapling", name -> new Block(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.PLANT).noCollision().instabreak().sound(SoundType.GRASS).noOcclusion()));
+    public static final RegistrySupplier<Block> RIMEBLOOM = BLOCKS.register("rimebloom", name -> new ddraig.net.entropica.block.EntropicaFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 3).noOcclusion()));
+    public static final RegistrySupplier<Block> AEGIS_ROSE = BLOCKS.register("aegis_rose", name -> new ddraig.net.entropica.block.EntropicaFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLUE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 6).noOcclusion()));
+    public static final RegistrySupplier<Block> AMBER_NECTAR_BLOSSOM = BLOCKS.register("amber_nectar_blossom", name -> new ddraig.net.entropica.block.EntropicaFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_ORANGE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 5).noOcclusion()));
+
+    public static final RegistrySupplier<Block> SOUL_FLAME_ORCHID = BLOCKS.register("soul_flame_orchid", name -> new ddraig.net.entropica.block.SoulFlameOrchidBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 9).noOcclusion()));
+    public static final RegistrySupplier<Block> AURORAL_BUTTERCUP = BLOCKS.register("auroral_buttercup", name -> new ddraig.net.entropica.block.AuroralButtercupBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_MAGENTA).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 7).noOcclusion()));
+    public static final RegistrySupplier<Block> STARDUST_BELL = BLOCKS.register("stardust_bell", name -> new ddraig.net.entropica.block.StardustBellBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLUE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 10).noOcclusion()));
+    public static final RegistrySupplier<Block> FULGURITE_SWAMP_BLOOM = BLOCKS.register("fulgurite_swamp_bloom", name -> new ddraig.net.entropica.block.FulguriteSwampBloomBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).noOcclusion()));
+    public static final RegistrySupplier<Block> GALE_BLOOM_DANDELION = BLOCKS.register("gale_bloom_dandelion", name -> new ddraig.net.entropica.block.GaleBloomDandelionBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_GRAY).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 4).noOcclusion()));
+    public static final RegistrySupplier<Block> CRYO_STATIC_SHRUB = BLOCKS.register("cryo_static_shrub", name -> new ddraig.net.entropica.block.CryoStaticShrubBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 5).noOcclusion()));
+    public static final RegistrySupplier<Block> VITREOUS_CACTUS = BLOCKS.register("vitreous_cactus", name -> new ddraig.net.entropica.block.VitreousCactusBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_GREEN).noCollision().instabreak().sound(SoundType.WOOL).randomTicks().lightLevel(state -> 6).noOcclusion()));
+    public static final RegistrySupplier<Block> BARROW_MOSS = BLOCKS.register("barrow_moss", name -> new ddraig.net.entropica.block.BarrowMossBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_EMERALD).sound(SoundType.MOSS).lightLevel(state -> 7)));
+    public static final RegistrySupplier<Block> BARROW_MOSS_CARPET = BLOCKS.register("barrow_moss_carpet", name -> new ddraig.net.entropica.block.BarrowMossCarpetBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_EMERALD).noCollision().instabreak().sound(SoundType.MOSS_CARPET).lightLevel(state -> 7).noOcclusion()));
+
+
+
+
+
+
+
+
+
+
     public static final RegistrySupplier<VaporPneumaticInputPortBlock> VAPOR_PNEUMATIC_INPUT_PORT = BLOCKS.register("vapor_pneumatic_input_port", name -> new VaporPneumaticInputPortBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final RegistrySupplier<HydraulicInputPortBlock> HYDRAULIC_INPUT_PORT = BLOCKS.register("hydraulic_input_port", name -> new HydraulicInputPortBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
     public static final RegistrySupplier<ExtractorOutputPortBlock> EXTRACTOR_OUTPUT_PORT = BLOCKS.register("extractor_output_port", name -> new ExtractorOutputPortBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.METAL).destroyTime(3.0f).requiresCorrectToolForDrops()));
@@ -286,6 +330,13 @@ public class ModBlocks {
 
     public static final RegistrySupplier<ddraig.net.entropica.block.EssenceRepulsionWardBlock> ESSENCE_REPULSION_WARD =
             BLOCKS.register("essence_repulsion_ward", name -> new ddraig.net.entropica.block.EssenceRepulsionWardBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(net.minecraft.world.level.material.MapColor.METAL).destroyTime(3.5f).requiresCorrectToolForDrops().noOcclusion()));
+
+    // --- MATERIA BLESSING ---
+    public static final RegistrySupplier<MateriaBlessingBlock> MATERIA_BLESSING =
+            BLOCKS.register("materia_blessing", name -> new MateriaBlessingBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(3.0f).explosionResistance(6.0f).noOcclusion().sound(SoundType.AMETHYST).lightLevel(state -> 8)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.GreaterMateriaBlessingBlock> GREATER_MATERIA_BLESSING =
+            BLOCKS.register("greater_materia_blessing", name -> new ddraig.net.entropica.block.GreaterMateriaBlessingBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).destroyTime(5.0f).explosionResistance(10.0f).noOcclusion().sound(SoundType.AMETHYST).lightLevel(state -> 12)));
 
     public static final List<RegistrySupplier<?>> SIMPLE_BLOCKS = List.of(
             ENTROPIC_ORE, VORPALITE_ORE, SORROWSTONE_ORE, UMBRALITE_ORE,

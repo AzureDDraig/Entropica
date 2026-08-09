@@ -206,6 +206,10 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("vapor_pneumatic_input_port", () ->
                     BlockEntityHelper.create(VaporPneumaticInputPortBlockEntity::new, ModBlocks.VAPOR_PNEUMATIC_INPUT_PORT.get()));
 
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.RubberLogBlockEntity>> RUBBER_LOG_BE =
+            BLOCK_ENTITIES.register("rubber_log", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.RubberLogBlockEntity::new, ModBlocks.RUBBER_LOG.get()));
+
     // --- MATERIA FUME PRESSURE VESSEL ---
     public static final RegistrySupplier<BlockEntityType<MateriaVesselControllerBlockEntity>> MATERIA_VESSEL_CONTROLLER_BE =
             BLOCK_ENTITIES.register("materia_vessel_controller", () ->
@@ -299,4 +303,11 @@ public class ModBlockEntities {
                             ModBlocks.BASALT_RITUAL_BOWL.get(),
                             ModBlocks.GRANITE_RITUAL_BOWL.get()
                     ));
+
+    // --- MATERIA BLESSING ---
+    public static final RegistrySupplier<BlockEntityType<MateriaBlessingBlockEntity>> MATERIA_BLESSING_BE =
+            BLOCK_ENTITIES.register("materia_blessing", () ->
+                    BlockEntityHelper.create(MateriaBlessingBlockEntity::new,
+                            ModBlocks.MATERIA_BLESSING.get(),
+                            ModBlocks.GREATER_MATERIA_BLESSING.get()));
 }

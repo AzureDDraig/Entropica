@@ -16,8 +16,11 @@ import ddraig.net.entropica.client.renderer.item.DynamicWeaponRenderer;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModEntityTypes;
+import ddraig.net.entropica.registry.ModItems;
 import ddraig.net.entropica.registry.ModMenuTypes;
+import ddraig.net.entropica.registry.ModParticles;
 import ddraig.net.entropica.registry.fabric.ModFluidsFabric;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
@@ -82,6 +85,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
         BlockEntityRenderers.register(ModBlockEntities.SCRIBED_CHALK_BE.get(), ScribedChalkRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.SCRIBING_CONTROLLER_BE.get(), ScribingControllerRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.VISCANITE_PISTON_PRESS_BE.get(), ViscanitePistonPressRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.MATERIA_BLESSING_BE.get(), MateriaBlessingRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.RUBBER_LOG_BE.get(), ddraig.net.entropica.client.renderer.RubberLogBlockEntityRenderer::new);
 
         // --- 2. Entity Renderers ---
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
@@ -97,6 +102,17 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntityTypes.OVERGROWTH_OVIS.get(), OvergrowthOvisRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.RIME_SHEPHERD.get(), RimeShepherdRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.BLOOM_CRAWLER.get(), BloomCrawlerRenderer::new);
+
+        dev.architectury.registry.client.particle.ParticleProviderRegistry.register(
+            ModParticles.SPECTRUM_SPARKLE.get(),
+            ddraig.net.entropica.client.particle.SpectrumSparkleParticle.Provider::new
+        );
+        dev.architectury.registry.client.particle.ParticleProviderRegistry.register(
+            ModParticles.GALE_SWIRL_PUFF.get(),
+            ddraig.net.entropica.client.particle.GaleSwirlPuffParticle.Provider::new
+        );
+
+
 
         // --- 3. Entity Layer Definitions ---
         EntityModelLayerRegistry.registerModelLayer(EidolicShadowModel.LAYER_LOCATION, EidolicShadowModel::createBodyLayer);
@@ -127,6 +143,9 @@ public class EntropicaClientFabric implements ClientModInitializer {
             }
             return 0xFFFFFF;
         }, ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_BLOCKS.stream().map(dev.architectury.registry.registries.RegistrySupplier::get).toArray(net.minecraft.world.level.block.Block[]::new));
+
+
+
 
         // --- 6. Custom Fluid Render Handler & Render Layer ---
         FluidRenderHandlerRegistry.INSTANCE.register(
@@ -208,6 +227,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "generator_tint"), ModItemTintSources.GeneratorTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "fume_glass_tint"), ModItemTintSources.FumeGlassTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "essence_tint"), ModItemTintSources.EssenceTint.MAP_CODEC);
+        registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "shard_tint"), ModItemTintSources.ShardTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "aesthetic_glass_tint"), ModItemTintSources.AestheticGlassTint.MAP_CODEC);
 
         // --- 8. Special Model Renderer ---

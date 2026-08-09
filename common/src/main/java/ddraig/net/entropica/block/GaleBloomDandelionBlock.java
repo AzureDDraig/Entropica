@@ -1,0 +1,58 @@
+package ddraig.net.entropica.block;
+
+import ddraig.net.entropica.registry.ModParticles;
+import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+
+public class GaleBloomDandelionBlock extends EntropicaFlowerBlock {
+    public GaleBloomDandelionBlock(Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!level.isClientSide) {
+            level.playSound(null, pos, SoundEvents.WIND_CHARGE_BURST, SoundSource.BLOCKS, 0.5f, 1.4f);
+        } else {
+            // Burst of swirling wind puff particles with Arid Essence cream/gold tinting
+            RandomSource random = level.getRandom();
+            for (int i = 0; i < 8; i++) {
+                double x = pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.6;
+                double y = pos.getY() + 0.6 + (random.nextDouble() - 0.5) * 0.4;
+                double z = pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.6;
+
+                // Arid Essence Tint: warm cream (#FDE68A) or soft ivory gold (#FEF3C7)
+                float r = 0.99f;
+                float g = random.nextBoolean() ? 0.90f : 0.95f;
+                float b = random.nextBoolean() ? 0.54f : 0.78f;
+
+                level.addParticle(ModParticles.GALE_SWIRL_PUFF.get(), x, y, z, r, g, b);
+            }
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        super.animateTick(state, level, pos, random);
+        if (random.nextInt(2) == 0) {
+            double x = pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.5;
+            double y = pos.getY() + 0.5 + (random.nextDouble() - 0.5) * 0.4;
+            double z = pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.5;
+
+            // Arid Essence warm cream tint
+            float r = 0.99f;
+            float g = random.nextBoolean() ? 0.90f : 0.95f;
+            float b = random.nextBoolean() ? 0.54f : 0.78f;
+
+            level.addParticle(ModParticles.GALE_SWIRL_PUFF.get(), x, y, z, r, g, b);
+        }
+    }
+}

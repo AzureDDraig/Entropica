@@ -1,0 +1,13 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "entropica:block/vitreous_cactus_side",
+    "top": "entropica:block/vitreous_cactus_top",
+    "bottom": "entropica:block/vitreous_cactus_bottom",
+    "side": "entropica:block/vitreous_cactus_side",
+    "north": "entropica:block/vitreous_cactus_side",
+    "south": "entropica:block/vitreous_cactus_side",
+    "east": "entropica:block/vitreous_cactus_side",
+    "west": "entropica:block/vitreous_cactus_side"
+  }
+}

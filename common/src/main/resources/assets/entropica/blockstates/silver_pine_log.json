@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "entropica:block/silver_pine_log"
+    },
+    "axis=z": {
+      "model": "entropica:block/silver_pine_log",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "entropica:block/silver_pine_log",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

@@ -62,6 +62,9 @@ public class ModItems {
     // Veil Fox Items
     public static final RegistrySupplier<Item> VEIL_SHARD = ITEMS.registerItem("veil_shard", Item::new);
 
+    public static final RegistrySupplier<Item> MATERIA_BLESSING_SHARD = ITEMS.registerItem("materia_blessing_shard", Item::new);
+    public static final RegistrySupplier<Item> RAW_RUBBER = ITEMS.registerItem("raw_rubber", Item::new);
+
     // --- Aetheric Vision Equipment ---
     public static final RegistrySupplier<Item> AETHERIC_MONOCLE = ITEMS.registerItem("aetheric_monocle", properties -> new ddraig.net.entropica.item.AethericVisionItem(
             properties.stacksTo(1).equippable(net.minecraft.world.entity.EquipmentSlot.HEAD)
@@ -350,9 +353,12 @@ public class ModItems {
     public static final RegistrySupplier<Item> VITAE_LENS = ITEMS.registerItem("vitae_lens", properties -> new ddraig.net.entropica.item.VitaeLensItem(properties));
     public static final RegistrySupplier<Item> MATERIA_LENS = ITEMS.registerItem("materia_lens", properties -> new ddraig.net.entropica.item.MateriaLensItem(properties));
     public static final RegistrySupplier<Item> ARKANIST_MONOCLE = ITEMS.registerItem("arkanist_monocle", properties -> new ddraig.net.entropica.item.ArkanistMonocleItem(properties));
+    public static final RegistrySupplier<Item> RUBBER_TAP = ITEMS.registerItem("rubber_tap", properties -> new ddraig.net.entropica.item.RubberTapItem(properties));
 
     // --- Block Items ---
     public static final RegistrySupplier<BlockItem> ENTROPIC_ORE_ITEM = ITEMS.registerItem("entropic_ore", properties -> new BlockItem(ModBlocks.ENTROPIC_ORE.get(), properties));
+    public static final RegistrySupplier<BlockItem> MATERIA_BLESSING_ITEM = ITEMS.registerItem("materia_blessing", properties -> new BlockItem(ModBlocks.MATERIA_BLESSING.get(), properties));
+    public static final RegistrySupplier<BlockItem> GREATER_MATERIA_BLESSING_ITEM = ITEMS.registerItem("greater_materia_blessing", properties -> new BlockItem(ModBlocks.GREATER_MATERIA_BLESSING.get(), properties));
     public static final RegistrySupplier<BlockItem> MATERIA_FURNACE_ITEM = ITEMS.registerItem("materia_furnace", properties -> new BlockItem(ModBlocks.MATERIA_FURNACE.get(), properties));
     public static final RegistrySupplier<BlockItem> ENTROPIC_AUTO_SMELTER_ITEM = ITEMS.registerItem("entropic_auto_smelter", properties -> new BlockItem(ModBlocks.ENTROPIC_AUTO_SMELTER.get(), properties));
 
@@ -525,6 +531,125 @@ public class ModItems {
     // --- Void Rifts Item ---
     public static final RegistrySupplier<BlockItem> VOID_RIFT_ITEM = ITEMS.registerItem("void_rift", properties -> new BlockItem(ModBlocks.VOID_RIFT.get(), properties));
 
+    // --- Flora & Wood BlockItems ---
+    public static final RegistrySupplier<BlockItem> RUBBER_LOG_ITEM = ITEMS.registerItem("rubber_log", properties -> new BlockItem(ModBlocks.RUBBER_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_WOOD_ITEM = ITEMS.registerItem("rubber_wood", properties -> new BlockItem(ModBlocks.RUBBER_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_RUBBER_LOG_ITEM = ITEMS.registerItem("stripped_rubber_log", properties -> new BlockItem(ModBlocks.STRIPPED_RUBBER_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_RUBBER_WOOD_ITEM = ITEMS.registerItem("stripped_rubber_wood", properties -> new BlockItem(ModBlocks.STRIPPED_RUBBER_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_PLANKS_ITEM = ITEMS.registerItem("rubber_planks", properties -> new BlockItem(ModBlocks.RUBBER_PLANKS.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_LEAVES_ITEM = ITEMS.registerItem("rubber_leaves", properties -> new BlockItem(ModBlocks.RUBBER_LEAVES.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_SAPLING_ITEM = ITEMS.registerItem("rubber_sapling", properties -> new BlockItem(ModBlocks.RUBBER_SAPLING.get(), properties));
+    public static final RegistrySupplier<BlockItem> SHIMMERPETAL_ITEM = ITEMS.registerItem("shimmerpetal", properties -> new BlockItem(ModBlocks.SHIMMERPETAL.get(), properties));
+
+    // --- Silver Pine Wood Set & Rimebloom Items ---
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_LOG_ITEM = ITEMS.registerItem("silver_pine_log", properties -> new BlockItem(ModBlocks.SILVER_PINE_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_WOOD_ITEM = ITEMS.registerItem("silver_pine_wood", properties -> new BlockItem(ModBlocks.SILVER_PINE_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_SILVER_PINE_LOG_ITEM = ITEMS.registerItem("stripped_silver_pine_log", properties -> new BlockItem(ModBlocks.STRIPPED_SILVER_PINE_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_SILVER_PINE_WOOD_ITEM = ITEMS.registerItem("stripped_silver_pine_wood", properties -> new BlockItem(ModBlocks.STRIPPED_SILVER_PINE_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_PLANKS_ITEM = ITEMS.registerItem("silver_pine_planks", properties -> new BlockItem(ModBlocks.SILVER_PINE_PLANKS.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_LEAVES_ITEM = ITEMS.registerItem("silver_pine_leaves", properties -> new BlockItem(ModBlocks.SILVER_PINE_LEAVES.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_SAPLING_ITEM = ITEMS.registerItem("silver_pine_sapling", properties -> new BlockItem(ModBlocks.SILVER_PINE_SAPLING.get(), properties));
+    
+    // --- Ores & Crystals BlockItems ---
+    public static final RegistrySupplier<BlockItem> VORPALITE_ORE_ITEM = ITEMS.registerItem("vorpalite_ore", properties -> new BlockItem(ModBlocks.VORPALITE_ORE.get(), properties));
+    public static final RegistrySupplier<BlockItem> SORROWSTONE_ORE_ITEM = ITEMS.registerItem("sorrowstone_ore", properties -> new BlockItem(ModBlocks.SORROWSTONE_ORE.get(), properties));
+    public static final RegistrySupplier<BlockItem> UMBRALITE_ORE_ITEM = ITEMS.registerItem("umbralite_ore", properties -> new BlockItem(ModBlocks.UMBRALITE_ORE.get(), properties));
+    public static final RegistrySupplier<BlockItem> SMALL_AETERIUM_BUD_ITEM = ITEMS.registerItem("small_aeterium_bud", properties -> new BlockItem(ModBlocks.SMALL_AETERIUM_BUD.get(), properties));
+    public static final RegistrySupplier<BlockItem> MEDIUM_AETERIUM_BUD_ITEM = ITEMS.registerItem("medium_aeterium_bud", properties -> new BlockItem(ModBlocks.MEDIUM_AETERIUM_BUD.get(), properties));
+    public static final RegistrySupplier<BlockItem> LARGE_AETERIUM_BUD_ITEM = ITEMS.registerItem("large_aeterium_bud", properties -> new BlockItem(ModBlocks.LARGE_AETERIUM_BUD.get(), properties));
+    public static final RegistrySupplier<BlockItem> AETERIUM_CLUSTER_ITEM = ITEMS.registerItem("aeterium_cluster", properties -> new BlockItem(ModBlocks.AETERIUM_CLUSTER.get(), properties));
+    public static final RegistrySupplier<BlockItem> BUDDING_AETERIUM_ITEM = ITEMS.registerItem("budding_aeterium", properties -> new BlockItem(ModBlocks.BUDDING_AETERIUM.get(), properties));
+    public static final RegistrySupplier<BlockItem> AETERIUM_CRYSTAL_BLOCK_ITEM = ITEMS.registerItem("aeterium_crystal_block", properties -> new BlockItem(ModBlocks.AETERIUM_CRYSTAL_BLOCK.get(), properties));
+    public static final RegistrySupplier<BlockItem> SMALL_IGNISITE_BUD_ITEM = ITEMS.registerItem("small_ignisite_bud", properties -> new BlockItem(ModBlocks.SMALL_IGNISITE_BUD.get(), properties));
+    public static final RegistrySupplier<BlockItem> MEDIUM_IGNISITE_BUD_ITEM = ITEMS.registerItem("medium_ignisite_bud", properties -> new BlockItem(ModBlocks.MEDIUM_IGNISITE_BUD.get(), properties));
+    public static final RegistrySupplier<BlockItem> LARGE_IGNISITE_BUD_ITEM = ITEMS.registerItem("large_ignisite_bud", properties -> new BlockItem(ModBlocks.LARGE_IGNISITE_BUD.get(), properties));
+    public static final RegistrySupplier<BlockItem> IGNISITE_CLUSTER_ITEM = ITEMS.registerItem("ignisite_cluster", properties -> new BlockItem(ModBlocks.IGNISITE_CLUSTER.get(), properties));
+    public static final RegistrySupplier<BlockItem> BUDDING_IGNISITE_ITEM = ITEMS.registerItem("budding_ignisite", properties -> new BlockItem(ModBlocks.BUDDING_IGNISITE.get(), properties));
+    public static final RegistrySupplier<BlockItem> IGNISITE_CRYSTAL_BLOCK_ITEM = ITEMS.registerItem("ignisite_crystal_block", properties -> new BlockItem(ModBlocks.IGNISITE_CRYSTAL_BLOCK.get(), properties));
+    public static final RegistrySupplier<BlockItem> SMALL_MORTISITE_BUD_ITEM = ITEMS.registerItem("small_mortisite_bud", properties -> new BlockItem(ModBlocks.SMALL_MORTISITE_BUD.get(), properties));
+    public static final RegistrySupplier<BlockItem> MEDIUM_MORTISITE_BUD_ITEM = ITEMS.registerItem("medium_mortisite_bud", properties -> new BlockItem(ModBlocks.MEDIUM_MORTISITE_BUD.get(), properties));
+    public static final RegistrySupplier<BlockItem> LARGE_MORTISITE_BUD_ITEM = ITEMS.registerItem("large_mortisite_bud", properties -> new BlockItem(ModBlocks.LARGE_MORTISITE_BUD.get(), properties));
+    public static final RegistrySupplier<BlockItem> MORTISITE_CLUSTER_ITEM = ITEMS.registerItem("mortisite_cluster", properties -> new BlockItem(ModBlocks.MORTISITE_CLUSTER.get(), properties));
+    public static final RegistrySupplier<BlockItem> BUDDING_MORTISITE_ITEM = ITEMS.registerItem("budding_mortisite", properties -> new BlockItem(ModBlocks.BUDDING_MORTISITE.get(), properties));
+    public static final RegistrySupplier<BlockItem> MORTISITE_CRYSTAL_BLOCK_ITEM = ITEMS.registerItem("mortisite_crystal_block", properties -> new BlockItem(ModBlocks.MORTISITE_CRYSTAL_BLOCK.get(), properties));
+    public static final RegistrySupplier<BlockItem> ESSENCE_REPULSION_WARD_ITEM = ITEMS.registerItem("essence_repulsion_ward", properties -> new BlockItem(ModBlocks.ESSENCE_REPULSION_WARD.get(), properties));
+    public static final RegistrySupplier<BlockItem> RIMEBLOOM_ITEM = ITEMS.registerItem("rimebloom", properties -> new BlockItem(ModBlocks.RIMEBLOOM.get(), properties));
+    public static final RegistrySupplier<BlockItem> AEGIS_ROSE_ITEM = ITEMS.registerItem("aegis_rose", properties -> new BlockItem(ModBlocks.AEGIS_ROSE.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_NECTAR_BLOSSOM_ITEM = ITEMS.registerItem("amber_nectar_blossom", properties -> new BlockItem(ModBlocks.AMBER_NECTAR_BLOSSOM.get(), properties));
+    public static final RegistrySupplier<BlockItem> SOUL_FLAME_ORCHID_ITEM = ITEMS.registerItem("soul_flame_orchid", properties -> new BlockItem(ModBlocks.SOUL_FLAME_ORCHID.get(), properties));
+    public static final RegistrySupplier<BlockItem> AURORAL_BUTTERCUP_ITEM = ITEMS.registerItem("auroral_buttercup", properties -> new BlockItem(ModBlocks.AURORAL_BUTTERCUP.get(), properties));
+    public static final RegistrySupplier<BlockItem> STARDUST_BELL_ITEM = ITEMS.registerItem("stardust_bell", properties -> new BlockItem(ModBlocks.STARDUST_BELL.get(), properties));
+    public static final RegistrySupplier<BlockItem> FULGURITE_SWAMP_BLOOM_ITEM = ITEMS.registerItem("fulgurite_swamp_bloom", properties -> new BlockItem(ModBlocks.FULGURITE_SWAMP_BLOOM.get(), properties));
+    public static final RegistrySupplier<BlockItem> GALE_BLOOM_DANDELION_ITEM = ITEMS.registerItem("gale_bloom_dandelion", properties -> new BlockItem(ModBlocks.GALE_BLOOM_DANDELION.get(), properties));
+    public static final RegistrySupplier<BlockItem> CRYO_STATIC_SHRUB_ITEM = ITEMS.registerItem("cryo_static_shrub", properties -> new BlockItem(ModBlocks.CRYO_STATIC_SHRUB.get(), properties));
+
+    // --- Flora & Botanical Items ---
+    public static final RegistrySupplier<Item> AEGIS_ROSE_PETALS = ITEMS.registerItem("aegis_rose_petals", Item::new);
+    public static final RegistrySupplier<Item> AMBER_NECTAR_CUP = ITEMS.registerItem("amber_nectar_cup", Item::new);
+    public static final RegistrySupplier<Item> AMBER_NECTAR = ITEMS.registerItem("amber_nectar", Item::new);
+    public static final RegistrySupplier<Item> SOUL_FLAME_PETAL = ITEMS.registerItem("soul_flame_petal", Item::new);
+    public static final RegistrySupplier<Item> SOULFIRE_NECTAR = ITEMS.registerItem("soulfire_nectar", Item::new);
+    public static final RegistrySupplier<Item> AURORAL_PETAL = ITEMS.registerItem("auroral_petal", Item::new);
+    public static final RegistrySupplier<Item> AURORAL_POLLEN = ITEMS.registerItem("auroral_pollen", Item::new);
+    public static final RegistrySupplier<Item> STARDUST_BELL_PETAL = ITEMS.registerItem("stardust_bell_petal", Item::new);
+    public static final RegistrySupplier<Item> STARDUST_NECTAR = ITEMS.registerItem("stardust_nectar", Item::new);
+    public static final RegistrySupplier<Item> FULGURITE_PETAL = ITEMS.registerItem("fulgurite_petal", Item::new);
+    public static final RegistrySupplier<Item> FULGURITE_STIGMA = ITEMS.registerItem("fulgurite_stigma", Item::new);
+    public static final RegistrySupplier<Item> GALE_SPORE_PUFF = ITEMS.registerItem("gale_spore_puff", Item::new);
+    public static final RegistrySupplier<Item> GALE_POPPED_SPORE = ITEMS.registerItem("gale_popped_spore", Item::new);
+    public static final RegistrySupplier<Item> CRYO_STATIC_TWIG = ITEMS.registerItem("cryo_static_twig", Item::new);
+    public static final RegistrySupplier<Item> CRYO_STATIC_LEAF = ITEMS.registerItem("cryo_static_leaf", Item::new);
+    public static final RegistrySupplier<Item> CRYO_STATIC_ROOTLING = ITEMS.registerItem("cryo_static_rootling", Item::new);
+
+    public static final RegistrySupplier<BlockItem> VITREOUS_CACTUS_ITEM = ITEMS.registerItem("vitreous_cactus", properties -> new BlockItem(ModBlocks.VITREOUS_CACTUS.get(), properties));
+    public static final RegistrySupplier<Item> VITREOUS_NEEDLE = ITEMS.registerItem("vitreous_needle", Item::new);
+    public static final RegistrySupplier<Item> VITREOUS_CACTUS_FLESH = ITEMS.registerItem("vitreous_cactus_flesh", Item::new);
+
+    public static final RegistrySupplier<BlockItem> BARROW_MOSS_ITEM = ITEMS.registerItem("barrow_moss", properties -> new BlockItem(ModBlocks.BARROW_MOSS.get(), properties));
+    public static final RegistrySupplier<BlockItem> BARROW_MOSS_CARPET_ITEM = ITEMS.registerItem("barrow_moss_carpet", properties -> new BlockItem(ModBlocks.BARROW_MOSS_CARPET.get(), properties));
+    public static final RegistrySupplier<Item> BARROW_MOSS_FIBER = ITEMS.registerItem("barrow_moss_fiber", Item::new);
+
+
+
+
+
+
+
+
+
+
+    // --- Dynamic Spectral Dye Category ---
+    public static final java.util.Map<String, RegistrySupplier<Item>> SPECTRAL_DYES = registerSpectralDyes();
+
+    private static java.util.Map<String, RegistrySupplier<Item>> registerSpectralDyes() {
+        java.util.Map<String, RegistrySupplier<Item>> map = new java.util.LinkedHashMap<>();
+        for (var dye : ddraig.net.entropica.api.SpectralDyeApi.getAllDyes().values()) {
+            String itemId = "spectral_dye_" + dye.id();
+            map.put(dye.id(), ITEMS.registerItem(itemId, properties -> new ddraig.net.entropica.item.SpectralDyeItem(properties, dye.id())));
+        }
+        return java.util.Collections.unmodifiableMap(map);
+    }
+
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_SOULFIRE = SPECTRAL_DYES.get("soulfire");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_AEGIS = SPECTRAL_DYES.get("aegis");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_AMBER = SPECTRAL_DYES.get("amber");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_SHIMMER = SPECTRAL_DYES.get("shimmer");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_FROST = SPECTRAL_DYES.get("frost");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_AURORAL = SPECTRAL_DYES.get("auroral");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_STARDUST = SPECTRAL_DYES.get("stardust");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_FULGURITE = SPECTRAL_DYES.get("fulgurite");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_GALE = SPECTRAL_DYES.get("gale");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_CRYO_STATIC = SPECTRAL_DYES.get("cryo_static");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_VITREOUS = SPECTRAL_DYES.get("vitreous");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_BARROW = SPECTRAL_DYES.get("barrow");
+
+
+
+
+
+
+
+
     // --- Crucible & Ritual Bowls Items ---
     public static final RegistrySupplier<BlockItem> CRUCIBLE_ITEM = ITEMS.registerItem("crucible", properties -> new BlockItem(ModBlocks.CRUCIBLE.get(), properties));
     public static final RegistrySupplier<BlockItem> MARBLE_RITUAL_BOWL_ITEM = ITEMS.registerItem("marble_ritual_bowl", properties -> new BlockItem(ModBlocks.MARBLE_RITUAL_BOWL.get(), properties));
@@ -584,6 +709,16 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> ARCANE_LOOM_ITEM = ITEMS.registerItem("arcane_loom", properties -> new BlockItem(ModBlocks.ARCANE_LOOM.get(), properties));
     public static final RegistrySupplier<BlockItem> ESSENCE_FORGE_ITEM = ITEMS.registerItem("essence_forge", properties -> new BlockItem(ModBlocks.ESSENCE_FORGE.get(), properties));
     public static final RegistrySupplier<BlockItem> ARCANE_ANVIL_ITEM = ITEMS.registerItem("arcane_anvil", properties -> new BlockItem(ModBlocks.ARCANE_ANVIL.get(), properties));
+
+    // --- FAUNA SPAWN EGGS ---
+    public static final RegistrySupplier<Item> GROT_SPAWN_EGG = ITEMS.registerItem("grot_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.GROT, properties));
+    public static final RegistrySupplier<Item> VEIL_FOX_SPAWN_EGG = ITEMS.registerItem("veil_fox_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.VEIL_FOX, properties));
+    public static final RegistrySupplier<Item> ASHEN_STALKER_SPAWN_EGG = ITEMS.registerItem("ashen_stalker_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.ASHEN_STALKER, properties));
+    public static final RegistrySupplier<Item> SPORE_DRIFTER_SPAWN_EGG = ITEMS.registerItem("spore_drifter_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.SPORE_DRIFTER, properties));
+    public static final RegistrySupplier<Item> RIME_BACK_OVIS_SPAWN_EGG = ITEMS.registerItem("rime_back_ovis_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.RIME_BACK_OVIS, properties));
+    public static final RegistrySupplier<Item> OVERGROWTH_OVIS_SPAWN_EGG = ITEMS.registerItem("overgrowth_ovis_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.OVERGROWTH_OVIS, properties));
+    public static final RegistrySupplier<Item> RIME_SHEPHERD_SPAWN_EGG = ITEMS.registerItem("rime_shepherd_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.RIME_SHEPHERD, properties));
+    public static final RegistrySupplier<Item> BLOOM_CRAWLER_SPAWN_EGG = ITEMS.registerItem("bloom_crawler_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.BLOOM_CRAWLER, properties));
 
     // ==========================================
     // DATAGEN ITEM LIST

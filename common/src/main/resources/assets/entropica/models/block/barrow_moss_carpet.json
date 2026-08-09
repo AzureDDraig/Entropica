@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/carpet",
+  "textures": {
+    "wool": "entropica:block/barrow_moss",
+    "particle": "entropica:block/barrow_moss"
+  }
+}

@@ -6,7 +6,7 @@ import ddraig.net.entropica.client.particle.FumeParticleOption;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -24,4 +24,7 @@ public class ModParticles {
             return FumeParticleOption.STREAM_CODEC;
         }
     });
+
+    public static final RegistrySupplier<SimpleParticleType> SPECTRUM_SPARKLE = PARTICLES.register("spectrum_sparkle", () -> new SimpleParticleType(false) {});
+    public static final RegistrySupplier<SimpleParticleType> GALE_SWIRL_PUFF = PARTICLES.register("gale_swirl_puff", () -> new SimpleParticleType(false) {});
 }

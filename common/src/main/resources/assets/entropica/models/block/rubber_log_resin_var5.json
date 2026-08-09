@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "entropica:block/rubber_log",
+    "up": "entropica:block/rubber_log_top",
+    "down": "entropica:block/rubber_log_top",
+    "north": "entropica:block/rubber_log_resin_var5",
+    "east": "entropica:block/rubber_log",
+    "south": "entropica:block/rubber_log",
+    "west": "entropica:block/rubber_log"
+  }
+}

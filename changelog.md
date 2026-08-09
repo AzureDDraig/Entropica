@@ -1,5 +1,261 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-220-20-21 (August 8, 2026 Complete Botanical Flora, Animated Particles, Spectral Dyes & Barrow Mechanics Overhaul)
+
+### 🌿 Botanical Flora Expansion (12 Species)
+- **Shimmerpetal (`shimmerpetal`)**: 32x32 radiant flower emitting silver Materia sparkles.
+- **Rimebloom (`rimebloom`)**: 32x32 glacial flower emitting frost blue sparkles.
+- **Aegis Rose (`aegis_rose`)**: 32x32 protective rose dropping Aegis Crystal Petals.
+- **Amber Nectar Blossom (`amber_nectar_blossom`)**: 32x32 golden flower emitting warm amber nectar droplets.
+- **Soul-Flame Orchid (`soul_flame_orchid`)**: Nether-adapted orchid plantable on Soul Sand/Soul Soil emitting soulfire particles.
+- **Auroral Buttercup (`auroral_buttercup`)**: 16x16 pastel purple flower emitting auroral shimmer particles.
+- **Stardust Bell (`stardust_bell`)**: 2-tall flower block with upper/lower stem textures emitting astral indigo particles.
+- **Fulgurite Swamp-Bloom (`fulgurite_swamp_bloom`)**: 32x32 underwater mud flower plantable in water on mud/clay emitting electric lightning sparkles.
+- **Gale-Bloom Dandelion (`gale_bloom_dandelion`)**: 32x32 Voronoi cell + Perlin noise warm sand dandelion, emitting spinning `GALE_SWIRL_PUFF` wind particles and dropping Gale Popped Spores.
+- **Cryo-Static Shrub (`cryo_static_shrub`)**: Topiary orb cross plant (`minecraft:block/cross`), deeply mixed Cryo (Glacial Cyan) & Static (Plasma Violet) leaves, Glacial Freezing ticks + Static Slowness I stun, dropping Cryo-Static Rootlings.
+- **Vitreous Cactus (`vitreous_cactus`)**: Full 32x32 cuboid block (`minecraft:block/cube`), 5-high random ticking growth (`AGE_15`), horizontal solid neighbor block restrictions, cactus puncture damage + 4-second Bleeding (Wither), dropping Vitreous Needles and Vitreous Cactus Flesh.
+- **Barrow Moss (`barrow_moss` & `barrow_moss_carpet`)**: Full moss block and thin carpet layer, 1 damage trade-off before clearing Wither/Poison/Weakness, 15-second regeneration cooldown (300 ticks), Bone Meal 3x3x3 spreading onto stone, and granting **Strength I & Speed I** to Undead Mobs.
+
+### 💨 Animated Particle Systems
+- **Gale Swirl Puff (`GALE_SWIRL_PUFF`)**: Created `GaleSwirlPuffParticle.java` implementing continuous rotational quad spinning (`roll += rotSpeed`), size expansion, buoyancy, and alpha fade-out across Fabric (`EntropicaClientFabric.java`) and NeoForge (`ModClientEvents.java`).
+
+### 🧪 Spectral Dye System Expansion (10 Dye Colors)
+- **Dynamic Spectral Dyes**: Updated `SpectralDyeApi.java` registering 10 bioluminescent dyes (`soulfire`, `aegis`, `amber`, `shimmer`, `frost`, `auroral`, `stardust`, `fulgurite`, `gale`, `cryo_static`, `vitreous`, `barrow`).
+- **2-Layer Dynamic Tinting**: Rendered authentic glass bottle frame (`spectral_dye_bottle.png`) and liquid fill mask (`spectral_dye_fill.png`) tinted by `SpectralDyeTint`. Added 10 shapeless crafting recipes in `recipe/`.
+
+### 📚 Entropic Codex Integration
+- **Entropic Codex**: Registered 12 dedicated research sub-nodes under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java` and updated the `materials_spectral_dyes` entry.
+
+
+## Build 000-1-26-218-10-11 (August 6, 2026 Entropic Codex Structured Field Guide Restructuring)
+
+
+### Entropic Codex — Non-Technical Restructuring & Section Banners
+
+* **Structured Field Guide Format**:
+  - Restructured all codex research articles across all 7 categories into non-technical, readable field guide sections:
+    1. **✦ Overview & Description**: Evocative visual and functional summary of looks and purpose.
+    2. **🗺 Origin & Obtaining**: Clear locations for finding natural spawns, mob drops, geodes, or extractions.
+    3. **🛠 Crafting & Synthesis**: Ritual recipes, circle tiers, runes, and inputs.
+    4. **⚙ Crafting Uses & Applications**: Machine components, multiblocks, and transmutations created with the item.
+    5. **✨ Special Properties**: Passive player auras, Essence injection into ritual bowls, color shifting, and spell mechanics.
+
+* **UI Header Banners**:
+  - Updated `EntropicCodexScreen` book reader to render section headers with colored section banners and icons (`✦ Overview`, `🗺 Origin`, `🛠 Crafting`, `⚙ Uses`, `✨ Special Properties`).
+
+## Build 000-1-26-218-09-40 (August 6, 2026 Entropic Codex Book View & Index Redesign)
+
+### Entropic Codex — Book-Like Article Reading, Index Directory & Clean Spatial Grid
+
+* **Book-Like Codex View (`BOOK_CATEGORY`)**:
+  - Clicking any category tab on the edge of the screen now opens a book-like codex view displaying category articles and sub-nodes with an article selector sidebar, title header, icons, category tags, and scissor-clipped scrollable reading text.
+
+* **Top & Bottom Edge Tabs**:
+  - Added **Top Tab: "Spatial Grid"** (Nether Star icon): Switches back to the full-screen spatial star map view with pan and zoom.
+  - Added **Bottom Tab: "Index & Search"** (Knowledge Book icon): Opens the master Codex Index page featuring live search and a searchable directory of all research nodes.
+
+* **Clean Spatial Grid & Relocated Search**:
+  - Removed the left navigation controls box from the spatial node page to maximize screen space for the celestial map.
+  - Moved the search bar from the spatial grid to the top of the **Index Page**, allowing live searching of all 32+ research entries. Clicking any index search result immediately opens its book article.
+
+## Build 000-1-26-218-09-33 (August 6, 2026 Gebo Alternative Ritual Recipes)
+
+### Gebo Alternative Magic Circle Ritual Recipes (10% Materia Discount)
+
+* **Materia Blessing Gebo Ritual (`data/entropica/recipe/materia_blessing_gebo.json`)**:
+  - Registered alternative Tier 2 Magic Circle ritual using Rune of Gift (`entropica:rune_gebo`), 4x Materia Blessing Shards, and **180 Materia** (10% discount from 200). Outputs 1x Materia Blessing.
+
+* **Greater Materia Blessing Gebo Ritual (`data/entropica/recipe/greater_materia_blessing_gebo.json`)**:
+  - Registered alternative Tier 2 Magic Circle ritual using Rune of Gift (`entropica:rune_gebo`), 7x Materia Blessing Shards, and **360 Materia** (10% discount from 400). Outputs 1x Greater Materia Blessing.
+
+* **Entropic Codex Documentation**:
+  - Updated `env_materia_blessing` and `env_greater_materia_blessing` nodes in `CodexCategoryRegistry.java` documenting both Eihwaz (standard) and Gebo (harmonic 10% discount) ritual options.
+
+## Build 000-1-26-218-09-30 (August 6, 2026 Tier 2 Magic Circle Ritual Recipes)
+
+### Tier 2 Magic Circle Ritual Recipes — Materia Blessing & Greater Materia Blessing
+
+* **Materia Blessing Magic Circle Recipe (`data/entropica/recipe/materia_blessing.json`)**:
+  - Created Tier 2 Magic Circle ritual requiring 4x Materia Blessing Shards (`entropica:materia_blessing_shard`), 1x Rune of Unity (`entropica:rune_eihwaz`), and 200 Materia of any type (`"regular": 200`). Outputs 1x Materia Blessing.
+
+* **Greater Materia Blessing Magic Circle Recipe (`data/entropica/recipe/greater_materia_blessing.json`)**:
+  - Created Tier 2 Magic Circle ritual requiring 7x Materia Blessing Shards (`entropica:materia_blessing_shard`), 1x Rune of Unity (`entropica:rune_eihwaz`), and 400 Materia of any type (`"regular": 400`). Outputs 1x Greater Materia Blessing.
+
+* **Entropic Codex Documentation**:
+  - Updated `env_materia_blessing` and `env_greater_materia_blessing` nodes in `CodexCategoryRegistry.java` with the new ritual crafting specifications.
+
+## Build 000-1-26-218-09-12 (August 6, 2026 Materia Blessing Inventory Model Fix)
+
+### Materia Blessing — Inventory Color Tinting & Dynamic Shard Tint Source
+
+* **Materia Blessing Item Model Tinting (`models/block/materia_blessing.json` & `models/block/greater_materia_blessing.json`)**:
+  - Added `"tintindex": 0` to all element face definitions in both `materia_blessing.json` and `greater_materia_blessing.json`.
+  - Added `"tints": [ { "type": "entropica:shard_tint" } ]` to `items/materia_blessing.json` and `items/greater_materia_blessing.json`.
+  - The inventory slot, hotbar icon, held hands, ground entity, and item frame now dynamically sample and render the vibrant, glowing `EssenceType` RGB colors of the attuned crystal instead of plain un-tinted gray cuboids.
+
+## Build 000-1-26-218-09-07 (August 6, 2026 Creative Tab Fix)
+
+### Creative Tab "Entropica: World" (`WORLD_TAB`) — Strict Natural Block Filtering
+
+* **Creative Tab Sorting Fix (`ModCreativeTabs.java`)**:
+  - Fixed `isWorldItem` matching rule: replaced broad `path.contains("ore")` substring match (which accidentally matched machine cores `entropic_core`, `monad_core`, `athanor_core`) with strict `path.endsWith("_ore")`.
+  - Added explicit exclusion `if (path.contains("core") || path.contains("glass") || path.contains("machine") || path.contains("pipe")) return false;` to guarantee machine cores and glass blocks never enter `WORLD_TAB`.
+  - Explicitly registered only natural world blocks (Materia Blessings, Ores, Aeterium/Ignisite/Mortisite clusters & buds) and fauna mob spawn eggs in `WORLD_TAB`.
+  - Restored machine cores (`entropic_core`, `monad_core`, `athanor_core`) to `BLOCKS_TAB` where all structural/machinery blocks reside.
+
+## Build 000-1-26-218-09-00 (August 6, 2026 Materia Blessing Update)
+
+### Materia Blessing — 3D Inventory Block Model & Essence Node Lore
+
+* **3D Inventory Crystal Gem Model (`models/item/materia_blessing.json`)**:
+  - Updated `models/item/materia_blessing.json` to parent `"entropica:block/materia_blessing"`.
+  - Inventory, hotbar, hands, ground, and item frames now render the full 3D faceted crystal block model matching `greater_materia_blessing`.
+
+* **Entropic Codex Lore Updates**:
+  - Updated `env_materia_blessing` and `env_greater_materia_blessing` nodes in `CodexCategoryRegistry.java`.
+  - Replaced legacy Entropic Core terminology with **Essence Node** as the primary attunement source, noting that if an Entropic Core is present nearby, the blessing crystal may resonate with it and display its colors depending on which energy source is denser / has higher capacity.
+
+## Build 000-1-26-218-08-26 (August 6, 2026 Codex Update)
+
+### Entropic Codex — Minimum Node Distance & Screen Edge Category Selection Tabs
+
+* **Force Relaxation Node Layout Solver (`calculateNodePositions`)**:
+  - Implemented an iterative force relaxation layout algorithm in `EntropicCodexScreen.java` enforcing strict minimum Euclidean separation distances (95 world units for Parent Hubs, 75 world units for standard nodes).
+  - Automatically resolves node overlaps, line intersections, and label collisions across all sub-nodes branching dynamically from the 7 parent category hubs.
+
+* **Screen Edge Category Selection Tabs (`renderEdgeCategoryTabs`)**:
+  - Added a vertical array of 7 category selection tabs along the left screen edge below the header banner for all parent hubs (`GETTING STARTED`, `MATERIALS`, `MATERIA`, `MACHINERY`, `MULTIBLOCKS`, `ENVIRONMENT & NATURE`, `MAGIC`).
+  - Sleek collapsible/expandable design (width `28px` collapsed, `145px` expanded on hover or active selection), displaying the category's colored accent bar, item icon, and title text.
+  - Clicking any edge tab smoothly glides the camera (`targetPanX`, `targetPanY`, `targetZoom = 0.60f`) to center directly on that category's parent hub in World Space and opens its details panel.
+
+## Build 000-1-26-217-17-08 (August 5, 2026 Update)
+
+### Materia Blessing Crystal — Renderer Reshape + Greater Variant
+
+* **Renderer Overhaul**:
+  - Replaced 9-spire cluster geometry with a single large **monolithic faceted crystal** silhouette.
+  - Ring-based hexagonal geometry: 12 vertical rings defining the crystal profile (bottom point → wide mid-section → sharp apex).
+  - Two-texture rendering system:
+    - **Crystal face texture** (32×32 grayscale, `lesser/greater_materia_blessing_crystal.png`): UV-mapped per face with random UV rotation, tinted with `EssenceType` RGB via vertex color.
+    - **Crack overlay texture** (32×32 grayscale, `lesser/greater_materia_blessing_cracks.png`): Rendered as a second cutout pass, tinted 35% darker than the EssenceType RGB.
+  - Solid opaque rendering (`RenderType.entitySolid`) — no see-through. Full-bright emissive.
+  - Per-face brightness variation for iridescent depth effect.
+  - Slight 5°/3° X/Z tilt for natural, non-artificial appearance.
+
+* **3D Inventory Block Models**:
+  - Created full 3D element JSON block models for `materia_blessing.json` (tapered 5-cuboid crystal shape) and `greater_materia_blessing.json` (central crystal + 2 branching satellite crystals) with display transforms for GUI, hotbar, hands, ground, and item frames.
+
+* **Branching Procedural Crystal Cluster (Greater Variant)**:
+  - Procedural in-world renderer `MateriaBlessingRenderer.java` for Greater variant now renders 3 branching satellite crystal spires at tilted angles around the base of the main central crystal, sharing its rotation.
+
+* **Glass Block Translation Keys (1,139 Keys Added)**:
+  - Added full translation keys for `essence_enriched_glass`, `materia_fumus_strengthened_glass`, `materia_liquida_enriched_glass`, `fragment_lattice_glass`, clear glass, vanilla dyes, dyenamics colors, and all 75 essence types across all 10 shape variants (Full Blocks, Panes, Doors, Trapdoors, Slabs, Vertical Slabs, Quarter Slabs, Stairs, Horizontal Panes) across all 9 language files.
+
+* **New Creative Tab: "Entropica: World" (`WORLD_TAB`)**:
+  - Registered `WORLD_TAB` in `ModCreativeTabs.java` (`itemGroup.entropica.world`).
+  - Houses all naturally occurring blocks (Materia Blessings, Ores, Aeterium / Ignisite / Mortisite clusters & buds) and fauna mob spawn eggs.
+
+* **Indigenous Fauna Mob Spawn Eggs**:
+  - Registered 8 spawn egg items in `ModItems.java` (`grot_spawn_egg`, `veil_fox_spawn_egg`, `ashen_stalker_spawn_egg`, `spore_drifter_spawn_egg`, `rime_back_ovis_spawn_egg`, `overgrowth_ovis_spawn_egg`, `rime_shepherd_spawn_egg`, `bloom_crawler_spawn_egg`).
+  - Generated custom 32×32 pixel art textures, item model JSONs, and localized translations across all 9 language files.
+
+* **Full Localization Audit & Translation Coverage**:
+  - Performed a complete codebase audit across all 352 registered items and 136 registered blocks in `ModItems.java` and `ModBlocks.java`.
+  - Added 51 missing item and block translation keys (including `materia_blessing`, `greater_materia_blessing`, `materia_blessing_shard`, ritual bowls, essences, ingots, buds, clusters, and ores) across all 9 supported language files (`en_us`, `de_de`, `es_es`, `fr_fr`, `ja_jp`, `ko_kr`, `pt_br`, `ru_ru`, `zh_cn`), achieving **100% translation coverage (0 missing keys)**.
+
+* **Entropic Codex Registrations**:
+  - Registered 3 new research nodes in `CodexCategoryRegistry.java`:
+    - `env_materia_blessing` ("Materia Blessing Crystal") under `ENVIRONMENT & NATURE` (prerequisite: `env_biomes`).
+    - `env_greater_materia_blessing` ("Greater Materia Blessing") under `ENVIRONMENT & NATURE` (prerequisite: `env_materia_blessing`).
+    - `materials_blessing_shard` ("Materia Blessing Shard") under `MATERIALS` (prerequisite: `materials_crystals`).
+
+* **Grayscale Shard Texture & ShardTint**:
+  - Converted `materia_blessing_shard.png` to a 32×32 grayscale PNG.
+  - Implemented `ShardTint` in `ModItemTintSources.java` registered under `entropica:shard_tint`. Dynamically tints the item in inventory/hand based on nearest Entropic Core node (24-block radius) or local biome `EssenceType`.
+
+* **Node Attunement & Client Sync**:
+  - Added Entropic Core node detection (64-block radius search): nearest node's dominant `EssenceType` takes precedence over biome attunement.
+  - Implemented S2C block entity packet sync (`getUpdateTag`, `getUpdatePacket`, `sendBlockUpdated`) so RGB tint changes render immediately on the client.
+
+* **Tinted Inward-Flowing Particles**:
+  - Replaced generic untinted particles with `ColorParticleOption` entity effects and `DustParticleOptions` sparkling dust motes.
+  - Particles are dynamically tinted with the exact RGB color of the crystal's attuned `EssenceType`.
+  - Velocity vectors computed to draw particles inward from a surrounding sphere/cylinder directly towards the center of the floating crystal.
+
+* **Dynamic Hitbox Fitting**:
+  - Replaced full block hitboxes with height-aware `VoxelShape` bounds calculated per-part from the crystal's profile rings. Empty shapes applied to non-intersecting outer blocks.
+
+* **Block Architecture Refactor**:
+  - Created `AbstractMateriaBlessingBlock.java` — shared base class for multiblock logic (placement, cascading destruction, block entity management).
+  - `MateriaBlessingBlock.java` now extends abstract base (2×2×3 / 12 blocks, PART 0-11).
+  - Width/Height/Depth/Drops defined as abstract method overrides.
+
+* **New Block: Greater Materia Blessing (`greater_materia_blessing`)**:
+  - 3×3×4 multiblock (36 blocks), `PART` range 0-35.
+  - Light level 12 (vs 8 for Lesser).
+  - Destroy time 5.0, explosion resistance 10.0.
+  - Drops 8-12 `materia_blessing_shard` (vs 4-6 for Lesser).
+  - Rendered at 1.5× scale using the Greater texture set.
+
+* **Enhanced Block Entity Effects (Greater variant)**:
+  - Aura radius: 24 blocks (vs 16).
+  - Essence injection radius: 12 blocks (vs 8).
+  - Injection interval: 60 ticks (vs 100).
+  - Healing: +2 HP per 40 ticks (vs +1).
+  - Grants Regeneration I (100 ticks).
+  - Faster rotation (0.6 vs 0.5 deg/tick).
+  - Extra `ENCHANTED_HIT` particles.
+
+* **Registrations**:
+  - `GREATER_MATERIA_BLESSING` block in `ModBlocks.java`.
+  - `GREATER_MATERIA_BLESSING_ITEM` in `ModItems.java`.
+  - Both blocks share single `MATERIA_BLESSING_BE` block entity type.
+  - Single `MateriaBlessingRenderer` handles both variants via `isGreater()` flag.
+
+* **Textures Created (4× 32×32 grayscale PNGs)**:
+  - `lesser_materia_blessing_crystal.png`, `lesser_materia_blessing_cracks.png`
+  - `greater_materia_blessing_crystal.png`, `greater_materia_blessing_cracks.png`
+
+
+## Build 000-1-26-217-16-48 (August 5, 2026 Update)
+
+### New Feature: Materia Blessing Crystal (Natural Phenomenon)
+
+* **Materia Blessing Block (`materia_blessing`)**:
+  - 2×2×3 multiblock natural crystal formation (12 blocks total) with `IntegerProperty PART (0-11)`.
+  - Cascading destruction: breaking any 1 of the 12 blocks destroys all remaining blocks.
+  - `RenderShape.INVISIBLE` — rendered entirely by procedural code renderer (no JSON model).
+  - Ambient light emission capped at level 8.
+  - Drops 4–6 `materia_blessing_shard` items when broken (non-creative).
+
+* **Materia Blessing Block Entity (`MateriaBlessingBlockEntity`)**:
+  - Biome-to-EssenceType ambient Materia sampling every 20 ticks (ocean→WATER, desert→ARID, forest→NATURE, etc.).
+  - 16-block player aura field: Night Vision (200 ticks) + gradual heal every 40 ticks.
+  - 8-block automated essence injection into nearby Granite Ritual Bowls every 100 ticks (5 seconds).
+  - Client-side: continuous Y-axis rotation, vertical bobbing, ambient END_ROD + ENCHANT particles.
+
+* **Materia Blessing Renderer (`MateriaBlessingRenderer`)**:
+  - Procedural code-rendered crystal cluster with 9 spires (main + 8 secondary/tertiary/accent).
+  - Hexagonal cross-sections (6 sides) with 8 vertical segments per spire.
+  - Voronoi cell fracture vein lines via hash-based edge distance detection.
+  - Simplex noise vertex displacement for organic crystal surface feel.
+  - Dynamic `EssenceType.getCurrentRGB(time)` color cycling.
+  - Full-bright emissive rendering (`RenderType.entityTranslucentEmissive`, `FULL_BRIGHT`).
+  - 128-block view distance.
+  - Floating, bobbing, and rotating animation driven by block entity state.
+
+* **Registrations**:
+  - `MATERIA_BLESSING` block registered in `ModBlocks.java`.
+  - `MATERIA_BLESSING_ITEM` (BlockItem) and `MATERIA_BLESSING_SHARD` (standalone Item) registered in `ModItems.java`.
+  - `MATERIA_BLESSING_BE` block entity registered in `ModBlockEntities.java`.
+  - `MateriaBlessingRenderer` registered in Fabric (`EntropicaClientFabric.java`), NeoForge, and Forge client events.
+
+* **Assets Created**:
+  - `blockstates/materia_blessing.json`, `models/block/materia_blessing.json` (particle-only minimal model).
+  - `models/item/materia_blessing.json`, `models/item/materia_blessing_shard.json`.
+  - `items/materia_blessing.json`, `items/materia_blessing_shard.json` (1.21.4 item definitions).
+
+
 ## Build 000-1-26-217-16-07 (August 5, 2026 Update)
 
 ### New Feature: Granite Ritual Bowl (Passive Essence Extractor & Essence Supplier)
@@ -55,7 +311,7 @@
 * **Arcane Elemental Flame Plume**:
   - Redesigned the feather accent in `arkanist_monocle.png` into a dynamic **Arcane Elemental Flame** plume blending emerald green at the base (`RGB(30, 220, 100)`), shifting into vis-cyan energy (`RGB(60, 230, 255)`), and culminating in shimmering gold/amber flame tips (`RGB(255, 210, 70)`).
 * **Viscanite Gunmetal Frame & Dark Leather Finish**:
-  - Retextured the 3D monocle metallic frame in authentic **Viscanite Gunmetal** sampled from `viscanite_ingot.png` in the Obsidian Vault (`RGB(55, 47, 52)` ➔ `RGB(121, 125, 133)`), paired with dark charcoal arcane leather and polished steel pins.
+  - Retextured the 3D monocle metallic frame in authentic **Viscanite Gunmetal** sampled from `viscanite_ingot.png` (`RGB(55, 47, 52)` ➔ `RGB(121, 125, 133)`), paired with dark charcoal arcane leather and polished steel pins.
 
 ---
 
@@ -201,17 +457,13 @@
 
 ## Build 000-1-26-214-23-59 (August 2, 2026 Consolidated Update)
 
-### Fixed & Deployed (Entropic Codex UI, Viewport Frustum Culling, Line Batching, Item Textures & OKF Vault Sync)
+### Fixed & Deployed (Entropic Codex UI, Viewport Frustum Culling, Line Batching, Item Textures)
 
 * **Entropic Codex UI & Render Performance**:
   - **Viewport Frustum Culling (`isNodeInViewport`)**: Calculates screen-projected bounds for all research nodes and connecting lines, skipping draw execution for off-screen elements during panning.
   - **12px Line Segment Batching (`drawLineWorld`)**: Batches linear quad fills into 12-pixel strides, reducing line draw calls by ~85%.
   - **Single 32x32 Alpha Mask & Background**: Created [entropic_codex_item.png](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/resources/assets/entropica/textures/item/entropic_codex_item.png) with precise pixel-art outline and pure 100% transparent background.
   - **Black Hole Background Seamless Expansion**: Created [codex_black_hole_bg.png](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/resources/assets/entropica/textures/gui/codex_black_hole_bg.png) with edge vignette fading to pitch black (`#000000`), preventing hard edge clipping in 16:9 and ultrawide viewports.
-
-* **OKF Obsidian Vault Synchronization**:
-  - Updated notes in `C:\Users\Ddraig__\Downloads\OBSIDIAN WIKIS\Entropica\Entropica\` across `concepts/Entropica Codex.md`, `concepts/Materia.md`, `concepts/Diluted Essence.md`, and `concepts/Void Rift Logistics.md`.
-  - Added embedded image references linking high-resolution background assets into the vault documentation.
 
 ## Build 000-1-26-213-22-32
 
