@@ -132,7 +132,7 @@ public class GrotSummonCommands {
             return 1; // 1 indicates success
         }
 
-        source.sendFailure(Component.literal("Failed to summon the Grot."));
+        source.sendFailure(Component.translatable("msg.entropica.failed_to_summon_the_grot"));
         return 0;
     }
 }

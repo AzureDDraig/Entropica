@@ -142,7 +142,7 @@ public class ChalkItem extends Item {
                             ItemStack stack = context.getItemInHand();
                             net.minecraft.world.entity.EquipmentSlot slot = context.getHand() == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND;
                             stack.hurtAndBreak(blocksScribed, player, slot);
-                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§aDrawing alchemical circuit shell around magic circle!"), true);
+                            player.displayClientMessage(net.minecraft.network.chat.Component.translatable("msg.entropica.drawing_alchemical_circuit_shell_around_magic"), true);
                         }
                         level.playSound(null, clickedPos, SoundEvents.GRAVEL_PLACE, SoundSource.BLOCKS, 0.7f, 1.2f);
                     }

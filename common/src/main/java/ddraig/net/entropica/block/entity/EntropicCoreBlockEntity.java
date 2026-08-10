@@ -822,7 +822,7 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
                 if (level != null && !level.isClientSide()) level.sendBlockUpdated(master.worldPosition, master.getBlockState(), master.getBlockState(), 3);
                 return true;
             } else {
-                player.displayClientMessage(Component.literal("§cCore materia capacity is full. Too much density."), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.core_materia_capacity_is_full_too"), true);
                 return true;
             }
         }
@@ -841,18 +841,18 @@ public class EntropicCoreBlockEntity extends BlockEntity implements IVaporHandle
         if (!master.isActive) {
             // Respect Config for toggling activation
             if (!EntropicaConfig.ENABLE_CORE_OVERLOAD.get() && master.getWeightedTotalMana() >= master.getMaxMateriaFumus()) {
-                player.displayClientMessage(Component.literal("§cCannot activate: Materia capacity is full."), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.cannot_activate_materia_capacity_is_full"), true);
                 return;
             }
             if (master.getTotalEssence() < 10) {
-                player.displayClientMessage(Component.literal("§cInsufficient Essence to start."), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.insufficient_essence_to_start"), true);
                 return;
             }
             master.isActive = true;
-            player.displayClientMessage(Component.literal("§aCore Activated"), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.core_activated"), true);
         } else {
             master.isActive = false;
-            player.displayClientMessage(Component.literal("§7Core Deactivated"), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.core_deactivated"), true);
         }
 
         master.setChanged();

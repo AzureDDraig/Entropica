@@ -54,7 +54,7 @@ public class FurnaceHatchBlock extends Block {
             EntropicCoreBlockEntity core = findCore(level, pos);
 
             if (core == null) {
-                player.displayClientMessage(Component.literal("§cThis hatch is not connected to an Entropic Core."), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.this_hatch_is_not_connected_to"), true);
                 return InteractionResult.SUCCESS;
             }
 
@@ -115,10 +115,10 @@ public class FurnaceHatchBlock extends Block {
                             player.displayClientMessage(Component.literal("§cCore has no more " + targetType.name().toLowerCase() + " materia!"), true);
                         }
                     } else {
-                        player.displayClientMessage(Component.literal("§eOrbis Cell is already full!"), true);
+                        player.displayClientMessage(Component.translatable("msg.entropica.orbis_cell_is_already_full"), true);
                     }
                 } else {
-                    player.displayClientMessage(Component.literal("§cCore is completely empty!"), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.core_is_completely_empty"), true);
                 }
 
                 return InteractionResult.SUCCESS;
@@ -133,7 +133,7 @@ public class FurnaceHatchBlock extends Block {
                 return InteractionResult.SUCCESS;
             }
             else {
-                player.displayClientMessage(Component.literal("§eUse an empty hand to toggle power, sneak-click to toggle mode, or use an Ampoule/Orbis Cell to extract."), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.use_an_empty_hand_to_toggle"), true);
             }
         }
         return InteractionResult.SUCCESS;

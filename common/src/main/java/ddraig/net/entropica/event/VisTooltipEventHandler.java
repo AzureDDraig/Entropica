@@ -63,7 +63,7 @@ public class VisTooltipEventHandler {
 
                         linesToInject.add(slotComponent);
                     } else {
-                        linesToInject.add(Component.literal("  [ Empty Augment Slot ]").withStyle(ChatFormatting.DARK_GRAY));
+                        linesToInject.add(Component.translatable("msg.entropica.empty_augment_slot").withStyle(ChatFormatting.DARK_GRAY));
                     }
                 }
             }

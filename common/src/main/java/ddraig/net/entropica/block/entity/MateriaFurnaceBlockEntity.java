@@ -59,12 +59,12 @@ public class MateriaFurnaceBlockEntity extends BlockEntity {
     public void toggleFurnace(Player player) {
         if (this.isActive) {
             this.isActive = false;
-            player.displayClientMessage(Component.literal("Materia Furnace: §cDeactivated"), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.materia_furnace_deactivated"), true);
         } else if (this.essence >= 10) {
             this.isActive = true;
-            player.displayClientMessage(Component.literal("Materia Furnace: §aActivated"), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.materia_furnace_activated"), true);
         } else {
-            player.displayClientMessage(Component.literal("Materia Furnace: §eNot enough essence to start (Requires 10)"), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.materia_furnace_not_enough_essence_to"), true);
         }
 
         this.setChanged();

@@ -114,7 +114,7 @@ public class EssenceNodeCommands {
         // 2. Create the Entity
         EssenceNodeEntity node = ModEntityTypes.ESSENCE_NODE.get().create(level, EntitySpawnReason.COMMAND);
         if (node == null) {
-            source.sendFailure(Component.literal("§cFailed to create Essence Node entity."));
+            source.sendFailure(Component.translatable("msg.entropica.failed_to_create_essence_node_entity"));
             return 0;
         }
 
@@ -192,7 +192,7 @@ public class EssenceNodeCommands {
 
         List<EssenceNodeEntity> nodes = level.getEntitiesOfClass(EssenceNodeEntity.class, boundingBox);
         if (nodes.isEmpty()) {
-            source.sendFailure(Component.literal("§cNo Essence Nodes found within radius."));
+            source.sendFailure(Component.translatable("msg.entropica.no_essence_nodes_found_within_radius"));
             return 0;
         }
 

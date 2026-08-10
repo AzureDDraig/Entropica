@@ -28,7 +28,7 @@ public class ArkanistMonocleItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, display, tooltipComponents, tooltipFlag);
-        tooltipComponents.accept(Component.literal("§5Slotted Lens:"));
+        tooltipComponents.accept(Component.translatable("msg.entropica.slotted_lens"));
         
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         CompoundTag nbt = customData != null ? customData.copyTag() : new CompoundTag();

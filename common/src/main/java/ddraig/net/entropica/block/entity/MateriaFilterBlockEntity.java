@@ -127,7 +127,7 @@ public class MateriaFilterBlockEntity extends BlockEntity {
     public boolean interactWithAmpoule(Player player, ItemStack handStack, InteractionHand hand) {
         EntropicCoreBlockEntity master = getMasterCore();
         if (master == null || !master.isFormed()) {
-            player.displayClientMessage(Component.literal("§cFilter is not connected to a valid core."), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.filter_is_not_connected_to_a"), true);
             return true;
         }
 

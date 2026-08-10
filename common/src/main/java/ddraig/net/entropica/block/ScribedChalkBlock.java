@@ -653,7 +653,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         }
                         
                         // 5. Visual/Audio effects
-                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Magic Circle has successfully initiated the ritual!"), false);
+                        player.displayClientMessage(net.minecraft.network.chat.Component.translatable("msg.entropica.magic_circle_has_successfully_initiated_the"), false);
                         level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.2f);
                         
                         if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
@@ -729,7 +729,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                 outputBE.setWardTicks(12000);
                             }
                             
-                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] The essence repulsion ward has been activated!"), false);
+                            player.displayClientMessage(net.minecraft.network.chat.Component.translatable("msg.entropica.the_essence_repulsion_ward_has_been"), false);
                             level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.2f);
                             
                             if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
@@ -809,7 +809,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                 }
                             }
                             if (circuitAff != EssenceType.REGULAR && circuitAff != type) {
-                                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Entropica] Cannot mix different affinities in the same circuit!"), true);
+                                player.displayClientMessage(net.minecraft.network.chat.Component.translatable("msg.entropica.cannot_mix_different_affinities_in_the"), true);
                                 return net.minecraft.world.InteractionResult.FAIL;
                             }
 
@@ -829,7 +829,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                                 heldItem.shrink(1);
                                 level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5f, 1.2f);
                             } else {
-                                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Entropica] Failed to add essence to circuit."), true);
+                                player.displayClientMessage(net.minecraft.network.chat.Component.translatable("msg.entropica.failed_to_add_essence_to_circuit"), true);
                             }
                         }
                     }
@@ -892,7 +892,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                         }
 
                         if (affinity == EssenceType.REGULAR || totalEssence <= 0) {
-                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Entropica] Circuit has no specialized essence to extract."), true);
+                            player.displayClientMessage(net.minecraft.network.chat.Component.translatable("msg.entropica.circuit_has_no_specialized_essence_to"), true);
                             return net.minecraft.world.InteractionResult.FAIL;
                         }
 
@@ -1001,7 +1001,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
                     } else if (heldItem.isEmpty()) {
                         if (!level.isClientSide()) {
                             chalkBE.setFilterType(null);
-                            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§eFilter reset to default (All colored essence)"), true);
+                            player.displayClientMessage(net.minecraft.network.chat.Component.translatable("msg.entropica.filter_reset_to_default_all_colored"), true);
                             level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.5f, 0.8f);
                         }
                         return net.minecraft.world.InteractionResult.SUCCESS;
@@ -1761,7 +1761,7 @@ public class ScribedChalkBlock extends BaseEntityBlock {
 
             // 5. Visual and sound effects
             if (player != null) {
-                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§5[Entropica] Magic Circuit has successfully initiated processing!"), false);
+                player.displayClientMessage(net.minecraft.network.chat.Component.translatable("msg.entropica.magic_circuit_has_successfully_initiated_processing"), false);
             }
             level.playSound(null, outputPos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.2f);
 

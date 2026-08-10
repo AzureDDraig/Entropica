@@ -15,6 +15,6 @@ public class MateriaLensItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, display, tooltipComponents, tooltipFlag);
-        tooltipComponents.accept(Component.literal("Grants Materia Vision when active."));
+        tooltipComponents.accept(Component.translatable("msg.entropica.grants_materia_vision_when_active"));
     }
 }

@@ -245,19 +245,19 @@ public class MateriaPressureChamberControllerBlockEntity extends BlockEntity imp
 
         BlockEntity tableBE = this.level.getBlockEntity(this.tablePos);
         if (!(tableBE instanceof EnrichmentTableBlockEntity table) || table.getHeldItem().isEmpty()) {
-            player.displayClientMessage(Component.literal("No items on the enrichment table!"), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.no_items_on_the_enrichment_table"), true);
             return;
         }
 
         List<PressureChamberRecipe> validRecipes = getValidRecipes(table.getHeldItem());
 
         if (validRecipes.isEmpty()) {
-            player.displayClientMessage(Component.literal("§cNo valid enrichment recipe for this item. Chamber refuses to pressurize."), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.no_valid_enrichment_recipe_for_this"), true);
             return;
         }
 
         if (table.getHeldItem().getCount() % validRecipes.get(0).inputCount() != 0) {
-            player.displayClientMessage(Component.literal("§cItem stack must be an exact multiple of the recipe requirement."), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.item_stack_must_be_an_exact"), true);
             return;
         }
 
@@ -268,14 +268,14 @@ public class MateriaPressureChamberControllerBlockEntity extends BlockEntity imp
             PressureChamberRecipe r = validRecipes.get(0);
             if (r.requiresSpecificFume()) {
                 lockRecipe(r, r.requiredFume().orElse(null));
-                player.displayClientMessage(Component.literal("§aPressurizing chamber... awaiting exact gas input."), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.pressurizing_chamber_awaiting_exact_gas_input"), true);
             } else {
                 this.isAwaitingFumeType = true;
-                player.displayClientMessage(Component.literal("§aPressurizing chamber... awaiting ANY gas to define recipe."), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.pressurizing_chamber_awaiting_any_gas_to"), true);
             }
         } else {
             this.isAwaitingFumeType = true;
-            player.displayClientMessage(Component.literal("§eMultiple recipes found... awaiting gas type to disambiguate."), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.multiple_recipes_found_awaiting_gas_type"), true);
         }
 
         this.setChanged();
@@ -391,7 +391,7 @@ public class MateriaPressureChamberControllerBlockEntity extends BlockEntity imp
         if (!(be instanceof EnrichmentTableBlockEntity table)) return false;
 
         if (this.isProcessing) {
-            player.displayClientMessage(Component.literal("§cChamber is currently pressurized and locked!"), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.chamber_is_currently_pressurized_and_locked"), true);
             return true;
         }
 

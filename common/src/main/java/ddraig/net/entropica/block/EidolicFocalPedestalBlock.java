@@ -65,9 +65,9 @@ public class EidolicFocalPedestalBlock extends BaseEntityBlock {
             if (!lathe.isFormed()) {
                 boolean formed = lathe.attemptFormMultiblock();
                 if (formed) {
-                    player.displayClientMessage(Component.literal("§aEidolic Lathe Resonating and Active."), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.eidolic_lathe_resonating_and_active"), true);
                 } else {
-                    player.displayClientMessage(Component.literal("§cIncomplete Lathe Structure."), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.incomplete_lathe_structure"), true);
                 }
             } else {
                 // Trigger the forging process if sneaking!
@@ -76,7 +76,7 @@ public class EidolicFocalPedestalBlock extends BaseEntityBlock {
                 } else {
                     boolean swapped = lathe.interactWithPlayer(player, InteractionHand.MAIN_HAND);
                     if (!swapped && player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
-                        player.displayClientMessage(Component.literal("§eSneak-Right-Click to begin forging sequence!"), true);
+                        player.displayClientMessage(Component.translatable("msg.entropica.sneak_right_click_to_begin_forging"), true);
                     }
                 }
             }

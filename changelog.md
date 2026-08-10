@@ -1,6 +1,42 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-18-33 (August 10, 2026 Language File Un-minification & Formatting)
+
+### 🎨 Un-minified Language JSON Assets (24 Files)
+- **Pretty-Printing**: Formatted all 24 JSON language files in `common/src/main/resources/assets/entropica/lang/` with clean 2-space indentation and unescaped UTF-8 characters (`ensure_ascii=False`) for maximum human readability across international character sets.
+
+## Build 000-1-26-222-18-30 (August 10, 2026 100% Translation Audit & Literal Refactoring)
+
+
+### 🔍 100% Codebase Translation Key Coverage
+- **Literal Refactoring**: Converted 125 hardcoded `Component.literal(...)` user-visible strings across block entity UI interaction messages, ritual activation alerts, machine feedback, and item tooltips into standardized `Component.translatable(...)` calls.
+- **Key Population**: Added 106 new keys to `en_us.json` and synchronized all 24 language files (`en_us`, `de_de`, `es_es`, `es_mx`, `fr_fr`, `it_it`, `nl_nl`, `pt_br`, `pl_pl`, `ru_ru`, `uk_ua`, `cs_cz`, `hu_hu`, `sv_se`, `da_dk`, `no_no`, `fi_fi`, `tr_tr`, `ja_jp`, `ko_kr`, `zh_cn`, `zh_tw`, `th_th`, `vi_vn`).
+- **Audit Result**: Automated audit verified **0 hardcoded literals** and **0 missing translation keys** across the entire Java codebase.
+
+## Build 000-1-26-222-18-27 (August 10, 2026 Multi-Language Support Expansion: 24 Locales)
+
+
+### 🌐 15 New Language Files Added (Total 24 Locales)
+- **Localization Expansion**: Created 15 new JSON language files in `common/src/main/resources/assets/entropica/lang/`:
+  - `zh_tw.json` (Traditional Chinese / 繁體中文)
+  - `es_mx.json` (Spanish Mexico / Español México)
+  - `it_it.json` (Italian / Italiano)
+  - `nl_nl.json` (Dutch / Nederlands)
+  - `pl_pl.json` (Polish / Polski)
+  - `uk_ua.json` (Ukrainian / Українська)
+  - `cs_cz.json` (Czech / Čeština)
+  - `hu_hu.json` (Hungarian / Magyar)
+  - `sv_se.json` (Swedish / Svenska)
+  - `da_dk.json` (Danish / Dansk)
+  - `no_no.json` (Norwegian / Norsk)
+  - `fi_fi.json` (Finnish / Suomi)
+  - `tr_tr.json` (Turkish / Türkçe)
+  - `th_th.json` (Thai / ไทย)
+  - `vi_vn.json` (Vietnamese / Tiếng Việt)
+- **Key Synchronization**: Synchronized all newly registered items, blocks, potted flora, particles, effects, mechanics, tooltips, and JEI recipes across all 24 language files.
+
 ## Build 000-1-26-222-18-24 (August 10, 2026 Fungal Shelf Placement Restrictions & Flower Pot Integration)
+
 
 ### 🪵 Fungal Shelf Placement Restrictions (`AbstractFungalShelfBlock`)
 - **Placement Validation**: Updated `canSurvive` in `AbstractFungalShelfBlock.java` to restrict shelf-cap attachment strictly to sturdy faces of `BlockTags.LOGS` (Overworld logs/wood, Crimson/Warped stems, Hyphae, Stripped stems), `BlockTags.WART_BLOCKS`, and `BlockTags.MUSHROOM_GROW_BLOCK`.

@@ -69,10 +69,10 @@ public class MateriaPressureChamberControllerBlock extends BaseEntityBlock {
             if (!controller.isFormed()) {
                 boolean formed = controller.attemptFormMultiblock();
                 if (formed) {
-                    player.displayClientMessage(Component.literal("§aChamber Sealed. Ready to pressurize."), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.chamber_sealed_ready_to_pressurize"), true);
                     level.setBlock(pos, state.setValue(FORMED, true), 3);
                 } else {
-                    player.displayClientMessage(Component.literal("§cInvalid Chamber Structure."), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.invalid_chamber_structure"), true);
                 }
             } else {
                 if (player.isShiftKeyDown()) {
@@ -84,7 +84,7 @@ public class MateriaPressureChamberControllerBlock extends BaseEntityBlock {
                     if (!swapped) {
                         // Helpful hint if they click an empty table with an empty hand
                         if (player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
-                            player.displayClientMessage(Component.literal("§eSneak-Right-Click to begin pressurization!"), true);
+                            player.displayClientMessage(Component.translatable("msg.entropica.sneak_right_click_to_begin_pressurization"), true);
                         }
                     }
                 }

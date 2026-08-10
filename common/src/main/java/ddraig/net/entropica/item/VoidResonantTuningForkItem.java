@@ -193,7 +193,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
                     tag.putString("LinkRiftDim", level.dimension().location().toString());
                     CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
                 } else {
-                    player.displayClientMessage(Component.literal("Rift selected. Sneak-Right-Click an inventory to link it.").withStyle(ChatFormatting.AQUA), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.rift_selected_sneak_right_click_an").withStyle(ChatFormatting.AQUA), true);
                 }
                 return InteractionResult.SUCCESS;
             } else if (tag.contains("LinkRiftX")) {
@@ -201,7 +201,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
                     tag.remove("LinkRiftX"); tag.remove("LinkRiftY"); tag.remove("LinkRiftZ"); tag.remove("LinkRiftDim");
                     CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
                 } else {
-                    player.displayClientMessage(Component.literal("Rift linking mode cancelled.").withStyle(ChatFormatting.YELLOW), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.rift_linking_mode_cancelled").withStyle(ChatFormatting.YELLOW), true);
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -211,7 +211,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
         if (tag.contains("LinkRiftX")) {
             String linkDim = tag.getString("LinkRiftDim").orElse("");
             if (!level.dimension().location().toString().equals(linkDim)) {
-                if (level.isClientSide()) player.displayClientMessage(Component.literal("Cannot link across dimensions!").withStyle(ChatFormatting.RED), true);
+                if (level.isClientSide()) player.displayClientMessage(Component.translatable("msg.entropica.cannot_link_across_dimensions").withStyle(ChatFormatting.RED), true);
                 return InteractionResult.FAIL;
             }
 
@@ -242,7 +242,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
                     player.displayClientMessage(Component.literal("Inventory successfully linked to Rift! (-" + LINK_COST + " Materia)").withStyle(ChatFormatting.GREEN), true);
                 }
             } else {
-                if (level.isClientSide()) player.displayClientMessage(Component.literal("Inventory too far! Must be within 4 blocks (9x9x9 area) of the Rift.").withStyle(ChatFormatting.RED), true);
+                if (level.isClientSide()) player.displayClientMessage(Component.translatable("msg.entropica.inventory_too_far_must_be_within").withStyle(ChatFormatting.RED), true);
             }
             return InteractionResult.SUCCESS;
         }
@@ -267,13 +267,13 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
 
                 level.playSound(null, riftPos, SoundEvents.PORTAL_TRIGGER, SoundSource.BLOCKS, 0.3f, 2.0f);
             } else {
-                player.displayClientMessage(Component.literal("Input Rift Anchor marked. Select Output...").withStyle(ChatFormatting.DARK_PURPLE), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.input_rift_anchor_marked_select_output").withStyle(ChatFormatting.DARK_PURPLE), true);
             }
             return InteractionResult.SUCCESS;
         } else {
             String boundDim = tag.getString("BoundDim").orElse("");
             if (!level.dimension().location().toString().equals(boundDim)) {
-                if (level.isClientSide()) player.displayClientMessage(Component.literal("Void Rifts cannot cross dimensions!").withStyle(ChatFormatting.RED), true);
+                if (level.isClientSide()) player.displayClientMessage(Component.translatable("msg.entropica.void_rifts_cannot_cross_dimensions").withStyle(ChatFormatting.RED), true);
                 return InteractionResult.FAIL;
             }
 
@@ -287,7 +287,7 @@ public class VoidResonantTuningForkItem extends EntropicaComponentItem {
                     tag.remove("BoundDim");
                     CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
                 }
-                if (level.isClientSide()) player.displayClientMessage(Component.literal("Rift tearing cancelled.").withStyle(ChatFormatting.YELLOW), true);
+                if (level.isClientSide()) player.displayClientMessage(Component.translatable("msg.entropica.rift_tearing_cancelled").withStyle(ChatFormatting.YELLOW), true);
                 return InteractionResult.SUCCESS;
             }
 

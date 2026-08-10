@@ -45,14 +45,14 @@ public class AethericAutomatorBlockEntity extends BlockEntity {
                 if (!savedPattern.get(i).isEmpty()) hasItems = true;
             }
             if (hasItems) {
-                player.displayClientMessage(Component.literal("§aAutomator Linked & Pattern Saved!"), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.automator_linked_pattern_saved"), true);
                 setChanged();
                 level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
             } else {
-                player.displayClientMessage(Component.literal("§cSynthesizer is empty! Lay out the recipe first."), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.synthesizer_is_empty_lay_out_the"), true);
             }
         } else {
-            player.displayClientMessage(Component.literal("§cNo Aetheric Synthesizer found within 4 blocks!"), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.no_aetheric_synthesizer_found_within_4"), true);
         }
     }
 

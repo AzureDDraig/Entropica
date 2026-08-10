@@ -47,7 +47,7 @@ public class EidolonPathmarkerItem extends EntropicaComponentItem {
 
         if (size >= 64) {
             if (level.isClientSide()) {
-                player.displayClientMessage(Component.literal("Max path size reached (64 nodes). Right-click air to summon!").withStyle(ChatFormatting.RED), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.max_path_size_reached_64_nodes").withStyle(ChatFormatting.RED), true);
             }
             return InteractionResult.FAIL;
         }
@@ -88,7 +88,7 @@ public class EidolonPathmarkerItem extends EntropicaComponentItem {
                 stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
                 if (level.isClientSide()) {
-                    player.displayClientMessage(Component.literal("Path cleared.").withStyle(ChatFormatting.YELLOW), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.path_cleared").withStyle(ChatFormatting.YELLOW), true);
                 } else {
                     // FIXED: Added .value() back to unwrap the Holder.Reference
                     level.playSound(null, player.blockPosition(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 1.0f, 1.0f);
@@ -114,7 +114,7 @@ public class EidolonPathmarkerItem extends EntropicaComponentItem {
                         serverLevel.playSound(null, spawnPos, SoundEvents.SOUL_ESCAPE.value(), SoundSource.PLAYERS, 1.0f, 0.5f);
                     }
                 } else {
-                    player.displayClientMessage(Component.literal("Eidolic Shadow Summoned!").withStyle(ChatFormatting.DARK_PURPLE), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.eidolic_shadow_summoned").withStyle(ChatFormatting.DARK_PURPLE), true);
                 }
 
                 // Clear the path data after successfully summoning
@@ -127,7 +127,7 @@ public class EidolonPathmarkerItem extends EntropicaComponentItem {
                 return InteractionResult.SUCCESS;
             } else if (size > 0) {
                 if (level.isClientSide()) {
-                    player.displayClientMessage(Component.literal("Path too short! Need at least 2 points.").withStyle(ChatFormatting.RED), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.path_too_short_need_at_least").withStyle(ChatFormatting.RED), true);
                 }
                 return InteractionResult.FAIL;
             }

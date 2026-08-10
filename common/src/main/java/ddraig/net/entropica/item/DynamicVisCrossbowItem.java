@@ -112,7 +112,7 @@ public class DynamicVisCrossbowItem extends CrossbowItem {
         tooltipComponents.accept(Component.translatable("tooltip.entropica.dynamic_weapon_desc").withStyle(ChatFormatting.DARK_PURPLE));
 
         if (stack.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME)) {
-            tooltipComponents.accept(Component.literal("A weapon bound to the soul...").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+            tooltipComponents.accept(Component.translatable("msg.entropica.a_weapon_bound_to_the_soul").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         }
 
         if (stack.has(ModDataComponents.VIS_WEAPON_STATE.get())) {
@@ -121,13 +121,13 @@ public class DynamicVisCrossbowItem extends CrossbowItem {
                 tooltipComponents.accept(Component.empty());
 
                 if (state.isAutonomous()) {
-                    tooltipComponents.accept(Component.literal("⚔ Autonomous Eidolic Weapon").withStyle(ChatFormatting.GOLD));
-                    tooltipComponents.accept(Component.literal(" Requires: Autonomous Weapon Sheath").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
+                    tooltipComponents.accept(Component.translatable("msg.entropica.autonomous_eidolic_weapon").withStyle(ChatFormatting.GOLD));
+                    tooltipComponents.accept(Component.translatable("msg.entropica.requires_autonomous_weapon_sheath").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
                 } else {
-                    tooltipComponents.accept(Component.literal("Forged in the Eidolic Lathe").withStyle(ChatFormatting.LIGHT_PURPLE));
+                    tooltipComponents.accept(Component.translatable("msg.entropica.forged_in_the_eidolic_lathe").withStyle(ChatFormatting.LIGHT_PURPLE));
                 }
 
-                tooltipComponents.accept(Component.literal(" Core Type: ").withStyle(ChatFormatting.GRAY).append(Component.literal(state.coreType()).withStyle(ChatFormatting.WHITE)));
+                tooltipComponents.accept(Component.translatable("msg.entropica.core_type").withStyle(ChatFormatting.GRAY).append(Component.literal(state.coreType()).withStyle(ChatFormatting.WHITE)));
 
                 if (state.isAltered()) {
                     tooltipComponents.accept(Component.literal(" Active Profile: " + state.activeProfile())
@@ -139,7 +139,7 @@ public class DynamicVisCrossbowItem extends CrossbowItem {
                     String essenceNameStr = rawName.substring(0, 1).toUpperCase() + rawName.substring(1).toLowerCase();
                     Component damageValue = Component.literal(String.format(" %.1f ", state.baseDamage())).withStyle(ChatFormatting.DARK_GREEN);
                     Component essenceName = Component.literal(essenceNameStr).withStyle(style -> style.withColor(state.baseType().getColorInt()));
-                    Component damageLabel = Component.literal(" Damage").withStyle(ChatFormatting.DARK_GREEN);
+                    Component damageLabel = Component.translatable("msg.entropica.damage").withStyle(ChatFormatting.DARK_GREEN);
                     tooltipComponents.accept(Component.empty().append(damageValue).append(essenceName).append(damageLabel));
                 } else {
                     Component damageValue = Component.literal(String.format(" %.1f Physical Damage", state.baseDamage())).withStyle(ChatFormatting.DARK_GREEN);
@@ -153,7 +153,7 @@ public class DynamicVisCrossbowItem extends CrossbowItem {
 
                 if (state.hasOrbisSlot()) {
                     if (state.orbisCell().isEmpty()) {
-                        tooltipComponents.accept(Component.literal(" No Orbis Cell Equipped").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
+                        tooltipComponents.accept(Component.translatable("msg.entropica.no_orbis_cell_equipped").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
                     } else {
                         ItemStack cell = state.orbisCell();
                         net.minecraft.world.item.component.CustomData data = cell.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
@@ -172,7 +172,7 @@ public class DynamicVisCrossbowItem extends CrossbowItem {
                         String filled = "|".repeat(bars);
                         String empty = "|".repeat(20 - bars);
 
-                        tooltipComponents.accept(Component.literal(" Stored Materia ").withStyle(ChatFormatting.GRAY)
+                        tooltipComponents.accept(Component.translatable("msg.entropica.stored_materia").withStyle(ChatFormatting.GRAY)
                                 .append(Component.literal(filled).withStyle(style -> style.withColor(cellType.getColorInt())))
                                 .append(Component.literal(empty).withStyle(ChatFormatting.DARK_GRAY))
                         );
@@ -181,9 +181,9 @@ public class DynamicVisCrossbowItem extends CrossbowItem {
 
                 if (!state.activeSpell().equals("none")) {
                     tooltipComponents.accept(Component.empty());
-                    tooltipComponents.accept(Component.literal(" Embedded Spell: ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                    tooltipComponents.accept(Component.translatable("msg.entropica.embedded_spell").withStyle(ChatFormatting.LIGHT_PURPLE)
                             .append(Component.literal(state.activeSpell()).withStyle(ChatFormatting.GOLD)));
-                    tooltipComponents.accept(Component.literal(" Shift + Right-Click to Cast").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
+                    tooltipComponents.accept(Component.translatable("msg.entropica.shift_right_click_to_cast").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
                 }
             }
         }

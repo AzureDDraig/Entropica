@@ -113,7 +113,7 @@ public class OrbisCellItem extends BlockItem {
 
             Style essenceStyle = Style.EMPTY.withColor(hexColor);
 
-            tooltipComponents.accept(Component.literal("Stored Materia (").withStyle(ChatFormatting.GRAY)
+            tooltipComponents.accept(Component.translatable("msg.entropica.stored_materia").withStyle(ChatFormatting.GRAY)
                     .append(Component.literal(type.getDisplayName()).withStyle(essenceStyle))
                     .append(Component.literal(") - Tier " + tier + ": ").withStyle(ChatFormatting.GRAY))
                     .append(Component.literal(currentCellMateria + " / " + maxMateria).withStyle(essenceStyle)));

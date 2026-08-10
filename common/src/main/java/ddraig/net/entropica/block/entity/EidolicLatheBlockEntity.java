@@ -202,7 +202,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
         if (!this.isFormed || this.level == null || this.level.isClientSide() || this.isCrafting) return;
 
         if (!this.inventory.getItem(4).isEmpty()) {
-            if (player != null) player.displayClientMessage(Component.literal("§cClear the completed weapon from the focal pedestal first!"), true);
+            if (player != null) player.displayClientMessage(Component.translatable("msg.entropica.clear_the_completed_weapon_from_the"), true);
             return;
         }
 
@@ -229,7 +229,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
         }
 
         if (conceptStack.isEmpty() || coreStack.isEmpty() || orbisStack.isEmpty() || materialStack.isEmpty() || materialStack.getCount() < 4) {
-            if (player != null) player.displayClientMessage(Component.literal("§cMissing Weapon Skeleton. Requires: 1x Concept, 1x Core, 1x Orbis Acceptor, 4x Base Material."), true);
+            if (player != null) player.displayClientMessage(Component.translatable("msg.entropica.missing_weapon_skeleton_requires_1x_concept"), true);
             return;
         }
 
@@ -271,7 +271,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
 
         if (hasMismatch) {
             if (player != null) {
-                player.displayClientMessage(Component.literal("§cVolatile Resonance! Mismatched Materia types detected!"), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.volatile_resonance_mismatched_materia_types_detected"), true);
 
                 for (BlockPos pPos : this.connectedPedestals) {
                     if (this.level.getBlockEntity(pPos) instanceof AttunementPedestalBlockEntity ped) {
@@ -310,7 +310,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
         else if (this.storedFume != null && !this.storedFume.isEmpty()) networkType = this.storedFume.getType();
 
         if (networkType != null && detectedAmpouleType != null && networkType != detectedAmpouleType) {
-            if (player != null) player.displayClientMessage(Component.literal("§cMismatched Materia types between Lathe residue and ampoules."), true);
+            if (player != null) player.displayClientMessage(Component.translatable("msg.entropica.mismatched_materia_types_between_lathe_residue"), true);
             return;
         }
 
@@ -326,7 +326,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
         this.storedFume = MateriaFumusStack.EMPTY;
         this.storedIchor = MateriaLiquidaStack.EMPTY;
 
-        if (player != null) player.displayClientMessage(Component.literal("§aLathe activated. Commencing Phase 1: Essence Injection..."), true);
+        if (player != null) player.displayClientMessage(Component.translatable("msg.entropica.lathe_activated_commencing_phase_1_essence"), true);
 
         this.setChanged();
         this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
@@ -729,7 +729,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
             if (this.waitForClick) {
                 this.waitForClick = false;
                 if (player != null) {
-                    player.displayClientMessage(Component.literal("§dPhase 2: Distributing Essences..."), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.phase_2_distributing_essences"), true);
                 }
 
                 this.craftingProgress++;
@@ -740,7 +740,7 @@ public class EidolicLatheBlockEntity extends BlockEntity implements IVaporHandle
                 }
                 return true;
             }
-            if (player != null) player.displayClientMessage(Component.literal("§cThe Lathe is actively forging!"), true);
+            if (player != null) player.displayClientMessage(Component.translatable("msg.entropica.the_lathe_is_actively_forging"), true);
             return false;
         }
 

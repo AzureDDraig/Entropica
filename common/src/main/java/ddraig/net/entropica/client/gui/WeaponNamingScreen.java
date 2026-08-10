@@ -17,18 +17,18 @@ public class WeaponNamingScreen extends Screen {
     private boolean submitted = false;
 
     public WeaponNamingScreen() {
-        super(Component.literal("Name Weapon"));
+        super(Component.translatable("msg.entropica.name_weapon"));
     }
 
     @Override
     protected void init() {
         super.init();
 
-        this.nameField = new EditBox(this.font, this.width / 2 - 100, this.height / 2 - 20, 200, 20, Component.literal("Weapon Name"));
+        this.nameField = new EditBox(this.font, this.width / 2 - 100, this.height / 2 - 20, 200, 20, Component.translatable("msg.entropica.weapon_name"));
         this.nameField.setMaxLength(50);
         this.addRenderableWidget(this.nameField);
 
-        this.addRenderableWidget(Button.builder(Component.literal("Confirm Naming"), button -> {
+        this.addRenderableWidget(Button.builder(Component.translatable("msg.entropica.confirm_naming"), button -> {
             this.submitName();
         }).bounds(this.width / 2 - 60, this.height / 2 + 15, 120, 20).build());
     }

@@ -49,7 +49,7 @@ public class EssenceReceptacleBlock extends BaseEntityBlock {
             EntropicCoreBlockEntity master = receptacle.getMaster();
 
             if (master == null || !master.isFormed()) {
-                player.displayClientMessage(Component.literal("§cReceptacle is disconnected or Core is incomplete."), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.receptacle_is_disconnected_or_core_is"), true);
                 return InteractionResult.SUCCESS;
             }
 
@@ -60,12 +60,12 @@ public class EssenceReceptacleBlock extends BaseEntityBlock {
 
                     if (remainder.getCount() < heldItem.getCount()) {
                         player.setItemInHand(InteractionHand.MAIN_HAND, remainder);
-                        player.displayClientMessage(Component.literal("§aAdded items to shared essence buffer."), true);
+                        player.displayClientMessage(Component.translatable("msg.entropica.added_items_to_shared_essence_buffer"), true);
                     } else {
-                        player.displayClientMessage(Component.literal("§eThe shared buffer is full!"), true);
+                        player.displayClientMessage(Component.translatable("msg.entropica.the_shared_buffer_is_full"), true);
                     }
                 } else {
-                    player.displayClientMessage(Component.literal("§cThis item is not a valid essence."), true);
+                    player.displayClientMessage(Component.translatable("msg.entropica.this_item_is_not_a_valid"), true);
                 }
             } else {
                 int totalBuffered = 0;

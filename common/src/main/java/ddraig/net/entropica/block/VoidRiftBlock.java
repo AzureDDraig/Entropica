@@ -79,7 +79,7 @@ public class VoidRiftBlock extends Block implements EntityBlock {
                 player.displayClientMessage(Component.literal("Not enough Materia to collapse Rift! Requires " + VoidResonantTuningForkItem.BREAK_COST).withStyle(ChatFormatting.RED), true);
             }
         } else {
-            player.displayClientMessage(Component.literal("Void Rifts can only be collapsed using a Void-Resonant Tuning Fork.").withStyle(ChatFormatting.RED), true);
+            player.displayClientMessage(Component.translatable("msg.entropica.void_rifts_can_only_be_collapsed").withStyle(ChatFormatting.RED), true);
         }
     }
 

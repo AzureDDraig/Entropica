@@ -38,7 +38,7 @@ public class SynthesizerUserInterfaceScreen extends AbstractContainerScreen<Synt
         int buttonX = this.leftPos + 106;
         int buttonY = this.topPos + 53;
 
-        this.addRenderableWidget(Button.builder(Component.literal("Craft"), button -> {
+        this.addRenderableWidget(Button.builder(Component.translatable("msg.entropica.craft"), button -> {
             Window window = Minecraft.getInstance().getWindow();
             boolean bulk = InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_SHIFT) ||
                     InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
@@ -98,7 +98,7 @@ public class SynthesizerUserInterfaceScreen extends AbstractContainerScreen<Synt
             int previewY = this.topPos + 53 - 22;
             if (mouseX >= previewX && mouseX < previewX + 16 && mouseY >= previewY && mouseY < previewY + 16) {
 
-                Component text = Component.literal("§bPreview: ").append(currentPreview.getHoverName());
+                Component text = Component.translatable("msg.entropica.preview").append(currentPreview.getHoverName());
                 int width = this.font.width(text);
 
                 // Manually drawing the tooltip box entirely bypasses the strict 1.21.4 renderTooltip requirements!

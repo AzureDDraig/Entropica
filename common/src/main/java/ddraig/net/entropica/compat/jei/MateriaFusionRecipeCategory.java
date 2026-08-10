@@ -35,7 +35,7 @@ public class MateriaFusionRecipeCategory implements IRecipeCategory<FusionRecipe
     public MateriaFusionRecipeCategory(IGuiHelper guiHelper) {
         this.background = guiHelper.createBlankDrawable(160, 60);
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(ModBlocks.ENTROPIC_CORE.get()));
-        this.title = Component.literal("Entropic Core: Materia Fusion");
+        this.title = Component.translatable("msg.entropica.entropic_core_materia_fusion");
     }
 
     @Override

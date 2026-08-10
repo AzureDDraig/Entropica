@@ -71,7 +71,7 @@ public class MateriaFilterBlock extends BaseEntityBlock {
                 // 2. Otherwise, cycle the filter normally
                 filter.cycleFilter();
                 player.displayClientMessage(
-                        Component.literal("§7Filter set to: ").append(Component.literal(filter.getFilterType().getFormattedName())),
+                        Component.translatable("msg.entropica.filter_set_to").append(Component.literal(filter.getFilterType().getFormattedName())),
                         true
                 );
             }

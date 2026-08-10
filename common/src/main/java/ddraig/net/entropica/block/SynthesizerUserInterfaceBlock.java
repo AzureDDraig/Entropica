@@ -87,7 +87,7 @@ public class SynthesizerUserInterfaceBlock extends Block {
                     }
                 );
             } else {
-                player.displayClientMessage(Component.literal("§cSynthesizer UI must be placed adjacent to an Aetheric Synthesizer!"), true);
+                player.displayClientMessage(Component.translatable("msg.entropica.synthesizer_ui_must_be_placed_adjacent"), true);
             }
         }
         return InteractionResult.SUCCESS;

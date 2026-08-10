@@ -54,7 +54,7 @@ public class VisFumeAmpouleItem extends Item {
                     .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(type.getTextColorInt())));
             tooltipComponents.add(Component.literal("§7Contains: §b" + capacity + " Materia"));
         } else {
-            tooltipComponents.add(Component.literal("Corrupted Materia")
+            tooltipComponents.add(Component.translatable("msg.entropica.corrupted_materia")
                     .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(0xFF5555)));
         }
     }

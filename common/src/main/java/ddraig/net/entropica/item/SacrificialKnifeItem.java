@@ -122,7 +122,7 @@ public class SacrificialKnifeItem extends Item {
                 zombie.setPos(player.getX(), player.getY(), player.getZ());
                 zombie.setYRot(player.getYRot());
                 zombie.setXRot(player.getXRot());
-                zombie.setCustomName(Component.literal("Materia-Infused Zombie"));
+                zombie.setCustomName(Component.translatable("msg.entropica.materia_infused_zombie"));
                 zombie.setCustomNameVisible(true);
                 zombie.setPersistenceRequired();
                 zombie.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, -1, 1)); // Resistance II

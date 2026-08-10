@@ -63,7 +63,7 @@ public class EntropicCodexScreen extends Screen {
     }
 
     public EntropicCodexScreen(EssenceType essenceType) {
-        super(Component.literal("Entropic Codex"));
+        super(Component.translatable("msg.entropica.entropic_codex"));
         this.highestEssence = essenceType;
     }
 
@@ -76,9 +76,9 @@ public class EntropicCodexScreen extends Screen {
 
         int searchBoxX = 165;
         int searchBoxY = 48;
-        this.searchBox = new EditBox(this.font, searchBoxX, searchBoxY, 220, 18, Component.literal("Search..."));
+        this.searchBox = new EditBox(this.font, searchBoxX, searchBoxY, 220, 18, Component.translatable("msg.entropica.search"));
         this.searchBox.setMaxLength(30);
-        this.searchBox.setHint(Component.literal("Search codex entries..."));
+        this.searchBox.setHint(Component.translatable("msg.entropica.search_codex_entries"));
         this.searchBox.setVisible(false);
         this.addRenderableWidget(this.searchBox);
 
@@ -638,7 +638,7 @@ public class EntropicCodexScreen extends Screen {
         guiGraphics.fill(0, 31, this.width, 33, 0xFF00D9FF);
 
         // Header Title Banner: ENTROPIC CODEX
-        Component titleComp = Component.literal("ENTROPIC CODEX");
+        Component titleComp = Component.translatable("msg.entropica.entropic_codex");
         int titleWidth = this.font.width(titleComp);
         guiGraphics.drawString(this.font, titleComp, this.width / 2 - titleWidth / 2, 10, 0xFF00D9FF, true);
 

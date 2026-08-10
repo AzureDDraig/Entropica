@@ -19,7 +19,7 @@ public class CodexJoinHandler {
                     player.getInventory().add(new ItemStack(ModItems.ENTROPIC_CODEX.get()));
                     tag.putBoolean("hasReceivedCodex", true);
                     tag.putBoolean("HasReceivedCodex", true);
-                    player.displayClientMessage(Component.literal("§d[Entropica] You received the Entropic Codex! Right-click to open spatial research map."), false);
+                    player.displayClientMessage(Component.translatable("msg.entropica.you_received_the_entropic_codex_right"), false);
                 }
             }
         });

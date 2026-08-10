@@ -76,7 +76,7 @@ public class ScribingControllerBlock extends BaseEntityBlock {
                     if (controller.isFormed()) {
                         player.displayClientMessage(Component.literal("§eScribing Engine is formed! Stored Materia Fumus: " + controller.getStoredMateria().getAmount() + "mb"), false);
                     } else {
-                        player.displayClientMessage(Component.literal("§cScribing Engine is not formed."), false);
+                        player.displayClientMessage(Component.translatable("msg.entropica.scribing_engine_is_not_formed"), false);
                     }
                     return InteractionResult.SUCCESS;
                 }
@@ -84,13 +84,13 @@ public class ScribingControllerBlock extends BaseEntityBlock {
                 if (!controller.isFormed()) {
                     boolean success = controller.attemptFormMultiblock();
                     if (success) {
-                        player.displayClientMessage(Component.literal("§aScribing Engine Formed Successfully!"), false);
+                        player.displayClientMessage(Component.translatable("msg.entropica.scribing_engine_formed_successfully"), false);
                     } else {
-                        player.displayClientMessage(Component.literal("§cInvalid structure. Check block placements for 3x3x3 layout."), false);
+                        player.displayClientMessage(Component.translatable("msg.entropica.invalid_structure_check_block_placements_for"), false);
                     }
                 } else {
                     // Open Scribing Engine GUI (to be implemented)
-                    player.displayClientMessage(Component.literal("§eOpening Runic Scribing Controller interface..."), false);
+                    player.displayClientMessage(Component.translatable("msg.entropica.opening_runic_scribing_controller_interface"), false);
                 }
             }
         }

@@ -294,7 +294,7 @@ public class EssenceNodeEntity extends Entity {
             if (!nodes.isEmpty()) {
                 if (player instanceof ServerPlayer serverPlayer) {
                     serverPlayer.displayClientMessage(
-                            Component.literal("§cThe dense arcane energy repels the block!"), true
+                            Component.translatable("msg.entropica.the_dense_arcane_energy_repels_the"), true
                     );
                 }
                 return true; // Cancel placement

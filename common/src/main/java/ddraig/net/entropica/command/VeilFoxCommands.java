@@ -71,7 +71,7 @@ public class VeilFoxCommands {
             List<VeilFoxEntity> foxes = level.getEntitiesOfClass(VeilFoxEntity.class, player.getBoundingBox().inflate(32.0D));
 
             if (foxes.isEmpty()) {
-                source.sendFailure(Component.literal("No Veil Foxes found nearby!"));
+                source.sendFailure(Component.translatable("msg.entropica.no_veil_foxes_found_nearby"));
                 return 0;
             }
 

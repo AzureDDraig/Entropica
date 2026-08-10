@@ -116,8 +116,8 @@ public class EntropicCodexItem extends Item {
     }
 
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.literal("§7Technomantic Guidebook & Knowledge Vault"));
-        tooltipComponents.add(Component.literal("§dRight-click§7 to open spatial research map."));
-        tooltipComponents.add(Component.literal("§dRight-click Materia Terminal§7 to pair facility telemetry."));
+        tooltipComponents.add(Component.translatable("msg.entropica.technomantic_guidebook_knowledge_vault"));
+        tooltipComponents.add(Component.translatable("msg.entropica.right_click_to_open_spatial_research"));
+        tooltipComponents.add(Component.translatable("msg.entropica.right_click_materia_terminal_to_pair"));
     }
 }

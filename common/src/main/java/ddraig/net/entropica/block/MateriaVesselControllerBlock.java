@@ -62,7 +62,7 @@ public class MateriaVesselControllerBlock extends Block implements EntityBlock {
 
                         player.displayClientMessage(Component.literal("§ePressure Vessel Status: " + amount + " / " + controller.getMaxCapacity() + "mb of " + typeName), true);
                     } else {
-                        player.displayClientMessage(Component.literal("§cPressure Vessel is not currently formed."), true);
+                        player.displayClientMessage(Component.translatable("msg.entropica.pressure_vessel_is_not_currently_formed"), true);
                     }
                     return InteractionResult.SUCCESS;
                 }
@@ -74,7 +74,7 @@ public class MateriaVesselControllerBlock extends Block implements EntityBlock {
                     if (success) {
                         player.displayClientMessage(Component.literal("§aVis Fume Pressure Vessel Formed! Capacity: " + controller.getMaxCapacity() + "mb"), true);
                     } else {
-                        player.displayClientMessage(Component.literal("§cInvalid Pressure Vessel Structure. Requires at least 1 Controller, 2 Ports, and 5 Glass."), true);
+                        player.displayClientMessage(Component.translatable("msg.entropica.invalid_pressure_vessel_structure_requires_at"), true);
                     }
                 } else {
                     // If already formed, toggle between Import and Export mode

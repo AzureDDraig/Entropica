@@ -158,7 +158,7 @@ public class SpoolItem extends EntropicaComponentItem {
                 }
             }
         } else {
-            tooltipComponents.accept(Component.literal("Empty").withStyle(ChatFormatting.GRAY));
+            tooltipComponents.accept(Component.translatable("msg.entropica.empty").withStyle(ChatFormatting.GRAY));
         }
     }
 }
