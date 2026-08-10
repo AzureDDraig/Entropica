@@ -31,6 +31,10 @@
 - **Dynamic Ambient Essence Tinting**: Created `AmbientEssenceTintRegistry` to dynamically calculate ambient Materia colors based on biome affinity (Nether, Void, Frozen, Water, Arid, Undead, Air) or continuous time-animated rainbow pastel shimmer wave.
 - **Model Tint Index Correction**: Updated `models/block/shimmerpetal.json` to assign `tintindex: 0` exclusively to the `#head` blossom faces (leaving `#stem` natural green), and registered `entropica:ambient_essence_tint` ItemTintSource in `models/item/shimmerpetal.json` for item rendering.
 
+### 🌿 100% 32x32 High-Resolution Flora Texture Milestone
+- **Complete 32x32 Flora Coverage**: Re-rendered all remaining 16x16 flora textures (`soul_flame_orchid.png`, `auroral_buttercup.png`, `stardust_bell_top.png`, `stardust_bell_bottom.png`, `vitreous_cactus.png`) into 32x32 high-resolution botanical pixel art with organic dither noise ($\pm 12$), specular highlights, and rich color depth. 100% of all 24 flora block textures in Entropica now feature unified 32x32 resolution.
+- **Soul-Flame Orchid Mechanics**: Updated `SoulFlameOrchidBlock.java` with `BonemealableBlock` item duplication and added Blackstone to valid Nether substrate placement rules.
+
 ### 📚 Codex Category Registry & OKF Obsidian Vault Synchronization
 - **Codex Registration**: Updated `CodexCategoryRegistry.java` node entries (`env_abyssal_weeproot`, `env_fulgurite_reed`, etc.) to document climbable ladder mechanics, overcharge shock, and bonemeal behavior.
 - **OKF Obsidian Vault Sync**: Updated notes in `C:\Users\Ddraig__\Downloads\OBSIDIAN WIKIS\Entropica\Entropica\` (`Aegis-Spire Orchid.md`, `Abyssal Weeproot.md`, `Fulgurite Reed.md`).
