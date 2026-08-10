@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/spectral_dye_sanguine"
+    "layer0": "entropica:item/spectral_dye_bottle",
+    "layer1": "entropica:item/spectral_dye_fill"
   }
 }

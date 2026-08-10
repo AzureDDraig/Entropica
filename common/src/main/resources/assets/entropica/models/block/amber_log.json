@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "entropica:block/amber_log_top",
+    "side": "entropica:block/amber_log"
+  }
+}

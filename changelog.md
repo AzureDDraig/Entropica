@@ -1,6 +1,18 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-13-51 (August 10, 2026 Minecraft 1.21.10 Item Model Audit & Spectral Dye Tinting Fix)
+
+### 🎨 Spectral Dye 2-Layer Dynamic Tinting Fix
+- **Dynamic 2-Layer Item Models**: Fixed item models for all 18 Spectral Dyes (`spectral_dye_aegis.json`, `spectral_dye_amber.json`, `spectral_dye_auroral.json`, `spectral_dye_fulgurite.json`, `spectral_dye_gale.json`, `spectral_dye_necrotic.json`, `spectral_dye_sanguine.json`, `spectral_dye_soulfire.json`, `spectral_dye_stardust.json`, `spectral_dye_vitae.json`, `spectral_dye_void_stalker.json`, etc.) to point to `"layer0": "entropica:item/spectral_dye_bottle"` and `"layer1": "entropica:item/spectral_dye_fill"`.
+- **Dynamic Luminescence Color Rendering**: Resolves missing texture fallback checkerboards by driving layer1 RGBA tinting via `ModItemColors.java` / `SpectralDyeItem`.
+
+### 🪵 Minecraft 1.21.10 Amber-Wood Blockstates & Models Audit
+- **Block Item Models**: Created `amber_log.json`, `stripped_amber_log.json`, `amber_wood.json`, `stripped_amber_wood.json`, `amber_planks.json`, `amber_leaves.json`, `amber_sapling.json`, and `auroral_lily_pad.json` under `models/item/`.
+- **Blockstate & Block Models**: Generated complete blockstate JSONs and block model JSONs (`cube_column`, `cube_column_horizontal`, `cube_all`, `cross`) under `blockstates/` and `models/block/`.
+- **Creative Tab Audit**: Confirmed all 7 Amber-Wood items, Amber Chunks, flora blocks, and Spectral Dyes are registered in `WORLD_TAB` in `ModCreativeTabs.java`.
+
 ## Build 000-1-26-222-13-42 (August 10, 2026 C/V/G/D Full Synchronization & Amber-Wood Deployment)
+
 
 ### 📖 Entropic Codex Integration
 - **`materials_amber_chunk` Research Node**: Registered Amber Chunk under `MATERIALS` in `CodexCategoryRegistry.java` with 3D item icon, orbit position (`a_ing + 0.20f`), and research details.

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "entropica:block/stripped_amber_wood",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "entropica:block/stripped_amber_wood"
+    },
+    "axis=z": {
+      "model": "entropica:block/stripped_amber_wood",
+      "x": 90
+    }
+  }
+}
