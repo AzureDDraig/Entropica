@@ -21,6 +21,8 @@ import ddraig.net.entropica.registry.ModMenuTypes;
 import ddraig.net.entropica.registry.ModParticles;
 import ddraig.net.entropica.registry.fabric.ModFluidsFabric;
 
+import ddraig.net.entropica.client.particle.TimedTintableParticle;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
@@ -211,7 +213,21 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ModBlocks.TALL_NECROTIC_ROSE_OF_JERICHO.get(),
             ModBlocks.SANGUINE_LILY.get(),
             ModBlocks.AURORAL_LILY_PAD.get(),
+            ModBlocks.CINDER_GRIP_LICHEN.get(),
+            ModBlocks.SOOT_SHROUD_FUNGI.get(),
+            ModBlocks.PYROCYST_ALGAE.get(),
+            ModBlocks.BARROW_FUNGAL_SHELF_CAP.get(),
+            ModBlocks.SPORE_FUNGAL_SHELF_CAP.get(),
+            ModBlocks.BLIGHT_FUNGAL_SHELF_CAP.get(),
+            ModBlocks.FROST_FUNGAL_SHELF_CAP.get(),
+            ModBlocks.CINDER_FUNGAL_SHELF_CAP.get(),
+            ModBlocks.ASTRAL_FUNGAL_SHELF_CAP.get(),
+            ModBlocks.DAWN_FUNGAL_SHELF_CAP.get(),
+            ModBlocks.SANGUINE_FUNGAL_SHELF_CAP.get(),
+            ModBlocks.STATIC_FUNGAL_SHELF_CAP.get(),
             ModBlocks.AEGIS_SPIRE_ORCHID.get(),
+
+
 
             ModBlocks.TALL_AEGIS_SPIRE_ORCHID.get(),
 

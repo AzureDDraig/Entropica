@@ -3,10 +3,10 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "minecraft:glass_bottle"
+      "item": "entropica:sanguine_fungal_cap"
     },
     {
-      "item": "entropica:blood_root_pulp"
+      "item": "minecraft:glass_bottle"
     }
   ],
   "result": {

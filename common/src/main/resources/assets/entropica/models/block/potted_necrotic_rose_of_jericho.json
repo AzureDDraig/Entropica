@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/flower_pot_cross",
+  "textures": {
+    "plant": "entropica:block/necrotic_rose_of_jericho"
+  }
+}

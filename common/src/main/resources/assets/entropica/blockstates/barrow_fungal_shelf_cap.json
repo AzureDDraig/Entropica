@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "entropica:block/barrow_fungal_shelf_cap"
+    },
+    "facing=east": {
+      "model": "entropica:block/barrow_fungal_shelf_cap",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "entropica:block/barrow_fungal_shelf_cap",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "entropica:block/barrow_fungal_shelf_cap",
+      "y": 270
+    }
+  }
+}

@@ -27,7 +27,16 @@ public class SpectralDyeApi {
     public static final DyeColor BARROW      = register("barrow",      0x10B981, "Tomb Emerald",    "#10B981");
     public static final DyeColor ABYSSAL     = register("abyssal",     0x0284C7, "Abyssal Navy",    "#0284C7");
     public static final DyeColor SANGUINE    = register("sanguine",    0x8A0303, "Sanguine Crimson", "#8A0303");
-    public static final DyeColor VITAE       = register("vitae",       0xFF6B9D, "Vitae Pink",       "#FF6B9D");
+        public static final DyeColor SPORE = register("spore", 0x22C55E, "Spore Green", "#22C55E");
+    public static final DyeColor BLIGHT = register("blight", 0x34CC48, "Blight Toxic Green", "#34CC48");
+    public static final DyeColor ASTRAL = register("astral", 0x6366F1, "Astral Stardust Indigo", "#6366F1");
+    public static final DyeColor DAWN = register("dawn", 0xF59E0B, "Dawn Sunburst Gold", "#F59E0B");
+    public static final DyeColor STATIC = register("static", 0x38BDF8, "Static Electric Cyan", "#38BDF8");
+public static final DyeColor VITAE       = register("vitae",       0xFF6B9D, "Vitae Pink",       "#FF6B9D");
+    public static final DyeColor CINDER      = register("cinder",      0xF97316, "Cinder Ember",     "#F97316");
+    public static final DyeColor SOOT        = register("soot",        0x312E81, "Soot Ash",         "#312E81");
+    public static final DyeColor PYROCYST    = register("pyrocyst",    0xEF4444, "Pyrocyst Crimson", "#EF4444");
+
 
 
 

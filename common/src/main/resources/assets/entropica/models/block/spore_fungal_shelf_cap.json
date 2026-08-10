@@ -1,0 +1,44 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "entropica:block/spore_fungal_shelf_cap_top",
+    "top": "entropica:block/spore_fungal_shelf_cap_top",
+    "bottom": "entropica:block/spore_fungal_shelf_cap_bottom",
+    "edge": "entropica:block/spore_fungal_shelf_cap_edge"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        6,
+        0
+      ],
+      "to": [
+        15,
+        10,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#edge",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#edge"
+        },
+        "east": {
+          "texture": "#edge"
+        },
+        "west": {
+          "texture": "#edge"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#bottom"
+        }
+      }
+    }
+  ]
+}

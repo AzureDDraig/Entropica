@@ -1,6 +1,87 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-18-24 (August 10, 2026 Fungal Shelf Placement Restrictions & Flower Pot Integration)
+
+### 🪵 Fungal Shelf Placement Restrictions (`AbstractFungalShelfBlock`)
+- **Placement Validation**: Updated `canSurvive` in `AbstractFungalShelfBlock.java` to restrict shelf-cap attachment strictly to sturdy faces of `BlockTags.LOGS` (Overworld logs/wood, Crimson/Warped stems, Hyphae, Stripped stems), `BlockTags.WART_BLOCKS`, and `BlockTags.MUSHROOM_GROW_BLOCK`.
+
+### 🏺 19 Potted Flower Pot Block Variants (`FlowerPotBlock`)
+- **Block Registrations**: Registered 19 `FlowerPotBlock` (`POTTED_<ID>`) variants in `ModBlocks.java` for all 1-tall Entropica flora (`potted_aura_drift_sedge`, `potted_spectral_lantern_flower`, `potted_cinder_spore_mushroom`, `potted_necrotic_rose_of_jericho`, `potted_void_stalker_orchid`, `potted_stardust_aloe`, `potted_blood_root_succulent`, `potted_aegis_spire_orchid`, `potted_spore_burst_puffball`, `potted_vitae_orchid`, `potted_sanguine_lily`, `potted_abyssal_weeproot`, `potted_fulgurite_swamp_bloom`, `potted_cryo_static_shrub`, `potted_vitreous_cactus`, `potted_soot_shroud_fungi`, `potted_static_spear_grass`, `potted_amber_nectar_blossom`, `potted_rimebloom`).
+- **Assets & Client**: Created blockstates, 3D cross models, and registered cutout render layers in `EntropicaClientFabric.java`.
+
+## Build 000-1-26-222-18-18 (August 10, 2026 Particle Physics Engine & Custom Flora Completion)
+
+
+### 🌊 Rotatable & Timed Particle Physics Engine (`TimedTintableParticleOption`)
+- **Engine Architecture**: Implemented `TimedTintableParticleOption.java` & `TimedTintableParticle.java` supporting RGB tinting, custom lifespan (`maxAge` in ticks), scale multiplier, 360° initial `roll` angle, and continuous `rollSpeed` spin velocity.
+- **5 Motion Physics Modes**:
+  - `LINEAR` (0): Trajectory with drag & gravity.
+  - `TOWARDS` (1): Vector attraction acceleration towards target coordinate `(targetX, targetY, targetZ)`.
+  - `AWAY` (2): Vector repulsion push away from origin.
+  - `JITTER` (3): Erratic random velocity fluctuations.
+  - `NOISE` (4): Perlin/Simplex noise wave turbulence over time.
+
+### 🎨 42 Greyscale Tintable Particles
+- **18 Base Particles**: Registered `tintable_sparkle`, `tintable_spore`, `tintable_mist`, `tintable_drip`, `tintable_ember`, `tintable_rune`, `tintable_blood`, `tintable_vortex`, `tintable_shield`, `tintable_arc`, `tintable_leaf`, `tintable_wisp`, `tintable_crystal`, `tintable_bubble`, `tintable_singularity`, `tintable_sigil`, `tintable_sunbeam`, `tintable_acid`.
+- **24 Elder Futhark Rune Particles**: Registered `rune_fehu`, `rune_uruz`, `rune_thurisaz`, `rune_ansuz`, `rune_raido`, `rune_kenaz`, `rune_gebo`, `rune_wunjo`, `rune_hagalaz`, `rune_nauthiz`, `rune_isa`, `rune_jera`, `rune_eihwaz`, `rune_perthro`, `rune_algiz`, `rune_sowilo`, `rune_tiwaz`, `rune_berkano`, `rune_ehwaz`, `rune_mannaz`, `rune_laguz`, `rune_ingwaz`, `rune_dagaz`, `rune_othala`.
+
+### 🩸 Bleeding Effect & Fungal Shelf Touch Refinements
+- **`BleedingEffect`**: Updated `BleedingEffect.java` to send trailing `tintable_blood` particles around bleeding entities while dealing periodic magic damage.
+- **🔥 Cinder Shelf-Cap**: Sets target on fire for 3s (`igniteForSeconds(3)`).
+- **⚡ Static Shelf-Cap**: 3 rapid touches within 1.5s (30 ticks) summons a real `LightningBolt` entity.
+- **🩸 Sanguine Shelf-Cap**: Applies `BLEEDING` status effect (5s) + Strength I.
+
+### 🌿 3 Remaining Custom Flora Classes
+- **Static Spear-Grass (`static_spear_grass`)**: Implemented `StaticSpearGrassBlock.java` (`BushBlock`, Light 3, static shock + Speed II on contact).
+- **Amber Nectar Blossom (`amber_nectar_blossom`)**: Implemented `AmberNectarBlossomBlock.java` (`FlowerBlock`, Light 5, Glass Bottle interaction extracts `amber_nectar_bottle`).
+- **Rimebloom (`rimebloom`)**: Implemented `RimebloomBlock.java` (`FlowerBlock`, Light 3, Slowness I + `tintable_mist` frostbite particles).
+
+## Build 000-1-26-222-17-56 (August 10, 2026 Fungal Shelf-Cap Family Expansion: 9 Essence-Aligned Wall Bracket Species)
+
+
+### 🍄 Abstract 3D Wall Bracket Architecture (`AbstractFungalShelfBlock`)
+- **Parent Architecture**: Implemented `AbstractFungalShelfBlock` extending `HorizontalDirectionalBlock` with slender 3D wall-bracket VoxelShapes ($14 \times 4 \times 12$ pixels) dynamically rotated based on attached wall face (`NORTH`, `SOUTH`, `EAST`, `WEST`) with a solid stepping platform at $y=10.0$.
+- **9 Essence-Aligned Species**:
+  - **Barrow (`barrow_fungal_shelf_cap`)**: Grants Resistance I (4s) on contact. Drops `barrow_fungal_cap`, crafts `spectral_dye_barrow`.
+  - **Spore (`spore_fungal_shelf_cap`)**: Grants Regeneration I (4s) on contact. Drops `spore_fungal_cap`, crafts `spectral_dye_spore`.
+  - **Blight (`blight_fungal_shelf_cap`)**: Inflicts Nausea I (4s) + Poison I (3s) on contact. Drops `blight_fungal_cap`, crafts `spectral_dye_blight`.
+  - **Frost (`frost_fungal_shelf_cap`)**: Inflicts Slowness I (4s) on contact. Drops `frost_fungal_cap`, crafts `spectral_dye_frost`.
+  - **Cinder (`cinder_fungal_shelf_cap`)**: Extinguishes fire & grants Fire Resistance I (6s). Drops `cinder_fungal_cap`, crafts `spectral_dye_cinder`.
+  - **Astral (`astral_fungal_shelf_cap`)**: Grants Jump Boost II (4s) on contact. Drops `astral_fungal_cap`, crafts `spectral_dye_stardust`.
+  - **Dawn (`dawn_fungal_shelf_cap`)**: Cleanses debuffs & grants Glowing (6s) (Light 12). Drops `dawn_fungal_cap`, crafts `spectral_dye_amber`.
+  - **Sanguine (`sanguine_fungal_shelf_cap`)**: Drains 0.5 heart, grants Strength I (4s). Drops `sanguine_fungal_cap`, crafts `spectral_dye_sanguine`.
+  - **Static (`static_fungal_shelf_cap`)**: Delivers 0.5 lightning zap & grants Speed II (3s). Drops `static_fungal_cap`, crafts `spectral_dye_fulgurite`.
+
+### 🎨 16x16 Pixel Art Suite & Assets
+- **16x16 Textures**: Generated 27 dedicated 16x16 block textures (`top`, `bottom`, `edge`) and 18 item icons.
+- **Assets & Client**: Registered blockstates, 3D cuboid block models, 1.21.4+ item definitions, shearing handlers in `FloraHarvestHelper.java`, cutout render layers in `EntropicaClientFabric.java`, and English localization strings.
+- **Codex & Vault**: Registered 9 Codex nodes in `CodexCategoryRegistry.java` and created 9 OKF Obsidian Vault markdown notes in `wiki/entities/blocks/flora/`.
+
+## Build 000-1-26-222-17-16 (August 10, 2026 Nether Flora Expansion: Cinder-Grip Lichen, Soot-Shroud Fungi & Pyrocyst Algae)
+
+
+### 🌋 3 New Nether Flora Species Implemented
+- **Cinder-Grip Lichen (`cinder_grip_lichen`)**: Implemented multi-directional wall/floor/ceiling lichen block (`CinderGripLichenBlock` extending `GlowLichenBlock`) with 100% seamless tiling 32x32 volcanic ember vein textures (Option A), Light Level 7, Speed I & 0.5 fire damage on contact, shearing right-click dropping `cinder_lichen_flakes`.
+- **Soot-Shroud Fungi (`soot_shroud_fungi`)**: Implemented 1-tall mushroom flora (`SootShroudFungiBlock`) featuring locked dark violet parasol cap with glowing gold underside gills & spots (Option B), Light Level 8, sulfuric ash spore particle cloud, Nausea I + Blindness I debuffs, shearing right-click dropping `soot_shroud_cap`.
+- **Pyrocyst Algae (`pyrocyst_algae`)**: Implemented fire-resistant thermal carpet flora (`PyrocystAlgaeBlock` extending `CarpetBlock`) with bioluminescent side vesicles & maroon thermal turf top (Option A), Light Level 11, 100% fire/lava item destruction immunity, fire-extinguishing + Fire Resistance I (10s) aura, right-click harvestable for `pyrocyst_vesicle` with 6,000-tick (5-minute) regrowth cooldown.
+
+### 🧪 Special Harvest Drops & Spectral Dyes
+- **Cinder Ember Spectral Dye (`spectral_dye_cinder`)**: Registered dye (`#F97316`) crafted via shapeless recipe from `cinder_lichen_flakes` + `glass_bottle`.
+- **Soot Ash Spectral Dye (`spectral_dye_soot`)**: Registered dye (`#312E81`) crafted via shapeless recipe from `soot_shroud_cap` + `glass_bottle`.
+- **Pyrocyst Crimson Spectral Dye (`spectral_dye_pyrocyst`)**: Registered dye (`#EF4444`) crafted via shapeless recipe from `pyrocyst_vesicle` + `glass_bottle`.
+- **Dynamic 2-Layer Tinting**: Configured 2-layer bottle models (`spectral_dye_bottle` + `spectral_dye_fill`) for all 3 dyes.
+
+### 🎨 Python Texture Generation & 2x2 Grid Tiling Proofs
+
+- **Python Texture Pipeline**: Generated crisp 32x32 textures and item icons via Pillow scripts; verified 100% 2D seamless tiling for Cinder-Grip Lichen across 512x512 2x2 grid proofs.
+- **Client & Assets**: Registered cutout render types in `EntropicaClientFabric.java`, blockstates, block models, item models, 1.21.4+ `items/` definitions, and localized strings in `en_us.json`.
+
+### 📚 Codex & OKF Obsidian Vault Sync
+- **Entropic Codex**: Registered `env_cinder_grip_lichen`, `env_soot_shroud_fungi`, and `env_pyrocyst_algae` under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java`.
+- **OKF Obsidian Vault**: Created notes `Cinder-Grip Lichen.md`, `Soot-Shroud Fungi.md`, and `Pyrocyst Algae.md` in `wiki/entities/blocks/flora/`.
+
 ## Build 000-1-26-222-15-41 (August 10, 2026 JEI Botanical Shearing Recipe Category Integration)
+
 
 ### 🌸 Botanical Shearing JEI Category (`jei.entropica.flora_harvesting`)
 - **New JEI Recipe Category**: Created `FloraHarvestingCategory` and `FloraHarvestingRecipe` registered under UID `entropica:flora_harvesting`.

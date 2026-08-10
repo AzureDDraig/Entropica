@@ -781,6 +781,109 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
+                "env_cinder_grip_lichen", "Cinder-Grip Lichen", "ENVIRONMENT & NATURE",
+                "Volcanic ember-veined crust lichen providing speed boosts and thermal embers.",
+                "Overview & Description:\n" +
+                "A multi-directional crust lichen pulsing with volcanic orange ember veins.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally across basalt deltas, netherrack, and blackstone.\n\n" +
+                "Crafting Uses:\n" +
+                "Sheared for Cinder Lichen Flakes used in speed & fire resistance brews.\n\n" +
+                "Special Properties:\n" +
+                "Grants Speed I for 3s; burns bare feet for 0.5 fire damage.",
+                "env_flora", 0, new ItemStack(ModItems.CINDER_GRIP_LICHEN_ITEM.get()),
+                980f, 0.0f, a_env + 1.00f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_soot_shroud_fungi", "Soot-Shroud Fungi", "ENVIRONMENT & NATURE",
+                "Jet-black parasol mushroom with glowing sulfur spots and ash cloud spores.",
+                "Overview & Description:\n" +
+                "A dark violet-grey parasol mushroom with glowing sulfur-yellow spots and ember gills.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally on netherrack, soul soil, and basalt.\n\n" +
+                "Crafting Uses:\n" +
+                "Sheared for Soot-Shroud Caps used as gunpowder substitute and brewing.\n\n" +
+                "Special Properties:\n" +
+                "Releases sulfuric ash clouds inflicting Nausea I and Blindness I.",
+                "env_flora", 0, new ItemStack(ModBlocks.SOOT_SHROUD_FUNGI.get()),
+                1020f, 0.0f, a_env + 1.04f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_pyrocyst_algae", "Pyrocyst Algae", "ENVIRONMENT & NATURE",
+                "Fire-proof thermal carpet algae filled with bioluminescent fluid vesicles.",
+                "Overview & Description:\n" +
+                "A bioluminescent crimson thermal algae carpet studded with glowing fluid bladders.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns on magma blocks and nether stone near lava lakes.\n\n" +
+                "Crafting Uses:\n" +
+                "Right-click harvested for Pyrocyst Vesicles (5-min regrowth cooldown).\n\n" +
+                "Special Properties:\n" +
+                "100% fire-proof; extinguishes burning players & grants Fire Resistance I for 10s.",
+                "env_flora", 0, new ItemStack(ModBlocks.PYROCYST_ALGAE.get()),
+                1060f, 0.0f, a_env + 1.08f, false
+        ));
+
+        // 9 Fungal Shelf-Caps Nodes
+        ALL_NODES.add(new CodexNode(
+                "env_barrow_fungal_shelf_cap", "Barrow Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Tomb Emerald bracket mushroom extending from wall faces. Grants Resistance I on contact.",
+                "Overview:\nTomb Emerald bracket shelf mushroom attached to wall faces.\n\nProperties:\nGrants Resistance I for 4s on contact. Sheared for Barrow Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.BARROW_FUNGAL_SHELF_CAP.get()), 1080f, 0.0f, a_env + 1.12f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_spore_fungal_shelf_cap", "Spore Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Overgrowth spore-green shelf cap sprinkled with gold spore dust. Grants Regeneration I on contact.",
+                "Overview:\nLush overgrowth spore-green bracket shelf mushroom.\n\nProperties:\nGrants Regeneration I for 4s on contact. Sheared for Spore Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.SPORE_FUNGAL_SHELF_CAP.get()), 1100f, 0.0f, a_env + 1.16f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_blight_fungal_shelf_cap", "Blight Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Necrotic grey-green shelf cap with toxic green vein networks. Inflicts Nausea & Poison on contact.",
+                "Overview:\nNecrotic grey-green bracket mushroom laced with toxic green veins.\n\nProperties:\nInflicts Nausea & Poison on contact. Sheared for Blight Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.BLIGHT_FUNGAL_SHELF_CAP.get()), 1120f, 0.0f, a_env + 1.20f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_frost_fungal_shelf_cap", "Frost Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Glacial ice-blue bracket shelf emitting frost mist. Inflicts Slowness I on contact.",
+                "Overview:\nGlacial ice-blue bracket shelf mushroom.\n\nProperties:\nInflicts Slowness I for 4s on contact. Sheared for Frost Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.FROST_FUNGAL_SHELF_CAP.get()), 1140f, 0.0f, a_env + 1.24f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_cinder_fungal_shelf_cap", "Cinder Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Volcanic ember-orange bracket shelf. Extinguishes fire and grants Fire Resistance I on contact.",
+                "Overview:\nVolcanic ember-orange bracket shelf mushroom.\n\nProperties:\nExtinguishes fire & grants Fire Resistance I for 6s. Sheared for Cinder Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.CINDER_FUNGAL_SHELF_CAP.get()), 1160f, 0.0f, a_env + 1.28f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_astral_fungal_shelf_cap", "Astral Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Stardust indigo bracket shelf. Grants Jump Boost II on contact.",
+                "Overview:\nStardust indigo-violet bracket shelf mushroom.\n\nProperties:\nGrants Jump Boost II for 4s on contact. Sheared for Astral Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.ASTRAL_FUNGAL_SHELF_CAP.get()), 1180f, 0.0f, a_env + 1.32f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_dawn_fungal_shelf_cap", "Dawn Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Sunburst gold bracket shelf emitting Light Level 12. Cleanses debuffs on contact.",
+                "Overview:\nSunburst gold bracket shelf mushroom emitting Light Level 12.\n\nProperties:\nCleanses debuffs & grants Glowing for 6s on contact. Sheared for Dawn Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.DAWN_FUNGAL_SHELF_CAP.get()), 1200f, 0.0f, a_env + 1.36f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_sanguine_fungal_shelf_cap", "Sanguine Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Crimson blood bracket shelf. Drains 0.5 heart on contact but grants Strength I.",
+                "Overview:\nDeep crimson red velvety bracket shelf mushroom.\n\nProperties:\nDrains 0.5 heart on contact but grants Strength I for 4s. Sheared for Sanguine Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.SANGUINE_FUNGAL_SHELF_CAP.get()), 1220f, 0.0f, a_env + 1.40f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_static_fungal_shelf_cap", "Static Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Electric cyan bracket shelf emitting sparks. Delivers a 0.5 lightning zap and grants Speed II.",
+                "Overview:\nElectric cyan bracket shelf mushroom emitting sparks.\n\nProperties:\nDelivers a 0.5 lightning zap & grants Speed II for 3s. Sheared for Static Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.STATIC_FUNGAL_SHELF_CAP.get()), 1240f, 0.0f, a_env + 1.44f, false
+        ));
+
+
+
+        ALL_NODES.add(new CodexNode(
                 "env_necrotic_rose_of_jericho", "Necrotic Rose-of-Jericho", "ENVIRONMENT & NATURE",
                 "Two-state dry root ball that unfurls into a decay-inflicting rose (Wither I).",
                 "Overview & Description:\n" +

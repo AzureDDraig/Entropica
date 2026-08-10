@@ -47,9 +47,14 @@ public class FloraHarvestHelper {
             return ModItems.CINDER_SPORE_CAP.get();
         } else if (block == ModBlocks.SPECTRAL_LANTERN_FLOWER.get()) {
             return ModItems.SPECTRAL_LANTERN_POD.get();
+        } else if (block == ModBlocks.CINDER_GRIP_LICHEN.get()) {
+            return ModItems.CINDER_LICHEN_FLAKES.get();
+        } else if (block == ModBlocks.SOOT_SHROUD_FUNGI.get()) {
+            return ModItems.SOOT_SHROUD_CAP.get();
         }
         return null;
     }
+
 
     public static boolean tryShearHarvest(Level level, BlockPos pos, BlockState state, Player player, InteractionHand hand) {
         ItemStack heldStack = player.getItemInHand(hand);

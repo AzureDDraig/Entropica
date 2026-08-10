@@ -12,6 +12,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PlaceOnWaterBlockItem;
 
 import net.minecraft.world.item.ToolMaterial;
@@ -663,6 +664,32 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> SANGUINE_LILY_ITEM = ITEMS.registerItem("sanguine_lily", properties -> new BlockItem(ModBlocks.SANGUINE_LILY.get(), properties));
     public static final RegistrySupplier<Item> SANGUINE_LILY_PAD = ITEMS.registerItem("sanguine_lily_pad", Item::new);
     public static final RegistrySupplier<Item> AURORAL_LILY_PAD_ITEM = ITEMS.registerItem("auroral_lily_pad", properties -> new PlaceOnWaterBlockItem(ModBlocks.AURORAL_LILY_PAD.get(), properties));
+    public static final RegistrySupplier<BlockItem> CINDER_GRIP_LICHEN_ITEM = ITEMS.registerItem("cinder_grip_lichen", properties -> new BlockItem(ModBlocks.CINDER_GRIP_LICHEN.get(), properties));
+    public static final RegistrySupplier<Item> CINDER_LICHEN_FLAKES = ITEMS.registerItem("cinder_lichen_flakes", Item::new);
+    public static final RegistrySupplier<BlockItem> SOOT_SHROUD_FUNGI_ITEM = ITEMS.registerItem("soot_shroud_fungi", properties -> new BlockItem(ModBlocks.SOOT_SHROUD_FUNGI.get(), properties));
+    public static final RegistrySupplier<Item> SOOT_SHROUD_CAP = ITEMS.registerItem("soot_shroud_cap", Item::new);
+        public static final RegistrySupplier<BlockItem> BARROW_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("barrow_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.BARROW_FUNGAL_SHELF_CAP.get(), properties));
+        public static final RegistrySupplier<Item> AMBER_NECTAR_BOTTLE = ITEMS.registerItem("amber_nectar_bottle", properties -> new Item(properties.craftRemainder(Items.GLASS_BOTTLE)));
+    public static final RegistrySupplier<Item> BARROW_FUNGAL_CAP = ITEMS.registerItem("barrow_fungal_cap", Item::new);
+    public static final RegistrySupplier<BlockItem> SPORE_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("spore_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.SPORE_FUNGAL_SHELF_CAP.get(), properties));
+    public static final RegistrySupplier<Item> SPORE_FUNGAL_CAP = ITEMS.registerItem("spore_fungal_cap", Item::new);
+    public static final RegistrySupplier<BlockItem> BLIGHT_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("blight_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.BLIGHT_FUNGAL_SHELF_CAP.get(), properties));
+    public static final RegistrySupplier<Item> BLIGHT_FUNGAL_CAP = ITEMS.registerItem("blight_fungal_cap", Item::new);
+    public static final RegistrySupplier<BlockItem> FROST_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("frost_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.FROST_FUNGAL_SHELF_CAP.get(), properties));
+    public static final RegistrySupplier<Item> FROST_FUNGAL_CAP = ITEMS.registerItem("frost_fungal_cap", Item::new);
+    public static final RegistrySupplier<BlockItem> CINDER_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("cinder_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.CINDER_FUNGAL_SHELF_CAP.get(), properties));
+    public static final RegistrySupplier<Item> CINDER_FUNGAL_CAP = ITEMS.registerItem("cinder_fungal_cap", Item::new);
+    public static final RegistrySupplier<BlockItem> ASTRAL_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("astral_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.ASTRAL_FUNGAL_SHELF_CAP.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_FUNGAL_CAP = ITEMS.registerItem("astral_fungal_cap", Item::new);
+    public static final RegistrySupplier<BlockItem> DAWN_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("dawn_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.DAWN_FUNGAL_SHELF_CAP.get(), properties));
+    public static final RegistrySupplier<Item> DAWN_FUNGAL_CAP = ITEMS.registerItem("dawn_fungal_cap", Item::new);
+    public static final RegistrySupplier<BlockItem> SANGUINE_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("sanguine_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.SANGUINE_FUNGAL_SHELF_CAP.get(), properties));
+    public static final RegistrySupplier<Item> SANGUINE_FUNGAL_CAP = ITEMS.registerItem("sanguine_fungal_cap", Item::new);
+    public static final RegistrySupplier<BlockItem> STATIC_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("static_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.STATIC_FUNGAL_SHELF_CAP.get(), properties));
+    public static final RegistrySupplier<Item> STATIC_FUNGAL_CAP = ITEMS.registerItem("static_fungal_cap", Item::new);
+    public static final RegistrySupplier<BlockItem> PYROCYST_ALGAE_ITEM = ITEMS.registerItem("pyrocyst_algae", properties -> new BlockItem(ModBlocks.PYROCYST_ALGAE.get(), properties));
+public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem("pyrocyst_vesicle", Item::new);
+
 
 
 
@@ -727,17 +754,26 @@ public class ModItems {
     public static final RegistrySupplier<Item> SPECTRAL_DYE_AEGIS = SPECTRAL_DYES.get("aegis");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_AMBER = SPECTRAL_DYES.get("amber");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_SHIMMER = SPECTRAL_DYES.get("shimmer");
-    public static final RegistrySupplier<Item> SPECTRAL_DYE_FROST = SPECTRAL_DYES.get("frost");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_AURORAL = SPECTRAL_DYES.get("auroral");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_STARDUST = SPECTRAL_DYES.get("stardust");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_FULGURITE = SPECTRAL_DYES.get("fulgurite");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_GALE = SPECTRAL_DYES.get("gale");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_CRYO_STATIC = SPECTRAL_DYES.get("cryo_static");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_VITREOUS = SPECTRAL_DYES.get("vitreous");
-    public static final RegistrySupplier<Item> SPECTRAL_DYE_BARROW = SPECTRAL_DYES.get("barrow");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_ABYSSAL = SPECTRAL_DYES.get("abyssal");
-    public static final RegistrySupplier<Item> SPECTRAL_DYE_SANGUINE = SPECTRAL_DYES.get("sanguine");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_VITAE = SPECTRAL_DYES.get("vitae");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_BARROW = SPECTRAL_DYES.get("barrow");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_SPORE = SPECTRAL_DYES.get("spore");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_BLIGHT = SPECTRAL_DYES.get("blight");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_FROST = SPECTRAL_DYES.get("frost");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_CINDER = SPECTRAL_DYES.get("cinder");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_ASTRAL = SPECTRAL_DYES.get("astral");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_DAWN = SPECTRAL_DYES.get("dawn");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_SANGUINE = SPECTRAL_DYES.get("sanguine");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_STATIC = SPECTRAL_DYES.get("static");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_SOOT = SPECTRAL_DYES.get("soot");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_PYROCYST = SPECTRAL_DYES.get("pyrocyst");
+
 
 
 

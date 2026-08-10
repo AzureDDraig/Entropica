@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/glow_lichen",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "lichen": "entropica:block/cinder_grip_lichen",
+    "particle": "entropica:block/cinder_grip_lichen"
+  }
+}

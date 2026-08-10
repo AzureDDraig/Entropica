@@ -403,6 +403,33 @@ public class ModCreativeTabs {
                 output.accept(ModItems.SANGUINE_LILY_ITEM.get());
                 output.accept(ModItems.SANGUINE_LILY_PAD.get());
                 output.accept(ModItems.AURORAL_LILY_PAD_ITEM.get());
+                output.accept(ModItems.CINDER_GRIP_LICHEN_ITEM.get());
+                output.accept(ModItems.CINDER_LICHEN_FLAKES.get());
+                output.accept(ModItems.SOOT_SHROUD_FUNGI_ITEM.get());
+                output.accept(ModItems.SOOT_SHROUD_CAP.get());
+                output.accept(ModItems.PYROCYST_ALGAE_ITEM.get());
+                output.accept(ModItems.PYROCYST_VESICLE.get());
+
+                output.accept(ModItems.BARROW_FUNGAL_SHELF_CAP_ITEM.get());
+                output.accept(ModItems.BARROW_FUNGAL_CAP.get());
+                output.accept(ModItems.SPORE_FUNGAL_SHELF_CAP_ITEM.get());
+                output.accept(ModItems.SPORE_FUNGAL_CAP.get());
+                output.accept(ModItems.BLIGHT_FUNGAL_SHELF_CAP_ITEM.get());
+                output.accept(ModItems.BLIGHT_FUNGAL_CAP.get());
+                output.accept(ModItems.FROST_FUNGAL_SHELF_CAP_ITEM.get());
+                output.accept(ModItems.FROST_FUNGAL_CAP.get());
+                output.accept(ModItems.CINDER_FUNGAL_SHELF_CAP_ITEM.get());
+                output.accept(ModItems.CINDER_FUNGAL_CAP.get());
+                output.accept(ModItems.ASTRAL_FUNGAL_SHELF_CAP_ITEM.get());
+                output.accept(ModItems.ASTRAL_FUNGAL_CAP.get());
+                output.accept(ModItems.DAWN_FUNGAL_SHELF_CAP_ITEM.get());
+                output.accept(ModItems.DAWN_FUNGAL_CAP.get());
+                output.accept(ModItems.SANGUINE_FUNGAL_SHELF_CAP_ITEM.get());
+                output.accept(ModItems.SANGUINE_FUNGAL_CAP.get());
+                output.accept(ModItems.STATIC_FUNGAL_SHELF_CAP_ITEM.get());
+                output.accept(ModItems.STATIC_FUNGAL_CAP.get());
+
+
 
 
                 // Dynamic Spectral Dye Category
