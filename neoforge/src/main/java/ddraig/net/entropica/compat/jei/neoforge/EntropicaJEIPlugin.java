@@ -251,6 +251,13 @@ public class EntropicaJEIPlugin implements IModPlugin {
                 NeoForgeTypes.FLUID_STACK,
                 Component.translatable("jei.entropica.info.diluted_essence")
         );
+
+        registration.addIngredientInfo(
+                new ItemStack(ModItems.AMBER_CHUNK.get()),
+                mezz.jei.api.constants.VanillaTypes.ITEM_STACK,
+                Component.translatable("jei.entropica.info.amber_chunk")
+        );
+
     }
 
     @Override

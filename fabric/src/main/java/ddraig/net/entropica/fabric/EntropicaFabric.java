@@ -19,8 +19,12 @@ public class EntropicaFabric implements ModInitializer {
             if (GlassCleansingHandler.tryCleansing(player, world, hand, hitResult.getBlockPos())) {
                 return InteractionResult.SUCCESS;
             }
+            if (ddraig.net.entropica.event.AmberLogStrippingHandler.tryStripping(player, world, hand, hitResult.getBlockPos())) {
+                return InteractionResult.SUCCESS;
+            }
             return InteractionResult.PASS;
         });
+
 
         // Register Fabric-specific fluids
         Registry.register(BuiltInRegistries.FLUID, 

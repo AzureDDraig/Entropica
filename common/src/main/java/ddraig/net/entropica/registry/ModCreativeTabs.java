@@ -328,6 +328,8 @@ public class ModCreativeTabs {
                 output.accept(ModItems.AMBER_PLANKS_ITEM.get());
                 output.accept(ModItems.AMBER_LEAVES_ITEM.get());
                 output.accept(ModItems.AMBER_SAPLING_ITEM.get());
+                output.accept(ModItems.AMBER_CHUNK.get());
+
 
                 output.accept(ModItems.RIMEBLOOM_ITEM.get());
 

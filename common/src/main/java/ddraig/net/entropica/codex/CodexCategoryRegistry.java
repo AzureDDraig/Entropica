@@ -173,20 +173,20 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
-                "materials_spectral_dyes", "Spectral Dyes", "MATERIALS",
-                "Bioluminescent dyes extracted from flora petals and nectar.",
+                "materials_amber_chunk", "Amber Chunk", "MATERIALS",
+                "Raw resin crystals harvested by stripping bark from Amber Logs or Amber Wood.",
                 "Overview & Description:\n" +
-                "Refined alchemical liquid dyes extracted from rare Entropica flora petals and nectar. They retain ambient Materia luminescence.\n\n" +
+                "Raw crystalline amber resin harvested from Amber-Wood trees.\n\n" +
                 "Origin & Obtaining:\n" +
-                "Crafted by distilling flora petals, pollen, and leaves (Soul-Flame, Aegis Rose, Amber Nectar, Shimmerpetals, Stardust Bell, Fulgurite, Gale-Bloom, Cryo-Static) into Glass Bottles at a crafting bench.\n\n" +
+                "Drops in-world when stripping the bark off Amber Logs or Amber Wood using an Axe.\n\n" +
                 "Crafting Uses:\n" +
-                "Used for staining runic slates, chalks, aesthetic glass, spectral leather armor, and catalyst recipes.\n\n" +
+                "Used in alchemical distils, wand foci, arcana book binding, and crystal alchemy.\n\n" +
                 "Special Properties:\n" +
-                "Available in 10 vibrant bioluminescent varieties: Soulfire Blue, Aegis Azure, Golden Amber, Radiant Silver, Glacial Teal, Auroral Violet, Stardust Indigo, Fulgurite Cyan, Zephyr Sand, and Cryo-Static Ice.",
-
-                "hub_materials", 0, new ItemStack(ModItems.SPECTRAL_DYE_SOULFIRE.get()),
-                300f, 0.0f, a_ing + 0.15f, false
+                "Contains concentrated golden resin essence.",
+                "hub_materials", 0, new ItemStack(ModItems.AMBER_CHUNK.get()),
+                300f, 0.0f, a_ing + 0.20f, false
         ));
+
 
         ALL_NODES.add(new CodexNode(
                 "materials_glassworking", "Aesthetic Glassworking & Tinting", "MATERIALS",

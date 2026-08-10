@@ -15,6 +15,12 @@ public class GlassCleansingNeoForgeEvents {
         if (GlassCleansingHandler.tryCleansing(event.getEntity(), event.getLevel(), event.getHand(), event.getPos())) {
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.SUCCESS);
+            return;
+        }
+        if (ddraig.net.entropica.event.AmberLogStrippingHandler.tryStripping(event.getEntity(), event.getLevel(), event.getHand(), event.getPos())) {
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.SUCCESS);
         }
     }
+
 }

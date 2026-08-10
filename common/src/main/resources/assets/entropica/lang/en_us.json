@@ -13,6 +13,10 @@
   "tooltip.entropica.any_fume": "Any Type",
   "_comment_jei": "================ JEI & RECIPES ================",
   "jei.entropica.info.diluted_essence": "Diluted Essence Fluid is capable of transforming matter.\n\nTo create it, simply toss raw Essence items directly into a pool of Water.\n\nOnce the water transforms into Diluted Essence Fluid, you can toss specific items into the fluid to trigger transformations.",
+  "jei.entropica.info.amber_chunk": "Amber Chunks are harvested by stripping the bark off Amber Logs or Amber Wood using an Axe.\n\nUsed in alchemical distils, wand foci, arcana book binding, and crystal alchemy.",
+
+  "item.entropica.amber_chunk": "Amber Chunk",
+
   "jei.entropica.info.dynamic_weapon_crafting": "To forge a Dynamic Weapon, you must place a Shape Concept, a Core, an Orbis Acceptor, and 4 Base Material Ingots in the center of the Eidolic Lathe.\n\nOptionally, surround it with up to 16 modifiers (like Spell Gems or Quartz) on Attunement Pedestals.\n\nPipe between 500 and 100,000 Materia Fumus into the Lathe to begin forging!",
   "recipe.entropica.diluted_essence": "Diluted Essence Fluid Pool",
   "jei.entropica.pressure_chamber.fume_cost": "%s Materia Fumus of %s",

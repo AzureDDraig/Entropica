@@ -1,6 +1,85 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-13-42 (August 10, 2026 C/V/G/D Full Synchronization & Amber-Wood Deployment)
+
+### 📖 Entropic Codex Integration
+- **`materials_amber_chunk` Research Node**: Registered Amber Chunk under `MATERIALS` in `CodexCategoryRegistry.java` with 3D item icon, orbit position (`a_ing + 0.20f`), and research details.
+
+### 📚 OKF Obsidian Vault Synchronization
+- **`Amber Chunk.md` Note**: Created OKF note in `wiki/entities/items/Amber Chunk.md` detailing obtaining mechanics via Axe log stripping and crafting uses in alchemical distills, wand foci, arcana book binding, and crystal alchemy.
+
+### ⚙️ Git & Deployment Readiness
+- **Clean Staging & Local Commit**: Verified all assets, handlers, recipes, language keys, and docs are staged and committed locally without including any AI/metadata files.
+
+## Build 000-1-26-222-13-32 (August 10, 2026 Amber Chunk Crystalline Noise & JEI Description Refinement)
+
+
+### 💎 Amber Chunk Texture & JEI Description Update
+- **Crystalline Noise & Micro-Facets (`amber_chunk.png`)**: Enhanced 32x32 texture with micro-facet specular noise and internal refraction gradients (`#FDE047`, `#F59E0B`, `#D97706`, `#B45309`, `#4A2810`).
+- **JEI Description Text Update (`en_us.json`)**: Updated `jei.entropica.info.amber_chunk` text per user directive:
+  > *"Amber Chunks are harvested by stripping the bark off Amber Logs or Amber Wood using an Axe.\n\nUsed in alchemical distils, wand foci, arcana book binding, and crystal alchemy."*
+- **Gallery Update**: Updated `amber_wood_gallery.md` with Amber Chunk V2 noise preview.
+
+## Build 000-1-26-222-13-28 (August 10, 2026 Amber Chunk Item, Stripping Mechanics & Oak Planks Remap)
+
+
+### 💎 Amber Chunk Item & Log Stripping Mechanic
+- **`AMBER_CHUNK` Item Registration**: Registered `amber_chunk` in `ModItems.java` and added to `WORLD_TAB` in `ModCreativeTabs.java`.
+- **32x32 Item Texture & Model**: Handcrafted 32x32 high-resolution pixel art texture `amber_chunk.png` (translucent resin crystal chunk with specular highlights and 100% transparent background) and item model `amber_chunk.json`.
+- **Axe Log Stripping Mechanic (`AmberLogStrippingHandler.java`)**: Implemented in-world stripping interaction when right-clicking `AMBER_LOG` or `AMBER_WOOD` with an Axe:
+  - Converts block state to `STRIPPED_AMBER_LOG` / `STRIPPED_AMBER_WOOD` (preserving pillar axis).
+  - Plays `SoundEvents.AXE_STRIP` sound.
+  - Damages Axe durability (-1).
+  - Drops 1-2x `AMBER_CHUNK` items in-world at the block position. Wired in Fabric (`EntropicaFabric.java`) and NeoForge (`GlassCleansingNeoForgeEvents.java`).
+- **JEI Description Info Registration**: Registered `jei.entropica.info.amber_chunk` in `EntropicaJEIPlugin.java` (`addIngredientInfo`) and added localization text in `en_us.json`.
+
+### 🪵 Oak-Planks Texture Structure Remap (`amber_planks.png`)
+- **Vanilla Minecraft Oak Planks Color-Mapping**: Extracted official `assets/minecraft/textures/block/oak_planks.png` texture map and mapped its board structure 1:1 into the darkened Golden Amber palette (`#D7B932`, `#CD8209`, `#B46205`, `#964407`, `#78320A`), eliminating harsh dark brick end-joints while preserving 100% horizontal and vertical seamless flow.
+- **Gallery Update**: Updated `amber_wood_gallery.md` with V7 previews.
+
+## Build 000-1-26-222-13-17 (August 10, 2026 Darkened Stripped Log & Planks Golden Amber Palette)
+
+
+### 🪵 Palette Darkening
+- **Darkened Stripped Log & Planks (`stripped_amber_log.png`, `amber_planks.png`)**: Darkened all color channels by ~15% (`#964407`, `#B46205`, `#CD8209`, `#D7B932`, `#78320A`), yielding a deeper, richer golden amber shade matching `amber_log_top.png` while maintaining 100% horizontal and vertical seamless flow.
+- **Gallery Update**: Updated `amber_wood_gallery.md` with V6 previews and 2x2 grid proofs.
+
+## Build 000-1-26-222-13-16 (August 10, 2026 Amber-Wood Locking & Spruce Sapling Sync)
+
+
+### 🔒 Locked Assets
+- **`amber_log.png` & `amber_log_top.png` [LOCKED 🔒]**: Officially locked side log bark and top squarer-radial growth rings from future edits per user directive.
+- **`amber_leaves.png` [LOCKED 🔒]**: Officially locked Oak-leaf architecture foliage from future edits per user directive.
+
+### 🪵 Palette Desaturation & Spruce Sapling Architecture
+- **Desaturated Stripped Log & Planks (`stripped_amber_log.png`, `amber_planks.png`)**: Re-sampled desaturated, natural golden amber tones directly from `amber_log_top.png` (`#B45309`, `#D97706`, `#F59E0B`, `#FDE047`), softening previous vibrancy while preserving 100% horizontal and vertical seamless tiling.
+- **Spruce Sapling Architecture (`amber_sapling.png`)**: Extracted official `assets/minecraft/textures/block/spruce_sapling.png` texture from the Minecraft client JAR and color-mapped it 1:1 into 32x32 high-resolution pixel art featuring a chestnut stem base and tiered golden amber evergreen foliage (100% transparent background).
+- **Gallery Update**: Updated `amber_wood_gallery.md` with V5 previews.
+
+## Build 000-1-26-222-13-14 (August 10, 2026 Amber-Wood Seamless 2D Tiling & Vanilla Oak Leaf Extraction)
+
+
+### 🪵 Amber-Wood Set Seamless Tiling & Vanilla Oak Integration
+- **100% Horizontal & Vertical Seamless Tiling**:
+  - `stripped_amber_log.png`: Engineered 2D periodic sinusoidal wave functions guaranteeing zero seam lines across both horizontal and vertical borders when placing log walls or pillars.
+  - `amber_planks.png`: Restructured horizontal plank bevels ($y=7, 15, 23, 31$) and alternating vertical end-joints ($x=16, 8, 24, 0/32$) ensuring 100% seamless tiling across any 2D surface. Verified with 2x2 grid preview proofs.
+- **Vanilla Minecraft Oak Leaf Color-Mapping (`amber_leaves.png`)**:
+  - Extracted the exact official `assets/minecraft/textures/block/oak_leaves.png` grayscale texture map from the Minecraft 1.20.1/1.21.10 client jar.
+  - Mapped vanilla Oak leaf cluster cutout shapes (`alpha == 0`), leaf blade highlights, and vein shadows directly into the Autumn Golden Amber palette (`#FDE047`, `#EAB308`, `#F59E0B`, `#D97706`, `#92400E`).
+- **Gallery Update**: Updated `amber_wood_gallery.md` with V4 previews and 2x2 grid tiling proofs.
+
+## Build 000-1-26-222-13-12 (August 10, 2026 Amber-Wood Texture Refinements & Oak-Leaf Architecture)
+
+
+### 🪵 Amber-Wood Set Refinements
+- **Smoothed Wood Stripped Log Side (`stripped_amber_log.png`)**: Replaced grid pixel noise with smooth, flowing, vertical wood grain striations in golden amber tones.
+- **Rubber-Matched Amber Planks (`amber_planks.png`)**: Modeled 1:1 after `rubber_planks.png` layout — 4 horizontal plank rows with dark bevel grooves at $y=7, 15, 23, 31$, offset vertical end-joint seams at $x=22, 9, 27$, and smooth horizontal wood grain striations in Golden Amber.
+- **Squarer Radial Log Tops (`amber_log_top.png` & `stripped_amber_log_top.png`)**: Increased Chebyshev squircle weighting ($0.25 \cdot \text{Euclidean} + 0.75 \cdot \text{Chebyshev}$) for squarer growth rings that remain smooth and radial near the center core.
+- **Autumn Oak Amber Leaves (`amber_leaves.png`)**: Modeled after default Minecraft Oak Leaves cluster shape and outline — 3D leaf blade bunches, dark leaf outline borders, and natural transparent cutout gaps (`alpha == 0`), rendered in rich Autumn Golden Amber (`#FDE047`, `#EAB308`, `#F59E0B`, `#D97706`, `#92400E`).
+- **Gallery Update**: Updated `amber_wood_gallery.md` displaying V3 previews.
+
 ## Build 000-1-26-222-12-49 (August 10, 2026 Amber-Wood Arboreal Set & Resinous Wood Suite)
+
 
 ### 🪵 Amber-Wood Wood Set (`amber_wood`)
 - **Block Registrations**: Registered full wood family in `ModBlocks.java` and `ModItems.java`:

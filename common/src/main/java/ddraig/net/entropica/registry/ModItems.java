@@ -675,6 +675,8 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> AMBER_PLANKS_ITEM = ITEMS.registerItem("amber_planks", properties -> new BlockItem(ModBlocks.AMBER_PLANKS.get(), properties));
     public static final RegistrySupplier<BlockItem> AMBER_LEAVES_ITEM = ITEMS.registerItem("amber_leaves", properties -> new BlockItem(ModBlocks.AMBER_LEAVES.get(), properties));
     public static final RegistrySupplier<BlockItem> AMBER_SAPLING_ITEM = ITEMS.registerItem("amber_sapling", properties -> new BlockItem(ModBlocks.AMBER_SAPLING.get(), properties));
+    public static final RegistrySupplier<Item> AMBER_CHUNK = ITEMS.registerItem("amber_chunk", Item::new);
+
 
 
     // Botanical Drops (Petals & Viscous Nectars - Spectral Dyes handled dynamically by SpectralDyeApi)
