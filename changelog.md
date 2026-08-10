@@ -1,6 +1,14 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-15-14 (August 10, 2026 User-Selected Option A Orchid Textures Locked & Deployed)
+
+### 🌺 Confirmed Option A Orchid Textures Applied
+- **Vitae Orchid (`vitae_orchid`)**: Applied **Option A (Classic Handcrafted `vitae_v5` / `v6`)** for both 1-tall (`vitae_orchid_1tall_v5.png`) and 2-tall top/bottom pairs (`vitae_orchid_2tall_top_v6.png` / `vitae_orchid_2tall_bottom_v6.png`).
+- **Soul-Flame Orchid (`soul_flame_orchid`)**: Applied **Option A (Organic Phalaenopsis Recolor `soul_phalaenopsis`)** for both 1-tall (`soul_flame_orchid_1tall_fresh.png`) and 2-tall top/bottom pairs (`soul_flame_orchid_2tall_top_fresh.png` / `soul_flame_orchid_2tall_bottom_fresh.png`).
+- **Dev Deployment**: Executed `./gradlew deploytoDev` with clean multi-loader jar compilation and CurseForge instance deployment.
+
 ## Build 000-1-26-222-15-09 (August 10, 2026 Master Vitae Orchid Preview Restoration)
+
 
 ### 🌸 Exact Master Vitae Orchid Preview Synchronized
 - **Vitae Orchid (`vitae_orchid`)**: Re-sampled directly from master preview `vitae_orchid_1tall_v5.png` (256x256 -> 32x32), restoring the unique handcrafted Vitae Orchid bloom architecture.
