@@ -1,6 +1,14 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-15-41 (August 10, 2026 JEI Botanical Shearing Recipe Category Integration)
+
+### 🌸 Botanical Shearing JEI Category (`jei.entropica.flora_harvesting`)
+- **New JEI Recipe Category**: Created `FloraHarvestingCategory` and `FloraHarvestingRecipe` registered under UID `entropica:flora_harvesting`.
+- **Harvest Mapping Preview**: Displays all 1-tall and 2-tall flower and orchid shearing inputs, `Items.SHEARS` catalyst, and resulting petal item outputs directly inside Just Enough Items.
+- **Localization**: Added `"jei.entropica.flora_harvesting": "Botanical Shearing"` in `en_us.json`.
+
 ## Build 000-1-26-222-15-39 (August 10, 2026 5-Minute Crop Cooldowns & Shears Petal Harvesting)
+
 
 ### ⏱️ Extended 5-Minute Crop Harvest Cooldown
 - **6,000-Tick (5-Minute) Cooldown**: Extended right-click harvest cooldowns across all botanical yield blocks (`AbyssalWeeprootBlock`, `SporeBurstPuffballBlock`, `MistVeilMarshmallowBlock`, `CryoStaticShrubBlock`, `BloodRootSucculentBlock`, `GaleBloomDandelionBlock`) to 6,000 ticks (5 minutes of real-time play), matching slow-growing crop & berry bush harvest mechanics.

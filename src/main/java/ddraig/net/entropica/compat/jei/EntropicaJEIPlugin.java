@@ -26,6 +26,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -151,6 +153,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(new EidolicLatheRecipeCategory(guiHelper));
         registration.addRecipeCategories(new EssenceExtractionCategory(guiHelper));
         registration.addRecipeCategories(new MagicCircleRecipeCategory(guiHelper));
+        registration.addRecipeCategories(new FloraHarvestingCategory(guiHelper));
     }
 
     @Override
@@ -193,6 +196,10 @@ public class EntropicaJEIPlugin implements IModPlugin {
         registration.addRecipes(MagicCircleRecipeCategory.TYPE, magicCircleRecipes);
         registration.addRecipes(AethericSynthesizerRecipeCategory.TYPE, synthRecipes);
         registration.addRecipes(EidolicLatheRecipeCategory.TYPE, latheRecipes);
+        registration.addRecipes(FloraHarvestingCategory.TYPE, FloraHarvestingRecipe.createAllRecipes());
+        registration.addRecipeCatalysts(FloraHarvestingCategory.TYPE, new ItemStack(Items.SHEARS));
+
+
 
         registration.addIngredientInfo(
                 new FluidStack(ModFluids.DILUTED_ESSENCE_FLUID.get(), 1000),
@@ -204,7 +211,9 @@ public class EntropicaJEIPlugin implements IModPlugin {
     @Override
     @SuppressWarnings("removal")
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalyst(new ItemStack(ModBlocks.VIS_FUME_PRESSURE_CHAMBER_CONTROLLER.get()), PressureChamberRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(Items.SHEARS), FloraHarvestingCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.MATERIA_PRESSURE_CHAMBER_CONTROLLER.get()), PressureChamberRecipeCategory.TYPE);
+
         registration.addRecipeCatalyst(NeoForgeTypes.FLUID_STACK, new FluidStack(ModFluids.DILUTED_ESSENCE_FLUID.get(), 1000), DilutedEssenceRecipeCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.ENTROPIC_CORE.get()), MateriaFusionRecipeCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.AETHERIC_SYNTHESIZER.get()), AethericSynthesizerRecipeCategory.TYPE);

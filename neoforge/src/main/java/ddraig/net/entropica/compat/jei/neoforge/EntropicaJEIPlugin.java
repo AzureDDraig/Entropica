@@ -7,7 +7,12 @@ import ddraig.net.entropica.compat.jei.EidolicLatheRecipeCategory;
 import ddraig.net.entropica.compat.jei.EssenceExtractionCategory;
 import ddraig.net.entropica.compat.jei.EssenceExtractionRecipe;
 import ddraig.net.entropica.compat.jei.MagicCircleRecipeCategory;
+import ddraig.net.entropica.compat.jei.FloraHarvestingCategory;
+import ddraig.net.entropica.compat.jei.FloraHarvestingRecipe;
+
 import ddraig.net.entropica.recipe.MagicCircleRecipe;
+import net.minecraft.world.item.Items;
+
 
 import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.api.EssenceType;
@@ -203,6 +208,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(new EidolicLatheRecipeCategory(guiHelper));
         registration.addRecipeCategories(new EssenceExtractionCategory(guiHelper));
         registration.addRecipeCategories(new MagicCircleRecipeCategory(guiHelper));
+        registration.addRecipeCategories(new FloraHarvestingCategory(guiHelper));
     }
 
     @Override
@@ -245,25 +251,15 @@ public class EntropicaJEIPlugin implements IModPlugin {
         registration.addRecipes(MagicCircleRecipeCategory.TYPE, magicCircleRecipes);
         registration.addRecipes(AethericSynthesizerRecipeCategory.TYPE, synthRecipes);
         registration.addRecipes(EidolicLatheRecipeCategory.TYPE, latheRecipes);
-
-        registration.addIngredientInfo(
-                new FluidStack(ModFluids.getSource(), 1000),
-                NeoForgeTypes.FLUID_STACK,
-                Component.translatable("jei.entropica.info.diluted_essence")
-        );
-
-        registration.addIngredientInfo(
-                new ItemStack(ModItems.AMBER_CHUNK.get()),
-                mezz.jei.api.constants.VanillaTypes.ITEM_STACK,
-                Component.translatable("jei.entropica.info.amber_chunk")
-        );
-
+        registration.addRecipes(FloraHarvestingCategory.TYPE, FloraHarvestingRecipe.createAllRecipes());
     }
 
     @Override
     @SuppressWarnings("removal")
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
+        registration.addRecipeCatalyst(new ItemStack(Items.SHEARS), FloraHarvestingCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MATERIA_PRESSURE_CHAMBER_CONTROLLER.get()), PressureChamberRecipeCategory.TYPE);
+
         registration.addRecipeCatalyst(NeoForgeTypes.FLUID_STACK, new FluidStack(ModFluids.getSource(), 1000), DilutedEssenceRecipeCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.ENTROPIC_CORE.get()), MateriaFusionRecipeCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.AETHERIC_SYNTHESIZER.get()), AethericSynthesizerRecipeCategory.TYPE);

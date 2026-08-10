@@ -17,7 +17,9 @@
   "item.entropica.amber_chunk": "Amber Chunk",
   "jei.entropica.info.dynamic_weapon_crafting": "To forge a Dynamic Weapon, you must place a Shape Concept, a Core, an Orbis Acceptor, and 4 Base Material Ingots in the center of the Eidolic Lathe.\n\nOptionally, surround it with up to 16 modifiers (like Spell Gems or Quartz) on Attunement Pedestals.\n\nPipe between 500 and 100,000 Materia Fumus into the Lathe to begin forging!",
   "recipe.entropica.diluted_essence": "Diluted Essence Fluid Pool",
+  "jei.entropica.flora_harvesting": "Botanical Shearing",
   "jei.entropica.pressure_chamber.fume_cost": "%s Materia Fumus of %s",
+
   "jei.entropica.pressure_chamber.time": "Processing: %s Ticks",
   "_comment_effects": "================ EFFECTS ================",
   "effect.entropica.materia_toxicity": "Materia Toxicity",
