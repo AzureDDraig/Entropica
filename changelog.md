@@ -1,103 +1,37 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
-## Build 000-1-26-221-22-59 (August 9, 2026 Natural Organic Bezier Strap Leaves & Clean Bark Stem Spike)
+## Build 000-1-26-221-23-00 (August 9, 2026 Comprehensive Round 3 Flora Expansion, Phalaenopsis Redesign & Multi-Loader Refinements)
 
-### 🪻 Aegis-Spire Orchid Refinements
-- **Natural Organic Bezier Strap Leaves**: Rendered smooth tongue-shaped leather strap leaves on `tall_aegis_spire_orchid_bottom.png` using quadratic Bezier spines (`15,60 \to 6,58 \to 3,52` on left; `17,60 \to 26,58 \to 29,52` on right), with specular highlight rims and deep shadow bases.
-- **1-Tall Compact Block Preserved**: `aegis_spire_orchid.png` remains 100% UNTOUCHED in its exact approved compact form (`aegis_spire_orchid_1tall_perfect.png`).
-- **Clean Bark Stem Spike**: Exposed clean slender bark-textured purplish-brown stem spike (`#2E1C14`) with organic dither noise ($\pm 14$) and zero green overlap on the stem spike.
-
-## Build 000-1-26-221-22-58 (August 9, 2026 Untouched 1-Tall & Matched 2-Tall Phalaenopsis Colors)
-
-### 🪻 Aegis-Spire Orchid Refinements
-- **1-Tall Compact Block Preserved**: `aegis_spire_orchid.png` restored and preserved 100% untouched in its exact approved compact form (`aegis_spire_orchid_1tall_perfect.png`).
-- **2-Tall Stem & Leaf Color Match**: Matched 2-tall top and bottom blocks (`tall_aegis_spire_orchid_top.png` & `tall_aegis_spire_orchid_bottom.png`) to the 1-tall block's exact warm bark-brown stem palette (`#3E2723` / `#5D4037`) and deep emerald basal leaf palette (`#166534` / `#15803D` / `#22C55E`).
-- **Centered Attachment & Clean Spike**: Stem rises straight through $x=15 \to 17$ from $y=63$ to $y=25$, plugging directly into the center base of the lower Phalaenopsis bloom (`cx=16, cy=25`) on the top block, with zero green overlap on the stem spike below.
-
-## Build 000-1-26-221-22-57 (August 9, 2026 Clean Slender Bark Stem Spike & Centered Attachment)
-
-### 🪻 Phalaenopsis Stem Refinements
-- **Zero Green Stem Overlap**: Completely eliminated all green leaf polygon overlaps from the lower stem spike (`x=15..17`). Exposed a clean, slender, bark-textured purplish-brown stem spike (`#2E1C14`) with organic dither noise ($\pm 12$), left highlight rim, right shadow edge, and node sheaths (`#5F3A32`).
-- **Centered Flower Head Attachment**: Main stem rises straight up through $x=15 \to 17$ from $y=63$ to $y=25$, plugging directly into the center base of the lower Phalaenopsis bloom (`cx=16, cy=25`) on the top block.
-- **Side Basal Leaves**: Green leather strap leaves positioned strictly on the far sides (`x=1..13` and `x=19..31`) near the bottom base (`y=54..63`).
-
-## Build 000-1-26-221-22-55 (August 9, 2026 Authentic Phalaenopsis Blue Orchid Redesign)
-
-### 🪻 Authentic Phalaenopsis Orchid Redesign
+### 🪻 Authentic Phalaenopsis Blue Orchid Redesign & 32x64 Sliced Continuity
 - **Reference Image Alignment**: Modeled directly after the user's reference image of a Phalaenopsis Blue Orchid. Features a slender purplish-brown arching spike (`#2E1C14`), cascading cobalt blue Phalaenopsis blooms (`#2563EB`) with soft sky-blue/white margins (`#DBEAFE`), deep indigo 3-lobed lip/labellum (`#1E1B4B`), and smooth forest green basal strap leaves (`#166534`, `#15803D`).
 - **32x64 Sliced Continuity**: Rendered as a continuous 32x64 pixel art masterpiece and sliced cleanly at $y=32$ into `tall_aegis_spire_orchid_top.png` ($y=0 \to 31$) and `tall_aegis_spire_orchid_bottom.png` ($y=32 \to 63$).
-- **1-Tall Compact Orchid**: Re-rendered `aegis_spire_orchid.png` as a compact 32x32 block with 2 cascading Phalaenopsis blooms and basal strap leaves.
+- **Centered Stem Attachment**: Stem rises straight through $x=15 \to 17$ and plugs directly into the throat center of the lower Phalaenopsis bloom (`cx=16, cy=25`) on the top block.
+- **Natural Bezier Strap Leaves**: Rendered smooth tongue-shaped leather strap leaves on `tall_aegis_spire_orchid_bottom.png` using quadratic Bezier spines (`15,60 \to 6,58 \to 3,52` on left; `17,60 \to 26,58 \to 29,52` on right), with specular highlight rims and deep shadow bases.
+- **Preserved 1-Tall Compact Block**: `aegis_spire_orchid.png` remains 100% UNTOUCHED in its exact approved compact form (`aegis_spire_orchid_1tall_perfect.png`).
+- **Clean Bark Stem Spike**: Exposed clean slender bark-textured purplish-brown stem spike (`#2E1C14`) with organic dither noise ($\pm 14$) and zero green overlap on the stem spike.
 
-## Build 000-1-26-221-22-51 (August 9, 2026 Handcrafted Organic 2-Tall Bottom Foliage & Clean Marshmallow)
-
-### 🪻 Flora Texture Refinements
-- **Handcrafted Organic 2-Tall Bottom Base**: Re-rendered `tall_aegis_spire_orchid_bottom.png` using curving Bezier leaf blades, primary leaf veins, slate stem shading, and an upper leaf collar to seamlessly connect to the top crown blossom (`tall_aegis_spire_orchid_top.png`).
+### 🌸 Mist-Veil Marshmallow & Flora Aesthetic Polish
 - **Clean Mist-Veil Marshmallow Bloom**: Re-rendered `mist_veil_marshmallow.png` with 100% clean pastel lavender and rose petals, zero stray floating pixels, and crisp botanical shading.
+- **Pyre-Sprout Dither Noise**: Updated `pyre_sprout.png` with organic dither noise across the charcoal stem, basal leaves, and flame petals (`#B71C1C`, `#E65100`, `#FFD600`), matching Aegis Rose (`aegis_rose`).
 
-## Build 000-1-26-221-22-44 (August 9, 2026 Fulgurite Reed Item Texture Consolidation)
-
-### 🌾 Fulgurite Reed Item Refinements
-- **Fulgurite Reed Item Texture Mapping**: Removed duplicate `FULGURITE_STALK` standalone item definition from `ModItems.java` and `ModCreativeTabs.java`. The `fulgurite_reed` BlockItem (`ModItems.FULGURITE_REED_ITEM`) now directly utilizes the `fulgurite_stalk.png` copper-banded electric glass stalk item texture.
-
-## Build 000-1-26-221-22-42 (August 9, 2026 Refined Option A Pyre-Sprout Texture & Dither Noise)
-
-### 🔥 Pyre-Sprout Aesthetic Refinements
-- **Refined Option A Aegis-Style Pyre Blossom**: Updated `pyre_sprout.png` by applying subtle organic dither noise across the charcoal stem, basal leaves, and flame petals (`#B71C1C`, `#E65100`, `#FFD600`), perfectly matching the 32x32 detail level and color depth of Aegis Rose (`aegis_rose`).
-
-## Build 000-1-26-221-22-40 (August 9, 2026 Item Texture Corrections, High-Res Pyre-Sprout & Climbable Weeproot)
-
-### 🌿 Item Texture Mapping & Flora Refinements
+### 🌾 Item Texture Consolidation & Climbable Ladder Mechanics
 - **Abyssal Weeproot Item & Ladder Feature**: Fixed item model mapping to `abyssal_weeproot.png` and registered `abyssal_weeproot` & `abyssal_weeproot_plant` under `#minecraft:climbable` so players can freely climb them as vertical hanging ladders.
+- **Fulgurite Reed Item Texture Mapping**: Consolidated `fulgurite_reed` BlockItem (`ModItems.FULGURITE_REED_ITEM`) to directly utilize the `fulgurite_stalk.png` copper-banded electric glass stalk item texture; removed duplicate `FULGURITE_STALK` item definition.
 - **Blood-Root Succulent Item Fix**: Fixed item model mapping to `blood_root_succulent.png`.
-- **Fulgurite Reed Item Unification**: Mapped `fulgurite_reed` item model directly to `fulgurite_stalk.png`.
-- **High-Res Pyre-Sprout Texture**: Re-rendered `pyre_sprout.png` using 32x32 pixel art with Voronoi flame cell shading and Perlin dither noise, matching our agreed-upon flora aesthetic style.
-- **Codex & OKF Vault Synchronization**: Updated `Abyssal Weeproot.md` note in the OKF Obsidian Vault.
 
-## Build 000-1-26-221-22-11 (August 9, 2026 Particle Transparency & Block Model Cutout Fixes)
+### ⚡ Fulgurite Reed Overcharge Shock & Bonemeal Growth Mechanics
+- **Fulgurite Reed Overcharge Shock**: Bonemealing `FulguriteReedBlock` at maximum height (3 blocks) emits a thunderclap sound, cyan lightning sparkle particle burst, inflicts 3.0 lightning damage, and applies **Paralyzed** (`ModEffects.PARALYZED`) for 3 seconds to entities within a 4-block radius, consuming the Bonemeal.
+- **Flora Bonemeal Growth & Replication**: Bonemealing 1-tall flora variants with a 2-tall counterpart (`aegis_spire_orchid`) grows them into 2-tall variants (`tall_aegis_spire_orchid`). Bonemealing single-tall or 2-tall flora drops 1x item copy into the world.
 
-### 🌟 Particle & Model Rendering Fixes
-- **Custom Spectrum Sparkle Texture (`spectrum_sparkle.png`)**: Generated high-quality 16x16 alpha-blended sparkle star texture (`textures/particle/spectrum_sparkle.png`) and updated `particles/spectrum_sparkle.json` to `"entropica:spectrum_sparkle"`. Eliminates all solid tinted/black square particle artifacts on flower ambient effects.
-- **Flora Model Cutout Render Types**: Added `"render_type": "minecraft:cutout"` across all 46 flora block model JSON definitions in `models/block/`. Ensures all plant blocks render with 100% transparent backgrounds without black box artifacts when placed in-world.
+### 🌟 Particle Transparency & Block Model Cutout Render Types
+- **Custom Spectrum Sparkle Texture (`spectrum_sparkle.png`)**: Generated 16x16 alpha-blended sparkle star texture (`textures/particle/spectrum_sparkle.png`) and updated `particles/spectrum_sparkle.json` to `"entropica:spectrum_sparkle"`. Eliminates all solid black square particle artifacts.
+- **Flora Model Cutout Render Types**: Added `"render_type": "minecraft:cutout"` across all 46 flora block model JSON definitions in `models/block/`.
 
-## Build 000-1-26-221-22-08 (August 9, 2026 Fulgurite Reed Bonemeal Overcharge Shock Mechanics & Codex/Vault Sync)
+### 📚 Codex Category Registry & OKF Obsidian Vault Synchronization
+- **Codex Registration**: Updated `CodexCategoryRegistry.java` node entries (`env_abyssal_weeproot`, `env_fulgurite_reed`, etc.) to document climbable ladder mechanics, overcharge shock, and bonemeal behavior.
+- **OKF Obsidian Vault Sync**: Updated notes in `C:\Users\Ddraig__\Downloads\OBSIDIAN WIKIS\Entropica\Entropica\` (`Aegis-Spire Orchid.md`, `Abyssal Weeproot.md`, `Fulgurite Reed.md`).
 
-### ⚡ Fulgurite Reed Overcharge Shock Mechanics
-- **Max-Height Bonemeal Overcharge**: Bonemealing `FulguriteReedBlock` at maximum height (3 blocks tall) or when blocked above triggers a high-voltage electrical overcharge.
-- **Electric Shock Area Effect**: Emits a thunderclap sound, cyan lightning sparkle particle burst, inflicts 3.0 lightning damage, and applies **Paralyzed** (`ModEffects.PARALYZED`) for 3 seconds (60 ticks) to the player and all living entities within a 4-block radius, consuming the Bonemeal item.
-- **Codex & OKF Vault Synchronization**: Updated `CodexCategoryRegistry.java` details for `env_fulgurite_reed` and updated the wiki note `Fulgurite Reed.md` in the OKF Obsidian Vault.
-
-## Build 000-1-26-221-22-02 (August 9, 2026 Vitreous Cactus, Fulgurite Reed & Sedge Bonemeal Growth)
-
-### 🌵 Vertical Bonemeal Growth & Reed/Cactus Mechanics
-- **Vitreous Cactus Bonemeal Growth**: Bonemealing `VitreousCactusBlock` grows the cactus vertically up to 3 blocks high when space above is clear. At maximum height or if blocked above, it drops 1x item copy in the world.
-- **Fulgurite Reed Bonemeal Growth**: Bonemealing `FulguriteReedBlock` grows the electric stalk vertically up to 3 blocks high. At maximum height, it drops 1x item copy.
-- **Aura-Drift Sedge Bonemeal Growth**: Bonemealing `AuraDriftSedgeBlock` duplicates 1x sedge block item in the world.
-
-## Build 000-1-26-221-22-01 (August 9, 2026 Flora Bonemeal Growth & Item Drop Mechanics)
-
-### 🦴 Bonemeal Growth & Item Replication Mechanics
-- **1-Tall to 2-Tall Growth**: Using Bonemeal on 1-tall flora variants with a 2-tall counterpart (`aegis_spire_orchid`) transforms them into their 2-tall version (`tall_aegis_spire_orchid`) if the block above is replaceable (`EntropicaFlowerBlock.java`).
-- **Single-Tall & 2-Tall Flower Item Duplication**: Using Bonemeal on 1-tall flora without a 2-tall variant (`pyre_sprout`, `aura_drift_sedge`, `spectral_lantern_flower`, `cinder_spore_mushroom`, etc.) or already 2-tall flora (`tall_aegis_spire_orchid`, `vitae_orchid`) drops 1x item copy of the block into the world (`popResource`).
-- **Cactus Exemption**: `VitreousCactusBlock` explicitly overrides `isValidBonemealTarget` returning `false` to exempt it from bonemeal duplication.
-
-## Build 000-1-26-221-21-54 (August 9, 2026 Flora Biome Placement Restrictions & Aegis Spire Family Implementation)
-
-### 🌿 Biome Placement Restrictions & Refactored Flora
-- **Aegis-Spire Family (`aegis_spire_orchid` & `tall_aegis_spire_orchid`)**: Implemented dual 1-tall and 2-tall variants (`AegisSpireOrchidBlock.java`) with stone, deepslate, granite, diorite, and mountain peak placement restrictions. Added 3D scoop-shaped `aegis_spire_petal` item drop.
-- **Pyre-Sprout Substrate Rules**: Enforced Netherrack, Basalt, Blackstone, Soul Sand, Soul Soil, and Magma Block placement restrictions for volcanic ash biomes (`PyreSproutBlock.java`).
-- **Aura-Drift Sedge Substrate Rules**: Enforced Grass Block, Dirt, Rooted Dirt, Podzol, and Moss Block placement restrictions (`AuraDriftSedgeBlock.java`) with feathery sedge plumes.
-- **Spectral Lantern-Flower Substrate Rules**: Enforced Soul Sand, Soul Soil, Warped Nylium, Crimson Nylium, Sculk, and End Stone placement rules (`SpectralLanternFlowerBlock.java`).
-- **Cinder-Spore Mushroom Refactor (`cinder_spore_mushroom`)**: Refactored from shelf to single domed Minecraft mushroom (`CinderSporeMushroomBlock.java`) with Mycelium, Nylium, Podzol, and Wood Log placement rules.
-
-## Build 000-1-26-221-19-14 (August 9, 2026 Round 3 Flora Species & Collectibles Deployment)
-
-
-### 🌿 Round 3 Flora Expansion
-- **Aegis-Spire Orchid (`aegis_spire_orchid`)**: Implemented 2-tall double flower block (`AegisSpireOrchidBlock.java`) with azure petals and metallic silver rims. Emits Light Level 7 and grants **Resistance I** aura to non-hostile entities within 4 blocks. Drops `aegis_spire_petal`.
-- **Pyre-Sprout (`pyre_sprout`)**: Implemented elemental fire sprout (`PyreSproutBlock.java`) emitting Light Level 10 and flame sparks. Harvesting with a Glass Bottle yields **Pyre Nectar Potion** (`ModPotions.PYRE_NECTAR` - *Fire Resistance I* for 3 minutes). Drops `pyre_sprout_seed` and `ember_pulp`.
-- **Aura-Drift Sedge (`aura_drift_sedge`)**: Implemented luminescent sedge grass (`AuraDriftSedgeBlock.java`) emitting Light Level 8 and aura drift motes. Entity contact grants **Jump Boost I** & **Speed I**. Drops `aura_drift_fiber`.
-- **Spectral Lantern-Flower (`spectral_lantern_flower`)**: Implemented translucent soulfire lantern flower (`SpectralLanternFlowerBlock.java`) emitting Light Level 12 and repelling undead entities (inflicting Slowness II & Weakness I). Drops `spectral_lantern_pod`.
-- **Cinder-Spore Shelf (`cinder_spore_shelf`)**: Implemented fungal bracket mushroom block (`CinderSporeShelfBlock.java`) emitting Light Level 6. Entity contact grants **Fire Resistance I**. Drops `cinder_spore_cap`.
+## Build 000-1-26-220-20-15 (August 8, 2026 Multi-Loader API Refinement)
 - **Entropic Codex & OKF Vault Sync**: Registered all 5 Round 3 flora nodes under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java` and created corresponding wiki notes in the Obsidian Vault.
 
 ## Build 000-1-26-221-10-45 (August 9, 2026 Vitreous Cactus Collision, In-World Plant Cutout Transparency & Particle Brightness)
