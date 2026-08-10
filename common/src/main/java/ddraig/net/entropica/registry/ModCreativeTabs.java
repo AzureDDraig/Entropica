@@ -442,10 +442,34 @@ public class ModCreativeTabs {
                path.contains("aeterium") ||
                path.contains("ignisite") ||
                path.contains("mortisite") ||
-               path.contains("rubber_tree") ||
+               path.contains("rubber") ||
+               path.contains("silver_pine") ||
+               path.contains("amber") ||
+               path.contains("rose") ||
+               path.contains("lily") ||
+               path.contains("orchid") ||
+               path.contains("buttercup") ||
+               path.contains("bell") ||
+               path.contains("bloom") ||
+               path.contains("shrub") ||
+               path.contains("cactus") ||
+               path.contains("moss") ||
+               path.contains("weeproot") ||
+               path.contains("succulent") ||
+               path.contains("puffball") ||
+               path.contains("reed") ||
+               path.contains("thistle") ||
+               path.contains("marshmallow") ||
+               path.contains("sprout") ||
+               path.contains("sedge") ||
+               path.contains("lantern") ||
+               path.contains("mushroom") ||
+               path.contains("aloe") ||
+               path.contains("shimmerpetal") ||
                path.contains("blossom") ||
                path.contains("sapling") ||
                path.contains("spawn_egg");
     }
+
 
 }

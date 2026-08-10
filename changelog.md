@@ -1,6 +1,19 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-14-22 (August 10, 2026 Locked Necrotic Rose Restoration & Creative Tab World Isolation Fix)
+
+### 🌹 Locked Necrotic Rose of Jericho Texture Restoration
+- **Restored Organic Voronoi/Perlin Texture**: Restored 100% exact locked 32x32 textures for Necrotic Rose of Jericho:
+  - `necrotic_rose_of_jericho.png` (from locked `necrotic_rose_of_jericho_perlin_voronoi_stem_preview.png`).
+  - `tall_necrotic_rose_of_jericho_top.png` (from locked `necrotic_rose_2tall_top_fresh.png`).
+  - `tall_necrotic_rose_of_jericho_bottom.png` (from locked `necrotic_rose_2tall_bottom_fresh.png`).
+
+### 🏷️ Creative Tab World Isolation (`ModCreativeTabs.java`)
+- **`isWorldItem()` Category Filter Expansion**: Expanded `isWorldItem(Item item)` filter method to include all flora block paths (`rose`, `lily`, `orchid`, `buttercup`, `bell`, `bloom`, `shrub`, `cactus`, `moss`, `weeproot`, `succulent`, `puffball`, `reed`, `thistle`, `marshmallow`, `sprout`, `sedge`, `lantern`, `mushroom`, `aloe`, `shimmerpetal`, `amber`, `silver_pine`, `rubber`).
+- **Strict Tab Segregation**: Ensures all 28 flora species, botanical blocks, logs, wood, planks, leaves, and saplings are excluded from `BLOCKS_TAB` (Building Blocks) and placed **exclusively in `WORLD_TAB` (Entropica: Natural World)**.
+
 ## Build 000-1-26-222-14-19 (August 10, 2026 C/V/G/D Complete Synchronization & Vault Verification)
+
 
 ### 📚 OKF Obsidian Vault & Codex Verification
 - **Auroral Lily Pad Note**: Created `wiki/entities/blocks/flora/Auroral Lily Pad.md` in the Entropica OKF Obsidian Vault.
