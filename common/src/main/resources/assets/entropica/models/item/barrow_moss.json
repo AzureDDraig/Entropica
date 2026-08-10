@@ -1,3 +1,6 @@
 {
-  "parent": "entropica:block/barrow_moss"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:block/barrow_moss"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/fulgurite_stalk"
+    "layer0": "entropica:block/fulgurite_reed"
   }
 }

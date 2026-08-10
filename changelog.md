@@ -1,6 +1,13 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-14-30 (August 10, 2026 Master Flora Gallery Textures Synchronized for Items & Blocks)
+
+### 🌸 Gallery Texture Enforcement (Blocks & Items)
+- **Synchronized Master Textures**: Re-sampled and synchronized all 28 flora species (1-tall and 2-tall top/bottom variants) from our master locked gallery previews directly into game block textures (`common/src/main/resources/assets/entropica/textures/block/`).
+- **Unified Item Model Layer0 References**: Enforced that item models (`models/item/`) and 1.21.4+ asset definitions (`items/`) for all 28 flora species use `layer0` pointing directly to their corresponding master block/bloom textures (`entropica:block/<flower>` for 1-tall, `entropica:block/<tall_flower>_top` for 2-tall), ensuring both items in inventory/hand and placed blocks in-world share 100% identical visual art.
+
 ## Build 000-1-26-222-14-28 (August 10, 2026 Necrotic Rose Item Texture Reference & Translation Fix)
+
 
 ### 🌹 Necrotic Rose of Jericho Item Model Fix
 - **Fixed Layer0 Texture Path**: Corrected `models/item/necrotic_rose_of_jericho.json` layer0 reference from non-existent `entropica:block/necrotic_rose_of_jericho_blooming` to existing `entropica:block/necrotic_rose_of_jericho`, resolving the black-and-purple missing texture checkerboard.

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/blood_root_succulent"
+    "layer0": "entropica:block/blood_root_succulent"
   }
 }
