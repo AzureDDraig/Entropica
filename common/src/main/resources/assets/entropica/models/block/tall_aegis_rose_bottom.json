@@ -2,6 +2,5 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/tall_aegis_rose_bottom"
-  },
-  "render_type": "minecraft:cutout"
+  }
 }

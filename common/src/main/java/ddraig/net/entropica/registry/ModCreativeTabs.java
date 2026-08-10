@@ -402,6 +402,8 @@ public class ModCreativeTabs {
                 output.accept(ModItems.STARDUST_ALOE_LEAF.get());
                 output.accept(ModItems.SANGUINE_LILY_ITEM.get());
                 output.accept(ModItems.SANGUINE_LILY_PAD.get());
+                output.accept(ModItems.AURORAL_LILY_PAD_ITEM.get());
+
 
                 // Dynamic Spectral Dye Category
                 for (var dyeSupplier : ModItems.SPECTRAL_DYES.values()) {

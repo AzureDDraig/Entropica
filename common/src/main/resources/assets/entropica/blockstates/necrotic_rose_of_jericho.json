@@ -1,10 +1,7 @@
 {
   "variants": {
-    "blooming=false": {
-      "model": "entropica:block/necrotic_rose_of_jericho_closed"
-    },
-    "blooming=true": {
-      "model": "entropica:block/necrotic_rose_of_jericho_blooming"
+    "": {
+      "model": "entropica:block/necrotic_rose_of_jericho"
     }
   }
 }

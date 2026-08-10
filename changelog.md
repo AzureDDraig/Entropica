@@ -1,6 +1,21 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-14-10 (August 10, 2026 Comprehensive Flora & Wood JSON Model Generation & Audit Pass)
+
+### 📄 Blockstate & Block Model JSON Generation
+- **1-Tall Flowers (`vitae_orchid`, `necrotic_rose_of_jericho`, `auroral_lily_pad`)**: Generated cross-parent block model JSONs (`models/block/`) and blockstate JSONs (`blockstates/`).
+- **2-Tall Flowers & Bushes (`tall_aegis_rose`, `tall_necrotic_rose_of_jericho`, `tall_sanguine_lily`, `tall_auroral_lily_pad`, `tall_soul_flame_orchid`, `tall_vitae_orchid`, `tall_void_stalker_orchid`, `tall_aegis_spire_orchid`)**: Generated `half=lower` and `half=upper` variant blockstate JSONs and corresponding `_bottom.json` and `_top.json` cross block models.
+- **100% Audit Coverage**: Verified 0 missing item models, 0 missing blockstates, and 0 missing block models across all 28 flora species, botanical collectibles, and tree sets.
+
+## Build 000-1-26-222-13-57 (August 10, 2026 Auroral Lily Pad Item Registration & Full 28 Flora Audit Pass)
+
+
+### 🌿 Auroral Lily Pad Item Registration
+- **`AURORAL_LILY_PAD_ITEM`**: Registered `auroral_lily_pad` BlockItem in `ModItems.java` and added to `WORLD_TAB` in `ModCreativeTabs.java`.
+- **100% Audit Pass**: Confirmed all 28 flora species, aquatic plants, ceiling vines, botanical drops, and tree set blocks have registered items in `ModItems.java` and are present in `WORLD_TAB`.
+
 ## Build 000-1-26-222-13-51 (August 10, 2026 Minecraft 1.21.10 Item Model Audit & Spectral Dye Tinting Fix)
+
 
 ### 🎨 Spectral Dye 2-Layer Dynamic Tinting Fix
 - **Dynamic 2-Layer Item Models**: Fixed item models for all 18 Spectral Dyes (`spectral_dye_aegis.json`, `spectral_dye_amber.json`, `spectral_dye_auroral.json`, `spectral_dye_fulgurite.json`, `spectral_dye_gale.json`, `spectral_dye_necrotic.json`, `spectral_dye_sanguine.json`, `spectral_dye_soulfire.json`, `spectral_dye_stardust.json`, `spectral_dye_vitae.json`, `spectral_dye_void_stalker.json`, etc.) to point to `"layer0": "entropica:item/spectral_dye_bottle"` and `"layer1": "entropica:item/spectral_dye_fill"`.

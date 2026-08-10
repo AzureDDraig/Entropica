@@ -660,6 +660,8 @@ public class ModItems {
 
     public static final RegistrySupplier<BlockItem> SANGUINE_LILY_ITEM = ITEMS.registerItem("sanguine_lily", properties -> new BlockItem(ModBlocks.SANGUINE_LILY.get(), properties));
     public static final RegistrySupplier<Item> SANGUINE_LILY_PAD = ITEMS.registerItem("sanguine_lily_pad", Item::new);
+    public static final RegistrySupplier<BlockItem> AURORAL_LILY_PAD_ITEM = ITEMS.registerItem("auroral_lily_pad", properties -> new BlockItem(ModBlocks.AURORAL_LILY_PAD.get(), properties));
+
 
     public static final RegistrySupplier<BlockItem> TALL_SOUL_FLAME_ORCHID_ITEM = ITEMS.registerItem("tall_soul_flame_orchid", properties -> new BlockItem(ModBlocks.TALL_SOUL_FLAME_ORCHID.get(), properties));
     public static final RegistrySupplier<BlockItem> TALL_VITAE_ORCHID_ITEM = ITEMS.registerItem("tall_vitae_orchid", properties -> new BlockItem(ModBlocks.TALL_VITAE_ORCHID.get(), properties));
