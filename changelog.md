@@ -1,6 +1,21 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-14-18 (August 10, 2026 Minecraft 1.21.4+ `items/` Directory Mirroring Audit & Sync)
+
+### 📁 `items/` & `models/item/` Dual-Asset Directory Mirroring
+- **1.21.4+ Item Model Mirroring**: Synchronized all missing 54 item model entries from `common/src/main/resources/assets/entropica/models/item/` into `common/src/main/resources/assets/entropica/items/` using the 1.21.4+ asset specification:
+  ```json
+  {
+    "model": {
+      "type": "minecraft:model",
+      "model": "entropica:item/<item_id>"
+    }
+  }
+  ```
+- **100% Directory Parity**: Confirmed 0 missing items between `models/item/` and `items/` (both directories fully populated with 1802 item definitions).
+
 ## Build 000-1-26-222-14-10 (August 10, 2026 Comprehensive Flora & Wood JSON Model Generation & Audit Pass)
+
 
 ### 📄 Blockstate & Block Model JSON Generation
 - **1-Tall Flowers (`vitae_orchid`, `necrotic_rose_of_jericho`, `auroral_lily_pad`)**: Generated cross-parent block model JSONs (`models/block/`) and blockstate JSONs (`blockstates/`).
