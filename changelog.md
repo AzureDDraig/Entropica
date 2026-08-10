@@ -1,6 +1,20 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-15-21 (August 10, 2026 Flora Harvest Limits, Water Lily Pad Placement & Cutout Transparency Fixes)
+
+### 🌿 Flora Right-Click Harvest Limits
+- **Cooldown Enforcement**: Implemented a 100-tick (5-second) per-block harvest cooldown across all harvestable flora (`AbyssalWeeprootBlock`, `SporeBurstPuffballBlock`, `MistVeilMarshmallowBlock`, `CryoStaticShrubBlock`, `BloodRootSucculentBlock`, `GaleBloomDandelionBlock`), preventing infinite right-click duping of botanical items.
+
+### 🪷 Auroral Lily Pad Water Placement
+- **`WaterlilyBlock` Class**: Created `AuroralLilyPadBlock` extending Vanilla `WaterlilyBlock` with thin $16 \times 1.5 \times 16$ collision box.
+- **`PlaceOnWaterBlockItem` Registration**: Updated `AURORAL_LILY_PAD_ITEM` in `ModItems.java` to `PlaceOnWaterBlockItem(ModBlocks.AURORAL_LILY_PAD.get(), properties)`, enabling placement on water surfaces.
+
+### ✂️ Complete Cutout Transparency Fixes
+- **Model JSON Audit & Repairs**: Added `"render_type": "minecraft:cutout"` across all missing 2-tall parent block models (`tall_aegis_rose`, `tall_aegis_spire_orchid`, `tall_auroral_lily_pad`, `tall_necrotic_rose_of_jericho`, `tall_sanguine_lily`, `tall_soul_flame_orchid`, `tall_vitae_orchid`, `tall_void_stalker_orchid`) and `barrow_moss_carpet.json`, eliminating black opaque boxes in-world.
+- **Render Layer Maps**: Registered `ModBlocks.AURORAL_LILY_PAD.get()` in `EntropicaClientFabric.java` `BlockRenderLayerMap`.
+
 ## Build 000-1-26-222-15-14 (August 10, 2026 User-Selected Option A Orchid Textures Locked & Deployed)
+
 
 ### 🌺 Confirmed Option A Orchid Textures Applied
 - **Vitae Orchid (`vitae_orchid`)**: Applied **Option A (Classic Handcrafted `vitae_v5` / `v6`)** for both 1-tall (`vitae_orchid_1tall_v5.png`) and 2-tall top/bottom pairs (`vitae_orchid_2tall_top_v6.png` / `vitae_orchid_2tall_bottom_v6.png`).

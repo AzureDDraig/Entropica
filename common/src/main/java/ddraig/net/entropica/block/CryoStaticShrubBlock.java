@@ -1,6 +1,8 @@
 package ddraig.net.entropica.block;
 
+import ddraig.net.entropica.registry.ModItems;
 import ddraig.net.entropica.registry.ModParticles;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -8,6 +10,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.ItemStack;
+
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -55,11 +59,19 @@ public class CryoStaticShrubBlock extends EntropicaFlowerBlock {
         }
     }
 
+    private static final java.util.Map<BlockPos, Long> HARVEST_COOLDOWNS = new java.util.concurrent.ConcurrentHashMap<>();
+
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        long now = level.getGameTime();
+        Long lastHarvest = HARVEST_COOLDOWNS.get(pos);
+        if (lastHarvest != null && (now - lastHarvest) < 100L) {
+            return InteractionResult.PASS;
+        }
+        HARVEST_COOLDOWNS.put(pos, now);
         if (!level.isClientSide()) {
-
-            level.playSound(null, pos, SoundEvents.BEE_STING, SoundSource.BLOCKS, 0.4f, 1.8f);
+            popResource(level, pos, new ItemStack(ModItems.CRYO_STATIC_SHRUB_ITEM.get()));
+            level.playSound(null, pos, SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 0.8f, 1.2f);
         } else {
             // Burst of Glacial Cyan and Plasma Violet static sparkles
             RandomSource random = level.getRandom();

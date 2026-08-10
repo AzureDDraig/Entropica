@@ -210,7 +210,9 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ModBlocks.NECROTIC_ROSE_OF_JERICHO.get(),
             ModBlocks.TALL_NECROTIC_ROSE_OF_JERICHO.get(),
             ModBlocks.SANGUINE_LILY.get(),
+            ModBlocks.AURORAL_LILY_PAD.get(),
             ModBlocks.AEGIS_SPIRE_ORCHID.get(),
+
             ModBlocks.TALL_AEGIS_SPIRE_ORCHID.get(),
 
             ModBlocks.SOUL_FLAME_ORCHID.get(),

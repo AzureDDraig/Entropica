@@ -65,12 +65,17 @@ public class AbyssalWeeprootBlock extends GrowingPlantHeadBlock {
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide()) {
-            popResource(level, pos, new ItemStack(ModItems.ABYSSAL_TENDRIL.get()));
-            level.playSound(null, pos, SoundEvents.CAVE_VINES_PICK_BERRIES, SoundSource.BLOCKS, 1.0f, 1.0f);
+        if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.BERRIES) && state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.BERRIES)) {
+            if (!level.isClientSide()) {
+                popResource(level, pos, new ItemStack(ModItems.ABYSSAL_TENDRIL.get()));
+                level.playSound(null, pos, SoundEvents.CAVE_VINES_PICK_BERRIES, SoundSource.BLOCKS, 1.0f, 1.0f);
+                level.setBlock(pos, state.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.BERRIES, false), 2);
+            }
+            return InteractionResult.SUCCESS;
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResult.PASS;
     }
+
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {

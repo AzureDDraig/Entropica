@@ -53,12 +53,21 @@ public class MistVeilMarshmallowBlock extends EntropicaFlowerBlock {
         }
     }
 
+    private static final java.util.Map<BlockPos, Long> HARVEST_COOLDOWNS = new java.util.concurrent.ConcurrentHashMap<>();
+
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        long now = level.getGameTime();
+        Long lastHarvest = HARVEST_COOLDOWNS.get(pos);
+        if (lastHarvest != null && (now - lastHarvest) < 100L) {
+            return InteractionResult.PASS;
+        }
+        HARVEST_COOLDOWNS.put(pos, now);
         if (!level.isClientSide()) {
             popResource(level, pos, new ItemStack(ModItems.MIST_VEIL_MARSHMALLOW_POD.get()));
-            level.playSound(null, pos, SoundEvents.SLIME_BLOCK_PLACE, SoundSource.BLOCKS, 1.0f, 1.2f);
+            level.playSound(null, pos, SoundEvents.CAVE_VINES_PICK_BERRIES, SoundSource.BLOCKS, 1.0f, 1.0f);
         }
+
         return InteractionResult.SUCCESS;
     }
 

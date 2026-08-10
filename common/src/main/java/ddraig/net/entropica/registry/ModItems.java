@@ -12,6 +12,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.PlaceOnWaterBlockItem;
+
 import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -660,7 +662,8 @@ public class ModItems {
 
     public static final RegistrySupplier<BlockItem> SANGUINE_LILY_ITEM = ITEMS.registerItem("sanguine_lily", properties -> new BlockItem(ModBlocks.SANGUINE_LILY.get(), properties));
     public static final RegistrySupplier<Item> SANGUINE_LILY_PAD = ITEMS.registerItem("sanguine_lily_pad", Item::new);
-    public static final RegistrySupplier<Item> AURORAL_LILY_PAD_ITEM = ITEMS.registerItem("auroral_lily_pad", Item::new);
+    public static final RegistrySupplier<Item> AURORAL_LILY_PAD_ITEM = ITEMS.registerItem("auroral_lily_pad", properties -> new PlaceOnWaterBlockItem(ModBlocks.AURORAL_LILY_PAD.get(), properties));
+
 
 
 

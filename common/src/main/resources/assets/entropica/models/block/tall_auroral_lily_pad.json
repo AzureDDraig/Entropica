@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/tall_auroral_lily_pad_top"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

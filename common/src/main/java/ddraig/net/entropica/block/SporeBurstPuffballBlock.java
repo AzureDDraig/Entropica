@@ -58,14 +58,23 @@ public class SporeBurstPuffballBlock extends EntropicaFlowerBlock {
         }
     }
 
+    private static final java.util.Map<BlockPos, Long> HARVEST_COOLDOWNS = new java.util.concurrent.ConcurrentHashMap<>();
+
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        long now = level.getGameTime();
+        Long lastHarvest = HARVEST_COOLDOWNS.get(pos);
+        if (lastHarvest != null && (now - lastHarvest) < 100L) {
+            return InteractionResult.PASS;
+        }
+        HARVEST_COOLDOWNS.put(pos, now);
         triggerSporeCloud(level, pos, player);
         if (!level.isClientSide()) {
             popResource(level, pos, new ItemStack(ModItems.SPORE_PUFF.get()));
         }
         return InteractionResult.SUCCESS;
     }
+
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {

@@ -16,12 +16,21 @@ public class GaleBloomDandelionBlock extends EntropicaFlowerBlock {
         super(properties);
     }
 
+    private static final java.util.Map<BlockPos, Long> HARVEST_COOLDOWNS = new java.util.concurrent.ConcurrentHashMap<>();
+
     @Override
+
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        long now = level.getGameTime();
+        Long lastHarvest = HARVEST_COOLDOWNS.get(pos);
+        if (lastHarvest != null && (now - lastHarvest) < 100L) {
+            return InteractionResult.PASS;
+        }
+        HARVEST_COOLDOWNS.put(pos, now);
         if (!level.isClientSide()) {
             level.playSound(null, pos, SoundEvents.WIND_CHARGE_BURST.value(), SoundSource.BLOCKS, 0.5f, 1.4f);
-
         } else {
+
             // Burst of swirling wind puff particles with Arid Essence cream/gold tinting
             RandomSource random = level.getRandom();
             for (int i = 0; i < 8; i++) {

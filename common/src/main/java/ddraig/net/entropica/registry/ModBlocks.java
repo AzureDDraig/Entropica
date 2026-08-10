@@ -311,7 +311,9 @@ public class ModBlocks {
     public static final RegistrySupplier<Block> TALL_VITAE_ORCHID = BLOCKS.register("tall_vitae_orchid", name -> new net.minecraft.world.level.block.TallFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_YELLOW).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 10).noOcclusion()));
     public static final RegistrySupplier<Block> TALL_VOID_STALKER_ORCHID = BLOCKS.register("tall_void_stalker_orchid", name -> new net.minecraft.world.level.block.TallFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).noOcclusion()));
     public static final RegistrySupplier<Block> TALL_AEGIS_ROSE = BLOCKS.register("tall_aegis_rose", name -> new net.minecraft.world.level.block.TallFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PINK).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).noOcclusion()));
+    public static final RegistrySupplier<Block> AURORAL_LILY_PAD = BLOCKS.register("auroral_lily_pad", name -> new ddraig.net.entropica.block.AuroralLilyPadBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_GREEN).sound(SoundType.LILY_PAD).instabreak().noOcclusion()));
     public static final RegistrySupplier<Block> TALL_NECROTIC_ROSE_OF_JERICHO = BLOCKS.register("tall_necrotic_rose_of_jericho", name -> new net.minecraft.world.level.block.TallFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLACK).noCollision().instabreak().sound(SoundType.GRASS).noOcclusion()));
+
 
 
 

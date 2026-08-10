@@ -3,5 +3,6 @@
   "textures": {
     "wool": "entropica:block/barrow_moss",
     "particle": "entropica:block/barrow_moss"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }
