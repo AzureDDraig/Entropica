@@ -1,6 +1,15 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-15-08 (August 10, 2026 Authentic Phalaenopsis Orchid Structure & Leaf Restoration)
+
+### 🌺 Authentic Phalaenopsis Orchid Structure Restored
+- **Aegis-Spire Orchid**: Replaced incorrect circular flower / V-leaf placeholder textures with the authentic **Phalaenopsis Blue Orchid** (`phalaenopsis_blue_orchid_1tall_32.png`, `phalaenopsis_natural_leaf_top_sliced32.png`, and `phalaenopsis_natural_leaf_bottom_sliced32.png`), featuring cascading butterfly-wing petals (`#2563EB` / `#60A5FA` / `#DBEAFE`), white column dots, slender arching purplish-brown stems, and broad green basal strap leaves (`#166534` / `#15803D`).
+- **Soul-Flame Orchid**: Recolored from authentic Phalaenopsis architecture into Soulfire Cyan (`#38BDF8` / `#06B6D4`).
+- **Vitae Orchid**: Recolored from authentic Phalaenopsis architecture into Vitae Pink (`#FF6B9D` / `#E087EC`).
+- **Void-Stalker Orchid**: Recolored from authentic Phalaenopsis architecture into Abyssal Purple (`#818CF8` / `#4C1D95`).
+
 ## Build 000-1-26-222-15-00 (August 10, 2026 Master Orchid Textures, Spectral Dye Tinting & Cutout Transparency Fixes)
+
 
 ### 🌸 Approved Orchid Textures Restored
 - **Aegis-Spire Orchid**: Re-sampled directly from locked preview `aegis_spire_orchid_1tall_authentic.png` and `tall_aegis_spire_orchid_top_sliced32.png` / `bottom_sliced32.png`.
