@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cube_all",
   "textures": {
     "all": "entropica:block/amber_leaves"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

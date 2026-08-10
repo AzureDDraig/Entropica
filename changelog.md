@@ -1,6 +1,23 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-15-00 (August 10, 2026 Master Orchid Textures, Spectral Dye Tinting & Cutout Transparency Fixes)
+
+### 🌸 Approved Orchid Textures Restored
+- **Aegis-Spire Orchid**: Re-sampled directly from locked preview `aegis_spire_orchid_1tall_authentic.png` and `tall_aegis_spire_orchid_top_sliced32.png` / `bottom_sliced32.png`.
+- **Soul-Flame Orchid**: Re-sampled directly from locked preview `soul_flame_orchid_1tall_fresh.png` and `2tall_top_fresh.png` / `2tall_bottom_fresh.png`.
+- **Vitae Orchid**: Re-sampled directly from locked preview `vitae_orchid_1tall_v5.png` and `2tall_top_v6.png` / `2tall_bottom_v6.png`.
+- **Void-Stalker Orchid**: Re-sampled directly from locked preview `void_stalker_orchid_1tall_fresh.png` and `2tall_top_fresh.png` / `2tall_bottom_fresh.png`.
+
+### 🧪 Spectral Dye Inventory Tinting Fix
+- Added `"tints": [{"type": "minecraft:constant", "value": -1}, {"type": "entropica:spectral_dye_tint"}]` to all 18 Spectral Dye item models in `items/`.
+- Dynamic RGBA color provider registered for layer1 tinting across both Fabric (`EntropicaClientFabric.java`) and NeoForge (`ModClientEvents.java`).
+
+### 🌿 In-World Cutout Transparency Fix
+- Added `"render_type": "minecraft:cutout"` to all 51 flora block models in `models/block/`.
+- Registered all flora species, 2-tall flowers, saplings, and leaf blocks in `BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), ...)` in `EntropicaClientFabric.java`.
+
 ## Build 000-1-26-222-14-44 (August 10, 2026 `./gradlew deploytoDev` Execution & Stale CurseForge Jar Cleanup)
+
 
 ### 🚀 `./gradlew deploytoDev` Execution
 - **CurseForge Instance Deployment**: Executed `./gradlew deploytoDev` across all modules:

@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/necrotic_rose_of_jericho"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }
