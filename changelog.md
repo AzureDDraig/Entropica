@@ -1,6 +1,27 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-12-49 (August 10, 2026 Amber-Wood Arboreal Set & Resinous Wood Suite)
+
+### 🪵 Amber-Wood Wood Set (`amber_wood`)
+- **Block Registrations**: Registered full wood family in `ModBlocks.java` and `ModItems.java`:
+  - `AMBER_LOG` (`amber_log`)
+  - `STRIPPED_AMBER_LOG` (`stripped_amber_log`)
+  - `AMBER_WOOD` (`amber_wood`)
+  - `STRIPPED_AMBER_WOOD` (`stripped_amber_wood`)
+  - `AMBER_PLANKS` (`amber_planks`)
+  - `AMBER_LEAVES` (`amber_leaves`)
+  - `AMBER_SAPLING` (`amber_sapling`)
+- **32x32 High-Resolution Textures**: Handcrafted 100% 32x32 pixel art textures for all 7 blocks:
+  - Chestnut bark with glowing golden-amber resin seams (`#D97706`, `#F59E0B`, `#FDE047`).
+  - Concentric top rings with a glowing amber resin core.
+  - Smooth honeyed golden-orange stripped wood grain and planks (`#F97316`, `#F59E0B`).
+  - Dense golden-amber foliage leaves and transparent compact sapling.
+- **Creative Tab**: Added all 7 items to `WORLD_TAB` in `ModCreativeTabs.java`.
+- **Codex & Vault Integration**: Registered `env_amber_wood` under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java` and verified `Amber-Wood Wood Set.md` in the Obsidian Vault.
+- **Gallery Artifact**: Created `amber_wood_gallery.md` displaying 100% transparent upscale previews.
+
 ## Build 000-1-26-222-12-36 (August 10, 2026 1-Tall Rose Block Textures Approval & Complete Flora Locking)
+
 
 ### 🌹 1-Tall Aegis Rose (`aegis_rose.png`) & Necrotic Rose-of-Jericho (`necrotic_rose_of_jericho.png`)
 - **1:1 Tea Rose Photo-Matched Architecture**: Modeled directly after the user's uploaded Tea Rose reference photo (`media__1786382960410.png`).

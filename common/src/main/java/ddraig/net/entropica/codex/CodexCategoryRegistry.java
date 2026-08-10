@@ -443,6 +443,22 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
+                "env_amber_wood", "Amber-Wood Wood Set", "ENVIRONMENT & NATURE",
+                "Resinous trees with glowing amber resin seams and honeyed orange planks.",
+                "Overview & Description:\n" +
+                "A warm arboreal species featuring dark chestnut bark coated in glowing golden amber resin seams.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Amber Glades and Amber Pine-Vales, or grown from Amber Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Crafted into sticky golden amber planks, log posts, stripped timber frames, and redstone adhesive recipes.\n\n" +
+                "Special Properties:\n" +
+                "Logs emit glowing golden resin seams (`#F59E0B`, `#FDE047`) and concentric honey rings.",
+                "env_flora", 0, new ItemStack(ModBlocks.AMBER_LOG.get()),
+                380f, 0.0f, a_env - 0.05f, false
+        ));
+
+
+        ALL_NODES.add(new CodexNode(
                 "env_rimebloom", "Frostbite Blossom (Rimebloom)", "ENVIRONMENT & NATURE",
                 "Crystalline 3-petaled ice tulip flowers pulsing ambient cold luminescence.",
                 "Overview & Description:\n" +

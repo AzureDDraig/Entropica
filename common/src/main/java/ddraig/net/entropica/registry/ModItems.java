@@ -667,6 +667,16 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> TALL_AEGIS_ROSE_ITEM = ITEMS.registerItem("tall_aegis_rose", properties -> new BlockItem(ModBlocks.TALL_AEGIS_ROSE.get(), properties));
     public static final RegistrySupplier<BlockItem> TALL_NECROTIC_ROSE_OF_JERICHO_ITEM = ITEMS.registerItem("tall_necrotic_rose_of_jericho", properties -> new BlockItem(ModBlocks.TALL_NECROTIC_ROSE_OF_JERICHO.get(), properties));
 
+    // --- Amber-Wood Set Items ---
+    public static final RegistrySupplier<BlockItem> AMBER_LOG_ITEM = ITEMS.registerItem("amber_log", properties -> new BlockItem(ModBlocks.AMBER_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_AMBER_LOG_ITEM = ITEMS.registerItem("stripped_amber_log", properties -> new BlockItem(ModBlocks.STRIPPED_AMBER_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_WOOD_ITEM = ITEMS.registerItem("amber_wood", properties -> new BlockItem(ModBlocks.AMBER_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_AMBER_WOOD_ITEM = ITEMS.registerItem("stripped_amber_wood", properties -> new BlockItem(ModBlocks.STRIPPED_AMBER_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_PLANKS_ITEM = ITEMS.registerItem("amber_planks", properties -> new BlockItem(ModBlocks.AMBER_PLANKS.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_LEAVES_ITEM = ITEMS.registerItem("amber_leaves", properties -> new BlockItem(ModBlocks.AMBER_LEAVES.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_SAPLING_ITEM = ITEMS.registerItem("amber_sapling", properties -> new BlockItem(ModBlocks.AMBER_SAPLING.get(), properties));
+
+
     // Botanical Drops (Petals & Viscous Nectars - Spectral Dyes handled dynamically by SpectralDyeApi)
     public static final RegistrySupplier<Item> AEGIS_NECTAR = ITEMS.registerItem("aegis_nectar", Item::new);
     public static final RegistrySupplier<Item> NECROTIC_NECTAR = ITEMS.registerItem("necrotic_nectar", Item::new);

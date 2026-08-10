@@ -319,7 +319,18 @@ public class ModCreativeTabs {
                 output.accept(ModItems.SILVER_PINE_PLANKS_ITEM.get());
                 output.accept(ModItems.SILVER_PINE_LEAVES_ITEM.get());
                 output.accept(ModItems.SILVER_PINE_SAPLING_ITEM.get());
+
+                // Amber-Wood Set
+                output.accept(ModItems.AMBER_LOG_ITEM.get());
+                output.accept(ModItems.AMBER_WOOD_ITEM.get());
+                output.accept(ModItems.STRIPPED_AMBER_LOG_ITEM.get());
+                output.accept(ModItems.STRIPPED_AMBER_WOOD_ITEM.get());
+                output.accept(ModItems.AMBER_PLANKS_ITEM.get());
+                output.accept(ModItems.AMBER_LEAVES_ITEM.get());
+                output.accept(ModItems.AMBER_SAPLING_ITEM.get());
+
                 output.accept(ModItems.RIMEBLOOM_ITEM.get());
+
                 output.accept(ModItems.AEGIS_ROSE_ITEM.get());
                 output.accept(ModItems.AEGIS_ROSE_PETALS.get());
                 output.accept(ModItems.AMBER_NECTAR_BLOSSOM_ITEM.get());
