@@ -1,6 +1,14 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-14-39 (August 10, 2026 Dev Deployment & Gradle Multi-Loader Jar Build)
+
+### 🚀 Production JAR Compilation (`./gradlew build`)
+- **Fabric Mod Production Jar**: Compiled `Entropica-fabric-1.0.0.jar` (10.0 MB) in `fabric/build/libs/`.
+- **NeoForge Mod Production Jar**: Compiled `Entropica-neoforge-1.0.0.jar` (10.1 MB) in `neoforge/build/libs/`.
+- **Deployment Status**: All 28 flora species, Amber-Wood tree set, log stripping mechanics, 1.21.4+ `items/` definitions, and localized strings are compiled and ready for dev server/client testing.
+
 ## Build 000-1-26-222-14-30 (August 10, 2026 Master Flora Gallery Textures Synchronized for Items & Blocks)
+
 
 ### 🌸 Gallery Texture Enforcement (Blocks & Items)
 - **Synchronized Master Textures**: Re-sampled and synchronized all 28 flora species (1-tall and 2-tall top/bottom variants) from our master locked gallery previews directly into game block textures (`common/src/main/resources/assets/entropica/textures/block/`).

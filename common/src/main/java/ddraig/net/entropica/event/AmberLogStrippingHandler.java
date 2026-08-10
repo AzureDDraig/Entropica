@@ -44,7 +44,9 @@ public class AmberLogStrippingHandler {
             level.playSound(null, pos, SoundEvents.AXE_STRIP, SoundSource.BLOCKS, 1.0f, 1.0f);
 
             // Damage Axe
-            heldStack.hurtAndBreak(1, player, Player.getSlotForHand(hand));
+            net.minecraft.world.entity.EquipmentSlot slot = hand == InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND;
+            heldStack.hurtAndBreak(1, player, slot);
+
 
             // Drop 1-2 Amber Chunks in-world
             int count = 1 + level.random.nextInt(2);
