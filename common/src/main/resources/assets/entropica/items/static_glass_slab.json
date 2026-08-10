@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/static_glass_slab"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/static_glass_slab"
+  }
+}

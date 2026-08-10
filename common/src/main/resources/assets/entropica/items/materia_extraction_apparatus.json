@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/materia_extraction_apparatus"
+    "model": "entropica:item/materia_extraction_apparatus"
   }
 }

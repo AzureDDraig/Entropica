@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/mortisite_crystal_block"
+    "model": "entropica:item/mortisite_crystal_block"
   }
 }

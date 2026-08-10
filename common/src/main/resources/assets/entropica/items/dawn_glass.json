@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/dawn_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/dawn_glass"
+  }
+}

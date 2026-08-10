@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"minecraft:item/generated"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/scribed_chalk"
+  }
+}

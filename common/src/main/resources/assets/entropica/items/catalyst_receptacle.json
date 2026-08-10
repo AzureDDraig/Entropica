@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/catalyst_receptacle"
+    "model": "entropica:item/catalyst_receptacle"
   }
 }

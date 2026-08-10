@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/basalt_ritual_bowl"
+    "model": "entropica:item/basalt_ritual_bowl"
   }
 }

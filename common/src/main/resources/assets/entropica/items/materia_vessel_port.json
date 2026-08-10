@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/materia_vessel_port"
+    "model": "entropica:item/materia_vessel_port"
   }
 }

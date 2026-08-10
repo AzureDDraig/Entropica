@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/entropic_core"
+    "model": "entropica:item/entropic_core"
   }
 }

@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/arcanite_plating"
+    "model": "entropica:item/arcanite_plating"
   }
 }

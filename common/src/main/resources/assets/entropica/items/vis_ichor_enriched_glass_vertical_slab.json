@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/vis_ichor_enriched_glass_vertical_slab"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/vis_ichor_enriched_glass_vertical_slab"
+  }
+}

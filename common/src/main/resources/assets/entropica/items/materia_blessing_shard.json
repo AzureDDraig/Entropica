@@ -1,11 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/materia_blessing_shard",
-    "tints": [
-      {
-        "type": "entropica:shard_tint"
-      }
-    ]
+    "model": "entropica:item/materia_blessing_shard"
   }
 }

@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/marble_ritual_bowl"
+    "model": "entropica:item/marble_ritual_bowl"
   }
 }

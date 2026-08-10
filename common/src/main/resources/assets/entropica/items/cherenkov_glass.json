@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/cherenkov_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/cherenkov_glass"
+  }
+}

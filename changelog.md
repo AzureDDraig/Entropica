@@ -1,6 +1,16 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-14-28 (August 10, 2026 Necrotic Rose Item Texture Reference & Translation Fix)
+
+### 🌹 Necrotic Rose of Jericho Item Model Fix
+- **Fixed Layer0 Texture Path**: Corrected `models/item/necrotic_rose_of_jericho.json` layer0 reference from non-existent `entropica:block/necrotic_rose_of_jericho_blooming` to existing `entropica:block/necrotic_rose_of_jericho`, resolving the black-and-purple missing texture checkerboard.
+- **Re-Mirrored 1.21.4+ `items/`**: Re-mirrored `items/necrotic_rose_of_jericho.json` to reference the fixed item model.
+
+### 🌐 Localization Expansion (`en_us.json`)
+- **Added 30 Missing Translation Keys**: Added English translation keys for `item.entropica.necrotic_rose_of_jericho` ("Necrotic Rose of Jericho"), `tall_necrotic_rose_of_jericho`, `sanguine_lily`, `auroral_lily_pad`, `aegis_rose`, `amber_log`, `amber_wood`, `amber_planks`, `amber_leaves`, `amber_sapling`, and block variants.
+
 ## Build 000-1-26-222-14-22 (August 10, 2026 Locked Necrotic Rose Restoration & Creative Tab World Isolation Fix)
+
 
 ### 🌹 Locked Necrotic Rose of Jericho Texture Restoration
 - **Restored Organic Voronoi/Perlin Texture**: Restored 100% exact locked 32x32 textures for Necrotic Rose of Jericho:

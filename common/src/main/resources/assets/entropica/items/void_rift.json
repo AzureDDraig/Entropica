@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/void_rift"
+    "model": "entropica:item/void_rift"
   }
 }

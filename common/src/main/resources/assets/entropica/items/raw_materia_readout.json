@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/raw_materia_readout"
+    "model": "entropica:item/raw_materia_readout"
   }
 }

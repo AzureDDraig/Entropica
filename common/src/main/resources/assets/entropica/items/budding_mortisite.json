@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/budding_mortisite"
+    "model": "entropica:item/budding_mortisite"
   }
 }

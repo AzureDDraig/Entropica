@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/coral_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/coral_glass"
+  }
+}

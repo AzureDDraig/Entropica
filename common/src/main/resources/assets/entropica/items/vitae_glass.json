@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/vitae_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/vitae_glass"
+  }
+}

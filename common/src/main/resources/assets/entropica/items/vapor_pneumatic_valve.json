@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/vapor_pneumatic_valve"
+    "model": "entropica:item/vapor_pneumatic_valve"
   }
 }

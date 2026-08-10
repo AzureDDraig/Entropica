@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/undead_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/undead_glass"
+  }
+}

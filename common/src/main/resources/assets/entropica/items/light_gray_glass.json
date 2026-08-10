@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/light_gray_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/light_gray_glass"
+  }
+}

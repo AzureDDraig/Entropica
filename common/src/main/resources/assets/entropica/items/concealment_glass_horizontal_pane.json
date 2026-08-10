@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/concealment_glass_horizontal_pane"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/concealment_glass_horizontal_pane"
+  }
+}

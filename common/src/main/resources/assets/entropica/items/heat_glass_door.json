@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/heat_glass_door"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/heat_glass_door"
+  }
+}

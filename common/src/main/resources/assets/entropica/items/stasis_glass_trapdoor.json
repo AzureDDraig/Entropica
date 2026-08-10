@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/stasis_glass_trapdoor"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/stasis_glass_trapdoor"
+  }
+}

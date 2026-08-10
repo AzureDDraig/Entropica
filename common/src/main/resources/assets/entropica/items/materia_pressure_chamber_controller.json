@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/materia_pressure_chamber_controller"
+    "model": "entropica:item/materia_pressure_chamber_controller"
   }
 }

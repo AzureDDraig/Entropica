@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/morphic_loom"
+    "model": "entropica:item/morphic_loom"
   }
 }

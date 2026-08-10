@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/crucible"
+    "model": "entropica:item/crucible"
   }
 }

@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/synthesizer_user_interface"
+    "model": "entropica:item/synthesizer_user_interface"
   }
 }

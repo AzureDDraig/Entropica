@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/umbralite_ore"
+    "model": "entropica:item/umbralite_ore"
   }
 }

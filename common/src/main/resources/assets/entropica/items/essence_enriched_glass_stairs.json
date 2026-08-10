@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/essence_enriched_glass_stairs"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/essence_enriched_glass_stairs"
+  }
+}

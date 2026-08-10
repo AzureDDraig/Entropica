@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/ignisite_crystal_block"
+    "model": "entropica:item/ignisite_crystal_block"
   }
 }

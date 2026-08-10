@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/terra_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/terra_glass"
+  }
+}

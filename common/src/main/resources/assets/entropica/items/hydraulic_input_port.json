@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/hydraulic_input_port"
+    "model": "entropica:item/hydraulic_input_port"
   }
 }

@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/vacuum_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/vacuum_glass"
+  }
+}

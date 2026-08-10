@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/extractor_output_port"
+    "model": "entropica:item/extractor_output_port"
   }
 }

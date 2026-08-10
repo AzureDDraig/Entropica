@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/silence_glass_quarter_slab"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/silence_glass_quarter_slab"
+  }
+}

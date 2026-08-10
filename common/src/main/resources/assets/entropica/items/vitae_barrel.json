@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/vitae_barrel"
+    "model": "entropica:item/vitae_barrel"
   }
 }

@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/materia_filter"
+    "model": "entropica:item/materia_filter"
   }
 }

@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/empyrean_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/empyrean_glass"
+  }
+}

@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/terminus_glass_pane"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/terminus_glass_pane"
+  }
+}

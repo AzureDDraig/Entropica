@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:item/penumbra_glass"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/penumbra_glass"
+  }
+}

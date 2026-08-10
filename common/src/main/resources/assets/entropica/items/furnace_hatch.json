@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/furnace_hatch"
+    "model": "entropica:item/furnace_hatch"
   }
 }

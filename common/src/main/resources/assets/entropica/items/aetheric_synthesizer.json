@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/aetheric_synthesizer"
+    "model": "entropica:item/aetheric_synthesizer"
   }
 }

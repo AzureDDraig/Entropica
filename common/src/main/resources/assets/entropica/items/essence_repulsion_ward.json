@@ -1,1 +1,6 @@
-{"model":{"type":"minecraft:model","model":"entropica:block/essence_repulsion_ward"}}
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/essence_repulsion_ward"
+  }
+}
