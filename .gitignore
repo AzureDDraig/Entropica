@@ -25,6 +25,7 @@ run-data
 
 repo
 .agents/
+scratch/
 
 # VSCode and entry list
 .vscode/

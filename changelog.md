@@ -1,5 +1,44 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-12-36 (August 10, 2026 1-Tall Rose Block Textures Approval & Complete Flora Locking)
+
+### 🌹 1-Tall Aegis Rose (`aegis_rose.png`) & Necrotic Rose-of-Jericho (`necrotic_rose_of_jericho.png`)
+- **1:1 Tea Rose Photo-Matched Architecture**: Modeled directly after the user's uploaded Tea Rose reference photo (`media__1786382960410.png`).
+  - Features a 45° perspective view bloom head with central spiral swirl cone, middle cupped petal arcs, and wide outer petal wings flaring out horizontally and curling slightly downwards at the tips.
+  - Aegis Rose uses the Electric Cerulean Royal Cyan Blue palette (`#E0F2FE`, `#00C8FF`, `#0080FF`, `#0040A0`, `#002060`).
+  - Necrotic Rose uses the Jericho Decay Purple palette (`#F3E8FF`, `#C084FC`, `#A855F7`, `#7E22CE`, `#581C87`) with a Lime Throat Core (`#A3E635` / `#84CC16`).
+- **Dark Petal Rim Shading**: Applied dark shadow rim pixels along the underside and top edges of individual petal arcs inside the bloom head to establish clear 3D depth and petal separation.
+- **3D Cylindrical Stalk & Ambient Occlusion**: Applied 3D cylindrical stalk highlights (`#1DAD52`) and deep shadow grooves (`#105929`) along the stems, with ambient occlusion shading directly beneath the bloom head.
+- **Perlin & Voronoi Stem Noise**: Enhanced stem columns and leaf blades with 2D Perlin organic noise and Voronoi cell distance noise for natural bark texturing and leaf veining.
+- **Matched Bush Green Palette**: Stem and leaf colors matched 1:1 to the locked 2-tall rose bushes (`#147F3C`, `#147B3A`, `#1DAD52`, `#199748`, `#168941`).
+- **100% Transparent Background**: Rendered with 100% transparent backgrounds (`alpha == 0`).
+
+### 🔒 Complete Entropica Flora Locking
+- **100% Approved & Locked 🔒**: Officially locked all flora block textures across Entropica:
+  - 1-Tall Aegis Rose (`aegis_rose.png`)
+  - 1-Tall Necrotic Rose-of-Jericho (`necrotic_rose_of_jericho.png`)
+  - 1-Tall Sanguine Lily (`sanguine_lily.png`)
+  - 2-Tall Aegis Rose Bush (`aegis_rose_top.png`, `aegis_rose_bottom.png`)
+  - 2-Tall Necrotic Rose Bush (`necrotic_rose_top.png`, `necrotic_rose_bottom.png`)
+- **Gallery Update**: Updated `flora_previews_gallery.md` to reflect all locked block textures.
+
+## Build 000-1-26-222-08-39 (August 10, 2026 Botanical Drops Triad Implementation & Photo-Matched Sanguine Lily)
+
+
+### 🌸 Botanical Drops System (Petals, Nectars & Spectral Dyes)
+- **Unified 36 Botanical Drop Triad**: Implemented full drop sets (**Petal**, **Nectar**, **Spectral Dye**) for all 12 flower species in Entropica.
+  - Base petal teardrop shape derived from `stardust_bell_petal.png` and `auroral_petal.png`.
+  - Base viscous nectar droplet derived from `vitae_nectar.png`, `stardust_nectar.png`, and `amber_nectar.png`.
+  - Base spectral dye potion bottle derived from `spectral_dye_bottle.png` and `spectral_dye_aegis.png`.
+- **ModItems Registration**: Registered all 36 items in `ModItems.java`.
+- **Item Models**: Generated 36 item model JSON files in `common/src/main/resources/assets/entropica/models/item/`.
+- **Visual Previews Artifact**: Created `botanical_drops_gallery.md` with 8x high-res previews of all 36 items.
+- **Obsidian Vault Sync**: Synced 36 item markdown entries in `wiki/entities/items/`.
+
+### 🪷 Sanguine Lily (1-Tall Stargazer Lily)
+- **Approved & Locked**: Finalized 1-tall Sanguine Lily texture (`sanguine_lily.png`) with 30° rotated bloom head, wrapped crimson core (`#DC2626`) with 1+ pixel white margin (`#FFFFFF`), lime throat (`#84CC16`), and 4 compact botanical scoop leaves.
+- **Registry Update**: Removed 2-tall Sanguine Lily from `ModBlocks.java` and `ModItems.java` (all Lilies are strictly 1-tall compact blocks).
+
 ## Build 000-1-26-221-23-00 (August 9, 2026 Comprehensive Round 3 Flora Expansion, Phalaenopsis Redesign & Multi-Loader Refinements)
 
 ### 🪻 Authentic Phalaenopsis Blue Orchid Redesign & 32x64 Sliced Continuity

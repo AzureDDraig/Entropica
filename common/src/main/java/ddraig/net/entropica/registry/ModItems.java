@@ -666,8 +666,20 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> TALL_VOID_STALKER_ORCHID_ITEM = ITEMS.registerItem("tall_void_stalker_orchid", properties -> new BlockItem(ModBlocks.TALL_VOID_STALKER_ORCHID.get(), properties));
     public static final RegistrySupplier<BlockItem> TALL_AEGIS_ROSE_ITEM = ITEMS.registerItem("tall_aegis_rose", properties -> new BlockItem(ModBlocks.TALL_AEGIS_ROSE.get(), properties));
     public static final RegistrySupplier<BlockItem> TALL_NECROTIC_ROSE_OF_JERICHO_ITEM = ITEMS.registerItem("tall_necrotic_rose_of_jericho", properties -> new BlockItem(ModBlocks.TALL_NECROTIC_ROSE_OF_JERICHO.get(), properties));
-    public static final RegistrySupplier<BlockItem> TALL_SANGUINE_LILY_ITEM = ITEMS.registerItem("tall_sanguine_lily", properties -> new BlockItem(ModBlocks.TALL_SANGUINE_LILY.get(), properties));
-    public static final RegistrySupplier<BlockItem> TALL_AURORAL_LILY_PAD_ITEM = ITEMS.registerItem("tall_auroral_lily_pad", properties -> new BlockItem(ModBlocks.TALL_AURORAL_LILY_PAD.get(), properties));
+
+    // Botanical Drops (Petals & Viscous Nectars - Spectral Dyes handled dynamically by SpectralDyeApi)
+    public static final RegistrySupplier<Item> AEGIS_NECTAR = ITEMS.registerItem("aegis_nectar", Item::new);
+    public static final RegistrySupplier<Item> NECROTIC_NECTAR = ITEMS.registerItem("necrotic_nectar", Item::new);
+    public static final RegistrySupplier<Item> AEGIS_SPIRE_NECTAR = ITEMS.registerItem("aegis_spire_nectar", Item::new);
+    public static final RegistrySupplier<Item> VOID_STALKER_NECTAR = ITEMS.registerItem("void_stalker_nectar", Item::new);
+    public static final RegistrySupplier<Item> SANGUINE_PETAL = ITEMS.registerItem("sanguine_petal", Item::new);
+    public static final RegistrySupplier<Item> SANGUINE_NECTAR = ITEMS.registerItem("sanguine_nectar", Item::new);
+    public static final RegistrySupplier<Item> AURORAL_NECTAR = ITEMS.registerItem("auroral_nectar", Item::new);
+    public static final RegistrySupplier<Item> AMBER_NECTAR_PETAL = ITEMS.registerItem("amber_nectar_petal", Item::new);
+    public static final RegistrySupplier<Item> FULGURITE_NECTAR = ITEMS.registerItem("fulgurite_nectar", Item::new);
+    public static final RegistrySupplier<Item> GALE_BLOOM_PETAL = ITEMS.registerItem("gale_bloom_petal", Item::new);
+    public static final RegistrySupplier<Item> GALE_NECTAR = ITEMS.registerItem("gale_nectar", Item::new);
+
 
 
 
