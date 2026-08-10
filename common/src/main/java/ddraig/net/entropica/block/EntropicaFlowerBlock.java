@@ -48,4 +48,13 @@ public class EntropicaFlowerBlock extends BushBlock implements BonemealableBlock
         // Default behavior for flowers/mushrooms without a 2-tall variant or blocked space above: drop 1x item in world!
         popResource(level, pos, new ItemStack(this.asItem()));
     }
+
+    @Override
+    protected net.minecraft.world.InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand, net.minecraft.world.phys.BlockHitResult hitResult) {
+        if (ddraig.net.entropica.util.FloraHarvestHelper.tryShearHarvest(level, pos, state, player, hand)) {
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
 }
+

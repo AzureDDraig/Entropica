@@ -13,10 +13,11 @@ import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class SoulFlameOrchidBlock extends BushBlock implements BonemealableBlock {
+public class SoulFlameOrchidBlock extends EntropicaFlowerBlock {
     public SoulFlameOrchidBlock(Properties properties) {
         super(properties);
     }
+
 
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {

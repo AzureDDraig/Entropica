@@ -64,7 +64,16 @@ public class AbyssalWeeprootBlock extends GrowingPlantHeadBlock {
 
 
     @Override
+    protected net.minecraft.world.InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, net.minecraft.world.InteractionHand hand, BlockHitResult hitResult) {
+        if (ddraig.net.entropica.util.FloraHarvestHelper.tryShearHarvest(level, pos, state, player, hand)) {
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
+
+    @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+
         if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.BERRIES) && state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.BERRIES)) {
             if (!level.isClientSide()) {
                 popResource(level, pos, new ItemStack(ModItems.ABYSSAL_TENDRIL.get()));

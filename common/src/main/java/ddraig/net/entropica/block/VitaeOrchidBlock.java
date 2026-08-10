@@ -37,8 +37,10 @@ public class VitaeOrchidBlock extends DoublePlantBlock implements BonemealableBl
         this.registerDefaultState(this.stateDefinition.any().setValue(HALF, net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER).setValue(HAS_NECTAR, true));
     }
 
+
     @Override
     public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
+
         return true;
     }
 
@@ -60,7 +62,11 @@ public class VitaeOrchidBlock extends DoublePlantBlock implements BonemealableBl
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (ddraig.net.entropica.util.FloraHarvestHelper.tryShearHarvest(level, pos, state, player, hand)) {
+            return InteractionResult.SUCCESS;
+        }
         if (stack.is(Items.GLASS_BOTTLE) && state.getValue(HAS_NECTAR)) {
+
             if (!level.isClientSide()) {
                 stack.shrink(1);
                 ItemStack nectarBottle = PotionContents.createItemStack(Items.POTION, BuiltInRegistries.POTION.wrapAsHolder(ModPotions.VITAE_NECTAR.get()));

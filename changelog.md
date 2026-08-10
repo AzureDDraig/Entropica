@@ -1,6 +1,16 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-15-39 (August 10, 2026 5-Minute Crop Cooldowns & Shears Petal Harvesting)
+
+### ⏱️ Extended 5-Minute Crop Harvest Cooldown
+- **6,000-Tick (5-Minute) Cooldown**: Extended right-click harvest cooldowns across all botanical yield blocks (`AbyssalWeeprootBlock`, `SporeBurstPuffballBlock`, `MistVeilMarshmallowBlock`, `CryoStaticShrubBlock`, `BloodRootSucculentBlock`, `GaleBloomDandelionBlock`) to 6,000 ticks (5 minutes of real-time play), matching slow-growing crop & berry bush harvest mechanics.
+
+### ✂️ Shears Petal Harvesting & Flower Destruction
+- **`FloraHarvestHelper` Integration**: Implemented right-click shears interaction across all 1-tall and 2-tall flower and orchid blocks (`AegisRoseBlock`, `AegisSpireOrchidBlock`, `SoulFlameOrchidBlock`, `VitaeOrchidBlock`, `VoidStalkerOrchidBlock`, `NecroticRoseOfJerichoBlock`, `SanguineLilyBlock`, `AuroralButtercupBlock`, `StardustBellBlock`, `FulguriteSwampBloomBlock`, `GaleBloomDandelionBlock`, `CinderSporeMushroomBlock`, `SpectralLanternFlowerBlock`).
+- **Petal Yield & Sound**: Right-clicking flowers with Shears drops 1–2 Petals (for 1-tall flowers) or 3–4 Petals (for 2-tall flowers), damages the shears by 1 durability, plays `SoundEvents.SHEEP_SHEAR`, and breaks the flower block in-world without dropping the flower itself.
+
 ## Build 000-1-26-222-15-21 (August 10, 2026 Flora Harvest Limits, Water Lily Pad Placement & Cutout Transparency Fixes)
+
 
 ### 🌿 Flora Right-Click Harvest Limits
 - **Cooldown Enforcement**: Implemented a 100-tick (5-second) per-block harvest cooldown across all harvestable flora (`AbyssalWeeprootBlock`, `SporeBurstPuffballBlock`, `MistVeilMarshmallowBlock`, `CryoStaticShrubBlock`, `BloodRootSucculentBlock`, `GaleBloomDandelionBlock`), preventing infinite right-click duping of botanical items.
