@@ -1,5 +1,19 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-221-22-59 (August 9, 2026 Natural Organic Bezier Strap Leaves & Clean Bark Stem Spike)
+
+### 🪻 Aegis-Spire Orchid Refinements
+- **Natural Organic Bezier Strap Leaves**: Rendered smooth tongue-shaped leather strap leaves on `tall_aegis_spire_orchid_bottom.png` using quadratic Bezier spines (`15,60 \to 6,58 \to 3,52` on left; `17,60 \to 26,58 \to 29,52` on right), with specular highlight rims and deep shadow bases.
+- **1-Tall Compact Block Preserved**: `aegis_spire_orchid.png` remains 100% UNTOUCHED in its exact approved compact form (`aegis_spire_orchid_1tall_perfect.png`).
+- **Clean Bark Stem Spike**: Exposed clean slender bark-textured purplish-brown stem spike (`#2E1C14`) with organic dither noise ($\pm 14$) and zero green overlap on the stem spike.
+
+## Build 000-1-26-221-22-58 (August 9, 2026 Untouched 1-Tall & Matched 2-Tall Phalaenopsis Colors)
+
+### 🪻 Aegis-Spire Orchid Refinements
+- **1-Tall Compact Block Preserved**: `aegis_spire_orchid.png` restored and preserved 100% untouched in its exact approved compact form (`aegis_spire_orchid_1tall_perfect.png`).
+- **2-Tall Stem & Leaf Color Match**: Matched 2-tall top and bottom blocks (`tall_aegis_spire_orchid_top.png` & `tall_aegis_spire_orchid_bottom.png`) to the 1-tall block's exact warm bark-brown stem palette (`#3E2723` / `#5D4037`) and deep emerald basal leaf palette (`#166534` / `#15803D` / `#22C55E`).
+- **Centered Attachment & Clean Spike**: Stem rises straight through $x=15 \to 17$ from $y=63$ to $y=25$, plugging directly into the center base of the lower Phalaenopsis bloom (`cx=16, cy=25`) on the top block, with zero green overlap on the stem spike below.
+
 ## Build 000-1-26-221-22-57 (August 9, 2026 Clean Slender Bark Stem Spike & Centered Attachment)
 
 ### 🪻 Phalaenopsis Stem Refinements
