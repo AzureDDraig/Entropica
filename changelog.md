@@ -1,6 +1,14 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-15-09 (August 10, 2026 Master Vitae Orchid Preview Restoration)
+
+### 🌸 Exact Master Vitae Orchid Preview Synchronized
+- **Vitae Orchid (`vitae_orchid`)**: Re-sampled directly from master preview `vitae_orchid_1tall_v5.png` (256x256 -> 32x32), restoring the unique handcrafted Vitae Orchid bloom architecture.
+- **Tall Vitae Orchid Top (`tall_vitae_orchid_top`)**: Re-sampled directly from master preview `vitae_orchid_2tall_top_v6.png` (256x256 -> 32x32).
+- **Tall Vitae Orchid Bottom (`tall_vitae_orchid_bottom`)**: Re-sampled directly from master preview `vitae_orchid_2tall_bottom_v6.png` (256x256 -> 32x32).
+
 ## Build 000-1-26-222-15-08 (August 10, 2026 Authentic Phalaenopsis Orchid Structure & Leaf Restoration)
+
 
 ### 🌺 Authentic Phalaenopsis Orchid Structure Restored
 - **Aegis-Spire Orchid**: Replaced incorrect circular flower / V-leaf placeholder textures with the authentic **Phalaenopsis Blue Orchid** (`phalaenopsis_blue_orchid_1tall_32.png`, `phalaenopsis_natural_leaf_top_sliced32.png`, and `phalaenopsis_natural_leaf_bottom_sliced32.png`), featuring cascading butterfly-wing petals (`#2563EB` / `#60A5FA` / `#DBEAFE`), white column dots, slender arching purplish-brown stems, and broad green basal strap leaves (`#166534` / `#15803D`).
