@@ -649,6 +649,26 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> CINDER_SPORE_MUSHROOM_ITEM = ITEMS.registerItem("cinder_spore_mushroom", properties -> new BlockItem(ModBlocks.CINDER_SPORE_MUSHROOM.get(), properties));
     public static final RegistrySupplier<Item> CINDER_SPORE_CAP = ITEMS.registerItem("cinder_spore_cap", Item::new);
 
+    public static final RegistrySupplier<BlockItem> NECROTIC_ROSE_OF_JERICHO_ITEM = ITEMS.registerItem("necrotic_rose_of_jericho", properties -> new BlockItem(ModBlocks.NECROTIC_ROSE_OF_JERICHO.get(), properties));
+    public static final RegistrySupplier<Item> NECROTIC_ROSE_PETAL = ITEMS.registerItem("necrotic_rose_petal", Item::new);
+
+    public static final RegistrySupplier<BlockItem> VOID_STALKER_ORCHID_ITEM = ITEMS.registerItem("void_stalker_orchid", properties -> new BlockItem(ModBlocks.VOID_STALKER_ORCHID.get(), properties));
+    public static final RegistrySupplier<Item> VOID_STALKER_PETAL = ITEMS.registerItem("void_stalker_petal", Item::new);
+
+    public static final RegistrySupplier<BlockItem> STARDUST_ALOE_ITEM = ITEMS.registerItem("stardust_aloe", properties -> new BlockItem(ModBlocks.STARDUST_ALOE.get(), properties));
+    public static final RegistrySupplier<Item> STARDUST_ALOE_LEAF = ITEMS.registerItem("stardust_aloe_leaf", Item::new);
+
+    public static final RegistrySupplier<BlockItem> SANGUINE_LILY_ITEM = ITEMS.registerItem("sanguine_lily", properties -> new BlockItem(ModBlocks.SANGUINE_LILY.get(), properties));
+    public static final RegistrySupplier<Item> SANGUINE_LILY_PAD = ITEMS.registerItem("sanguine_lily_pad", Item::new);
+
+    public static final RegistrySupplier<BlockItem> TALL_SOUL_FLAME_ORCHID_ITEM = ITEMS.registerItem("tall_soul_flame_orchid", properties -> new BlockItem(ModBlocks.TALL_SOUL_FLAME_ORCHID.get(), properties));
+    public static final RegistrySupplier<BlockItem> TALL_VITAE_ORCHID_ITEM = ITEMS.registerItem("tall_vitae_orchid", properties -> new BlockItem(ModBlocks.TALL_VITAE_ORCHID.get(), properties));
+    public static final RegistrySupplier<BlockItem> TALL_VOID_STALKER_ORCHID_ITEM = ITEMS.registerItem("tall_void_stalker_orchid", properties -> new BlockItem(ModBlocks.TALL_VOID_STALKER_ORCHID.get(), properties));
+    public static final RegistrySupplier<BlockItem> TALL_AEGIS_ROSE_ITEM = ITEMS.registerItem("tall_aegis_rose", properties -> new BlockItem(ModBlocks.TALL_AEGIS_ROSE.get(), properties));
+    public static final RegistrySupplier<BlockItem> TALL_NECROTIC_ROSE_OF_JERICHO_ITEM = ITEMS.registerItem("tall_necrotic_rose_of_jericho", properties -> new BlockItem(ModBlocks.TALL_NECROTIC_ROSE_OF_JERICHO.get(), properties));
+    public static final RegistrySupplier<BlockItem> TALL_SANGUINE_LILY_ITEM = ITEMS.registerItem("tall_sanguine_lily", properties -> new BlockItem(ModBlocks.TALL_SANGUINE_LILY.get(), properties));
+    public static final RegistrySupplier<BlockItem> TALL_AURORAL_LILY_PAD_ITEM = ITEMS.registerItem("tall_auroral_lily_pad", properties -> new BlockItem(ModBlocks.TALL_AURORAL_LILY_PAD.get(), properties));
+
 
 
 

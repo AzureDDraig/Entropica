@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "entropica:block/tall_auroral_lily_pad_bottom"
+    },
+    "half=upper": {
+      "model": "entropica:block/tall_auroral_lily_pad_top"
+    }
+  }
+}

@@ -759,15 +759,70 @@ public class CodexCategoryRegistry {
                 "Crafting Uses:\n" +
                 "Harvested for Cinder-Spore Caps used in fire-retardant brewing.\n\n" +
                 "Special Properties:\n" +
-                "Emits Light Level 6; entity contact grants Fire Resistance I.",
+                "Emits Light Level 6 and green spore particles.",
                 "env_flora", 0, new ItemStack(ModBlocks.CINDER_SPORE_MUSHROOM.get()),
                 940f, 0.0f, a_env + 0.96f, false
         ));
 
+        ALL_NODES.add(new CodexNode(
+                "env_necrotic_rose_of_jericho", "Necrotic Rose-of-Jericho", "ENVIRONMENT & NATURE",
+                "Two-state dry root ball that unfurls into a decay-inflicting rose (Wither I).",
+                "Overview & Description:\n" +
+                "A two-state desert flower that remains a closed gray root ball until walked over, unfurling into a dark decay rose.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Tomb Dunes, Blighted Dunes, and Frost-Tomb Barrows.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Necrotic Rose Petals used in Decay Potion brewing.\n\n" +
+                "Special Properties:\n" +
+                "Unfurls on entity contact and inflicts Wither I.",
+                "env_flora", 0, new ItemStack(ModBlocks.NECROTIC_ROSE_OF_JERICHO.get()),
+                980f, 0.0f, a_env + 1.00f, false
+        ));
 
+        ALL_NODES.add(new CodexNode(
+                "env_void_stalker_orchid", "Void-Stalker Orchid", "ENVIRONMENT & NATURE",
+                "Black petals framing a rotating purple void orb with short-range entity teleportation.",
+                "Overview & Description:\n" +
+                "An alien orchid with three black petals surrounding a hovering purple void orb.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Void-Fringe Mangroves and Void Rift Caverns.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Void-Stalker Petals used in teleportation catalysts.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6 and portal particles; entity contact teleports entities.",
+                "env_flora", 0, new ItemStack(ModBlocks.VOID_STALKER_ORCHID.get()),
+                1020f, 0.0f, a_env + 1.04f, false
+        ));
 
+        ALL_NODES.add(new CodexNode(
+                "env_stardust_aloe", "Stardust Aloe", "ENVIRONMENT & NATURE",
+                "Succulent rosette with glowing teal ridges emitting celestial stardust sparkles.",
+                "Overview & Description:\n" +
+                "A fleshy desert succulent featuring indigo leaves laced with glowing teal stardust ridges.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Astral Dunes and Red-Sand Arches.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Stardust Aloe Leaves used in Stardust Gel extractions.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6 and stardust sparkles.",
+                "env_flora", 0, new ItemStack(ModBlocks.STARDUST_ALOE.get()),
+                1060f, 0.0f, a_env + 1.08f, false
+        ));
 
-
+        ALL_NODES.add(new CodexNode(
+                "env_sanguine_lily", "Sanguine Lily", "ENVIRONMENT & NATURE",
+                "Crimson star water lily pad providing Regeneration I aura to injured entities.",
+                "Overview & Description:\n" +
+                "A large crimson star water lily floating on water with a bubbling pool of blood liquid.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Crimson Orchards and Blood-Mire Swamps.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Sanguine Lily Pads used in health restoration filters.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 5 and grants Regeneration I to injured entities.",
+                "env_flora", 0, new ItemStack(ModBlocks.SANGUINE_LILY.get()),
+                1100f, 0.0f, a_env + 1.12f, false
+        ));
 
         ALL_NODES.add(new CodexNode(
                 "env_fauna", "Fauna & Mobs", "ENVIRONMENT & NATURE",

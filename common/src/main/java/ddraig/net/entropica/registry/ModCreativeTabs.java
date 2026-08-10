@@ -380,6 +380,16 @@ public class ModCreativeTabs {
                 output.accept(ModItems.CINDER_SPORE_MUSHROOM_ITEM.get());
                 output.accept(ModItems.CINDER_SPORE_CAP.get());
 
+                // Round 4 Flora Additions
+                output.accept(ModItems.NECROTIC_ROSE_OF_JERICHO_ITEM.get());
+                output.accept(ModItems.NECROTIC_ROSE_PETAL.get());
+                output.accept(ModItems.VOID_STALKER_ORCHID_ITEM.get());
+                output.accept(ModItems.VOID_STALKER_PETAL.get());
+                output.accept(ModItems.STARDUST_ALOE_ITEM.get());
+                output.accept(ModItems.STARDUST_ALOE_LEAF.get());
+                output.accept(ModItems.SANGUINE_LILY_ITEM.get());
+                output.accept(ModItems.SANGUINE_LILY_PAD.get());
+
                 // Dynamic Spectral Dye Category
                 for (var dyeSupplier : ModItems.SPECTRAL_DYES.values()) {
                     output.accept(dyeSupplier.get());

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/void_stalker_orchid"
+  },
+  "render_type": "minecraft:cutout"
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:block/tall_auroral_lily_pad_top"
+  }
+}
