@@ -27,6 +27,10 @@
 - **Custom Spectrum Sparkle Texture (`spectrum_sparkle.png`)**: Generated 16x16 alpha-blended sparkle star texture (`textures/particle/spectrum_sparkle.png`) and updated `particles/spectrum_sparkle.json` to `"entropica:spectrum_sparkle"`. Eliminates all solid black square particle artifacts.
 - **Flora Model Cutout Render Types**: Added `"render_type": "minecraft:cutout"` across all 46 flora block model JSON definitions in `models/block/`.
 
+### 🌸 Shimmerpetal / Shimmerblossom Ambient Essence Tinting
+- **Dynamic Ambient Essence Tinting**: Created `AmbientEssenceTintRegistry` to dynamically calculate ambient Materia colors based on biome affinity (Nether, Void, Frozen, Water, Arid, Undead, Air) or continuous time-animated rainbow pastel shimmer wave.
+- **Model Tint Index Correction**: Updated `models/block/shimmerpetal.json` to assign `tintindex: 0` exclusively to the `#head` blossom faces (leaving `#stem` natural green), and registered `entropica:ambient_essence_tint` ItemTintSource in `models/item/shimmerpetal.json` for item rendering.
+
 ### 📚 Codex Category Registry & OKF Obsidian Vault Synchronization
 - **Codex Registration**: Updated `CodexCategoryRegistry.java` node entries (`env_abyssal_weeproot`, `env_fulgurite_reed`, etc.) to document climbable ladder mechanics, overcharge shock, and bonemeal behavior.
 - **OKF Obsidian Vault Sync**: Updated notes in `C:\Users\Ddraig__\Downloads\OBSIDIAN WIKIS\Entropica\Entropica\` (`Aegis-Spire Orchid.md`, `Abyssal Weeproot.md`, `Fulgurite Reed.md`).

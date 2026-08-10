@@ -129,6 +129,13 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
         // --- 5. Block Colors ---
         ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
+            if (tintIndex == 0) {
+                return ddraig.net.entropica.client.AmbientEssenceTintRegistry.getAmbientEssenceColor(level, pos);
+            }
+            return 0xFFFFFF;
+        }, ModBlocks.SHIMMERPETAL.get());
+
+        ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
             if (level != null && pos != null && tintIndex == 0) {
                 if (level.getBlockEntity(pos) instanceof CreativeMateriaGeneratorBlockEntity generator) {
                     return generator.getCurrentType().getColorInt();

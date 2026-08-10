@@ -414,15 +414,15 @@ public class CodexCategoryRegistry {
 
         ALL_NODES.add(new CodexNode(
                 "env_shimmerpetal", "Shimmerpetal", "ENVIRONMENT & NATURE",
-                "Bioluminescent crystalline flowers emitting ambient Materia light.",
+                "Bioluminescent crystalline flowers emitting ambient Materia light and dynamic essence tinting.",
                 "Overview & Description:\n" +
-                "A radiant, 2-part crystalline lotus flower featuring a green biome-tintable stem and a grayscale energetic blossom head.\n\n" +
+                "A radiant 2-part crystalline lotus flower featuring a natural green stem and a glowing blossom head attuned to ambient Materia streams.\n\n" +
                 "Origin & Obtaining:\n" +
                 "Grows naturally near geothermal crystal geodes and lush forest glades, or harvested with shears.\n\n" +
                 "Crafting Uses:\n" +
                 "Extracted in Crucibles to produce Weak Viscanite Essence, or used in dye transmutations.\n\n" +
                 "Special Properties:\n" +
-                "Emits constant Light Level 10 and illuminates surrounding blocks without consuming fuel.",
+                "Emits Light Level 10 and dynamically tints its blossom head according to the ambient Materia / essence stream of the surrounding biome (Nether, Void, Frozen, Water, Arid, Undead, Air, or dynamic spectrum shimmer).",
                 "env_flora", 0, new ItemStack(ModBlocks.SHIMMERPETAL.get()),
                 370f, 0.0f, a_env + 0.05f, false
         ));

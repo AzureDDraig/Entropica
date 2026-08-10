@@ -218,6 +218,13 @@ public class ModClientEvents {
     @SubscribeEvent
     public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
         event.register((state, level, pos, tintIndex) -> {
+            if (tintIndex == 0) {
+                return ddraig.net.entropica.client.AmbientEssenceTintRegistry.getAmbientEssenceColor(level, pos);
+            }
+            return 0xFFFFFF;
+        }, ModBlocks.SHIMMERPETAL.get());
+
+        event.register((state, level, pos, tintIndex) -> {
             if (level != null && pos != null && tintIndex == 0) {
                 if (level.getBlockEntity(pos) instanceof CreativeMateriaGeneratorBlockEntity generator) {
                     return generator.getCurrentType().getColorInt();
@@ -282,6 +289,7 @@ public class ModClientEvents {
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "shard_tint"), ModItemTintSources.ShardTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "aesthetic_glass_tint"), ModItemTintSources.AestheticGlassTint.MAP_CODEC);
         event.register(ResourceLocation.fromNamespaceAndPath("entropica", "spectral_dye_tint"), ModItemTintSources.SpectralDyeTint.MAP_CODEC);
+        event.register(ResourceLocation.fromNamespaceAndPath("entropica", "ambient_essence_tint"), ModItemTintSources.AmbientEssenceTint.MAP_CODEC);
     }
 
 

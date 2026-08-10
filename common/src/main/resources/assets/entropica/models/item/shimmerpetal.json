@@ -3,5 +3,14 @@
   "textures": {
     "layer0": "entropica:block/shimmerpetal_stem",
     "layer1": "entropica:block/shimmerpetal_head"
-  }
+  },
+  "tints": [
+    {
+      "type": "minecraft:constant",
+      "value": -1
+    },
+    {
+      "type": "entropica:ambient_essence_tint"
+    }
+  ]
 }

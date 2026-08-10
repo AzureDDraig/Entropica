@@ -202,5 +202,18 @@ public class ModItemTintSources {
         @Override
         public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
     }
+
+    public record AmbientEssenceTint() implements ItemTintSource {
+        public static final MapCodec<AmbientEssenceTint> MAP_CODEC = MapCodec.unit(new AmbientEssenceTint());
+
+        @Override
+        public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
+            int argb = AmbientEssenceTintRegistry.getAmbientEssenceColor(level, entity != null ? entity.blockPosition() : null);
+            return (0xFF << 24) | (argb & 0xFFFFFF);
+        }
+
+        @Override
+        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
+    }
 }
 
