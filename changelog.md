@@ -1,5 +1,12 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-221-22-57 (August 9, 2026 Clean Slender Bark Stem Spike & Centered Attachment)
+
+### 🪻 Phalaenopsis Stem Refinements
+- **Zero Green Stem Overlap**: Completely eliminated all green leaf polygon overlaps from the lower stem spike (`x=15..17`). Exposed a clean, slender, bark-textured purplish-brown stem spike (`#2E1C14`) with organic dither noise ($\pm 12$), left highlight rim, right shadow edge, and node sheaths (`#5F3A32`).
+- **Centered Flower Head Attachment**: Main stem rises straight up through $x=15 \to 17$ from $y=63$ to $y=25$, plugging directly into the center base of the lower Phalaenopsis bloom (`cx=16, cy=25`) on the top block.
+- **Side Basal Leaves**: Green leather strap leaves positioned strictly on the far sides (`x=1..13` and `x=19..31`) near the bottom base (`y=54..63`).
+
 ## Build 000-1-26-221-22-55 (August 9, 2026 Authentic Phalaenopsis Blue Orchid Redesign)
 
 ### 🪻 Authentic Phalaenopsis Orchid Redesign
