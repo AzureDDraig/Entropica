@@ -19,7 +19,9 @@ public class Entropica {
         // --- Register the Registries ---
         ModDataComponents.COMPONENTS.register();
         ModEffects.EFFECTS.register();
+        ModPotions.POTIONS.register();
         ModBlocks.BLOCKS.register();
+
         ModItems.ITEMS.register();
         ModBlockEntities.BLOCK_ENTITIES.register();
         ModEntityTypes.ENTITY_TYPES.register();

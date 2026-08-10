@@ -25,6 +25,13 @@ public class SpectralDyeApi {
     public static final DyeColor CRYO_STATIC = register("cryo_static", 0x38BDF8, "Cryo-Static Ice", "#38BDF8");
     public static final DyeColor VITREOUS    = register("vitreous",    0x06B6D4, "Vitreous Cyan",   "#06B6D4");
     public static final DyeColor BARROW      = register("barrow",      0x10B981, "Tomb Emerald",    "#10B981");
+    public static final DyeColor ABYSSAL     = register("abyssal",     0x0284C7, "Abyssal Navy",    "#0284C7");
+    public static final DyeColor SANGUINE    = register("sanguine",    0x8A0303, "Sanguine Crimson", "#8A0303");
+    public static final DyeColor VITAE       = register("vitae",       0xFF6B9D, "Vitae Pink",       "#FF6B9D");
+
+
+
+
 
 
 

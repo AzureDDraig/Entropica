@@ -43,25 +43,22 @@ public class CryoStaticShrubBlock extends EntropicaFlowerBlock {
     }
 
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        super.entityInside(state, level, pos, entity);
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isInside) {
+        super.entityInside(state, level, pos, entity, effectApplier, isInside);
         
-        // 1. Apply Glacial Freezing Ticks (Powder Snow mechanic)
-        if (entity.canFreeze()) {
-            entity.setTicksFrozen(Math.min(entity.getTicksRequiredToFreeze() + 20, entity.getTicksFrozen() + 8));
-        }
+        // 1. Powder Snow Freezing Mechanics
+        entity.setTicksFrozen(Math.min(entity.getTicksRequiredToFreeze(), entity.getTicksFrozen() + 5));
 
-        // 2. Apply Static Stun (Slowness I) to living entities
-        if (entity instanceof LivingEntity livingEntity && !level.isClientSide) {
-            if (!livingEntity.hasEffect(MobEffects.MOVEMENT_SLOWDOWN)) {
-                livingEntity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 0, false, false, true));
-            }
+        // 2. Static Slowness I Stun
+        if (entity instanceof LivingEntity livingEntity && !level.isClientSide()) {
+            livingEntity.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 0, false, false, true));
         }
     }
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
+
             level.playSound(null, pos, SoundEvents.BEE_STING, SoundSource.BLOCKS, 0.4f, 1.8f);
         } else {
             // Burst of Glacial Cyan and Plasma Violet static sparkles
@@ -79,7 +76,8 @@ public class CryoStaticShrubBlock extends EntropicaFlowerBlock {
                 level.addParticle(ModParticles.SPECTRUM_SPARKLE.get(), x, y, z, r, g, b);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
+
     }
 
     @Override

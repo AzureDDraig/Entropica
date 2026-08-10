@@ -1,6 +1,146 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-221-22-51 (August 9, 2026 Handcrafted Organic 2-Tall Bottom Foliage & Clean Marshmallow)
+
+### 🪻 Flora Texture Refinements
+- **Handcrafted Organic 2-Tall Bottom Base**: Re-rendered `tall_aegis_spire_orchid_bottom.png` using curving Bezier leaf blades, primary leaf veins, slate stem shading, and an upper leaf collar to seamlessly connect to the top crown blossom (`tall_aegis_spire_orchid_top.png`).
+- **Clean Mist-Veil Marshmallow Bloom**: Re-rendered `mist_veil_marshmallow.png` with 100% clean pastel lavender and rose petals, zero stray floating pixels, and crisp botanical shading.
+
+## Build 000-1-26-221-22-44 (August 9, 2026 Fulgurite Reed Item Texture Consolidation)
+
+### 🌾 Fulgurite Reed Item Refinements
+- **Fulgurite Reed Item Texture Mapping**: Removed duplicate `FULGURITE_STALK` standalone item definition from `ModItems.java` and `ModCreativeTabs.java`. The `fulgurite_reed` BlockItem (`ModItems.FULGURITE_REED_ITEM`) now directly utilizes the `fulgurite_stalk.png` copper-banded electric glass stalk item texture.
+
+## Build 000-1-26-221-22-42 (August 9, 2026 Refined Option A Pyre-Sprout Texture & Dither Noise)
+
+### 🔥 Pyre-Sprout Aesthetic Refinements
+- **Refined Option A Aegis-Style Pyre Blossom**: Updated `pyre_sprout.png` by applying subtle organic dither noise across the charcoal stem, basal leaves, and flame petals (`#B71C1C`, `#E65100`, `#FFD600`), perfectly matching the 32x32 detail level and color depth of Aegis Rose (`aegis_rose`).
+
+## Build 000-1-26-221-22-40 (August 9, 2026 Item Texture Corrections, High-Res Pyre-Sprout & Climbable Weeproot)
+
+### 🌿 Item Texture Mapping & Flora Refinements
+- **Abyssal Weeproot Item & Ladder Feature**: Fixed item model mapping to `abyssal_weeproot.png` and registered `abyssal_weeproot` & `abyssal_weeproot_plant` under `#minecraft:climbable` so players can freely climb them as vertical hanging ladders.
+- **Blood-Root Succulent Item Fix**: Fixed item model mapping to `blood_root_succulent.png`.
+- **Fulgurite Reed Item Unification**: Mapped `fulgurite_reed` item model directly to `fulgurite_stalk.png`.
+- **High-Res Pyre-Sprout Texture**: Re-rendered `pyre_sprout.png` using 32x32 pixel art with Voronoi flame cell shading and Perlin dither noise, matching our agreed-upon flora aesthetic style.
+- **Codex & OKF Vault Synchronization**: Updated `Abyssal Weeproot.md` note in the OKF Obsidian Vault.
+
+## Build 000-1-26-221-22-11 (August 9, 2026 Particle Transparency & Block Model Cutout Fixes)
+
+### 🌟 Particle & Model Rendering Fixes
+- **Custom Spectrum Sparkle Texture (`spectrum_sparkle.png`)**: Generated high-quality 16x16 alpha-blended sparkle star texture (`textures/particle/spectrum_sparkle.png`) and updated `particles/spectrum_sparkle.json` to `"entropica:spectrum_sparkle"`. Eliminates all solid tinted/black square particle artifacts on flower ambient effects.
+- **Flora Model Cutout Render Types**: Added `"render_type": "minecraft:cutout"` across all 46 flora block model JSON definitions in `models/block/`. Ensures all plant blocks render with 100% transparent backgrounds without black box artifacts when placed in-world.
+
+## Build 000-1-26-221-22-08 (August 9, 2026 Fulgurite Reed Bonemeal Overcharge Shock Mechanics & Codex/Vault Sync)
+
+### ⚡ Fulgurite Reed Overcharge Shock Mechanics
+- **Max-Height Bonemeal Overcharge**: Bonemealing `FulguriteReedBlock` at maximum height (3 blocks tall) or when blocked above triggers a high-voltage electrical overcharge.
+- **Electric Shock Area Effect**: Emits a thunderclap sound, cyan lightning sparkle particle burst, inflicts 3.0 lightning damage, and applies **Paralyzed** (`ModEffects.PARALYZED`) for 3 seconds (60 ticks) to the player and all living entities within a 4-block radius, consuming the Bonemeal item.
+- **Codex & OKF Vault Synchronization**: Updated `CodexCategoryRegistry.java` details for `env_fulgurite_reed` and updated the wiki note `Fulgurite Reed.md` in the OKF Obsidian Vault.
+
+## Build 000-1-26-221-22-02 (August 9, 2026 Vitreous Cactus, Fulgurite Reed & Sedge Bonemeal Growth)
+
+### 🌵 Vertical Bonemeal Growth & Reed/Cactus Mechanics
+- **Vitreous Cactus Bonemeal Growth**: Bonemealing `VitreousCactusBlock` grows the cactus vertically up to 3 blocks high when space above is clear. At maximum height or if blocked above, it drops 1x item copy in the world.
+- **Fulgurite Reed Bonemeal Growth**: Bonemealing `FulguriteReedBlock` grows the electric stalk vertically up to 3 blocks high. At maximum height, it drops 1x item copy.
+- **Aura-Drift Sedge Bonemeal Growth**: Bonemealing `AuraDriftSedgeBlock` duplicates 1x sedge block item in the world.
+
+## Build 000-1-26-221-22-01 (August 9, 2026 Flora Bonemeal Growth & Item Drop Mechanics)
+
+### 🦴 Bonemeal Growth & Item Replication Mechanics
+- **1-Tall to 2-Tall Growth**: Using Bonemeal on 1-tall flora variants with a 2-tall counterpart (`aegis_spire_orchid`) transforms them into their 2-tall version (`tall_aegis_spire_orchid`) if the block above is replaceable (`EntropicaFlowerBlock.java`).
+- **Single-Tall & 2-Tall Flower Item Duplication**: Using Bonemeal on 1-tall flora without a 2-tall variant (`pyre_sprout`, `aura_drift_sedge`, `spectral_lantern_flower`, `cinder_spore_mushroom`, etc.) or already 2-tall flora (`tall_aegis_spire_orchid`, `vitae_orchid`) drops 1x item copy of the block into the world (`popResource`).
+- **Cactus Exemption**: `VitreousCactusBlock` explicitly overrides `isValidBonemealTarget` returning `false` to exempt it from bonemeal duplication.
+
+## Build 000-1-26-221-21-54 (August 9, 2026 Flora Biome Placement Restrictions & Aegis Spire Family Implementation)
+
+### 🌿 Biome Placement Restrictions & Refactored Flora
+- **Aegis-Spire Family (`aegis_spire_orchid` & `tall_aegis_spire_orchid`)**: Implemented dual 1-tall and 2-tall variants (`AegisSpireOrchidBlock.java`) with stone, deepslate, granite, diorite, and mountain peak placement restrictions. Added 3D scoop-shaped `aegis_spire_petal` item drop.
+- **Pyre-Sprout Substrate Rules**: Enforced Netherrack, Basalt, Blackstone, Soul Sand, Soul Soil, and Magma Block placement restrictions for volcanic ash biomes (`PyreSproutBlock.java`).
+- **Aura-Drift Sedge Substrate Rules**: Enforced Grass Block, Dirt, Rooted Dirt, Podzol, and Moss Block placement restrictions (`AuraDriftSedgeBlock.java`) with feathery sedge plumes.
+- **Spectral Lantern-Flower Substrate Rules**: Enforced Soul Sand, Soul Soil, Warped Nylium, Crimson Nylium, Sculk, and End Stone placement rules (`SpectralLanternFlowerBlock.java`).
+- **Cinder-Spore Mushroom Refactor (`cinder_spore_mushroom`)**: Refactored from shelf to single domed Minecraft mushroom (`CinderSporeMushroomBlock.java`) with Mycelium, Nylium, Podzol, and Wood Log placement rules.
+
+## Build 000-1-26-221-19-14 (August 9, 2026 Round 3 Flora Species & Collectibles Deployment)
+
+
+### 🌿 Round 3 Flora Expansion
+- **Aegis-Spire Orchid (`aegis_spire_orchid`)**: Implemented 2-tall double flower block (`AegisSpireOrchidBlock.java`) with azure petals and metallic silver rims. Emits Light Level 7 and grants **Resistance I** aura to non-hostile entities within 4 blocks. Drops `aegis_spire_petal`.
+- **Pyre-Sprout (`pyre_sprout`)**: Implemented elemental fire sprout (`PyreSproutBlock.java`) emitting Light Level 10 and flame sparks. Harvesting with a Glass Bottle yields **Pyre Nectar Potion** (`ModPotions.PYRE_NECTAR` - *Fire Resistance I* for 3 minutes). Drops `pyre_sprout_seed` and `ember_pulp`.
+- **Aura-Drift Sedge (`aura_drift_sedge`)**: Implemented luminescent sedge grass (`AuraDriftSedgeBlock.java`) emitting Light Level 8 and aura drift motes. Entity contact grants **Jump Boost I** & **Speed I**. Drops `aura_drift_fiber`.
+- **Spectral Lantern-Flower (`spectral_lantern_flower`)**: Implemented translucent soulfire lantern flower (`SpectralLanternFlowerBlock.java`) emitting Light Level 12 and repelling undead entities (inflicting Slowness II & Weakness I). Drops `spectral_lantern_pod`.
+- **Cinder-Spore Shelf (`cinder_spore_shelf`)**: Implemented fungal bracket mushroom block (`CinderSporeShelfBlock.java`) emitting Light Level 6. Entity contact grants **Fire Resistance I**. Drops `cinder_spore_cap`.
+- **Entropic Codex & OKF Vault Sync**: Registered all 5 Round 3 flora nodes under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java` and created corresponding wiki notes in the Obsidian Vault.
+
+## Build 000-1-26-221-10-45 (August 9, 2026 Vitreous Cactus Collision, In-World Plant Cutout Transparency & Particle Brightness)
+
+
+### 🌵 Vitreous Cactus & Rendering Fixes
+- **Vitreous Cactus Solid Collision**: Overrode `getCollisionShape` in `VitreousCactusBlock.java` (`Block.box(1.0, 0.0, 1.0, 15.0, 15.0, 15.0)`), establishing solid physical collision for cacti and ensuring entities touch/collide with the cactus to trigger damage and bleeding debuffs.
+- **In-World Flora Transparency (No Black Backgrounds)**: Registered all 25+ plant, flower, sapling, and leaf blocks on `RenderType.cutout()` in `EntropicaClientFabric.java` (including `vitae_orchid`, `spore_burst_puffball`, `fulgurite_reed`, `gale_thistle`, `mist_veil_marshmallow`, `fulgurite_swamp_bloom`, `gale_bloom_dandelion`, `shimmerpetal`, `aegis_rose`, `soul_flame_orchid`, `auroral_buttercup`, `stardust_bell`, `rimebloom`, `rubber_sapling`, `silver_pine_sapling`, etc.), removing black boxes around plant textures.
+- **Particle Emissive Light & Color Fix**: Overrode `getLightColor(float partialTick)` to return `240` (full 15/15 emissive brightness) in `SpectrumSparkleParticle.java` and `GaleSwirlPuffParticle.java`. Fixed RGB initialization check so un-tinted particles render white at full brightness instead of pitch black.
+
+## Build 000-1-26-221-10-34 (August 9, 2026 Fix Duplicate Spectral Dye Vitae Registration & Unbound Registry Entry Crash)
+
+
+### 🐛 Duplicate Item Registration Fix
+- **Duplicate Registration Resolution**: Identified root-cause crash `java.lang.NullPointerException: Registry Object not present: entropica:spectral_dye_vitae`. `spectral_dye_vitae` was manually registered in `ModItems.java` (line 621) AND dynamically registered in `registerSpectralDyes()` loop, creating a duplicate unbound entry in `ModItems.ITEMS.getEntries()`. Removed manual duplicate call and assigned `SPECTRAL_DYE_VITAE = SPECTRAL_DYES.get("vitae")`.
+- **Architectury `isBound()` Check**: Added `isBound()` guard to `ModItems.ITEMS` and `ModBlocks.BLOCKS` iteration in `ModCreativeTabs.java`, adhering to standard Architectury registry supplier contract patterns.
+
+## Build 000-1-26-221-10-30 (August 9, 2026 Root-Cause Registry Fix & Standard Creative Tab Restoration)
+
+
+### 🐛 Root-Cause Registry & Creative Tab Cleanup
+- **Stair Block Registration Fix**: Resolved premature `.get()` evaluation in `AestheticGlassRegistry.java` line 219 (`blockSup.get().defaultBlockState()`), passing static `Blocks.GLASS.defaultBlockState()` during block registration to eliminate uninitialized supplier crashes when loading glass stair families.
+- **Clean Creative Tab Codebase**: Refactored `ModCreativeTabs.java` to use standard, direct `output.accept(ModItems.XYZ.get())` calls, removing intermediate `acceptSafe` wrapper functions while retaining full item registration across all creative tabs.
+
+## Build 000-1-26-221-10-27 (August 9, 2026 Minecraft 1.21.10 Item Asset Definitions & Creative Tab Safety Fixes)
+
+
+### 🐛 Creative Menu Crash & Item Asset Fixes
+- **Minecraft 1.21.10 Item Definition Registry**: Generated 64 missing 1.21.10 item asset JSON files in `assets/entropica/items/` (including `rubber_log.json`, `rubber_wood.json`, `rubber_planks.json`, `rubber_leaves.json`, `rubber_sapling.json`, `stripped_rubber_log.json`, `stripped_rubber_wood.json`, `silver_pine_log.json`, `silver_pine_wood.json`, `silver_pine_planks.json`, `silver_pine_leaves.json`, `silver_pine_sapling.json`, `stripped_silver_pine_log.json`, `stripped_silver_pine_wood.json`, `vitae_petal.json`, `fulgurite_stalk.json`, etc.), restoring item rendering in inventory and creative tabs.
+- **Creative Tab Null Protection**: Updated `ModCreativeTabs.java` with fail-safe `acceptSafe()` wrapper methods across all tabs (`WORLD_TAB`, `ITEMS_TAB`, `BLOCKS_TAB`, `TOOLS_TAB`, `WEAPONS_TAB`, `LOGISTICS_TAB`, `WEAPON_CRAFTING_TAB`, `AESTHETICA_TAB`, `MATERIA_ITEMS_TAB`), preventing `NullPointerException` crashes when opening the creative tab.
+- **World Creative Tab Registration**: Added all 5 Round 2 flora block items (`vitae_orchid`, `spore_burst_puffball`, `fulgurite_reed`, `gale_thistle`, `mist_veil_marshmallow`) and harvested collectibles (`vitae_petal`, `spore_puff`, `fulgurite_stalk`, `gale_seed`, `mist_veil_marshmallow_pod`) to `WORLD_TAB`.
+
+## Build 000-1-26-221-10-23 (August 9, 2026 Round 2 Flora Collectibles & Nectar Potion Deployment)
+
+
+### 🌾 Round 2 Flora & Harvested Collectible Refinements
+- **Vitae Petal (`vitae_petal.png`)**: Implemented Option 2N Rounded Tip Ribbon Strap 16x16 item texture with royal purple stem base (`#9333EA`) and gold center vein line (`#F59E0B`).
+- **Vitae Orchid Silk Touch Protection**: Updated `vitae_orchid.json` loot table to drop 2x `vitae_petal` on normal break (preventing 2-tall block duplication) and 1x `vitae_orchid` block item only with Silk Touch.
+- **Glass Bottle Nectar Harvesting System**: Implemented `HAS_NECTAR` blockstate property in `VitaeOrchidBlock.java`. Right-clicking with a Glass Bottle (`Items.GLASS_BOTTLE`) fills a custom **Vitae Nectar Potion** (`ModPotions.VITAE_NECTAR` - Regeneration I + Health Boost I) using native Minecraft potion bottle graphics, starting a random-tick nectar regeneration timer.
+- **Fulgurite Stalk (`fulgurite_stalk.png`)**: Extracted exact 1-to-1 pixel layout of user's Sugar Cane image, recolored to Fulgurite Reed's Electric Cyan (`#06B6D4`) & Metallic Copper (`#D97706`) palette with a perpendicular metallic copper binding band and organic texture noise.
+- **Spectral Dye Tint Alignment**: Aligned `VITAE` (`#FF6B9D` - Vitae Pink) and `SANGUINE` (`#8A0303` - Sanguine Crimson) dye colors in `SpectralDyeApi.java` with `EssenceType` color definitions.
+- **Approved Item Drop Set**: Confirmed handcrafted 16x16 textures for `spore_puff.png` (Spore-Burst Puffball), `gale_seed.png` (Gale-Thistle), and `mist_veil_marshmallow_pod.png` (Mist-Veil Marshmallow).
+
+## Build 000-1-26-221-10-02 (August 9, 2026 Batch 2 Flora Expansion & Voronoi/Perlin Noise Refinements)
+
+
+### 🌿 Batch 2 Flora Implementation (5 Species)
+- **Vitae Orchid (`vitae_orchid`)**: Implemented 2-tall flower block (`DoublePlantBlock` / `VitaeOrchidBlock`) with silky white orchid top blossom, royal purple lips, gold veining, 32x32 Voronoi/Perlin noise textures (`vitae_orchid_top.png` & `vitae_orchid_bottom.png`), Regeneration I aura (80 ticks), Light Level 8, and golden vitality sparkles (`#F59E0B`).
+- **Spore-Burst Puffball (`spore_burst_puffball`)**: Implemented round cream puffball mushroom (`SporeBurstPuffballBlock`) with bioluminescent emerald green cracks (`#10B981`), procedural Voronoi cell crackle & Perlin skin noise, squishing burst audio on step/right-click/break, releasing 6-second Nausea I & Poison I spore clouds.
+- **Fulgurite Reed (`fulgurite_reed`)**: Implemented 16x16 sugarcane-straight reed (`FulguriteReedBlock`) banded in metallic copper rings, filling full vertical height (`y=0` to `y=15`), water-adjacent riverbank placement, Speed I aura on contact, Light Level 6, and electric cyan lightning sparks (`#06B6D4`).
+- **Gale-Thistle Bush (`gale_thistle`)**: Implemented dense metallic silver spiky bush (`GaleThistleBlock`) with central golden seed heads, Voronoi cell leaf spikes, 1.0 physical prick damage on collision, and swirling `GALE_SWIRL_PUFF` wind particles.
+- **Mist-Veil Marshmallow (`mist_veil_marshmallow`)**: Implemented soft bouncy marshmallow pods (`MistVeilMarshmallowBlock`) growing on water-floating teal leaves, connected directly to bottom canvas edge (`y=31`), water/mud/clay placement, fall distance reset bounce mechanics, and right-click harvesting of **Mist-Veil Marshmallow Pods** (restores 4 Hunger & 6 Saturation).
+- **Golden Vitae Amber Spectral Dye (`spectral_dye_vitae`)**: Registered 15th Spectral Dye (`#FF6B9D` - Vitae Pink) in `SpectralDyeApi.java` and `ModItems.java`, utilizing the standard 2-layer dye bottle model (`spectral_dye_bottle` + `spectral_dye_fill`) dynamically tinted to match `EssenceType.VITAE` (`0xFF6B9D`).
+
+
+## Build 000-1-26-221-04-56 (August 9, 2026 Abyssal Weeproot Vine & Abyssal Spectral Dye)
+
+
+### 🌊 Subterranean Ceiling Vine & Abyssal Mechanics
+- **Abyssal Weeproot (`abyssal_weeproot` & `abyssal_weeproot_plant`)**: Implemented deep navy subterranean ceiling root vine (`GrowingPlantHeadBlock` / `GrowingPlantBodyBlock`) attaching to ceiling stone, random ticking downward growth up to 26 blocks, **Slow Falling I** void tether mechanics (`entityInside`), and right-click tendril harvesting (`useWithoutItem`).
+- **Abyssal Tendril (`abyssal_tendril`)**: Added 16x16 bioluminescent cyan item drop harvested from Weeproot vines.
+- **Blood-Root Succulent (`blood_root_succulent`)**: Implemented deep crimson desert succulent (`BloodRootSucculentBlock`) plantable on Red Sand, Terracotta, Crimson Nylium, and Netherrack, with 1 life-drain damage on living entities (`stepOn`), Regeneration I nourishment for undead mobs, pulp harvesting, and bioluminescent crimson life sparkles.
+- **Blood-Root Pulp (`blood_root_pulp`)**: Added 16x16 fleshy crimson item drop harvested from succulents.
+- **Sanguine Spectral Dye (`spectral_dye_sanguine`)**: Registered 14th Spectral Dye (`#DC2626` - Sanguine Crimson) in `SpectralDyeApi.java` with 2-layer bottle model and shapeless crafting recipe.
+- **Custom Bleeding Status Effect (`BLEEDING`)**: Registered custom harmful status effect `BleedingEffect.java` (`ModEffects.BLEEDING`) inflicting physical damage over time (every 30 ticks) and spawning blood droplet particles (`DAMAGE_INDICATOR`).
+- **Refined Vitreous Cactus (`vitreous_cactus`)**: Updated block voxel shape and 3D JSON block model to a 12x16x12 cuboid (`Block.box(2, 0, 2, 14, 16, 14)` / `[2, 0, 2]` to `[14, 16, 14]`), applying 4 seconds of custom `BleedingEffect` on entity collision instead of Wither.
+
+
+
 ## Build 000-1-26-220-20-21 (August 8, 2026 Complete Botanical Flora, Animated Particles, Spectral Dyes & Barrow Mechanics Overhaul)
+
 
 ### 🌿 Botanical Flora Expansion (12 Species)
 - **Shimmerpetal (`shimmerpetal`)**: 32x32 radiant flower emitting silver Materia sparkles.

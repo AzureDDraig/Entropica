@@ -560,7 +560,8 @@ public class CodexCategoryRegistry {
                 "Crafting Uses:\n" +
                 "Harvested for Vitreous Needles and Vitreous Cactus Flesh to craft Vitreous Spectral Dye, glass optic lenses, and Bleeding potion brews.\n\n" +
                 "Special Properties:\n" +
-                "Emits Light Level 6 and electric light cyan glass sparkles. Grows up to 5 blocks tall via random ticking. Entities colliding with it suffer cactus puncture damage and 4 seconds of Bleeding (Wither).",
+                "Slimmer 12x16x12 cuboid model. Emits Light Level 6 and electric light cyan glass sparkles. Grows up to 5 blocks tall via random ticking without adjacent solid blocks. Entities colliding with it suffer puncture damage and 4 seconds of custom Bleeding.",
+
 
                 "env_flora", 0, new ItemStack(ModBlocks.VITREOUS_CACTUS.get()),
                 420f, 0.0f, a_env + 0.44f, false
@@ -582,6 +583,189 @@ public class CodexCategoryRegistry {
                 "env_flora", 0, new ItemStack(ModBlocks.BARROW_MOSS.get()),
                 460f, 0.0f, a_env + 0.48f, false
         ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_abyssal_weeproot", "Abyssal Weeproot", "ENVIRONMENT & NATURE",
+                "Deep void hanging vine & climbable ladder with downward random ticking growth, Slow Falling void tether, and right-click harvesting.",
+                "Overview & Description:\n" +
+                "A deep void hanging root vine that grows downward from ceiling stone in subterranean chasms and void trenches.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally hanging from ceiling stone in Abyssal Trench biomes and deep void caverns.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Abyssal Tendrils to craft Abyssal Spectral Dye, Void Tether ropes, and Slow Falling brews.\n\n" +
+                "Special Properties:\n" +
+                "Functions as a vertical climbable ladder (#minecraft:climbable). Emits Light Level 5 and dark cyan droplet particles. Grants Slow Falling void tether to entities climbing or falling through it and grows downward up to 26 blocks.",
+                "env_flora", 0, new ItemStack(ModBlocks.ABYSSAL_WEEPROOT.get()),
+                500f, 0.0f, a_env + 0.52f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_blood_root_succulent", "Blood-Root Succulent", "ENVIRONMENT & NATURE",
+                "Crimson desert succulent with red sand/terracotta placement, life-drain damage, undead regeneration, and pulp harvesting.",
+                "Overview & Description:\n" +
+                "A deep crimson desert succulent that thrives on arid red sand, terracotta, and crimson nylium in Sanguine Canyons.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Sanguine Canyons, Red Deserts, and Nether Crimson Forests.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Blood-Root Pulp to craft Sanguine Spectral Dye, Vampiric Elixirs, and Life-Drain catalysts.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6 and bioluminescent crimson life sparkles. Inflicts 1 life-drain damage on living non-undead entities while nourishing undead mobs with Regeneration.",
+                "env_flora", 0, new ItemStack(ModBlocks.BLOOD_ROOT_SUCCULENT.get()),
+                540f, 0.0f, a_env + 0.56f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_vitae_orchid", "Vitae Orchid", "ENVIRONMENT & NATURE",
+                "Tall, 2-block gold-veined white orchid providing Health Regeneration aura.",
+                "Overview & Description:\n" +
+                "A majestic 2-tall flower featuring a silky white blossom head with royal purple lips and radiant gold veining.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Vitality Meadows and Sunlit Glades.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Vitae Petals, Vitae Nectar, and Golden Vitae Amber Spectral Dye.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 8 and golden vitality sparkles. Grants Regeneration I to living non-undead entities.",
+                "env_flora", 0, new ItemStack(ModBlocks.VITAE_ORCHID.get()),
+                580f, 0.0f, a_env + 0.60f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_spore_burst_puffball", "Spore-Burst Puffball", "ENVIRONMENT & NATURE",
+                "Bulbous warty yellow-green fungus releasing Nausea I & Poison I spore clouds.",
+                "Overview & Description:\n" +
+                "A round cream puffball mushroom sitting on soil, covered in bioluminescent green cracks and a top spore pore.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Swamps, Mycelium Fields, and Peat Bogs.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Spore Puffs to craft toxic brewing reagents and spore catalysts.\n\n" +
+                "Special Properties:\n" +
+                "Explodes on step, right-click, or break, releasing a 6-second Nausea I & Poison I spore cloud.",
+                "env_flora", 0, new ItemStack(ModBlocks.SPORE_BURST_PUFFBALL.get()),
+                620f, 0.0f, a_env + 0.64f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_fulgurite_reed", "Fulgurite Reed", "ENVIRONMENT & NATURE",
+                "Glassy copper-banded 16x16 straight reed crackling with atmospheric electricity and Speed I aura.",
+                "Overview & Description:\n" +
+                "A straight vertical glassy reed banded in metallic copper rings, conducting electric currents along riverbanks.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Grows naturally on riverbanks, glass sand, and mud in Fulgurite Swamps.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Fulgurite Stalks to craft electric catalysts and Speed potion brews.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6 and electric cyan lightning sparks. Contact grants Speed I. Bonemealing at max height (3 blocks) overcharges the reed, shocking all entities within 4 blocks with 3s Paralyzed.",
+                "env_flora", 0, new ItemStack(ModBlocks.FULGURITE_REED.get()),
+                660f, 0.0f, a_env + 0.68f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_gale_thistle", "Gale-Thistle Bush", "ENVIRONMENT & NATURE",
+                "Dense metallic silver spiky bush inflicting prick damage and emitting swirling wind particles.",
+                "Overview & Description:\n" +
+                "A spiky metallic silver bush with central golden seed heads that sways violently in high winds.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally on rocky cliffs and windswept plateaus.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Gale Seeds to craft wind catalysts and seed projectiles.\n\n" +
+                "Special Properties:\n" +
+                "Emits swirling wind particles and inflicts prick damage on collision.",
+                "env_flora", 0, new ItemStack(ModBlocks.GALE_THISTLE.get()),
+                700f, 0.0f, a_env + 0.72f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_mist_veil_marshmallow", "Mist-Veil Marshmallow", "ENVIRONMENT & NATURE",
+                "Soft bouncy marshmallow pods on water-floating teal leaves cleansing debuffs and restoring hunger.",
+                "Overview & Description:\n" +
+                "Fluffy white marshmallow pods growing on wide teal leaves that float on water, mud, and clay.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally floating on water, mud, and clay in Mist-Veil Marshes.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Mist-Veil Marshmallow Pods which restore hunger and cleanse status debuffs.\n\n" +
+                "Special Properties:\n" +
+                "Acts as a soft bouncy pad resetting fall distance.",
+                "env_flora", 0, new ItemStack(ModBlocks.MIST_VEIL_MARSHMALLOW.get()),
+                740f, 0.0f, a_env + 0.76f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aegis_spire_orchid", "Aegis-Spire Orchid", "ENVIRONMENT & NATURE",
+                "2-tall crystalline orchid with azure-blue layered petal spires granting Resistance I aura.",
+                "Overview & Description:\n" +
+                "A tall 2-block crystalline orchid featuring layered azure petals with metallic silver rims.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Crystal Crags and Metallic Mountain Peaks.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Aegis-Spire Petals used in Resistance II brewing and protective warding.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 7 and grants Resistance I aura to non-hostile entities within 4 blocks.",
+                "env_flora", 0, new ItemStack(ModBlocks.AEGIS_SPIRE_ORCHID.get()),
+                780f, 0.0f, a_env + 0.80f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_pyre_sprout", "Pyre-Sprout", "ENVIRONMENT & NATURE",
+                "Glowing ember sprout with flickering fire petals; yields Pyre Nectar (Fire Resistance I).",
+                "Overview & Description:\n" +
+                "A fiery sprout growing on charred volcanic soil, basalt, and ash, flickering with orange sparks.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Basalt Deltas, Volcanic Ash, and Nether Rack.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Pyre Sprout Seeds & Ember Pulp; right-clicking with a Glass Bottle yields Pyre Nectar Potion.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 10 and fire sparks.",
+                "env_flora", 0, new ItemStack(ModBlocks.PYRE_SPROUT.get()),
+                820f, 0.0f, a_env + 0.84f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aura_drift_sedge", "Aura-Drift Sedge", "ENVIRONMENT & NATURE",
+                "Luminescent pink-gold grass blades granting Jump Boost I & Speed I on contact.",
+                "Overview & Description:\n" +
+                "Tall glowing grass blades shimmering with pink and gold aura drift particles.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Radiant High Meadows and Ether Cliffs.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Aura-Drift Fiber used in Materia weaving and speed charms.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 8; entity contact grants Jump Boost I & Speed I.",
+                "env_flora", 0, new ItemStack(ModBlocks.AURA_DRIFT_SEDGE.get()),
+                860f, 0.0f, a_env + 0.88f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_spectral_lantern_flower", "Spectral Lantern-Flower", "ENVIRONMENT & NATURE",
+                "Bell-shaped cyan soulfire lantern flower emitting Light Level 12 and repelling undead entities.",
+                "Overview & Description:\n" +
+                "A translucent bell-shaped lantern flower glowing with cyan soulfire inside.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Soul Sand Valleys and Whispering Ruins.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Spectral Lantern Pods used in soul protection brews.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 12; inflicts Slowness & Weakness on undead entities within 6 blocks.",
+                "env_flora", 0, new ItemStack(ModBlocks.SPECTRAL_LANTERN_FLOWER.get()),
+                900f, 0.0f, a_env + 0.92f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_cinder_spore_mushroom", "Cinder-Spore Mushroom", "ENVIRONMENT & NATURE",
+                "Log/wall-attached emerald fungal bracket releasing protective ash-spore clouds.",
+                "Overview & Description:\n" +
+                "A layered emerald fungal bracket mushroom with bioluminescent spore gills underneath.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally attached to log sides in Nether Warped Forests.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Cinder-Spore Caps used in fire-retardant brewing.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6; entity contact grants Fire Resistance I.",
+                "env_flora", 0, new ItemStack(ModBlocks.CINDER_SPORE_MUSHROOM.get()),
+                940f, 0.0f, a_env + 0.96f, false
+        ));
+
+
+
 
 
 

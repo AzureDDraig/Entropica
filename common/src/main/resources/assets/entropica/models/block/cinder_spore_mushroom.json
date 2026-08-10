@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/cinder_spore_mushroom"
+  },
+  "render_type": "minecraft:cutout"
+}

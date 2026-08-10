@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/blood_root_succulent"
+  },
+  "render_type": "minecraft:cutout"
+}

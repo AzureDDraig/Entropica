@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/cryo_static_shrub"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

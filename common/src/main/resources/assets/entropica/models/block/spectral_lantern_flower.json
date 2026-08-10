@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/spectral_lantern_flower"
+  },
+  "render_type": "minecraft:cutout"
+}

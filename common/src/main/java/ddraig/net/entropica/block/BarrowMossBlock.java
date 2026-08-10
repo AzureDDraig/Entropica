@@ -46,12 +46,13 @@ public class BarrowMossBlock extends Block {
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
         super.stepOn(level, pos, state, entity);
         
-        if (entity instanceof LivingEntity livingEntity && !level.isClientSide) {
+        if (entity instanceof LivingEntity livingEntity && !level.isClientSide()) {
             if (livingEntity.isInvertedHealAndHarm()) {
                 // Undead Mob Buff: Strength I & Speed I for 6 seconds
-                livingEntity.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 120, 0, false, true, true));
-                livingEntity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 120, 0, false, true, true));
+                livingEntity.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 120, 0, false, true, true));
+                livingEntity.addEffect(new MobEffectInstance(MobEffects.SPEED, 120, 0, false, true, true));
             } else {
+
                 // Living Non-Undead Entity: 1 Damage Trade-Off + Debuff Cleansing + 15s Regen Cooldown
                 boolean hasDebuff = livingEntity.hasEffect(MobEffects.WITHER) || 
                                     livingEntity.hasEffect(MobEffects.POISON) || 
@@ -77,7 +78,8 @@ public class BarrowMossBlock extends Block {
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         ItemStack held = player.getItemInHand(player.getUsedItemHand());
         if (held.is(Items.BONE_MEAL)) {
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
+
                 if (!player.getAbilities().instabuild) {
                     held.shrink(1);
                 }
@@ -99,7 +101,8 @@ public class BarrowMossBlock extends Block {
 
                 level.playSound(null, pos, SoundEvents.BONE_MEAL_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.SUCCESS;
+
         }
         return super.useWithoutItem(state, level, pos, player, hitResult);
     }

@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/silver_pine_sapling"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

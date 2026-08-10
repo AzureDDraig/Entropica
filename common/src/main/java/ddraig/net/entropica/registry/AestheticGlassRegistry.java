@@ -216,7 +216,7 @@ public class AestheticGlassRegistry {
                 new QuarterSlabBlock(createProperties(qSlabName, spec.lightEmission(), spec.hardness())));
         // 8. Stairs
         RegistrySupplier<Block> stairsSup = ModBlocks.BLOCKS.register(stairsName, loc ->
-                new ddraig.net.entropica.block.AestheticGlassStairBlock(blockSup.get().defaultBlockState(), createProperties(stairsName, spec.lightEmission(), spec.hardness())));
+                new ddraig.net.entropica.block.AestheticGlassStairBlock(Blocks.GLASS.defaultBlockState(), createProperties(stairsName, spec.lightEmission(), spec.hardness())));
         // 9. Horizontal Pane
         RegistrySupplier<Block> hPaneSup = ModBlocks.BLOCKS.register(hPaneName, loc ->
                 new HorizontalPaneBlock(createProperties(hPaneName, spec.lightEmission(), spec.hardness())));

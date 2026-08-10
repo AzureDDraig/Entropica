@@ -10,6 +10,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -26,12 +27,44 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class VitreousCactusBlock extends EntropicaFlowerBlock {
     public static final IntegerProperty AGE = BlockStateProperties.AGE_15;
 
-    // Full Cuboid Bounding Box
-    protected static final VoxelShape SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 16.0);
+    // Slimmer 12x16x12 Cuboid Bounding Box (2, 0, 2 to 14, 16, 14)
+    protected static final VoxelShape SHAPE = Block.box(2.0, 0.0, 2.0, 14.0, 16.0, 14.0);
+    protected static final VoxelShape COLLISION_SHAPE = Block.box(1.0, 0.0, 1.0, 15.0, 15.0, 15.0);
 
     public VitreousCactusBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(AGE, 0));
+    }
+
+    @Override
+    public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
+        return true;
+    }
+
+    @Override
+    public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
+        return true;
+    }
+
+    @Override
+    public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
+        int height = 1;
+        BlockPos currentPos = pos.below();
+        while (level.getBlockState(currentPos).is(this)) {
+            height++;
+            currentPos = currentPos.below();
+        }
+        currentPos = pos.above();
+        while (level.getBlockState(currentPos).is(this)) {
+            height++;
+            currentPos = currentPos.above();
+        }
+
+        if (height < 3 && level.getBlockState(currentPos).canBeReplaced()) {
+            level.setBlock(currentPos, this.defaultBlockState(), 3);
+        } else {
+            popResource(level, pos, new ItemStack(this.asItem()));
+        }
     }
 
     @Override
@@ -42,6 +75,11 @@ public class VitreousCactusBlock extends EntropicaFlowerBlock {
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
+    }
+
+    @Override
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return COLLISION_SHAPE;
     }
 
     @Override
@@ -70,14 +108,13 @@ public class VitreousCactusBlock extends EntropicaFlowerBlock {
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelReader level, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess tickAccess, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         if (!state.canSurvive(level, pos)) {
-            if (level instanceof ScheduledTickAccess tickAccess) {
-                tickAccess.scheduleTick(pos, this, 1);
-            }
+            tickAccess.scheduleTick(pos, this, 1);
         }
-        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        return super.updateShape(state, level, tickAccess, pos, direction, neighborPos, neighborState, random);
     }
+
 
     @Override
     public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
@@ -115,17 +152,20 @@ public class VitreousCactusBlock extends EntropicaFlowerBlock {
     }
 
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        super.entityInside(state, level, pos, entity);
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isInside) {
+        super.entityInside(state, level, pos, entity, effectApplier, isInside);
         
         // 1. Cactus Puncture Damage
         entity.hurt(level.damageSources().cactus(), 2.0F);
 
-        // 2. Special Bleeding Effect (4-second Wither/Bleed debuff)
-        if (entity instanceof LivingEntity livingEntity && !level.isClientSide) {
-            livingEntity.addEffect(new MobEffectInstance(MobEffects.WITHER, 80, 0, false, true, true));
+        // 2. Special Bleeding Effect (4-second Bleed debuff)
+        if (entity instanceof LivingEntity livingEntity && !level.isClientSide()) {
+
+            livingEntity.addEffect(new MobEffectInstance(ddraig.net.entropica.registry.ModEffects.BLEEDING, 80, 0, false, true, true));
+
         }
     }
+
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {

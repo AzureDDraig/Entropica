@@ -609,6 +609,49 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> BARROW_MOSS_CARPET_ITEM = ITEMS.registerItem("barrow_moss_carpet", properties -> new BlockItem(ModBlocks.BARROW_MOSS_CARPET.get(), properties));
     public static final RegistrySupplier<Item> BARROW_MOSS_FIBER = ITEMS.registerItem("barrow_moss_fiber", Item::new);
 
+    public static final RegistrySupplier<BlockItem> ABYSSAL_WEEPROOT_ITEM = ITEMS.registerItem("abyssal_weeproot", properties -> new BlockItem(ModBlocks.ABYSSAL_WEEPROOT.get(), properties));
+    public static final RegistrySupplier<Item> ABYSSAL_TENDRIL = ITEMS.registerItem("abyssal_tendril", Item::new);
+
+    public static final RegistrySupplier<BlockItem> BLOOD_ROOT_SUCCULENT_ITEM = ITEMS.registerItem("blood_root_succulent", properties -> new BlockItem(ModBlocks.BLOOD_ROOT_SUCCULENT.get(), properties));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_PULP = ITEMS.registerItem("blood_root_pulp", Item::new);
+
+    public static final RegistrySupplier<BlockItem> VITAE_ORCHID_ITEM = ITEMS.registerItem("vitae_orchid", properties -> new BlockItem(ModBlocks.VITAE_ORCHID.get(), properties));
+    public static final RegistrySupplier<Item> VITAE_PETAL = ITEMS.registerItem("vitae_petal", Item::new);
+    public static final RegistrySupplier<Item> VITAE_NECTAR = ITEMS.registerItem("vitae_nectar", Item::new);
+
+
+
+    public static final RegistrySupplier<BlockItem> SPORE_BURST_PUFFBALL_ITEM = ITEMS.registerItem("spore_burst_puffball", properties -> new BlockItem(ModBlocks.SPORE_BURST_PUFFBALL.get(), properties));
+    public static final RegistrySupplier<Item> SPORE_PUFF = ITEMS.registerItem("spore_puff", Item::new);
+
+    public static final RegistrySupplier<BlockItem> FULGURITE_REED_ITEM = ITEMS.registerItem("fulgurite_reed", properties -> new BlockItem(ModBlocks.FULGURITE_REED.get(), properties));
+
+    public static final RegistrySupplier<BlockItem> GALE_THISTLE_ITEM = ITEMS.registerItem("gale_thistle", properties -> new BlockItem(ModBlocks.GALE_THISTLE.get(), properties));
+    public static final RegistrySupplier<Item> GALE_SEED = ITEMS.registerItem("gale_seed", Item::new);
+
+    public static final RegistrySupplier<BlockItem> MIST_VEIL_MARSHMALLOW_ITEM = ITEMS.registerItem("mist_veil_marshmallow", properties -> new BlockItem(ModBlocks.MIST_VEIL_MARSHMALLOW.get(), properties));
+    public static final RegistrySupplier<Item> MIST_VEIL_MARSHMALLOW_POD = ITEMS.registerItem("mist_veil_marshmallow_pod", properties -> new Item(properties.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(4).saturationModifier(0.6f).build())));
+
+    public static final RegistrySupplier<BlockItem> AEGIS_SPIRE_ORCHID_ITEM = ITEMS.registerItem("aegis_spire_orchid", properties -> new BlockItem(ModBlocks.AEGIS_SPIRE_ORCHID.get(), properties));
+    public static final RegistrySupplier<BlockItem> TALL_AEGIS_SPIRE_ORCHID_ITEM = ITEMS.registerItem("tall_aegis_spire_orchid", properties -> new BlockItem(ModBlocks.TALL_AEGIS_SPIRE_ORCHID.get(), properties));
+    public static final RegistrySupplier<Item> AEGIS_SPIRE_PETAL = ITEMS.registerItem("aegis_spire_petal", Item::new);
+
+    public static final RegistrySupplier<BlockItem> PYRE_SPROUT_ITEM = ITEMS.registerItem("pyre_sprout", properties -> new BlockItem(ModBlocks.PYRE_SPROUT.get(), properties));
+    public static final RegistrySupplier<Item> PYRE_SPROUT_SEED = ITEMS.registerItem("pyre_sprout_seed", Item::new);
+    public static final RegistrySupplier<Item> EMBER_PULP = ITEMS.registerItem("ember_pulp", Item::new);
+
+    public static final RegistrySupplier<BlockItem> AURA_DRIFT_SEDGE_ITEM = ITEMS.registerItem("aura_drift_sedge", properties -> new BlockItem(ModBlocks.AURA_DRIFT_SEDGE.get(), properties));
+    public static final RegistrySupplier<Item> AURA_DRIFT_FIBER = ITEMS.registerItem("aura_drift_fiber", Item::new);
+
+    public static final RegistrySupplier<BlockItem> SPECTRAL_LANTERN_FLOWER_ITEM = ITEMS.registerItem("spectral_lantern_flower", properties -> new BlockItem(ModBlocks.SPECTRAL_LANTERN_FLOWER.get(), properties));
+    public static final RegistrySupplier<Item> SPECTRAL_LANTERN_POD = ITEMS.registerItem("spectral_lantern_pod", Item::new);
+
+    public static final RegistrySupplier<BlockItem> CINDER_SPORE_MUSHROOM_ITEM = ITEMS.registerItem("cinder_spore_mushroom", properties -> new BlockItem(ModBlocks.CINDER_SPORE_MUSHROOM.get(), properties));
+    public static final RegistrySupplier<Item> CINDER_SPORE_CAP = ITEMS.registerItem("cinder_spore_cap", Item::new);
+
+
+
+
 
 
 
@@ -642,6 +685,11 @@ public class ModItems {
     public static final RegistrySupplier<Item> SPECTRAL_DYE_CRYO_STATIC = SPECTRAL_DYES.get("cryo_static");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_VITREOUS = SPECTRAL_DYES.get("vitreous");
     public static final RegistrySupplier<Item> SPECTRAL_DYE_BARROW = SPECTRAL_DYES.get("barrow");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_ABYSSAL = SPECTRAL_DYES.get("abyssal");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_SANGUINE = SPECTRAL_DYES.get("sanguine");
+    public static final RegistrySupplier<Item> SPECTRAL_DYE_VITAE = SPECTRAL_DYES.get("vitae");
+
+
 
 
 

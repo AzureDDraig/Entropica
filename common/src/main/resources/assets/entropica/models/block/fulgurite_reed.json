@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/fulgurite_reed"
+  },
+  "render_type": "minecraft:cutout"
+}

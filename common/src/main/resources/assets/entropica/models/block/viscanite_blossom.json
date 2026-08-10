@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/viscanite_blossom"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

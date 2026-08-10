@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/gale_bloom_dandelion"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

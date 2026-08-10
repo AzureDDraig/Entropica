@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/spore_burst_puffball"
+  },
+  "render_type": "minecraft:cutout"
+}

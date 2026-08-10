@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "entropica:block/vitae_orchid_bottom"
+    },
+    "half=upper": {
+      "model": "entropica:block/vitae_orchid_top"
+    }
+  }
+}

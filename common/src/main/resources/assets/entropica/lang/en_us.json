@@ -22,6 +22,7 @@
   "effect.entropica.void_tear": "Void Tear",
   "effect.entropica.haze": "Haze",
   "effect.entropica.paralyzed": "Paralyzed",
+  "effect.entropica.bleeding": "Bleeding",
   "_comment_enchants": "================ ENCHANTMENTS ================",
   "enchantment.entropica.augment_slot_expansion": "Augment Slot Expansion",
   "enchantment.entropica.essence_reap": "Essence Reap",
@@ -50,7 +51,6 @@
   "item.entropica.cryo_static_twig": "Cryo-Static Twig",
   "item.entropica.cryo_static_leaf": "Cryo-Static Leaf",
   "item.entropica.cryo_static_rootling": "Cryo-Static Rootling",
-
   "item.entropica.spectral_dye_soulfire": "Soulfire Spectral Dye",
   "item.entropica.spectral_dye_aegis": "Aegis Spectral Dye",
   "item.entropica.spectral_dye_amber": "Amber Spectral Dye",
@@ -63,21 +63,23 @@
   "item.entropica.spectral_dye_cryo_static": "Cryo-Static Spectral Dye",
   "item.entropica.spectral_dye_vitreous": "Vitreous Spectral Dye",
   "item.entropica.spectral_dye_barrow": "Barrow Spectral Dye",
-
+  "item.entropica.spectral_dye_abyssal": "Abyssal Spectral Dye",
   "block.entropica.vitreous_cactus": "Vitreous Cactus",
   "item.entropica.vitreous_cactus": "Vitreous Cactus",
   "item.entropica.vitreous_needle": "Vitreous Needle",
   "item.entropica.vitreous_cactus_flesh": "Vitreous Cactus Flesh",
-
   "block.entropica.barrow_moss": "Barrow Moss",
   "block.entropica.barrow_moss_carpet": "Barrow Moss Carpet",
   "item.entropica.barrow_moss": "Barrow Moss",
   "item.entropica.barrow_moss_carpet": "Barrow Moss Carpet",
   "item.entropica.barrow_moss_fiber": "Barrow Moss Fiber",
-
-
-
-
+  "block.entropica.abyssal_weeproot": "Abyssal Weeproot",
+  "block.entropica.abyssal_weeproot_plant": "Abyssal Weeproot Vine",
+  "item.entropica.abyssal_weeproot": "Abyssal Weeproot",
+  "item.entropica.abyssal_tendril": "Abyssal Tendril",
+  "block.entropica.blood_root_succulent": "Blood-Root Succulent",
+  "item.entropica.blood_root_succulent": "Blood-Root Succulent",
+  "item.entropica.blood_root_pulp": "Blood-Root Pulp",
   "block.entropica.aegis_rose": "Aegis Rose",
   "block.entropica.amber_nectar_blossom": "Amber Nectar Blossom",
   "block.entropica.soul_flame_orchid": "Soul-Flame Orchid",
@@ -86,12 +88,6 @@
   "block.entropica.fulgurite_swamp_bloom": "Fulgurite Swamp-Bloom",
   "block.entropica.gale_bloom_dandelion": "Gale-Bloom Dandelion",
   "block.entropica.cryo_static_shrub": "Cryo-Static Shrub",
-
-
-
-
-
-
   "item.entropica.arcanum_focus": "Arcanum Focus",
   "item.entropica.materia_value_detector": "Materia Value Detector",
   "item.entropica.entropic_codex": "Entropic Codex",
@@ -661,7 +657,6 @@
   "tooltip.entropica.spectral_dye_shimmer": "Extracted from Shimmerpetals. A luminous silver dye glowing with latent Materia.",
   "tooltip.entropica.spectral_dye_frost": "Extracted from Rimebloom Petals. A chilled teal dye that frosts polished surfaces.",
   "tooltip.entropica.spectral_dye_auroral": "Extracted from Auroral Buttercups. A pastel dye shifting in ambient light.",
-
   "tooltip.entropica.spectral_glyph_plate": "A digital screen made of stone and shadows.",
   "tooltip.entropica.tether_anchor_pin": "A massive spike designed to ground volatile endgame magic.",
   "tooltip.entropica.arcanite_ichor_valve": "A delicate, precise valve designed to control the flow of liquid magic.",
@@ -1952,5 +1947,41 @@
   "item.entropica.overgrowth_ovis_spawn_egg": "Overgrowth Ovis Spawn Egg",
   "item.entropica.rime_shepherd_spawn_egg": "Rime Shepherd Spawn Egg",
   "item.entropica.bloom_crawler_spawn_egg": "Bloom Crawler Spawn Egg",
-  "item.entropica.rubber_tap": "Rubber Tap"
+  "item.entropica.rubber_tap": "Rubber Tap",
+  "block.entropica.vitae_orchid": "Vitae Orchid",
+  "item.entropica.vitae_orchid": "Vitae Orchid",
+  "item.entropica.vitae_petal": "Vitae Petal",
+  "item.entropica.vitae_nectar": "Vitae Nectar",
+  "item.entropica.spectral_dye_vitae": "Spectral Dye - Golden Vitae Amber",
+  "block.entropica.spore_burst_puffball": "Spore-Burst Puffball",
+  "item.entropica.spore_burst_puffball": "Spore-Burst Puffball",
+  "item.entropica.spore_puff": "Spore Puff",
+  "block.entropica.fulgurite_reed": "Fulgurite Reed",
+  "item.entropica.fulgurite_reed": "Fulgurite Reed",
+  "item.entropica.fulgurite_stalk": "Fulgurite Stalk",
+  "block.entropica.gale_thistle": "Gale-Thistle Bush",
+  "item.entropica.gale_thistle": "Gale-Thistle Bush",
+  "item.entropica.gale_seed": "Gale Seed",
+  "block.entropica.mist_veil_marshmallow": "Mist-Veil Marshmallow",
+  "item.entropica.mist_veil_marshmallow": "Mist-Veil Marshmallow",
+  "item.entropica.mist_veil_marshmallow_pod": "Mist-Veil Marshmallow Pod",
+  "block.entropica.aegis_spire_orchid": "Aegis-Spire Orchid",
+  "item.entropica.aegis_spire_orchid": "Aegis-Spire Orchid",
+  "item.entropica.aegis_spire_petal": "Aegis-Spire Petal",
+  "block.entropica.pyre_sprout": "Pyre-Sprout",
+  "item.entropica.pyre_sprout": "Pyre-Sprout",
+  "item.entropica.pyre_sprout_seed": "Pyre-Sprout Seed",
+  "item.entropica.ember_pulp": "Ember Pulp",
+  "item.entropica.pyre_nectar": "Pyre Nectar Potion",
+  "block.entropica.aura_drift_sedge": "Aura-Drift Sedge",
+  "item.entropica.aura_drift_sedge": "Aura-Drift Sedge",
+  "item.entropica.aura_drift_fiber": "Aura-Drift Fiber",
+  "block.entropica.spectral_lantern_flower": "Spectral Lantern-Flower",
+  "item.entropica.spectral_lantern_flower": "Spectral Lantern-Flower",
+  "item.entropica.spectral_lantern_pod": "Spectral Lantern Pod",
+  "item.entropica.cinder_spore_cap": "Cinder-Spore Cap",
+  "block.entropica.tall_aegis_spire_orchid": "Tall Aegis-Spire Orchid",
+  "item.entropica.tall_aegis_spire_orchid": "Tall Aegis-Spire Orchid",
+  "block.entropica.cinder_spore_mushroom": "Cinder-Spore Mushroom",
+  "item.entropica.cinder_spore_mushroom": "Cinder-Spore Mushroom"
 }

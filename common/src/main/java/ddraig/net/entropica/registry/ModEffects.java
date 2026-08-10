@@ -26,4 +26,8 @@ public class ModEffects {
     // Registers the new Paralyzed effect with a purple electric color
     public static final RegistrySupplier<MobEffect> PARALYZED = EFFECTS.register("paralyzed",
             () -> new ddraig.net.entropica.effect.ParalyzedEffect(MobEffectCategory.HARMFUL, 0x9D4EDD));
-}
+
+    // Registers the new Bleeding effect with a deep blood crimson color
+    public static final RegistrySupplier<MobEffect> BLEEDING = EFFECTS.register("bleeding",
+            () -> new ddraig.net.entropica.effect.BleedingEffect(MobEffectCategory.HARMFUL, 0x991B1B));
+}

@@ -18,8 +18,9 @@ public class GaleBloomDandelionBlock extends EntropicaFlowerBlock {
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
-            level.playSound(null, pos, SoundEvents.WIND_CHARGE_BURST, SoundSource.BLOCKS, 0.5f, 1.4f);
+        if (!level.isClientSide()) {
+            level.playSound(null, pos, SoundEvents.WIND_CHARGE_BURST.value(), SoundSource.BLOCKS, 0.5f, 1.4f);
+
         } else {
             // Burst of swirling wind puff particles with Arid Essence cream/gold tinting
             RandomSource random = level.getRandom();
@@ -36,7 +37,8 @@ public class GaleBloomDandelionBlock extends EntropicaFlowerBlock {
                 level.addParticle(ModParticles.GALE_SWIRL_PUFF.get(), x, y, z, r, g, b);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
+
     }
 
     @Override

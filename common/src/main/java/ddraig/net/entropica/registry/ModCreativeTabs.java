@@ -23,9 +23,11 @@ public class ModCreativeTabs {
             .icon(() -> ModItems.MATERIA_FURNACE_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 ModBlocks.BLOCKS.getEntries().forEach(blockHolder -> {
-                    Item blockItem = blockHolder.get().asItem();
-                    if (blockItem != Items.AIR && !isLogisticsItem(blockItem) && !isAestheticItem(blockItem) && !isWorldItem(blockItem)) {
-                        output.accept(blockItem);
+                    if (blockHolder.isBound()) {
+                        Item blockItem = blockHolder.get().asItem();
+                        if (blockItem != Items.AIR && !isLogisticsItem(blockItem) && !isAestheticItem(blockItem) && !isWorldItem(blockItem)) {
+                            output.accept(blockItem);
+                        }
                     }
                 });
             }).build());
@@ -35,27 +37,28 @@ public class ModCreativeTabs {
             .icon(() -> ModItems.ARCANUM_FOCUS.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 ModItems.ITEMS.getEntries().forEach(itemRegistryObject -> {
-                    Item item = itemRegistryObject.get();
+                    if (itemRegistryObject.isBound()) {
+                        Item item = itemRegistryObject.get();
 
-                    // Filter out items that have dedicated tabs or are dynamic variants
-                    if (!(item instanceof net.minecraft.world.item.BlockItem) &&
-                            !(item instanceof EssenceItem) &&
-                            !(item instanceof EssenceAmpouleItem) &&
-                            !(item instanceof VisFumeAmpouleItem) &&
-                            !(item instanceof ddraig.net.entropica.item.ChalkItem) &&
-                            !itemRegistryObject.getId().getPath().contains("ampoule_base") &&
-                            item != ModItems.SOULBOUND_BLADE.get() &&
-                            item != ModItems.OBLIVION_BLADE.get() &&
-                            item != ModItems.TIDAL_TRIDENT.get() &&
-                            item != ModItems.VOID_SWORD.get() &&
-                            item != ModItems.ESSENCE_HARVESTING_BLADE.get() &&
-                            item != ModItems.BASALT_PICKAXE.get() &&
-                            item != ModItems.WHISPERWOOD_WAND.get() &&
-                            item != ModItems.SHIMMERING_FOCUS.get() &&
-                            item != ModItems.AETHERIC_MONOCLE.get() &&
-                            item != ModItems.MATERIA_VALUE_DETECTOR.get()) {
- 
-                        output.accept(item);
+                        if (!(item instanceof net.minecraft.world.item.BlockItem) &&
+                                !(item instanceof EssenceItem) &&
+                                !(item instanceof EssenceAmpouleItem) &&
+                                !(item instanceof VisFumeAmpouleItem) &&
+                                !(item instanceof ddraig.net.entropica.item.ChalkItem) &&
+                                !itemRegistryObject.getId().getPath().contains("ampoule_base") &&
+                                item != ModItems.SOULBOUND_BLADE.get() &&
+                                item != ModItems.OBLIVION_BLADE.get() &&
+                                item != ModItems.TIDAL_TRIDENT.get() &&
+                                item != ModItems.VOID_SWORD.get() &&
+                                item != ModItems.ESSENCE_HARVESTING_BLADE.get() &&
+                                item != ModItems.BASALT_PICKAXE.get() &&
+                                item != ModItems.WHISPERWOOD_WAND.get() &&
+                                item != ModItems.SHIMMERING_FOCUS.get() &&
+                                item != ModItems.AETHERIC_MONOCLE.get() &&
+                                item != ModItems.MATERIA_VALUE_DETECTOR.get()) {
+
+                            output.accept(item);
+                        }
                     }
                 });
             }).build());
@@ -68,23 +71,16 @@ public class ModCreativeTabs {
                 return iconStack;
             })
             .displayItems((parameters, output) -> {
-                // 1. Add Empty Base Ampoules First
                 output.accept(ModItems.SMALL_AMPOULE_BASE.get());
                 output.accept(ModItems.MEDIUM_AMPOULE_BASE.get());
                 output.accept(ModItems.LARGE_AMPOULE_BASE.get());
 
-                // 2. Dynamically Generate Every Variation
                 for (EssenceType type : EssenceType.values()) {
-
                     if (type.isFragment()) {
-                        // FRAGMENTS: Only generate the Tier 0 Fragment Orb, NO Ampoules!
                         ItemStack fragmentOrb = new ItemStack(ModItems.FRAGMENT_ESSENCE.get());
                         EssenceItem.setEssenceType(fragmentOrb, type);
                         output.accept(fragmentOrb);
                     } else {
-                        // STANDARD ESSENCES: Generate all 3 tiers of Orbs and all 3 types of Ampoules
-
-                        // Orbs
                         ItemStack weakOrb = new ItemStack(ModItems.WEAK_ESSENCE.get());
                         EssenceItem.setEssenceType(weakOrb, type);
                         output.accept(weakOrb);
@@ -97,7 +93,6 @@ public class ModCreativeTabs {
                         EssenceItem.setEssenceType(strongOrb, type);
                         output.accept(strongOrb);
 
-                        // Essence Ampoules (Physical Material)
                         ItemStack smallEssenceAmp = new ItemStack(ModItems.SMALL_ESSENCE_AMPOULE.get());
                         EssenceAmpouleItem.setEssenceType(smallEssenceAmp, type);
                         output.accept(smallEssenceAmp);
@@ -110,7 +105,6 @@ public class ModCreativeTabs {
                         EssenceAmpouleItem.setEssenceType(largeEssenceAmp, type);
                         output.accept(largeEssenceAmp);
 
-                        // Materia Fume Ampoules (Gaseous Material)
                         ItemStack smallFumeAmp = new ItemStack(ModItems.SMALL_MATERIA_FUMUS_AMPOULE.get());
                         VisFumeAmpouleItem.setEssenceType(smallFumeAmp, type);
                         output.accept(smallFumeAmp);
@@ -158,17 +152,15 @@ public class ModCreativeTabs {
             .title(Component.translatable("itemGroup.entropica.weapon_crafting"))
             .icon(() -> ModItems.ORBIS_ACCEPTOR.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
-                // Blocks
                 output.accept(ModBlocks.EIDOLIC_FOCAL_PEDESTAL.get());
                 output.accept(ModBlocks.ATTUNEMENT_PEDESTAL.get());
                 output.accept(ModBlocks.MORPHIC_LOOM.get());
                 output.accept(ModBlocks.CRUCIBLE.get());
-                output.accept(ModBlocks.MARBLE_RITUAL_BOWL.get()); // Ritual Bowls
+                output.accept(ModBlocks.MARBLE_RITUAL_BOWL.get());
                 output.accept(ModBlocks.BASALT_RITUAL_BOWL.get());
                 output.accept(ModBlocks.GRANITE_RITUAL_BOWL.get());
                 output.accept(ModItems.SPELL_GEM.get());
 
-                // Weapon Cores
                 output.accept(ModItems.ARCANITE_WEAPON_CORE.get());
                 output.accept(ModItems.CHARGED_ARCANITE_WEAPON_CORE.get());
                 output.accept(ModItems.ANCIENT_ARCANITE_WEAPON_CORE.get());
@@ -181,7 +173,6 @@ public class ModCreativeTabs {
                 output.accept(ModItems.CHARGED_RESONITE_WEAPON_CORE.get());
                 output.accept(ModItems.ANCIENT_RESONITE_WEAPON_CORE.get());
 
-                // Tool Cores
                 output.accept(ModItems.ARCANITE_TOOL_CORE.get());
                 output.accept(ModItems.CHARGED_ARCANITE_TOOL_CORE.get());
                 output.accept(ModItems.ANCIENT_ARCANITE_TOOL_CORE.get());
@@ -194,38 +185,32 @@ public class ModCreativeTabs {
                 output.accept(ModItems.CHARGED_RESONITE_TOOL_CORE.get());
                 output.accept(ModItems.ANCIENT_RESONITE_TOOL_CORE.get());
 
-                // Eidolite Cores
                 output.accept(ModItems.EIDOLITE_CORE.get());
                 output.accept(ModItems.CHARGED_EIDOLITE_CORE.get());
                 output.accept(ModItems.ANCIENT_EIDOLITE_CORE.get());
 
-                // Shape Concepts (Swords)
                 output.accept(ModItems.GLADIUS_SHAPE_CONCEPT.get());
                 output.accept(ModItems.LONGSWORD_SHAPE_CONCEPT.get());
                 output.accept(ModItems.SHORTSWORD_SHAPE_CONCEPT.get());
                 output.accept(ModItems.AKRAFENA_SHAPE_CONCEPT.get());
 
-                // Shape Concepts (Axes)
                 output.accept(ModItems.HAND_AXE_SHAPE_CONCEPT.get());
                 output.accept(ModItems.WAR_AXE_SHAPE_CONCEPT.get());
                 output.accept(ModItems.POLE_AXE_SHAPE_CONCEPT.get());
                 output.accept(ModItems.HALBERD_SHAPE_CONCEPT.get());
                 output.accept(ModItems.BEARD_AXE_SHAPE_CONCEPT.get());
 
-                // Shape Concepts (Bows)
                 output.accept(ModItems.SHORTBOW_SHAPE_CONCEPT.get());
                 output.accept(ModItems.LONGBOW_SHAPE_CONCEPT.get());
                 output.accept(ModItems.CROSSBOW_SHAPE_CONCEPT.get());
                 output.accept(ModItems.REPEATER_SHAPE_CONCEPT.get());
                 output.accept(ModItems.WAR_BOW_SHAPE_CONCEPT.get());
 
-                // Shape Concepts (Tools)
                 output.accept(ModItems.PICKAXE_SHAPE_CONCEPT.get());
                 output.accept(ModItems.SHOVEL_SHAPE_CONCEPT.get());
                 output.accept(ModItems.ADZE_SHAPE_CONCEPT.get());
                 output.accept(ModItems.PAXEL_SHAPE_CONCEPT.get());
 
-                // Shape Concepts (Others)
                 output.accept(ModItems.SPEAR_SHAPE_CONCEPT.get());
                 output.accept(ModItems.MACE_SHAPE_CONCEPT.get());
                 output.accept(ModItems.MORNING_STAR_SHAPE_CONCEPT.get());
@@ -256,7 +241,10 @@ public class ModCreativeTabs {
             }).build());
 
     private static boolean isLogisticsItem(Item item) {
-        String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getPath();
+        if (item == null) return false;
+        net.minecraft.resources.ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
+        if (key == null) return false;
+        String path = key.getPath();
         return path.contains("pipe") ||
                path.contains("pipeline") ||
                path.contains("conduit") ||
@@ -285,10 +273,10 @@ public class ModCreativeTabs {
                 output.accept(ModItems.GREATER_MATERIA_BLESSING_ITEM.get());
 
                 // Ores
-                output.accept(ModBlocks.ENTROPIC_ORE.get().asItem());
-                if (ModItems.VORPALITE_ORE_ITEM.get() != null) output.accept(ModItems.VORPALITE_ORE_ITEM.get());
-                if (ModItems.SORROWSTONE_ORE_ITEM.get() != null) output.accept(ModItems.SORROWSTONE_ORE_ITEM.get());
-                if (ModItems.UMBRALITE_ORE_ITEM.get() != null) output.accept(ModItems.UMBRALITE_ORE_ITEM.get());
+                output.accept(ModBlocks.ENTROPIC_ORE.get());
+                output.accept(ModItems.VORPALITE_ORE_ITEM.get());
+                output.accept(ModItems.SORROWSTONE_ORE_ITEM.get());
+                output.accept(ModItems.UMBRALITE_ORE_ITEM.get());
 
                 // Aeterium Crystals & Buds
                 output.accept(ModItems.AETERIUM_CRYSTAL_BLOCK_ITEM.get());
@@ -314,7 +302,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.MEDIUM_MORTISITE_BUD_ITEM.get());
                 output.accept(ModItems.SMALL_MORTISITE_BUD_ITEM.get());
 
-                // Flora & Plants
+                // Flora & Trees
                 output.accept(ModItems.RUBBER_LOG_ITEM.get());
                 output.accept(ModItems.RUBBER_WOOD_ITEM.get());
                 output.accept(ModItems.STRIPPED_RUBBER_LOG_ITEM.get());
@@ -362,23 +350,40 @@ public class ModCreativeTabs {
                 output.accept(ModItems.BARROW_MOSS_ITEM.get());
                 output.accept(ModItems.BARROW_MOSS_CARPET_ITEM.get());
                 output.accept(ModItems.BARROW_MOSS_FIBER.get());
+                output.accept(ModItems.ABYSSAL_WEEPROOT_ITEM.get());
+                output.accept(ModItems.ABYSSAL_TENDRIL.get());
+                output.accept(ModItems.BLOOD_ROOT_SUCCULENT_ITEM.get());
+                output.accept(ModItems.BLOOD_ROOT_PULP.get());
 
+                // Round 2 Flora Additions
+                output.accept(ModItems.VITAE_ORCHID_ITEM.get());
+                output.accept(ModItems.VITAE_PETAL.get());
+                output.accept(ModItems.SPORE_BURST_PUFFBALL_ITEM.get());
+                output.accept(ModItems.SPORE_PUFF.get());
+                output.accept(ModItems.FULGURITE_REED_ITEM.get());
+                output.accept(ModItems.GALE_THISTLE_ITEM.get());
+                output.accept(ModItems.GALE_SEED.get());
+                output.accept(ModItems.MIST_VEIL_MARSHMALLOW_ITEM.get());
+                output.accept(ModItems.MIST_VEIL_MARSHMALLOW_POD.get());
 
-
-
-
-
-
-
-
+                // Round 3 Flora Additions
+                output.accept(ModItems.AEGIS_SPIRE_ORCHID_ITEM.get());
+                output.accept(ModItems.TALL_AEGIS_SPIRE_ORCHID_ITEM.get());
+                output.accept(ModItems.AEGIS_SPIRE_PETAL.get());
+                output.accept(ModItems.PYRE_SPROUT_ITEM.get());
+                output.accept(ModItems.PYRE_SPROUT_SEED.get());
+                output.accept(ModItems.EMBER_PULP.get());
+                output.accept(ModItems.AURA_DRIFT_SEDGE_ITEM.get());
+                output.accept(ModItems.AURA_DRIFT_FIBER.get());
+                output.accept(ModItems.SPECTRAL_LANTERN_FLOWER_ITEM.get());
+                output.accept(ModItems.SPECTRAL_LANTERN_POD.get());
+                output.accept(ModItems.CINDER_SPORE_MUSHROOM_ITEM.get());
+                output.accept(ModItems.CINDER_SPORE_CAP.get());
 
                 // Dynamic Spectral Dye Category
                 for (var dyeSupplier : ModItems.SPECTRAL_DYES.values()) {
                     output.accept(dyeSupplier.get());
                 }
-
-
-
 
                 // Indigenous Fauna Spawn Eggs
                 output.accept(ModItems.GROT_SPAWN_EGG.get());
@@ -392,15 +397,16 @@ public class ModCreativeTabs {
             }).build());
 
     private static boolean isAestheticItem(Item item) {
-        return ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_ITEMS.stream().anyMatch(sup -> sup.get() == item);
+        if (item == null) return false;
+        return ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_ITEMS.stream().anyMatch(sup -> sup != null && sup.get() == item);
     }
 
     private static boolean isWorldItem(Item item) {
+        if (item == null) return false;
         net.minecraft.resources.ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
         if (key == null) return false;
         String path = key.getPath();
 
-        // Strictly exclude machine cores, glass, machines, and pipes
         if (path.contains("core") || path.contains("glass") || path.contains("machine") || path.contains("pipe")) {
             return false;
         }

@@ -12,17 +12,28 @@ public class SpectrumSparkleParticle extends SingleQuadParticle {
         super(level, x, y, z, (level.random.nextDouble() - 0.5) * 0.02, 0.02 + level.random.nextDouble() * 0.02, (level.random.nextDouble() - 0.5) * 0.02, sprites.first());
         this.sprites = sprites;
         this.friction = 0.96F;
-        this.gravity = -0.01F; // Slow gentle floating upward like EndRod
+        this.gravity = -0.01F;
         this.quadSize *= 0.75F;
         this.lifetime = 30 + this.random.nextInt(20);
         this.hasPhysics = false;
 
-        // Custom RGB color tint
-        this.rCol = (float) r;
-        this.gCol = (float) g;
-        this.bCol = (float) b;
+        if (r > 0 || g > 0 || b > 0) {
+            this.rCol = (float) r;
+            this.gCol = (float) g;
+            this.bCol = (float) b;
+        } else {
+            this.rCol = 1.0f;
+            this.gCol = 1.0f;
+            this.bCol = 1.0f;
+        }
 
+        this.alpha = 1.0f;
         this.setSpriteFromAge(sprites);
+    }
+
+    @Override
+    public int getLightColor(float partialTick) {
+        return 240;
     }
 
     @Override

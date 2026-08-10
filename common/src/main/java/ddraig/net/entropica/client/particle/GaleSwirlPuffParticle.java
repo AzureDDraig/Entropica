@@ -14,24 +14,21 @@ public class GaleSwirlPuffParticle extends SingleQuadParticle {
         super(level, x, y, z, (level.random.nextDouble() - 0.5) * 0.05, 0.02 + level.random.nextDouble() * 0.03, (level.random.nextDouble() - 0.5) * 0.05, sprites.first());
         this.sprites = sprites;
         this.friction = 0.98F;
-        this.gravity = -0.015F; // Gentle upward buoyancy
+        this.gravity = -0.015F;
         this.baseQuadSize = 0.12F + level.random.nextFloat() * 0.08F;
         this.quadSize = this.baseQuadSize;
         this.lifetime = 40 + this.random.nextInt(30);
         this.hasPhysics = false;
 
-        // Continuous rotational swirling
         this.rotSpeed = (this.random.nextBoolean() ? 1.0f : -1.0f) * (0.05f + this.random.nextFloat() * 0.08f);
         this.roll = this.random.nextFloat() * (float) (Math.PI * 2);
         this.oRoll = this.roll;
 
-        // Custom RGB color tint (or default Arid Essence cream gold)
         if (r > 0 || g > 0 || b > 0) {
             this.rCol = (float) r;
             this.gCol = (float) g;
             this.bCol = (float) b;
         } else {
-            // Default Arid Essence warm cream (#FDE68A)
             this.rCol = 0.99f;
             this.gCol = 0.90f;
             this.bCol = 0.54f;
@@ -39,6 +36,11 @@ public class GaleSwirlPuffParticle extends SingleQuadParticle {
 
         this.alpha = 1.0f;
         this.setSpriteFromAge(sprites);
+    }
+
+    @Override
+    public int getLightColor(float partialTick) {
+        return 240;
     }
 
     @Override
@@ -53,7 +55,6 @@ public class GaleSwirlPuffParticle extends SingleQuadParticle {
 
         super.tick();
 
-        // Expanding swirl puff with age & smooth fading
         float ageProgress = (float) this.age / (float) this.lifetime;
         this.quadSize = this.baseQuadSize * (1.0f + ageProgress * 0.6f);
         this.alpha = 1.0f - ageProgress;
