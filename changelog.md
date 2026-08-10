@@ -1,6 +1,15 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-14-44 (August 10, 2026 `./gradlew deploytoDev` Execution & Stale CurseForge Jar Cleanup)
+
+### 🚀 `./gradlew deploytoDev` Execution
+- **CurseForge Instance Deployment**: Executed `./gradlew deploytoDev` across all modules:
+  - Fabric JAR copied to: `C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods`
+  - NeoForge JAR copied to: `C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevNF/mods`
+- **Stale Build Cleanup**: Removed legacy `Entropica-fabric-0.0.1-build-001-a.jar` from `entropicadevFAB/mods` to prevent CurseForge launcher conflicts.
+
 ## Build 000-1-26-222-14-39 (August 10, 2026 Dev Deployment & Gradle Multi-Loader Jar Build)
+
 
 ### 🚀 Production JAR Compilation (`./gradlew build`)
 - **Fabric Mod Production Jar**: Compiled `Entropica-fabric-1.0.0.jar` (10.0 MB) in `fabric/build/libs/`.
