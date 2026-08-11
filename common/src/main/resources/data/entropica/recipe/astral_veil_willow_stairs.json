@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "P  ",
+    "PP ",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "item": "entropica:astral_veil_willow_planks"
+    }
+  },
+  "result": {
+    "count": 4,
+    "id": "entropica:astral_veil_willow_stairs"
+  }
+}

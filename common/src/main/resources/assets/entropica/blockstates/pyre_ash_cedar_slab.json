@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "entropica:block/pyre_ash_cedar_slab"
+    },
+    "type=top": {
+      "model": "entropica:block/pyre_ash_cedar_slab_top"
+    },
+    "type=double": {
+      "model": "entropica:block/pyre_ash_cedar_planks"
+    }
+  }
+}

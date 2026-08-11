@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "entropica:block/pyre_ash_cedar_wood"
+    },
+    "axis=z": {
+      "model": "entropica:block/pyre_ash_cedar_wood",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "entropica:block/pyre_ash_cedar_wood",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

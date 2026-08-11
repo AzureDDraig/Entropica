@@ -385,16 +385,63 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
-                "env_flora", "Flora & Vegetation", "ENVIRONMENT & NATURE",
-                "Rubber Trees and Viscanite Blossoms.",
+                "env_spore_cannon", "Spore-Cannon Puffball", "ENVIRONMENT & NATURE",
+                "Turret puffball launching toxic spore projectiles.",
                 "Overview & Description:\n" +
-                "Elemental vegetation including Rubber Trees and glowing Viscanite Blossoms.\n\n" +
-                "Origin & Obtaining:\n" +
-                "Harvested in forests and meadow biomes.\n\n" +
-                "Crafting Uses:\n" +
-                "Rubber latex is processed into conduit insulation; Viscanite Blossoms yield raw essences.",
-                "hub_environment", 0, new ItemStack(Items.OAK_LEAVES),
-                290f, 0.0f, a_env, false
+                "A crimson-purple puffball stalk with a glowing crater orifice that targets non-Nether entities.\n\n" +
+                "Special Properties:\n" +
+                "Scans an 8-block radius and launches Toxic Spore Projectiles dealing 2.0 HP damage, Poison II, and Nausea.",
+                "env_flora", 1, new ItemStack(ModBlocks.SPORE_CANNON_PUFFBALL.get()),
+                370f, 0.0f, a_env + 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_pyre_thorn_launcher", "Pyre-Thorn Launcher", "ENVIRONMENT & NATURE",
+                "Prickly magma stalk firing rapid ignited thorns.",
+                "Overview & Description:\n" +
+                "A lava-veined stalk topped with a magma pod that fires 3-round burst volleys of Ignited Magma Thorns.\n\n" +
+                "Special Properties:\n" +
+                "Scans a 10-block radius, dealing 1.5 HP piercing damage per thorn and setting targets on fire for 3s.",
+                "env_flora", 1, new ItemStack(ModBlocks.PYRE_THORN_LAUNCHER.get()),
+                370f, 0.0f, a_env + 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_spore_pitcher_plump", "Spore-Bearing Pitcher-Plump", "ENVIRONMENT & NATURE",
+                "Lime-green pitcher plant producing acidic spore nectar.",
+                "Overview & Description:\n" +
+                "Bulbous acidic pitcher plant that squirts acid fluid on contact, damaging armor durability and inflicting Poison II & Nausea.\n\n" +
+                "Crafting & Harvesting:\n" +
+                "Right-click with a Glass Bottle to harvest Acidic Spore Nectar.",
+                "env_flora", 1, new ItemStack(ModBlocks.SPORE_BEARING_PITCHER_PLUMP.get()),
+                370f, 0.0f, a_env + 0.35f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_blood_tendril_bramble", "Blood-Tendril Bramble", "ENVIRONMENT & NATURE",
+                "Sinister thorn vine cluster inflicting Sanguine Bleeding.",
+                "Overview & Description:\n" +
+                "Crimson-black thorn vine cluster that ensnares entities with Slowness III, deals 1.0 HP prick damage, and inflicts Sanguine Bleeding.",
+                "env_flora", 1, new ItemStack(ModBlocks.BLOOD_TENDRIL_BRAMBLE.get()),
+                370f, 0.0f, a_env + 0.45f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_soot_veil_blight_cap", "Soot-Veil Blight-Cap", "ENVIRONMENT & NATURE",
+                "Volatile ash mushroom erupting in soot clouds.",
+                "Overview & Description:\n" +
+                "Glowing violet-purple ash mushroom that explodes into a 3-block soot spore cloud when touched or broken without Shears.",
+                "env_flora", 1, new ItemStack(ModBlocks.SOOT_VEIL_BLIGHT_CAP.get()),
+                370f, 0.0f, a_env - 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_magma_grip_tendrils", "Magma-Grip Tendrils", "ENVIRONMENT & NATURE",
+                "Fiery-orange magma lichen trapping feet.",
+                "Overview & Description:\n" +
+                "Fiery magma lichen vines that trap feet with Slowness IV, ignite entities for 5s, and deal thermal fire damage.",
+                "env_flora", 1, new ItemStack(ModBlocks.MAGMA_GRIP_TENDRILS.get()),
+                370f, 0.0f, a_env - 0.35f, false
         ));
 
         ALL_NODES.add(new CodexNode(
@@ -455,6 +502,58 @@ public class CodexCategoryRegistry {
                 "Logs emit glowing golden resin seams (`#F59E0B`, `#FDE047`) and concentric honey rings.",
                 "env_flora", 0, new ItemStack(ModBlocks.AMBER_LOG.get()),
                 380f, 0.0f, a_env - 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_pyre_ash_cedar", "Pyre-Ash Cedar Wood Set", "ENVIRONMENT & NATURE",
+                "Volcanic tree species with charred dark spruce bark and glowing cinder-orange interior wood.",
+                "Overview & Description:\n" +
+                "A volcanic tree species native to basalt deltas and pyre slopes in Entropica. Its charred bark shelters a blazing cinder-orange interior that resists extreme heat.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in basalt deltas and volcanic pyre slopes, or grown from Pyre-Ash Cedar Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields charred timber frames, volcanic planks, stairs, slabs, vertical slabs, and fences.",
+                "env_flora", 0, new ItemStack(ModBlocks.PYRE_ASH_CEDAR_LOG.get()),
+                390f, 0.0f, a_env - 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_abyssal_spore_cypress", "Abyssal Spore-Cypress Wood Set", "ENVIRONMENT & NATURE",
+                "Subterranean fungal-tree species with dark indigo bark lined with bioluminescent cyan spore nodes.",
+                "Overview & Description:\n" +
+                "A subterranean fungal-tree species thriving in deep abyssal mycelial caverns. Its dark indigo bark is lined with bioluminescent cyan spore gills.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in abyssal mycelial caverns, or grown from Abyssal Spore-Cypress Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields bioluminescent cyan spore planks, timber frames, stairs, slabs, vertical slabs, and fences.",
+                "env_flora", 0, new ItemStack(ModBlocks.ABYSSAL_SPORE_CYPRESS_LOG.get()),
+                390f, 0.0f, a_env - 0.20f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_starlight_aether_birch", "Starlight Aether-Birch Wood Set", "ENVIRONMENT & NATURE",
+                "Ethereal celestial birch species with shimmering white-gold bark and dark golden-amber growth rings.",
+                "Overview & Description:\n" +
+                "An ethereal celestial birch species indigenous to high-altitude Veil glades. Its shimmering white-gold bark conducts ambient Materia streams.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Veil glades and starlight ridges, or grown from Starlight Aether-Birch Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields white-gold celestial planks, amber ring timber frames, stairs, slabs, vertical slabs, and fences.",
+                "env_flora", 0, new ItemStack(ModBlocks.STARLIGHT_AETHER_BIRCH_LOG.get()),
+                390f, 0.0f, a_env - 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_blood_root_iron_oak", "Blood-Root Iron-Oak Wood Set", "ENVIRONMENT & NATURE",
+                "Sinister iron-hard tree species growing in deadlands with crimson-black bark and ironwood heartwood.",
+                "Overview & Description:\n" +
+                "A sinister, iron-hard tree species growing in deadlands and blood-soaked soils. Its twisted crimson-black bark bleeds thick vital sap and forms ironwood timber frames.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in deadlands and blood-soaked soils, or grown from Blood-Root Iron-Oak Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields heavy ironwood planks, blood-root timber frames, stairs, slabs, vertical slabs, and fences.",
+                "env_flora", 0, new ItemStack(ModBlocks.BLOOD_ROOT_IRON_OAK_LOG.get()),
+                390f, 0.0f, a_env - 0.30f, false
         ));
 
 
@@ -882,6 +981,33 @@ public class CodexCategoryRegistry {
         ));
 
 
+
+        
+        ALL_NODES.add(new CodexNode(
+                "env_astral_veil_willow", "Astral-Veil Willow Tree", "ENVIRONMENT & NATURE",
+                "Mystical Netherin wood species with starlight bark furrows, indigo foliage, and 16x16 weeping tendril vines.",
+                "Overview & Description:\n" +
+                "The Astral-Veil Willow is a majestic Nether tree whose bark glows softly with Light Level 3 ambient Materia energy.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Found in celestial Nether groves or cultivated from Astral-Veil Willow Saplings using Bone Meal.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields Astral-Veil Willow Logs, Stripped Logs, 1:1 Oak-style Planks, Slabs, Stairs, Fences, and weeping Vines.",
+                "hub_environment", 2, new ItemStack(ModBlocks.ASTRAL_VEIL_WILLOW_LOG.get()),
+                300f, 0.0f, a_env - 0.45f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_void_blight_mangrove", "Void-Blight Mangrove Tree", "ENVIRONMENT & NATURE",
+                "Abyssal Nether stilt wood species with void-magenta bark, stilt roots, and bioluminescent fruit pods.",
+                "Overview & Description:\n" +
+                "The Void-Blight Mangrove grows in deep Nether chasms, supported by stilt roots and producing hanging Void-Blight Pods.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Harvested in abyssal Nether chasms or grown from Void-Blight Mangrove Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields Void-Blight Mangrove Logs, Stripped Logs, 1:1 Oak-style Planks, Roots, and consumable Void-Blight Pods.",
+                "hub_environment", 2, new ItemStack(ModBlocks.VOID_BLIGHT_MANGROVE_LOG.get()),
+                300f, 0.0f, a_env - 0.50f, false
+        ));
 
         ALL_NODES.add(new CodexNode(
                 "env_necrotic_rose_of_jericho", "Necrotic Rose-of-Jericho", "ENVIRONMENT & NATURE",

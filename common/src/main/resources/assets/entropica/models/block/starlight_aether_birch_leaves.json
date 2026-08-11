@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/leaves",
+  "textures": {
+    "all": "entropica:block/starlight_aether_birch_leaves"
+  }
+}

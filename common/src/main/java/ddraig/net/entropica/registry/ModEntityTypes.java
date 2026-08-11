@@ -15,8 +15,29 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 
+import ddraig.net.entropica.entity.MagmaThornEntity;
+import ddraig.net.entropica.entity.SporeProjectileEntity;
+
 public class ModEntityTypes {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Entropica.MODID, Registries.ENTITY_TYPE);
+
+    public static final RegistrySupplier<EntityType<SporeProjectileEntity>> SPORE_PROJECTILE =
+            ENTITY_TYPES.register("spore_projectile",
+                    () -> EntityType.Builder.<SporeProjectileEntity>of(SporeProjectileEntity::new, MobCategory.MISC)
+                            .sized(0.25F, 0.25F)
+                            .clientTrackingRange(8)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "spore_projectile"))));
+
+    public static final RegistrySupplier<EntityType<MagmaThornEntity>> MAGMA_THORN =
+            ENTITY_TYPES.register("magma_thorn",
+                    () -> EntityType.Builder.<MagmaThornEntity>of(MagmaThornEntity::new, MobCategory.MISC)
+                            .sized(0.25F, 0.25F)
+                            .clientTrackingRange(8)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                    ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "magma_thorn"))));
 
     public static final RegistrySupplier<EntityType<EssenceOrbEntity>> ESSENCE_ORB =
             ENTITY_TYPES.register("essence_orb",

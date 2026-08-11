@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "entropica:block/starlight_aether_birch_slab"
+    },
+    "type=top": {
+      "model": "entropica:block/starlight_aether_birch_slab_top"
+    },
+    "type=double": {
+      "model": "entropica:block/starlight_aether_birch_planks"
+    }
+  }
+}

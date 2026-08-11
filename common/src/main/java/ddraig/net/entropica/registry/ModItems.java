@@ -23,6 +23,8 @@ import dev.architectury.registry.registries.DeferredRegister;
 import java.util.List;
 
 public class ModItems {
+    
+
     public static class ItemsWrapper {
         private final DeferredRegister<Item> parent = DeferredRegister.create("entropica", Registries.ITEM);
 
@@ -67,6 +69,7 @@ public class ModItems {
 
     public static final RegistrySupplier<Item> MATERIA_BLESSING_SHARD = ITEMS.registerItem("materia_blessing_shard", Item::new);
     public static final RegistrySupplier<Item> RAW_RUBBER = ITEMS.registerItem("raw_rubber", Item::new);
+    public static final RegistrySupplier<Item> ACIDIC_SPORE_NECTAR = ITEMS.registerItem("acidic_spore_nectar", Item::new);
 
     // --- Aetheric Vision Equipment ---
     public static final RegistrySupplier<Item> AETHERIC_MONOCLE = ITEMS.registerItem("aetheric_monocle", properties -> new ddraig.net.entropica.item.AethericVisionItem(
@@ -534,6 +537,31 @@ public class ModItems {
     // --- Void Rifts Item ---
     public static final RegistrySupplier<BlockItem> VOID_RIFT_ITEM = ITEMS.registerItem("void_rift", properties -> new BlockItem(ModBlocks.VOID_RIFT.get(), properties));
 
+    
+    // --- Astral-Veil Willow & Void-Blight Mangrove BlockItems ---
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_LOG_ITEM = ITEMS.registerItem("astral_veil_willow_log", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_ASTRAL_VEIL_WILLOW_LOG_ITEM = ITEMS.registerItem("stripped_astral_veil_willow_log", properties -> new BlockItem(ModBlocks.STRIPPED_ASTRAL_VEIL_WILLOW_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_PLANKS_ITEM = ITEMS.registerItem("astral_veil_willow_planks", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_PLANKS.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_LEAVES_ITEM = ITEMS.registerItem("astral_veil_willow_leaves", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_LEAVES.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_SAPLING_ITEM = ITEMS.registerItem("astral_veil_willow_sapling", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_SAPLING.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_VINES_ITEM = ITEMS.registerItem("astral_veil_willow_vines", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_VINES.get(), properties));
+
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_LOG_ITEM = ITEMS.registerItem("void_blight_mangrove_log", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_VOID_BLIGHT_MANGROVE_LOG_ITEM = ITEMS.registerItem("stripped_void_blight_mangrove_log", properties -> new BlockItem(ModBlocks.STRIPPED_VOID_BLIGHT_MANGROVE_LOG.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_PLANKS_ITEM = ITEMS.registerItem("void_blight_mangrove_planks", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_PLANKS.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_LEAVES_ITEM = ITEMS.registerItem("void_blight_mangrove_leaves", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_LEAVES.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_ROOT_ITEM = ITEMS.registerItem("void_blight_mangrove_root", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_ROOT.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_SAPLING_ITEM = ITEMS.registerItem("void_blight_mangrove_sapling", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_SAPLING.get(), properties));
+    public static final RegistrySupplier<Item> VOID_BLIGHT_POD = ITEMS.registerItem("void_blight_pod", properties -> new Item(properties.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(4).saturationModifier(0.6f).build())));
+
+    // --- Nether Flora BlockItems ---
+    public static final RegistrySupplier<BlockItem> SPORE_CANNON_PUFFBALL_ITEM = ITEMS.registerItem("spore_cannon_puffball", properties -> new BlockItem(ModBlocks.SPORE_CANNON_PUFFBALL.get(), properties));
+    public static final RegistrySupplier<BlockItem> PYRE_THORN_LAUNCHER_ITEM = ITEMS.registerItem("pyre_thorn_launcher", properties -> new BlockItem(ModBlocks.PYRE_THORN_LAUNCHER.get(), properties));
+    public static final RegistrySupplier<BlockItem> SPORE_BEARING_PITCHER_PLUMP_ITEM = ITEMS.registerItem("spore_bearing_pitcher_plump", properties -> new BlockItem(ModBlocks.SPORE_BEARING_PITCHER_PLUMP.get(), properties));
+    public static final RegistrySupplier<BlockItem> BLOOD_TENDRIL_BRAMBLE_ITEM = ITEMS.registerItem("blood_tendril_bramble", properties -> new BlockItem(ModBlocks.BLOOD_TENDRIL_BRAMBLE.get(), properties));
+    public static final RegistrySupplier<BlockItem> SOOT_VEIL_BLIGHT_CAP_ITEM = ITEMS.registerItem("soot_veil_blight_cap", properties -> new BlockItem(ModBlocks.SOOT_VEIL_BLIGHT_CAP.get(), properties));
+    public static final RegistrySupplier<BlockItem> MAGMA_GRIP_TENDRILS_ITEM = ITEMS.registerItem("magma_grip_tendrils", properties -> new BlockItem(ModBlocks.MAGMA_GRIP_TENDRILS.get(), properties));
+
     // --- Flora & Wood BlockItems ---
     public static final RegistrySupplier<BlockItem> RUBBER_LOG_ITEM = ITEMS.registerItem("rubber_log", properties -> new BlockItem(ModBlocks.RUBBER_LOG.get(), properties));
     public static final RegistrySupplier<BlockItem> RUBBER_WOOD_ITEM = ITEMS.registerItem("rubber_wood", properties -> new BlockItem(ModBlocks.RUBBER_WOOD.get(), properties));
@@ -895,4 +923,103 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
             RUNE_HAGALAZ, RUNE_NAUTHIZ, RUNE_ISA, RUNE_JERA, RUNE_EIHWAZ, RUNE_PERTHRO, RUNE_ALGIZ, RUNE_SOWILO,
             RUNE_TIWAZ, RUNE_BERKANO, RUNE_EHWAZ, RUNE_MANNAZ, RUNE_LAGUZ, RUNE_INGWAZ, RUNE_DAGAZ, RUNE_OTHALA
     );
+
+    // --- 5 Wood Suite Expansion Items ---
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_WOOD_ITEM = ITEMS.registerItem("astral_veil_willow_wood", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_ASTRAL_VEIL_WILLOW_WOOD_ITEM = ITEMS.registerItem("stripped_astral_veil_willow_wood", properties -> new BlockItem(ModBlocks.STRIPPED_ASTRAL_VEIL_WILLOW_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_STAIRS_ITEM = ITEMS.registerItem("astral_veil_willow_stairs", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_STAIRS.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_SLAB_ITEM = ITEMS.registerItem("astral_veil_willow_slab", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_VERTICAL_SLAB_ITEM = ITEMS.registerItem("astral_veil_willow_vertical_slab", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_VERTICAL_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_FENCE_ITEM = ITEMS.registerItem("astral_veil_willow_fence", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_FENCE.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_FENCE_GATE_ITEM = ITEMS.registerItem("astral_veil_willow_fence_gate", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_FENCE_GATE.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_BUTTON_ITEM = ITEMS.registerItem("astral_veil_willow_button", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_BUTTON.get(), properties));
+    public static final RegistrySupplier<BlockItem> ASTRAL_VEIL_WILLOW_PRESSURE_PLATE_ITEM = ITEMS.registerItem("astral_veil_willow_pressure_plate", properties -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_PRESSURE_PLATE.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_WOOD_ITEM = ITEMS.registerItem("void_blight_mangrove_wood", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> STRIPPED_VOID_BLIGHT_MANGROVE_WOOD_ITEM = ITEMS.registerItem("stripped_void_blight_mangrove_wood", properties -> new BlockItem(ModBlocks.STRIPPED_VOID_BLIGHT_MANGROVE_WOOD.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_STAIRS_ITEM = ITEMS.registerItem("void_blight_mangrove_stairs", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_STAIRS.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_SLAB_ITEM = ITEMS.registerItem("void_blight_mangrove_slab", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_VERTICAL_SLAB_ITEM = ITEMS.registerItem("void_blight_mangrove_vertical_slab", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_VERTICAL_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_FENCE_ITEM = ITEMS.registerItem("void_blight_mangrove_fence", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_FENCE.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_FENCE_GATE_ITEM = ITEMS.registerItem("void_blight_mangrove_fence_gate", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_FENCE_GATE.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_BUTTON_ITEM = ITEMS.registerItem("void_blight_mangrove_button", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_BUTTON.get(), properties));
+    public static final RegistrySupplier<BlockItem> VOID_BLIGHT_MANGROVE_PRESSURE_PLATE_ITEM = ITEMS.registerItem("void_blight_mangrove_pressure_plate", properties -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_PRESSURE_PLATE.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_STAIRS_ITEM = ITEMS.registerItem("rubber_stairs", properties -> new BlockItem(ModBlocks.RUBBER_STAIRS.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_SLAB_ITEM = ITEMS.registerItem("rubber_slab", properties -> new BlockItem(ModBlocks.RUBBER_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_VERTICAL_SLAB_ITEM = ITEMS.registerItem("rubber_vertical_slab", properties -> new BlockItem(ModBlocks.RUBBER_VERTICAL_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_FENCE_ITEM = ITEMS.registerItem("rubber_fence", properties -> new BlockItem(ModBlocks.RUBBER_FENCE.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_FENCE_GATE_ITEM = ITEMS.registerItem("rubber_fence_gate", properties -> new BlockItem(ModBlocks.RUBBER_FENCE_GATE.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_BUTTON_ITEM = ITEMS.registerItem("rubber_button", properties -> new BlockItem(ModBlocks.RUBBER_BUTTON.get(), properties));
+    public static final RegistrySupplier<BlockItem> RUBBER_PRESSURE_PLATE_ITEM = ITEMS.registerItem("rubber_pressure_plate", properties -> new BlockItem(ModBlocks.RUBBER_PRESSURE_PLATE.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_STAIRS_ITEM = ITEMS.registerItem("silver_pine_stairs", properties -> new BlockItem(ModBlocks.SILVER_PINE_STAIRS.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_SLAB_ITEM = ITEMS.registerItem("silver_pine_slab", properties -> new BlockItem(ModBlocks.SILVER_PINE_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_VERTICAL_SLAB_ITEM = ITEMS.registerItem("silver_pine_vertical_slab", properties -> new BlockItem(ModBlocks.SILVER_PINE_VERTICAL_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_FENCE_ITEM = ITEMS.registerItem("silver_pine_fence", properties -> new BlockItem(ModBlocks.SILVER_PINE_FENCE.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_FENCE_GATE_ITEM = ITEMS.registerItem("silver_pine_fence_gate", properties -> new BlockItem(ModBlocks.SILVER_PINE_FENCE_GATE.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_BUTTON_ITEM = ITEMS.registerItem("silver_pine_button", properties -> new BlockItem(ModBlocks.SILVER_PINE_BUTTON.get(), properties));
+    public static final RegistrySupplier<BlockItem> SILVER_PINE_PRESSURE_PLATE_ITEM = ITEMS.registerItem("silver_pine_pressure_plate", properties -> new BlockItem(ModBlocks.SILVER_PINE_PRESSURE_PLATE.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_STAIRS_ITEM = ITEMS.registerItem("amber_stairs", properties -> new BlockItem(ModBlocks.AMBER_STAIRS.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_SLAB_ITEM = ITEMS.registerItem("amber_slab", properties -> new BlockItem(ModBlocks.AMBER_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_VERTICAL_SLAB_ITEM = ITEMS.registerItem("amber_vertical_slab", properties -> new BlockItem(ModBlocks.AMBER_VERTICAL_SLAB.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_FENCE_ITEM = ITEMS.registerItem("amber_fence", properties -> new BlockItem(ModBlocks.AMBER_FENCE.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_FENCE_GATE_ITEM = ITEMS.registerItem("amber_fence_gate", properties -> new BlockItem(ModBlocks.AMBER_FENCE_GATE.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_BUTTON_ITEM = ITEMS.registerItem("amber_button", properties -> new BlockItem(ModBlocks.AMBER_BUTTON.get(), properties));
+    public static final RegistrySupplier<BlockItem> AMBER_PRESSURE_PLATE_ITEM = ITEMS.registerItem("amber_pressure_plate", properties -> new BlockItem(ModBlocks.AMBER_PRESSURE_PLATE.get(), properties));
+
+    // --- 4 Tree Families BlockItems (56 Items) ---
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_LOG = ITEMS.register("pyre_ash_cedar_log", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_PYRE_ASH_CEDAR_LOG = ITEMS.register("stripped_pyre_ash_cedar_log", name -> new BlockItem(ModBlocks.STRIPPED_PYRE_ASH_CEDAR_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_WOOD = ITEMS.register("pyre_ash_cedar_wood", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_PYRE_ASH_CEDAR_WOOD = ITEMS.register("stripped_pyre_ash_cedar_wood", name -> new BlockItem(ModBlocks.STRIPPED_PYRE_ASH_CEDAR_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_PLANKS = ITEMS.register("pyre_ash_cedar_planks", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_PLANKS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_LEAVES = ITEMS.register("pyre_ash_cedar_leaves", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_LEAVES.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_SAPLING = ITEMS.register("pyre_ash_cedar_sapling", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_SAPLING.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_STAIRS = ITEMS.register("pyre_ash_cedar_stairs", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_STAIRS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_SLAB = ITEMS.register("pyre_ash_cedar_slab", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_VERTICAL_SLAB = ITEMS.register("pyre_ash_cedar_vertical_slab", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_VERTICAL_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_FENCE = ITEMS.register("pyre_ash_cedar_fence", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_FENCE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_FENCE_GATE = ITEMS.register("pyre_ash_cedar_fence_gate", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_FENCE_GATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_BUTTON = ITEMS.register("pyre_ash_cedar_button", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_BUTTON.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_PRESSURE_PLATE = ITEMS.register("pyre_ash_cedar_pressure_plate", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_PRESSURE_PLATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_LOG = ITEMS.register("abyssal_spore_cypress_log", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_ABYSSAL_SPORE_CYPRESS_LOG = ITEMS.register("stripped_abyssal_spore_cypress_log", name -> new BlockItem(ModBlocks.STRIPPED_ABYSSAL_SPORE_CYPRESS_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_WOOD = ITEMS.register("abyssal_spore_cypress_wood", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_ABYSSAL_SPORE_CYPRESS_WOOD = ITEMS.register("stripped_abyssal_spore_cypress_wood", name -> new BlockItem(ModBlocks.STRIPPED_ABYSSAL_SPORE_CYPRESS_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_PLANKS = ITEMS.register("abyssal_spore_cypress_planks", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_PLANKS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_LEAVES = ITEMS.register("abyssal_spore_cypress_leaves", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_LEAVES.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_SAPLING = ITEMS.register("abyssal_spore_cypress_sapling", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_SAPLING.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_STAIRS = ITEMS.register("abyssal_spore_cypress_stairs", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_STAIRS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_SLAB = ITEMS.register("abyssal_spore_cypress_slab", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_VERTICAL_SLAB = ITEMS.register("abyssal_spore_cypress_vertical_slab", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_VERTICAL_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_FENCE = ITEMS.register("abyssal_spore_cypress_fence", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_FENCE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_FENCE_GATE = ITEMS.register("abyssal_spore_cypress_fence_gate", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_FENCE_GATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_BUTTON = ITEMS.register("abyssal_spore_cypress_button", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_BUTTON.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_PRESSURE_PLATE = ITEMS.register("abyssal_spore_cypress_pressure_plate", name -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_PRESSURE_PLATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_LOG = ITEMS.register("starlight_aether_birch_log", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_STARLIGHT_AETHER_BIRCH_LOG = ITEMS.register("stripped_starlight_aether_birch_log", name -> new BlockItem(ModBlocks.STRIPPED_STARLIGHT_AETHER_BIRCH_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_WOOD = ITEMS.register("starlight_aether_birch_wood", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_STARLIGHT_AETHER_BIRCH_WOOD = ITEMS.register("stripped_starlight_aether_birch_wood", name -> new BlockItem(ModBlocks.STRIPPED_STARLIGHT_AETHER_BIRCH_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_PLANKS = ITEMS.register("starlight_aether_birch_planks", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_PLANKS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_LEAVES = ITEMS.register("starlight_aether_birch_leaves", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_LEAVES.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_SAPLING = ITEMS.register("starlight_aether_birch_sapling", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_SAPLING.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_STAIRS = ITEMS.register("starlight_aether_birch_stairs", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_STAIRS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_SLAB = ITEMS.register("starlight_aether_birch_slab", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_VERTICAL_SLAB = ITEMS.register("starlight_aether_birch_vertical_slab", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_VERTICAL_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_FENCE = ITEMS.register("starlight_aether_birch_fence", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_FENCE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_FENCE_GATE = ITEMS.register("starlight_aether_birch_fence_gate", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_FENCE_GATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_BUTTON = ITEMS.register("starlight_aether_birch_button", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_BUTTON.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_PRESSURE_PLATE = ITEMS.register("starlight_aether_birch_pressure_plate", name -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_PRESSURE_PLATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_LOG = ITEMS.register("blood_root_iron_oak_log", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_BLOOD_ROOT_IRON_OAK_LOG = ITEMS.register("stripped_blood_root_iron_oak_log", name -> new BlockItem(ModBlocks.STRIPPED_BLOOD_ROOT_IRON_OAK_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_WOOD = ITEMS.register("blood_root_iron_oak_wood", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_BLOOD_ROOT_IRON_OAK_WOOD = ITEMS.register("stripped_blood_root_iron_oak_wood", name -> new BlockItem(ModBlocks.STRIPPED_BLOOD_ROOT_IRON_OAK_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_PLANKS = ITEMS.register("blood_root_iron_oak_planks", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_PLANKS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_LEAVES = ITEMS.register("blood_root_iron_oak_leaves", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_LEAVES.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_SAPLING = ITEMS.register("blood_root_iron_oak_sapling", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_SAPLING.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_STAIRS = ITEMS.register("blood_root_iron_oak_stairs", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_STAIRS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_SLAB = ITEMS.register("blood_root_iron_oak_slab", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_VERTICAL_SLAB = ITEMS.register("blood_root_iron_oak_vertical_slab", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_VERTICAL_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_FENCE = ITEMS.register("blood_root_iron_oak_fence", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_FENCE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_FENCE_GATE = ITEMS.register("blood_root_iron_oak_fence_gate", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_FENCE_GATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_BUTTON = ITEMS.register("blood_root_iron_oak_button", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_BUTTON.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_PRESSURE_PLATE = ITEMS.register("blood_root_iron_oak_pressure_plate", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_PRESSURE_PLATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
 }

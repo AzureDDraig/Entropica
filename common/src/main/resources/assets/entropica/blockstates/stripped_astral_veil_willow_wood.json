@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "entropica:block/stripped_astral_veil_willow_wood"
+    },
+    "axis=z": {
+      "model": "entropica:block/stripped_astral_veil_willow_wood",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "entropica:block/stripped_astral_veil_willow_wood",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

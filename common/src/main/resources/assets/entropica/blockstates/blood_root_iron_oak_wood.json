@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "entropica:block/blood_root_iron_oak_wood"
+    },
+    "axis=z": {
+      "model": "entropica:block/blood_root_iron_oak_wood",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "entropica:block/blood_root_iron_oak_wood",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

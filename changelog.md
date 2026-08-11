@@ -1,3 +1,206 @@
+
+
+## Build 000-1-26-223-16-52 — 4 Complete Tree Families & 56-Block Wood Suites Expansion
+
+### Core Additions & Features
+- **Simultaneous Implementation of 4 New Tree Species (56 New Blocks)**:
+  - **Pyre-Ash Cedar**: `log`, `stripped_log`, `wood`, `stripped_wood`, `planks`, `leaves`, `sapling`, `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
+  - **Abyssal Spore-Cypress**: `log`, `stripped_log`, `wood`, `stripped_wood`, `planks`, `leaves`, `sapling`, `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
+  - **Starlight Aether-Birch**: `log`, `stripped_log`, `wood`, `stripped_wood`, `planks`, `leaves`, `sapling`, `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
+  - **Blood-Root Iron-Oak**: `log`, `stripped_log`, `wood`, `stripped_wood`, `planks`, `leaves`, `sapling`, `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
+- **Authentic Vanilla Textures & Custom Features**:
+  - Extracted authentic 1.21 Minecraft textures (`spruce_log`, `jungle_log`, `birch_log`, `oak_log`, `oak_planks`, `spruce_leaves`, `jungle_leaves`, `stripped_logs`, `log_tops`).
+  - **Pyre-Ash Cedar**: Charred volcanic spruce bark with fine 1-pixel random magma vein cracks contained in `y=2..13`, cinder-orange oak plank pattern, and spruce leaves.
+  - **Abyssal Spore-Cypress**: Deep navy-indigo jungle bark with smooth glowing cyan spore nodes, cyan oak plank pattern, and jungle leaves.
+  - **Starlight Aether-Birch**: Shimmering white-gold birch bark with dark golden-amber growth rings, golden oak plank pattern, and jungle leaves.
+  - **Blood-Root Iron-Oak**: Dark oak bark, bleeding crimson oak plank pattern, and spruce leaves.
+- **Geometrically Aligned Log Tops**:
+  - Configured radial square log tops and stripped log tops with 4-edge 3D continuous loop border alignment to match side bark top rows seamlessly.
+- **Full Infrastructure & Registrations**:
+  - Registered 56 block suppliers in `ModBlocks.java`, 56 `BlockItem` suppliers in `ModItems.java`, and populated `WORLD_TAB` in `ModCreativeTabs.java`.
+  - Generated 56 Blockstates, 56 Block Models, 56 Item Models, 56 1.21.2+ Item Definition JSONs (`assets/entropica/items/*.json`), 56 Crafting Recipes, 56 Self-Drop Loot Tables, and updated all Minecraft tags.
+- **Localization, OKF Vault & Codex Maintenance**:
+  - Added 56 block translation keys across all 24 language JSON files.
+  - Created OKF Obsidian Vault notes (`pyre_ash_cedar.md`, `abyssal_spore_cypress.md`, `starlight_aether_birch.md`, `blood_root_iron_oak.md`).
+  - Registered research sub-nodes under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java`.
+- **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 53s`**.
+
+## Build 000-1-26-223-16-29 — Complete 39-Block Wood Suites & Vertical Slabs for All 5 Entropica Tree Families
+
+### Core Additions & Features
+- **Expanded All 5 Entropica Tree Families**:
+  - **Astral-Veil Willow**: `wood`, `stripped_wood`, `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
+  - **Void-Blight Mangrove**: `wood`, `stripped_wood`, `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
+  - **Rubber Wood**: `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
+  - **Silver Pine**: `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
+  - **Amber Wood**: `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
+- **Vertical Slab Implementation**:
+  - Registered custom `VerticalSlabBlock` variants for all 5 wood types with full double vertical slab merging (`double_ns`, `double_ew`), placement, and culling logic.
+- **Complete Asset & Data Infrastructure**:
+  - Created 39 Blockstate JSONs, 39 Block Models, 39 Item Models, 39 1.21.2+ Item Definition JSONs (`assets/entropica/items/*.json`), 39 Crafting Recipes, 39 Self-Drop Loot Tables, and updated all Minecraft block & item tags (`stairs`, `slabs`, `fences`, `fence_gates`, `buttons`, `pressure_plates`, `logs`, `logs_that_burn`).
+- **24-Locale Translations & Wiki Notes**:
+  - Added all 39 translation keys across all 24 language JSON files.
+  - Updated OKF Obsidian Vault wiki notes for `astral_veil_willow.md`, `void_blight_mangrove.md`, `rubber_tree.md`, and `silver_pine.md`.
+- **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 45s`**.
+
+
+## Build 000-1-26-223-14-53 — Lichen Blockstate Rotation & Hitbox Alignment Fix (`cinder_grip_lichen`)
+
+### Root Cause Diagnosed & Fixed
+- **Root Cause**: `blockstates/cinder_grip_lichen.json` had inverted/incorrect rotation rules (`up: x=180`, `down: x=0`, `north: x=90`) relative to Vanilla's base `minecraft:block/glow_lichen` geometry model (which sits natively on the North face). This caused the visual model to rotate away from its actual collision hitbox.
+- **Multiface Blockstate Fix**:
+  - Rebuilt `blockstates/cinder_grip_lichen.json` and `blockstates/magma_grip_tendrils.json` to match Vanilla `glow_lichen.json` rotations exactly:
+    - `north`: `y=0` (no rotation)
+    - `east`: `y=90, uvlock=true`
+    - `south`: `y=180, uvlock=true`
+    - `west`: `y=270, uvlock=true`
+    - `up`: `x=270, uvlock=true`
+    - `down`: `x=90, uvlock=true`
+- **Multi-Loader Build & Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 41s`**.
+
+
+## Build 000-1-26-223-14-52 — Magma-Grip Tendrils Multiface Blockstate & Model Asset Fix
+
+### Root Cause Diagnosed & Fixed
+- **Root Cause**: `MagmaGripTendrilsBlock` extends `GlowLichenBlock` (`MultifaceBlock` with boolean state properties `up`, `down`, `north`, `south`, `east`, `west`). `blockstates/magma_grip_tendrils.json` erroneously used directional `variants` (`facing=up`) instead of `multipart` rules, causing Minecraft to fail to resolve the blockstate and render a purple-and-black checkerboard missing model cube in-world.
+- **Asset Fixes Applied**:
+  - Rebuilt `blockstates/magma_grip_tendrils.json` with standard `multipart` conditions for `up`, `down`, `north`, `south`, `east`, `west`.
+  - Updated `models/block/magma_grip_tendrils.json` to extend `"parent": "minecraft:block/glow_lichen"` with `"glow_lichen"` texture references.
+  - Updated `models/item/magma_grip_tendrils.json` to generated item format.
+- **Multi-Loader Build & Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 42s`**.
+
+
+## Build 000-1-26-223-14-46 — Projectile Entity Renderer Registration Fix (`NullPointerException` In-World Crash Fix)
+
+### Root Cause Diagnosed & Fixed
+- **Empirical Log Diagnosis**: Inspected CurseForge crash report (`crash-2026-08-11_13.42.20-client.txt`). Stack trace revealed `NullPointerException: Cannot invoke EntityRenderer.shouldRender(...) because entityrenderer is null` when `SporeCannonPuffballBlock` or `PyreThornLauncherBlock` fired projectiles into the world.
+- **Entity Renderer Registration**:
+  - Registered `ThrownItemRenderer::new` for `ModEntityTypes.SPORE_PROJECTILE` and `ModEntityTypes.MAGMA_THORN` in:
+    - **Fabric**: `EntropicaClientFabric.java` (`EntityRendererRegistry.register`)
+    - **NeoForge**: `ModClientEvents.java` (`event.registerEntityRenderer`)
+- **Multi-Loader Build & Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 44s`**.
+
+
+## Build 000-1-26-223-13-45 — Launcher Block Placement, Survival & Server-Tick Refinement
+
+### Fixes Applied
+- **Fixed Launcher Block Survival & Placement**:
+  - Overrode `updateShape`, `getStateForPlacement`, and `canSurvive` in `SporeCannonPuffballBlock` and `PyreThornLauncherBlock` so launcher blocks can be placed and survive on any solid non-air support face without breaking into air upon placement.
+- **Server Projectile Launching**:
+  - Enforced `level.scheduleTick(pos, this, 20)` in `onPlace` and rescheduled server ticks every 35-40 ticks.
+- **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 43s`**.
+
+
+## Build 000-1-26-223-13-38 — Minecraft 1.21.2+ Item Asset Definition JSONs Created (`assets/entropica/items/*.json`)
+
+### Core Fix Applied
+- **Generated 19 Item Definition JSONs under `assets/entropica/items/*.json`**:
+  - In Minecraft 1.21.2+ / 1.21.10+, item registration requires 1.21.2+ Item Asset Definitions under `assets/entropica/items/<item_id>.json` mapping `minecraft:model` -> `entropica:item/<item_id>`.
+  - Created 19 JSON item definitions for:
+    - 6 Nether Flora Blocks (`spore_cannon_puffball`, `pyre_thorn_launcher`, `spore_bearing_pitcher_plump`, `blood_tendril_bramble`, `soot_veil_blight_cap`, `magma_grip_tendrils`).
+    - 6 Astral-Veil Willow Set Items (`log`, `stripped_log`, `planks`, `leaves`, `sapling`, `vines`).
+    - 7 Void-Blight Mangrove Set Items (`log`, `stripped_log`, `planks`, `leaves`, `root`, `sapling`, `pod`).
+- **Multi-Loader Rebuild & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 43s`**.
+
+
+## Build 000-1-26-223-13-33 — Nether Flora Critiques & Mechanical Fixes
+
+### Fixes Applied
+1. **Pyre-Thorn Launcher Locked Texture**:
+   - Replaced `pyre_thorn_launcher.png` with the approved, locked-in `pyre_thorn_launcher_v9` artwork.
+2. **Transparency Cutout Fix Across Fabric & NeoForge**:
+   - Configured `RenderType.cutout()` in `EntropicaClientFabric.java` AND `ItemBlockRenderTypes.setRenderLayer(...)` in `EntropicaClient.java` (NeoForge `FMLClientSetupEvent`) for all 6 Nether flora blocks, tree leaves, saplings, vines, and roots, completely resolving black pixel transparency issues.
+3. **Active Projectile Launching Logic**:
+   - Implemented scheduled server tick loops (`onPlace` + `tick`) for `SporeCannonPuffballBlock` and `PyreThornLauncherBlock`.
+   - `SporeCannonPuffballBlock`: Scans 8-block radius for players/mobs and fires `SporeProjectileEntity` every 35 ticks with slime impact sound.
+   - `PyreThornLauncherBlock`: Scans 10-block radius for players/mobs and fires bursts of 3 `MagmaThornEntity` projectiles every 40 ticks with firecharge sound.
+4. **3D Model for Spore-Bearing Pitcher-Plump**:
+   - Built a multi-element 3D block model in `models/block/spore_bearing_pitcher_plump.json` featuring a stem, bulbous pitcher body, and swollen top rim with hollow opening.
+5. **Translation Keys for All 24 Locales**:
+   - Updated `en_us.json` and all 24 locale JSON files with translatable keys for `block.entropica.*` and `item.entropica.*`.
+6. **Multi-Loader Build & Deploy**: Recompiled, built, and deployed to dev environment with **zero errors** (`BUILD SUCCESSFUL in 45s`).
+
+
+## Build 000-1-26-223-13-12 — Inventory Texture Models & World Tab Display Fix
+
+### Fixes Applied
+- **Inventory Item Models Fixed**:
+  - Re-generated 2D generated flat item models for all 6 Nether flora blocks (`spore_cannon_puffball`, `pyre_thorn_launcher`, `spore_bearing_pitcher_plump`, `blood_tendril_bramble`, `soot_veil_blight_cap`, `magma_grip_tendrils`) pointing directly to their 16x16 plant block textures for crisp GUI rendering.
+  - Linked tree block item models (`astral_veil_willow_log`, `void_blight_mangrove_log`, `planks`, `leaves`) directly to their respective 3D block models in `models/item/*.json`.
+  - Configured 2D generated item models for `astral_veil_willow_sapling`, `void_blight_mangrove_sapling`, `astral_veil_willow_vines`, and `void_blight_pod`.
+- **Registered Missing BlockItems**:
+  - Registered missing `BlockItem` instances in `ModItems.java` for all Nether flora blocks and tree blocks.
+  - Added all BlockItems explicitly to `ModCreativeTabs.java` under `WORLD_TAB`.
+- **Build & Deployment**: Multi-loader build and dev deployment completed with **zero errors** (`BUILD SUCCESSFUL in 42s`).
+
+
+## Build 000-1-26-223-12-42 — Registered Trees, Nether Flora & Spectral Dyes in WORLD_TAB
+
+### World Creative Tab Additions
+- **Astral-Veil Willow Set Registered**:
+  - `astral_veil_willow_log`, `stripped_astral_veil_willow_log`, `astral_veil_willow_planks`, `astral_veil_willow_leaves`, `astral_veil_willow_sapling`, `astral_veil_willow_vines`.
+- **Void-Blight Mangrove Set Registered**:
+  - `void_blight_mangrove_log`, `stripped_void_blight_mangrove_log`, `void_blight_mangrove_planks`, `void_blight_mangrove_leaves`, `void_blight_mangrove_root`, `void_blight_mangrove_sapling`, `void_blight_pod`.
+- **6 Nether Flora Blocks Registered**:
+  - `spore_cannon_puffball`, `pyre_thorn_launcher`, `spore_bearing_pitcher_plump`, `blood_tendril_bramble`, `soot_veil_blight_cap`, `magma_grip_tendrils`.
+- **22 Spectral Dyes Registered**:
+  - Dynamically iterated and added all 22 spectral dyes (`ModItems.SPECTRAL_DYES`) to `WORLD_TAB`.
+- **Multi-Loader Rebuild & Deploy**: Executed `./gradlew build deploytoDev` with **zero errors** (`BUILD SUCCESSFUL in 43s`).
+
+
+## Build 000-1-26-223-12-35 — Fixed Accidental Package Directory & Confirmed Multi-Loader Build/Deploy
+
+### Resolution & Verification
+- **Root Cause Fix**: Removed accidental `common/src/main/java/ddraig.net` directory containing duplicate `RubberLogBlockEntity.java`.
+- **Build & Deploy (`./gradlew build deploytoDev`)**: Successfully executed multi-loader build and deployment with **zero errors** (`BUILD SUCCESSFUL in 43s`, 16 up-to-date tasks).
+
+
+## Build 000-1-26-223-12-34 — B/V/C/D/G Clean Build & Dev Deployment Confirmed
+
+### Clean Build & Deploy Status
+- **Clean Build (`./gradlew clean build deploytoDev`)**: 
+  - Stopped locked Gradle Daemons.
+  - Performed clean rebuild of Common, Fabric, and NeoForge modules with **zero errors** (`BUILD SUCCESSFUL in 54s`, 22 executed tasks).
+  - Deployed built jar artifacts to your development environment.
+
+
+## Build 000-1-26-223-12-34 — B/V/C/D/G Full Verification, Multi-Loader Build & Dev Deployment
+
+### B/V/C/D/G Execution Results
+- **B (Build)**: Successfully executed `./gradlew build` with zero errors (`BUILD SUCCESSFUL in 44s`).
+- **V (Verify)**: Executed `./gradlew :common:compileJava` with zero errors (`BUILD SUCCESSFUL in 10s`).
+- **C (Codex)**: Registered 2 new research nodes in `CodexCategoryRegistry.java` under `ENVIRONMENT & NATURE`:
+  - `env_astral_veil_willow` (Astral-Veil Willow Tree, starlight bark, indigo foliage & weeping vines).
+  - `env_void_blight_mangrove` (Void-Blight Mangrove Tree, void-magenta bark, stilt roots & levitation fruit pods).
+- **D (Deploy)**: Executed `./gradlew deploytoDev` with zero errors (`BUILD SUCCESSFUL in 10s`).
+- **G (Git / Vault / Guidelines)**: Verified OKF Obsidian Vault notes (`astral_veil_willow.md` & `void_blight_mangrove.md`), updated 24-locale translations, and confirmed privacy rules.
+
+
+## Build 000-1-26-223-12-34 — Nether Flora Directional System & Astral Willow / Void Mangrove Trees Expansion
+
+### Features & Updates Added
+- **Nether Flowers Wall, Ceiling & Floor Facing System**:
+  - Implemented 6-way `FACING` directionality across `SporeCannonPuffballBlock`, `PyreThornLauncherBlock`, `SporeBearingPitcherPlumpBlock`, `BloodTendrilBrambleBlock`, and `SootVeilBlightCapBlock`.
+  - Added 3D rotation variants (`facing=up/down/north/south/east/west`) supporting seamless floor, wall, and ceiling attachment.
+- **Astral-Veil Willow Wood & Flora Family**:
+  - Added 100% approved Bark Side & 1px Bark Ring Top Log textures (`astral_veil_willow_log.png`, `astral_veil_willow_log_top.png`).
+  - Added 100% approved Stripped Side & 1px Shaved Edge Ring Top textures (`stripped_astral_veil_willow_log.png`, `stripped_astral_veil_willow_log_top.png`).
+  - Added 1:1 official Minecraft `oak_planks` direct pixel recolor (`astral_veil_willow_planks.png`).
+  - Added 1:1 official Minecraft `oak_leaves` direct pixel recolor (`astral_veil_willow_leaves.png`).
+  - Added 16x16 interconnecting weeping vines (`astral_veil_willow_vines.png`).
+  - Added Spruce-Jungle hybrid sapling with Perlin noise (`astral_veil_willow_sapling.png`).
+- **Void-Blight Mangrove Wood & Flora Family**:
+  - Added 100% approved Bark Side & 1px Bark Ring Top Log textures (`void_blight_mangrove_log.png`, `void_blight_mangrove_log_top.png`).
+  - Added 100% approved Stripped Side & 1px Shaved Edge Ring Top textures (`stripped_void_blight_mangrove_log.png`, `stripped_void_blight_mangrove_log_top.png`).
+  - Added 1:1 official Minecraft `oak_planks` direct pixel recolor (`void_blight_mangrove_planks.png`).
+  - Added 1:1 official Minecraft `oak_leaves` direct pixel recolor (`void_blight_mangrove_leaves.png`).
+  - Added Void-Blight Mangrove roots (`void_blight_mangrove_root.png`).
+  - Added bioluminescent fruit pod item (`void_blight_pod.png` granting 4 hunger + Levitation II).
+  - Added Spruce-Jungle hybrid sapling with Perlin noise (`void_blight_mangrove_sapling.png`).
+- **Full Translations & Client Cutout Map**:
+  - Registered 24-locale translations for all tree blocks and items.
+  - Configured `RenderType.cutout()` for leaves, vines, saplings, and roots in `EntropicaClientFabric.java`.
+
 # Changelog — Entropica Multi-Loader Migration Update
 
 ## Build 000-1-26-222-19-55 (August 10, 2026 100% Flora On-Contact Special Effects Completion)

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "entropica:block/silver_pine_pressure_plate"
+    },
+    "powered=true": {
+      "model": "entropica:block/silver_pine_pressure_plate_down"
+    }
+  }
+}

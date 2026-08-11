@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "entropica:block/void_blight_mangrove_root"
+  }
+}

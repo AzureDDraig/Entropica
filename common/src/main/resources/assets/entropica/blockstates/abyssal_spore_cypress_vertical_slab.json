@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "type=north": {
+      "model": "entropica:block/abyssal_spore_cypress_vertical_slab"
+    },
+    "type=south": {
+      "model": "entropica:block/abyssal_spore_cypress_vertical_slab",
+      "y": 180,
+      "uvlock": true
+    },
+    "type=west": {
+      "model": "entropica:block/abyssal_spore_cypress_vertical_slab",
+      "y": 270,
+      "uvlock": true
+    },
+    "type=east": {
+      "model": "entropica:block/abyssal_spore_cypress_vertical_slab",
+      "y": 90,
+      "uvlock": true
+    },
+    "type=double_ns": {
+      "model": "entropica:block/abyssal_spore_cypress_planks"
+    },
+    "type=double_ew": {
+      "model": "entropica:block/abyssal_spore_cypress_planks"
+    }
+  }
+}

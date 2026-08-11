@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "entropica:block/pyre_thorn_launcher"
+    },
+    "facing=down": {
+      "model": "entropica:block/pyre_thorn_launcher",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "entropica:block/pyre_thorn_launcher",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "entropica:block/pyre_thorn_launcher",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "entropica:block/pyre_thorn_launcher",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "entropica:block/pyre_thorn_launcher",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

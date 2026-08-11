@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "entropica:block/pyre_ash_cedar_button"
+    },
+    "powered=true": {
+      "model": "entropica:block/pyre_ash_cedar_button_pressed"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "entropica:block/astral_veil_willow_pressure_plate"
+    },
+    "powered=true": {
+      "model": "entropica:block/astral_veil_willow_pressure_plate_down"
+    }
+  }
+}

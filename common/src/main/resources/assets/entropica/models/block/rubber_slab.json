@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": {
+    "bottom": "entropica:block/rubber_planks",
+    "top": "entropica:block/rubber_planks",
+    "side": "entropica:block/rubber_planks"
+  }
+}

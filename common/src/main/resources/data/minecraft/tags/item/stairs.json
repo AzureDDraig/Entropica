@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:astral_veil_willow_stairs",
+    "entropica:void_blight_mangrove_stairs",
+    "entropica:rubber_stairs",
+    "entropica:silver_pine_stairs",
+    "entropica:amber_stairs",
+    "entropica:pyre_ash_cedar_stairs",
+    "entropica:abyssal_spore_cypress_stairs",
+    "entropica:starlight_aether_birch_stairs",
+    "entropica:blood_root_iron_oak_stairs"
+  ]
+}

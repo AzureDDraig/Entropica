@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "entropica:block/spore_cannon_puffball"
+    },
+    "facing=down": {
+      "model": "entropica:block/spore_cannon_puffball",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "entropica:block/spore_cannon_puffball",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "entropica:block/spore_cannon_puffball",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "entropica:block/spore_cannon_puffball",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "entropica:block/spore_cannon_puffball",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

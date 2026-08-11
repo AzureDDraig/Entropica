@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "entropica:starlight_aether_birch_planks"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:starlight_aether_birch_button"
+  }
+}

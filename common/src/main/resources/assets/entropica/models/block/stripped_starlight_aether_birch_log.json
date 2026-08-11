@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "entropica:block/stripped_starlight_aether_birch_log_top",
+    "side": "entropica:block/stripped_starlight_aether_birch_log"
+  }
+}

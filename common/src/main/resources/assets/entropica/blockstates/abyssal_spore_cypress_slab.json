@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "entropica:block/abyssal_spore_cypress_slab"
+    },
+    "type=top": {
+      "model": "entropica:block/abyssal_spore_cypress_slab_top"
+    },
+    "type=double": {
+      "model": "entropica:block/abyssal_spore_cypress_planks"
+    }
+  }
+}

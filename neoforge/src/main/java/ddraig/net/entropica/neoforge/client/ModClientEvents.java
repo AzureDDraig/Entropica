@@ -1,5 +1,7 @@
 package ddraig.net.entropica.neoforge.client;
 
+import net.minecraft.client.renderer.entity.ThrownItemRenderer;
+
 import com.mojang.blaze3d.platform.InputConstants;
 import ddraig.net.entropica.client.HazeShaderManager;
 import ddraig.net.entropica.client.ModItemTintSources;
@@ -144,6 +146,8 @@ public class ModClientEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(ModEntityTypes.SPORE_PROJECTILE.get(), ThrownItemRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.MAGMA_THORN.get(), ThrownItemRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.MATERIA_FURNACE_BE.get(), MateriaFurnaceRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENTROPIC_CORE_BE.get(), EntropicCoreRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ESSENCE_READOUT_BE.get(), EssenceReadoutRenderer::new);

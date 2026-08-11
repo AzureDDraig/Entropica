@@ -1,0 +1,23 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:astral_veil_willow_slab",
+    "entropica:astral_veil_willow_vertical_slab",
+    "entropica:void_blight_mangrove_slab",
+    "entropica:void_blight_mangrove_vertical_slab",
+    "entropica:rubber_slab",
+    "entropica:rubber_vertical_slab",
+    "entropica:silver_pine_slab",
+    "entropica:silver_pine_vertical_slab",
+    "entropica:amber_slab",
+    "entropica:amber_vertical_slab",
+    "entropica:pyre_ash_cedar_slab",
+    "entropica:pyre_ash_cedar_vertical_slab",
+    "entropica:abyssal_spore_cypress_slab",
+    "entropica:abyssal_spore_cypress_vertical_slab",
+    "entropica:starlight_aether_birch_slab",
+    "entropica:starlight_aether_birch_vertical_slab",
+    "entropica:blood_root_iron_oak_slab",
+    "entropica:blood_root_iron_oak_vertical_slab"
+  ]
+}

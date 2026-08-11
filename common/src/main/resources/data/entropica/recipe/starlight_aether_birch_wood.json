@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "entropica:starlight_aether_birch_log"
+    }
+  },
+  "result": {
+    "count": 3,
+    "id": "entropica:starlight_aether_birch_wood"
+  }
+}

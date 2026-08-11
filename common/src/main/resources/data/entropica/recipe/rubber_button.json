@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "entropica:rubber_planks"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:rubber_button"
+  }
+}

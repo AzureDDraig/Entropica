@@ -1,0 +1,29 @@
+{
+  "variants": {
+    "type=north": {
+      "model": "entropica:block/void_blight_mangrove_vertical_slab"
+    },
+    "type=south": {
+      "model": "entropica:block/void_blight_mangrove_vertical_slab",
+      "y": 180,
+      "uvlock": true
+    },
+    "type=west": {
+      "model": "entropica:block/void_blight_mangrove_vertical_slab",
+      "y": 270,
+      "uvlock": true
+    },
+    "type=east": {
+      "model": "entropica:block/void_blight_mangrove_vertical_slab",
+      "y": 90,
+      "uvlock": true
+    },
+    "type=double_ns": {
+      "model": "entropica:block/void_blight_mangrove_planks"
+    },
+    "type=double_ew": {
+      "model": "entropica:block/void_blight_mangrove_planks",
+      "y": 90
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "entropica:block/rubber_slab"
+    },
+    "type=top": {
+      "model": "entropica:block/rubber_slab_top"
+    },
+    "type=double": {
+      "model": "entropica:block/rubber_planks"
+    }
+  }
+}

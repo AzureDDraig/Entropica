@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "entropica:block/abyssal_spore_cypress_pressure_plate"
+    },
+    "powered=true": {
+      "model": "entropica:block/abyssal_spore_cypress_pressure_plate_down"
+    }
+  }
+}

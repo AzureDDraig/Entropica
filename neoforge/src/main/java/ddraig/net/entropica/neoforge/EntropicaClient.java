@@ -1,8 +1,11 @@
 package ddraig.net.entropica.neoforge;
 
 import ddraig.net.entropica.Entropica;
+import ddraig.net.entropica.registry.ModBlocks;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -21,8 +24,43 @@ public class EntropicaClient {
 
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
-        Entropica.LOGGER.info("HELLO FROM CLIENT SETUP");
-        Entropica.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+        event.enqueueWork(() -> {
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.AEGIS_ROSE.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.TALL_AEGIS_ROSE.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.NECROTIC_ROSE_OF_JERICHO.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.TALL_NECROTIC_ROSE_OF_JERICHO.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SANGUINE_LILY.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.AURORAL_LILY_PAD.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.CINDER_GRIP_LICHEN.get(), ChunkSectionLayer.CUTOUT);
+            
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SPORE_CANNON_PUFFBALL.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.PYRE_THORN_LAUNCHER.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SPORE_BEARING_PITCHER_PLUMP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.BLOOD_TENDRIL_BRAMBLE.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SOOT_VEIL_BLIGHT_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.MAGMA_GRIP_TENDRILS.get(), ChunkSectionLayer.CUTOUT);
+            
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SOOT_SHROUD_FUNGI.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.PYROCYST_ALGAE.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.BARROW_FUNGAL_SHELF_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SPORE_FUNGAL_SHELF_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.BLIGHT_FUNGAL_SHELF_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.FROST_FUNGAL_SHELF_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.CINDER_FUNGAL_SHELF_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.ASTRAL_FUNGAL_SHELF_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.DAWN_FUNGAL_SHELF_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SANGUINE_FUNGAL_SHELF_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.STATIC_FUNGAL_SHELF_CAP.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.AEGIS_SPIRE_ORCHID.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.TALL_AEGIS_SPIRE_ORCHID.get(), ChunkSectionLayer.CUTOUT);
+            
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.ASTRAL_VEIL_WILLOW_LEAVES.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.ASTRAL_VEIL_WILLOW_SAPLING.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.ASTRAL_VEIL_WILLOW_VINES.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.VOID_BLIGHT_MANGROVE_LEAVES.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.VOID_BLIGHT_MANGROVE_SAPLING.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.VOID_BLIGHT_MANGROVE_ROOT.get(), ChunkSectionLayer.CUTOUT);
+        });
     }
 
     @SubscribeEvent
@@ -47,4 +85,3 @@ public class EntropicaClient {
         );
     }
 }
-

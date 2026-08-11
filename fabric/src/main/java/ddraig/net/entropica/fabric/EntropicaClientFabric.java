@@ -28,6 +28,7 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
@@ -104,6 +105,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntityTypes.OVERGROWTH_OVIS.get(), OvergrowthOvisRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.RIME_SHEPHERD.get(), RimeShepherdRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.BLOOM_CRAWLER.get(), BloomCrawlerRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SPORE_PROJECTILE.get(), ThrownItemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.MAGMA_THORN.get(), ThrownItemRenderer::new);
 
         dev.architectury.registry.client.particle.ParticleProviderRegistry.register(
             ModParticles.SPECTRUM_SPARKLE.get(),
@@ -214,6 +217,13 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ModBlocks.SANGUINE_LILY.get(),
             ModBlocks.AURORAL_LILY_PAD.get(),
             ModBlocks.CINDER_GRIP_LICHEN.get(),
+            ModBlocks.SPORE_CANNON_PUFFBALL.get(),
+            ModBlocks.PYRE_THORN_LAUNCHER.get(),
+            ModBlocks.SPORE_BEARING_PITCHER_PLUMP.get(),
+            ModBlocks.BLOOD_TENDRIL_BRAMBLE.get(),
+            ModBlocks.SOOT_VEIL_BLIGHT_CAP.get(),
+            ModBlocks.MAGMA_GRIP_TENDRILS.get(),
+
             ModBlocks.SOOT_SHROUD_FUNGI.get(),
             ModBlocks.PYROCYST_ALGAE.get(),
             ModBlocks.BARROW_FUNGAL_SHELF_CAP.get(),
@@ -229,6 +239,13 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
 
 
+            
+            ModBlocks.ASTRAL_VEIL_WILLOW_LEAVES.get(),
+            ModBlocks.ASTRAL_VEIL_WILLOW_SAPLING.get(),
+            ModBlocks.ASTRAL_VEIL_WILLOW_VINES.get(),
+            ModBlocks.VOID_BLIGHT_MANGROVE_LEAVES.get(),
+            ModBlocks.VOID_BLIGHT_MANGROVE_SAPLING.get(),
+            ModBlocks.VOID_BLIGHT_MANGROVE_ROOT.get(),
             ModBlocks.TALL_AEGIS_SPIRE_ORCHID.get(),
 
             ModBlocks.SOUL_FLAME_ORCHID.get(),
