@@ -1,5 +1,14 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-19-55 (August 10, 2026 100% Flora On-Contact Special Effects Completion)
+
+### 🌸 100% Complete Custom Flora Contact Effects Roster (29 Flora Blocks)
+- **Pyre Sprout**: Ignites entities for 2 seconds and deals $0.5\text{hp}$ fire damage on contact.
+- **Stardust Aloe**: Clears fire/burns, removes Poison, and grants Regeneration I ($2\text{s}$).
+- **Stardust Bell**: Grants Night Vision ($6\text{s}$) & Glowing ($4\text{s}$) when passing through the tall flower.
+- **Gale-Bloom Dandelion**: Imparts a soft upward wind draft ($y \mathrel{+}= 0.25$) lofting entities into the air.
+- **Fulgurite Swamp Bloom**: Discharges an electric arc dealing $1.0\text{hp}$ lightning damage and applying Slowness I ($2\text{s}$).
+
 ## Build 000-1-26-222-19-14 (August 10, 2026 Persistent Touch Accumulation Without Timeout)
 
 ### ⚡ Persistent Touch Step Accumulation
