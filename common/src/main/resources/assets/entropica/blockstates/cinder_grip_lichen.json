@@ -5,7 +5,8 @@
         "up": "true"
       },
       "apply": {
-        "model": "entropica:block/cinder_grip_lichen"
+        "model": "entropica:block/cinder_grip_lichen",
+        "x": 180
       }
     },
     {
@@ -13,8 +14,7 @@
         "down": "true"
       },
       "apply": {
-        "model": "entropica:block/cinder_grip_lichen",
-        "x": 180
+        "model": "entropica:block/cinder_grip_lichen"
       }
     },
     {

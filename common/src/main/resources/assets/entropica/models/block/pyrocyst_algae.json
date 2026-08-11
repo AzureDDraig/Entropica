@@ -2,9 +2,7 @@
   "parent": "minecraft:block/carpet",
   "render_type": "minecraft:cutout",
   "textures": {
-    "particle": "entropica:block/pyrocyst_algae_top",
-    "bottom": "entropica:block/pyrocyst_algae_top",
-    "top": "entropica:block/pyrocyst_algae_top",
-    "side": "entropica:block/pyrocyst_algae_side"
+    "wool": "entropica:block/pyrocyst_algae_top",
+    "particle": "entropica:block/pyrocyst_algae_top"
   }
 }

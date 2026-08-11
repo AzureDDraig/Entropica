@@ -23,6 +23,7 @@ public class StaticFungalShelfCapBlock extends AbstractFungalShelfBlock {
     public static final MapCodec<StaticFungalShelfCapBlock> CODEC = simpleCodec(StaticFungalShelfCapBlock::new);
 
     private static final ConcurrentHashMap<UUID, Long[]> TOUCH_TRACKER = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<UUID, Long> COOLDOWN_TRACKER = new ConcurrentHashMap<>();
 
     public StaticFungalShelfCapBlock(Properties properties) {
         super(properties);
@@ -36,23 +37,33 @@ public class StaticFungalShelfCapBlock extends AbstractFungalShelfBlock {
     @Override
     protected void applyTouchEffect(Level level, BlockPos pos, Entity entity) {
         if (entity instanceof LivingEntity living) {
-            living.hurt(level.damageSources().lightningBolt(), 1.0f);
-            living.addEffect(new MobEffectInstance(MobEffects.SPEED, 60, 1, false, true, true));
-
             long now = level.getGameTime();
             UUID id = entity.getUUID();
-            Long[] times = TOUCH_TRACKER.computeIfAbsent(id, k -> new Long[]{0L, 0L, 0L});
-            times[0] = times[1];
-            times[1] = times[2];
-            times[2] = now;
 
-            if (now - times[0] <= 30 && times[0] > 0) {
-                TOUCH_TRACKER.remove(id);
-                if (level instanceof ServerLevel serverLevel) {
-                    LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(serverLevel, EntitySpawnReason.TRIGGERED);
-                    if (bolt != null) {
-                        bolt.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-                        serverLevel.addFreshEntity(bolt);
+            long lastLightning = COOLDOWN_TRACKER.getOrDefault(id, 0L);
+            if (now - lastLightning < 100) {
+                return;
+            }
+
+            Long[] times = TOUCH_TRACKER.computeIfAbsent(id, k -> new Long[]{0L, 0L, 0L});
+
+            if (now - times[2] >= 5) {
+                times[0] = times[1];
+                times[1] = times[2];
+                times[2] = now;
+
+                living.hurt(level.damageSources().lightningBolt(), 1.0f);
+                living.addEffect(new MobEffectInstance(MobEffects.SPEED, 60, 1, false, true, true));
+
+                if (times[0] > 0 && now - times[0] <= 40) {
+                    TOUCH_TRACKER.remove(id);
+                    COOLDOWN_TRACKER.put(id, now);
+                    if (level instanceof ServerLevel serverLevel) {
+                        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(serverLevel, EntitySpawnReason.TRIGGERED);
+                        if (bolt != null) {
+                            bolt.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+                            serverLevel.addFreshEntity(bolt);
+                        }
                     }
                 }
             }
