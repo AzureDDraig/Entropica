@@ -1,7 +1,21 @@
 {
   "variants": {
-    "": {
-      "model": "entropica:block/auroral_lily_pad"
-    }
+    "": [
+      {
+        "model": "entropica:block/auroral_lily_pad"
+      },
+      {
+        "model": "entropica:block/auroral_lily_pad",
+        "y": 90
+      },
+      {
+        "model": "entropica:block/auroral_lily_pad",
+        "y": 180
+      },
+      {
+        "model": "entropica:block/auroral_lily_pad",
+        "y": 270
+      }
+    ]
   }
 }

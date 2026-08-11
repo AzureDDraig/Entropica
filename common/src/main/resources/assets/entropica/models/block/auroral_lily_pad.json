@@ -1,7 +1,42 @@
 {
-  "parent": "minecraft:block/cross",
+  "ambientocclusion": false,
   "textures": {
-    "cross": "entropica:block/auroral_lily_pad"
+    "particle": "entropica:block/auroral_lily_pad",
+    "texture": "entropica:block/auroral_lily_pad"
   },
+  "elements": [
+    {
+      "from": [
+        0,
+        0.25,
+        0
+      ],
+      "to": [
+        16,
+        0.25,
+        16
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#texture"
+        },
+        "down": {
+          "uv": [
+            0,
+            16,
+            16,
+            0
+          ],
+          "texture": "#texture"
+        }
+      }
+    }
+  ],
   "render_type": "minecraft:cutout"
 }
