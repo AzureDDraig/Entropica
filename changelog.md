@@ -1,5 +1,10 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-19-14 (August 10, 2026 Persistent Touch Accumulation Without Timeout)
+
+### ⚡ Persistent Touch Step Accumulation
+- **Static Fungal Shelf Mechanics**: Removed time-based resetting of `touch_count`. Every step on a static shelf cap (at least 5 ticks apart) now persistently accumulates towards the 3-step lightning strike threshold, regardless of how much time elapses between steps.
+
 ## Build 000-1-26-222-19-13 (August 10, 2026 Entity NBT Persistent Touch Tracking)
 
 ### ⚡ Persistent Entity NBT Touch Tracking
