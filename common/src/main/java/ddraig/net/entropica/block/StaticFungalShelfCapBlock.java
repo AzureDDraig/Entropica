@@ -45,13 +45,7 @@ public class StaticFungalShelfCapBlock extends AbstractFungalShelfBlock {
             long lastTouch = nbt.getLong("entropica_static_shelf_last_touch_time").orElse(0L);
 
             if (now - lastTouch >= 5) {
-                int touchCount = nbt.getInt("entropica_static_shelf_touch_count").orElse(0);
-
-                if (now - lastTouch > 40) {
-                    touchCount = 1;
-                } else {
-                    touchCount++;
-                }
+                int touchCount = nbt.getInt("entropica_static_shelf_touch_count").orElse(0) + 1;
 
                 nbt.putLong("entropica_static_shelf_last_touch_time", now);
                 nbt.putInt("entropica_static_shelf_touch_count", touchCount);
