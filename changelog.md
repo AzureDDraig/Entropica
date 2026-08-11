@@ -1,5 +1,15 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-19-13 (August 10, 2026 Entity NBT Persistent Touch Tracking)
+
+### ⚡ Persistent Entity NBT Touch Tracking
+- **Static Fungal Shelf Mechanics**: Replaced static in-memory HashMaps with persistent entity NBT compound tags via `EntityHelper.getPersistentData(living)`.
+- **NBT Data Structure**:
+  - `entropica_static_shelf_touch_count`: Tracks the number of consecutive steps (resets if $>40$ ticks elapse between touches).
+  - `entropica_static_shelf_last_touch_time`: Enforces a 5-tick minimum step interval.
+  - `entropica_static_shelf_lightning_time`: Enforces a 100-tick (5-second) strike cooldown per entity.
+- **Cross-Session Persistence**: Touch step progress and strike cooldowns now persist per entity across server reloads and dimension changes.
+
 ## Build 000-1-26-222-19-10 (August 10, 2026 Cinder Lichen, Pyrocyst Carpet, Shelf Positioning & Lightning Fixes)
 
 ### 🐛 Bug Fixes & Rendering Corrections
