@@ -2,6 +2,15 @@
 
 
 
+
+## Build 000-1-26-223-17-30 — NeoForge Event Refactoring (`TreeStrippingNeoForgeEvents.java`)
+
+### Architecture Refactoring
+- **Decoupled NeoForge Log Stripping Event Handling**:
+  - Removed `TreeLogStrippingHandler` from `GlassCleansingNeoForgeEvents.java` (restoring it strictly to glass cleansing mechanics).
+  - Created a dedicated `TreeStrippingNeoForgeEvents.java` class (`@EventBusSubscriber(modid = Entropica.MODID)`) to handle NeoForge `PlayerInteractEvent.RightClickBlock` log stripping events cleanly and modularly.
+- **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 19s`**.
+
 ## Build 000-1-26-223-17-28 — Tree Log Stripping Unique Drops, In-World Particle Bursts & Starlight Flakes Crafting
 
 ### Core Features & Additions
