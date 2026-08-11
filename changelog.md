@@ -1,5 +1,20 @@
 
 
+
+## Build 000-1-26-223-17-10 — Amber Wood Set Update, Button Rotation Fix, Leaves Cutout Transparency & Plank Line Shading
+
+### Core Fixes & Enhancements
+- **Amber Wood Suite Complete Overhaul**:
+  - Upgraded Amber wood textures (`amber_log.png`, `amber_log_top.png`, `stripped_amber_log.png`, `stripped_amber_log_top.png`, `amber_planks.png`, `amber_leaves.png`, `amber_sapling.png`) to use authentic 1.21 Minecraft base textures with 3D continuous loop border log top alignment.
+- **Wood Button Rotation & Hitbox Alignment**:
+  - Rebuilt `blockstates/<button>.json` for all 9 wood types (`pyre_ash_cedar`, `abyssal_spore_cypress`, `starlight_aether_birch`, `blood_root_iron_oak`, `amber`, `rubber`, `silver_pine`, `astral_veil_willow`, `void_blight_mangrove`).
+  - Added full `face=floor/wall/ceiling` and `facing=north/south/east/west` variant rotations so rendered button models match their collision hitboxes when placed on any surface.
+- **Leaves Cutout Transparency Fix**:
+  - Configured `RenderType.cutout()` for `PYRE_ASH_CEDAR_LEAVES`, `ABYSSAL_SPORE_CYPRESS_LEAVES`, `STARLIGHT_AETHER_BIRCH_LEAVES`, `BLOOD_ROOT_IRON_OAK_LEAVES` (and saplings) in `EntropicaClientFabric.java` AND `ItemBlockRenderTypes.setRenderLayer(..., ChunkSectionLayer.CUTOUT)` in `EntropicaClient.java` (NeoForge), removing black pixel background artifacts in-world.
+- **Sharpened Plank Horizontal Seam Lines**:
+  - Darkened shadow tint contrast (`planks_shadow`) across all 4 tree species plank textures (`pyre_ash_cedar_planks`, `abyssal_spore_cypress_planks`, `starlight_aether_birch_planks`, `blood_root_iron_oak_planks`), making board seam lines clearly defined.
+- **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 50s`**.
+
 ## Build 000-1-26-223-16-52 — 4 Complete Tree Families & 56-Block Wood Suites Expansion
 
 ### Core Additions & Features

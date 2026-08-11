@@ -60,6 +60,14 @@ public class EntropicaClient {
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.VOID_BLIGHT_MANGROVE_LEAVES.get(), ChunkSectionLayer.CUTOUT);
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.VOID_BLIGHT_MANGROVE_SAPLING.get(), ChunkSectionLayer.CUTOUT);
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.VOID_BLIGHT_MANGROVE_ROOT.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.PYRE_ASH_CEDAR_LEAVES.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.PYRE_ASH_CEDAR_SAPLING.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.ABYSSAL_SPORE_CYPRESS_LEAVES.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.ABYSSAL_SPORE_CYPRESS_SAPLING.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.STARLIGHT_AETHER_BIRCH_LEAVES.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.STARLIGHT_AETHER_BIRCH_SAPLING.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.BLOOD_ROOT_IRON_OAK_LEAVES.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.BLOOD_ROOT_IRON_OAK_SAPLING.get(), ChunkSectionLayer.CUTOUT);
         });
     }
 

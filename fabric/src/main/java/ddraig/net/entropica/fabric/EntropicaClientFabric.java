@@ -210,6 +210,14 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
         BlockRenderLayerMap.INSTANCE.putBlocks(
             RenderType.cutout(),
+            ModBlocks.PYRE_ASH_CEDAR_LEAVES.get(),
+            ModBlocks.PYRE_ASH_CEDAR_SAPLING.get(),
+            ModBlocks.ABYSSAL_SPORE_CYPRESS_LEAVES.get(),
+            ModBlocks.ABYSSAL_SPORE_CYPRESS_SAPLING.get(),
+            ModBlocks.STARLIGHT_AETHER_BIRCH_LEAVES.get(),
+            ModBlocks.STARLIGHT_AETHER_BIRCH_SAPLING.get(),
+            ModBlocks.BLOOD_ROOT_IRON_OAK_LEAVES.get(),
+            ModBlocks.BLOOD_ROOT_IRON_OAK_SAPLING.get(),
             ModBlocks.AEGIS_ROSE.get(),
             ModBlocks.TALL_AEGIS_ROSE.get(),
             ModBlocks.NECROTIC_ROSE_OF_JERICHO.get(),
