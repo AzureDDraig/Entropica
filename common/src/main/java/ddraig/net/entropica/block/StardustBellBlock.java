@@ -31,6 +31,15 @@ public class StardustBellBlock extends TallFlowerBlock {
     }
 
     @Override
+    protected void entityInside(BlockState state, Level level, BlockPos pos, net.minecraft.world.entity.Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isInside) {
+        super.entityInside(state, level, pos, entity, effectApplier, isInside);
+        if (entity instanceof net.minecraft.world.entity.LivingEntity living) {
+            living.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.NIGHT_VISION, 120, 0, false, true, true));
+            living.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.GLOWING, 80, 0, false, true, true));
+        }
+    }
+
+    @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         super.animateTick(state, level, pos, random);
         // Only spawn stardust particles from the upper half of the 2-tall flower

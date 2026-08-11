@@ -94,6 +94,15 @@ public class FulguriteSwampBloomBlock extends BushBlock implements SimpleWaterlo
 
 
     @Override
+    protected void entityInside(BlockState state, Level level, BlockPos pos, net.minecraft.world.entity.Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isInside) {
+        super.entityInside(state, level, pos, entity, effectApplier, isInside);
+        if (entity instanceof net.minecraft.world.entity.LivingEntity living) {
+            living.hurt(level.damageSources().lightningBolt(), 1.0f);
+            living.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.SLOWNESS, 40, 0, false, true, true));
+        }
+    }
+
+    @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         super.animateTick(state, level, pos, random);
         if (random.nextInt(2) == 0) {

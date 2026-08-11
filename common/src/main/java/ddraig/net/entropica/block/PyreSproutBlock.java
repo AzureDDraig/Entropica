@@ -60,6 +60,15 @@ public class PyreSproutBlock extends EntropicaFlowerBlock {
     }
 
     @Override
+    protected void entityInside(BlockState state, Level level, BlockPos pos, net.minecraft.world.entity.Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isInside) {
+        super.entityInside(state, level, pos, entity, effectApplier, isInside);
+        if (entity instanceof net.minecraft.world.entity.LivingEntity living && !living.fireImmune()) {
+            living.igniteForSeconds(2);
+            living.hurt(level.damageSources().inFire(), 0.5f);
+        }
+    }
+
+    @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         super.animateTick(state, level, pos, random);
         if (random.nextInt(2) == 0) {
