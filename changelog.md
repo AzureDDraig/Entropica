@@ -1,5 +1,13 @@
 # Changelog — Entropica Multi-Loader Migration Update
 
+## Build 000-1-26-222-19-10 (August 10, 2026 Cinder Lichen, Pyrocyst Carpet, Shelf Positioning & Lightning Fixes)
+
+### 🐛 Bug Fixes & Rendering Corrections
+- **Cinder-Grip Lichen Texture & Phase Alignment**: Restored the approved `cinder_grip_v2_option_a_32.png` texture asset. Synchronized `blockstates/cinder_grip_lichen.json` rotation properties (`up: x=180`, `down: 0`, etc.) to match vanilla `glow_lichen.json`, completely resolving in-world out-of-phase plane rendering.
+- **Pyrocyst Algae In-World Model**: Fixed `models/block/pyrocyst_algae.json` to map `"wool": "entropica:block/pyrocyst_algae_top"` (the texture key required by `minecraft:block/carpet`), fixing the missing black/purple checkered texture in-world.
+- **Shelf Mushrooms Wall-Edge Alignment**: Re-anchored model elements across all 9 shelf mushroom blocks (`barrow`, `spore`, `blight`, `frost`, `cinder`, `astral`, `dawn`, `sanguine`, `static`) to `[1, 6, 4] -> [15, 10, 16]` and updated `AbstractFungalShelfBlock` VoxelShapes so shelf caps attach flush to wall faces and hang out over the block edge.
+- **Static Shelf Lightning Loop Cooldown**: Enforced a 5-tick step filter and a 100-tick (5-second) strike cooldown per entity in `StaticFungalShelfCapBlock.java` to prevent rapid lightning loops while walking over static shelf caps.
+
 ## Build 000-1-26-222-18-33 (August 10, 2026 Language File Un-minification & Formatting)
 
 ### 🎨 Un-minified Language JSON Assets (24 Files)
