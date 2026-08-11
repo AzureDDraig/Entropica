@@ -1,6 +1,23 @@
 
 
 
+
+## Build 000-1-26-223-17-28 — Tree Log Stripping Unique Drops, In-World Particle Bursts & Starlight Flakes Crafting
+
+### Core Features & Additions
+- **Unique Tree Log Stripping Drops & In-World Elemental Burst Mechanics**:
+  - Implemented `TreeLogStrippingHandler.java` across both Fabric (`EntropicaFabric.java`) and NeoForge (`GlassCleansingNeoForgeEvents.java`), firing in-world elemental particle bursts and dropping functional items when stripping logs/wood with an Axe:
+    - 🌋 **Pyre-Ash Cedar**: Drops **Cinder-Ash Flakes** (`cinder_ash_flakes`) + lava particle burst (high-heat fuel source burning 12 items & Ignisite alchemy).
+    - 🌌 **Abyssal Spore-Cypress**: Drops **Bioluminescent Spore Pods** (`bioluminescent_spore_pod`) + cyan glow particle burst (crafts into Glow-Spore Dust for light sources without glowstone & Cyan alchemy).
+    - ✨ **Starlight Aether-Birch**: Drops **Aetheric Birch Bark** (`aetheric_birch_bark`) + golden spark particle burst (crafts into Aetheric Parchment for scrolls/scribing) AND can be ground down 1:2 into **Starlight Flakes** (`starlight_flakes`).
+    - 🩸 **Blood-Root Iron-Oak**: Drops **Iron-Root Sap** (`iron_root_sap`) + crimson drip particle burst (hardens into Iron-Root Resin for Iron-Bound Planks & Heavy Tool Handles).
+    - 🟣 **Astral-Veil Willow**: Drops **Astral Willow Fibre** (`astral_willow_fibre`) + purple portal particle burst (weaves into Astral Cordage for bows & charms).
+    - 🔮 **Void-Blight Mangrove**: Drops **Blighted Bark Flakes** (`blighted_bark_flakes`) + void smoke particle burst (Void/Blight decay alchemy catalyst).
+- **Client Assets & Data Infrastructure**:
+  - Generated 16x16 pixel art PNG textures for all 7 items (`cinder_ash_flakes`, `bioluminescent_spore_pod`, `aetheric_birch_bark`, `starlight_flakes`, `iron_root_sap`, `astral_willow_fibre`, `blighted_bark_flakes`).
+  - Registered Item Models, 1.21.2+ Item Definitions (`assets/entropica/items/*.json`), Creative Tab placement in `WORLD`, recipes, and 24-locale translations.
+- **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 1m 48s`**.
+
 ## Build 000-1-26-223-17-10 — Amber Wood Set Update, Button Rotation Fix, Leaves Cutout Transparency & Plank Line Shading
 
 ### Core Fixes & Enhancements

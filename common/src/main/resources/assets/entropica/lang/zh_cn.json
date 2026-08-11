@@ -2324,5 +2324,12 @@
   "block.entropica.blood_root_iron_oak_fence": "Blood-Root Iron-Oak Fence",
   "block.entropica.blood_root_iron_oak_fence_gate": "Blood-Root Iron-Oak Fence Gate",
   "block.entropica.blood_root_iron_oak_button": "Blood-Root Iron-Oak Button",
-  "block.entropica.blood_root_iron_oak_pressure_plate": "Blood-Root Iron-Oak Pressure Plate"
+  "block.entropica.blood_root_iron_oak_pressure_plate": "Blood-Root Iron-Oak Pressure Plate",
+  "item.entropica.cinder_ash_flakes": "Cinder-Ash Flakes",
+  "item.entropica.bioluminescent_spore_pod": "Bioluminescent Spore Pod",
+  "item.entropica.aetheric_birch_bark": "Aetheric Birch Bark",
+  "item.entropica.starlight_flakes": "Starlight Flakes",
+  "item.entropica.iron_root_sap": "Iron-Root Sap",
+  "item.entropica.astral_willow_fibre": "Astral Willow Fibre",
+  "item.entropica.blighted_bark_flakes": "Blighted Bark Flakes"
 }

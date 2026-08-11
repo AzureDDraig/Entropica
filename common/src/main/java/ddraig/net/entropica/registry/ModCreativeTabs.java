@@ -494,6 +494,13 @@ public class ModCreativeTabs {
                 output.accept(ModItems.STATIC_FUNGAL_CAP.get());
 
                 // 4 Tree Families Wood Suites
+                                output.accept(ModItems.CINDER_ASH_FLAKES.get());
+                output.accept(ModItems.BIOLUMINESCENT_SPORE_POD.get());
+                output.accept(ModItems.AETHERIC_BIRCH_BARK.get());
+                output.accept(ModItems.STARLIGHT_FLAKES.get());
+                output.accept(ModItems.IRON_ROOT_SAP.get());
+                output.accept(ModItems.ASTRAL_WILLOW_FIBRE.get());
+                output.accept(ModItems.BLIGHTED_BARK_FLAKES.get());
                 output.accept(ModItems.PYRE_ASH_CEDAR_LOG.get());
                 output.accept(ModItems.STRIPPED_PYRE_ASH_CEDAR_LOG.get());
                 output.accept(ModItems.PYRE_ASH_CEDAR_WOOD.get());

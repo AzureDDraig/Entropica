@@ -966,6 +966,16 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<BlockItem> AMBER_PRESSURE_PLATE_ITEM = ITEMS.registerItem("amber_pressure_plate", properties -> new BlockItem(ModBlocks.AMBER_PRESSURE_PLATE.get(), properties));
 
     // --- 4 Tree Families BlockItems (56 Items) ---
+    
+    // --- Tree Stripping Items ---
+    public static final RegistrySupplier<Item> CINDER_ASH_FLAKES = ITEMS.registerItem("cinder_ash_flakes", Item::new);
+    public static final RegistrySupplier<Item> BIOLUMINESCENT_SPORE_POD = ITEMS.registerItem("bioluminescent_spore_pod", Item::new);
+    public static final RegistrySupplier<Item> AETHERIC_BIRCH_BARK = ITEMS.registerItem("aetheric_birch_bark", Item::new);
+    public static final RegistrySupplier<Item> STARLIGHT_FLAKES = ITEMS.registerItem("starlight_flakes", Item::new);
+    public static final RegistrySupplier<Item> IRON_ROOT_SAP = ITEMS.registerItem("iron_root_sap", Item::new);
+    public static final RegistrySupplier<Item> ASTRAL_WILLOW_FIBRE = ITEMS.registerItem("astral_willow_fibre", Item::new);
+    public static final RegistrySupplier<Item> BLIGHTED_BARK_FLAKES = ITEMS.registerItem("blighted_bark_flakes", Item::new);
+
     public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_LOG = ITEMS.register("pyre_ash_cedar_log", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
     public static final RegistrySupplier<Item> STRIPPED_PYRE_ASH_CEDAR_LOG = ITEMS.register("stripped_pyre_ash_cedar_log", name -> new BlockItem(ModBlocks.STRIPPED_PYRE_ASH_CEDAR_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
     public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_WOOD = ITEMS.register("pyre_ash_cedar_wood", name -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
