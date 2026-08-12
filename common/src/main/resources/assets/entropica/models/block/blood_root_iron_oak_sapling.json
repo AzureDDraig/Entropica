@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/blood_root_iron_oak_sapling"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

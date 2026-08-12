@@ -2,5 +2,6 @@
   "parent": "minecraft:block/flower_pot_cross",
   "textures": {
     "plant": "entropica:block/cinder_spore_mushroom"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

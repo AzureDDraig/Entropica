@@ -1,6 +1,10 @@
 {
   "model": {
-    "type": "minecraft:chest",
-    "texture": "entropica:entity/chest/pyre_ash_cedar"
+    "type": "minecraft:special",
+    "base": "minecraft:item/chest",
+    "model": {
+      "type": "minecraft:chest",
+      "texture": "entropica:pyre_ash_cedar"
+    }
   }
 }

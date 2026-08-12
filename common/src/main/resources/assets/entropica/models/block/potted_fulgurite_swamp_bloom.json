@@ -2,5 +2,6 @@
   "parent": "minecraft:block/flower_pot_cross",
   "textures": {
     "plant": "entropica:block/fulgurite_swamp_bloom"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/starlight_aether_birch_sapling"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

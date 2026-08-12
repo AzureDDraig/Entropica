@@ -1,3 +1,16 @@
+## Build 000-1-26-224-17-14 — Chest Item Inventory Rendering, Flower Cutout Transparency & Shelf Mushroom Hitbox Fixes
+
+### Core Fixes & Client Improvements
+- **1. Chest Item Inventory Rendering Fix (`assets/entropica/items/*_chest.json`)**:
+  - Updated all 10 chest item definition JSON files to the vanilla 1.21.2+ `minecraft:special` model definition format (`"type": "minecraft:special"`, `"base": "minecraft:item/chest"`, `"model": {"type": "minecraft:chest", "texture": "entropica:<wood>"}`).
+  - Resolves invisible chest item stacks in GUIs, inventory slots, player hands, and ground drops.
+- **2. Flower & Plant Cutout Transparency Audit (29 Block Models)**:
+  - Added `"render_type": "minecraft:cutout"` across 29 missing block model JSON files in `assets/entropica/models/block/` (including all 20 potted flower variants, tree saplings, brambles, and spore caps), eliminating opaque black box rendering in-world.
+- **3. Shelf Mushroom Hitbox & Collision Refinement (`AbstractFungalShelfBlock.java`)**:
+  - Overrode `getCollisionShape` to return `Shapes.empty()`, allowing players to walk smoothly past wall-mounted shelf mushrooms without catching on solid block collision.
+  - Preserved directional 14x4x12 pixel `getShape(...)` bounding boxes for selection outlines and interaction.
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 42s`**.
+
 ## Build 000-1-26-224-16-00 — Void Blight Mangrove Chest Top-to-Side 3D Continuous Seam Alignment
 
 ### 3D Continuous Void Rift Ring Seam Fix

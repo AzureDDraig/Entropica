@@ -1,6 +1,10 @@
 {
   "model": {
-    "type": "minecraft:chest",
-    "texture": "entropica:entity/chest/blood_root_iron_oak"
+    "type": "minecraft:special",
+    "base": "minecraft:item/chest",
+    "model": {
+      "type": "minecraft:chest",
+      "texture": "entropica:blood_root_iron_oak"
+    }
   }
 }

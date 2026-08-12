@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/abyssal_spore_cypress_sapling"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

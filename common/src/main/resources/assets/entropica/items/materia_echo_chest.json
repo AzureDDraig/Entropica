@@ -1,6 +1,10 @@
 {
   "model": {
-    "type": "minecraft:chest",
-    "texture": "entropica:entity/chest/materia_echo"
+    "type": "minecraft:special",
+    "base": "minecraft:item/chest",
+    "model": {
+      "type": "minecraft:chest",
+      "texture": "entropica:materia_echo"
+    }
   }
 }

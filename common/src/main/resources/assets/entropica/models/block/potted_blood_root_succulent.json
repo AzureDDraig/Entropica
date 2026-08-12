@@ -2,5 +2,6 @@
   "parent": "minecraft:block/flower_pot_cross",
   "textures": {
     "plant": "entropica:block/blood_root_succulent"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

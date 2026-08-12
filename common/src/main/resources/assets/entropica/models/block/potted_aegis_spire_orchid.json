@@ -2,5 +2,6 @@
   "parent": "minecraft:block/flower_pot_cross",
   "textures": {
     "plant": "entropica:block/aegis_spire_orchid"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

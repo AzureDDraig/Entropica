@@ -2,5 +2,6 @@
   "parent": "minecraft:block/cross",
   "textures": {
     "cross": "entropica:block/pyre_thorn_launcher"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

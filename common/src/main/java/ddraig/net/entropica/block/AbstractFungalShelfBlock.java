@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,12 +46,16 @@ public abstract class AbstractFungalShelfBlock extends HorizontalDirectionalBloc
     }
 
     @Override
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return Shapes.empty();
+    }
+
+    @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         Direction direction = state.getValue(FACING);
         BlockPos supportPos = pos.relative(direction.getOpposite());
         BlockState supportState = level.getBlockState(supportPos);
 
-        // Restricted to Logs, Crimson/Warped Stems, Hyphae, Wood, Mushroom Grow Blocks, or Sturdy Wooden Faces
         boolean isLogOrStem = supportState.is(BlockTags.LOGS) ||
                               supportState.is(BlockTags.WART_BLOCKS) ||
                               supportState.is(BlockTags.MUSHROOM_GROW_BLOCK);
