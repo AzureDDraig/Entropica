@@ -1,6 +1,11 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/oasis_glass"
+    "model": "entropica:item/oasis_glass",
+    "tints": [
+      {
+        "type": "entropica:aesthetic_glass_tint"
+      }
+    ]
   }
 }

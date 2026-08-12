@@ -1,6 +1,11 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/average_essence"
+    "model": "entropica:item/average_essence",
+    "tints": [
+      {
+        "type": "entropica:essence_tint"
+      }
+    ]
   }
 }

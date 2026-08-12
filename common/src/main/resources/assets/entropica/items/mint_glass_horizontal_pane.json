@@ -1,6 +1,11 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/mint_glass_horizontal_pane"
+    "model": "entropica:item/mint_glass_horizontal_pane",
+    "tints": [
+      {
+        "type": "entropica:aesthetic_glass_tint"
+      }
+    ]
   }
 }

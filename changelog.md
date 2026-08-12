@@ -3,6 +3,26 @@
 
 
 
+## Build 000-1-26-224-14-06 — Global Item Tinting Restoration & Dynamic Color Cycling Fix
+
+### Core Bug Fixes
+- **1.21.2+ Item Definition Tinting Restoration (`assets/entropica/items/*.json`)**:
+  - Identified root cause where Minecraft 1.21.2+ item JSONs lacked `"tints"` specifications in their `model` blocks, causing items to render un-tinted / flat white.
+  - Updated 1312 item JSON files across all custom item types:
+    - **Essence Orbs** (`weak_essence`, `average_essence`, `strong_essence`, `fragment_essence`): Added `entropica:essence_tint`.
+    - **Essence & Fume Ampoules** (`small_essence_ampoule`, `medium_essence_ampoule`, `large_essence_ampoule`, `small_materia_fumus_ampoule`, `medium_materia_fumus_ampoule`, `large_materia_fumus_ampoule`): Added 2-layer tinting (`minecraft:constant` -1 base bottle, `entropica:essence_tint` / `ampoule_tint` fluid content).
+    - **Veil Shard** (`veil_shard`): Added `entropica:shard_tint` with biome and node attunement.
+    - **Echo Fruit** (`echo_fruit`): Added `entropica:echo_fruit_tint`.
+    - **Creative Generator** (`creative_materia_generator`): Added `entropica:generator_tint`.
+    - **Shimmerpetal** (`shimmerpetal`): Added `entropica:ambient_essence_tint`.
+    - **Spectral Dyes** (`spectral_dye_*`): Ensured 2-layer tinting with `entropica:spectral_dye_tint`.
+    - **Aesthetic Glass Suite** (All 400+ glass blocks, panes, doors, trapdoors, slabs, stairs): Added `entropica:aesthetic_glass_tint`.
+- **Multi-Loader Tint Source Registration (`EntropicaClientFabric.java` & `ModClientEvents.java`)**:
+  - Registered missing `spectral_dye_tint` and `ambient_essence_tint` sources in both Fabric and NeoForge client initializers.
+- **Dynamic Essence HSB Rainbow Cycling (`EssenceType.java`)**:
+  - Updated `EssenceType.getCurrentRGB` for dynamic types (`ENTROPICA`, `CHIMERA`) to cycle through smooth HSB rainbow hues instead of returning static white (`{255, 255, 255}`).
+- **Multi-Loader Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 53s`**.
+
 ## Build 000-1-26-224-14-01 — Vertical Slab Model Fix, Spectral Dye Client Fix, World Tab Reorganization & Sapling Art Suite
 
 ### Core Fixes & Additions

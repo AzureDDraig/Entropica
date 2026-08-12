@@ -333,6 +333,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "essence_tint"), ModItemTintSources.EssenceTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "shard_tint"), ModItemTintSources.ShardTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "aesthetic_glass_tint"), ModItemTintSources.AestheticGlassTint.MAP_CODEC);
+        registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "spectral_dye_tint"), ModItemTintSources.SpectralDyeTint.MAP_CODEC);
+        registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "ambient_essence_tint"), ModItemTintSources.AmbientEssenceTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "echo_fruit_tint"), ModItemTintSources.EchoFruitTint.MAP_CODEC);
 
 

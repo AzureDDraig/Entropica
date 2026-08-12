@@ -1,6 +1,11 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/radiant_glass_stairs"
+    "model": "entropica:item/radiant_glass_stairs",
+    "tints": [
+      {
+        "type": "entropica:aesthetic_glass_tint"
+      }
+    ]
   }
 }

@@ -150,7 +150,10 @@ public enum EssenceType implements StringRepresentable {
     }
 
     public int[] getCurrentRGB(long gameTime) {
-        if (isDynamic()) return new int[]{255, 255, 255};
+        if (isDynamic()) {
+            int rgb = ddraig.net.entropica.registry.AestheticGlassRegistry.hsbToRgb((float) (((gameTime * 50) % 4000L) / 4000.0), 0.75f, 1.0f);
+            return new int[]{(rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF};
+        }
         if (colorCycle.length == 1) return colorCycle[0];
 
         float time = (gameTime % 40) / 40.0f;
@@ -171,7 +174,10 @@ public enum EssenceType implements StringRepresentable {
     }
 
     public int[] getCurrentRGB(double gameTime) {
-        if (isDynamic()) return new int[]{255, 255, 255};
+        if (isDynamic()) {
+            int rgb = ddraig.net.entropica.registry.AestheticGlassRegistry.hsbToRgb((float) (((gameTime * 50.0) % 4000.0) / 4000.0), 0.75f, 1.0f);
+            return new int[]{(rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF};
+        }
         if (colorCycle.length == 1) return colorCycle[0];
 
         double time = (gameTime % 40.0) / 40.0;
