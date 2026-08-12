@@ -4,19 +4,15 @@ import ddraig.net.entropica.block.ModChestBlock;
 import ddraig.net.entropica.block.entity.ModChestBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ChestModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.ChestRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.ChestRenderState;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
 
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -29,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ModChestRenderer extends ChestRenderer<ModChestBlockEntity> {
-    private static final Map<String, Material[]> MATERIAL_CACHE = new HashMap<>();
+    private static final Map<String, RenderType[]> RENDER_TYPE_CACHE = new HashMap<>();
 
     private final ChestModel singleModel;
     private final ChestModel doubleLeftModel;
@@ -46,17 +42,17 @@ public class ModChestRenderer extends ChestRenderer<ModChestBlockEntity> {
     public void submit(ChestRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState cameraState) {
         if (renderState.blockState != null && renderState.blockState.getBlock() instanceof ModChestBlock chestBlock) {
             String woodType = chestBlock.getWoodType();
-            Material[] materials = MATERIAL_CACHE.computeIfAbsent(woodType, key -> new Material[]{
-                new Material(Sheets.CHEST_SHEET, ResourceLocation.fromNamespaceAndPath("entropica", "entity/chest/" + key)),
-                new Material(Sheets.CHEST_SHEET, ResourceLocation.fromNamespaceAndPath("entropica", "entity/chest/" + key + "_left")),
-                new Material(Sheets.CHEST_SHEET, ResourceLocation.fromNamespaceAndPath("entropica", "entity/chest/" + key + "_right"))
+            RenderType[] renderTypes = RENDER_TYPE_CACHE.computeIfAbsent(woodType, key -> new RenderType[]{
+                RenderType.entityCutout(ResourceLocation.fromNamespaceAndPath("entropica", "textures/entity/chest/" + key + ".png")),
+                RenderType.entityCutout(ResourceLocation.fromNamespaceAndPath("entropica", "textures/entity/chest/" + key + "_left.png")),
+                RenderType.entityCutout(ResourceLocation.fromNamespaceAndPath("entropica", "textures/entity/chest/" + key + "_right.png"))
             });
 
             ChestType chestType = renderState.type != null ? renderState.type : ChestType.SINGLE;
-            Material material = switch (chestType) {
-                case LEFT -> materials[1];
-                case RIGHT -> materials[2];
-                default -> materials[0];
+            RenderType renderType = switch (chestType) {
+                case LEFT -> renderTypes[1];
+                case RIGHT -> renderTypes[2];
+                default -> renderTypes[0];
             };
 
             poseStack.pushPose();
@@ -69,9 +65,6 @@ public class ModChestRenderer extends ChestRenderer<ModChestBlockEntity> {
 
             float openProgress = 1.0F - renderState.open;
             openProgress = 1.0F - openProgress * openProgress * openProgress;
-
-            RenderType renderType = material.renderType(RenderType::entityCutout);
-            TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(material.atlasLocation()).getSprite(material.texture());
 
             ChestModel model = switch (chestType) {
                 case LEFT -> this.doubleLeftModel;
@@ -87,7 +80,7 @@ public class ModChestRenderer extends ChestRenderer<ModChestBlockEntity> {
                 renderState.lightCoords,
                 OverlayTexture.NO_OVERLAY,
                 -1,
-                sprite,
+                null,
                 0,
                 renderState.breakProgress
             );

@@ -1,5 +1,15 @@
 
 
+## Build 000-1-26-224-15-35 — ModChestRenderer Atlas Location Fix (`IllegalArgumentException` Fix)
+
+### Root Cause Diagnosed & Fixed
+- **Empirical Crash Log Diagnosis (`crash-2026-08-12_15.33.24-client.txt`)**:
+  - Log revealed `java.lang.IllegalArgumentException: Invalid atlas id: minecraft:textures/atlas/chest.png` in `ModChestRenderer.submit` when attempting `AtlasManager.getAtlasOrThrow(material.atlasLocation())`.
+  - Root cause: In Minecraft 1.21.2+, `Sheets.CHEST_SHEET` is not registered as a standalone atlas in `AtlasManager`. Entity chest textures are standalone 64x64 PNG files rendered via `RenderType.entityCutout(...)`.
+  - **Renderer Fix ([ModChestRenderer.java](file:///C:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/client/renderer/ModChestRenderer.java))**:
+    - Replaced `AtlasManager.getAtlasOrThrow(...)` lookup with `RenderType.entityCutout(ResourceLocation.fromNamespaceAndPath("entropica", "textures/entity/chest/" + key + ".png"))`.
+    - Passed `null` for `TextureAtlasSprite` in `SubmitNodeCollector.submitModel(...)`, completely resolving the atlas lookup exception while rendering custom 64x64 chest textures cleanly in-world.
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 37s`**.
 
 ## Build 000-1-26-224-15-30 — Custom Wood Chest Block Entity Placement Crash & 3D Item Rendering Fix
 
