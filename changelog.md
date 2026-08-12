@@ -1,3 +1,20 @@
+## Build 000-1-26-224-15-55 — Entropica Obsidian Vault Lore-Authentic Wood Chest Texture Overhaul
+
+### Obsidian Vault Lore-Authentic Wood Chest Art
+- **30 Vault-Authentic Handcrafted Chest Textures (`assets/entropica/textures/entity/chest/*.png`)**:
+  - Consulted and applied the exact species appearance, bark textures, wood grain palettes, and botanical lore from the OKF Obsidian Vault (`C:\Users\Ddraig__\Downloads\OBSIDIAN WIKIS\Entropica\Entropica\wiki\entities\blocks\`) for all 10 tree species:
+    - 🌋 `pyre_ash_cedar`: Charred volcanic spruce bark outer frame, cinder-orange wood body, 1-pixel magma fissure veins, and volcanic iron bands with a magma-core lock.
+    - 🌌 `abyssal_spore_cypress`: Deep dark navy-indigo jungle bark frame, dark cyan wood body, bioluminescent cyan spore nodes/gills along edges, and cyan spore crystal lock.
+    - ✨ `starlight_aether_birch`: Shimmering white-gold birch bark frame, pale gold interior wood grain with golden-amber growth ring highlights, and polished gold starlight latch.
+    - 🩸 `blood_root_iron_oak`: Heavy dark iron-oak bark frame, deep blood-crimson ironwood heartwood body, twisted crimson-black veins, and ruby-studded iron lock.
+    - 🟣 `astral_veil_willow`: Muted slate purple willow bark frame, glowing violet wood body with soft double-recessed panels, and deep amethyst crystal lock.
+    - 🔮 `void_blight_mangrove`: Deep dark void-magenta mangrove frame, dark violet blight timber body with carved void rift rings, and glowing void purple crystal lock.
+    - 🍯 `amber_wood`: Sticky golden-orange wood body, dark resin frame, embedded translucent golden amber resin chunk studs along edges, and golden amber gem lock.
+    - 🪵 `rubber_tree`: Dark grayish-brown rubber wood body, vertical amber latex resin streaks, dark iron hoops/bands, and heavy dark iron buckle ring lock.
+    - 🌲 `silver_pine`: Pale silver-blue alpine bark frame, dark teal/cyan pine wood body with clean vertical fissures and frosted silver trim, and silver-lime crystal lock.
+    - 🌊 `materia_echo`: Warm pale ash-wood body, soft ashen-gray bark frame, subtle sage-cyan ether rune line veins, and glowing echo-cyan gem lock.
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 46s`**.
+
 ## Build 000-1-26-224-15-51 — 4-Side Uniformity & 4-Way Tiling Chest Texture Alignment
 
 ### Seamless Tiling & 4-Side Uniformity Alignment
