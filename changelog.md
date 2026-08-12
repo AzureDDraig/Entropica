@@ -1,3 +1,11 @@
+## Build 000-1-26-224-16-00 — Void Blight Mangrove Chest Top-to-Side 3D Continuous Seam Alignment
+
+### 3D Continuous Void Rift Ring Seam Fix
+- **Void Blight Mangrove Chest Tiling (`assets/entropica/textures/entity/chest/void_blight_mangrove*.png`)**:
+  - Re-calculated the carved glowing void rift ring pattern across 3D coordinates so that the ring on the top lid connects continuously over the top rim edge into all 4 side walls without any abrupt line cut-offs.
+  - Formed a 3D continuous spherical/cylindrical void rift portal ring field around the entire chest body.
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 48s`**.
+
 ## Build 000-1-26-224-15-55 — Entropica Obsidian Vault Lore-Authentic Wood Chest Texture Overhaul
 
 ### Obsidian Vault Lore-Authentic Wood Chest Art
