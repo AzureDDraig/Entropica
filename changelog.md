@@ -3,6 +3,29 @@
 
 
 
+## Build 000-1-26-224-14-01 — Vertical Slab Model Fix, Spectral Dye Client Fix, World Tab Reorganization & Sapling Art Suite
+
+### Core Fixes & Additions
+- **Materia-Echo Vertical Slab Model Fix (`materia_echo_vertical_slab.json`)**:
+  - Created missing `models/block/materia_echo_vertical_slab.json` parented to `entropica:block/base/vertical_slab_base` with `materia_echo_planks` textures. Fixed black/purple missing model error in world placement and item view.
+- **Spectral Dye Rendering Fix (`spectral_dye_tint`)**:
+  - Registered missing `spectral_dye_tint` (`ModItemTintSources.SpectralDyeTint`) loom tint source in `EntropicaClientFabric.java`.
+  - Filtered `SpectralDyeItem` out of general `ITEMS_TAB` so dyes only display in their dedicated dynamic color section.
+- **World Tab Categorization & Alphabetical Grouping (`WORLD_TAB`)**:
+  - Reorganized `WORLD_TAB` in `ModCreativeTabs.java` into 5 clean, logically organized sections:
+    1. **Ores & Minerals**: Alphabetical listing of crystal blocks, budding blocks, clusters, buds, and raw ores.
+    2. **Flora, Plants & Mushrooms**: Alphabetical listing of flowers, orchids, petals, mosses, mushrooms, and succulents.
+    3. **Wood Families**: Alphabetical listing by Wood Type name (Abyssal Spore-Cypress, Amber-Wood, Astral-Veil Willow, Blood-Root Iron-Oak, Materia-Echo Tree, Pyre-Ash Cedar, Rubber-Tree, Silver-Pine, Starlight Aether-Birch, Void-Blight Mangrove), with each Wood Family internally sorted in clean standard sequence (Log -> Stripped Log -> Wood -> Stripped Wood -> Planks -> Leaves -> Sapling -> Fruit/Bramble -> Stairs -> Slab -> Vertical Slab -> Fence -> Fence Gate -> Button -> Pressure Plate -> Bark/Flakes drop).
+    4. **Spectral Dyes**: Alphabetical listing of all 22 spectral dyes.
+    5. **Indigenous Fauna Spawn Eggs**: Alphabetical listing of all mob spawn eggs.
+- **Shaded 16x16 Pixel Art Sapling Suite**:
+  - Created customized, high-contrast 16x16 pixel art sapling textures with shaded stems, dark soil/mud mounds, and distinct botanical leaf palettes:
+    - 🌋 `pyre_ash_cedar_sapling.png`: Volcanic ash/basalt soil base with ember specks, charcoal bark stem, fiery ember-tipped cedar needles.
+    - 🌌 `abyssal_spore_cypress_sapling.png`: Deep dark mud soil base, navy stem, bioluminescent cyan spore clusters & needles.
+    - ✨ `starlight_aether_birch_sapling.png`: Forest moss soil base, silver-white birch stem with dark bark notches, glowing golden starlight leaves.
+    - 🩸 `blood_root_iron_oak_sapling.png`: Iron-rich red loam soil base, gnarled dark iron-oak stem, deep crimson blood-oak leaves.
+- **Multi-Loader Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 49s`**.
+
 ## Build 000-1-26-224-12-50 — Materia-Echo Tree Echo Fruit Natural Regrowth & Bonemeal Mechanics
 
 ### Core Features & Mechanics

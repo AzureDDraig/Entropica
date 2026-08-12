@@ -1,8 +1,7 @@
 {
-  "parent": "entropica:block/vertical_slab",
+  "parent": "entropica:block/base/vertical_slab_base",
   "textures": {
-    "bottom": "entropica:block/materia_echo_planks",
-    "side": "entropica:block/materia_echo_planks",
-    "top": "entropica:block/materia_echo_planks"
+    "texture": "entropica:block/materia_echo_planks",
+    "particle": "entropica:block/materia_echo_planks"
   }
 }

@@ -45,6 +45,7 @@ public class ModCreativeTabs {
                                 !(item instanceof EssenceAmpouleItem) &&
                                 !(item instanceof VisFumeAmpouleItem) &&
                                 !(item instanceof ddraig.net.entropica.item.ChalkItem) &&
+                                !(item instanceof ddraig.net.entropica.item.SpectralDyeItem) &&
                                 !itemRegistryObject.getId().getPath().contains("ampoule_base") &&
                                 item != ModItems.SOULBOUND_BLADE.get() &&
                                 item != ModItems.OBLIVION_BLADE.get() &&
