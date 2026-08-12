@@ -1,3 +1,20 @@
+## Build 000-1-26-224-15-43 — 30 Bespoke Architectural Chest Pixel Art Textures
+
+### Bespoke Botanical & Architectural Chest Artwork
+- **30 Handcrafted Bespoke Pixel Art Textures (`assets/entropica/textures/entity/chest/*.png`)**:
+  - Overhauled all 30 single and double chest texture maps to feature distinct architectural paneling, iron banding, carved runes, organic hyphae veins, and bespoke lock fittings tailored to each wood species:
+    - 🌋 `pyre_ash_cedar`: Charred spruce timber with horizontal dark iron bands and fiery ember-orange core lock.
+    - 🌌 `abyssal_spore_cypress`: Oceanic dark navy wood with bioluminescent cyan hyphae veins crawling across top/sides and cyan crystal lock.
+    - ✨ `starlight_aether_birch`: Pale silver-white birch wood with fine vertical wood slat paneling and golden starlight inlaid trim.
+    - 🩸 `blood_root_iron_oak`: Ironwood bark slate texture with iron corner studs and bleeding crimson sap seams.
+    - 🟣 `astral_veil_willow`: Muted slate purple wood with double recessed frame panels and amethyst lock.
+    - 🔮 `void_blight_mangrove`: Deep void blight purple wood with carved concentric void rift rings on lid and sides.
+    - 🍯 `amber_wood`: Honey-amber wood planks with amber resin studs along edges and translucent amber gem lock.
+    - 🪵 `rubber_tree`: Dark mahogany latex rubber wood with horizontal dark iron reinforcement hoops/straps.
+    - 🌲 `silver_pine`: Deep alpine evergreen pine wood with vertical slat paneling and frosted silver trim.
+    - 🌊 `materia_echo`: Ghostly spectral gray wood with glowing cyan rune line carvings along lid and front panel.
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 45s`**.
+
 ## Build 000-1-26-224-15-38 — 30 Chest Entity Textures Authentic Wood Plank Pixel Art Overhaul
 
 ### Core Texture Overhaul & Refinement
