@@ -32,7 +32,13 @@ public class TreeLogStrippingHandler {
         int minDrop = 1;
         int maxDrop = 2;
 
-        if (state.is(ModBlocks.PYRE_ASH_CEDAR_LOG.get())) {
+        if (state.is(ModBlocks.MATERIA_ECHO_LOG.get())) {
+            strippedState = ModBlocks.STRIPPED_MATERIA_ECHO_LOG.get().defaultBlockState();
+            dropItem = ModItems.MATERIA_ECHO_BARK.get();
+        } else if (state.is(ModBlocks.MATERIA_ECHO_WOOD.get())) {
+            strippedState = ModBlocks.STRIPPED_MATERIA_ECHO_WOOD.get().defaultBlockState();
+            dropItem = ModItems.MATERIA_ECHO_BARK.get();
+        } else if (state.is(ModBlocks.PYRE_ASH_CEDAR_LOG.get())) {
             strippedState = ModBlocks.STRIPPED_PYRE_ASH_CEDAR_LOG.get().defaultBlockState();
             dropItem = ModItems.CINDER_ASH_FLAKES.get();
         } else if (state.is(ModBlocks.PYRE_ASH_CEDAR_WOOD.get())) {

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab_top",
+  "textures": {
+    "bottom": "entropica:block/materia_echo_planks",
+    "side": "entropica:block/materia_echo_planks",
+    "top": "entropica:block/materia_echo_planks"
+  }
+}

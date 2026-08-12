@@ -134,6 +134,14 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
         // --- 5. Block Colors ---
         ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
+            if (level instanceof net.minecraft.world.level.Level world && pos != null) {
+                return ddraig.net.entropica.block.MateriaEchoFruitBlock.getAspectForBiome(world, pos).getColorInt();
+            }
+            return 0xFFFFFF;
+        }, ModBlocks.MATERIA_ECHO_FRUIT.get());
+
+
+        ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
             if (tintIndex == 0) {
                 return ddraig.net.entropica.client.AmbientEssenceTintRegistry.getAmbientEssenceColor(level, pos);
             }
@@ -210,6 +218,9 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
         BlockRenderLayerMap.INSTANCE.putBlocks(
             RenderType.cutout(),
+            ModBlocks.MATERIA_ECHO_LEAVES.get(),
+            ModBlocks.MATERIA_ECHO_SAPLING.get(),
+            ModBlocks.MATERIA_ECHO_FRUIT.get(),
             ModBlocks.PYRE_ASH_CEDAR_LEAVES.get(),
             ModBlocks.PYRE_ASH_CEDAR_SAPLING.get(),
             ModBlocks.ABYSSAL_SPORE_CYPRESS_LEAVES.get(),
@@ -322,6 +333,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "essence_tint"), ModItemTintSources.EssenceTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "shard_tint"), ModItemTintSources.ShardTint.MAP_CODEC);
         registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "aesthetic_glass_tint"), ModItemTintSources.AestheticGlassTint.MAP_CODEC);
+        registerLoomTintSource(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "echo_fruit_tint"), ModItemTintSources.EchoFruitTint.MAP_CODEC);
+
 
         // --- 8. Special Model Renderer ---
         registerLoomSpecialModelRenderer(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "dynamic_weapon"), DynamicWeaponRenderer.Unbaked.MAP_CODEC);

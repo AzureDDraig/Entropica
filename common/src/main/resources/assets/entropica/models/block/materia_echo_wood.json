@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "entropica:block/materia_echo_log",
+    "side": "entropica:block/materia_echo_log"
+  }
+}

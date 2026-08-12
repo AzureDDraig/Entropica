@@ -967,6 +967,24 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
 
     // --- 4 Tree Families BlockItems (56 Items) ---
     
+    // --- Materia-Echo Tree Items ---
+    public static final RegistrySupplier<Item> ECHO_FRUIT = ITEMS.registerItem("echo_fruit", properties -> new ddraig.net.entropica.item.EchoFruitItem(properties));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_BARK = ITEMS.registerItem("materia_echo_bark", Item::new);
+    public static final RegistrySupplier<Item> MATERIA_ECHO_LOG = ITEMS.register("materia_echo_log", name -> new BlockItem(ModBlocks.MATERIA_ECHO_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_MATERIA_ECHO_LOG = ITEMS.register("stripped_materia_echo_log", name -> new BlockItem(ModBlocks.STRIPPED_MATERIA_ECHO_LOG.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_WOOD = ITEMS.register("materia_echo_wood", name -> new BlockItem(ModBlocks.MATERIA_ECHO_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> STRIPPED_MATERIA_ECHO_WOOD = ITEMS.register("stripped_materia_echo_wood", name -> new BlockItem(ModBlocks.STRIPPED_MATERIA_ECHO_WOOD.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_PLANKS = ITEMS.register("materia_echo_planks", name -> new BlockItem(ModBlocks.MATERIA_ECHO_PLANKS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_LEAVES = ITEMS.register("materia_echo_leaves", name -> new BlockItem(ModBlocks.MATERIA_ECHO_LEAVES.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_SAPLING = ITEMS.register("materia_echo_sapling", name -> new BlockItem(ModBlocks.MATERIA_ECHO_SAPLING.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_STAIRS = ITEMS.register("materia_echo_stairs", name -> new BlockItem(ModBlocks.MATERIA_ECHO_STAIRS.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_SLAB = ITEMS.register("materia_echo_slab", name -> new BlockItem(ModBlocks.MATERIA_ECHO_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_VERTICAL_SLAB = ITEMS.register("materia_echo_vertical_slab", name -> new BlockItem(ModBlocks.MATERIA_ECHO_VERTICAL_SLAB.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_FENCE = ITEMS.register("materia_echo_fence", name -> new BlockItem(ModBlocks.MATERIA_ECHO_FENCE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_FENCE_GATE = ITEMS.register("materia_echo_fence_gate", name -> new BlockItem(ModBlocks.MATERIA_ECHO_FENCE_GATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_BUTTON = ITEMS.register("materia_echo_button", name -> new BlockItem(ModBlocks.MATERIA_ECHO_BUTTON.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_PRESSURE_PLATE = ITEMS.register("materia_echo_pressure_plate", name -> new BlockItem(ModBlocks.MATERIA_ECHO_PRESSURE_PLATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+
     // --- Tree Stripping Items ---
     public static final RegistrySupplier<Item> CINDER_ASH_FLAKES = ITEMS.registerItem("cinder_ash_flakes", Item::new);
     public static final RegistrySupplier<Item> BIOLUMINESCENT_SPORE_POD = ITEMS.registerItem("bioluminescent_spore_pod", Item::new);

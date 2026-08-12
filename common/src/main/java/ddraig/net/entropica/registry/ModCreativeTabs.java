@@ -494,7 +494,23 @@ public class ModCreativeTabs {
                 output.accept(ModItems.STATIC_FUNGAL_CAP.get());
 
                 // 4 Tree Families Wood Suites
-                                output.accept(ModItems.CINDER_ASH_FLAKES.get());
+                                output.accept(ModItems.ECHO_FRUIT.get());
+                output.accept(ModItems.MATERIA_ECHO_BARK.get());
+                output.accept(ModItems.MATERIA_ECHO_LOG.get());
+                output.accept(ModItems.STRIPPED_MATERIA_ECHO_LOG.get());
+                output.accept(ModItems.MATERIA_ECHO_WOOD.get());
+                output.accept(ModItems.STRIPPED_MATERIA_ECHO_WOOD.get());
+                output.accept(ModItems.MATERIA_ECHO_PLANKS.get());
+                output.accept(ModItems.MATERIA_ECHO_LEAVES.get());
+                output.accept(ModItems.MATERIA_ECHO_SAPLING.get());
+                output.accept(ModItems.MATERIA_ECHO_STAIRS.get());
+                output.accept(ModItems.MATERIA_ECHO_SLAB.get());
+                output.accept(ModItems.MATERIA_ECHO_VERTICAL_SLAB.get());
+                output.accept(ModItems.MATERIA_ECHO_FENCE.get());
+                output.accept(ModItems.MATERIA_ECHO_FENCE_GATE.get());
+                output.accept(ModItems.MATERIA_ECHO_BUTTON.get());
+                output.accept(ModItems.MATERIA_ECHO_PRESSURE_PLATE.get());
+                output.accept(ModItems.CINDER_ASH_FLAKES.get());
                 output.accept(ModItems.BIOLUMINESCENT_SPORE_POD.get());
                 output.accept(ModItems.AETHERIC_BIRCH_BARK.get());
                 output.accept(ModItems.STARLIGHT_FLAKES.get());

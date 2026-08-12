@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "entropica:block/materia_echo_slab"
+    },
+    "type=top": {
+      "model": "entropica:block/materia_echo_slab_top"
+    },
+    "type=double": {
+      "model": "entropica:block/materia_echo_planks"
+    }
+  }
+}

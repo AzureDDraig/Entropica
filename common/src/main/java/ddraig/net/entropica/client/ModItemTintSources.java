@@ -215,5 +215,20 @@ public class ModItemTintSources {
         @Override
         public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
     }
+
+    public record EchoFruitTint() implements ItemTintSource {
+        public static final MapCodec<EchoFruitTint> MAP_CODEC = MapCodec.unit(new EchoFruitTint());
+
+        @Override
+        public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
+            EssenceType aspect = ddraig.net.entropica.item.EchoFruitItem.getAspectFromStack(stack);
+            return (0xFF << 24) | aspect.getColorInt();
+        }
+
+        @Override
+        public MapCodec<? extends ItemTintSource> type() { return MAP_CODEC; }
+    }
 }
+
+
 

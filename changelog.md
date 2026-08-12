@@ -3,6 +3,26 @@
 
 
 
+## Build 000-1-26-224-12-12 — Materia-Echo Tree Suite, Biome-Attuned Echo Fruit & Materia Toxicity System
+
+### Core Features & Additions
+- **Materia-Echo Tree Wood Suite (15 Blocks)**:
+  - Implemented the complete 15-block suite: `materia_echo_log`, `stripped_materia_echo_log`, `materia_echo_wood`, `stripped_materia_echo_wood`, `materia_echo_planks`, `materia_echo_leaves`, `materia_echo_sapling`, `materia_echo_stairs`, `materia_echo_slab`, `materia_echo_vertical_slab`, `materia_echo_fence`, `materia_echo_fence_gate`, `materia_echo_button`, `materia_echo_pressure_plate`, and `materia_echo_fruit`.
+  - Applied grounded, organic pixel art textures with ashen bark (`#7D7A72`), sage-lichen ether veins (`#689B8F`), high-contrast leaves (`#23382D` shadow / `#DCF7EC` highlight tips), high-contrast planks (`#382E21` dark seams), punchy concentric growth ring log tops, and a custom soil-mounded sapling.
+- **Hanging Echo Fruit (`materia_echo_fruit`)**:
+  - Custom block (`MateriaEchoFruitBlock.java`) with growth stages `AGE=0..2` that hangs **exclusively beneath `materia_echo_leaves`**.
+- **Biome-Attuned EssenceType Echo Fruit Item (`echo_fruit`)**:
+  - Custom food item (`EchoFruitItem.java`) using a base 16x16 grayscale pixel art texture (`echo_fruit.png`) dynamically color-tinted in-game across 9 non-fragment `EssenceType`s (`FROZEN`, `NETHER`, `NATURE`, `VOID`, `LIGHTNING`, `WATER`, `UNDEAD`, `RADIANT`, `REGULAR`).
+- **60-Second Materia Toxicity System**:
+  - Consuming **2 or more Echo Fruits within 60 seconds (1200 ticks)** triggers severe **Materia Toxicity**, displaying warning HUD messages and inflicting elemental overloads based on the later fruit consumed (e.g. Freezing damage, Internal combustion fire, Poison III + Nausea, Levitation, Lightning strikes, Suffocation, Wither III).
+- **Log Stripping Drop**:
+  - Stripping Materia-Echo logs drops **Materia-Echo Bark** (`materia_echo_bark`) + cyan/silver particle sparkle.
+- **Client & Infrastructure**:
+  - Registered `BlockColor` tint provider and 1.21.2+ `EchoFruitTint` (`ItemTintSource`) across Fabric and NeoForge.
+  - Cutout render layer enabled for leaves, sapling, and fruit.
+  - Generated all 1.21.2+ item definitions, recipes, blockstates, models, loot tables, 24-locale translations, OKF Obsidian Vault note (`materia_echo_tree.md`), and Entropic Codex research node (`env_materia_echo_tree`).
+- **Multi-Loader Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 38s`**.
+
 ## Build 000-1-26-223-17-30 — NeoForge Event Refactoring (`TreeStrippingNeoForgeEvents.java`)
 
 ### Architecture Refactoring

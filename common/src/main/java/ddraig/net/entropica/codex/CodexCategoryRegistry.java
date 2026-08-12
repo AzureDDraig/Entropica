@@ -984,6 +984,19 @@ public class CodexCategoryRegistry {
 
         
         ALL_NODES.add(new CodexNode(
+                "env_materia_echo_tree", "Materia-Echo Tree & Echo Fruit", "ENVIRONMENT & NATURE",
+                "Ghostly ash-wood tree bearing climate-attuned Echo Fruits hanging beneath leaves.",
+                "Overview & Description:\n" +
+                "The Materia-Echo Tree is an ethereal pale ash-wood species that bears hanging Echo Fruits beneath its leaves.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Grown from Materia-Echo Saplings or harvested in essence-rich biomes.\n\n" +
+                "Special Properties:\n" +
+                "Hanging Echo Fruits attune to local biome EssenceTypes. Consuming 2+ Echo Fruits within 60s causes Materia Toxicity.",
+                "hub_environment", 2, new ItemStack(ModBlocks.MATERIA_ECHO_LOG.get()),
+                300f, 0.0f, a_env - 0.55f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
                 "env_astral_veil_willow", "Astral-Veil Willow Tree", "ENVIRONMENT & NATURE",
                 "Mystical Netherin wood species with starlight bark furrows, indigo foliage, and 16x16 weeping tendril vines.",
                 "Overview & Description:\n" +

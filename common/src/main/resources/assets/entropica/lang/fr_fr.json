@@ -2331,5 +2331,22 @@
   "item.entropica.starlight_flakes": "Starlight Flakes",
   "item.entropica.iron_root_sap": "Iron-Root Sap",
   "item.entropica.astral_willow_fibre": "Astral Willow Fibre",
-  "item.entropica.blighted_bark_flakes": "Blighted Bark Flakes"
+  "item.entropica.blighted_bark_flakes": "Blighted Bark Flakes",
+  "block.entropica.materia_echo_log": "Materia-Echo Log",
+  "block.entropica.stripped_materia_echo_log": "Stripped Materia-Echo Log",
+  "block.entropica.materia_echo_wood": "Materia-Echo Wood",
+  "block.entropica.stripped_materia_echo_wood": "Stripped Materia-Echo Wood",
+  "block.entropica.materia_echo_planks": "Materia-Echo Planks",
+  "block.entropica.materia_echo_leaves": "Materia-Echo Leaves",
+  "block.entropica.materia_echo_sapling": "Materia-Echo Sapling",
+  "block.entropica.materia_echo_stairs": "Materia-Echo Stairs",
+  "block.entropica.materia_echo_slab": "Materia-Echo Slab",
+  "block.entropica.materia_echo_vertical_slab": "Materia-Echo Vertical Slab",
+  "block.entropica.materia_echo_fence": "Materia-Echo Fence",
+  "block.entropica.materia_echo_fence_gate": "Materia-Echo Fence Gate",
+  "block.entropica.materia_echo_button": "Materia-Echo Button",
+  "block.entropica.materia_echo_pressure_plate": "Materia-Echo Pressure Plate",
+  "block.entropica.materia_echo_fruit": "Materia-Echo Fruit",
+  "item.entropica.echo_fruit": "Echo Fruit",
+  "item.entropica.materia_echo_bark": "Materia-Echo Bark"
 }

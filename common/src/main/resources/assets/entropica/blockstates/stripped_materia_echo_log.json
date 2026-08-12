@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "entropica:block/stripped_materia_echo_log_horizontal",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "entropica:block/stripped_materia_echo_log"
+    },
+    "axis=z": {
+      "model": "entropica:block/stripped_materia_echo_log_horizontal",
+      "x": 90
+    }
+  }
+}
