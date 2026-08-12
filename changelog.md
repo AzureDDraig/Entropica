@@ -1,3 +1,11 @@
+## Build 000-1-26-224-15-51 — 4-Side Uniformity & 4-Way Tiling Chest Texture Alignment
+
+### Seamless Tiling & 4-Side Uniformity Alignment
+- **4-Way Tiling Top & 4-Side Uniformity (`assets/entropica/textures/entity/chest/*.png`)**:
+  - Re-mapped all 30 single and double chest texture maps so that all 4 side faces (Right, Front, Left, Back) share the identical side texture pattern around the chest perimeter.
+  - Aligned global texture space coordinates so the top lid face tiles seamlessly into all 4 side edges in all 4 cardinal directions (North, South, East, West).
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 45s`**.
+
 ## Build 000-1-26-224-15-43 — 30 Bespoke Architectural Chest Pixel Art Textures
 
 ### Bespoke Botanical & Architectural Chest Artwork
