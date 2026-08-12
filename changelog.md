@@ -1,4 +1,11 @@
+## Build 000-1-26-224-15-38 — 30 Chest Entity Textures Authentic Wood Plank Pixel Art Overhaul
 
+### Core Texture Overhaul & Refinement
+- **Authentic Wood Plank Retexturing (`assets/entropica/textures/entity/chest/*.png`)**:
+  - Replaced hue/brightness multipliers with an authentic texture compositor pipeline that maps each wood species' **actual 16x16 / 32x32 custom plank pixel art** (`<wood>_planks.png`) directly onto all lid tops, lid sides, base bottoms, and base sides across all 30 single and double chest texture maps.
+  - Calculated custom 1-pixel frame outline borders derived dynamically from the darkest shadow tones of each wood species' plank texture.
+  - Retained high-contrast metallic accent latches shaded specifically to each tree family's accent color palette (Ember Orange, Bioluminescent Cyan, Golden Starlight, Crimson Blood, Astral Violet, Void Purple, Amber Gold, Latex Amber, Silver-Lime, Echo Cyan).
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 47s`**.
 
 ## Build 000-1-26-224-15-35 — ModChestRenderer Atlas Location Fix (`IllegalArgumentException` Fix)
 
