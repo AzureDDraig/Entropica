@@ -3,6 +3,19 @@
 
 
 
+## Build 000-1-26-224-12-50 — Materia-Echo Tree Echo Fruit Natural Regrowth & Bonemeal Mechanics
+
+### Core Features & Mechanics
+- **Echo Fruit Natural Regrowth System (`MateriaEchoLeavesBlock.java`)**:
+  - Implemented `MateriaEchoLeavesBlock` extending `Block` with `randomTicks()` and `BonemealableBlock` interface.
+  - **Random Tick Regrowth**: On leaf random tick, if the space directly underneath (`pos.below()`) is empty (`AIR`), there is a 5% chance per tick to sprout a fresh Echo Fruit bud (`AGE=0`).
+  - **Ripening Growth**: Sprouted Echo Fruit buds naturally receive random ticks to mature from `AGE=0` -> `1` -> `2` (fully ripe).
+  - **Harvest Cycle**: Right-clicking a ripe fruit (`AGE=2`) harvests the fruit and resets the block state to `AGE=0` (unripe bud) to repeat the growth cycle indefinitely. If broken, the leaf will sprout a new bud over time.
+  - **Bonemeal Support**:
+    - Applying Bonemeal to `materia_echo_leaves` with an open space below instantly forces a new Echo Fruit bud (`AGE=0`) to sprout.
+    - Applying Bonemeal directly to `materia_echo_fruit` advances its growth stage to fully ripe.
+- **Multi-Loader Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 40s`**.
+
 ## Build 000-1-26-224-12-12 — Materia-Echo Tree Suite, Biome-Attuned Echo Fruit & Materia Toxicity System
 
 ### Core Features & Additions
