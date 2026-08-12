@@ -2,6 +2,35 @@
 
 
 
+## Build 000-1-26-224-15-21 — 10 Recolored Custom Wood Chests Complete Implementation
+
+### Core Additions & Features
+- **10 Custom Wood Chest Blocks (`ModChestBlock.java`)**:
+  - Implemented `ModChestBlock` extending `ChestBlock` with custom wood type identifiers:
+    - 🌋 `pyre_ash_cedar_chest`: Burnt ash brown timber with fiery ember-orange latches.
+    - 🌌 `abyssal_spore_cypress_chest`: Deep dark oceanic indigo timber with bioluminescent cyan latches.
+    - ✨ `starlight_aether_birch_chest`: Pale silver-white birch timber with glowing golden starlight latches.
+    - 🩸 `blood_root_iron_oak_chest`: Metallic iron-gray bark timber with deep crimson blood-red latches.
+    - 🟣 `astral_veil_willow_chest`: Muted slate purple timber with astral violet latches.
+    - 🔮 `void_blight_mangrove_chest`: Deep void blight purple-gray timber with glowing blight purple latches.
+    - 🍯 `amber_chest`: Rich golden amber timber with amber crystal latches.
+    - 🪵 `rubber_chest`: Dark mahogany latex rubber wood timber with amber gold latches.
+    - 🌲 `silver_pine_chest`: Deep alpine pine-green timber with bright silver-lime latches.
+    - 🌊 `materia_echo_chest`: Ghostly spectral gray timber with echo cyan-blue latches.
+- **Custom Block Entity & Renderer (`ModChestBlockEntity.java` & `ModChestRenderer.java`)**:
+  - Created `ModChestBlockEntity` extending `ChestBlockEntity` and registered `MOD_CHEST` in `ModBlockEntities.java`.
+  - Implemented `ModChestRenderer` extending `ChestRenderer<ModChestBlockEntity>` cleanly overriding `submit` using `ChestRenderState` and `SubmitNodeCollector` for 100% 1.21.2+ rendering compatibility across Fabric (`EntropicaClientFabric.java`) and NeoForge (`ModClientEvents.java`).
+- **30 Recolored 64x64 Texture Maps**:
+  - Generated 30 custom 64x64 chest texture maps (`textures/entity/chest/*.png`, `*_left.png`, `*_right.png`) matching the exact pixel-perfect layout and authentic plank & latch color palettes of each tree family.
+- **Crafting Recipes & Tab Placement**:
+  - Registered 10 3x3 plank ring crafting recipes yielding 1 custom wood chest per wood species, preserving vanilla oak chest recipes.
+  - Inserted each wood chest into `WORLD_TAB` in `ModCreativeTabs.java` immediately after its corresponding wood family's `PRESSURE_PLATE`.
+- **Block & Item Tags**:
+  - Added all 10 chest blocks and items to `#minecraft:chests`, `#minecraft:wooden_chests`, `#c:chests`, and `#c:wooden_chests`.
+- **Documentation & Codex Sync**:
+  - Created OKF Obsidian Vault note (`wiki/entities/blocks/elemental_wood_chests.md`).
+  - Registered research node (`machinery_custom_wood_chests`) under `MACHINERY` in `CodexCategoryRegistry.java`.
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 51s`**.
 
 ## Build 000-1-26-224-14-06 — Global Item Tinting Restoration & Dynamic Color Cycling Fix
 

@@ -120,6 +120,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
 
         // --- 3. Entity Layer Definitions ---
+        net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(ModBlockEntities.MOD_CHEST.get(), ddraig.net.entropica.client.renderer.ModChestRenderer::new);
         EntityModelLayerRegistry.registerModelLayer(EidolicShadowModel.LAYER_LOCATION, EidolicShadowModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.GROT, GrotModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(VeilFoxModel.LAYER_LOCATION, VeilFoxModel::createBodyLayer);

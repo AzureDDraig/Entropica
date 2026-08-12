@@ -310,4 +310,21 @@ public class ModBlockEntities {
                     BlockEntityHelper.create(MateriaBlessingBlockEntity::new,
                             ModBlocks.MATERIA_BLESSING.get(),
                             ModBlocks.GREATER_MATERIA_BLESSING.get()));
+
+    // --- WOODEN CHESTS ---
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.ModChestBlockEntity>> MOD_CHEST =
+            BLOCK_ENTITIES.register("mod_chest", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.ModChestBlockEntity::new,
+                            ModBlocks.PYRE_ASH_CEDAR_CHEST.get(),
+                            ModBlocks.ABYSSAL_SPORE_CYPRESS_CHEST.get(),
+                            ModBlocks.STARLIGHT_AETHER_BIRCH_CHEST.get(),
+                            ModBlocks.BLOOD_ROOT_IRON_OAK_CHEST.get(),
+                            ModBlocks.ASTRAL_VEIL_WILLOW_CHEST.get(),
+                            ModBlocks.VOID_BLIGHT_MANGROVE_CHEST.get(),
+                            ModBlocks.AMBER_CHEST.get(),
+                            ModBlocks.RUBBER_CHEST.get(),
+                            ModBlocks.SILVER_PINE_CHEST.get(),
+                            ModBlocks.MATERIA_ECHO_CHEST.get()
+                    ));
+
 }

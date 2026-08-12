@@ -279,6 +279,21 @@ public class CodexCategoryRegistry {
                 280f, 0.0f, a_mach, false
         ));
 
+        ALL_NODES.add(new CodexNode(
+                "machinery_custom_wood_chests", "Elemental Wood Chests", "MACHINERY",
+                "Color-coded wooden storage containers crafted from native Entropica wood species.",
+                "Overview & Description:\n" +
+                "Specially crafted wooden storage chests matching the distinct timber grain and color palette of Entropica's 10 native wood species.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted in a 3x3 crafting grid using 8 matching Planks of any specific wood type (Pyre-Ash Cedar, Abyssal Spore-Cypress, Starlight Aether-Birch, Blood-Root Iron-Oak, Astral-Veil Willow, Void-Blight Mangrove, Amber, Rubber, Silver Pine, or Materia-Echo).\n\n" +
+                "Crafting Uses:\n" +
+                "Provides 27 slots of item storage per single chest, and 54 slots when two matching chests are placed adjacent to form a Double Chest.\n\n" +
+                "Special Properties:\n" +
+                "Features unique colored iron latches and wood-grain staining matching each tree family.",
+                "hub_machinery", 0, new ItemStack(ModBlocks.PYRE_ASH_CEDAR_CHEST.get()),
+                310f, 0.0f, a_mach + 0.20f, false
+        ));
+
         // ==========================================
         // 5. MULTIBLOCKS (Yellow Ring)
         // ==========================================
@@ -1220,6 +1235,24 @@ public class CodexCategoryRegistry {
                 "Performed at Alchemical Stills and Catalyst Receptacles.",
                 "hub_magic", 1, new ItemStack(Items.POTION),
                 280f, 0.0f, a_magic + 0.25f, false
+        ));
+
+        // ==========================================
+        // CUSTOM WOOD CHESTS (Machinery Sub-Nodes)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "machinery_custom_wood_chests", "Elemental Wood Chests", "MACHINERY",
+                "Color-coded wooden storage containers crafted from native Entropica wood species.",
+                "Overview & Description:\n" +
+                "Specially crafted wooden storage chests matching the distinct timber grain and color palette of Entropica's 10 native wood species.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted in a 3x3 crafting grid using 8 matching Planks of any specific wood type (Pyre-Ash Cedar, Abyssal Spore-Cypress, Starlight Aether-Birch, Blood-Root Iron-Oak, Astral-Veil Willow, Void-Blight Mangrove, Amber, Rubber, Silver Pine, or Materia-Echo).\n\n" +
+                "Crafting Uses:\n" +
+                "Provides 27 slots of item storage per single chest, and 54 slots when two matching chests are placed adjacent to form a Double Chest.\n\n" +
+                "Special Properties:\n" +
+                "Features unique colored iron latches and wood-grain staining matching each tree family.",
+                "hub_machinery", 0, new ItemStack(ModBlocks.PYRE_ASH_CEDAR_CHEST.get()),
+                310f, 0.0f, a_mach + 0.20f, false
         ));
     }
 

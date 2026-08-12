@@ -1050,4 +1050,35 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_FENCE_GATE = ITEMS.register("blood_root_iron_oak_fence_gate", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_FENCE_GATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
     public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_BUTTON = ITEMS.register("blood_root_iron_oak_button", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_BUTTON.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
     public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_PRESSURE_PLATE = ITEMS.register("blood_root_iron_oak_pressure_plate", name -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_PRESSURE_PLATE.get(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, name))));
+
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_CHEST_ITEM = ITEMS.registerItem("pyre_ash_cedar_chest",
+            props -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_CHEST.get(), props));
+
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_CHEST_ITEM = ITEMS.registerItem("abyssal_spore_cypress_chest",
+            props -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_CHEST.get(), props));
+
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_CHEST_ITEM = ITEMS.registerItem("starlight_aether_birch_chest",
+            props -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_CHEST.get(), props));
+
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_CHEST_ITEM = ITEMS.registerItem("blood_root_iron_oak_chest",
+            props -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_CHEST.get(), props));
+
+    public static final RegistrySupplier<Item> ASTRAL_VEIL_WILLOW_CHEST_ITEM = ITEMS.registerItem("astral_veil_willow_chest",
+            props -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_CHEST.get(), props));
+
+    public static final RegistrySupplier<Item> VOID_BLIGHT_MANGROVE_CHEST_ITEM = ITEMS.registerItem("void_blight_mangrove_chest",
+            props -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_CHEST.get(), props));
+
+    public static final RegistrySupplier<Item> AMBER_CHEST_ITEM = ITEMS.registerItem("amber_chest",
+            props -> new BlockItem(ModBlocks.AMBER_CHEST.get(), props));
+
+    public static final RegistrySupplier<Item> RUBBER_CHEST_ITEM = ITEMS.registerItem("rubber_chest",
+            props -> new BlockItem(ModBlocks.RUBBER_CHEST.get(), props));
+
+    public static final RegistrySupplier<Item> SILVER_PINE_CHEST_ITEM = ITEMS.registerItem("silver_pine_chest",
+            props -> new BlockItem(ModBlocks.SILVER_PINE_CHEST.get(), props));
+
+    public static final RegistrySupplier<Item> MATERIA_ECHO_CHEST_ITEM = ITEMS.registerItem("materia_echo_chest",
+            props -> new BlockItem(ModBlocks.MATERIA_ECHO_CHEST.get(), props));
+
 }

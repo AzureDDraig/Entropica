@@ -329,6 +329,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.ASTRAL_VEIL_WILLOW_FENCE_GATE_ITEM.get());
                 output.accept(ModItems.ASTRAL_VEIL_WILLOW_BUTTON_ITEM.get());
                 output.accept(ModItems.ASTRAL_VEIL_WILLOW_PRESSURE_PLATE_ITEM.get());
+                output.accept(ModItems.ASTRAL_VEIL_WILLOW_CHEST_ITEM.get());
                 output.accept(ModItems.VOID_BLIGHT_MANGROVE_WOOD_ITEM.get());
                 output.accept(ModItems.STRIPPED_VOID_BLIGHT_MANGROVE_WOOD_ITEM.get());
                 output.accept(ModItems.VOID_BLIGHT_MANGROVE_STAIRS_ITEM.get());
@@ -338,6 +339,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.VOID_BLIGHT_MANGROVE_FENCE_GATE_ITEM.get());
                 output.accept(ModItems.VOID_BLIGHT_MANGROVE_BUTTON_ITEM.get());
                 output.accept(ModItems.VOID_BLIGHT_MANGROVE_PRESSURE_PLATE_ITEM.get());
+                output.accept(ModItems.VOID_BLIGHT_MANGROVE_CHEST_ITEM.get());
                 output.accept(ModItems.RUBBER_STAIRS_ITEM.get());
                 output.accept(ModItems.RUBBER_SLAB_ITEM.get());
                 output.accept(ModItems.RUBBER_VERTICAL_SLAB_ITEM.get());
@@ -345,6 +347,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.RUBBER_FENCE_GATE_ITEM.get());
                 output.accept(ModItems.RUBBER_BUTTON_ITEM.get());
                 output.accept(ModItems.RUBBER_PRESSURE_PLATE_ITEM.get());
+                output.accept(ModItems.RUBBER_CHEST_ITEM.get());
                 output.accept(ModItems.SILVER_PINE_STAIRS_ITEM.get());
                 output.accept(ModItems.SILVER_PINE_SLAB_ITEM.get());
                 output.accept(ModItems.SILVER_PINE_VERTICAL_SLAB_ITEM.get());
@@ -352,6 +355,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.SILVER_PINE_FENCE_GATE_ITEM.get());
                 output.accept(ModItems.SILVER_PINE_BUTTON_ITEM.get());
                 output.accept(ModItems.SILVER_PINE_PRESSURE_PLATE_ITEM.get());
+                output.accept(ModItems.SILVER_PINE_CHEST_ITEM.get());
                 output.accept(ModItems.AMBER_STAIRS_ITEM.get());
                 output.accept(ModItems.AMBER_SLAB_ITEM.get());
                 output.accept(ModItems.AMBER_VERTICAL_SLAB_ITEM.get());
@@ -359,6 +363,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.AMBER_FENCE_GATE_ITEM.get());
                 output.accept(ModItems.AMBER_BUTTON_ITEM.get());
                 output.accept(ModItems.AMBER_PRESSURE_PLATE_ITEM.get());
+                output.accept(ModItems.AMBER_CHEST_ITEM.get());
 
                 
                 // Astral-Veil Willow Set
@@ -511,6 +516,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.MATERIA_ECHO_FENCE_GATE.get());
                 output.accept(ModItems.MATERIA_ECHO_BUTTON.get());
                 output.accept(ModItems.MATERIA_ECHO_PRESSURE_PLATE.get());
+                output.accept(ModItems.MATERIA_ECHO_CHEST_ITEM.get());
                 output.accept(ModItems.CINDER_ASH_FLAKES.get());
                 output.accept(ModItems.BIOLUMINESCENT_SPORE_POD.get());
                 output.accept(ModItems.AETHERIC_BIRCH_BARK.get());
@@ -532,6 +538,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.PYRE_ASH_CEDAR_FENCE_GATE.get());
                 output.accept(ModItems.PYRE_ASH_CEDAR_BUTTON.get());
                 output.accept(ModItems.PYRE_ASH_CEDAR_PRESSURE_PLATE.get());
+                output.accept(ModItems.PYRE_ASH_CEDAR_CHEST_ITEM.get());
                 output.accept(ModItems.ABYSSAL_SPORE_CYPRESS_LOG.get());
                 output.accept(ModItems.STRIPPED_ABYSSAL_SPORE_CYPRESS_LOG.get());
                 output.accept(ModItems.ABYSSAL_SPORE_CYPRESS_WOOD.get());
@@ -546,6 +553,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.ABYSSAL_SPORE_CYPRESS_FENCE_GATE.get());
                 output.accept(ModItems.ABYSSAL_SPORE_CYPRESS_BUTTON.get());
                 output.accept(ModItems.ABYSSAL_SPORE_CYPRESS_PRESSURE_PLATE.get());
+                output.accept(ModItems.ABYSSAL_SPORE_CYPRESS_CHEST_ITEM.get());
                 output.accept(ModItems.STARLIGHT_AETHER_BIRCH_LOG.get());
                 output.accept(ModItems.STRIPPED_STARLIGHT_AETHER_BIRCH_LOG.get());
                 output.accept(ModItems.STARLIGHT_AETHER_BIRCH_WOOD.get());
@@ -560,6 +568,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.STARLIGHT_AETHER_BIRCH_FENCE_GATE.get());
                 output.accept(ModItems.STARLIGHT_AETHER_BIRCH_BUTTON.get());
                 output.accept(ModItems.STARLIGHT_AETHER_BIRCH_PRESSURE_PLATE.get());
+                output.accept(ModItems.STARLIGHT_AETHER_BIRCH_CHEST_ITEM.get());
                 output.accept(ModItems.BLOOD_ROOT_IRON_OAK_LOG.get());
                 output.accept(ModItems.STRIPPED_BLOOD_ROOT_IRON_OAK_LOG.get());
                 output.accept(ModItems.BLOOD_ROOT_IRON_OAK_WOOD.get());
@@ -574,6 +583,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.BLOOD_ROOT_IRON_OAK_FENCE_GATE.get());
                 output.accept(ModItems.BLOOD_ROOT_IRON_OAK_BUTTON.get());
                 output.accept(ModItems.BLOOD_ROOT_IRON_OAK_PRESSURE_PLATE.get());
+                output.accept(ModItems.BLOOD_ROOT_IRON_OAK_CHEST_ITEM.get());
 
 
 
@@ -641,6 +651,7 @@ public class ModCreativeTabs {
                path.contains("shimmerpetal") ||
                path.contains("blossom") ||
                path.contains("sapling") ||
+               path.contains("chest") ||
                path.contains("spawn_egg");
     }
 

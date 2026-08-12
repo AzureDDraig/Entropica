@@ -588,5 +588,95 @@ public class ModBlocks {
     public static final RegistrySupplier<Block> MATERIA_ECHO_PRESSURE_PLATE = BLOCKS.register("materia_echo_pressure_plate", name -> new PressurePlateBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.WOOD).noCollision().destroyTime(0.5f).sound(SoundType.WOOD)));
     public static final RegistrySupplier<Block> MATERIA_ECHO_FRUIT = BLOCKS.register("materia_echo_fruit", name -> new ddraig.net.entropica.block.MateriaEchoFruitBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.PLANT).destroyTime(0.2f).sound(SoundType.SWEET_BERRY_BUSH).randomTicks().noOcclusion()));
 
-}
 
+    public static final RegistrySupplier<Block> PYRE_ASH_CEDAR_CHEST = BLOCKS.register("pyre_ash_cedar_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "pyre_ash_cedar_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "pyre_ash_cedar"));
+
+    public static final RegistrySupplier<Block> ABYSSAL_SPORE_CYPRESS_CHEST = BLOCKS.register("abyssal_spore_cypress_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "abyssal_spore_cypress_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "abyssal_spore_cypress"));
+
+    public static final RegistrySupplier<Block> STARLIGHT_AETHER_BIRCH_CHEST = BLOCKS.register("starlight_aether_birch_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "starlight_aether_birch_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "starlight_aether_birch"));
+
+    public static final RegistrySupplier<Block> BLOOD_ROOT_IRON_OAK_CHEST = BLOCKS.register("blood_root_iron_oak_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "blood_root_iron_oak_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "blood_root_iron_oak"));
+
+    public static final RegistrySupplier<Block> ASTRAL_VEIL_WILLOW_CHEST = BLOCKS.register("astral_veil_willow_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "astral_veil_willow_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "astral_veil_willow"));
+
+    public static final RegistrySupplier<Block> VOID_BLIGHT_MANGROVE_CHEST = BLOCKS.register("void_blight_mangrove_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "void_blight_mangrove_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "void_blight_mangrove"));
+
+    public static final RegistrySupplier<Block> AMBER_CHEST = BLOCKS.register("amber_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "amber_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "amber"));
+
+    public static final RegistrySupplier<Block> RUBBER_CHEST = BLOCKS.register("rubber_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "rubber_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "rubber"));
+
+    public static final RegistrySupplier<Block> SILVER_PINE_CHEST = BLOCKS.register("silver_pine_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "silver_pine_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "silver_pine"));
+
+    public static final RegistrySupplier<Block> MATERIA_ECHO_CHEST = BLOCKS.register("materia_echo_chest", loc ->
+            new ddraig.net.entropica.block.ModChestBlock(() -> ModBlockEntities.MOD_CHEST.get(),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("entropica", "materia_echo_chest")))
+                            .mapColor(MapColor.WOOD)
+                            .destroyTime(2.5f)
+                            .sound(SoundType.WOOD),
+                    "materia_echo"));
+
+}

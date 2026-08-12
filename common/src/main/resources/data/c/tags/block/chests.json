@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:pyre_ash_cedar_chest",
+    "entropica:abyssal_spore_cypress_chest",
+    "entropica:starlight_aether_birch_chest",
+    "entropica:blood_root_iron_oak_chest",
+    "entropica:astral_veil_willow_chest",
+    "entropica:void_blight_mangrove_chest",
+    "entropica:amber_chest",
+    "entropica:rubber_chest",
+    "entropica:silver_pine_chest",
+    "entropica:materia_echo_chest"
+  ]
+}
