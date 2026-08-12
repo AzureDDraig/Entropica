@@ -1,6 +1,17 @@
 
 
 
+## Build 000-1-26-224-15-30 — Custom Wood Chest Block Entity Placement Crash & 3D Item Rendering Fix
+
+### Root Cause Diagnosed & Fixed
+- **Empirical Crash Log Diagnosis (`crash-2026-08-12_15.26.59-client.txt`)**:
+  - Log revealed `java.lang.IllegalStateException: Invalid block entity minecraft:chest for Block{entropica:astral_veil_willow_chest}` during in-world placement.
+  - Root cause: `ChestBlock.newBlockEntity` in vanilla Minecraft was hardcoded to return `new ChestBlockEntity(...)` using `BlockEntityType.CHEST`, which rejected custom block IDs.
+  - **Block Placement Fix (`ModChestBlock.java`)**: Overrode `newBlockEntity(BlockPos pos, BlockState state)` in `ModChestBlock` to return `new ModChestBlockEntity(pos, state)` bound to `ModBlockEntities.MOD_CHEST`.
+- **Invisible Item Rendering Fix (`assets/entropica/items/*_chest.json`)**:
+  - Root cause: 1.21.2+ item definitions used `"type": "minecraft:model"` referencing `"minecraft:item/chest"`, which failed to resolve custom textures.
+  - **Item Definition Fix**: Updated all 10 item definition JSON files (`assets/entropica/items/<wood>_chest.json`) to use `"type": "minecraft:chest"` with `"texture": "entropica:entity/chest/<wood>"`, enabling 1.21.2+ native 3D chest rendering in GUI, hands, and drop states with custom 64x64 textures.
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 48s`**.
 
 ## Build 000-1-26-224-15-21 — 10 Recolored Custom Wood Chests Complete Implementation
 

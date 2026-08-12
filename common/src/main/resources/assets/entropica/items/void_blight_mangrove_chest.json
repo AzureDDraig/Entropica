@@ -1,6 +1,6 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "entropica:item/void_blight_mangrove_chest"
+    "type": "minecraft:chest",
+    "texture": "entropica:entity/chest/void_blight_mangrove"
   }
 }

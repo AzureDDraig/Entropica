@@ -1,6 +1,6 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "entropica:item/silver_pine_chest"
+    "type": "minecraft:chest",
+    "texture": "entropica:entity/chest/silver_pine"
   }
 }

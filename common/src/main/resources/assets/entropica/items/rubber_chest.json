@@ -1,6 +1,6 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "entropica:item/rubber_chest"
+    "type": "minecraft:chest",
+    "texture": "entropica:entity/chest/rubber"
   }
 }
