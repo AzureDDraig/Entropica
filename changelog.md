@@ -1,4 +1,4 @@
-## Build 000-1-26-224-17-14 — Chest Item Inventory Rendering, Flower Cutout Transparency & Shelf Mushroom Hitbox Fixes
+## Build 000-1-26-224
 
 ### Core Fixes & Client Improvements
 - **1. Chest Item Inventory Rendering Fix (`assets/entropica/items/*_chest.json`)**:
@@ -11,15 +11,11 @@
   - Preserved directional 14x4x12 pixel `getShape(...)` bounding boxes for selection outlines and interaction.
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 42s`**.
 
-## Build 000-1-26-224-16-00 — Void Blight Mangrove Chest Top-to-Side 3D Continuous Seam Alignment
-
 ### 3D Continuous Void Rift Ring Seam Fix
 - **Void Blight Mangrove Chest Tiling (`assets/entropica/textures/entity/chest/void_blight_mangrove*.png`)**:
   - Re-calculated the carved glowing void rift ring pattern across 3D coordinates so that the ring on the top lid connects continuously over the top rim edge into all 4 side walls without any abrupt line cut-offs.
   - Formed a 3D continuous spherical/cylindrical void rift portal ring field around the entire chest body.
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 48s`**.
-
-## Build 000-1-26-224-15-55 — Entropica Obsidian Vault Lore-Authentic Wood Chest Texture Overhaul
 
 ### Obsidian Vault Lore-Authentic Wood Chest Art
 - **30 Vault-Authentic Handcrafted Chest Textures (`assets/entropica/textures/entity/chest/*.png`)**:
@@ -36,15 +32,11 @@
     - 🌊 `materia_echo`: Warm pale ash-wood body, soft ashen-gray bark frame, subtle sage-cyan ether rune line veins, and glowing echo-cyan gem lock.
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 46s`**.
 
-## Build 000-1-26-224-15-51 — 4-Side Uniformity & 4-Way Tiling Chest Texture Alignment
-
 ### Seamless Tiling & 4-Side Uniformity Alignment
 - **4-Way Tiling Top & 4-Side Uniformity (`assets/entropica/textures/entity/chest/*.png`)**:
   - Re-mapped all 30 single and double chest texture maps so that all 4 side faces (Right, Front, Left, Back) share the identical side texture pattern around the chest perimeter.
   - Aligned global texture space coordinates so the top lid face tiles seamlessly into all 4 side edges in all 4 cardinal directions (North, South, East, West).
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 45s`**.
-
-## Build 000-1-26-224-15-43 — 30 Bespoke Architectural Chest Pixel Art Textures
 
 ### Bespoke Botanical & Architectural Chest Artwork
 - **30 Handcrafted Bespoke Pixel Art Textures (`assets/entropica/textures/entity/chest/*.png`)**:
@@ -61,16 +53,12 @@
     - 🌊 `materia_echo`: Ghostly spectral gray wood with glowing cyan rune line carvings along lid and front panel.
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 45s`**.
 
-## Build 000-1-26-224-15-38 — 30 Chest Entity Textures Authentic Wood Plank Pixel Art Overhaul
-
 ### Core Texture Overhaul & Refinement
 - **Authentic Wood Plank Retexturing (`assets/entropica/textures/entity/chest/*.png`)**:
   - Replaced hue/brightness multipliers with an authentic texture compositor pipeline that maps each wood species' **actual 16x16 / 32x32 custom plank pixel art** (`<wood>_planks.png`) directly onto all lid tops, lid sides, base bottoms, and base sides across all 30 single and double chest texture maps.
   - Calculated custom 1-pixel frame outline borders derived dynamically from the darkest shadow tones of each wood species' plank texture.
   - Retained high-contrast metallic accent latches shaded specifically to each tree family's accent color palette (Ember Orange, Bioluminescent Cyan, Golden Starlight, Crimson Blood, Astral Violet, Void Purple, Amber Gold, Latex Amber, Silver-Lime, Echo Cyan).
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 47s`**.
-
-## Build 000-1-26-224-15-35 — ModChestRenderer Atlas Location Fix (`IllegalArgumentException` Fix)
 
 ### Root Cause Diagnosed & Fixed
 - **Empirical Crash Log Diagnosis (`crash-2026-08-12_15.33.24-client.txt`)**:
@@ -81,8 +69,6 @@
     - Passed `null` for `TextureAtlasSprite` in `SubmitNodeCollector.submitModel(...)`, completely resolving the atlas lookup exception while rendering custom 64x64 chest textures cleanly in-world.
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 37s`**.
 
-## Build 000-1-26-224-15-30 — Custom Wood Chest Block Entity Placement Crash & 3D Item Rendering Fix
-
 ### Root Cause Diagnosed & Fixed
 - **Empirical Crash Log Diagnosis (`crash-2026-08-12_15.26.59-client.txt`)**:
   - Log revealed `java.lang.IllegalStateException: Invalid block entity minecraft:chest for Block{entropica:astral_veil_willow_chest}` during in-world placement.
@@ -92,8 +78,6 @@
   - Root cause: 1.21.2+ item definitions used `"type": "minecraft:model"` referencing `"minecraft:item/chest"`, which failed to resolve custom textures.
   - **Item Definition Fix**: Updated all 10 item definition JSON files (`assets/entropica/items/<wood>_chest.json`) to use `"type": "minecraft:chest"` with `"texture": "entropica:entity/chest/<wood>"`, enabling 1.21.2+ native 3D chest rendering in GUI, hands, and drop states with custom 64x64 textures.
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 48s`**.
-
-## Build 000-1-26-224-15-21 — 10 Recolored Custom Wood Chests Complete Implementation
 
 ### Core Additions & Features
 - **10 Custom Wood Chest Blocks (`ModChestBlock.java`)**:
@@ -123,8 +107,6 @@
   - Registered research node (`machinery_custom_wood_chests`) under `MACHINERY` in `CodexCategoryRegistry.java`.
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 51s`**.
 
-## Build 000-1-26-224-14-06 — Global Item Tinting Restoration & Dynamic Color Cycling Fix
-
 ### Core Bug Fixes
 - **1.21.2+ Item Definition Tinting Restoration (`assets/entropica/items/*.json`)**:
   - Identified root cause where Minecraft 1.21.2+ item JSONs lacked `"tints"` specifications in their `model` blocks, causing items to render un-tinted / flat white.
@@ -142,8 +124,6 @@
 - **Dynamic Essence HSB Rainbow Cycling (`EssenceType.java`)**:
   - Updated `EssenceType.getCurrentRGB` for dynamic types (`ENTROPICA`, `CHIMERA`) to cycle through smooth HSB rainbow hues instead of returning static white (`{255, 255, 255}`).
 - **Multi-Loader Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 53s`**.
-
-## Build 000-1-26-224-14-01 — Vertical Slab Model Fix, Spectral Dye Client Fix, World Tab Reorganization & Sapling Art Suite
 
 ### Core Fixes & Additions
 - **Materia-Echo Vertical Slab Model Fix (`materia_echo_vertical_slab.json`)**:
@@ -166,8 +146,6 @@
     - 🩸 `blood_root_iron_oak_sapling.png`: Iron-rich red loam soil base, gnarled dark iron-oak stem, deep crimson blood-oak leaves.
 - **Multi-Loader Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 49s`**.
 
-## Build 000-1-26-224-12-50 — Materia-Echo Tree Echo Fruit Natural Regrowth & Bonemeal Mechanics
-
 ### Core Features & Mechanics
 - **Echo Fruit Natural Regrowth System (`MateriaEchoLeavesBlock.java`)**:
   - Implemented `MateriaEchoLeavesBlock` extending `Block` with `randomTicks()` and `BonemealableBlock` interface.
@@ -178,8 +156,6 @@
     - Applying Bonemeal to `materia_echo_leaves` with an open space below instantly forces a new Echo Fruit bud (`AGE=0`) to sprout.
     - Applying Bonemeal directly to `materia_echo_fruit` advances its growth stage to fully ripe.
 - **Multi-Loader Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 40s`**.
-
-## Build 000-1-26-224-12-12 — Materia-Echo Tree Suite, Biome-Attuned Echo Fruit & Materia Toxicity System
 
 ### Core Features & Additions
 - **Materia-Echo Tree Wood Suite (15 Blocks)**:
@@ -199,15 +175,98 @@
   - Generated all 1.21.2+ item definitions, recipes, blockstates, models, loot tables, 24-locale translations, OKF Obsidian Vault note (`materia_echo_tree.md`), and Entropic Codex research node (`env_materia_echo_tree`).
 - **Multi-Loader Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 38s`**.
 
-## Build 000-1-26-223-17-30 — NeoForge Event Refactoring (`TreeStrippingNeoForgeEvents.java`)
+### Added
+*   **Architectury Multi-Loader Infrastructure**: Split the project into `:common`, `:neoforge`, and `:fabric` modules, utilizing platform-agnostic initializers and registration handlers to target multiple loaders from a single codebase.
+*   **10-Stage Materia Cycle API**:
+    *   Created `MateriaStack` as a generic, stateful base class supporting deep copying, capacity growing/shrinking, and `EssenceType` element tracking.
+    *   Developed concrete, stage-specific subclasses (`MateriaFumusStack`, `MateriaSublimataStack`, `MateriaLiquidaStack`, `MateriaVolatilisStack`, `MateriaCoagulataStack`, `MateriaIchorStack`, `MateriaTransmutataStack`, `MateriaPerfectaStack`, `MateriaLiminaliaStack`).
+    *   Integrated robust NBT serialization methods (`save`/`load` compound tags) to store and load Materia stack amounts and types across block entity saves, item stacks, and networking packets.
+*   **Vapor & Hydraulic Handlers**:
+    *   Added the `IVaporHandler` interface defining pressure-ratio dynamics, safe operating capacities (1.0 Pressure), absolute structural failure capacities (3.0 Pressure), and automated filling/draining methods for gaseous Fumus/Sublimata stacks.
+    *   Added the `ILiquidMateriaHandler` interface defining simple capacity limitations and fluid transport operations for liquid Materia stacks.
+*   **Vapor Pneumatic Pipes & Valve Blocks**:
+    *   Added `VaporPneumaticPipeBlock` and `VaporPneumaticPipeBlockEntity` supporting copper, iron, gold, arcanite, diamond, viscanite, resonite, and charged variants.
+    *   Added specialized gas-routing blocks including the `VaporPneumaticValveBlock` (manual flow toggle), `VaporPneumaticOneWayValveBlock` (forced unidirectional flow/venting), and `VaporPneumaticDiverterBlock` (network routing control).
+    *   Implemented a custom BFS-based gas networking algorithm inside pipe entities to perform gas transport, pressure averaging, overpressure venting, and explosion handlers.
+*   **8 Orbis Cell & Calix Variants**:
+    *   Registered and implemented 8 new block/block-entity storage pairs to correspond to each stage of the Materia Cycle:
+        *   `SublimatedOrbisCellBlock` / `SublimatedOrbisCellBlockEntity` (Stores T3 - Sublimata)
+        *   `PneumaticCalixBlock` / `PneumaticCalixBlockEntity` (Stores T4 - Liquida)
+        *   `VoltaicCalixBlock` / `VoltaicCalixBlockEntity` (Stores T5 - Volatilis)
+        *   `MatrixCalixBlock` / `MatrixCalixBlockEntity` (Stores T6 - Coagulata)
+        *   `ThecaCellBlock` / `ThecaCellBlockEntity` (Stores T7 - Ichor)
+        *   `VasCellBlock` / `VasCellBlockEntity` (Stores T8 - Transmutata)
+        *   `MonadCoreBlock` / `MonadCoreBlockEntity` (Stores T9 - Perfecta)
+        *   `AthanorCoreBlock` / `AthanorCoreBlockEntity` (Stores T10 - Liminalis)
+*   **Universal Decompression Coupler (T2-T10 one-way conversion)**:
+    *   Added `DecompressionCouplerBlock` and `DecompressionCouplerBlockEntity` to perform straight-line, axis-aligned one-way Materia conversions (draining from higher tier, converting, and filling lower tier neighbor).
+    *   Added coupler block models (`vapor_decompression_coupling_core.json`, `vapor_decompression_coupling_arm.json`), item model, and a `multipart` blockstate that renders the core and opposite-facing arms along its axis.
+    *   Generated a custom 16x16 gradient texture (`decompression_coupling.png`) transitioning from silver to sky-blueish grey with a subtle brushed metal finish.
+*   ** Flattened Asset Support**:
+    *   Converted resource directories to support Minecraft asset specifications.
+    *   Generated model definitions under `assets/entropica/items/` containing the new `"model": {"type": "minecraft:model", "model": "..."}` JSON layout structure.
+    *   Generated matching 3D and 2D model parents under `assets/entropica/models/item/` and custom multi-part blockstates/models for all blocks.
+*   **Dynamic Item Tinting**:
+    *   Registered custom item tint source codecs (`entropica:essence_tint` and `entropica:ampoule_tint`) through the `RegisterColorHandlersEvent.ItemTintSources` event.
+    *   Added multi-layered model JSON layouts for empty/filled Ampoules and Essence Orbs, mapping layer indexes to dynamic color sources that read element type component data.
+*   **Enhanced Pipe & Fluid Shaders**:
+    *   **Bottom-to-Top Liquid Levels**: Implemented bottom-to-top Y-axis clipping on T4-T7 conduits based on actual fill ratio, allowing fluid overlays to rise dynamically.
+    *   **Volatilis Sparks (T5)**: Added a dynamic 3D electric arc generator that renders glowing, jagged electric paths between the fluid surface and the pipe core walls.
+    *   **Ichor Shimmering (T7)**: Implemented a mellow, slow-breathing Sanguine heartbeat shimmer animation.
+    *   **Perfecta Sheen (T9)**: Added a smooth, rapid periodic sheen sweep with an 80% cycle cooldown to keep the base color clean.
+    *   **Liminalis Gold-Chrome (T10)**: Designed a camera-aligned specular chrome reflection shader with dark edge shading.
+
+### Changed
+*   **Generalization of Vapor Transport (Fumus / Sublimata)**:
+    *   Generalized `IVaporHandler` and `VaporPneumaticPipeBlockEntity` to handle `MateriaStack` instead of `MateriaFumusStack`, enabling vapor pipes to carry both Fumus (T2) and Sublimata (T3) stacks.
+*   **Creative Generator Dynamic Tier Resolution**:
+    *   Updated `CreativeMateriaGeneratorBlockEntity` to dynamically query the neighbor's cycle tier (T2-T10) using the coupler's tier checker, pushing the correct `MateriaStack` class into any connected pipe/conduit.
+*   **Standardized Terminology (Vis $\rightarrow$ Materia)**:
+    *   **Essence Items**: Updated `getName()` inside `EssenceItem.java` to dynamically prefix and format tier-0 items as `"Materia Fragment: "` instead of `"Vis Fragment: "` to match the Materia Cycle terminology.
+    *   **Creative Tab Registrations**: Renamed `VIS_ITEMS_TAB` to `MATERIA_ITEMS_TAB` inside `ModCreativeTabs.java` and modified the registry key from `"vis_items_tab"` to `"materia_items_tab"`.
+    *   **Translation Mapping Overhaul**: Reconfigured translations in `en_us.json` to replace legacy "Vis" terms with "Materia" or "Materia Fumus":
+        *   Changed creative tab title `"itemGroup.entropica.vis_items"` from `"Entropica: Vis Items"` to `"Entropica: Materia Items"`.
+        *   Updated items: `"Vis Value Detector"` $\rightarrow$ `"Materia Value Detector"`, `"Vis Capacitor Plate"` $\rightarrow$ `"Materia Capacitor Plate"`.
+        *   Updated blocks: `"Vis Exhaust"` $\rightarrow$ `"Materia Exhaust"`.
+        *   Updated gas settings: `"Vis Fume Settings"` $\rightarrow$ `"Vapor Pneumatic Network Settings"` and `"Vis Fume Pressure Vessel"` $\rightarrow$ `"Materia Fumus Pressure Vessel Settings"`.
+        *   Updated item descriptions and tooltips: `"ambient static Vis"` $\rightarrow$ `"ambient static Materia"`, `"Vis Fumes"` $\rightarrow$ `"Materia Fumus"`, and `"Vis Vitae *"` $\rightarrow$ `"Materia Vitae *"` (e.g. `"Materia Vitae Pipe"`, `"Materia Vitae Anchor"`).
+*   **Pipe Capacity & Progression Rebalance**:
+    *   **Gold Pipes**: Re-slotted as an early-to-mid tier upgrade option, lowering default capacity from `500` to **`80`** and default transfer rate from `50` to **`20`** in `EntropicaNeoForgeConfig.java` and `EntropicaConfigImpl.java`.
+    *   **Diamond Pipes**: Shifted up the progression ladder to sit between Charged Arcanite and Resonite, increasing default capacity from `80` to **`250`** and default transfer rate from `20` to **`40`**.
+    *   **Viscanite Pipes**: Reduced safe capacity from `500` to **`300`** to match the Resonite capacity tier.
+    *   **Charged Viscanite Pipes**: Reduced safe capacity from `1,000` to **`500`** to match the balanced top-tier limit.
+    *   **Charged Resonite Pipes**: Reduced safe capacity from `50,000` to **`500`** (and transfer rate to **`5,000`**) to align on the same late-game capacity tier as Charged Viscanite while retaining a high flow rate.
+
+### Fixed
+*   **Gradle Production Transform Failures**:
+    *   Resolved an issue where Architectury Loom's `transformProduction` tasks threw silent `ClassNotFoundException` errors and outputted empty production jars due to a lack of classpath references inside its task ClassLoader.
+    *   Implemented a Gradle hook in [common/build.gradle](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/build.gradle) that dynamically extracts `compileClasspath` URL paths, registers them into the task ClassLoader at runtime in `doFirst`, and re-runs the class transformation in `doLast` to cleanly compile production jars for Fabric and NeoForge.
+*   **Fabric Translucency Rendering Crash**:
+    *   Resolved a compilation and launch crash inside [EntropicaClientFabric.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/fabric/src/main/java/ddraig/net/entropica/fabric/EntropicaClientFabric.java) where obsolete `RenderType.translucent()` references caused classloader failures on startup.
+    *   Mapped block rendering translucency sheets to Minecraft standard render map sheets `Sheets.translucentItemSheet()`.
+*   **Missing Legacy Assets**:
+    *   Resolved an asset loading issue where the new multi-loader sub-modules failed to pull assets from the legacy mod directories.
+    *   Migrated **358 missing asset files** (comprising textures, block models, blockstates, item animations, and sound loops) from the root legacy folder path to `common/src/main/resources/assets/` to ensure all elements compile.
+*   **Vapor Pipe Placement Crash**:
+    *   Fixed a client-side classloading desynchronization crash that occurred when placing a Vapor Pneumatic pipe in a world.
+    *   Resolved a JVM offset cache conflict by ensuring nested inner classes (specifically `PipeTier` inside `VaporPneumaticPipeBlockEntity`) load correctly on the main thread during world ticking events.
+*   **Optional Entity Tag Registry Warnings**:
+    *   Converted modded drops entity tags (like `alexsmobs`, `twilightforest`, etc.) to use the optional registry format (`"required": false`), preventing console warnings and load validation failures when optional mods are not present.
+*   **Missing Item Model Warnings**:
+    *   Created item model JSON files under `assets/entropica/items/` for all 10 custom alloy vapor pneumatic pipes and the `materia_pump` to comply with Minecraft 1.21.2+ asset directory requirements, resolving startup missing-model errors.
+*   **Creative Generator Rendering Crashes**:
+    *   Refactored `CreativeParticleGeneratorRenderer`, `CreativeMateriaGeneratorRenderer`, and `CreativeVisFumeGeneratorRenderer` to extract player hover checks during the thread-safe client game-tick `extractRenderState` phase, avoiding illegal concurrent queries to game-thread state on the render thread during `submit`.
+    *   Added `bufferSource.endBatch()` inside submit methods to cleanly finalize text rendering buffers.
+*   **Registry Bounds Safety**:
+    *   Added bounds checks to `CreativeParticleGeneratorBlockEntity.loadAdditional()` to prevent startup indexing crashes when `validParticles` list is empty.
+
+## Build 000-1-26-223
 
 ### Architecture Refactoring
 - **Decoupled NeoForge Log Stripping Event Handling**:
   - Removed `TreeLogStrippingHandler` from `GlassCleansingNeoForgeEvents.java` (restoring it strictly to glass cleansing mechanics).
   - Created a dedicated `TreeStrippingNeoForgeEvents.java` class (`@EventBusSubscriber(modid = Entropica.MODID)`) to handle NeoForge `PlayerInteractEvent.RightClickBlock` log stripping events cleanly and modularly.
 - **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 19s`**.
-
-## Build 000-1-26-223-17-28 — Tree Log Stripping Unique Drops, In-World Particle Bursts & Starlight Flakes Crafting
 
 ### Core Features & Additions
 - **Unique Tree Log Stripping Drops & In-World Elemental Burst Mechanics**:
@@ -223,8 +282,6 @@
   - Registered Item Models, 1.21.2+ Item Definitions (`assets/entropica/items/*.json`), Creative Tab placement in `WORLD`, recipes, and 24-locale translations.
 - **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 1m 48s`**.
 
-## Build 000-1-26-223-17-10 — Amber Wood Set Update, Button Rotation Fix, Leaves Cutout Transparency & Plank Line Shading
-
 ### Core Fixes & Enhancements
 - **Amber Wood Suite Complete Overhaul**:
   - Upgraded Amber wood textures (`amber_log.png`, `amber_log_top.png`, `stripped_amber_log.png`, `stripped_amber_log_top.png`, `amber_planks.png`, `amber_leaves.png`, `amber_sapling.png`) to use authentic 1.21 Minecraft base textures with 3D continuous loop border log top alignment.
@@ -236,8 +293,6 @@
 - **Sharpened Plank Horizontal Seam Lines**:
   - Darkened shadow tint contrast (`planks_shadow`) across all 4 tree species plank textures (`pyre_ash_cedar_planks`, `abyssal_spore_cypress_planks`, `starlight_aether_birch_planks`, `blood_root_iron_oak_planks`), making board seam lines clearly defined.
 - **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 50s`**.
-
-## Build 000-1-26-223-16-52 — 4 Complete Tree Families & 56-Block Wood Suites Expansion
 
 ### Core Additions & Features
 - **Simultaneous Implementation of 4 New Tree Species (56 New Blocks)**:
@@ -262,8 +317,6 @@
   - Registered research sub-nodes under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java`.
 - **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 53s`**.
 
-## Build 000-1-26-223-16-29 — Complete 39-Block Wood Suites & Vertical Slabs for All 5 Entropica Tree Families
-
 ### Core Additions & Features
 - **Expanded All 5 Entropica Tree Families**:
   - **Astral-Veil Willow**: `wood`, `stripped_wood`, `stairs`, `slab`, `vertical_slab`, `fence`, `fence_gate`, `button`, `pressure_plate`
@@ -280,9 +333,6 @@
   - Updated OKF Obsidian Vault wiki notes for `astral_veil_willow.md`, `void_blight_mangrove.md`, `rubber_tree.md`, and `silver_pine.md`.
 - **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 45s`**.
 
-
-## Build 000-1-26-223-14-53 — Lichen Blockstate Rotation & Hitbox Alignment Fix (`cinder_grip_lichen`)
-
 ### Root Cause Diagnosed & Fixed
 - **Root Cause**: `blockstates/cinder_grip_lichen.json` had inverted/incorrect rotation rules (`up: x=180`, `down: x=0`, `north: x=90`) relative to Vanilla's base `minecraft:block/glow_lichen` geometry model (which sits natively on the North face). This caused the visual model to rotate away from its actual collision hitbox.
 - **Multiface Blockstate Fix**:
@@ -295,9 +345,6 @@
     - `down`: `x=90, uvlock=true`
 - **Multi-Loader Build & Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 41s`**.
 
-
-## Build 000-1-26-223-14-52 — Magma-Grip Tendrils Multiface Blockstate & Model Asset Fix
-
 ### Root Cause Diagnosed & Fixed
 - **Root Cause**: `MagmaGripTendrilsBlock` extends `GlowLichenBlock` (`MultifaceBlock` with boolean state properties `up`, `down`, `north`, `south`, `east`, `west`). `blockstates/magma_grip_tendrils.json` erroneously used directional `variants` (`facing=up`) instead of `multipart` rules, causing Minecraft to fail to resolve the blockstate and render a purple-and-black checkerboard missing model cube in-world.
 - **Asset Fixes Applied**:
@@ -305,9 +352,6 @@
   - Updated `models/block/magma_grip_tendrils.json` to extend `"parent": "minecraft:block/glow_lichen"` with `"glow_lichen"` texture references.
   - Updated `models/item/magma_grip_tendrils.json` to generated item format.
 - **Multi-Loader Build & Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 42s`**.
-
-
-## Build 000-1-26-223-14-46 — Projectile Entity Renderer Registration Fix (`NullPointerException` In-World Crash Fix)
 
 ### Root Cause Diagnosed & Fixed
 - **Empirical Log Diagnosis**: Inspected CurseForge crash report (`crash-2026-08-11_13.42.20-client.txt`). Stack trace revealed `NullPointerException: Cannot invoke EntityRenderer.shouldRender(...) because entityrenderer is null` when `SporeCannonPuffballBlock` or `PyreThornLauncherBlock` fired projectiles into the world.
@@ -317,18 +361,12 @@
     - **NeoForge**: `ModClientEvents.java` (`event.registerEntityRenderer`)
 - **Multi-Loader Build & Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 44s`**.
 
-
-## Build 000-1-26-223-13-45 — Launcher Block Placement, Survival & Server-Tick Refinement
-
 ### Fixes Applied
 - **Fixed Launcher Block Survival & Placement**:
   - Overrode `updateShape`, `getStateForPlacement`, and `canSurvive` in `SporeCannonPuffballBlock` and `PyreThornLauncherBlock` so launcher blocks can be placed and survive on any solid non-air support face without breaking into air upon placement.
 - **Server Projectile Launching**:
   - Enforced `level.scheduleTick(pos, this, 20)` in `onPlace` and rescheduled server ticks every 35-40 ticks.
 - **Multi-Loader Build & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 43s`**.
-
-
-## Build 000-1-26-223-13-38 — Minecraft 1.21.2+ Item Asset Definition JSONs Created (`assets/entropica/items/*.json`)
 
 ### Core Fix Applied
 - **Generated 19 Item Definition JSONs under `assets/entropica/items/*.json`**:
@@ -338,9 +376,6 @@
     - 6 Astral-Veil Willow Set Items (`log`, `stripped_log`, `planks`, `leaves`, `sapling`, `vines`).
     - 7 Void-Blight Mangrove Set Items (`log`, `stripped_log`, `planks`, `leaves`, `root`, `sapling`, `pod`).
 - **Multi-Loader Rebuild & Dev Deployment**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 43s`**.
-
-
-## Build 000-1-26-223-13-33 — Nether Flora Critiques & Mechanical Fixes
 
 ### Fixes Applied
 1. **Pyre-Thorn Launcher Locked Texture**:
@@ -357,9 +392,6 @@
    - Updated `en_us.json` and all 24 locale JSON files with translatable keys for `block.entropica.*` and `item.entropica.*`.
 6. **Multi-Loader Build & Deploy**: Recompiled, built, and deployed to dev environment with **zero errors** (`BUILD SUCCESSFUL in 45s`).
 
-
-## Build 000-1-26-223-13-12 — Inventory Texture Models & World Tab Display Fix
-
 ### Fixes Applied
 - **Inventory Item Models Fixed**:
   - Re-generated 2D generated flat item models for all 6 Nether flora blocks (`spore_cannon_puffball`, `pyre_thorn_launcher`, `spore_bearing_pitcher_plump`, `blood_tendril_bramble`, `soot_veil_blight_cap`, `magma_grip_tendrils`) pointing directly to their 16x16 plant block textures for crisp GUI rendering.
@@ -369,9 +401,6 @@
   - Registered missing `BlockItem` instances in `ModItems.java` for all Nether flora blocks and tree blocks.
   - Added all BlockItems explicitly to `ModCreativeTabs.java` under `WORLD_TAB`.
 - **Build & Deployment**: Multi-loader build and dev deployment completed with **zero errors** (`BUILD SUCCESSFUL in 42s`).
-
-
-## Build 000-1-26-223-12-42 — Registered Trees, Nether Flora & Spectral Dyes in WORLD_TAB
 
 ### World Creative Tab Additions
 - **Astral-Veil Willow Set Registered**:
@@ -384,24 +413,15 @@
   - Dynamically iterated and added all 22 spectral dyes (`ModItems.SPECTRAL_DYES`) to `WORLD_TAB`.
 - **Multi-Loader Rebuild & Deploy**: Executed `./gradlew build deploytoDev` with **zero errors** (`BUILD SUCCESSFUL in 43s`).
 
-
-## Build 000-1-26-223-12-35 — Fixed Accidental Package Directory & Confirmed Multi-Loader Build/Deploy
-
 ### Resolution & Verification
 - **Root Cause Fix**: Removed accidental `common/src/main/java/ddraig.net` directory containing duplicate `RubberLogBlockEntity.java`.
 - **Build & Deploy (`./gradlew build deploytoDev`)**: Successfully executed multi-loader build and deployment with **zero errors** (`BUILD SUCCESSFUL in 43s`, 16 up-to-date tasks).
-
-
-## Build 000-1-26-223-12-34 — B/V/C/D/G Clean Build & Dev Deployment Confirmed
 
 ### Clean Build & Deploy Status
 - **Clean Build (`./gradlew clean build deploytoDev`)**: 
   - Stopped locked Gradle Daemons.
   - Performed clean rebuild of Common, Fabric, and NeoForge modules with **zero errors** (`BUILD SUCCESSFUL in 54s`, 22 executed tasks).
   - Deployed built jar artifacts to your development environment.
-
-
-## Build 000-1-26-223-12-34 — B/V/C/D/G Full Verification, Multi-Loader Build & Dev Deployment
 
 ### B/V/C/D/G Execution Results
 - **B (Build)**: Successfully executed `./gradlew build` with zero errors (`BUILD SUCCESSFUL in 44s`).
@@ -411,9 +431,6 @@
   - `env_void_blight_mangrove` (Void-Blight Mangrove Tree, void-magenta bark, stilt roots & levitation fruit pods).
 - **D (Deploy)**: Executed `./gradlew deploytoDev` with zero errors (`BUILD SUCCESSFUL in 10s`).
 - **G (Git / Vault / Guidelines)**: Verified OKF Obsidian Vault notes (`astral_veil_willow.md` & `void_blight_mangrove.md`), updated 24-locale translations, and confirmed privacy rules.
-
-
-## Build 000-1-26-223-12-34 — Nether Flora Directional System & Astral Willow / Void Mangrove Trees Expansion
 
 ### Features & Updates Added
 - **Nether Flowers Wall, Ceiling & Floor Facing System**:
@@ -440,7 +457,7 @@
 
 # Changelog — Entropica Multi-Loader Migration Update
 
-## Build 000-1-26-222-19-55 (August 10, 2026 100% Flora On-Contact Special Effects Completion)
+## Build 000-1-26-222
 
 ### 🌸 100% Complete Custom Flora Contact Effects Roster (29 Flora Blocks)
 - **Pyre Sprout**: Ignites entities for 2 seconds and deals $0.5\text{hp}$ fire damage on contact.
@@ -449,12 +466,8 @@
 - **Gale-Bloom Dandelion**: Imparts a soft upward wind draft ($y \mathrel{+}= 0.25$) lofting entities into the air.
 - **Fulgurite Swamp Bloom**: Discharges an electric arc dealing $1.0\text{hp}$ lightning damage and applying Slowness I ($2\text{s}$).
 
-## Build 000-1-26-222-19-14 (August 10, 2026 Persistent Touch Accumulation Without Timeout)
-
 ### ⚡ Persistent Touch Step Accumulation
 - **Static Fungal Shelf Mechanics**: Removed time-based resetting of `touch_count`. Every step on a static shelf cap (at least 5 ticks apart) now persistently accumulates towards the 3-step lightning strike threshold, regardless of how much time elapses between steps.
-
-## Build 000-1-26-222-19-13 (August 10, 2026 Entity NBT Persistent Touch Tracking)
 
 ### ⚡ Persistent Entity NBT Touch Tracking
 - **Static Fungal Shelf Mechanics**: Replaced static in-memory HashMaps with persistent entity NBT compound tags via `EntityHelper.getPersistentData(living)`.
@@ -464,29 +477,19 @@
   - `entropica_static_shelf_lightning_time`: Enforces a 100-tick (5-second) strike cooldown per entity.
 - **Cross-Session Persistence**: Touch step progress and strike cooldowns now persist per entity across server reloads and dimension changes.
 
-## Build 000-1-26-222-19-10 (August 10, 2026 Cinder Lichen, Pyrocyst Carpet, Shelf Positioning & Lightning Fixes)
-
 ### 🐛 Bug Fixes & Rendering Corrections
 - **Cinder-Grip Lichen Texture & Phase Alignment**: Restored the approved `cinder_grip_v2_option_a_32.png` texture asset. Synchronized `blockstates/cinder_grip_lichen.json` rotation properties (`up: x=180`, `down: 0`, etc.) to match vanilla `glow_lichen.json`, completely resolving in-world out-of-phase plane rendering.
 - **Pyrocyst Algae In-World Model**: Fixed `models/block/pyrocyst_algae.json` to map `"wool": "entropica:block/pyrocyst_algae_top"` (the texture key required by `minecraft:block/carpet`), fixing the missing black/purple checkered texture in-world.
 - **Shelf Mushrooms Wall-Edge Alignment**: Re-anchored model elements across all 9 shelf mushroom blocks (`barrow`, `spore`, `blight`, `frost`, `cinder`, `astral`, `dawn`, `sanguine`, `static`) to `[1, 6, 4] -> [15, 10, 16]` and updated `AbstractFungalShelfBlock` VoxelShapes so shelf caps attach flush to wall faces and hang out over the block edge.
 - **Static Shelf Lightning Loop Cooldown**: Enforced a 5-tick step filter and a 100-tick (5-second) strike cooldown per entity in `StaticFungalShelfCapBlock.java` to prevent rapid lightning loops while walking over static shelf caps.
 
-## Build 000-1-26-222-18-33 (August 10, 2026 Language File Un-minification & Formatting)
-
 ### 🎨 Un-minified Language JSON Assets (24 Files)
 - **Pretty-Printing**: Formatted all 24 JSON language files in `common/src/main/resources/assets/entropica/lang/` with clean 2-space indentation and unescaped UTF-8 characters (`ensure_ascii=False`) for maximum human readability across international character sets.
-
-## Build 000-1-26-222-18-30 (August 10, 2026 100% Translation Audit & Literal Refactoring)
-
 
 ### 🔍 100% Codebase Translation Key Coverage
 - **Literal Refactoring**: Converted 125 hardcoded `Component.literal(...)` user-visible strings across block entity UI interaction messages, ritual activation alerts, machine feedback, and item tooltips into standardized `Component.translatable(...)` calls.
 - **Key Population**: Added 106 new keys to `en_us.json` and synchronized all 24 language files (`en_us`, `de_de`, `es_es`, `es_mx`, `fr_fr`, `it_it`, `nl_nl`, `pt_br`, `pl_pl`, `ru_ru`, `uk_ua`, `cs_cz`, `hu_hu`, `sv_se`, `da_dk`, `no_no`, `fi_fi`, `tr_tr`, `ja_jp`, `ko_kr`, `zh_cn`, `zh_tw`, `th_th`, `vi_vn`).
 - **Audit Result**: Automated audit verified **0 hardcoded literals** and **0 missing translation keys** across the entire Java codebase.
-
-## Build 000-1-26-222-18-27 (August 10, 2026 Multi-Language Support Expansion: 24 Locales)
-
 
 ### 🌐 15 New Language Files Added (Total 24 Locales)
 - **Localization Expansion**: Created 15 new JSON language files in `common/src/main/resources/assets/entropica/lang/`:
@@ -507,18 +510,12 @@
   - `vi_vn.json` (Vietnamese / Tiếng Việt)
 - **Key Synchronization**: Synchronized all newly registered items, blocks, potted flora, particles, effects, mechanics, tooltips, and JEI recipes across all 24 language files.
 
-## Build 000-1-26-222-18-24 (August 10, 2026 Fungal Shelf Placement Restrictions & Flower Pot Integration)
-
-
 ### 🪵 Fungal Shelf Placement Restrictions (`AbstractFungalShelfBlock`)
 - **Placement Validation**: Updated `canSurvive` in `AbstractFungalShelfBlock.java` to restrict shelf-cap attachment strictly to sturdy faces of `BlockTags.LOGS` (Overworld logs/wood, Crimson/Warped stems, Hyphae, Stripped stems), `BlockTags.WART_BLOCKS`, and `BlockTags.MUSHROOM_GROW_BLOCK`.
 
 ### 🏺 19 Potted Flower Pot Block Variants (`FlowerPotBlock`)
 - **Block Registrations**: Registered 19 `FlowerPotBlock` (`POTTED_<ID>`) variants in `ModBlocks.java` for all 1-tall Entropica flora (`potted_aura_drift_sedge`, `potted_spectral_lantern_flower`, `potted_cinder_spore_mushroom`, `potted_necrotic_rose_of_jericho`, `potted_void_stalker_orchid`, `potted_stardust_aloe`, `potted_blood_root_succulent`, `potted_aegis_spire_orchid`, `potted_spore_burst_puffball`, `potted_vitae_orchid`, `potted_sanguine_lily`, `potted_abyssal_weeproot`, `potted_fulgurite_swamp_bloom`, `potted_cryo_static_shrub`, `potted_vitreous_cactus`, `potted_soot_shroud_fungi`, `potted_static_spear_grass`, `potted_amber_nectar_blossom`, `potted_rimebloom`).
 - **Assets & Client**: Created blockstates, 3D cross models, and registered cutout render layers in `EntropicaClientFabric.java`.
-
-## Build 000-1-26-222-18-18 (August 10, 2026 Particle Physics Engine & Custom Flora Completion)
-
 
 ### 🌊 Rotatable & Timed Particle Physics Engine (`TimedTintableParticleOption`)
 - **Engine Architecture**: Implemented `TimedTintableParticleOption.java` & `TimedTintableParticle.java` supporting RGB tinting, custom lifespan (`maxAge` in ticks), scale multiplier, 360° initial `roll` angle, and continuous `rollSpeed` spin velocity.
@@ -544,9 +541,6 @@
 - **Amber Nectar Blossom (`amber_nectar_blossom`)**: Implemented `AmberNectarBlossomBlock.java` (`FlowerBlock`, Light 5, Glass Bottle interaction extracts `amber_nectar_bottle`).
 - **Rimebloom (`rimebloom`)**: Implemented `RimebloomBlock.java` (`FlowerBlock`, Light 3, Slowness I + `tintable_mist` frostbite particles).
 
-## Build 000-1-26-222-17-56 (August 10, 2026 Fungal Shelf-Cap Family Expansion: 9 Essence-Aligned Wall Bracket Species)
-
-
 ### 🍄 Abstract 3D Wall Bracket Architecture (`AbstractFungalShelfBlock`)
 - **Parent Architecture**: Implemented `AbstractFungalShelfBlock` extending `HorizontalDirectionalBlock` with slender 3D wall-bracket VoxelShapes ($14 \times 4 \times 12$ pixels) dynamically rotated based on attached wall face (`NORTH`, `SOUTH`, `EAST`, `WEST`) with a solid stepping platform at $y=10.0$.
 - **9 Essence-Aligned Species**:
@@ -564,9 +558,6 @@
 - **16x16 Textures**: Generated 27 dedicated 16x16 block textures (`top`, `bottom`, `edge`) and 18 item icons.
 - **Assets & Client**: Registered blockstates, 3D cuboid block models, 1.21.4+ item definitions, shearing handlers in `FloraHarvestHelper.java`, cutout render layers in `EntropicaClientFabric.java`, and English localization strings.
 - **Codex & Vault**: Registered 9 Codex nodes in `CodexCategoryRegistry.java` and created 9 OKF Obsidian Vault markdown notes in `wiki/entities/blocks/flora/`.
-
-## Build 000-1-26-222-17-16 (August 10, 2026 Nether Flora Expansion: Cinder-Grip Lichen, Soot-Shroud Fungi & Pyrocyst Algae)
-
 
 ### 🌋 3 New Nether Flora Species Implemented
 - **Cinder-Grip Lichen (`cinder_grip_lichen`)**: Implemented multi-directional wall/floor/ceiling lichen block (`CinderGripLichenBlock` extending `GlowLichenBlock`) with 100% seamless tiling 32x32 volcanic ember vein textures (Option A), Light Level 7, Speed I & 0.5 fire damage on contact, shearing right-click dropping `cinder_lichen_flakes`.
@@ -588,16 +579,10 @@
 - **Entropic Codex**: Registered `env_cinder_grip_lichen`, `env_soot_shroud_fungi`, and `env_pyrocyst_algae` under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java`.
 - **OKF Obsidian Vault**: Created notes `Cinder-Grip Lichen.md`, `Soot-Shroud Fungi.md`, and `Pyrocyst Algae.md` in `wiki/entities/blocks/flora/`.
 
-## Build 000-1-26-222-15-41 (August 10, 2026 JEI Botanical Shearing Recipe Category Integration)
-
-
 ### 🌸 Botanical Shearing JEI Category (`jei.entropica.flora_harvesting`)
 - **New JEI Recipe Category**: Created `FloraHarvestingCategory` and `FloraHarvestingRecipe` registered under UID `entropica:flora_harvesting`.
 - **Harvest Mapping Preview**: Displays all 1-tall and 2-tall flower and orchid shearing inputs, `Items.SHEARS` catalyst, and resulting petal item outputs directly inside Just Enough Items.
 - **Localization**: Added `"jei.entropica.flora_harvesting": "Botanical Shearing"` in `en_us.json`.
-
-## Build 000-1-26-222-15-39 (August 10, 2026 5-Minute Crop Cooldowns & Shears Petal Harvesting)
-
 
 ### ⏱️ Extended 5-Minute Crop Harvest Cooldown
 - **6,000-Tick (5-Minute) Cooldown**: Extended right-click harvest cooldowns across all botanical yield blocks (`AbyssalWeeprootBlock`, `SporeBurstPuffballBlock`, `MistVeilMarshmallowBlock`, `CryoStaticShrubBlock`, `BloodRootSucculentBlock`, `GaleBloomDandelionBlock`) to 6,000 ticks (5 minutes of real-time play), matching slow-growing crop & berry bush harvest mechanics.
@@ -605,9 +590,6 @@
 ### ✂️ Shears Petal Harvesting & Flower Destruction
 - **`FloraHarvestHelper` Integration**: Implemented right-click shears interaction across all 1-tall and 2-tall flower and orchid blocks (`AegisRoseBlock`, `AegisSpireOrchidBlock`, `SoulFlameOrchidBlock`, `VitaeOrchidBlock`, `VoidStalkerOrchidBlock`, `NecroticRoseOfJerichoBlock`, `SanguineLilyBlock`, `AuroralButtercupBlock`, `StardustBellBlock`, `FulguriteSwampBloomBlock`, `GaleBloomDandelionBlock`, `CinderSporeMushroomBlock`, `SpectralLanternFlowerBlock`).
 - **Petal Yield & Sound**: Right-clicking flowers with Shears drops 1–2 Petals (for 1-tall flowers) or 3–4 Petals (for 2-tall flowers), damages the shears by 1 durability, plays `SoundEvents.SHEEP_SHEAR`, and breaks the flower block in-world without dropping the flower itself.
-
-## Build 000-1-26-222-15-21 (August 10, 2026 Flora Harvest Limits, Water Lily Pad Placement & Cutout Transparency Fixes)
-
 
 ### 🌿 Flora Right-Click Harvest Limits
 - **Cooldown Enforcement**: Implemented a 100-tick (5-second) per-block harvest cooldown across all harvestable flora (`AbyssalWeeprootBlock`, `SporeBurstPuffballBlock`, `MistVeilMarshmallowBlock`, `CryoStaticShrubBlock`, `BloodRootSucculentBlock`, `GaleBloomDandelionBlock`), preventing infinite right-click duping of botanical items.
@@ -620,33 +602,21 @@
 - **Model JSON Audit & Repairs**: Added `"render_type": "minecraft:cutout"` across all missing 2-tall parent block models (`tall_aegis_rose`, `tall_aegis_spire_orchid`, `tall_auroral_lily_pad`, `tall_necrotic_rose_of_jericho`, `tall_sanguine_lily`, `tall_soul_flame_orchid`, `tall_vitae_orchid`, `tall_void_stalker_orchid`) and `barrow_moss_carpet.json`, eliminating black opaque boxes in-world.
 - **Render Layer Maps**: Registered `ModBlocks.AURORAL_LILY_PAD.get()` in `EntropicaClientFabric.java` `BlockRenderLayerMap`.
 
-## Build 000-1-26-222-15-14 (August 10, 2026 User-Selected Option A Orchid Textures Locked & Deployed)
-
-
 ### 🌺 Confirmed Option A Orchid Textures Applied
 - **Vitae Orchid (`vitae_orchid`)**: Applied **Option A (Classic Handcrafted `vitae_v5` / `v6`)** for both 1-tall (`vitae_orchid_1tall_v5.png`) and 2-tall top/bottom pairs (`vitae_orchid_2tall_top_v6.png` / `vitae_orchid_2tall_bottom_v6.png`).
 - **Soul-Flame Orchid (`soul_flame_orchid`)**: Applied **Option A (Organic Phalaenopsis Recolor `soul_phalaenopsis`)** for both 1-tall (`soul_flame_orchid_1tall_fresh.png`) and 2-tall top/bottom pairs (`soul_flame_orchid_2tall_top_fresh.png` / `soul_flame_orchid_2tall_bottom_fresh.png`).
 - **Dev Deployment**: Executed `./gradlew deploytoDev` with clean multi-loader jar compilation and CurseForge instance deployment.
-
-## Build 000-1-26-222-15-09 (August 10, 2026 Master Vitae Orchid Preview Restoration)
-
 
 ### 🌸 Exact Master Vitae Orchid Preview Synchronized
 - **Vitae Orchid (`vitae_orchid`)**: Re-sampled directly from master preview `vitae_orchid_1tall_v5.png` (256x256 -> 32x32), restoring the unique handcrafted Vitae Orchid bloom architecture.
 - **Tall Vitae Orchid Top (`tall_vitae_orchid_top`)**: Re-sampled directly from master preview `vitae_orchid_2tall_top_v6.png` (256x256 -> 32x32).
 - **Tall Vitae Orchid Bottom (`tall_vitae_orchid_bottom`)**: Re-sampled directly from master preview `vitae_orchid_2tall_bottom_v6.png` (256x256 -> 32x32).
 
-## Build 000-1-26-222-15-08 (August 10, 2026 Authentic Phalaenopsis Orchid Structure & Leaf Restoration)
-
-
 ### 🌺 Authentic Phalaenopsis Orchid Structure Restored
 - **Aegis-Spire Orchid**: Replaced incorrect circular flower / V-leaf placeholder textures with the authentic **Phalaenopsis Blue Orchid** (`phalaenopsis_blue_orchid_1tall_32.png`, `phalaenopsis_natural_leaf_top_sliced32.png`, and `phalaenopsis_natural_leaf_bottom_sliced32.png`), featuring cascading butterfly-wing petals (`#2563EB` / `#60A5FA` / `#DBEAFE`), white column dots, slender arching purplish-brown stems, and broad green basal strap leaves (`#166534` / `#15803D`).
 - **Soul-Flame Orchid**: Recolored from authentic Phalaenopsis architecture into Soulfire Cyan (`#38BDF8` / `#06B6D4`).
 - **Vitae Orchid**: Recolored from authentic Phalaenopsis architecture into Vitae Pink (`#FF6B9D` / `#E087EC`).
 - **Void-Stalker Orchid**: Recolored from authentic Phalaenopsis architecture into Abyssal Purple (`#818CF8` / `#4C1D95`).
-
-## Build 000-1-26-222-15-00 (August 10, 2026 Master Orchid Textures, Spectral Dye Tinting & Cutout Transparency Fixes)
-
 
 ### 🌸 Approved Orchid Textures Restored
 - **Aegis-Spire Orchid**: Re-sampled directly from locked preview `aegis_spire_orchid_1tall_authentic.png` and `tall_aegis_spire_orchid_top_sliced32.png` / `bottom_sliced32.png`.
@@ -662,32 +632,20 @@
 - Added `"render_type": "minecraft:cutout"` to all 51 flora block models in `models/block/`.
 - Registered all flora species, 2-tall flowers, saplings, and leaf blocks in `BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), ...)` in `EntropicaClientFabric.java`.
 
-## Build 000-1-26-222-14-44 (August 10, 2026 `./gradlew deploytoDev` Execution & Stale CurseForge Jar Cleanup)
-
-
 ### 🚀 `./gradlew deploytoDev` Execution
 - **CurseForge Instance Deployment**: Executed `./gradlew deploytoDev` across all modules:
   - Fabric JAR copied to: `C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods`
   - NeoForge JAR copied to: `C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevNF/mods`
 - **Stale Build Cleanup**: Removed legacy `Entropica-fabric-0.0.1-build-001-a.jar` from `entropicadevFAB/mods` to prevent CurseForge launcher conflicts.
 
-## Build 000-1-26-222-14-39 (August 10, 2026 Dev Deployment & Gradle Multi-Loader Jar Build)
-
-
 ### 🚀 Production JAR Compilation (`./gradlew build`)
 - **Fabric Mod Production Jar**: Compiled `Entropica-fabric-1.0.0.jar` (10.0 MB) in `fabric/build/libs/`.
 - **NeoForge Mod Production Jar**: Compiled `Entropica-neoforge-1.0.0.jar` (10.1 MB) in `neoforge/build/libs/`.
 - **Deployment Status**: All 28 flora species, Amber-Wood tree set, log stripping mechanics, 1.21.4+ `items/` definitions, and localized strings are compiled and ready for dev server/client testing.
 
-## Build 000-1-26-222-14-30 (August 10, 2026 Master Flora Gallery Textures Synchronized for Items & Blocks)
-
-
 ### 🌸 Gallery Texture Enforcement (Blocks & Items)
 - **Synchronized Master Textures**: Re-sampled and synchronized all 28 flora species (1-tall and 2-tall top/bottom variants) from our master locked gallery previews directly into game block textures (`common/src/main/resources/assets/entropica/textures/block/`).
 - **Unified Item Model Layer0 References**: Enforced that item models (`models/item/`) and 1.21.4+ asset definitions (`items/`) for all 28 flora species use `layer0` pointing directly to their corresponding master block/bloom textures (`entropica:block/<flower>` for 1-tall, `entropica:block/<tall_flower>_top` for 2-tall), ensuring both items in inventory/hand and placed blocks in-world share 100% identical visual art.
-
-## Build 000-1-26-222-14-28 (August 10, 2026 Necrotic Rose Item Texture Reference & Translation Fix)
-
 
 ### 🌹 Necrotic Rose of Jericho Item Model Fix
 - **Fixed Layer0 Texture Path**: Corrected `models/item/necrotic_rose_of_jericho.json` layer0 reference from non-existent `entropica:block/necrotic_rose_of_jericho_blooming` to existing `entropica:block/necrotic_rose_of_jericho`, resolving the black-and-purple missing texture checkerboard.
@@ -695,9 +653,6 @@
 
 ### 🌐 Localization Expansion (`en_us.json`)
 - **Added 30 Missing Translation Keys**: Added English translation keys for `item.entropica.necrotic_rose_of_jericho` ("Necrotic Rose of Jericho"), `tall_necrotic_rose_of_jericho`, `sanguine_lily`, `auroral_lily_pad`, `aegis_rose`, `amber_log`, `amber_wood`, `amber_planks`, `amber_leaves`, `amber_sapling`, and block variants.
-
-## Build 000-1-26-222-14-22 (August 10, 2026 Locked Necrotic Rose Restoration & Creative Tab World Isolation Fix)
-
 
 ### 🌹 Locked Necrotic Rose of Jericho Texture Restoration
 - **Restored Organic Voronoi/Perlin Texture**: Restored 100% exact locked 32x32 textures for Necrotic Rose of Jericho:
@@ -709,18 +664,12 @@
 - **`isWorldItem()` Category Filter Expansion**: Expanded `isWorldItem(Item item)` filter method to include all flora block paths (`rose`, `lily`, `orchid`, `buttercup`, `bell`, `bloom`, `shrub`, `cactus`, `moss`, `weeproot`, `succulent`, `puffball`, `reed`, `thistle`, `marshmallow`, `sprout`, `sedge`, `lantern`, `mushroom`, `aloe`, `shimmerpetal`, `amber`, `silver_pine`, `rubber`).
 - **Strict Tab Segregation**: Ensures all 28 flora species, botanical blocks, logs, wood, planks, leaves, and saplings are excluded from `BLOCKS_TAB` (Building Blocks) and placed **exclusively in `WORLD_TAB` (Entropica: Natural World)**.
 
-## Build 000-1-26-222-14-19 (August 10, 2026 C/V/G/D Complete Synchronization & Vault Verification)
-
-
 ### 📚 OKF Obsidian Vault & Codex Verification
 - **Auroral Lily Pad Note**: Created `wiki/entities/blocks/flora/Auroral Lily Pad.md` in the Entropica OKF Obsidian Vault.
 - **Entropic Codex Verification**: Verified node entries in `CodexCategoryRegistry.java` for all flora and materials.
 
 ### ⚙️ Git & Deployment
 - **Clean Working Tree**: Verified clean git working tree with 0 unstaged/untracked changes.
-
-## Build 000-1-26-222-14-18 (August 10, 2026 Minecraft 1.21.4+ `items/` Directory Mirroring Audit & Sync)
-
 
 ### 📁 `items/` & `models/item/` Dual-Asset Directory Mirroring
 - **1.21.4+ Item Model Mirroring**: Synchronized all missing 54 item model entries from `common/src/main/resources/assets/entropica/models/item/` into `common/src/main/resources/assets/entropica/items/` using the 1.21.4+ asset specification:
@@ -734,23 +683,14 @@
   ```
 - **100% Directory Parity**: Confirmed 0 missing items between `models/item/` and `items/` (both directories fully populated with 1802 item definitions).
 
-## Build 000-1-26-222-14-10 (August 10, 2026 Comprehensive Flora & Wood JSON Model Generation & Audit Pass)
-
-
 ### 📄 Blockstate & Block Model JSON Generation
 - **1-Tall Flowers (`vitae_orchid`, `necrotic_rose_of_jericho`, `auroral_lily_pad`)**: Generated cross-parent block model JSONs (`models/block/`) and blockstate JSONs (`blockstates/`).
 - **2-Tall Flowers & Bushes (`tall_aegis_rose`, `tall_necrotic_rose_of_jericho`, `tall_sanguine_lily`, `tall_auroral_lily_pad`, `tall_soul_flame_orchid`, `tall_vitae_orchid`, `tall_void_stalker_orchid`, `tall_aegis_spire_orchid`)**: Generated `half=lower` and `half=upper` variant blockstate JSONs and corresponding `_bottom.json` and `_top.json` cross block models.
 - **100% Audit Coverage**: Verified 0 missing item models, 0 missing blockstates, and 0 missing block models across all 28 flora species, botanical collectibles, and tree sets.
 
-## Build 000-1-26-222-13-57 (August 10, 2026 Auroral Lily Pad Item Registration & Full 28 Flora Audit Pass)
-
-
 ### 🌿 Auroral Lily Pad Item Registration
 - **`AURORAL_LILY_PAD_ITEM`**: Registered `auroral_lily_pad` BlockItem in `ModItems.java` and added to `WORLD_TAB` in `ModCreativeTabs.java`.
 - **100% Audit Pass**: Confirmed all 28 flora species, aquatic plants, ceiling vines, botanical drops, and tree set blocks have registered items in `ModItems.java` and are present in `WORLD_TAB`.
-
-## Build 000-1-26-222-13-51 (August 10, 2026 Minecraft 1.21.10 Item Model Audit & Spectral Dye Tinting Fix)
-
 
 ### 🎨 Spectral Dye 2-Layer Dynamic Tinting Fix
 - **Dynamic 2-Layer Item Models**: Fixed item models for all 18 Spectral Dyes (`spectral_dye_aegis.json`, `spectral_dye_amber.json`, `spectral_dye_auroral.json`, `spectral_dye_fulgurite.json`, `spectral_dye_gale.json`, `spectral_dye_necrotic.json`, `spectral_dye_sanguine.json`, `spectral_dye_soulfire.json`, `spectral_dye_stardust.json`, `spectral_dye_vitae.json`, `spectral_dye_void_stalker.json`, etc.) to point to `"layer0": "entropica:item/spectral_dye_bottle"` and `"layer1": "entropica:item/spectral_dye_fill"`.
@@ -761,9 +701,6 @@
 - **Blockstate & Block Models**: Generated complete blockstate JSONs and block model JSONs (`cube_column`, `cube_column_horizontal`, `cube_all`, `cross`) under `blockstates/` and `models/block/`.
 - **Creative Tab Audit**: Confirmed all 7 Amber-Wood items, Amber Chunks, flora blocks, and Spectral Dyes are registered in `WORLD_TAB` in `ModCreativeTabs.java`.
 
-## Build 000-1-26-222-13-42 (August 10, 2026 C/V/G/D Full Synchronization & Amber-Wood Deployment)
-
-
 ### 📖 Entropic Codex Integration
 - **`materials_amber_chunk` Research Node**: Registered Amber Chunk under `MATERIALS` in `CodexCategoryRegistry.java` with 3D item icon, orbit position (`a_ing + 0.20f`), and research details.
 
@@ -773,17 +710,11 @@
 ### ⚙️ Git & Deployment Readiness
 - **Clean Staging & Local Commit**: Verified all assets, handlers, recipes, language keys, and docs are staged and committed locally without including any AI/metadata files.
 
-## Build 000-1-26-222-13-32 (August 10, 2026 Amber Chunk Crystalline Noise & JEI Description Refinement)
-
-
 ### 💎 Amber Chunk Texture & JEI Description Update
 - **Crystalline Noise & Micro-Facets (`amber_chunk.png`)**: Enhanced 32x32 texture with micro-facet specular noise and internal refraction gradients (`#FDE047`, `#F59E0B`, `#D97706`, `#B45309`, `#4A2810`).
 - **JEI Description Text Update (`en_us.json`)**: Updated `jei.entropica.info.amber_chunk` text per user directive:
   > *"Amber Chunks are harvested by stripping the bark off Amber Logs or Amber Wood using an Axe.\n\nUsed in alchemical distils, wand foci, arcana book binding, and crystal alchemy."*
 - **Gallery Update**: Updated `amber_wood_gallery.md` with Amber Chunk V2 noise preview.
-
-## Build 000-1-26-222-13-28 (August 10, 2026 Amber Chunk Item, Stripping Mechanics & Oak Planks Remap)
-
 
 ### 💎 Amber Chunk Item & Log Stripping Mechanic
 - **`AMBER_CHUNK` Item Registration**: Registered `amber_chunk` in `ModItems.java` and added to `WORLD_TAB` in `ModCreativeTabs.java`.
@@ -799,15 +730,9 @@
 - **Vanilla Minecraft Oak Planks Color-Mapping**: Extracted official `assets/minecraft/textures/block/oak_planks.png` texture map and mapped its board structure 1:1 into the darkened Golden Amber palette (`#D7B932`, `#CD8209`, `#B46205`, `#964407`, `#78320A`), eliminating harsh dark brick end-joints while preserving 100% horizontal and vertical seamless flow.
 - **Gallery Update**: Updated `amber_wood_gallery.md` with V7 previews.
 
-## Build 000-1-26-222-13-17 (August 10, 2026 Darkened Stripped Log & Planks Golden Amber Palette)
-
-
 ### 🪵 Palette Darkening
 - **Darkened Stripped Log & Planks (`stripped_amber_log.png`, `amber_planks.png`)**: Darkened all color channels by ~15% (`#964407`, `#B46205`, `#CD8209`, `#D7B932`, `#78320A`), yielding a deeper, richer golden amber shade matching `amber_log_top.png` while maintaining 100% horizontal and vertical seamless flow.
 - **Gallery Update**: Updated `amber_wood_gallery.md` with V6 previews and 2x2 grid proofs.
-
-## Build 000-1-26-222-13-16 (August 10, 2026 Amber-Wood Locking & Spruce Sapling Sync)
-
 
 ### 🔒 Locked Assets
 - **`amber_log.png` & `amber_log_top.png` [LOCKED 🔒]**: Officially locked side log bark and top squarer-radial growth rings from future edits per user directive.
@@ -818,9 +743,6 @@
 - **Spruce Sapling Architecture (`amber_sapling.png`)**: Extracted official `assets/minecraft/textures/block/spruce_sapling.png` texture from the Minecraft client JAR and color-mapped it 1:1 into 32x32 high-resolution pixel art featuring a chestnut stem base and tiered golden amber evergreen foliage (100% transparent background).
 - **Gallery Update**: Updated `amber_wood_gallery.md` with V5 previews.
 
-## Build 000-1-26-222-13-14 (August 10, 2026 Amber-Wood Seamless 2D Tiling & Vanilla Oak Leaf Extraction)
-
-
 ### 🪵 Amber-Wood Set Seamless Tiling & Vanilla Oak Integration
 - **100% Horizontal & Vertical Seamless Tiling**:
   - `stripped_amber_log.png`: Engineered 2D periodic sinusoidal wave functions guaranteeing zero seam lines across both horizontal and vertical borders when placing log walls or pillars.
@@ -830,18 +752,12 @@
   - Mapped vanilla Oak leaf cluster cutout shapes (`alpha == 0`), leaf blade highlights, and vein shadows directly into the Autumn Golden Amber palette (`#FDE047`, `#EAB308`, `#F59E0B`, `#D97706`, `#92400E`).
 - **Gallery Update**: Updated `amber_wood_gallery.md` with V4 previews and 2x2 grid tiling proofs.
 
-## Build 000-1-26-222-13-12 (August 10, 2026 Amber-Wood Texture Refinements & Oak-Leaf Architecture)
-
-
 ### 🪵 Amber-Wood Set Refinements
 - **Smoothed Wood Stripped Log Side (`stripped_amber_log.png`)**: Replaced grid pixel noise with smooth, flowing, vertical wood grain striations in golden amber tones.
 - **Rubber-Matched Amber Planks (`amber_planks.png`)**: Modeled 1:1 after `rubber_planks.png` layout — 4 horizontal plank rows with dark bevel grooves at $y=7, 15, 23, 31$, offset vertical end-joint seams at $x=22, 9, 27$, and smooth horizontal wood grain striations in Golden Amber.
 - **Squarer Radial Log Tops (`amber_log_top.png` & `stripped_amber_log_top.png`)**: Increased Chebyshev squircle weighting ($0.25 \cdot \text{Euclidean} + 0.75 \cdot \text{Chebyshev}$) for squarer growth rings that remain smooth and radial near the center core.
 - **Autumn Oak Amber Leaves (`amber_leaves.png`)**: Modeled after default Minecraft Oak Leaves cluster shape and outline — 3D leaf blade bunches, dark leaf outline borders, and natural transparent cutout gaps (`alpha == 0`), rendered in rich Autumn Golden Amber (`#FDE047`, `#EAB308`, `#F59E0B`, `#D97706`, `#92400E`).
 - **Gallery Update**: Updated `amber_wood_gallery.md` displaying V3 previews.
-
-## Build 000-1-26-222-12-49 (August 10, 2026 Amber-Wood Arboreal Set & Resinous Wood Suite)
-
 
 ### 🪵 Amber-Wood Wood Set (`amber_wood`)
 - **Block Registrations**: Registered full wood family in `ModBlocks.java` and `ModItems.java`:
@@ -860,9 +776,6 @@
 - **Creative Tab**: Added all 7 items to `WORLD_TAB` in `ModCreativeTabs.java`.
 - **Codex & Vault Integration**: Registered `env_amber_wood` under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java` and verified `Amber-Wood Wood Set.md` in the Obsidian Vault.
 - **Gallery Artifact**: Created `amber_wood_gallery.md` displaying 100% transparent upscale previews.
-
-## Build 000-1-26-222-12-36 (August 10, 2026 1-Tall Rose Block Textures Approval & Complete Flora Locking)
-
 
 ### 🌹 1-Tall Aegis Rose (`aegis_rose.png`) & Necrotic Rose-of-Jericho (`necrotic_rose_of_jericho.png`)
 - **1:1 Tea Rose Photo-Matched Architecture**: Modeled directly after the user's uploaded Tea Rose reference photo (`media__1786382960410.png`).
@@ -884,9 +797,6 @@
   - 2-Tall Necrotic Rose Bush (`necrotic_rose_top.png`, `necrotic_rose_bottom.png`)
 - **Gallery Update**: Updated `flora_previews_gallery.md` to reflect all locked block textures.
 
-## Build 000-1-26-222-08-39 (August 10, 2026 Botanical Drops Triad Implementation & Photo-Matched Sanguine Lily)
-
-
 ### 🌸 Botanical Drops System (Petals, Nectars & Spectral Dyes)
 - **Unified 36 Botanical Drop Triad**: Implemented full drop sets (**Petal**, **Nectar**, **Spectral Dye**) for all 12 flower species in Entropica.
   - Base petal teardrop shape derived from `stardust_bell_petal.png` and `auroral_petal.png`.
@@ -901,7 +811,7 @@
 - **Approved & Locked**: Finalized 1-tall Sanguine Lily texture (`sanguine_lily.png`) with 30° rotated bloom head, wrapped crimson core (`#DC2626`) with 1+ pixel white margin (`#FFFFFF`), lime throat (`#84CC16`), and 4 compact botanical scoop leaves.
 - **Registry Update**: Removed 2-tall Sanguine Lily from `ModBlocks.java` and `ModItems.java` (all Lilies are strictly 1-tall compact blocks).
 
-## Build 000-1-26-221-23-00 (August 9, 2026 Comprehensive Round 3 Flora Expansion, Phalaenopsis Redesign & Multi-Loader Refinements)
+## Build 000-1-26-221
 
 ### 🪻 Authentic Phalaenopsis Blue Orchid Redesign & 32x64 Sliced Continuity
 - **Reference Image Alignment**: Modeled directly after the user's reference image of a Phalaenopsis Blue Orchid. Features a slender purplish-brown arching spike (`#2E1C14`), cascading cobalt blue Phalaenopsis blooms (`#2563EB`) with soft sky-blue/white margins (`#DBEAFE`), deep indigo 3-lobed lip/labellum (`#1E1B4B`), and smooth forest green basal strap leaves (`#166534`, `#15803D`).
@@ -940,41 +850,23 @@
 - **Codex Registration**: Updated `CodexCategoryRegistry.java` node entries (`env_abyssal_weeproot`, `env_fulgurite_reed`, etc.) to document climbable ladder mechanics, overcharge shock, and bonemeal behavior.
 - **OKF Obsidian Vault Sync**: Updated notes in `C:\Users\Ddraig__\Downloads\OBSIDIAN WIKIS\Entropica\Entropica\` (`Aegis-Spire Orchid.md`, `Abyssal Weeproot.md`, `Fulgurite Reed.md`).
 
-## Build 000-1-26-220-20-15 (August 8, 2026 Multi-Loader API Refinement)
-- **Entropic Codex & OKF Vault Sync**: Registered all 5 Round 3 flora nodes under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java` and created corresponding wiki notes in the Obsidian Vault.
-
-## Build 000-1-26-221-10-45 (August 9, 2026 Vitreous Cactus Collision, In-World Plant Cutout Transparency & Particle Brightness)
-
-
 ### 🌵 Vitreous Cactus & Rendering Fixes
 - **Vitreous Cactus Solid Collision**: Overrode `getCollisionShape` in `VitreousCactusBlock.java` (`Block.box(1.0, 0.0, 1.0, 15.0, 15.0, 15.0)`), establishing solid physical collision for cacti and ensuring entities touch/collide with the cactus to trigger damage and bleeding debuffs.
 - **In-World Flora Transparency (No Black Backgrounds)**: Registered all 25+ plant, flower, sapling, and leaf blocks on `RenderType.cutout()` in `EntropicaClientFabric.java` (including `vitae_orchid`, `spore_burst_puffball`, `fulgurite_reed`, `gale_thistle`, `mist_veil_marshmallow`, `fulgurite_swamp_bloom`, `gale_bloom_dandelion`, `shimmerpetal`, `aegis_rose`, `soul_flame_orchid`, `auroral_buttercup`, `stardust_bell`, `rimebloom`, `rubber_sapling`, `silver_pine_sapling`, etc.), removing black boxes around plant textures.
 - **Particle Emissive Light & Color Fix**: Overrode `getLightColor(float partialTick)` to return `240` (full 15/15 emissive brightness) in `SpectrumSparkleParticle.java` and `GaleSwirlPuffParticle.java`. Fixed RGB initialization check so un-tinted particles render white at full brightness instead of pitch black.
 
-## Build 000-1-26-221-10-34 (August 9, 2026 Fix Duplicate Spectral Dye Vitae Registration & Unbound Registry Entry Crash)
-
-
 ### 🐛 Duplicate Item Registration Fix
 - **Duplicate Registration Resolution**: Identified root-cause crash `java.lang.NullPointerException: Registry Object not present: entropica:spectral_dye_vitae`. `spectral_dye_vitae` was manually registered in `ModItems.java` (line 621) AND dynamically registered in `registerSpectralDyes()` loop, creating a duplicate unbound entry in `ModItems.ITEMS.getEntries()`. Removed manual duplicate call and assigned `SPECTRAL_DYE_VITAE = SPECTRAL_DYES.get("vitae")`.
 - **Architectury `isBound()` Check**: Added `isBound()` guard to `ModItems.ITEMS` and `ModBlocks.BLOCKS` iteration in `ModCreativeTabs.java`, adhering to standard Architectury registry supplier contract patterns.
-
-## Build 000-1-26-221-10-30 (August 9, 2026 Root-Cause Registry Fix & Standard Creative Tab Restoration)
-
 
 ### 🐛 Root-Cause Registry & Creative Tab Cleanup
 - **Stair Block Registration Fix**: Resolved premature `.get()` evaluation in `AestheticGlassRegistry.java` line 219 (`blockSup.get().defaultBlockState()`), passing static `Blocks.GLASS.defaultBlockState()` during block registration to eliminate uninitialized supplier crashes when loading glass stair families.
 - **Clean Creative Tab Codebase**: Refactored `ModCreativeTabs.java` to use standard, direct `output.accept(ModItems.XYZ.get())` calls, removing intermediate `acceptSafe` wrapper functions while retaining full item registration across all creative tabs.
 
-## Build 000-1-26-221-10-27 (August 9, 2026 Minecraft 1.21.10 Item Asset Definitions & Creative Tab Safety Fixes)
-
-
 ### 🐛 Creative Menu Crash & Item Asset Fixes
 - **Minecraft 1.21.10 Item Definition Registry**: Generated 64 missing 1.21.10 item asset JSON files in `assets/entropica/items/` (including `rubber_log.json`, `rubber_wood.json`, `rubber_planks.json`, `rubber_leaves.json`, `rubber_sapling.json`, `stripped_rubber_log.json`, `stripped_rubber_wood.json`, `silver_pine_log.json`, `silver_pine_wood.json`, `silver_pine_planks.json`, `silver_pine_leaves.json`, `silver_pine_sapling.json`, `stripped_silver_pine_log.json`, `stripped_silver_pine_wood.json`, `vitae_petal.json`, `fulgurite_stalk.json`, etc.), restoring item rendering in inventory and creative tabs.
 - **Creative Tab Null Protection**: Updated `ModCreativeTabs.java` with fail-safe `acceptSafe()` wrapper methods across all tabs (`WORLD_TAB`, `ITEMS_TAB`, `BLOCKS_TAB`, `TOOLS_TAB`, `WEAPONS_TAB`, `LOGISTICS_TAB`, `WEAPON_CRAFTING_TAB`, `AESTHETICA_TAB`, `MATERIA_ITEMS_TAB`), preventing `NullPointerException` crashes when opening the creative tab.
 - **World Creative Tab Registration**: Added all 5 Round 2 flora block items (`vitae_orchid`, `spore_burst_puffball`, `fulgurite_reed`, `gale_thistle`, `mist_veil_marshmallow`) and harvested collectibles (`vitae_petal`, `spore_puff`, `fulgurite_stalk`, `gale_seed`, `mist_veil_marshmallow_pod`) to `WORLD_TAB`.
-
-## Build 000-1-26-221-10-23 (August 9, 2026 Round 2 Flora Collectibles & Nectar Potion Deployment)
-
 
 ### 🌾 Round 2 Flora & Harvested Collectible Refinements
 - **Vitae Petal (`vitae_petal.png`)**: Implemented Option 2N Rounded Tip Ribbon Strap 16x16 item texture with royal purple stem base (`#9333EA`) and gold center vein line (`#F59E0B`).
@@ -984,9 +876,6 @@
 - **Spectral Dye Tint Alignment**: Aligned `VITAE` (`#FF6B9D` - Vitae Pink) and `SANGUINE` (`#8A0303` - Sanguine Crimson) dye colors in `SpectralDyeApi.java` with `EssenceType` color definitions.
 - **Approved Item Drop Set**: Confirmed handcrafted 16x16 textures for `spore_puff.png` (Spore-Burst Puffball), `gale_seed.png` (Gale-Thistle), and `mist_veil_marshmallow_pod.png` (Mist-Veil Marshmallow).
 
-## Build 000-1-26-221-10-02 (August 9, 2026 Batch 2 Flora Expansion & Voronoi/Perlin Noise Refinements)
-
-
 ### 🌿 Batch 2 Flora Implementation (5 Species)
 - **Vitae Orchid (`vitae_orchid`)**: Implemented 2-tall flower block (`DoublePlantBlock` / `VitaeOrchidBlock`) with silky white orchid top blossom, royal purple lips, gold veining, 32x32 Voronoi/Perlin noise textures (`vitae_orchid_top.png` & `vitae_orchid_bottom.png`), Regeneration I aura (80 ticks), Light Level 8, and golden vitality sparkles (`#F59E0B`).
 - **Spore-Burst Puffball (`spore_burst_puffball`)**: Implemented round cream puffball mushroom (`SporeBurstPuffballBlock`) with bioluminescent emerald green cracks (`#10B981`), procedural Voronoi cell crackle & Perlin skin noise, squishing burst audio on step/right-click/break, releasing 6-second Nausea I & Poison I spore clouds.
@@ -994,10 +883,6 @@
 - **Gale-Thistle Bush (`gale_thistle`)**: Implemented dense metallic silver spiky bush (`GaleThistleBlock`) with central golden seed heads, Voronoi cell leaf spikes, 1.0 physical prick damage on collision, and swirling `GALE_SWIRL_PUFF` wind particles.
 - **Mist-Veil Marshmallow (`mist_veil_marshmallow`)**: Implemented soft bouncy marshmallow pods (`MistVeilMarshmallowBlock`) growing on water-floating teal leaves, connected directly to bottom canvas edge (`y=31`), water/mud/clay placement, fall distance reset bounce mechanics, and right-click harvesting of **Mist-Veil Marshmallow Pods** (restores 4 Hunger & 6 Saturation).
 - **Golden Vitae Amber Spectral Dye (`spectral_dye_vitae`)**: Registered 15th Spectral Dye (`#FF6B9D` - Vitae Pink) in `SpectralDyeApi.java` and `ModItems.java`, utilizing the standard 2-layer dye bottle model (`spectral_dye_bottle` + `spectral_dye_fill`) dynamically tinted to match `EssenceType.VITAE` (`0xFF6B9D`).
-
-
-## Build 000-1-26-221-04-56 (August 9, 2026 Abyssal Weeproot Vine & Abyssal Spectral Dye)
-
 
 ### 🌊 Subterranean Ceiling Vine & Abyssal Mechanics
 - **Abyssal Weeproot (`abyssal_weeproot` & `abyssal_weeproot_plant`)**: Implemented deep navy subterranean ceiling root vine (`GrowingPlantHeadBlock` / `GrowingPlantBodyBlock`) attaching to ceiling stone, random ticking downward growth up to 26 blocks, **Slow Falling I** void tether mechanics (`entityInside`), and right-click tendril harvesting (`useWithoutItem`).
@@ -1008,10 +893,9 @@
 - **Custom Bleeding Status Effect (`BLEEDING`)**: Registered custom harmful status effect `BleedingEffect.java` (`ModEffects.BLEEDING`) inflicting physical damage over time (every 30 ticks) and spawning blood droplet particles (`DAMAGE_INDICATOR`).
 - **Refined Vitreous Cactus (`vitreous_cactus`)**: Updated block voxel shape and 3D JSON block model to a 12x16x12 cuboid (`Block.box(2, 0, 2, 14, 16, 14)` / `[2, 0, 2]` to `[14, 16, 14]`), applying 4 seconds of custom `BleedingEffect` on entity collision instead of Wither.
 
+## Build 000-1-26-220
 
-
-## Build 000-1-26-220-20-21 (August 8, 2026 Complete Botanical Flora, Animated Particles, Spectral Dyes & Barrow Mechanics Overhaul)
-
+- **Entropic Codex & OKF Vault Sync**: Registered all 5 Round 3 flora nodes under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java` and created corresponding wiki notes in the Obsidian Vault.
 
 ### 🌿 Botanical Flora Expansion (12 Species)
 - **Shimmerpetal (`shimmerpetal`)**: 32x32 radiant flower emitting silver Materia sparkles.
@@ -1037,9 +921,7 @@
 ### 📚 Entropic Codex Integration
 - **Entropic Codex**: Registered 12 dedicated research sub-nodes under `ENVIRONMENT & NATURE` in `CodexCategoryRegistry.java` and updated the `materials_spectral_dyes` entry.
 
-
-## Build 000-1-26-218-10-11 (August 6, 2026 Entropic Codex Structured Field Guide Restructuring)
-
+## Build 000-1-26-218
 
 ### Entropic Codex — Non-Technical Restructuring & Section Banners
 
@@ -1054,8 +936,6 @@
 * **UI Header Banners**:
   - Updated `EntropicCodexScreen` book reader to render section headers with colored section banners and icons (`✦ Overview`, `🗺 Origin`, `🛠 Crafting`, `⚙ Uses`, `✨ Special Properties`).
 
-## Build 000-1-26-218-09-40 (August 6, 2026 Entropic Codex Book View & Index Redesign)
-
 ### Entropic Codex — Book-Like Article Reading, Index Directory & Clean Spatial Grid
 
 * **Book-Like Codex View (`BOOK_CATEGORY`)**:
@@ -1069,8 +949,6 @@
   - Removed the left navigation controls box from the spatial node page to maximize screen space for the celestial map.
   - Moved the search bar from the spatial grid to the top of the **Index Page**, allowing live searching of all 32+ research entries. Clicking any index search result immediately opens its book article.
 
-## Build 000-1-26-218-09-33 (August 6, 2026 Gebo Alternative Ritual Recipes)
-
 ### Gebo Alternative Magic Circle Ritual Recipes (10% Materia Discount)
 
 * **Materia Blessing Gebo Ritual (`data/entropica/recipe/materia_blessing_gebo.json`)**:
@@ -1081,8 +959,6 @@
 
 * **Entropic Codex Documentation**:
   - Updated `env_materia_blessing` and `env_greater_materia_blessing` nodes in `CodexCategoryRegistry.java` documenting both Eihwaz (standard) and Gebo (harmonic 10% discount) ritual options.
-
-## Build 000-1-26-218-09-30 (August 6, 2026 Tier 2 Magic Circle Ritual Recipes)
 
 ### Tier 2 Magic Circle Ritual Recipes — Materia Blessing & Greater Materia Blessing
 
@@ -1095,16 +971,12 @@
 * **Entropic Codex Documentation**:
   - Updated `env_materia_blessing` and `env_greater_materia_blessing` nodes in `CodexCategoryRegistry.java` with the new ritual crafting specifications.
 
-## Build 000-1-26-218-09-12 (August 6, 2026 Materia Blessing Inventory Model Fix)
-
 ### Materia Blessing — Inventory Color Tinting & Dynamic Shard Tint Source
 
 * **Materia Blessing Item Model Tinting (`models/block/materia_blessing.json` & `models/block/greater_materia_blessing.json`)**:
   - Added `"tintindex": 0` to all element face definitions in both `materia_blessing.json` and `greater_materia_blessing.json`.
   - Added `"tints": [ { "type": "entropica:shard_tint" } ]` to `items/materia_blessing.json` and `items/greater_materia_blessing.json`.
   - The inventory slot, hotbar icon, held hands, ground entity, and item frame now dynamically sample and render the vibrant, glowing `EssenceType` RGB colors of the attuned crystal instead of plain un-tinted gray cuboids.
-
-## Build 000-1-26-218-09-07 (August 6, 2026 Creative Tab Fix)
 
 ### Creative Tab "Entropica: World" (`WORLD_TAB`) — Strict Natural Block Filtering
 
@@ -1113,8 +985,6 @@
   - Added explicit exclusion `if (path.contains("core") || path.contains("glass") || path.contains("machine") || path.contains("pipe")) return false;` to guarantee machine cores and glass blocks never enter `WORLD_TAB`.
   - Explicitly registered only natural world blocks (Materia Blessings, Ores, Aeterium/Ignisite/Mortisite clusters & buds) and fauna mob spawn eggs in `WORLD_TAB`.
   - Restored machine cores (`entropic_core`, `monad_core`, `athanor_core`) to `BLOCKS_TAB` where all structural/machinery blocks reside.
-
-## Build 000-1-26-218-09-00 (August 6, 2026 Materia Blessing Update)
 
 ### Materia Blessing — 3D Inventory Block Model & Essence Node Lore
 
@@ -1125,8 +995,6 @@
 * **Entropic Codex Lore Updates**:
   - Updated `env_materia_blessing` and `env_greater_materia_blessing` nodes in `CodexCategoryRegistry.java`.
   - Replaced legacy Entropic Core terminology with **Essence Node** as the primary attunement source, noting that if an Entropic Core is present nearby, the blessing crystal may resonate with it and display its colors depending on which energy source is denser / has higher capacity.
-
-## Build 000-1-26-218-08-26 (August 6, 2026 Codex Update)
 
 ### Entropic Codex — Minimum Node Distance & Screen Edge Category Selection Tabs
 
@@ -1139,7 +1007,7 @@
   - Sleek collapsible/expandable design (width `28px` collapsed, `145px` expanded on hover or active selection), displaying the category's colored accent bar, item icon, and title text.
   - Clicking any edge tab smoothly glides the camera (`targetPanX`, `targetPanY`, `targetZoom = 0.60f`) to center directly on that category's parent hub in World Space and opens its details panel.
 
-## Build 000-1-26-217-17-08 (August 5, 2026 Update)
+## Build 000-1-26-217
 
 ### Materia Blessing Crystal — Renderer Reshape + Greater Variant
 
@@ -1227,9 +1095,6 @@
   - `lesser_materia_blessing_crystal.png`, `lesser_materia_blessing_cracks.png`
   - `greater_materia_blessing_crystal.png`, `greater_materia_blessing_cracks.png`
 
-
-## Build 000-1-26-217-16-48 (August 5, 2026 Update)
-
 ### New Feature: Materia Blessing Crystal (Natural Phenomenon)
 
 * **Materia Blessing Block (`materia_blessing`)**:
@@ -1266,9 +1131,6 @@
   - `models/item/materia_blessing.json`, `models/item/materia_blessing_shard.json`.
   - `items/materia_blessing.json`, `items/materia_blessing_shard.json` (1.21.4 item definitions).
 
-
-## Build 000-1-26-217-16-07 (August 5, 2026 Update)
-
 ### New Feature: Granite Ritual Bowl (Passive Essence Extractor & Essence Supplier)
 
 * **Granite Ritual Bowl (`granite_ritual_bowl`)**:
@@ -1284,8 +1146,6 @@
 
 ---
 
-## Build 000-1-26-217-16-04 (August 5, 2026 Update)
-
 ### Fixed & Deployed: Ritual Bowl Item Storage (Disabled Passive Essence Burning)
 
 * **Ritual Bowl Passive Burning Fix**:
@@ -1293,8 +1153,6 @@
   - Items (like Iron Ingots in Marble Bowls) and Runes (in Basalt Bowls) placed into Ritual Bowls are now safely preserved for Magic Circle/Circuit recipes without being destroyed/burned into Weak Essence items every 5 seconds. (Essence extraction remains strictly on the Crucible).
 
 ---
-
-## Build 000-1-26-217-09-19 (August 5, 2026 Update)
 
 ### Fixed & Deployed: 1.21.4 Item Definition JSON Registrations
 
@@ -1315,8 +1173,6 @@
 
 ---
 
-## Build 000-1-26-217-09-16 (August 5, 2026 Update)
-
 ### Refined Feature: Arkanist Monocle Arcane Flame Plume & Viscanite Gunmetal Retexture
 
 * **Arcane Elemental Flame Plume**:
@@ -1325,8 +1181,6 @@
   - Retextured the 3D monocle metallic frame in authentic **Viscanite Gunmetal** sampled from `viscanite_ingot.png` (`RGB(55, 47, 52)` ➔ `RGB(121, 125, 133)`), paired with dark charcoal arcane leather and polished steel pins.
 
 ---
-
-## Build 000-1-26-217-09-11 (August 5, 2026 Update)
 
 ### New Feature: Lens Textures & 3D Arkanist Monocle Retexture Suite
 
@@ -1343,7 +1197,7 @@
 
 ---
 
-## Build 000-1-26-216-13-45 (August 4, 2026 Update)
+## Build 000-1-26-216
 
 ### New Feature: Automatic Ritual Bowl Ingredient Pulling & Floating Particle Trajectory
 
@@ -1356,8 +1210,6 @@
 
 ---
 
-## Build 000-1-26-216-12-25 (August 4, 2026 Update)
-
 ### New Feature: Proximity Activation Node (`NodeType.ACTIVATION`)
 
 * **Proximity Activation Node (`NodeType.ACTIVATION`)**:
@@ -1368,8 +1220,6 @@
   - Added text symbol `"V"` label rendering in [ScribedChalkRenderer.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/client/renderer/ScribedChalkRenderer.java).
 
 ---
-
-## Build 000-1-26-216-12-17 (August 4, 2026 Update)
 
 ### Fixed & Deployed (Node Essence Capacity Expansion & Rich Diagnostic System)
 
@@ -1390,8 +1240,6 @@
 
 ---
 
-## Build 000-1-26-216-10-32 (August 4, 2026 Update)
-
 ### Fixed & Deployed (Magic Circuit Processing, Essence Detection & Glass Culling)
 
 * **Magic Circuit Recipe Trigger & Circuit Execution**:
@@ -1410,7 +1258,7 @@
 
 ---
 
-## Build 000-1-26-215-18-53 (August 3, 2026 Consolidated Update)
+## Build 000-1-26-215
 
 ### Fixed & Deployed (HorizontalPaneBlock System, Master Base Model Architecture, Aesthetic Glass Suite & Non-Glass Restoration)
 
@@ -1466,7 +1314,7 @@
 * **Build & Deployment Verification**:
   - Successfully built and deployed to dev instances via `./gradlew deploytoDev`.
 
-## Build 000-1-26-214-23-59 (August 2, 2026 Consolidated Update)
+## Build 000-1-26-214
 
 ### Fixed & Deployed (Entropic Codex UI, Viewport Frustum Culling, Line Batching, Item Textures)
 
@@ -1476,7 +1324,7 @@
   - **Single 32x32 Alpha Mask & Background**: Created [entropic_codex_item.png](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/resources/assets/entropica/textures/item/entropic_codex_item.png) with precise pixel-art outline and pure 100% transparent background.
   - **Black Hole Background Seamless Expansion**: Created [codex_black_hole_bg.png](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/resources/assets/entropica/textures/gui/codex_black_hole_bg.png) with edge vignette fading to pitch black (`#000000`), preventing hard edge clipping in 16:9 and ultrawide viewports.
 
-## Build 000-1-26-213-22-32
+## Build 000-1-26-213
 
 ### Added & Implemented (Phase 1: The Entropic Codex)
 * **Entropic Codex Item & Crafting**:
@@ -1500,7 +1348,7 @@
   - Added `REQUIRE_RESEARCH_TO_CRAFT` config toggle in `EntropicaConfig` across common, fabric, and neoforge modules.
   - Intercepted crafting grid events to set output to `ItemStack.EMPTY` for unresearched items when research restriction is enabled.
 
-## Build 000-1-26-210-09-14
+## Build 000-1-26-210
 
 ### Fixed & Remediated
 - Remediated all progression tier claims ("Tier 0/1/2/3", "10 chalk tiers") across `Essence Orb`, `Small Ampoule`, `Medium Ampoule`, `Large Ampoule`, and `Runic Arts & Scribing Index`.
@@ -1509,7 +1357,7 @@
 ### Added
 - Created missing entity note `Materia Filter` (`wiki/entities/blocks/logistics/Materia Filter.md`), resolving all broken `[[Materia Filter]]` wikilinks.
 
-## Build 000-1-26-202-06-05
+## Build 000-1-26-202
 
 ### Added & Polished
 *   **Visual Overlays Restructured**:
@@ -1534,8 +1382,6 @@
     *   Added an organic breathing/pulsing scale factor to the spheres during processing.
     *   Added a vertical translucent alchemical energy containment cylinder (stacked rings) at the center of the magic circle during Phase 2, 3, and 4.
 
-## Build 000-1-26-202-01-56
-
 ### Added & Polished
 *   **Magic Circle Aesthetics**:
     *   Replaced outer boundary ring alchemical symbols with supported Unicode glyphs (`☼`, `☾`, `✦`, `★`, `Ω`, etc.) to guarantee they render correctly in the standard Minecraft font.
@@ -1550,7 +1396,7 @@
         *   **Phase 3 (f: 0.6 - 0.8)**: Spheres shrink to `30%` of their original size, and their miniature flat magic circles are revealed at their stacked heights.
         *   **Phase 4 (f: 0.8 - 1.0)**: The miniature magic circles and their smaller spheres cascade and smash down on top of each other towards the center ground where the final crafted item is spawned.
 
-## Build 000-1-26-201-23-10
+## Build 000-1-26-201
 
 ### Added & Polished
 *   **Essence Bank Node System**:
@@ -1568,8 +1414,6 @@
     *   Added **Aetheric Lens** (Gold and Blue-green: copies aetheric vision to show hidden nodes and crystals).
     *   Added **Vitae Lens** (Gold and Red: renders blue billboard and red healthbar above living entities).
     *   Added **Materia Lens** (Brass and Blue: renders item Materia yield overlays in world and tooltips).
-
-## Build 000-1-26-201-18-04
 
 ### Added & Polished
 *   **Essence Bank Node System**:
@@ -1589,8 +1433,6 @@
     *   Added **Propagation Lens** (renamed from Alchemical Lens), **Aetheric Lens**, **Vitae Lens** (shows RPG-style healthbars above entities), and **Materia Lens** (shows item Materia yields on tooltip).
     *   Processed transparent 16x16 icon textures: purple and silver frame for Materia, deep blue for Vitae, teal for Aetheric.
 
-## Build 000-1-26-201-17-15
-
 ### Added & Polished
 *   **Alchemical Circuit Shared Essence Pool & Capacity Rules**:
     *   Implemented full alchemical circuit validation traversing all connected trace paths and nodes using a breadth-first search (BFS) starting from the output/source node.
@@ -1604,8 +1446,6 @@
     *   Decoupled the collection node from accepting neighbor signal propagation, ensuring it never accepts any essence inwards.
     *   Allow the collection node to act as a direct signal source propagating at strength 32 downstream as long as it has any gathered essence.
     *   Updated extraction node traversal to detect and drain from both `SOURCE` and `COLLECTION` nodes.
-
-## Build 000-1-26-201-19-05
 
 ### Added & Polished
 *   **Paralyzed Event Handler Platform-Native Registration**:
@@ -1639,8 +1479,6 @@
     *   Applies Materia Toxicity and Paralyzed effects (durations proportional to block essence level).
     *   Moved logic to `dropStoredContents` to ensure multi-version signature compatibility.
 
-## Build 000-1-26-201-11-34
-
 ### Added & Polished
 *   **Vis-to-Materia Renaming Completeness**:
     *   Renamed all remaining standalone references of `Vis` or `vis` inside GUI overlay text, JEI recipe categories, tooltips, and chat feedback messages to `Materia` or `materia`.
@@ -1649,15 +1487,11 @@
 *   **Fehu Filter Tuning Fork Exclusion**:
     *   Removed the `VoidResonantTuningForkItem` from Fehu filter node interaction, aligning strictly with the directive that tuning forks are excluded from alchemical circuit operations (leaving empty hand interaction as the exclusive reset method).
 
-## Build 000-1-26-201-10-31
-
 ### Added & Polished
 *   **Full Multi-Language Support**:
     *   Added complete translation files for all 629+ keys (totaling 650 lines) of the mod's localization catalog.
     *   Supported languages include: German (`de_de.json`), French (`fr_fr.json`), Spanish (`es_es.json`), Portuguese (`pt_br.json`), Russian (`ru_ru.json`), Simplified Chinese (`zh_cn.json`), Japanese (`ja_jp.json`), and Korean (`ko_kr.json`).
     *   Fully preserved all layout formatting codes (e.g. `§a`, `§c`), placeholders (e.g. `%s`, `%d`), and newlines (`\n`) for clean rendering in-game.
-
-## Build 000-1-26-201-09-55
 
 ### Added & Polished
 *   **Global Renaming Alignment**:
@@ -1668,8 +1502,6 @@
     *   Added detailed node-by-node setup diagrams for all 10 specialized alchemical circuit node types (Source, Input, Output, Rune, Amplifier, Capacitor, Collection, Extraction, Resonator, Diode, and Logic Gates).
     *   Omitted and replaced all legacy references to `Vis` or `vis` in document text, tooltips, and setup diagrams to strictly refer to `Materia` or `materia`.
     *   Removed references to `Tuning Forks` for starting/interacting with alchemical circuits (clarifying that rituals are triggered and Fehu filters are cleared via empty hand right-clicks).
-
-## Build 000-1-26-201-08-59
 
 ### Added & Polished
 *   **Specialized Fehu Filters**:
@@ -1705,8 +1537,6 @@
 
 ---
 
-## Build 000-1-26-201-08-16
-
 ### Added & Polished
 *   **Logic Gate Visual Feedback**:
     *   Implemented active/inactive client-side particles on alchemical logic gates (`AND`, `OR`, `NOT`).
@@ -1723,7 +1553,7 @@
 
 ---
 
-## Build 000-1-26-200-09-43
+## Build 000-1-26-200
 
 ### Renamed & Refactored
 *   **Materia Renaming**:
@@ -1743,8 +1573,6 @@
 
 ---
 
-## Build 000-1-26-200-02-56
-
 ### Added
 *   **Extraction Node**: Added a dedicated `NodeType.EXTRACTION` node to advanced circuits.
     *   Automatically extracts matching essence/materia when `essenceLevel >= 16` (2-second cooldown).
@@ -1762,8 +1590,6 @@
 
 ---
 
-## Build 000-1-26-200-02-31
-
 ### Fixed
 *   **Magic Circle Ritual Recipes**:
     *   Fixed a bug where hardcoded fallback recipes (such as the Iron Ingot + Rune of Uruz + 50 Nether -> Arcanite Ingot placeholder) were not evaluated during ritual execution. Added a search fallback in `ScribedChalkBlock` to scan both registered datapack recipes and hardcoded fallback recipes.
@@ -1775,7 +1601,7 @@
 
 ---
 
-## Build 000-1-26-199-16-25
+## Build 000-1-26-199
 
 ### Fixed
 *   **Magic Circle Rendering (Geometry & Timing)**:
@@ -1785,8 +1611,6 @@
     *   Restricted general item, essence, and rune insertion/extraction on `INPUT`, `SOURCE`, and `RUNE` nodes to active magic circles only (`isInActiveCircle() == true`). This prevents nodes from taking chalk or other materials out of the player's hand while they are cycling node types.
 
 ---
-
-## Build 000-1-26-199-16-04
 
 ### Added
 *   **Scribed Chalk & Magic Circles**:
@@ -1798,15 +1622,11 @@
 
 ---
 
-## Build 000-1-26-199-15-46
-
 ### Fixed
 *   **Scribed Chalk Blocks**:
     *   Resolved a potential null pointer / property lookup crash that occurs when placing, breaking, or ticking chalk lines on the ground. Added safety type checks to verify that the block state is a `ScribedChalkBlock` before attempting to retrieve its `NODE_TYPE` or `CIRCUIT` properties (protecting against air/fallback states during block state updates).
 
 ---
-
-## Build 000-1-26-199-15-38
 
 ### Fixed
 *   **Empty Ampoules**:
@@ -1815,8 +1635,6 @@
     *   Completed the renaming refactor for `VAPOR_DECOMPRESSION_COUPLING_ITEM` to `DECOMPRESSION_COUPLING_ITEM` in `ModItems.java` and `ModModelProvider.java` to align with the block registry name, resolving compile errors.
 
 ---
-
-## Build 000-1-26-199-15-31
 
 ### Added
 *   **Ores, Crystals & Geodes**:
@@ -1836,23 +1654,17 @@
 
 ---
 
-## Build 000-1-26-199-10-36
-
 ### Fixed
 *   **Recipe Parsing Compatibility (MC )**:
     *   Fixed data parsing errors where Minecraft  failed to load recipes because ingredients used the legacy `{"item": "..."}` syntax without a specified type. Updated `decompression_coupling`, `arcane_brick_block`, `arcane_clay_block`, and `smelt_arcane_clay` to use direct string values for ingredient keys (`"item_id"`) which parses correctly on the new engine.
 
 ---
 
-## Build 000-1-26-199-10-31
-
 ### Added
 *   **Decompression Coupling Smart Connection**:
     *   Implemented smart alignment logic on placement and neighbor changes. The Decompression Coupling now dynamically scans adjacent axes for any connected pipe, conduit, pipeline, valve, diverter, port, or agitator blocks and automatically aligns its axis (`AXIS`) to match them, allowing seamless connections to the pipe network.
 
 ---
-
-## Build 000-1-26-199-10-24
 
 ### Changed
 *   **Dynamic Weapon Models**:
@@ -1864,7 +1676,7 @@
 
 ---
 
-## Build 000-1-26-198-07-18
+## Build 000-1-26-198
 
 ### Added
 *   **Essence Repulsion Wards (Magic Circle & Block)**:
@@ -1887,8 +1699,6 @@
         *   Added english localization keys for the ward block and item.
 
 ---
-
-## Build 000-1-26-198-01-50
 
 ### Added
 *   **Runic Logic Gates (AND, OR, NOT)**:
@@ -1916,7 +1726,7 @@
 
 ---
 
-## Build 000-1-26-197-19-55
+## Build 000-1-26-197
 
 ### Added
 *   **Directional Magical Diodes (One-Way Energy Gates)**:
@@ -1958,90 +1768,3 @@
     *   Now, when the chalk circuit registers a change in essence/color, it automatically resets its visual wave timer back to zero. This triggers a fresh wave of color that flows smoothly from the source node throughout the entire magic circle system and all surrounding connections.
 
 ---
-
-## Build 000-0a
-
-### Added
-*   **Architectury Multi-Loader Infrastructure**: Split the project into `:common`, `:neoforge`, and `:fabric` modules, utilizing platform-agnostic initializers and registration handlers to target multiple loaders from a single codebase.
-*   **10-Stage Materia Cycle API**:
-    *   Created `MateriaStack` as a generic, stateful base class supporting deep copying, capacity growing/shrinking, and `EssenceType` element tracking.
-    *   Developed concrete, stage-specific subclasses (`MateriaFumusStack`, `MateriaSublimataStack`, `MateriaLiquidaStack`, `MateriaVolatilisStack`, `MateriaCoagulataStack`, `MateriaIchorStack`, `MateriaTransmutataStack`, `MateriaPerfectaStack`, `MateriaLiminaliaStack`).
-    *   Integrated robust NBT serialization methods (`save`/`load` compound tags) to store and load Materia stack amounts and types across block entity saves, item stacks, and networking packets.
-*   **Vapor & Hydraulic Handlers**:
-    *   Added the `IVaporHandler` interface defining pressure-ratio dynamics, safe operating capacities (1.0 Pressure), absolute structural failure capacities (3.0 Pressure), and automated filling/draining methods for gaseous Fumus/Sublimata stacks.
-    *   Added the `ILiquidMateriaHandler` interface defining simple capacity limitations and fluid transport operations for liquid Materia stacks.
-*   **Vapor Pneumatic Pipes & Valve Blocks**:
-    *   Added `VaporPneumaticPipeBlock` and `VaporPneumaticPipeBlockEntity` supporting copper, iron, gold, arcanite, diamond, viscanite, resonite, and charged variants.
-    *   Added specialized gas-routing blocks including the `VaporPneumaticValveBlock` (manual flow toggle), `VaporPneumaticOneWayValveBlock` (forced unidirectional flow/venting), and `VaporPneumaticDiverterBlock` (network routing control).
-    *   Implemented a custom BFS-based gas networking algorithm inside pipe entities to perform gas transport, pressure averaging, overpressure venting, and explosion handlers.
-*   **8 Orbis Cell & Calix Variants**:
-    *   Registered and implemented 8 new block/block-entity storage pairs to correspond to each stage of the Materia Cycle:
-        *   `SublimatedOrbisCellBlock` / `SublimatedOrbisCellBlockEntity` (Stores T3 - Sublimata)
-        *   `PneumaticCalixBlock` / `PneumaticCalixBlockEntity` (Stores T4 - Liquida)
-        *   `VoltaicCalixBlock` / `VoltaicCalixBlockEntity` (Stores T5 - Volatilis)
-        *   `MatrixCalixBlock` / `MatrixCalixBlockEntity` (Stores T6 - Coagulata)
-        *   `ThecaCellBlock` / `ThecaCellBlockEntity` (Stores T7 - Ichor)
-        *   `VasCellBlock` / `VasCellBlockEntity` (Stores T8 - Transmutata)
-        *   `MonadCoreBlock` / `MonadCoreBlockEntity` (Stores T9 - Perfecta)
-        *   `AthanorCoreBlock` / `AthanorCoreBlockEntity` (Stores T10 - Liminalis)
-*   **Universal Decompression Coupler (T2-T10 one-way conversion)**:
-    *   Added `DecompressionCouplerBlock` and `DecompressionCouplerBlockEntity` to perform straight-line, axis-aligned one-way Materia conversions (draining from higher tier, converting, and filling lower tier neighbor).
-    *   Added coupler block models (`vapor_decompression_coupling_core.json`, `vapor_decompression_coupling_arm.json`), item model, and a `multipart` blockstate that renders the core and opposite-facing arms along its axis.
-    *   Generated a custom 16x16 gradient texture (`decompression_coupling.png`) transitioning from silver to sky-blueish grey with a subtle brushed metal finish.
-*   ** Flattened Asset Support**:
-    *   Converted resource directories to support Minecraft asset specifications.
-    *   Generated model definitions under `assets/entropica/items/` containing the new `"model": {"type": "minecraft:model", "model": "..."}` JSON layout structure.
-    *   Generated matching 3D and 2D model parents under `assets/entropica/models/item/` and custom multi-part blockstates/models for all blocks.
-*   **Dynamic Item Tinting**:
-    *   Registered custom item tint source codecs (`entropica:essence_tint` and `entropica:ampoule_tint`) through the `RegisterColorHandlersEvent.ItemTintSources` event.
-    *   Added multi-layered model JSON layouts for empty/filled Ampoules and Essence Orbs, mapping layer indexes to dynamic color sources that read element type component data.
-*   **Enhanced Pipe & Fluid Shaders**:
-    *   **Bottom-to-Top Liquid Levels**: Implemented bottom-to-top Y-axis clipping on T4-T7 conduits based on actual fill ratio, allowing fluid overlays to rise dynamically.
-    *   **Volatilis Sparks (T5)**: Added a dynamic 3D electric arc generator that renders glowing, jagged electric paths between the fluid surface and the pipe core walls.
-    *   **Ichor Shimmering (T7)**: Implemented a mellow, slow-breathing Sanguine heartbeat shimmer animation.
-    *   **Perfecta Sheen (T9)**: Added a smooth, rapid periodic sheen sweep with an 80% cycle cooldown to keep the base color clean.
-    *   **Liminalis Gold-Chrome (T10)**: Designed a camera-aligned specular chrome reflection shader with dark edge shading.
-
-### Changed
-*   **Generalization of Vapor Transport (Fumus / Sublimata)**:
-    *   Generalized `IVaporHandler` and `VaporPneumaticPipeBlockEntity` to handle `MateriaStack` instead of `MateriaFumusStack`, enabling vapor pipes to carry both Fumus (T2) and Sublimata (T3) stacks.
-*   **Creative Generator Dynamic Tier Resolution**:
-    *   Updated `CreativeMateriaGeneratorBlockEntity` to dynamically query the neighbor's cycle tier (T2-T10) using the coupler's tier checker, pushing the correct `MateriaStack` class into any connected pipe/conduit.
-*   **Standardized Terminology (Vis $\rightarrow$ Materia)**:
-    *   **Essence Items**: Updated `getName()` inside `EssenceItem.java` to dynamically prefix and format tier-0 items as `"Materia Fragment: "` instead of `"Vis Fragment: "` to match the Materia Cycle terminology.
-    *   **Creative Tab Registrations**: Renamed `VIS_ITEMS_TAB` to `MATERIA_ITEMS_TAB` inside `ModCreativeTabs.java` and modified the registry key from `"vis_items_tab"` to `"materia_items_tab"`.
-    *   **Translation Mapping Overhaul**: Reconfigured translations in `en_us.json` to replace legacy "Vis" terms with "Materia" or "Materia Fumus":
-        *   Changed creative tab title `"itemGroup.entropica.vis_items"` from `"Entropica: Vis Items"` to `"Entropica: Materia Items"`.
-        *   Updated items: `"Vis Value Detector"` $\rightarrow$ `"Materia Value Detector"`, `"Vis Capacitor Plate"` $\rightarrow$ `"Materia Capacitor Plate"`.
-        *   Updated blocks: `"Vis Exhaust"` $\rightarrow$ `"Materia Exhaust"`.
-        *   Updated gas settings: `"Vis Fume Settings"` $\rightarrow$ `"Vapor Pneumatic Network Settings"` and `"Vis Fume Pressure Vessel"` $\rightarrow$ `"Materia Fumus Pressure Vessel Settings"`.
-        *   Updated item descriptions and tooltips: `"ambient static Vis"` $\rightarrow$ `"ambient static Materia"`, `"Vis Fumes"` $\rightarrow$ `"Materia Fumus"`, and `"Vis Vitae *"` $\rightarrow$ `"Materia Vitae *"` (e.g. `"Materia Vitae Pipe"`, `"Materia Vitae Anchor"`).
-*   **Pipe Capacity & Progression Rebalance**:
-    *   **Gold Pipes**: Re-slotted as an early-to-mid tier upgrade option, lowering default capacity from `500` to **`80`** and default transfer rate from `50` to **`20`** in `EntropicaNeoForgeConfig.java` and `EntropicaConfigImpl.java`.
-    *   **Diamond Pipes**: Shifted up the progression ladder to sit between Charged Arcanite and Resonite, increasing default capacity from `80` to **`250`** and default transfer rate from `20` to **`40`**.
-    *   **Viscanite Pipes**: Reduced safe capacity from `500` to **`300`** to match the Resonite capacity tier.
-    *   **Charged Viscanite Pipes**: Reduced safe capacity from `1,000` to **`500`** to match the balanced top-tier limit.
-    *   **Charged Resonite Pipes**: Reduced safe capacity from `50,000` to **`500`** (and transfer rate to **`5,000`**) to align on the same late-game capacity tier as Charged Viscanite while retaining a high flow rate.
-
-### Fixed
-*   **Gradle Production Transform Failures**:
-    *   Resolved an issue where Architectury Loom's `transformProduction` tasks threw silent `ClassNotFoundException` errors and outputted empty production jars due to a lack of classpath references inside its task ClassLoader.
-    *   Implemented a Gradle hook in [common/build.gradle](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/build.gradle) that dynamically extracts `compileClasspath` URL paths, registers them into the task ClassLoader at runtime in `doFirst`, and re-runs the class transformation in `doLast` to cleanly compile production jars for Fabric and NeoForge.
-*   **Fabric Translucency Rendering Crash**:
-    *   Resolved a compilation and launch crash inside [EntropicaClientFabric.java](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/fabric/src/main/java/ddraig/net/entropica/fabric/EntropicaClientFabric.java) where obsolete `RenderType.translucent()` references caused classloader failures on startup.
-    *   Mapped block rendering translucency sheets to Minecraft standard render map sheets `Sheets.translucentItemSheet()`.
-*   **Missing Legacy Assets**:
-    *   Resolved an asset loading issue where the new multi-loader sub-modules failed to pull assets from the legacy mod directories.
-    *   Migrated **358 missing asset files** (comprising textures, block models, blockstates, item animations, and sound loops) from the root legacy folder path to `common/src/main/resources/assets/` to ensure all elements compile.
-*   **Vapor Pipe Placement Crash**:
-    *   Fixed a client-side classloading desynchronization crash that occurred when placing a Vapor Pneumatic pipe in a world.
-    *   Resolved a JVM offset cache conflict by ensuring nested inner classes (specifically `PipeTier` inside `VaporPneumaticPipeBlockEntity`) load correctly on the main thread during world ticking events.
-*   **Optional Entity Tag Registry Warnings**:
-    *   Converted modded drops entity tags (like `alexsmobs`, `twilightforest`, etc.) to use the optional registry format (`"required": false`), preventing console warnings and load validation failures when optional mods are not present.
-*   **Missing Item Model Warnings**:
-    *   Created item model JSON files under `assets/entropica/items/` for all 10 custom alloy vapor pneumatic pipes and the `materia_pump` to comply with Minecraft 1.21.2+ asset directory requirements, resolving startup missing-model errors.
-*   **Creative Generator Rendering Crashes**:
-    *   Refactored `CreativeParticleGeneratorRenderer`, `CreativeMateriaGeneratorRenderer`, and `CreativeVisFumeGeneratorRenderer` to extract player hover checks during the thread-safe client game-tick `extractRenderState` phase, avoiding illegal concurrent queries to game-thread state on the render thread during `submit`.
-    *   Added `bufferSource.endBatch()` inside submit methods to cleanly finalize text rendering buffers.
-*   **Registry Bounds Safety**:
-    *   Added bounds checks to `CreativeParticleGeneratorBlockEntity.loadAdditional()` to prevent startup indexing crashes when `validParticles` list is empty.
