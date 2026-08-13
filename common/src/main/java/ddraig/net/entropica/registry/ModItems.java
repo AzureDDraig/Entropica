@@ -1081,4 +1081,16 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> MATERIA_ECHO_CHEST_ITEM = ITEMS.registerItem("materia_echo_chest",
             props -> new BlockItem(ModBlocks.MATERIA_ECHO_CHEST.get(), props));
 
+    // --- WOODEN BARRELS ---
+    public static final RegistrySupplier<Item> PYRE_ASH_CEDAR_BARREL = ITEMS.registerItem("pyre_ash_cedar_barrel", props -> new BlockItem(ModBlocks.PYRE_ASH_CEDAR_BARREL.get(), props));
+    public static final RegistrySupplier<Item> ABYSSAL_SPORE_CYPRESS_BARREL = ITEMS.registerItem("abyssal_spore_cypress_barrel", props -> new BlockItem(ModBlocks.ABYSSAL_SPORE_CYPRESS_BARREL.get(), props));
+    public static final RegistrySupplier<Item> STARLIGHT_AETHER_BIRCH_BARREL = ITEMS.registerItem("starlight_aether_birch_barrel", props -> new BlockItem(ModBlocks.STARLIGHT_AETHER_BIRCH_BARREL.get(), props));
+    public static final RegistrySupplier<Item> BLOOD_ROOT_IRON_OAK_BARREL = ITEMS.registerItem("blood_root_iron_oak_barrel", props -> new BlockItem(ModBlocks.BLOOD_ROOT_IRON_OAK_BARREL.get(), props));
+    public static final RegistrySupplier<Item> ASTRAL_VEIL_WILLOW_BARREL = ITEMS.registerItem("astral_veil_willow_barrel", props -> new BlockItem(ModBlocks.ASTRAL_VEIL_WILLOW_BARREL.get(), props));
+    public static final RegistrySupplier<Item> VOID_BLIGHT_MANGROVE_BARREL = ITEMS.registerItem("void_blight_mangrove_barrel", props -> new BlockItem(ModBlocks.VOID_BLIGHT_MANGROVE_BARREL.get(), props));
+    public static final RegistrySupplier<Item> AMBER_BARREL = ITEMS.registerItem("amber_barrel", props -> new BlockItem(ModBlocks.AMBER_BARREL.get(), props));
+    public static final RegistrySupplier<Item> RUBBER_BARREL = ITEMS.registerItem("rubber_barrel", props -> new BlockItem(ModBlocks.RUBBER_BARREL.get(), props));
+    public static final RegistrySupplier<Item> SILVER_PINE_BARREL = ITEMS.registerItem("silver_pine_barrel", props -> new BlockItem(ModBlocks.SILVER_PINE_BARREL.get(), props));
+    public static final RegistrySupplier<Item> MATERIA_ECHO_BARREL = ITEMS.registerItem("materia_echo_barrel", props -> new BlockItem(ModBlocks.MATERIA_ECHO_BARREL.get(), props));
+
 }

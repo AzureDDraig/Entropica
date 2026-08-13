@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "entropica:starlight_aether_birch_planks"
+    },
+    "S": {
+      "item": "entropica:starlight_aether_birch_slab"
+    }
+  },
+  "pattern": [
+    "PSP",
+    "P P",
+    "PSP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:starlight_aether_birch_barrel"
+  }
+}

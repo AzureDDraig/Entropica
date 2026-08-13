@@ -294,6 +294,22 @@ public class CodexCategoryRegistry {
                 310f, 0.0f, a_mach + 0.20f, false
         ));
 
+        ALL_NODES.add(new CodexNode(
+                "machinery_custom_wood_barrels", "Elemental Wood Barrels", "MACHINERY",
+                "Compact storage barrels crafted from native Entropica wood species with distinct open/closed states.",
+                "Overview & Description:\n" +
+                "Sturdy wooden storage barrels crafted to match the unique timber grain, reinforcement hoops, and coloration of Entropica's 10 native wood species.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted in a crafting table using 6 Planks and 2 Slabs of any specific wood species (Pyre-Ash Cedar, Abyssal Spore-Cypress, Starlight Aether-Birch, Blood-Root Iron-Oak, Astral-Veil Willow, Void-Blight Mangrove, Amber, Rubber, Silver Pine, or Materia-Echo).\n\n" +
+                "Crafting Uses:\n" +
+                "Provides 27 slots of compact item storage that can be opened even when solid blocks are placed directly above it.\n\n" +
+                "Special Properties:\n" +
+                "Features directional placement in all 6 orientations and dynamic open/closed top textures with custom wood-grain banding.",
+                "hub_machinery", 0, new ItemStack(ModBlocks.PYRE_ASH_CEDAR_BARREL.get()),
+                310f, 0.0f, a_mach + 0.35f, false
+        ));
+
+
         // ==========================================
         // 5. MULTIBLOCKS (Yellow Ring)
         // ==========================================

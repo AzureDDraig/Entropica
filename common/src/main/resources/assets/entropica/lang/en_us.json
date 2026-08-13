@@ -2368,5 +2368,15 @@
   "block.entropica.silver_pine_chest": "Silver-Pine Chest",
   "item.entropica.silver_pine_chest": "Silver-Pine Chest",
   "block.entropica.materia_echo_chest": "Materia-Echo Chest",
-  "item.entropica.materia_echo_chest": "Materia-Echo Chest"
+  "item.entropica.materia_echo_chest": "Materia-Echo Chest",
+  "block.entropica.pyre_ash_cedar_barrel": "Pyre-Ash Cedar Barrel",
+  "block.entropica.abyssal_spore_cypress_barrel": "Abyssal Spore-Cypress Barrel",
+  "block.entropica.starlight_aether_birch_barrel": "Starlight Aether-Birch Barrel",
+  "block.entropica.blood_root_iron_oak_barrel": "Blood-Root Iron-Oak Barrel",
+  "block.entropica.astral_veil_willow_barrel": "Astral-Veil Willow Barrel",
+  "block.entropica.void_blight_mangrove_barrel": "Void-Blight Mangrove Barrel",
+  "block.entropica.amber_barrel": "Amber Barrel",
+  "block.entropica.rubber_barrel": "Rubber Barrel",
+  "block.entropica.silver_pine_barrel": "Silver Pine Barrel",
+  "block.entropica.materia_echo_barrel": "Materia-Echo Barrel"
 }

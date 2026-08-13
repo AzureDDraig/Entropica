@@ -1,3 +1,30 @@
+## Build 000-1-26-225
+
+### Core Additions & Features
+- **10 Elemental Wood Barrels (`ModBarrelBlock.java` & `ModBarrelBlockEntity.java`)**:
+  - Implemented `ModBarrelBlock` extending `BarrelBlock` and `ModBarrelBlockEntity` extending `RandomizableContainerBlockEntity` bound to `MOD_BARREL` in `ModBlockEntities.java`.
+  - Registered all 10 custom wood barrels with distinct map colors and sounds:
+    - 🌋 `pyre_ash_cedar_barrel`: Charred volcanic spruce bark with molten orange cinder wood, magma sparks, dark volcanic iron hoops, and an ember-lit interior cavity.
+    - 🌌 `abyssal_spore_cypress_barrel`: Deep oceanic indigo wood with bioluminescent cyan spore nodes and cyan spore interior glow.
+    - ✨ `starlight_aether_birch_barrel`: Shimmering white celestial birch wood banded in polished golden starlight rings with golden-amber growth rings on top.
+    - 🩸 `blood_root_iron_oak_barrel`: Ironwood oak timber with dark iron bands and deep crimson heartwood veins bleeding vital sap.
+    - 🟣 `astral_veil_willow_barrel`: Muted slate purple timber with double-recessed frame panels and deep astral violet bands with amethyst rim.
+    - 🔮 `void_blight_mangrove_barrel`: Dark violet blight timber featuring carved concentric void rift rings on the lid and glowing void-iron hoops.
+    - 🍯 `amber_barrel`: Rich golden amber timber coated in resin seams, studded with translucent amber chunks along reinforcement hoops.
+    - 🪵 `rubber_barrel`: Dark mahogany latex rubber wood with dark iron reinforcement hoops and vertical amber latex resin drips.
+    - 🌲 `silver_pine_barrel`: Pale alpine teal-emerald pine wood with frosted silver trim, vertical slat paneling, and frosted silver hoops.
+    - 🌊 `materia_echo_barrel`: Ghostly pale ash wood inscribed with glowing spectral cyan rune line carvings and an illuminated ether-core cavity.
+- **40 Handcrafted 16x16 Barrel Textures (`assets/entropica/textures/block/`)**:
+  - Created 4 textures per wood species: `<wood>_barrel_bottom.png`, `<wood>_barrel_side.png`, `<wood>_barrel_top.png` (Closed), and `<wood>_barrel_top_open.png` (Open).
+- **Crafting Recipes & Creative Tab Placement**:
+  - Registered 10 shaped crafting recipes (6 Planks + 2 Slabs -> 1 Barrel).
+  - Added all 10 barrels to `WORLD_TAB` in `ModCreativeTabs.java` placed immediately after their respective wood family chest.
+  - Tagged in `#minecraft:barrels`, `#c:barrels`, and `#minecraft:mineable/axe`.
+- **Codex & Obsidian Documentation**:
+  - Added `machinery_custom_wood_barrels` research node to `CodexCategoryRegistry.java` under `MACHINERY`.
+  - Created `elemental_wood_barrels.md` in the OKF Obsidian Vault.
+- **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 46s`**.
+
 ## Build 000-1-26-224
 
 ### Core Fixes & Client Improvements

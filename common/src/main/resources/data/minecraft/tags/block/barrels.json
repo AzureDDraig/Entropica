@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:pyre_ash_cedar_barrel",
+    "entropica:abyssal_spore_cypress_barrel",
+    "entropica:starlight_aether_birch_barrel",
+    "entropica:blood_root_iron_oak_barrel",
+    "entropica:astral_veil_willow_barrel",
+    "entropica:void_blight_mangrove_barrel",
+    "entropica:amber_barrel",
+    "entropica:rubber_barrel",
+    "entropica:silver_pine_barrel",
+    "entropica:materia_echo_barrel"
+  ]
+}

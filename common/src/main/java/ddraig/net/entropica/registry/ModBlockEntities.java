@@ -327,4 +327,20 @@ public class ModBlockEntities {
                             ModBlocks.MATERIA_ECHO_CHEST.get()
                     ));
 
+    // --- WOODEN BARRELS ---
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.ModBarrelBlockEntity>> MOD_BARREL =
+            BLOCK_ENTITIES.register("mod_barrel", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.ModBarrelBlockEntity::new,
+                            ModBlocks.PYRE_ASH_CEDAR_BARREL.get(),
+                            ModBlocks.ABYSSAL_SPORE_CYPRESS_BARREL.get(),
+                            ModBlocks.STARLIGHT_AETHER_BIRCH_BARREL.get(),
+                            ModBlocks.BLOOD_ROOT_IRON_OAK_BARREL.get(),
+                            ModBlocks.ASTRAL_VEIL_WILLOW_BARREL.get(),
+                            ModBlocks.VOID_BLIGHT_MANGROVE_BARREL.get(),
+                            ModBlocks.AMBER_BARREL.get(),
+                            ModBlocks.RUBBER_BARREL.get(),
+                            ModBlocks.SILVER_PINE_BARREL.get(),
+                            ModBlocks.MATERIA_ECHO_BARREL.get()
+                    ));
+
 }

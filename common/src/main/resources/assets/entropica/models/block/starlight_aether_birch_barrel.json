@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "entropica:block/starlight_aether_birch_barrel_bottom",
+    "side": "entropica:block/starlight_aether_birch_barrel_side",
+    "top": "entropica:block/starlight_aether_birch_barrel_top"
+  }
+}
