@@ -23,6 +23,11 @@
 - **Codex & Obsidian Documentation**:
   - Added `machinery_custom_wood_barrels` research node to `CodexCategoryRegistry.java` under `MACHINERY`.
   - Created `elemental_wood_barrels.md` in the OKF Obsidian Vault.
+- **Astral Materia & Constellation System Architecture (100-Question Lore Treatise)**:
+  - Completed comprehensive 100-question `/grill-me` architectural design interview resolving all mechanics, rendering, astrophysics, and progression for Entropica's Astral Materia system.
+  - Published master lore treatise `entropica - astral materia.md` (in workspace root and Obsidian Vault `concepts/entropica - astral materia.md`).
+  - Created master OKF guide `wiki/articles/astral_astronomy_guide.md`.
+  - Created master block and asset tracking register `Create and texture these for astral materia.md` cataloging all 36 required blocks, items, devices, particles, and sound events.
 - **Multi-Loader Build Verification**: Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 46s`**.
 
 ## Build 000-1-26-224
