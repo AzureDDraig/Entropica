@@ -2,7 +2,7 @@
 ### *The Definitive Cosmological, Mechanical, and Astrological Treatise*
 
 > *"Look not to the earth alone for the origin of essence. The distant stars are not mere points of cold light; they are the colossal three-dimensional tears in the cosmic firmament—the primordial fountains through which pure, unfiltered Materia pours into physical reality."*  
-> — *Archon Valerius, Treatise on the Stellar Firmament*
+> — **Archon Valerius**, *Treatise on the Stellar Firmament, Vol. I*
 
 ---
 
@@ -82,6 +82,9 @@
 
 # 1. Cosmological Foundations: The Nature of Stars & The Cosmic Void
 
+> *"Before the first tree sprouted from soil, before the first vein of iron cooled in deepstone, the firmament was unbroken. When the barrier fractured, the stars ignited—not as fire, but as volumetric gateways of raw creation. And beneath all things, the Void waited, drinking the excess so that the world would neither starve nor burst."*  
+> — **Astronomer-Priestess Lyra**, *The Mirror Pool Chronicles*
+
 ```
                            [ THE PRIMORDIAL PLANE ]
                          (Infinite Pure Materia Ocean)
@@ -108,12 +111,15 @@ Distant stars are not burning balls of plasma, nor are they flat 2D projections.
 - Each star acts as a **positive-pressure cosmic fountain**, continuously pumping primal Materia directly into the vacuum of space.
 - As this energy radiates across deep space, it travels in coherent, geometrically structured harmonic currents known as **Stellar Weaves**.
 - **No Frequency Tiering**: The energy pouring from these tears is pure, fundamental **Materia**—the exact same essence utilized in terrestrial Entropica alchemy, pneumatic machines, and Orbis Cells.
-- **Altitude Independence**: The physical height ($Y$-level) of an observer, collector, or altar does not affect the density or gathering speed of stellar Materia. Starlight falls uniformly upon the earth.
+- **Altitude Independence**: The physical height ($Y$-level) of an observer, collector, or altar does not affect the density or gathering speed of stellar Materia. Starlight falls uniformly across the world.
 
 ---
 
 ### 1.2 The Day Star (Sun), Solar Glare & Focus Persistence
 The **Sun (Day Star)** is metaphysically identical to the distant night stars: it is simply the closest and most massive 3D tear in the firmament.
+
+> *"The Sun is a jealous titan. It floods our mortal lenses with such fury that the delicate geometry of distant constellations is drowned in a sea of gold. Yet, if you bind a lens to a star while the titan sleeps, the thread holds firm through the blinding noon."*  
+> — **Archon Valerius**, *Notes on Solar Glare & Persistence*
 
 ```
 Night Sky (Vacuum Clarity)    ──► Low Ambient Noise ──► Coherent Constellation Weaves Focused
@@ -130,6 +136,9 @@ Day Sky (Solar Radiance Glare)──► Chaotic Ambient Wash──► Blinds Ins
 ### 1.3 The Cosmic Void & Universal Entropy Equilibrium
 Cosmology in Entropica is built upon a fundamental energetic dualism:
 
+> *"The stars give without restraint; the Void takes without malice. In their eternal tension lies the breath of existence—the rhythm of growth, decay, and transformation."*  
+> — **Inscription upon the Arch of the First Observatory**
+
 | Cosmic Element | Metaphysical Nature | Pressure Dynamic | Role in the Universe |
 | :--- | :--- | :--- | :--- |
 | **3D Stellar Tears (Stars)** | Primordial Fountains | **Positive-Pressure Injection** | Pumps pure Materia into physical reality; generates structure, heat, and life. |
@@ -142,6 +151,9 @@ The Cosmic Void below bedrock ($y < -64$) and in the deep inter-dimensional gulf
 ---
 
 ### 1.4 Dimensional Sky Visibility: Overworld, The End, and The Nether
+
+> *"In the Overworld, we wait upon the turning moon. In the End, the heavens stand naked and eternal, unshielded by sun or cloud. But in the Nether, beneath the stone crown of the world, the stars have never been seen, and the air thirsts for their light."*  
+> — **Master Artificer Kaelen**, *Dimensional Survey of Aetheric Flux*
 
 ```
 [ Overworld ] ──► Standard Day/Night Cycle + 8 Moon Phases (Dictates Tier Visibility)
@@ -171,6 +183,9 @@ Weather conditions in the Overworld create temporary optical attenuation:
 ---
 
 # 2. The Celestial Dome: The 24 Constellation Pantheon
+
+> *"The stars do not stand alone as isolated beacons; they are notes in a grand cosmic chord. When drawn together by the hand of an attuned scholar, the geometry of heaven descends into matter."*  
+> — **Archon Valerius**, *The Starlight Canon, Chapter IV*
 
 The celestial dome hosts **24 Immutable Constellations** permanently hardcoded in the astronomical registry (`ModConstellations.java`). These 24 constellations represent the celestial archetypes through which the universe's matter, energy, and life are organized.
 
@@ -221,7 +236,11 @@ TIER 1: FUNDAMENTAL CONSTELLATIONS (8) — CRESCENT & QUARTER MOONS (PHASES 2, 3
 ====================================================================================================
 ```
 
+> *"These are the eight foundation stones of the sky. In their gentle light, the novice learns that the soul is not a vessel to be filled, but a prism to be aligned."*  
+> — **Lady Vespera**, *Primer on the Celestial Vessels*
+
 #### 1. *Arbor Vitae* — The Vital Tree
+> *"From its crown falls the dew that mends flesh; from its roots springs the sap that quickens the seed."*
 - **Aspect / Essence**: Vitae / Vitality & Botanical Life (`entropica:vitae`)
 - **Star Count**: 4 Stars (Diamond Cross Geometry)
 - **Spectral Distribution**: Class A (White), Class G (Solar Amber), Class O (Azure), Class F (Gold)
@@ -231,6 +250,7 @@ TIER 1: FUNDAMENTAL CONSTELLATIONS (8) — CRESCENT & QUARTER MOONS (PHASES 2, 3
 - **Resplendent Prism Affinity**: Boosts Unbreaking (+1 to +2) and Mending.
 
 #### 2. *Gladius Ignis* — The Pyre Blade
+> *"It cuts not merely the sinew, but the very thread of cold. In its wake, only embers remain."*
 - **Aspect / Essence**: Pyre / Flame & Martial Might (`entropica:pyre_ash_cedar`)
 - **Star Count**: 5 Stars (Serrated Blade Geometry)
 - **Spectral Distribution**: Class K (Volcanic Orange), Class M (Crimson Red), Class G (Solar Amber), Class F (Gold), Class O (Azure)
@@ -240,6 +260,7 @@ TIER 1: FUNDAMENTAL CONSTELLATIONS (8) — CRESCENT & QUARTER MOONS (PHASES 2, 3
 - **Resplendent Prism Affinity**: Boosts Sharpness (+1 to +2), Fire Aspect, and Looting.
 
 #### 3. *Scutum Ferrum* — The Iron Shield
+> *"The stone of the mountain bends before it; the wrath of the thunderbolt breaks upon its rim."*
 - **Aspect / Essence**: Ironwood / Defense & Fortification (`entropica:blood_root_iron_oak`)
 - **Star Count**: 4 Stars (Kite Shield Geometry)
 - **Spectral Distribution**: Class M (Crimson Red), Class G (Solar Amber), Class A (White), Class F (Gold)
@@ -249,6 +270,7 @@ TIER 1: FUNDAMENTAL CONSTELLATIONS (8) — CRESCENT & QUARTER MOONS (PHASES 2, 3
 - **Resplendent Prism Affinity**: Boosts Protection (+1 to +2) and Blast Protection.
 
 #### 4. *Penna Aetheris* — The Zephyr Wing
+> *"The earth claims the heavy, but the sky belongs to those who have forgotten the burden of weight."*
 - **Aspect / Essence**: Starlight / Velocity & Aerial Motion (`entropica:starlight_aether_birch`)
 - **Star Count**: 4 Stars (Swept Wing Geometry)
 - **Spectral Distribution**: Class B (Glacial Cyan), Class A (White), Class O (Azure), Class F (Gold)
@@ -258,6 +280,7 @@ TIER 1: FUNDAMENTAL CONSTELLATIONS (8) — CRESCENT & QUARTER MOONS (PHASES 2, 3
 - **Resplendent Prism Affinity**: Boosts Feather Falling (+1 to +2) and Swift Sneak.
 
 #### 5. *Malleus Telluris* — The Earth Breaker
+> *"Deep within the marrow of the rock, the veins tremble. Strike where the star points, and the stone yields."*
 - **Aspect / Essence**: Terra / Terrestrial Excavation (`entropica:terra`)
 - **Star Count**: 3 Stars (Heavy Hammer Geometry)
 - **Spectral Distribution**: Class G (Solar Amber), Class K (Volcanic Orange), Class M (Crimson Red)
@@ -267,6 +290,7 @@ TIER 1: FUNDAMENTAL CONSTELLATIONS (8) — CRESCENT & QUARTER MOONS (PHASES 2, 3
 - **Resplendent Prism Affinity**: Boosts Efficiency (+1 to +2) and Silk Touch.
 
 #### 6. *Leviathan Profundi* — The Abyssal Serpent
+> *"In the black trenches where light has never reached, the ancient current moves without sound."*
 - **Aspect / Essence**: Abyssal / Oceanic Depths (`entropica:abyssal_spore_cypress`)
 - **Star Count**: 5 Stars (Curved Wave Geometry)
 - **Spectral Distribution**: Class O (Azure), Class B (Glacial Cyan), Class A (White), Class V (Void Violet), Class F (Gold)
@@ -276,6 +300,7 @@ TIER 1: FUNDAMENTAL CONSTELLATIONS (8) — CRESCENT & QUARTER MOONS (PHASES 2, 3
 - **Resplendent Prism Affinity**: Boosts Depth Strider (+1 to +2), Aqua Affinity, and Riptide.
 
 #### 7. *Lucerna Caelestis* — The Celestial Lantern
+> *"Let there be no dark corner where malice may take root. Where the lantern shines, wrath turns to quiet wonder."*
 - **Aspect / Essence**: Lux / Illumination & Radiance (`entropica:lux`)
 - **Star Count**: 4 Stars (Lantern Box Geometry)
 - **Spectral Distribution**: Class A (White), Class F (Gold), Class B (Glacial Cyan), Class G (Solar Amber)
@@ -285,6 +310,7 @@ TIER 1: FUNDAMENTAL CONSTELLATIONS (8) — CRESCENT & QUARTER MOONS (PHASES 2, 3
 - **Resplendent Prism Affinity**: Boosts Smite (+1 to +2) and Bane of Arthropods.
 
 #### 8. *Athanor Ignis* — The Alchemical Furnace
+> *"Feed the crucible with the cold ore; breathe upon it with stellar heat; take forth the purified ingot."*
 - **Aspect / Essence**: Ignis / Thermal Smelting & Forge (`entropica:ignis`)
 - **Star Count**: 4 Stars (Crucible Square Geometry)
 - **Spectral Distribution**: Class K (Volcanic Orange), Class G (Solar Amber), Class M (Crimson Red), Class F (Gold)
@@ -301,7 +327,11 @@ TIER 2: ADVANCED CONSTELLATIONS (8) — GIBBOUS & FULL MOONS (PHASES 0, 1, 7)
 ====================================================================================================
 ```
 
+> *"When the moon fattens with borrowed light, the deeper mechanisms of the cosmos are laid bare. Here the craftsman discovers that stone, metal, and time itself are merely fluid waiting to be shaped."*  
+> — **High Alchemist Justinian the Elder**, *On the Transmutation of the Firmament*
+
 #### 9. *Horologium Chroni* — The Hourglass of Stasis
+> *"Time is not a river rushing onward; it is an elastic thread. Pull it taut, and a thousand gears turn in a single breath."*
 - **Aspect / Essence**: Chronos / Temporal Acceleration (`entropica:chronos`)
 - **Star Count**: 6 Stars (Hourglass Geometry)
 - **Spectral Distribution**: Class G (Solar Amber), Class F (Gold), Class A (White), Class B (Glacial Cyan), Class K (Orange), Class O (Azure)
@@ -311,6 +341,7 @@ TIER 2: ADVANCED CONSTELLATIONS (8) — GIBBOUS & FULL MOONS (PHASES 0, 1, 7)
 - **Resplendent Prism Affinity**: Boosts Quick Charge (+1 to +2) and Sweeping Edge.
 
 #### 10. *Mineralis Geodae* — The Mineral Vein
+> *"The earth remembers the ancient stars that seeded its depths. Call upon their names, and the deepstone blossoms with silver and gold."*
 - **Aspect / Essence**: Metallum / Ores & Geodes (`entropica:metallum`)
 - **Star Count**: 7 Stars (Pickaxe & Geode Geometry)
 - **Spectral Distribution**: Class G (Solar Amber), Class M (Crimson Red), Class F (Gold), Class A (White), Class K (Orange), Class B (Cyan), Class O (Azure)
@@ -320,6 +351,7 @@ TIER 2: ADVANCED CONSTELLATIONS (8) — GIBBOUS & FULL MOONS (PHASES 0, 1, 7)
 - **Resplendent Prism Affinity**: Boosts Fortune (+1 to +2).
 
 #### 11. *Bootes Pastoralis* — The Shepherd's Crook
+> *"The wild creatures know the shepherd's call before they know speech. In this field, no fleece is taken with cruelty."*
 - **Aspect / Essence**: Bestia / Pastoral Fauna (`entropica:bestia`)
 - **Star Count**: 5 Stars (Shepherd Crook Geometry)
 - **Spectral Distribution**: Class G (Solar Amber), Class A (White), Class F (Gold), Class M (Crimson Red), Class O (Azure)
@@ -329,6 +361,7 @@ TIER 2: ADVANCED CONSTELLATIONS (8) — GIBBOUS & FULL MOONS (PHASES 0, 1, 7)
 - **Resplendent Prism Affinity**: Boosts Lure (+1 to +2) and Luck of the Sea.
 
 #### 12. *Fulgur Tonitrus* — The Lightning Spear
+> *"From the vault of heaven falls the jagged needle. It binds the sky to the earth in a blinding instant."*
 - **Aspect / Essence**: Galvanic / Fulgurite & Electricity (`entropica:fulgurite`)
 - **Star Count**: 6 Stars (Zig-Zag Bolt Geometry)
 - **Spectral Distribution**: Class F (Gold), Class B (Glacial Cyan), Class O (Azure), Class A (White), Class G (Amber), Class K (Orange)
@@ -338,6 +371,7 @@ TIER 2: ADVANCED CONSTELLATIONS (8) — GIBBOUS & FULL MOONS (PHASES 0, 1, 7)
 - **Resplendent Prism Affinity**: Boosts Channeling (+1 to +2) and Impaling.
 
 #### 13. *Glacies Crystalline* — The Rime Spire
+> *"The purest silence is the silence of ice. It halts the breath, stills the blood, and preserves the crystal unbroken."*
 - **Aspect / Essence**: Glacial / Frost & Stasis (`entropica:silver_pine`)
 - **Star Count**: 6 Stars (Hexagonal Snowflake Geometry)
 - **Spectral Distribution**: Class B (Glacial Cyan), Class A (White), Class O (Azure), Class F (Gold), Class V (Void Violet), Class G (Amber)
@@ -347,6 +381,7 @@ TIER 2: ADVANCED CONSTELLATIONS (8) — GIBBOUS & FULL MOONS (PHASES 0, 1, 7)
 - **Resplendent Prism Affinity**: Boosts Frost Walker (+1 to +2).
 
 #### 14. *Resina Succini* — The Amber Vault
+> *"A million years pass in a droplet of gold. The amber asks nothing of the world except to keep what was placed within it."*
 - **Aspect / Essence**: Amber / Preservation & Viscosity (`entropica:amber`)
 - **Star Count**: 7 Stars (Octagonal Shield Geometry)
 - **Spectral Distribution**: Class G (Solar Amber), Class K (Volcanic Orange), Class F (Gold), Class A (White), Class M (Crimson Red), Class B (Cyan), Class O (Azure)
@@ -356,6 +391,7 @@ TIER 2: ADVANCED CONSTELLATIONS (8) — GIBBOUS & FULL MOONS (PHASES 0, 1, 7)
 - **Resplendent Prism Affinity**: Boosts Thorns (+1 to +2).
 
 #### 15. *Sanguis Chalybis* — The Bleeding Oak
+> *"The wood is hard as iron, yet it weeps crimson. For every strike given, life returns along the blade."*
 - **Aspect / Essence**: Sanguine / Vital Blood & Iron (`entropica:blood_root_iron_oak`)
 - **Star Count**: 7 Stars (Anatomical Heart Geometry)
 - **Spectral Distribution**: Class M (Crimson Red), Class K (Volcanic Orange), Class G (Amber), Class A (White), Class F (Gold), Class V (Void Violet), Class O (Azure)
@@ -365,6 +401,7 @@ TIER 2: ADVANCED CONSTELLATIONS (8) — GIBBOUS & FULL MOONS (PHASES 0, 1, 7)
 - **Resplendent Prism Affinity**: Boosts Power (+1 to +2) and Punch.
 
 #### 16. *Ulteria Viatoris* — The Astral Pathfinder
+> *"Distance is an illusion of the untutored eye. Step forward not with feet upon stone, but with gaze upon the horizon."*
 - **Aspect / Essence**: Spatium / Spatial Navigation (`entropica:spatium`)
 - **Star Count**: 8 Stars (Compass Starburst Geometry)
 - **Spectral Distribution**: Class A (White), Class B (Glacial Cyan), Class F (Gold), Class G (Amber), Class O (Azure), Class K (Orange), Class M (Red), Class V (Violet)
@@ -381,7 +418,11 @@ TIER 3: MASTER CONSTELLATIONS (4) — PEAK FULL MOON ZENITH (PHASE 0)
 ====================================================================================================
 ```
 
+> *"Only when the moon reaches its radiant zenith do the four master geometries open their gates. These are not tools for the faint of heart; they touch the very fabric of spatial continuity and resonance."*  
+> — **Archon Valerius**, *The Starlight Canon, Chapter IX*
+
 #### 17. *Velum Umbraticum* — The Astral Veil
+> *"To be seen is to be bound. Slip between the weave of starlight, and walk where solid stone is as thin as autumn mist."*
 - **Aspect / Essence**: Arcana / Ethereal Phasing (`entropica:astral_veil_willow`)
 - **Star Count**: 10 Stars (Crescent Veil Geometry)
 - **Spectral Distribution**: Class V (Void Violet), Class B (Glacial Cyan), Class A (White), Class O (Azure), Class F (Gold), Class G (Amber), Class K (Orange), Class M (Red)
@@ -391,6 +432,7 @@ TIER 3: MASTER CONSTELLATIONS (4) — PEAK FULL MOON ZENITH (PHASE 0)
 - **Resplendent Prism Affinity**: Boosts Invisibility and Armor Toughness.
 
 #### 18. *Vorago Blighti* — The Void Maw
+> *"The center does not hold; it pulls. All things that wander near are drawn into the spiral of the singular point."*
 - **Aspect / Essence**: Gravitas / Void Singularities (`entropica:void_blight_mangrove`)
 - **Star Count**: 9 Stars (Spiral Vortex Geometry)
 - **Spectral Distribution**: Class V (Void Violet), Class M (Crimson Red), Class O (Azure), Class B (Cyan), Class A (White), Class K (Orange), Class G (Amber), Class F (Gold)
@@ -400,6 +442,7 @@ TIER 3: MASTER CONSTELLATIONS (4) — PEAK FULL MOON ZENITH (PHASE 0)
 - **Resplendent Prism Affinity**: Boosts Infinity (+1) and Piercing.
 
 #### 19. *Echo Primordialis* — The Resonant Ouroboros
+> *"Nothing is created once that cannot be echoed twice. The universe is a great bronze bell; strike it, and the sound repeats forever."*
 - **Aspect / Essence**: Resonantia / Duplication & Flow (`entropica:materia_echo`)
 - **Star Count**: 10 Stars (Continuous Ouroboros Loop Geometry)
 - **Spectral Distribution**: Class O (Azure), Class B (Glacial Cyan), Class A (White), Class F (Gold), Class G (Amber), Class K (Orange), Class M (Red), Class V (Violet)
@@ -409,6 +452,7 @@ TIER 3: MASTER CONSTELLATIONS (4) — PEAK FULL MOON ZENITH (PHASE 0)
 - **Resplendent Prism Affinity**: Boosts Multi-Shot (+1 to +2) and Looting.
 
 #### 20. *Corona Solaris* — The Zenith Crown
+> *"When the crown sits upon the highest point of heaven, darkness has no shadow to hide within."*
 - **Aspect / Essence**: Sol / Solar Radiance (`entropica:sol`)
 - **Star Count**: 11 Stars (Radiant Crown Starburst Geometry)
 - **Spectral Distribution**: Class G (Solar Amber), Class F (Gold), Class A (White), Class K (Orange), Class B (Cyan), Class O (Azure), Class M (Red), Class V (Violet)
@@ -425,7 +469,11 @@ TIER 4: MYTHIC COSMIC ENTITIES (4) — NEW MOON (PHASE 4) & THE END
 ====================================================================================================
 ```
 
+> *"When the moon dies and the sky turns black as basalt, look not for gentle stars. Look for the ancient ones who held the universe before the firmament was forged. They do not grant blessings; they rewrite the law."*  
+> — **Lady Vespera**, *Whispers of the Four Nameless Singularities*
+
 #### 21. *Ouroboros* — The Perpetual Cycle
+> *"The beginning devours the end; the end births the beginning. Within the circle, loss is impossible."*
 - **Aspect / Essence**: Ordo / Eternal Conservation (`entropica:ordo`)
 - **Star Count**: 14 Stars (Double Infinity Loop Geometry)
 - **Spectral Distribution**: Class A (White), Class O (Azure), Class B (Cyan), Class F (Gold), Class G (Amber), Class K (Orange), Class M (Red), Class V (Violet)
@@ -435,6 +483,7 @@ TIER 4: MYTHIC COSMIC ENTITIES (4) — NEW MOON (PHASE 4) & THE END
 - **Resplendent Prism Affinity**: Boosts All Equipped Enchantments by +2 levels.
 
 #### 22. *Yggdrasil* — The World Ash
+> *"Its roots drink from the Void; its branches hold the stars. Even should the body perish, the ash tree remembers the soul and calls it back."*
 - **Aspect / Essence**: Immortalitas / Cosmic Axis (`entropica:immortalitas`)
 - **Star Count**: 13 Stars (Towering World Tree Geometry)
 - **Spectral Distribution**: Class A (White), Class G (Amber), Class F (Gold), Class O (Azure), Class B (Cyan), Class M (Red), Class K (Orange), Class V (Violet)
@@ -444,6 +493,7 @@ TIER 4: MYTHIC COSMIC ENTITIES (4) — NEW MOON (PHASE 4) & THE END
 - **Resplendent Prism Affinity**: Boosts Mending and Unbreaking (+3).
 
 #### 23. *Leviathan* — The Primordial Abyss
+> *"Before the air was breathed, the void was water. Spread your wings and swim through the starlight as through the deep."*
 - **Aspect / Essence**: Vacuum / Cosmic Void Ocean (`entropica:vacuum`)
 - **Star Count**: 12 Stars (Massive Sinuous Serpent Geometry)
 - **Spectral Distribution**: Class O (Azure), Class V (Void Violet), Class B (Cyan), Class A (White), Class M (Red), Class K (Orange), Class G (Amber), Class F (Gold)
@@ -453,6 +503,7 @@ TIER 4: MYTHIC COSMIC ENTITIES (4) — NEW MOON (PHASE 4) & THE END
 - **Resplendent Prism Affinity**: Boosts Depth Strider (+3) and Swift Sneak (+3).
 
 #### 24. *Azathoth* — The Nuclear Chaos
+> *"At the center of all things sits the blind singular fire. From its churning discord, worlds are shattered and portals torn between the void."*
 - **Aspect / Essence**: Singularity / Primordial Chaos (`entropica:singularity`)
 - **Star Count**: 15 Stars (Chaotic Converging Vortex Geometry)
 - **Spectral Distribution**: Class V (Void Violet), Class M (Crimson Red), Class O (Azure), Class K (Orange), Class B (Cyan), Class G (Amber), Class F (Gold), Class A (White)
@@ -484,6 +535,9 @@ In the celestial dome, adjacent constellations share anchor star nodes:
 
 # 3. Spectral Classes & Stellar Astrological Index
 
+> *"Look into the prism: the blue stars burn with reckless haste; the white stars sing of equilibrium; the red dwarfs slumber upon heavy iron; and the violet singularities hunger for the unmade."*  
+> — **Archon Valerius**, *Astrological Colorimetry*
+
 Every star in each constellation is mathematically classified into one of **8 Astronomical Spectral Classes**:
 
 ```
@@ -513,6 +567,9 @@ Every star in each constellation is mathematically classified into one of **8 As
 ---
 
 # 4. Astronomy Equipment & The 4-Stage Instrument Progression
+
+> *"The eye alone is blind to the architecture of the stars. With brass, glass, and attuned crystal, we construct the ladder upon which mortal perception ascends to the firmament."*  
+> — **Master Artificer Kaelen**, *The Optics of Ascension*
 
 ```
 1. Handheld Looking Glass (Tier 1)
@@ -559,6 +616,9 @@ Every star in each constellation is mathematically classified into one of **8 As
 
 # 5. Celestial Cartography & The Interactive Tracing Engine
 
+> *"Do not draw with haste. Let the chalk follow the invisible harmony that already exists between the points of light. When the last link closes, the heaven itself will acknowledge the work."*  
+> — **Astronomer-Priestess Lyra**, *Guide to Celestial Scribing*
+
 ```
 [ Starlight Birch Pulp ] ──► [ Blank Star Chart ] ──► [ Load in Telescope HUD ]
                                                               │
@@ -591,6 +651,9 @@ Every star in each constellation is mathematically classified into one of **8 As
 ---
 
 # 6. The 7x7x6 Grand Circular Astral Observatory & Celestial Mirror Pool
+
+> *"Why climb to the mountain peak only to crane the neck upward? Build the mirror pool, and bring the vault of heaven down to your feet. In the dark glass, the stars are closer than your own reflection."*  
+> — **Inscription on the Floor of the Grand Observatory of Aetheria**
 
 ```
 Layer 6 (Apex):  [ Open Sky Aperture ] + 4 Refractive Astral Lenses on Cardinal Pillars
@@ -674,6 +737,9 @@ The central $5\times5$ floor consists of **Astral Mirror Blocks** rendering a re
 
 # 7. The Upgradable Modular Astral Altar & Blueprint Alignment
 
+> *"A rigid temple imprisons the essence; a modular plinth allows the starlight to breathe. Place the pylons where resonance demands, and the stone itself will sing in harmonic unison."*  
+> — **High Alchemist Justinian**, *The Geometry of Modular Resonance*
+
 ```
                   [ Starlight / Sky Access ]
                               │
@@ -701,6 +767,9 @@ Rather than rigid monolithic structures, the Astral Altar uses a **Single Upgrad
 ---
 
 # 8. Optical Starlight Logistics & Mechanized Pure Optic Fibers
+
+> *"Let the light travel through the air where the sky is open; but when descending into the bowels of the earth, bind it within the glass thread. Respect the pressure, for starlight confined beyond its limit will shatter its vessel like molten iron."*  
+> — **Master Artificer Kaelen**, *Pneumatics & Optic Conduits*
 
 ```
 [ Astral Collector ] ──► [ Refractive Lens ] ──► [ Beam Splitter (1:4) ] (Open-Air: max 32b)
@@ -736,7 +805,8 @@ Crossing raw starlight beams inflicts typed **Materia Toxicity** via `ModAttachm
 
 # 9. Dry Optical Infusion & Flora Materia-Type Swapping
 
-> **Fundamental Principle**: Materia in Entropica is strictly pressurized inside pipes, cells, and sealed vessels; it does NOT exist as open liquid pools in the world.
+> *"Materia is a spirit that brooks no open container. It will not sit idle in ponds like rainwater. To bathe a leaf or a sword in starlight, you do not drown it in liquid; you focus the celestial beam upon the dry stone until the essence catches fire within the veins of the item."*  
+> — **Archon Valerius**, *The Principles of Dry Optical Infusion*
 
 ```
 [ Overhead Refractive Lens / Mirror ]
@@ -765,6 +835,9 @@ Mythic recipe transmutations require **Alignment Ritual Overcharge**—they stri
 ---
 
 # 10. Astral Crystals: Sizing, Regrowth & Seed Cultivation
+
+> *"The crystal is a living bone of the firmament. Plant its seed in the diluted essence, and it will sprout; place it beneath the cold night sky, and it will drink the starlight until it grows broad enough to shatter mountains."*  
+> — **Astronomer-Priestess Lyra**, *Cultivation of the Astral Gem*
 
 ```
                        [ Deepslate Geode (Budding Marble) ]
@@ -800,6 +873,9 @@ Mythic recipe transmutations require **Alignment Ritual Overcharge**—they stri
 
 # 11. Astral Equipment, Armaments & Baubles
 
+> *"To wear the mantle is to step outside the pull of the earth. But remember: the robes drink from the cell at your hip. When the essence runs dry, gravity is a swift and unforgiving master."*  
+> — **Archon Valerius**, *On the Weaving of Starlight Silk*
+
 ### 11.1 Crystal Tools & Weapons: Linear Mathematical Sizing Formulas
 - **Crystal Sword Attack Damage**:
   $$\text{Damage} = 6.0 + (1.5 \times \text{Size}) \quad (\text{Size 1} = 7.5, \text{ Size 5} = 13.5)$$
@@ -831,6 +907,9 @@ Mythic recipe transmutations require **Alignment Ritual Overcharge**—they stri
 ---
 
 # 12. The 3x3x3 Multiblock Celestial Beacon: Sanctuary Auras & Wards
+
+> *"Erect the four pylons, raise the crystal high, and let the sanctuary be sealed. Within this circle, the wild things of the night forget their hatred, the crops sprout before the harvest moon, and the sky bends to our will."*  
+> — **High Alchemist Justinian**, *The Treatise on Warded Sanctuaries*
 
 ```
                    [ Attuned Astral Crystal Focus ] (Apex)
@@ -866,6 +945,9 @@ Different constellation fields stack harmoniously together (e.g. Regen + Mob sup
 
 # 13. Procedural World Generation, Ancient Shrines & Relic Awakening
 
+> *"In the high mountains, where the wind cuts like glass, the ancient ones left their scopes. The stone is weathered, the brass is green with age, and the crystals sleep. Bring the breath of pure Materia to their slumber, and they will awaken."*  
+> — **Astronomer-Priestess Lyra**, *Ruins of the First Age*
+
 - **Ancient Mountain Observatories**: Stone and marble ruins on high peaks containing broken brass telescopes, faded Star Charts, and **Dormant Crystal Relics**.
 - **Awakening Relics**: Injecting 100 units of pure Materia (via Orbis Cell or pipe) shatters the stone crust in an awakening animation, revealing an active floating Size-3 Astral Crystal!
 - **Deep Underground Astral Geodes**: Spherical marble-and-calcite geodes in deepslate ($y < 0$) containing `budding_astral_marble`.
@@ -873,6 +955,9 @@ Different constellation fields stack harmoniously together (e.g. Regen + Mob sup
 ---
 
 # 14. Multi-Loader Technical Architecture, Networking & Shader Pipeline
+
+> *"The math must be as precise as the stars themselves. If the line trembles upon the glass, the constellation fails. Build the pipeline with zero hesitation, and let the GPU sing with additive bloom."*  
+> — **Master Artificer Kaelen**, *The Rendering Engine Protocols*
 
 - **Networking**: Client-side predictive 60+ FPS star tracing UI with lightweight server-validated packets (`TraceCompletionPacket`, `S2C_ConstellationSyncPacket`) synced to `ModAttachments`.
 - **Shader Pack Compatibility**: Renders in `AFTER_SKY` using additive blending (`GL_SRC_ALPHA, GL_ONE`) with `depthMask(false)`, guaranteeing radiant star flares and bloom lines across Vanilla, Sodium, Iris, and Oculus shader packs.
@@ -902,6 +987,9 @@ Different constellation fields stack harmoniously together (e.g. Regen + Mob sup
 ---
 
 # 16. Codex Integration & The Cosmic Archon Synthesis
+
+> *"To master the crucible is to command the elements of the soil. But to master the constellation is to command the geometry of creation itself. The mortal who bridges the starlight with the void ceases to be an alchemist; they become the Archon of the firmament."*  
+> — **Archon Valerius**, *The Starlight Canon, Epilogue*
 
 ### Codex Hierarchy
 Branches dynamically off the existing `"magic_astral"` hub under `"MAGIC"`:
