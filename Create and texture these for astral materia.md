@@ -65,6 +65,7 @@ This document tracks all new blocks, multiblock components, functional tile enti
 | `star_chart_completed` | Completed Star Chart | Scribed constellation map item storing star links and lore in the Codex. |
 | `astral_linking_wand` | Astral Linking Wand | 2-click node linking tool used to connect collectors, lenses, prisms, and altars. |
 | `mortar_and_pestle` | Mortar and Pestle | Crafting tool used to grind raw Astral Crystals into Astral Crystal Seeds. |
+| `celestial_tome` | Celestial Tome | High-density 2-page spread readable lore grimoire (5 volumes) with bookmarks, star charts, and ~300 words/page. |
 
 ---
 
