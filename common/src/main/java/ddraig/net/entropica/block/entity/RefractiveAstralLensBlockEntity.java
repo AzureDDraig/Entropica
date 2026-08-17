@@ -16,6 +16,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 
 public class RefractiveAstralLensBlockEntity extends BlockEntity {
 
@@ -30,7 +31,8 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
     private boolean isRelaying = false;
     private String relayedStarName = null;
     private int relayTicksLeft = 0;
-    private float beamDistance = 16.0f;
+    private int incomingLinksCount = 0;
+    private float beamDistance = 20.0f;
 
     public RefractiveAstralLensBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.REFRACTIVE_ASTRAL_LENS_BE.get(), pos, state);
@@ -56,12 +58,16 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
         return isRelaying;
     }
 
+    public int getIncomingLinksCount() {
+        return incomingLinksCount;
+    }
+
     public float getBeamDistance() {
         return beamDistance;
     }
 
     public boolean isBeamActive() {
-        return isFocused || (isRelaying && relayedStarName != null);
+        return isFocused || (isRelaying && relayedStarName != null) || (incomingLinksCount > 0);
     }
 
     public String getActiveStarName() {
@@ -88,10 +94,12 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
     }
 
     public void receiveRelayBeam(BlockPos sourcePos, String starName) {
-        if (this.isFocused) return; // Manual sky focus takes precedence
-        this.isRelaying = true;
-        this.relayedStarName = starName;
-        this.relayTicksLeft = 10;
+        this.incomingLinksCount = 1;
+        this.relayTicksLeft = 12;
+        if (!this.isFocused) {
+            this.isRelaying = true;
+            this.relayedStarName = starName;
+        }
         setChanged();
         if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -106,6 +114,7 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
         if (be.relayTicksLeft > 0) {
             be.relayTicksLeft--;
             if (be.relayTicksLeft == 0) {
+                be.incomingLinksCount = 0;
                 be.isRelaying = false;
                 be.relayedStarName = null;
                 be.setChanged();
@@ -124,9 +133,9 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                     Mth.cos(yawRad) * Mth.cos(pitchRad)
             );
             Vec3 start = Vec3.atCenterOf(pos).add(0, 0.4375, 0);
-            Vec3 end = start.add(lookDir.scale(16.0));
-            BlockHitResult hit = level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, net.minecraft.world.phys.shapes.CollisionContext.empty()));
-            double dist = 16.0;
+            Vec3 end = start.add(lookDir.scale(20.0));
+            BlockHitResult hit = level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
+            double dist = 20.0;
             if (hit.getType() == HitResult.Type.BLOCK && !hit.getBlockPos().equals(pos) && !hit.getBlockPos().equals(pos.below())) {
                 dist = start.distanceTo(hit.getLocation());
                 BlockPos hitPos = hit.getBlockPos();
@@ -135,7 +144,7 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                 }
             }
 
-            if (Math.abs(be.beamDistance - (float) dist) > 0.1f) {
+            if (Math.abs(be.beamDistance - (float) dist) > 0.05f) {
                 be.beamDistance = (float) dist;
                 be.setChanged();
                 level.sendBlockUpdated(pos, state, state, 3);
@@ -165,6 +174,7 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
         output.store("TargetName", Codec.STRING, this.targetName);
         output.store("IsFocused", Codec.BOOL, this.isFocused);
         output.store("IsRelaying", Codec.BOOL, this.isRelaying);
+        output.store("IncomingLinksCount", Codec.INT, this.incomingLinksCount);
         output.store("BeamDistance", Codec.FLOAT, this.beamDistance);
         if (this.relayedStarName != null) {
             output.store("RelayedStarName", Codec.STRING, this.relayedStarName);
@@ -185,6 +195,7 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
         input.read("TargetName", Codec.STRING).ifPresent(tn -> this.targetName = tn);
         input.read("IsFocused", Codec.BOOL).ifPresent(f -> this.isFocused = f);
         input.read("IsRelaying", Codec.BOOL).ifPresent(r -> this.isRelaying = r);
+        input.read("IncomingLinksCount", Codec.INT).ifPresent(c -> this.incomingLinksCount = c);
         input.read("BeamDistance", Codec.FLOAT).ifPresent(d -> this.beamDistance = d);
         input.read("RelayedStarName", Codec.STRING).ifPresent(rn -> this.relayedStarName = rn);
     }

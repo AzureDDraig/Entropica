@@ -62,15 +62,17 @@
     - Assigned unique astronomical names to all 320 ambient stars in `CelestialStarHelper.java` by combining celestial constellation roots and stellar designations (e.g. `Zephyros-Alpha`, `Thalassa-Prime`, `Astralis-VII`, `Pyralis-Beta`, `Novara-Major`).
     - Added `getConstellationStarName(Constellation, int)` assigning classical Greek designations to every star in every constellation (e.g. `Alpha Aculei (Apex)`, `Beta Aculei`, `Alpha Radialis`).
     - Integrated star name displays on Looking Glass, Telescope, Astral Lens HUD reticles, and the Star Chart Scribing Table.
-  - **16-Block Astral Lens Optical Relay Network & Beam Passing**:
-    - Implemented block entity ticking and forward raycasting in `RefractiveAstralLensBlockEntity.java` and `RefractiveAstralLensBlock.java`.
-    - When aiming a lens at another Astral Lens within 16 blocks (or receiving an incoming relay beam), the lens automatically passes along the focused star data and redirects the beam along its own calibrated angle.
-    - Added reticle detection and distance readouts in `SkyLookingGlassScreen.java` when aiming directly at relay lenses.
-  - **Optical Beam Depth Rendering Correction**:
-    - Updated `RefractiveAstralLensRenderer.java` to use depth-tested `RenderType.beaconBeam` with dual core and aura passes.
-    - Fixed beam orientation to shoot forward along the optical aim axis, properly testing depth so beams occlude behind walls and render crisp and bright in front of blocks.
+  - **20-Block Pan & Zoom Astral Lens Target HUD (<60° Angle of Attack)**:
+    - In `SkyLookingGlassScreen.java`, the pan-and-zoom interface now scans for all nearby `RefractiveAstralLensBlockEntity` within 20 blocks.
+    - If a target lens has a clear line of sight (no intervening solid blocks) and is within a $60^\circ$ angle of attack from the current aim angle, it is projected onto the viewscreen as a glowing interactive target circle with live distance readouts (`§b✦ Lens [14.2m]`).
+    - Aiming within $18\text{px}$ of the target circle snaps focus onto the target lens for optical calibration.
+  - **Incoming Link Counter & Dual-Side Beam Mechanics**:
+    - Added `incomingLinksCount` tracking to `RefractiveAstralLensBlockEntity.java`.
+    - Beams cleanly stop immediately upon impacting solid blocks or target lenses.
+    - If `incomingLinksCount == 0` and the lens is sky-focused, it renders the skyward influx beam entering from the heavens on the upper/rear face and projects the output beam on the other side.
+    - When receiving a relayed beam from an upstream lens (`incomingLinksCount > 0`), the sky influx is omitted and the relayed starlight is redirected forward along the lens's calibrated angle.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 33s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 32s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

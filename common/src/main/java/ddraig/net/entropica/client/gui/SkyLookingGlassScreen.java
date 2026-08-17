@@ -605,22 +605,80 @@ public class SkyLookingGlassScreen extends Screen {
             }
         }
 
-        // Check if reticle is aimed at another Refractive Astral Lens within 16 blocks
-        if (this.focusedTarget == null && this.telescopePos != null && mc.level != null && player != null) {
-            Vec3 lensCenter = Vec3.atCenterOf(this.telescopePos).add(0, 0.4375, 0);
+        // 6.5. Render Nearby Astral Lenses within 20 Blocks & Clear Line of Sight (< 60° Angle of Attack)
+        if (this.isLensMode && this.telescopePos != null && mc.level != null && player != null) {
+            Vec3 lensEye = Vec3.atCenterOf(this.telescopePos).add(0, 0.4375, 0);
             float yawRad = (float) Math.toRadians(this.yaw);
             float pitchRad = (float) Math.toRadians(-this.pitch);
             Vec3 lookDir = new Vec3(
                     -Mth.sin(yawRad) * Mth.cos(pitchRad),
                     -Mth.sin(pitchRad),
                     Mth.cos(yawRad) * Mth.cos(pitchRad)
-            );
-            Vec3 endPos = lensCenter.add(lookDir.scale(16.0));
-            BlockHitResult hit = mc.level.clip(new ClipContext(lensCenter, endPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
-            if (hit.getType() == HitResult.Type.BLOCK && !hit.getBlockPos().equals(this.telescopePos) && !hit.getBlockPos().equals(this.telescopePos.below())) {
-                BlockPos hitPos = hit.getBlockPos();
-                if (mc.level.getBlockEntity(hitPos) instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity targetLens) {
-                    this.focusedTarget = targetLens;
+            ).normalize();
+
+            int searchRadius = 20;
+            BlockPos minPos = this.telescopePos.offset(-searchRadius, -searchRadius, -searchRadius);
+            BlockPos maxPos = this.telescopePos.offset(searchRadius, searchRadius, searchRadius);
+
+            for (BlockPos targetPos : BlockPos.betweenClosed(minPos, maxPos)) {
+                if (targetPos.equals(this.telescopePos)) continue;
+                double distSq = this.telescopePos.distSqr(targetPos);
+                if (distSq > 400.0 || distSq < 1.0) continue;
+
+                if (mc.level.getBlockEntity(targetPos) instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity targetLens) {
+                    Vec3 targetCenter = Vec3.atCenterOf(targetPos).add(0, 0.4375, 0);
+                    Vec3 toTarget = targetCenter.subtract(lensEye);
+                    double distance = toTarget.length();
+                    Vec3 toTargetDir = toTarget.normalize();
+
+                    // 1. Clear Line of Sight Check (must not hit intervening solid blocks)
+                    BlockHitResult losHit = mc.level.clip(new ClipContext(lensEye, targetCenter, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, net.minecraft.world.phys.shapes.CollisionContext.empty()));
+                    if (losHit.getType() == HitResult.Type.BLOCK && !losHit.getBlockPos().equals(targetPos) && !losHit.getBlockPos().equals(this.telescopePos)) {
+                        continue; // Obstructed by wall or obstacle
+                    }
+
+                    // 2. Angle of Attack Check (< 60.0 degrees from aimed view vector)
+                    double dot = lookDir.dot(toTargetDir);
+                    double angleDeg = Math.toDegrees(Math.acos(Mth.clamp(dot, -1.0, 1.0)));
+                    if (angleDeg > 60.0) {
+                        continue; // Exceeds 60° angle of attack
+                    }
+
+                    // 3. Project to Screen Coordinates
+                    float targetPitch = (float) Math.toDegrees(Math.asin(toTargetDir.y));
+                    float targetYaw = (float) Math.toDegrees(Math.atan2(-toTargetDir.x, toTargetDir.z));
+                    if (targetYaw < 0) targetYaw += 360.0f;
+
+                    float dYaw = Mth.wrapDegrees(targetYaw - this.yaw);
+                    float dPitch = targetPitch - this.pitch;
+
+                    if (Math.abs(dYaw) <= FOV && Math.abs(dPitch) <= FOV) {
+                        float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
+                        float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
+                        float distFromCenter = (float) Math.hypot(sx - centerX, sy - centerY);
+
+                        if (distFromCenter < lensRadius - 4.0f) {
+                            boolean isTargeted = distFromCenter <= 18.0f;
+                            if (isTargeted && this.focusedTarget == null) {
+                                this.focusedTarget = targetLens;
+                            }
+
+                            // Visual Target Circle Marker
+                            int circleColor = targetLens.isBeamActive() ? 0xFF00FFFF : (isTargeted ? 0xFF80FF80 : 0xFF38BDF8);
+                            float ringR = isTargeted ? (14.0f + 2.0f * (float) Math.sin(timeSec * 8.0f)) : 10.0f;
+
+                            drawCircle(guiGraphics, (int) sx, (int) sy, (int) ringR, circleColor);
+                            drawCircle(guiGraphics, (int) sx, (int) sy, (int) ringR + 1, (circleColor & 0x00FFFFFF) | 0x66000000);
+
+                            // Inner cross marker
+                            guiGraphics.fill((int) sx - 3, (int) sy, (int) sx + 4, (int) sy + 1, circleColor);
+                            guiGraphics.fill((int) sx, (int) sy - 3, (int) sx + 1, (int) sy + 4, circleColor);
+
+                            // Distance Label below target circle
+                            String label = String.format("§b✦ Lens §7[§e%.1fm§7]", distance);
+                            guiGraphics.drawCenteredString(this.font, label, (int) sx, (int) (sy + ringR + 3), 0xFFE0F0FF);
+                        }
+                    }
                 }
             }
         }

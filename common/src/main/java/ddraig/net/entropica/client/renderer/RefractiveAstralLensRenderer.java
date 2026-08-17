@@ -40,6 +40,7 @@ public class RefractiveAstralLensRenderer implements BlockEntityRenderer<Refract
         state.pitch = be.getInterpolatedPitch(partialTick);
         state.isFocused = be.isFocused();
         state.isRelaying = be.isRelaying();
+        state.incomingLinksCount = be.getIncomingLinksCount();
         state.beamDistance = be.getBeamDistance();
         state.targetName = be.getActiveStarName();
     }
@@ -101,16 +102,17 @@ public class RefractiveAstralLensRenderer implements BlockEntityRenderer<Refract
         });
 
         // 4. Optical Starlight Beams with Depth-Tested Beacon Beam Pipeline
-        if (state.isFocused || state.isRelaying) {
+        boolean hasBeam = state.isFocused || state.isRelaying || (state.beamDistance > 0.1f);
+        if (hasBeam) {
             float dist = Math.max(0.5f, state.beamDistance);
 
             // Layer 1: Concentrated Core Optical Laser Beam
             collector.submitCustomGeometry(poseStack, RenderType.beaconBeam(WHITE_TEXTURE, false), (pose, consumer) -> {
-                // Outgoing Forward Beam (shooting forward along local -Z towards target lens / block)
+                // Outgoing Forward Output Beam (stops precisely at solid block or target lens)
                 renderTexturedBox(pose.pose(), consumer, -0.025f, -0.025f, -dist, 0.025f, 0.025f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 1.0f, 0.98f, 0.85f, 1.0f);
 
-                // Skyward Starlight Influx Stream (only if directly aligned with sky)
-                if (state.isFocused) {
+                // Skyward Starlight Influx Stream on the other side of the lens ONLY if incomingLinksCount == 0
+                if (state.isFocused && state.incomingLinksCount == 0) {
                     renderTexturedBox(pose.pose(), consumer, -0.03f, -0.03f, -32.0f, 0.03f, 0.03f, 0.0f, 0.0f, 0.0f, 1.0f, 32.0f, light, overlay, 0.85f, 0.95f, 1.0f, 0.95f);
                 }
             });
@@ -120,8 +122,8 @@ public class RefractiveAstralLensRenderer implements BlockEntityRenderer<Refract
                 // Outgoing Forward Beam Aura
                 renderTexturedBox(pose.pose(), consumer, -0.055f, -0.055f, -dist, 0.055f, 0.055f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 0.35f, 0.75f, 1.0f, 0.50f);
 
-                // Skyward Influx Aura
-                if (state.isFocused) {
+                // Skyward Influx Aura on the other side of the lens ONLY if incomingLinksCount == 0
+                if (state.isFocused && state.incomingLinksCount == 0) {
                     renderTexturedBox(pose.pose(), consumer, -0.065f, -0.065f, -32.0f, 0.065f, 0.065f, 0.0f, 0.0f, 0.0f, 1.0f, 32.0f, light, overlay, 0.35f, 0.75f, 1.0f, 0.40f);
                 }
             });
@@ -173,6 +175,7 @@ public class RefractiveAstralLensRenderer implements BlockEntityRenderer<Refract
         public float pitch;
         public boolean isFocused;
         public boolean isRelaying;
+        public int incomingLinksCount;
         public float beamDistance;
         public String targetName;
     }
