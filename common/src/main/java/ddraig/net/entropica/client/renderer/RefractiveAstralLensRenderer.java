@@ -13,15 +13,16 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 public class RefractiveAstralLensRenderer implements BlockEntityRenderer<RefractiveAstralLensBlockEntity, RefractiveAstralLensRenderer.LensRenderState> {
 
-    private static final ResourceLocation BRASS_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/stationary_brass_telescope_brass.png");
-    private static final ResourceLocation LENS_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/stationary_brass_telescope_lens.png");
+    private static final ResourceLocation BASE_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/refractive_astral_lens_base.png");
+    private static final ResourceLocation BRASS_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/refractive_astral_lens_brass.png");
+    private static final ResourceLocation RING_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/refractive_astral_lens_ring.png");
+    private static final ResourceLocation LENS_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/refractive_astral_lens.png");
     private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
 
     public RefractiveAstralLensRenderer(BlockEntityRendererProvider.Context context) {
@@ -46,63 +47,75 @@ public class RefractiveAstralLensRenderer implements BlockEntityRenderer<Refract
         int light = 15728880;
         int overlay = OverlayTexture.NO_OVERLAY;
 
-        // 1. Stationary Base & Gimbal Pillars (Floor mounted)
-        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BRASS_TEXTURE), (pose, consumer) -> {
-            // Heavy Octagonal Base Plate (y = 0.0 to 0.12)
-            renderBox(pose.pose(), consumer, 0.20f, 0.0f, 0.20f, 0.80f, 0.12f, 0.80f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
-            // Center Pedestal Sleeve (y = 0.12 to 0.22)
-            renderBox(pose.pose(), consumer, 0.35f, 0.12f, 0.35f, 0.65f, 0.22f, 0.65f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+        // 1. Group: "base" (Static Pedestal on Floor: [3, 0, 3] to [13, 2, 13], origin: [8, 0, 8])
+        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BASE_TEXTURE), (pose, consumer) -> {
+            // Top face of base pedestal with dedicated marble/base texture
+            renderTexturedBox(pose.pose(), consumer, 0.1875f, 0.0f, 0.1875f, 0.8125f, 0.125f, 0.8125f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
         });
 
-        // 2. Azimuth Gimbal Turntable (Rotates around Y axis)
+        // 2. Group: "azimuth_yoke" (Rotates around Y axis at origin [8, 2, 8] -> [0.5, 0.125, 0.5])
         poseStack.pushPose();
-        poseStack.translate(0.5, 0.22, 0.5);
+        poseStack.translate(0.5, 0.125, 0.5);
         poseStack.mulPose(Axis.YP.rotationDegrees(-state.yaw + 180.0f));
 
-        // Draw Rotating Azimuth Ring & Twin Gimbal Fork Arms
         collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BRASS_TEXTURE), (pose, consumer) -> {
-            // Lower Turntable Disc
-            renderBox(pose.pose(), consumer, -0.18f, 0.0f, -0.18f, 0.18f, 0.06f, 0.18f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
-            // Left Fork Arm
-            renderBox(pose.pose(), consumer, -0.22f, 0.06f, -0.06f, -0.14f, 0.36f, 0.06f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
-            // Right Fork Arm
-            renderBox(pose.pose(), consumer, 0.14f, 0.06f, -0.06f, 0.22f, 0.36f, 0.06f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+            // Swivel Stem: [6, 2, 6] to [10, 4, 10] -> relative: [-2, 0, -2] to [2, 2, 2]
+            renderTexturedBox(pose.pose(), consumer, -0.125f, 0.0f, -0.125f, 0.125f, 0.125f, 0.125f, 0.375f, 0.375f, 0.625f, 0.625f, light, overlay, 1, 1, 1, 1);
+
+            // Yoke Bottom Bridge: [3, 4, 7] to [13, 5, 9] -> relative: [-5, 2, -1] to [5, 3, 1]
+            renderTexturedBox(pose.pose(), consumer, -0.3125f, 0.125f, -0.0625f, 0.3125f, 0.1875f, 0.0625f, 0.1875f, 0.6875f, 0.8125f, 0.75f, light, overlay, 1, 1, 1, 1);
+
+            // Yoke Arm Left: [2, 5, 7] to [4, 13, 9] -> relative: [-6, 3, -1] to [-4, 11, 1]
+            renderTexturedBox(pose.pose(), consumer, -0.375f, 0.1875f, -0.0625f, -0.25f, 0.6875f, 0.0625f, 0.125f, 0.3125f, 0.25f, 0.8125f, light, overlay, 1, 1, 1, 1);
+
+            // Yoke Arm Right: [12, 5, 7] to [14, 13, 9] -> relative: [4, 3, -1] to [6, 11, 1]
+            renderTexturedBox(pose.pose(), consumer, 0.25f, 0.1875f, -0.0625f, 0.375f, 0.6875f, 0.0625f, 0.75f, 0.3125f, 0.875f, 0.8125f, light, overlay, 1, 1, 1, 1);
+
+            // Pivot Thumbscrew Left: [1.25, 8.5, 7.5] to [2, 9.5, 8.5] -> relative: [-6.75, 6.5, -0.5] to [-6, 7.5, 0.5]
+            renderTexturedBox(pose.pose(), consumer, -0.421875f, 0.40625f, -0.03125f, -0.375f, 0.46875f, 0.03125f, 0.0f, 0.0f, 0.125f, 0.125f, light, overlay, 1, 1, 1, 1);
+
+            // Pivot Thumbscrew Right: [14, 8.5, 7.5] to [14.75, 9.5, 8.5] -> relative: [6, 6.5, -0.5] to [6.75, 7.5, 0.5]
+            renderTexturedBox(pose.pose(), consumer, 0.375f, 0.40625f, -0.03125f, 0.421875f, 0.46875f, 0.03125f, 0.0f, 0.0f, 0.125f, 0.125f, light, overlay, 1, 1, 1, 1);
         });
 
-        // 3. Elevation Pivot & Refractive Optical Lens Ring (Pivots around horizontal X axis)
-        poseStack.translate(0.0, 0.28, 0.0);
+        // 3. Group: "elevation_lens" (Pivots around horizontal trunnion axis at origin [8, 9, 8] -> relative translation [0.0, 7/16, 0.0])
+        poseStack.translate(0.0, 0.4375, 0.0);
         poseStack.mulPose(Axis.XP.rotationDegrees(state.pitch));
 
-        // Draw Brass Lens Bezel Frame
-        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BRASS_TEXTURE), (pose, consumer) -> {
-            // Elevation Axis Trunnion Pins
-            renderBox(pose.pose(), consumer, -0.22f, -0.03f, -0.03f, 0.22f, 0.03f, 0.03f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
-            // Outer Lens Bezel Frame Ring (Square/Octagonal Bezel)
-            renderBox(pose.pose(), consumer, -0.28f, 0.25f, -0.04f, 0.28f, 0.29f, 0.04f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1); // Top
-            renderBox(pose.pose(), consumer, -0.28f, -0.29f, -0.04f, 0.28f, -0.25f, 0.04f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1); // Bottom
-            renderBox(pose.pose(), consumer, -0.29f, -0.25f, -0.04f, -0.25f, 0.25f, 0.04f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1); // Left
-            renderBox(pose.pose(), consumer, 0.25f, -0.25f, -0.04f, 0.29f, 0.25f, 0.04f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1); // Right
+        // Render Outer Brass/Ring Lens Bezel
+        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(RING_TEXTURE), (pose, consumer) -> {
+            // Lens Bezel Top Bar: [4, 12, 7.25] to [12, 13, 8.75] -> relative: [-4, 3, -0.75] to [4, 4, 0.75]
+            renderTexturedBox(pose.pose(), consumer, -0.25f, 0.1875f, -0.046875f, 0.25f, 0.25f, 0.046875f, 0.25f, 0.0f, 0.75f, 0.0625f, light, overlay, 1, 1, 1, 1);
+
+            // Lens Bezel Bottom Bar: [4, 5, 7.25] to [12, 6, 8.75] -> relative: [-4, -4, -0.75] to [4, -3, 0.75]
+            renderTexturedBox(pose.pose(), consumer, -0.25f, -0.25f, -0.046875f, 0.25f, -0.1875f, 0.046875f, 0.25f, 0.125f, 0.75f, 0.1875f, light, overlay, 1, 1, 1, 1);
+
+            // Lens Bezel Left Bar: [4, 6, 7.25] to [5, 12, 8.75] -> relative: [-4, -3, -0.75] to [-3, 3, 0.75]
+            renderTexturedBox(pose.pose(), consumer, -0.25f, -0.1875f, -0.046875f, -0.1875f, 0.1875f, 0.046875f, 0.25f, 0.25f, 0.3125f, 0.625f, light, overlay, 1, 1, 1, 1);
+
+            // Lens Bezel Right Bar: [11, 6, 7.25] to [12, 12, 8.75] -> relative: [3, -3, -0.75] to [4, 3, 0.75]
+            renderTexturedBox(pose.pose(), consumer, 0.1875f, -0.1875f, -0.046875f, 0.25f, 0.1875f, 0.046875f, 0.6875f, 0.25f, 0.75f, 0.625f, light, overlay, 1, 1, 1, 1);
         });
 
-        // Draw Glowing Refractive Astral Glass Lens (Thick refractive crystal aperture)
+        // Render Convex Starlight Quartz Lens Disc: [5, 6, 7.5] to [11, 12, 8.5] -> relative: [-3, -3, -0.5] to [3, 3, 0.5]
         collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(LENS_TEXTURE), (pose, consumer) -> {
-            renderBox(pose.pose(), consumer, -0.25f, -0.25f, -0.02f, 0.25f, 0.25f, 0.02f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.85f, 0.95f, 1.0f, 0.92f);
+            renderTexturedBox(pose.pose(), consumer, -0.1875f, -0.1875f, -0.03125f, 0.1875f, 0.1875f, 0.03125f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.9f, 0.95f, 1.0f, 0.92f);
         });
 
-        // 4. If focused on a star, render concentrated starlight beam emission
+        // 4. Concentrated Starlight Beam Emission (When Focused/Calibrated)
         if (state.isFocused) {
             collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
-                // Front Starlight Column (Skyward starlight capture)
-                renderBox(pose.pose(), consumer, -0.05f, -0.05f, -1.8f, 0.05f, 0.05f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.7f, 0.9f, 1.0f, 0.65f);
-                // Focused Outgoing Beam (Directed downwards/backwards)
-                renderBox(pose.pose(), consumer, -0.03f, -0.03f, 0.0f, 0.03f, 0.03f, 1.2f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1.0f, 0.95f, 0.7f, 0.85f);
+                // Skyward Starlight Influx Stream (from the stars into the lens)
+                renderTexturedBox(pose.pose(), consumer, -0.04f, -0.04f, -2.5f, 0.04f, 0.04f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.75f, 0.92f, 1.0f, 0.75f);
+                // Focused Output Beam (refracted down/through the lens)
+                renderTexturedBox(pose.pose(), consumer, -0.03f, -0.03f, 0.0f, 0.03f, 0.03f, 1.8f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1.0f, 0.96f, 0.75f, 0.90f);
             });
         }
 
         poseStack.popPose();
     }
 
-    private static void renderBox(Matrix4f matrix, VertexConsumer consumer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float u0, float v0, float u1, float v1, int light, int overlay, float r, float g, float b, float a) {
+    private static void renderTexturedBox(Matrix4f matrix, VertexConsumer consumer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float u0, float v0, float u1, float v1, int light, int overlay, float r, float g, float b, float a) {
         // Down face (y-)
         consumer.addVertex(matrix, minX, minY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
         consumer.addVertex(matrix, maxX, minY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);

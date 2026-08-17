@@ -54,14 +54,12 @@
     - Implemented point-to-segment distance collision in `SkyLookingGlassScreen.java` and `ConstellationTracingScreen.java`.
     - Hovering the mouse near any drawn line segment within $8\text{px}$ highlights only that line in vivid red/glow (`0xFFFF3333`).
     - Right-clicking now selectively erases only the hovered line rather than wiping out all lines, syncing the deletion immediately across client and server.
-  - **JEI Astral Multiblock Visualizer & Blueprint Polish**:
-    - Replaced missing 0-alpha hex colors with fully opaque ARGB values in `AstralMultiblockRecipeCategory.java`, fixing invisible text labels and grid contents.
-    - Added localized category title `recipe.entropica.astral_multiblock` ("Astral Multiblock Structures") to `en_us.json`.
-    - Added interactive layer scrubber buttons `[1] [2] [3] ...` allowing players to effortlessly view and freeze on any specific Y-level layer by hovering or clicking.
-    - Rendered actual scaled 16x16 block item textures directly inside each cell of the 2D blueprint matrix using `guiGraphics.renderItem`.
-    - Implemented rich custom hover tooltips showing block display name, `[Layer Y, Row Z, Col X]` spatial coordinates, and total count required in the multiblock structure.
+  - **Refractive Astral Lens Model & Aim Synchronization Overhaul**:
+    - Rebuilt `RefractiveAstralLensRenderer.java` using exact Blockbench model element geometries, UVs, and hierarchical group rotation origins (`base`, `azimuth_yoke`, and `elevation_lens`).
+    - Fixed player look angle and lens declination synchronization on screen exit: `syncPlayerRotation` now smoothly aligns player yaw and pitch directly along the calibrated aiming line of sight while preserving the lens's calibrated angles.
+    - Fixed persistent beam state: resolved packet issue where closing the screen or mouse-panning previously overwrote `isFocused` with `false`, keeping the focused starlight influx and refracted output beams active indefinitely once calibrated.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 37s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 28s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

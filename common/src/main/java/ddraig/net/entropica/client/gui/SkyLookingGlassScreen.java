@@ -234,7 +234,7 @@ public class SkyLookingGlassScreen extends Screen {
 
     private void syncPlayerRotation() {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null && !this.isLensMode) {
+        if (mc.player != null) {
             mc.player.setYRot(this.yaw);
             mc.player.setXRot(-this.pitch);
             mc.player.yRotO = this.yaw;
@@ -247,11 +247,16 @@ public class SkyLookingGlassScreen extends Screen {
 
         if (this.telescopePos != null && mc.level != null) {
             if (this.isLensMode) {
-                if (mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity lens) {
-                    lens.setFocus(this.yaw, this.pitch, lens.getTargetName(), lens.isFocused());
-                }
+                boolean focused = false;
                 String targetName = (this.focusedTarget instanceof CelestialStarHelper.LandmarkStar ls) ? ls.name() : "Calibrated Focus";
-                NetworkManager.sendToServer(new AstralLensAimPayload(this.telescopePos, this.yaw, this.pitch, targetName, false));
+                if (mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity lens) {
+                    focused = lens.isFocused();
+                    if (lens.getTargetName() != null && !lens.getTargetName().isBlank() && !lens.getTargetName().equals("Uncalibrated")) {
+                        targetName = lens.getTargetName();
+                    }
+                    lens.setFocus(this.yaw, this.pitch, targetName, focused);
+                }
+                NetworkManager.sendToServer(new AstralLensAimPayload(this.telescopePos, this.yaw, this.pitch, targetName, focused));
             } else {
                 if (mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
                     be.setAngles(this.yaw, this.pitch);
