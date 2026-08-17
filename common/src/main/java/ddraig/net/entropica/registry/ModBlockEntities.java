@@ -343,4 +343,10 @@ public class ModBlockEntities {
                             ModBlocks.MATERIA_ECHO_BARREL.get()
                     ));
 
+    // --- ASTRONOMY WORKSTATIONS ---
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity>> STATIONARY_BRASS_TELESCOPE_BE =
+            BLOCK_ENTITIES.register("stationary_brass_telescope", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity::new,
+                            ModBlocks.STATIONARY_BRASS_TELESCOPE.get()
+                    ));
 }

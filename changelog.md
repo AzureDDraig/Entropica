@@ -36,9 +36,12 @@
   - **Line of Sight / Sky Occlusion Raycasting**: Raycasts 128 blocks from the player's eyes along the viewing vector; if obstructed by ceilings, caves, or solid structures, the telescope view dims with a `"Line of Sight Obstructed"` alert.
   - **Free-Form Star Tracing & Validation**: Allows drawing lines between any stars in the telescope view; validating the constellation graph upon full puzzle completion, while Shift + Right-Click resets lines.
   - **Text Layering & Reticle Telemetry**: Relocated all text and telemetry readouts on the top-most rendering layer, preventing the circular bezel overlay and letterbox masks from cutting off text.
-  - **Nebulae, Cosmic Dust & Ambient Starfield**: Rendered luminous celestial dust clouds and 280+ ambient twinkling stars with `star.png` in both `SkyLookingGlassScreen` and the world night sky (`CelestialSkyRenderer.java` with immediate `endBatch` rasterization).
+  - **3D Rotating Stationary Brass Telescope Block & Renderer**:
+    - Registered `StationaryBrassTelescopeBlockEntity.java` and `StationaryBrassTelescopeRenderer.java` (BER across Fabric & NeoForge).
+    - The physical brass telescope block in the world smoothly pivots its azimuth turntable ($360^\circ$ yaw) and elevates its brass optical tube ($-10^\circ$ to $+85^\circ$ pitch) in real time to match the exact angles observed through the lens.
+    - Synchronized world-space aiming angles across multiplayer via `TelescopeAimPayload.java` and Architectury's `NetworkManager`.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 26s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 25s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

@@ -86,11 +86,21 @@ public class SkyLookingGlassScreen extends Screen {
     private Constellation justDiscovered = null;
     private long discoveryTime = 0;
 
+    private net.minecraft.core.BlockPos telescopePos = null;
+
     public SkyLookingGlassScreen() {
+        this(null);
+    }
+
+    public SkyLookingGlassScreen(net.minecraft.core.BlockPos telescopePos) {
         super(Component.literal("Celestial Looking Glass"));
+        this.telescopePos = telescopePos;
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) {
+        if (telescopePos != null && mc.level != null && mc.level.getBlockEntity(telescopePos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
+            this.yaw = be.getYaw();
+            this.pitch = be.getPitch();
+        } else if (mc.player != null) {
             this.yaw = Mth.wrapDegrees(mc.player.getYRot());
             if (this.yaw < 0) this.yaw += 360.0f;
             this.pitch = Mth.clamp(-mc.player.getXRot(), -10.0f, 85.0f);
@@ -137,7 +147,11 @@ public class SkyLookingGlassScreen extends Screen {
     }
 
     public static void open() {
-        Minecraft.getInstance().setScreen(new SkyLookingGlassScreen());
+        openForTelescope(null);
+    }
+
+    public static void openForTelescope(net.minecraft.core.BlockPos pos) {
+        Minecraft.getInstance().setScreen(new SkyLookingGlassScreen(pos));
     }
 
     @Override
@@ -187,6 +201,13 @@ public class SkyLookingGlassScreen extends Screen {
             mc.player.yHeadRotO = this.yaw;
             mc.player.yBodyRot = this.yaw;
             mc.player.yBodyRotO = this.yaw;
+        }
+
+        if (this.telescopePos != null) {
+            if (mc.level != null && mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
+                be.setAngles(this.yaw, this.pitch);
+            }
+            dev.architectury.networking.NetworkManager.sendToServer(new ddraig.net.entropica.network.TelescopeAimPayload(this.telescopePos, this.yaw, this.pitch));
         }
     }
 

@@ -90,6 +90,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
         BlockEntityRenderers.register(ModBlockEntities.VISCANITE_PISTON_PRESS_BE.get(), ViscanitePistonPressRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.MATERIA_BLESSING_BE.get(), MateriaBlessingRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.RUBBER_LOG_BE.get(), ddraig.net.entropica.client.renderer.RubberLogBlockEntityRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.STATIONARY_BRASS_TELESCOPE_BE.get(), ddraig.net.entropica.client.renderer.StationaryBrassTelescopeRenderer::new);
 
         // --- 2. Entity Renderers ---
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);

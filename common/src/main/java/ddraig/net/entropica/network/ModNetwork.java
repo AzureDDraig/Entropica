@@ -51,6 +51,13 @@ public class ModNetwork {
                 MonocleLensSwapPayload.STREAM_CODEC,
                 ModNetwork::handleMonocleLensSwap
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                TelescopeAimPayload.TYPE,
+                TelescopeAimPayload.STREAM_CODEC,
+                ModNetwork::handleTelescopeAim
+        );
     }
 
     public static void handleGeneratorScroll(final GeneratorScrollPayload data, final NetworkManager.PacketContext context) {
@@ -143,6 +150,18 @@ public class ModNetwork {
             ItemStack head = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
             if (head.is(ddraig.net.entropica.registry.ModItems.ARKANIST_MONOCLE.get())) {
                 ddraig.net.entropica.item.ArkanistMonocleItem.cycleLens(head, player);
+            }
+        });
+    }
+
+    public static void handleTelescopeAim(final TelescopeAimPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null && player.level().isLoaded(data.pos())) {
+                BlockEntity be = player.level().getBlockEntity(data.pos());
+                if (be instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity telescope) {
+                    telescope.setAngles(data.yaw(), data.pitch());
+                }
             }
         });
     }
