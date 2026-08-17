@@ -2083,6 +2083,7 @@
   "msg.entropica.you_received_the_entropic_codex_right": "[Entropica] You received the Entropic Codex! Right-click to open spatial research map.",
   "recipe.entropica.diluted_essence": "Diluted Essence Fluid Pool",
   "recipe.entropica.magic_circle": "Magic Circle Ritual",
+  "recipe.entropica.astral_multiblock": "Astral Multiblock Structures",
   "tooltip.entropica.aetheric_flow_regulator": "Intelligently routing magical liquid and gas pressure through complex networks.",
   "tooltip.entropica.aetheric_logic_gate": "The if/then processor for advanced arcane machinery.",
   "tooltip.entropica.aetheric_pitch_pipe": "Sings the correct frequency to stabilize a dying Essence Node.",
