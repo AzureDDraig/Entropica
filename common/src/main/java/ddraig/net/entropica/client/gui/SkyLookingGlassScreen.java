@@ -200,10 +200,13 @@ public class SkyLookingGlassScreen extends Screen {
         if (this.focusedTarget instanceof CelestialStarHelper.LandmarkStar ls) {
             targetName = ls.name();
         } else if (this.focusedTarget instanceof CelestialStarHelper.AmbientStar as) {
-            targetName = as.essenceType().getDisplayName() + " Star";
+            targetName = as.name();
         } else if (this.focusedTarget instanceof Object[] pair) {
             Constellation c = (Constellation) pair[0];
-            targetName = Component.translatable(c.getUnlocalizedName()).getString();
+            ConstellationStar star = (ConstellationStar) pair[1];
+            targetName = CelestialStarHelper.getConstellationStarName(c, c.getStars().indexOf(star));
+        } else if (this.focusedTarget instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity targetLens) {
+            targetName = "Relay Lens at [" + targetLens.getBlockPos().toShortString() + "]";
         }
 
         Minecraft mc = Minecraft.getInstance();
@@ -602,6 +605,26 @@ public class SkyLookingGlassScreen extends Screen {
             }
         }
 
+        // Check if reticle is aimed at another Refractive Astral Lens within 16 blocks
+        if (this.focusedTarget == null && this.telescopePos != null && mc.level != null && player != null) {
+            Vec3 lensCenter = Vec3.atCenterOf(this.telescopePos).add(0, 0.4375, 0);
+            float yawRad = (float) Math.toRadians(this.yaw);
+            float pitchRad = (float) Math.toRadians(-this.pitch);
+            Vec3 lookDir = new Vec3(
+                    -Mth.sin(yawRad) * Mth.cos(pitchRad),
+                    -Mth.sin(pitchRad),
+                    Mth.cos(yawRad) * Mth.cos(pitchRad)
+            );
+            Vec3 endPos = lensCenter.add(lookDir.scale(16.0));
+            BlockHitResult hit = mc.level.clip(new ClipContext(lensCenter, endPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+            if (hit.getType() == HitResult.Type.BLOCK && !hit.getBlockPos().equals(this.telescopePos) && !hit.getBlockPos().equals(this.telescopePos.below())) {
+                BlockPos hitPos = hit.getBlockPos();
+                if (mc.level.getBlockEntity(hitPos) instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity targetLens) {
+                    this.focusedTarget = targetLens;
+                }
+            }
+        }
+
         // 7. Reticle Crosshairs & Focus Aiming Target
         guiGraphics.fill(centerX - 12, centerY, centerX - 3, centerY + 1, 0xAAFFFFFF);
         guiGraphics.fill(centerX + 3, centerY, centerX + 12, centerY + 1, 0xAAFFFFFF);
@@ -623,6 +646,8 @@ public class SkyLookingGlassScreen extends Screen {
                     int essRgb = (fc.getEssenceType().getR() << 16) | (fc.getEssenceType().getG() << 8) | fc.getEssenceType().getB();
                     reticleColor = 0xFF000000 | essRgb;
                 }
+            } else if (focusedTarget instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity) {
+                reticleColor = 0xFF80FF80;
             }
 
             float pulseRadius = 16.0f + 2.0f * (float) Math.sin(timeSec * 8.0f);
@@ -655,19 +680,23 @@ public class SkyLookingGlassScreen extends Screen {
             if (focusedTarget instanceof CelestialStarHelper.LandmarkStar ls) {
                 guiGraphics.drawCenteredString(this.font, "§6✦ TARGET: §f" + ls.name() + "  §e| Essence: " + ls.essenceType().getFormattedName() + "  §e|  §b" + ls.info(), centerX, centerY + 28, 0xFFE0F0FF);
             } else if (focusedTarget instanceof CelestialStarHelper.AmbientStar as) {
-                guiGraphics.drawCenteredString(this.font, String.format("§7✦ Stellar Resonance §e| Essence: %s §e| Class: §b%s §e| Mag: §f%.2fm", as.essenceType().getFormattedName(), as.spectralClass().name(), as.size() / 10.0f), centerX, centerY + 28, 0xFFC0D0E0);
+                guiGraphics.drawCenteredString(this.font, String.format("§6✦ TARGET: §f%s  §e| Essence: %s  §e| Class: §b%s  §e| Mag: §f%.2fm", as.name(), as.essenceType().getFormattedName(), as.spectralClass().name(), as.size() / 10.0f), centerX, centerY + 28, 0xFFC0D0E0);
             } else if (focusedTarget instanceof Object[] pair) {
                 Constellation c = (Constellation) pair[0];
                 ConstellationStar star = (ConstellationStar) pair[1];
+                String starName = CelestialStarHelper.getConstellationStarName(c, c.getStars().indexOf(star));
                 boolean isDisc = (player != null) && PlayerAstralProgress.isDiscovered(player, c);
+                String title = Component.translatable(c.getUnlocalizedName()).getString();
+                String essCode = c.getEssenceType().getColorCode();
+                String essFormatted = c.getEssenceType().getFormattedName();
                 if (isDisc) {
-                    String title = Component.translatable(c.getUnlocalizedName()).getString();
-                    String essCode = c.getEssenceType().getColorCode();
-                    String essFormatted = c.getEssenceType().getFormattedName();
-                    guiGraphics.drawCenteredString(this.font, "§6✦ CONSTELLATION NODE: " + essCode + title + " §7[" + c.getTier().getDisplayName() + " • " + essFormatted + "§7]", centerX, centerY + 28, 0xFFFFFFFF);
+                    guiGraphics.drawCenteredString(this.font, "§6✦ TARGET: " + essCode + starName + " §e| Constellation: §f" + title + " §7[" + c.getTier().getDisplayName() + " • " + essFormatted + "§7]", centerX, centerY + 28, 0xFFFFFFFF);
                 } else {
-                    guiGraphics.drawCenteredString(this.font, String.format("§7✦ Stellar Resonance §e| Essence: %s §e| Class: §b%s §e| Mag: §f%.2fm", c.getEssenceType().getFormattedName(), star.spectralClass().name(), star.brightness()), centerX, centerY + 28, 0xFFC0D0E0);
+                    guiGraphics.drawCenteredString(this.font, String.format("§6✦ TARGET: §f%s §e| Essence: %s §e| Class: §b%s §e| Mag: §f%.2fm", starName, essFormatted, star.spectralClass().name(), star.brightness()), centerX, centerY + 28, 0xFFC0D0E0);
                 }
+            } else if (focusedTarget instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity targetLens) {
+                double dist = (this.telescopePos != null) ? Math.sqrt(this.telescopePos.distSqr(targetLens.getBlockPos())) : 0.0;
+                guiGraphics.drawCenteredString(this.font, "§b✦ TARGET: §fRefractive Astral Lens Relayer  §e|  Distance: §a" + String.format("%.1fm", dist), centerX, centerY + 28, 0xFF80FF80);
             }
         }
 

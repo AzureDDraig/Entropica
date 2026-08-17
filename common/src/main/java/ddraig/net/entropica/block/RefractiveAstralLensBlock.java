@@ -77,6 +77,16 @@ public class RefractiveAstralLensBlock extends HorizontalDirectionalBlock implem
         return InteractionResult.SUCCESS;
     }
 
+    @Nullable
+    @Override
+    public <T extends BlockEntity> net.minecraft.world.level.block.entity.BlockEntityTicker<T> getTicker(Level level, BlockState state, net.minecraft.world.level.block.entity.BlockEntityType<T> blockEntityType) {
+        return (lvl, pos, st, be) -> {
+            if (be instanceof RefractiveAstralLensBlockEntity lens) {
+                RefractiveAstralLensBlockEntity.tick(lvl, pos, st, lens);
+            }
+        };
+    }
+
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         Direction dir = state.getValue(FACING);

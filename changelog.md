@@ -58,8 +58,19 @@
     - Rebuilt `RefractiveAstralLensRenderer.java` using exact Blockbench model element geometries, UVs, and hierarchical group rotation origins (`base`, `azimuth_yoke`, and `elevation_lens`).
     - Fixed player look angle and lens declination synchronization on screen exit: `syncPlayerRotation` now smoothly aligns player yaw and pitch directly along the calibrated aiming line of sight while preserving the lens's calibrated angles.
     - Fixed persistent beam state: resolved packet issue where closing the screen or mouse-panning previously overwrote `isFocused` with `false`, keeping the focused starlight influx and refracted output beams active indefinitely once calibrated.
+  - **Procedural Unique Astronomical Star Naming System**:
+    - Assigned unique astronomical names to all 320 ambient stars in `CelestialStarHelper.java` by combining celestial constellation roots and stellar designations (e.g. `Zephyros-Alpha`, `Thalassa-Prime`, `Astralis-VII`, `Pyralis-Beta`, `Novara-Major`).
+    - Added `getConstellationStarName(Constellation, int)` assigning classical Greek designations to every star in every constellation (e.g. `Alpha Aculei (Apex)`, `Beta Aculei`, `Alpha Radialis`).
+    - Integrated star name displays on Looking Glass, Telescope, Astral Lens HUD reticles, and the Star Chart Scribing Table.
+  - **16-Block Astral Lens Optical Relay Network & Beam Passing**:
+    - Implemented block entity ticking and forward raycasting in `RefractiveAstralLensBlockEntity.java` and `RefractiveAstralLensBlock.java`.
+    - When aiming a lens at another Astral Lens within 16 blocks (or receiving an incoming relay beam), the lens automatically passes along the focused star data and redirects the beam along its own calibrated angle.
+    - Added reticle detection and distance readouts in `SkyLookingGlassScreen.java` when aiming directly at relay lenses.
+  - **Optical Beam Depth Rendering Correction**:
+    - Updated `RefractiveAstralLensRenderer.java` to use depth-tested `RenderType.beaconBeam` with dual core and aura passes.
+    - Fixed beam orientation to shoot forward along the optical aim axis, properly testing depth so beams occlude behind walls and render crisp and bright in front of blocks.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 28s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 33s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

@@ -1,5 +1,6 @@
 package ddraig.net.entropica.client.gui;
 
+import ddraig.net.entropica.astral.CelestialStarHelper;
 import ddraig.net.entropica.astral.Constellation;
 import ddraig.net.entropica.astral.ConstellationConnection;
 import ddraig.net.entropica.astral.ConstellationStar;
@@ -229,7 +230,10 @@ public class ConstellationTracingScreen extends Screen {
         }
 
         // 4. Render Star Vertices
-        for (ConstellationStar star : constellation.getStars()) {
+        ConstellationStar hoveredStar = null;
+        int hoveredStarIdx = -1;
+        for (int s = 0; s < constellation.getStars().size(); s++) {
+            ConstellationStar star = constellation.getStars().get(s);
             float sx = chartX + (star.x() / 100.0f) * (chartSize - 60) + 30;
             float sy = chartY + (star.y() / 100.0f) * (chartSize - 80) + 40;
 
@@ -237,12 +241,22 @@ public class ConstellationTracingScreen extends Screen {
             int color = 0xFF000000 | rgb;
 
             boolean isHovered = Math.hypot(mouseX - sx, mouseY - sy) <= 8.0f;
+            if (isHovered) {
+                hoveredStar = star;
+                hoveredStarIdx = s;
+            }
             int starRadius = isHovered ? 5 : 3;
 
             // Outer glow circle tinted by essence
             guiGraphics.fill((int) sx - starRadius - 1, (int) sy - starRadius - 1, (int) sx + starRadius + 1, (int) sy + starRadius + 1, (0x88 << 24) | essRgb);
             // Center star node
             guiGraphics.fill((int) sx - starRadius, (int) sy - starRadius, (int) sx + starRadius, (int) sy + starRadius, color);
+        }
+
+        // Subtitle / Hover Readout
+        if (hoveredStar != null) {
+            String sName = CelestialStarHelper.getConstellationStarName(constellation, hoveredStarIdx);
+            guiGraphics.drawCenteredString(this.font, "§b✦ Star: §f" + sName + "  §e| Class: §7" + hoveredStar.spectralClass().name() + "  §e| Mag: §f" + hoveredStar.brightness() + "m", centerX, chartY + 18, 0xFFE0F0FF);
         }
 
         // Footer: Ritual & Instruction
