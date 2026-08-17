@@ -4,11 +4,10 @@ import com.mojang.blaze3d.platform.InputConstants;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.astral.*;
 import ddraig.net.entropica.client.renderer.CelestialSkyRenderer;
-import ddraig.net.entropica.item.CompletedStarChartItem;
 import ddraig.net.entropica.network.AstralLensAimPayload;
+import ddraig.net.entropica.network.ConstellationDiscoveryPayload;
 import ddraig.net.entropica.network.SyncChartedConnectionsPayload;
 import ddraig.net.entropica.network.TelescopeAimPayload;
-import ddraig.net.entropica.registry.ModItems;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -20,7 +19,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -44,11 +42,12 @@ public class SkyLookingGlassScreen extends Screen {
     private List<Constellation> visibleConstellations = new ArrayList<>();
     
     // Universal Star Tracing Graph: Edges formatted as "nodeA---nodeB"
-    private final Set<String> drawnEdges = new HashSet<>();
+    private final Set<String> drawnEdges = Collections.synchronizedSet(new HashSet<>());
 
     // Interaction & Tracing state
     private String dragStarId = null;
     private boolean isSneakHeld = false;
+    private String hoveredEdgeKey = null;
 
     // Track all on-screen stars during the current frame for universal tracing
     public record StarNode(String id, float sx, float sy, float size, String label, EssenceType essence, SpectralClass spectralClass, Constellation constellation, int starIndex) {}
@@ -277,6 +276,20 @@ public class SkyLookingGlassScreen extends Screen {
         return (a.compareTo(b) < 0) ? (a + "---" + b) : (b + "---" + a);
     }
 
+    public static float pointToSegmentDistance(float px, float py, float x1, float y1, float x2, float y2) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float lenSq = dx * dx + dy * dy;
+        if (lenSq < 1e-4f) {
+            return (float) Math.hypot(px - x1, py - y1);
+        }
+        float t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+        t = Mth.clamp(t, 0.0f, 1.0f);
+        float projX = x1 + t * dx;
+        float projY = y1 + t * dy;
+        return (float) Math.hypot(px - projX, py - projY);
+    }
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         int screenWidth = this.width;
@@ -291,6 +304,7 @@ public class SkyLookingGlassScreen extends Screen {
         float timeSec = (System.currentTimeMillis() % 10000000L) * 0.001f;
         this.focusedTarget = null;
         this.onScreenStars.clear();
+        this.hoveredEdgeKey = null;
 
         float celestialAngle = getCelestialAngle(partialTick);
 
@@ -478,26 +492,43 @@ public class SkyLookingGlassScreen extends Screen {
                         }
                     }
                 }
-
-                // If discovered, ensure required connections are added to drawnEdges
-                if (isDiscovered) {
-                    for (ConstellationConnection conn : constellation.getConnections()) {
-                        String k1 = "c:" + constellation.getId().toString() + ":" + conn.fromIndex();
-                        String k2 = "c:" + constellation.getId().toString() + ":" + conn.toIndex();
-                        drawnEdges.add(makeEdgeKey(k1, k2));
-                    }
-                }
             }
 
-            // 6. Universal Star Tracing: Render ALL User-Drawn Lines Between Any Connected Stars
-            for (String edge : drawnEdges) {
+            // Find closest drawn line to cursor for targeted highlighting & erasing
+            float minLineDist = 8.0f;
+            List<String> currentEdgesSnapshot;
+            synchronized (drawnEdges) {
+                currentEdgesSnapshot = new ArrayList<>(drawnEdges);
+            }
+
+            for (String edge : currentEdgesSnapshot) {
                 String[] parts = edge.split("---");
                 if (parts.length == 2) {
                     StarNode nodeA = onScreenStars.get(parts[0]);
                     StarNode nodeB = onScreenStars.get(parts[1]);
                     if (nodeA != null && nodeB != null) {
+                        float d = pointToSegmentDistance((float) mouseX, (float) mouseY, nodeA.sx(), nodeA.sy(), nodeB.sx(), nodeB.sy());
+                        if (d < minLineDist) {
+                            minLineDist = d;
+                            this.hoveredEdgeKey = edge;
+                        }
+                    }
+                }
+            }
+
+            // 6. Universal Star Tracing: Render ALL User-Drawn Lines Between Any Connected Stars
+            for (String edge : currentEdgesSnapshot) {
+                String[] parts = edge.split("---");
+                if (parts.length == 2) {
+                    StarNode nodeA = onScreenStars.get(parts[0]);
+                    StarNode nodeB = onScreenStars.get(parts[1]);
+                    if (nodeA != null && nodeB != null) {
+                        boolean isHighlighted = edge.equals(this.hoveredEdgeKey);
+
                         int lineColor = 0xFF00F0FF;
-                        if (nodeA.constellation() != null && nodeB.constellation() != null && nodeA.constellation().equals(nodeB.constellation())) {
+                        if (isHighlighted) {
+                            lineColor = 0xFFFF3333; // Vibrant highlighted red for targeted erase candidate
+                        } else if (nodeA.constellation() != null && nodeB.constellation() != null && nodeA.constellation().equals(nodeB.constellation())) {
                             int essRgb = (nodeA.constellation().getEssenceType().getR() << 16) | (nodeA.constellation().getEssenceType().getG() << 8) | nodeA.constellation().getEssenceType().getB();
                             lineColor = 0xFF000000 | essRgb;
                         } else if (nodeA.essence() != null && nodeB.essence() != null) {
@@ -506,7 +537,14 @@ public class SkyLookingGlassScreen extends Screen {
                             int b = (nodeA.essence().getB() + nodeB.essence().getB()) / 2;
                             lineColor = 0xFF000000 | (r << 16) | (g << 8) | b;
                         }
+
                         drawLine(guiGraphics, (int) nodeA.sx(), (int) nodeA.sy(), (int) nodeB.sx(), (int) nodeB.sy(), lineColor);
+
+                        if (isHighlighted) {
+                            // Extra glow border around highlighted erase line
+                            drawLine(guiGraphics, (int) nodeA.sx(), (int) nodeA.sy() - 1, (int) nodeB.sx(), (int) nodeB.sy() - 1, 0x88FFAAAA);
+                            drawLine(guiGraphics, (int) nodeA.sx(), (int) nodeA.sy() + 1, (int) nodeB.sx(), (int) nodeB.sy() + 1, 0x88FFAAAA);
+                        }
                     }
                 }
             }
@@ -620,10 +658,15 @@ public class SkyLookingGlassScreen extends Screen {
         if (this.isLensMode) {
             guiGraphics.drawCenteredString(this.font, "§a[SPACEBAR: Lock Lens on Current Target  •  Drag to Pan]", centerX, screenHeight - 28, 0xFF80FF80);
         } else if (isShiftDown()) {
-            guiGraphics.drawCenteredString(this.font, "§e✦ SNEAK ACTIVE: VIEW LOCKED ✦", centerX, screenHeight - 28, 0xFFFFD700);
-            guiGraphics.drawCenteredString(this.font, "§7Click & drag between ANY stars to chart lines  •  Right-Click to reset lines", centerX, screenHeight - 16, 0xFFA0C0D0);
+            if (this.hoveredEdgeKey != null) {
+                guiGraphics.drawCenteredString(this.font, "§c✦ LINE SELECTED: Right-Click to Erase ✦", centerX, screenHeight - 28, 0xFFFF6666);
+                guiGraphics.drawCenteredString(this.font, "§7Click & drag between stars to chart lines", centerX, screenHeight - 16, 0xFFA0C0D0);
+            } else {
+                guiGraphics.drawCenteredString(this.font, "§e✦ SNEAK ACTIVE: VIEW LOCKED ✦", centerX, screenHeight - 28, 0xFFFFD700);
+                guiGraphics.drawCenteredString(this.font, "§7Click & drag between stars to chart  •  Hover line + Right-Click to erase", centerX, screenHeight - 16, 0xFFA0C0D0);
+            }
         } else {
-            guiGraphics.drawCenteredString(this.font, "§8[Click & Drag to pan sky (0° to 90°)  •  Hold SNEAK to chart lines  •  ESC to exit]", centerX, screenHeight - 18, 0xFF88A0B0);
+            guiGraphics.drawCenteredString(this.font, "§8[Click & Drag to pan sky  •  Hold SNEAK to chart lines  •  ESC to exit]", centerX, screenHeight - 18, 0xFF88A0B0);
         }
 
         // Discovery Fanfare Banner
@@ -657,15 +700,20 @@ public class SkyLookingGlassScreen extends Screen {
         double mouseX = event.x();
         double mouseY = event.y();
 
-        if (button == 1 && isShiftDown()) {
-            drawnEdges.clear();
+        // Right-Click targeted erase: ONLY erases the selected / hovered line!
+        if (button == 1 && this.hoveredEdgeKey != null) {
+            String edgeToErase = this.hoveredEdgeKey;
+            drawnEdges.remove(edgeToErase);
             dragStarId = null;
+
             Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null) {
-                PlayerAstralProgress.clearChartedConnections(mc.player);
-                NetworkManager.sendToServer(new SyncChartedConnectionsPayload(Collections.emptyList(), true));
-                mc.player.playSound(SoundEvents.CHISELED_BOOKSHELF_PICKUP, 0.7f, 0.9f);
+            Player player = mc.player;
+            if (player != null) {
+                PlayerAstralProgress.removeChartedConnection(player, edgeToErase);
+                NetworkManager.sendToServer(new SyncChartedConnectionsPayload(edgeToErase, SyncChartedConnectionsPayload.ACTION_REMOVE));
+                player.playSound(SoundEvents.CHISELED_BOOKSHELF_PICKUP, 0.7f, 1.2f);
             }
+            this.hoveredEdgeKey = null;
             return true;
         }
 
@@ -708,7 +756,7 @@ public class SkyLookingGlassScreen extends Screen {
                 Player player = mc.player;
                 if (player != null) {
                     PlayerAstralProgress.addChartedConnection(player, edgeKey);
-                    NetworkManager.sendToServer(new SyncChartedConnectionsPayload(edgeKey));
+                    NetworkManager.sendToServer(new SyncChartedConnectionsPayload(edgeKey, SyncChartedConnectionsPayload.ACTION_ADD));
 
                     player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 0.7f, 1.4f);
 
@@ -727,23 +775,13 @@ public class SkyLookingGlassScreen extends Screen {
 
                             if (allSatisfied) {
                                 PlayerAstralProgress.discover(player, c);
+                                NetworkManager.sendToServer(new ConstellationDiscoveryPayload(c.getId()));
+
                                 player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.0f);
                                 player.playSound(SoundEvents.BEACON_ACTIVATE, 0.8f, 1.2f);
 
                                 this.justDiscovered = c;
                                 this.discoveryTime = System.currentTimeMillis();
-
-                                for (int inv = 0; inv < player.getInventory().getContainerSize(); inv++) {
-                                    ItemStack stack = player.getInventory().getItem(inv);
-                                    if (stack.is(ModItems.STAR_CHART_BLANK.get())) {
-                                        stack.shrink(1);
-                                        ItemStack completedChart = CompletedStarChartItem.createFor(ModItems.STAR_CHART_COMPLETED.get(), c);
-                                        if (!player.getInventory().add(completedChart)) {
-                                            player.drop(completedChart, false);
-                                        }
-                                        break;
-                                    }
-                                }
                             }
                         }
                     }

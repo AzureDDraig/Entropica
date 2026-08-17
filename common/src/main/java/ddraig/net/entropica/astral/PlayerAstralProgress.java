@@ -14,7 +14,7 @@ public class PlayerAstralProgress {
 
     // Discovery registry keyed by player UUID
     private static final ConcurrentHashMap<UUID, Set<ResourceLocation>> DISCOVERED = new ConcurrentHashMap<>();
-    private static final Set<ResourceLocation> CLIENT_DISCOVERED = new HashSet<>();
+    private static final Set<ResourceLocation> CLIENT_DISCOVERED = Collections.synchronizedSet(new HashSet<>());
 
     // Charted star connections keyed by player UUID ("nodeA---nodeB")
     private static final ConcurrentHashMap<UUID, Set<String>> CHARTED_CONNECTIONS = new ConcurrentHashMap<>();
@@ -22,11 +22,10 @@ public class PlayerAstralProgress {
 
     public static boolean isDiscovered(Player player, Constellation constellation) {
         if (constellation == null) return false;
-        if (player == null) {
-            return CLIENT_DISCOVERED.contains(constellation.getId());
-        }
-        if (player.level().isClientSide()) {
-            return CLIENT_DISCOVERED.contains(constellation.getId());
+        if (player == null || player.level().isClientSide()) {
+            synchronized (CLIENT_DISCOVERED) {
+                return CLIENT_DISCOVERED.contains(constellation.getId());
+            }
         }
 
         Set<ResourceLocation> set = DISCOVERED.get(player.getUUID());
@@ -38,31 +37,49 @@ public class PlayerAstralProgress {
         CLIENT_DISCOVERED.add(constellation.getId());
 
         if (player != null) {
-            DISCOVERED.computeIfAbsent(player.getUUID(), k -> new HashSet<>()).add(constellation.getId());
+            DISCOVERED.computeIfAbsent(player.getUUID(), k -> Collections.synchronizedSet(new HashSet<>())).add(constellation.getId());
         }
     }
 
     public static Set<String> getChartedConnections(Player player) {
         if (player == null || player.level().isClientSide()) {
-            return new HashSet<>(CLIENT_CHARTED_CONNECTIONS);
+            synchronized (CLIENT_CHARTED_CONNECTIONS) {
+                return new HashSet<>(CLIENT_CHARTED_CONNECTIONS);
+            }
         }
         Set<String> set = CHARTED_CONNECTIONS.get(player.getUUID());
-        return set != null ? new HashSet<>(set) : new HashSet<>();
+        if (set != null) {
+            synchronized (set) {
+                return new HashSet<>(set);
+            }
+        }
+        return new HashSet<>();
     }
 
     public static void addChartedConnection(Player player, String nodeA, String nodeB) {
         String edge = makeEdgeKey(nodeA, nodeB);
-        CLIENT_CHARTED_CONNECTIONS.add(edge);
-
-        if (player != null) {
-            CHARTED_CONNECTIONS.computeIfAbsent(player.getUUID(), k -> Collections.synchronizedSet(new HashSet<>())).add(edge);
-        }
+        addChartedConnection(player, edge);
     }
 
     public static void addChartedConnection(Player player, String edge) {
         CLIENT_CHARTED_CONNECTIONS.add(edge);
         if (player != null) {
             CHARTED_CONNECTIONS.computeIfAbsent(player.getUUID(), k -> Collections.synchronizedSet(new HashSet<>())).add(edge);
+        }
+    }
+
+    public static void removeChartedConnection(Player player, String nodeA, String nodeB) {
+        String edge = makeEdgeKey(nodeA, nodeB);
+        removeChartedConnection(player, edge);
+    }
+
+    public static void removeChartedConnection(Player player, String edge) {
+        CLIENT_CHARTED_CONNECTIONS.remove(edge);
+        if (player != null) {
+            Set<String> set = CHARTED_CONNECTIONS.get(player.getUUID());
+            if (set != null) {
+                set.remove(edge);
+            }
         }
     }
 
@@ -78,12 +95,16 @@ public class PlayerAstralProgress {
 
     public static void setChartedConnections(Player player, Collection<String> edges) {
         if (player == null || player.level().isClientSide()) {
-            CLIENT_CHARTED_CONNECTIONS.clear();
-            CLIENT_CHARTED_CONNECTIONS.addAll(edges);
+            synchronized (CLIENT_CHARTED_CONNECTIONS) {
+                CLIENT_CHARTED_CONNECTIONS.clear();
+                CLIENT_CHARTED_CONNECTIONS.addAll(edges);
+            }
         } else {
             Set<String> set = CHARTED_CONNECTIONS.computeIfAbsent(player.getUUID(), k -> Collections.synchronizedSet(new HashSet<>()));
-            set.clear();
-            set.addAll(edges);
+            synchronized (set) {
+                set.clear();
+                set.addAll(edges);
+            }
         }
     }
 
@@ -116,6 +137,8 @@ public class PlayerAstralProgress {
     }
 
     public static Set<ResourceLocation> getClientDiscovered() {
-        return CLIENT_DISCOVERED;
+        synchronized (CLIENT_DISCOVERED) {
+            return new HashSet<>(CLIENT_DISCOVERED);
+        }
     }
 }

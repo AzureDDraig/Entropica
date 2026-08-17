@@ -72,6 +72,13 @@ public class ModNetwork {
                 SyncChartedConnectionsPayload.STREAM_CODEC,
                 ModNetwork::handleSyncChartedConnections
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                ConstellationDiscoveryPayload.TYPE,
+                ConstellationDiscoveryPayload.STREAM_CODEC,
+                ModNetwork::handleConstellationDiscovery
+        );
     }
 
     public static void handleGeneratorScroll(final GeneratorScrollPayload data, final NetworkManager.PacketContext context) {
@@ -196,11 +203,42 @@ public class ModNetwork {
         context.queue(() -> {
             Player player = context.getPlayer();
             if (player != null) {
-                if (data.isClear()) {
+                if (data.action() == SyncChartedConnectionsPayload.ACTION_CLEAR) {
                     ddraig.net.entropica.astral.PlayerAstralProgress.clearChartedConnections(player);
+                } else if (data.action() == SyncChartedConnectionsPayload.ACTION_REMOVE) {
+                    if (data.edges() != null) {
+                        for (String edge : data.edges()) {
+                            ddraig.net.entropica.astral.PlayerAstralProgress.removeChartedConnection(player, edge);
+                        }
+                    }
                 } else if (data.edges() != null) {
                     for (String edge : data.edges()) {
                         ddraig.net.entropica.astral.PlayerAstralProgress.addChartedConnection(player, edge);
+                    }
+                }
+            }
+        });
+    }
+
+    public static void handleConstellationDiscovery(final ConstellationDiscoveryPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null && data.constellationId() != null) {
+                ddraig.net.entropica.astral.Constellation constellation = ddraig.net.entropica.astral.ModConstellations.getById(data.constellationId()).orElse(null);
+                if (constellation != null) {
+                    ddraig.net.entropica.astral.PlayerAstralProgress.discover(player, constellation);
+
+                    // Safely check inventory on server thread
+                    for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                        net.minecraft.world.item.ItemStack stack = player.getInventory().getItem(i);
+                        if (stack.is(ddraig.net.entropica.registry.ModItems.STAR_CHART_BLANK.get())) {
+                            stack.shrink(1);
+                            net.minecraft.world.item.ItemStack completedChart = ddraig.net.entropica.item.CompletedStarChartItem.createFor(ddraig.net.entropica.registry.ModItems.STAR_CHART_COMPLETED.get(), constellation);
+                            if (!player.getInventory().add(completedChart)) {
+                                player.drop(completedChart, false);
+                            }
+                            break;
+                        }
                     }
                 }
             }

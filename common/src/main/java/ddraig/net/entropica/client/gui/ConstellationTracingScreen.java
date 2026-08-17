@@ -5,8 +5,8 @@ import ddraig.net.entropica.astral.ConstellationConnection;
 import ddraig.net.entropica.astral.ConstellationStar;
 import ddraig.net.entropica.astral.ModConstellations;
 import ddraig.net.entropica.astral.PlayerAstralProgress;
-import ddraig.net.entropica.item.CompletedStarChartItem;
-import ddraig.net.entropica.registry.ModItems;
+import ddraig.net.entropica.network.ConstellationDiscoveryPayload;
+import dev.architectury.networking.NetworkManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -15,7 +15,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
@@ -29,6 +28,7 @@ public class ConstellationTracingScreen extends Screen {
     private float currentDragX = 0;
     private float currentDragY = 0;
     private boolean isCompleted = false;
+    private ConstellationConnection hoveredConnection = null;
 
     // 12-pixel magnetic snap radius
     private static final float SNAP_DISTANCE = 12.0f;
@@ -69,6 +69,7 @@ public class ConstellationTracingScreen extends Screen {
     private void loadConstellationState() {
         drawnConnections.clear();
         draggingFromIndex = -1;
+        hoveredConnection = null;
         Constellation constellation = getCurrentConstellation();
         Player player = minecraft != null ? minecraft.player : null;
         if (player != null && PlayerAstralProgress.isDiscovered(player, constellation)) {
@@ -87,6 +88,20 @@ public class ConstellationTracingScreen extends Screen {
         }
     }
 
+    public static float pointToSegmentDistance(float px, float py, float x1, float y1, float x2, float y2) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float lenSq = dx * dx + dy * dy;
+        if (lenSq < 1e-4f) {
+            return (float) Math.hypot(px - x1, py - y1);
+        }
+        float t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+        t = Mth.clamp(t, 0.0f, 1.0f);
+        float projX = x1 + t * dx;
+        float projY = y1 + t * dy;
+        return (float) Math.hypot(px - projX, py - projY);
+    }
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -100,6 +115,8 @@ public class ConstellationTracingScreen extends Screen {
         int chartSize = 270;
         int chartX = centerX - chartSize / 2;
         int chartY = centerY - chartSize / 2;
+
+        this.hoveredConnection = null;
 
         // 1. Render Deep Cosmic Parchment Background
         guiGraphics.fill(chartX, chartY, chartX + chartSize, chartY + chartSize, 0xF2080B16);
@@ -137,26 +154,52 @@ public class ConstellationTracingScreen extends Screen {
             guiGraphics.drawCenteredString(this.font, "§e>", chartX + chartSize - 20, chartY + 12, 0xFFFFD700);
         }
 
+        // Find closest drawn connection to cursor for targeted highlighting & erasing
+        float minLineDist = 8.0f;
+        for (ConstellationConnection conn : drawnConnections) {
+            if (conn.fromIndex() < constellation.getStars().size() && conn.toIndex() < constellation.getStars().size()) {
+                ConstellationStar s1 = constellation.getStars().get(conn.fromIndex());
+                ConstellationStar s2 = constellation.getStars().get(conn.toIndex());
+                float x1 = chartX + (s1.x() / 100.0f) * (chartSize - 60) + 30;
+                float y1 = chartY + (s1.y() / 100.0f) * (chartSize - 80) + 40;
+                float x2 = chartX + (s2.x() / 100.0f) * (chartSize - 60) + 30;
+                float y2 = chartY + (s2.y() / 100.0f) * (chartSize - 80) + 40;
+                float d = pointToSegmentDistance((float) mouseX, (float) mouseY, x1, y1, x2, y2);
+                if (d < minLineDist) {
+                    minLineDist = d;
+                    this.hoveredConnection = conn;
+                }
+            }
+        }
+
         // 2. Render Drawn Connections & Pulse Animation
         int edgeIdx = 0;
         for (ConstellationConnection conn : drawnConnections) {
-            ConstellationStar s1 = constellation.getStars().get(conn.fromIndex());
-            ConstellationStar s2 = constellation.getStars().get(conn.toIndex());
+            if (conn.fromIndex() < constellation.getStars().size() && conn.toIndex() < constellation.getStars().size()) {
+                ConstellationStar s1 = constellation.getStars().get(conn.fromIndex());
+                ConstellationStar s2 = constellation.getStars().get(conn.toIndex());
 
-            float x1 = chartX + (s1.x() / 100.0f) * (chartSize - 60) + 30;
-            float y1 = chartY + (s1.y() / 100.0f) * (chartSize - 80) + 40;
-            float x2 = chartX + (s2.x() / 100.0f) * (chartSize - 60) + 30;
-            float y2 = chartY + (s2.y() / 100.0f) * (chartSize - 80) + 40;
+                float x1 = chartX + (s1.x() / 100.0f) * (chartSize - 60) + 30;
+                float y1 = chartY + (s1.y() / 100.0f) * (chartSize - 80) + 40;
+                float x2 = chartX + (s2.x() / 100.0f) * (chartSize - 60) + 30;
+                float y2 = chartY + (s2.y() / 100.0f) * (chartSize - 80) + 40;
 
-            int lineColor = (isDiscovered || isCompleted) ? (0xFF000000 | essRgb) : 0xFF00F0FF;
-            drawLine(guiGraphics, (int) x1, (int) y1, (int) x2, (int) y2, lineColor);
+                boolean isHighlighted = conn.equals(this.hoveredConnection);
+                int lineColor = isHighlighted ? 0xFFFF3333 : ((isDiscovered || isCompleted) ? (0xFF000000 | essRgb) : 0xFF00F0FF);
+                drawLine(guiGraphics, (int) x1, (int) y1, (int) x2, (int) y2, lineColor);
 
-            // Pulse bead traveling along line
-            float tBead = ((System.currentTimeMillis() * 0.001f * 0.8f) + (edgeIdx * 0.3f)) % 1.0f;
-            float bx = x1 * (1.0f - tBead) + x2 * tBead;
-            float by = y1 * (1.0f - tBead) + y2 * tBead;
-            guiGraphics.fill((int) bx - 1, (int) by - 1, (int) bx + 2, (int) by + 2, 0xFF000000 | essRgb);
-            edgeIdx++;
+                if (isHighlighted) {
+                    drawLine(guiGraphics, (int) x1, (int) y1 - 1, (int) x2, (int) y2 - 1, 0x88FFAAAA);
+                    drawLine(guiGraphics, (int) x1, (int) y1 + 1, (int) x2, (int) y2 + 1, 0x88FFAAAA);
+                }
+
+                // Pulse bead traveling along line
+                float tBead = ((System.currentTimeMillis() * 0.001f * 0.8f) + (edgeIdx * 0.3f)) % 1.0f;
+                float bx = x1 * (1.0f - tBead) + x2 * tBead;
+                float by = y1 * (1.0f - tBead) + y2 * tBead;
+                guiGraphics.fill((int) bx - 1, (int) by - 1, (int) bx + 2, (int) by + 2, 0xFF000000 | essRgb);
+                edgeIdx++;
+            }
         }
 
         // 3. Render Active Drag Line
@@ -205,8 +248,10 @@ public class ConstellationTracingScreen extends Screen {
         // Footer: Ritual & Instruction
         if (isDiscovered || isCompleted) {
             guiGraphics.drawCenteredString(this.font, "§aRitual: §7" + constellation.getRitualEffect(), centerX, chartY + chartSize - 18, 0xFFA0E0A0);
+        } else if (this.hoveredConnection != null) {
+            guiGraphics.drawCenteredString(this.font, "§c✦ LINE SELECTED: Right-Click to Erase ✦", centerX, chartY + chartSize - 18, 0xFFFF6666);
         } else {
-            guiGraphics.drawCenteredString(this.font, "§8Click & drag between stars to map this stellar signature...", centerX, chartY + chartSize - 18, 0xFF88A0B0);
+            guiGraphics.drawCenteredString(this.font, "§8Click & drag between stars to map  •  Hover line + Right-Click to erase", centerX, chartY + chartSize - 18, 0xFF88A0B0);
         }
 
         // 5. Completion / Discovery Banner
@@ -245,12 +290,13 @@ public class ConstellationTracingScreen extends Screen {
             }
         }
 
-        // Right click clears drawn lines if not completed
-        if (button == 1 && !isCompleted && !drawnConnections.isEmpty()) {
-            drawnConnections.clear();
+        // Targeted Right-Click line erase: ONLY erases the selected / hovered line!
+        if (button == 1 && !isCompleted && this.hoveredConnection != null) {
+            drawnConnections.remove(this.hoveredConnection);
             if (minecraft != null && minecraft.player != null) {
-                minecraft.player.playSound(SoundEvents.CHISELED_BOOKSHELF_PICKUP, 0.7f, 0.9f);
+                minecraft.player.playSound(SoundEvents.CHISELED_BOOKSHELF_PICKUP, 0.7f, 1.2f);
             }
+            this.hoveredConnection = null;
             return true;
         }
 
@@ -323,19 +369,9 @@ public class ConstellationTracingScreen extends Screen {
                         player.playSound(SoundEvents.PLAYER_LEVELUP, 1.0f, 1.0f);
                         player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 1.2f, 1.4f);
                         player.playSound(SoundEvents.BEACON_ACTIVATE, 0.8f, 1.2f);
-                        PlayerAstralProgress.discover(player, constellation);
 
-                        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-                            ItemStack stack = player.getInventory().getItem(i);
-                            if (stack.is(ModItems.STAR_CHART_BLANK.get())) {
-                                stack.shrink(1);
-                                ItemStack completedChart = CompletedStarChartItem.createFor(ModItems.STAR_CHART_COMPLETED.get(), constellation);
-                                if (!player.getInventory().add(completedChart)) {
-                                    player.drop(completedChart, false);
-                                }
-                                break;
-                            }
-                        }
+                        PlayerAstralProgress.discover(player, constellation);
+                        NetworkManager.sendToServer(new ConstellationDiscoveryPayload(constellation.getId()));
                     }
                 }
             }

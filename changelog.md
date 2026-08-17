@@ -50,11 +50,15 @@
     - Created `CelestialStarHelper.java` providing unified spherical celestial coordinates (`StarSkyPos`) and essence color queries for all stars (ambient, landmark, constellation).
     - Created `SyncChartedConnectionsPayload.java` and updated `PlayerAstralProgress.java` to persist all custom star connections drawn by the player (`nodeA---nodeB`) on client and server.
     - All charted star connections (custom asterisms as well as official constellations) now persist and render as luminous starlight lines across the night skybox.
-  - **Full 0° to 90° Zenith Declination Range**:
-    - Constellations and stellar bodies now span the complete declination range from $0^\circ$ (celestial horizon) all the way to $90^\circ$ (straight up / zenith).
-    - Looking Glass and Telescope optical pitch clamping now allows inspecting the heavens from $-35^\circ$ all the way up to $+90^\circ$ straight up at zenith.
+  - **Targeted Line Highlighting & Single-Line Erasure**:
+    - Implemented point-to-segment distance collision in `SkyLookingGlassScreen.java` and `ConstellationTracingScreen.java`.
+    - Hovering the mouse near any drawn line segment within $8\text{px}$ highlights only that line in vivid red/glow (`0xFFFF3333`).
+    - Right-clicking now selectively erases only the hovered line rather than wiping out all lines, syncing the deletion immediately across client and server.
+  - **Constellation Discovery Network Safety & Crash Fix**:
+    - Created `ConstellationDiscoveryPayload.java` to delegate constellation discovery rewards and star chart item granting to the server thread, preventing client-side inventory container mutation crashes.
+    - Added full synchronized thread-safety to `PlayerAstralProgress.java` collections.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 32s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 29s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 
