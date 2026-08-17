@@ -46,12 +46,15 @@
     - Synchronized all celestial rendering systems (`CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`, `ConstellationTracingScreen.java`, and `CompletedStarChartItem.java`) with assigned `EssenceType` color palettes.
     - Assigned deterministic essence typings to all 260 ambient stars and named landmark beacons across the heavens.
     - Removed giveaway circular node indicators from constellation stars; all stars now render with authentic starlight billets and display rich stellar resonance data when inspected.
-  - **Skybox Starlight Line Refinement & Elevation Balancing**:
-    - Replaced multi-layer billboard lines with single spherical-tangent geometry lines (`renderSphericalLineSegment`), perfectly aligned to the celestial curvature without stepped layers.
-    - Removed the moving running star bead along lines for a clean, ethereal starlight appearance.
-    - Adjusted constellation celestial dome placement to $48^\circ \dots 72^\circ$ elevation and expanded Looking Glass declination panning down to $-35^\circ$, ensuring all constellations remain easily visible above the horizon throughout the night.
+  - **Custom Charted Star Connections Persistence & Skybox Rendering**:
+    - Created `CelestialStarHelper.java` providing unified spherical celestial coordinates (`StarSkyPos`) and essence color queries for all stars (ambient, landmark, constellation).
+    - Created `SyncChartedConnectionsPayload.java` and updated `PlayerAstralProgress.java` to persist all custom star connections drawn by the player (`nodeA---nodeB`) on client and server.
+    - All charted star connections (custom asterisms as well as official constellations) now persist and render as luminous starlight lines across the night skybox.
+  - **Full 0° to 90° Zenith Declination Range**:
+    - Constellations and stellar bodies now span the complete declination range from $0^\circ$ (celestial horizon) all the way to $90^\circ$ (straight up / zenith).
+    - Looking Glass and Telescope optical pitch clamping now allows inspecting the heavens from $-35^\circ$ all the way up to $+90^\circ$ straight up at zenith.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 30s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 32s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

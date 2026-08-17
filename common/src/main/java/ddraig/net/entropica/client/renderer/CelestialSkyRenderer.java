@@ -2,12 +2,7 @@ package ddraig.net.entropica.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import ddraig.net.entropica.api.EssenceType;
-import ddraig.net.entropica.astral.Constellation;
-import ddraig.net.entropica.astral.ConstellationConnection;
-import ddraig.net.entropica.astral.ConstellationStar;
-import ddraig.net.entropica.astral.ModConstellations;
-import ddraig.net.entropica.astral.PlayerAstralProgress;
+import ddraig.net.entropica.astral.*;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -22,7 +17,7 @@ import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.Set;
 
 public class CelestialSkyRenderer {
 
@@ -88,26 +83,6 @@ public class CelestialSkyRenderer {
         emerald.add(new NebulaPuff(-7.0f, -6.0f, 24.0f, 0.15f, 0.55f, 0.85f, 0.19f));
         emerald.add(new NebulaPuff(7.0f, 7.0f, 26.0f, 0.05f, 0.8f, 0.6f, 0.20f));
         NEBULA_COMPLEXES.add(new NebulaComplex(330.0f, 45.0f, "Emerald Shroud", emerald));
-    }
-
-    // Ambient background stars cache with deterministic Essence typings
-    private static final List<float[]> SKY_STARS = new ArrayList<>();
-    static {
-        Random rng = new Random(987654L);
-        EssenceType[] essences = EssenceType.values();
-        for (int i = 0; i < 320; i++) {
-            float theta = rng.nextFloat() * 360.0f;
-            float phi = -25.0f + rng.nextFloat() * 115.0f; // -25 to +90 degrees for rich sky depth
-            float size = 0.85f + rng.nextFloat() * 1.6f;
-            EssenceType ess = essences[rng.nextInt(essences.length)];
-            float er = ess.getR() / 255.0f;
-            float eg = ess.getG() / 255.0f;
-            float eb = ess.getB() / 255.0f;
-            float r = Mth.lerp(0.55f, 0.9f, er);
-            float g = Mth.lerp(0.55f, 0.9f, eg);
-            float b = Mth.lerp(0.55f, 0.9f, eb);
-            SKY_STARS.add(new float[]{theta, phi, size, r, g, b});
-        }
     }
 
     public static void renderSky(PoseStack poseStack, Matrix4f projectionMatrix, Camera camera, float partialTick) {
@@ -185,41 +160,64 @@ public class CelestialSkyRenderer {
         bufferSource.endBatch(nebulaRenderType);
 
         // ----------------------------------------------------
-        // PASS 2: Ambient Stars & Constellation Nodes (Using STAR_TEXTURE)
+        // PASS 2: Ambient Stars, Landmarks & Constellation Nodes (Using STAR_TEXTURE)
         // ----------------------------------------------------
         VertexConsumer starConsumer = bufferSource.getBuffer(starRenderType);
 
         // A. Render Ambient Stars in Skybox
-        for (float[] s : SKY_STARS) {
-            float theta = (float) Math.toRadians(s[0]);
-            float phi = (float) Math.toRadians(s[1]);
-            float sSize = s[2];
-            float sr = s[3];
-            float sg = s[4];
-            float sb = s[5];
+        for (int i = 0; i < CelestialStarHelper.AMBIENT_STARS.size(); i++) {
+            CelestialStarHelper.AmbientStar s = CelestialStarHelper.AMBIENT_STARS.get(i);
+            float theta = (float) Math.toRadians(s.azimuth());
+            float phi = (float) Math.toRadians(s.altitude());
+            float sSize = s.size() * 0.25f;
 
             float x = skyRadius * Mth.cos(phi) * Mth.sin(theta);
             float y = skyRadius * Mth.sin(phi);
             float z = skyRadius * Mth.cos(phi) * Mth.cos(theta);
 
-            float twinkle = 0.75f + 0.25f * Mth.sin(timeAnim + s[0]);
+            float er = s.essenceType().getR() / 255.0f;
+            float eg = s.essenceType().getG() / 255.0f;
+            float eb = s.essenceType().getB() / 255.0f;
+            float sr = Mth.lerp(0.55f, 0.9f, er);
+            float sg = Mth.lerp(0.55f, 0.9f, eg);
+            float sb = Mth.lerp(0.55f, 0.9f, eb);
+
+            float twinkle = 0.75f + 0.25f * Mth.sin(timeAnim + s.azimuth());
             float a = starBrightness * twinkle * 0.85f;
 
             renderBillboardQuad(starConsumer, matrix, x, y, z, sSize, sr, sg, sb, a, light, overlay);
         }
 
-        // B. Render Constellation Star Vertices (Elevated high in circumpolar sky: 48° to 72°)
+        // B. Render Landmark Guide Stars
+        for (CelestialStarHelper.LandmarkStar ls : CelestialStarHelper.LANDMARK_STARS) {
+            float theta = (float) Math.toRadians(ls.azimuth());
+            float phi = (float) Math.toRadians(ls.altitude());
+            float sSize = Math.max(2.4f, ls.size() * 0.22f);
+
+            float x = skyRadius * Mth.cos(phi) * Mth.sin(theta);
+            float y = skyRadius * Mth.sin(phi);
+            float z = skyRadius * Mth.cos(phi) * Mth.cos(theta);
+
+            float er = ls.essenceType().getR() / 255.0f;
+            float eg = ls.essenceType().getG() / 255.0f;
+            float eb = ls.essenceType().getB() / 255.0f;
+
+            float twinkle = 0.85f + 0.15f * Mth.sin(timeAnim * 1.5f + ls.azimuth());
+            float a = starBrightness * twinkle;
+
+            renderBillboardQuad(starConsumer, matrix, x, y, z, sSize, er, eg, eb, a, light, overlay);
+        }
+
+        // C. Render Constellation Star Vertices (Declinations spanning 0° to 90°)
         int totalVisible = visibleConstellations.size();
-        List<float[][]> allConstellationWorldPositions = new ArrayList<>();
 
         for (int i = 0; i < totalVisible; i++) {
             Constellation constellation = visibleConstellations.get(i);
 
             float baseAzimuth = (float) Math.toRadians(i * (360.0f / Math.max(1, totalVisible)));
-            float baseAltitude = (float) Math.toRadians(48.0f + ((i * 17) % 24));
+            float baseAltitude = (float) Math.toRadians(8.0f + ((i * 19.5f) % 76.0f));
 
             List<ConstellationStar> stars = constellation.getStars();
-            float[][] starWorldPos = new float[stars.size()][3];
             boolean isDiscovered = PlayerAstralProgress.isDiscovered(player, constellation);
 
             float er = constellation.getEssenceType().getR() / 255.0f;
@@ -229,15 +227,11 @@ public class CelestialSkyRenderer {
             for (int s = 0; s < stars.size(); s++) {
                 ConstellationStar star = stars.get(s);
                 float starAzimuth = baseAzimuth + (float) Math.toRadians((50.0f - star.x()) * 0.28f);
-                float starAltitude = baseAltitude + (float) Math.toRadians((star.y() - 50.0f) * 0.28f);
+                float starAltitude = Mth.clamp(baseAltitude + (float) Math.toRadians((star.y() - 50.0f) * 0.28f), 0.0f, (float) Math.toRadians(90.0f));
 
                 float x = skyRadius * Mth.cos(starAltitude) * Mth.sin(starAzimuth);
                 float y = skyRadius * Mth.sin(starAltitude);
                 float z = skyRadius * Mth.cos(starAltitude) * Mth.cos(starAzimuth);
-
-                starWorldPos[s][0] = x;
-                starWorldPos[s][1] = y;
-                starWorldPos[s][2] = z;
 
                 int rgb = star.spectralClass().getColorRgb();
                 float specR = ((rgb >> 16) & 0xFF) / 255.0f;
@@ -254,42 +248,37 @@ public class CelestialSkyRenderer {
 
                 renderBillboardQuad(starConsumer, matrix, x, y, z, starSize, r, g, b, alpha, light, overlay);
             }
-
-            allConstellationWorldPositions.add(starWorldPos);
         }
 
         bufferSource.endBatch(starRenderType);
 
         // ----------------------------------------------------
-        // PASS 3: Single Clean, Tangent-Aligned Constellation Starlight Lines
+        // PASS 3: Render ALL Charted Star Connections & Constellation Lines in Skybox
         // ----------------------------------------------------
         VertexConsumer lineConsumer = bufferSource.getBuffer(lineRenderType);
 
-        for (int i = 0; i < totalVisible; i++) {
-            Constellation constellation = visibleConstellations.get(i);
-            boolean isDiscovered = PlayerAstralProgress.isDiscovered(player, constellation);
+        Set<String> chartedEdges = PlayerAstralProgress.getChartedConnections(player);
 
-            if (isDiscovered) {
-                float er = constellation.getEssenceType().getR() / 255.0f;
-                float eg = constellation.getEssenceType().getG() / 255.0f;
-                float eb = constellation.getEssenceType().getB() / 255.0f;
+        for (String edge : chartedEdges) {
+            String[] parts = edge.split("---");
+            if (parts.length == 2) {
+                CelestialStarHelper.StarSkyPos p1 = CelestialStarHelper.getStarSkyPositionAndColor(parts[0], visibleConstellations);
+                CelestialStarHelper.StarSkyPos p2 = CelestialStarHelper.getStarSkyPositionAndColor(parts[1], visibleConstellations);
 
-                float[][] starWorldPos = allConstellationWorldPositions.get(i);
-                List<ConstellationStar> stars = constellation.getStars();
+                if (p1 != null && p2 != null) {
+                    float x1 = skyRadius * Mth.cos(p1.altitudeRad()) * Mth.sin(p1.azimuthRad());
+                    float y1 = skyRadius * Mth.sin(p1.altitudeRad());
+                    float z1 = skyRadius * Mth.cos(p1.altitudeRad()) * Mth.cos(p1.azimuthRad());
 
-                for (ConstellationConnection conn : constellation.getConnections()) {
-                    if (conn.fromIndex() < stars.size() && conn.toIndex() < stars.size()) {
-                        float x1 = starWorldPos[conn.fromIndex()][0];
-                        float y1 = starWorldPos[conn.fromIndex()][1];
-                        float z1 = starWorldPos[conn.fromIndex()][2];
+                    float x2 = skyRadius * Mth.cos(p2.altitudeRad()) * Mth.sin(p2.azimuthRad());
+                    float y2 = skyRadius * Mth.sin(p2.altitudeRad());
+                    float z2 = skyRadius * Mth.cos(p2.altitudeRad()) * Mth.cos(p2.azimuthRad());
 
-                        float x2 = starWorldPos[conn.toIndex()][0];
-                        float y2 = starWorldPos[conn.toIndex()][1];
-                        float z2 = starWorldPos[conn.toIndex()][2];
+                    float r = (p1.r() + p2.r()) * 0.5f;
+                    float g = (p1.g() + p2.g()) * 0.5f;
+                    float b = (p1.b() + p2.b()) * 0.5f;
 
-                        // Single crisp, spherical-tangent starlight beam
-                        renderSphericalLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.55f, er, eg, eb, starBrightness * 0.85f, light, overlay);
-                    }
+                    renderSphericalLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.55f, r, g, b, starBrightness * 0.85f, light, overlay);
                 }
             }
         }

@@ -65,6 +65,13 @@ public class ModNetwork {
                 AstralLensAimPayload.STREAM_CODEC,
                 ModNetwork::handleAstralLensAim
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                SyncChartedConnectionsPayload.TYPE,
+                SyncChartedConnectionsPayload.STREAM_CODEC,
+                ModNetwork::handleSyncChartedConnections
+        );
     }
 
     public static void handleGeneratorScroll(final GeneratorScrollPayload data, final NetworkManager.PacketContext context) {
@@ -180,6 +187,21 @@ public class ModNetwork {
                 BlockEntity be = player.level().getBlockEntity(data.pos());
                 if (be instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity lens) {
                     lens.setFocus(data.yaw(), data.pitch(), data.targetName(), data.isFocused());
+                }
+            }
+        });
+    }
+
+    public static void handleSyncChartedConnections(final SyncChartedConnectionsPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null) {
+                if (data.isClear()) {
+                    ddraig.net.entropica.astral.PlayerAstralProgress.clearChartedConnections(player);
+                } else if (data.edges() != null) {
+                    for (String edge : data.edges()) {
+                        ddraig.net.entropica.astral.PlayerAstralProgress.addChartedConnection(player, edge);
+                    }
                 }
             }
         });
