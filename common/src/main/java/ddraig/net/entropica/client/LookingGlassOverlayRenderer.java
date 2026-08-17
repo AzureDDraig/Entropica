@@ -26,10 +26,20 @@ public class LookingGlassOverlayRenderer {
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
 
-        // 1. Draw Brass Reticle Overlay (Centered square filling screen)
-        int size = Math.max(screenWidth, screenHeight);
+        // 1. Draw Brass Reticle Overlay (Strict 1:1 Aspect Ratio + Letterbox Black Bars)
+        int size = Math.min(screenWidth, screenHeight);
         int x = (screenWidth - size) / 2;
         int y = (screenHeight - size) / 2;
+
+        // Fill surrounding space outside the telescope circular aperture with solid black mask
+        if (x > 0) {
+            guiGraphics.fill(0, 0, x, screenHeight, 0xFF000000);
+            guiGraphics.fill(x + size, 0, screenWidth, screenHeight, 0xFF000000);
+        }
+        if (y > 0) {
+            guiGraphics.fill(0, 0, screenWidth, y, 0xFF000000);
+            guiGraphics.fill(0, y + size, screenWidth, screenHeight, 0xFF000000);
+        }
 
         guiGraphics.blit(OVERLAY_TEXTURE, x, y, size, size, 0.0f, 1.0f, 0.0f, 1.0f);
 

@@ -33,6 +33,8 @@
   - Updated notes in the Entropica OKF Obsidian Vault (`astral_workstations_and_optics.md`).
 - **Astronomical Discovery & Looking Glass Zoom Engine**:
   - Implemented authentic $10\times$ telescope magnification zoom ($0.1\times$ FOV) when scoping with the **Looking Glass** and **Astrolabe** across both Fabric (via `AbstractClientPlayerMixin`) and NeoForge (via `ViewportEvent.ComputeFov`).
+  - Fixed looking glass overlay distortion: Constrained overlay rendering in `LookingGlassOverlayRenderer.java` to a strict $1:1$ circular aspect ratio (`Math.min(width, height)`) with surrounding solid black letterboxing/pillarboxing masks, eliminating vertical stretching on widescreen displays.
+  - Implemented Astral Sorcery-style smooth telescope camera panning via `MouseHandlerMixin.java`: Damped raw accumulated mouse turn deltas by $85\%$ (`accumulatedDX/DY *= 0.15`) while scoping, preventing twitchy hypersensitive mouse movement at $10\times$ magnification.
   - Fixed constellation discovery assumptions:
     - Undiscovered constellations in the night sky now appear strictly as natural celestial star clusters/vertices with spectral class tints, hiding all connecting lines and traveling stardust pulse beads until charted.
     - Updated `LookingGlassOverlayRenderer.java` HUD to mask names of uncharted constellations (`"Uncharted Stellar Cluster"` + spectral resonance frequency hint) without spoiling constellation identities.
