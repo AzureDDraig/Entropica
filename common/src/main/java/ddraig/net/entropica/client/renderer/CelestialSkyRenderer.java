@@ -260,27 +260,29 @@ public class CelestialSkyRenderer {
         Set<String> chartedEdges = PlayerAstralProgress.getChartedConnections(player);
 
         for (String edge : chartedEdges) {
-            String[] parts = edge.split("---");
-            if (parts.length == 2) {
-                CelestialStarHelper.StarSkyPos p1 = CelestialStarHelper.getStarSkyPositionAndColor(parts[0], visibleConstellations);
-                CelestialStarHelper.StarSkyPos p2 = CelestialStarHelper.getStarSkyPositionAndColor(parts[1], visibleConstellations);
+            try {
+                String[] parts = edge.split("---");
+                if (parts.length == 2) {
+                    CelestialStarHelper.StarSkyPos p1 = CelestialStarHelper.getStarSkyPositionAndColor(parts[0], visibleConstellations);
+                    CelestialStarHelper.StarSkyPos p2 = CelestialStarHelper.getStarSkyPositionAndColor(parts[1], visibleConstellations);
 
-                if (p1 != null && p2 != null) {
-                    float x1 = skyRadius * Mth.cos(p1.altitudeRad()) * Mth.sin(p1.azimuthRad());
-                    float y1 = skyRadius * Mth.sin(p1.altitudeRad());
-                    float z1 = skyRadius * Mth.cos(p1.altitudeRad()) * Mth.cos(p1.azimuthRad());
+                    if (p1 != null && p2 != null) {
+                        float x1 = skyRadius * Mth.cos(p1.altitudeRad()) * Mth.sin(p1.azimuthRad());
+                        float y1 = skyRadius * Mth.sin(p1.altitudeRad());
+                        float z1 = skyRadius * Mth.cos(p1.altitudeRad()) * Mth.cos(p1.azimuthRad());
 
-                    float x2 = skyRadius * Mth.cos(p2.altitudeRad()) * Mth.sin(p2.azimuthRad());
-                    float y2 = skyRadius * Mth.sin(p2.altitudeRad());
-                    float z2 = skyRadius * Mth.cos(p2.altitudeRad()) * Mth.cos(p2.azimuthRad());
+                        float x2 = skyRadius * Mth.cos(p2.altitudeRad()) * Mth.sin(p2.azimuthRad());
+                        float y2 = skyRadius * Mth.sin(p2.altitudeRad());
+                        float z2 = skyRadius * Mth.cos(p2.altitudeRad()) * Mth.cos(p2.azimuthRad());
 
-                    float r = (p1.r() + p2.r()) * 0.5f;
-                    float g = (p1.g() + p2.g()) * 0.5f;
-                    float b = (p1.b() + p2.b()) * 0.5f;
+                        float r = (p1.r() + p2.r()) * 0.5f;
+                        float g = (p1.g() + p2.g()) * 0.5f;
+                        float b = (p1.b() + p2.b()) * 0.5f;
 
-                    renderSphericalLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.55f, r, g, b, starBrightness * 0.85f, light, overlay);
+                        renderSphericalLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.55f, r, g, b, starBrightness * 0.85f, light, overlay);
+                    }
                 }
-            }
+            } catch (Exception ignored) {}
         }
 
         bufferSource.endBatch(lineRenderType);

@@ -49,52 +49,60 @@ public class CelestialStarHelper {
         if (starNodeId == null || starNodeId.isEmpty()) return null;
 
         if (starNodeId.startsWith("c:")) {
-            // Constellation Star Node: c:<constellation_id>:<star_index>
-            String[] parts = starNodeId.split(":");
-            if (parts.length >= 3) {
-                ResourceLocation cId = ResourceLocation.tryParse(parts[1]);
-                int starIdx = Integer.parseInt(parts[2]);
+            // Constellation Star Node format: c:<namespace:path>:<star_index>
+            try {
+                int firstColon = starNodeId.indexOf(':');
+                int lastColon = starNodeId.lastIndexOf(':');
+                if (firstColon >= 0 && lastColon > firstColon) {
+                    String resLocStr = starNodeId.substring(firstColon + 1, lastColon);
+                    int starIdx = Integer.parseInt(starNodeId.substring(lastColon + 1));
+                    ResourceLocation cId = ResourceLocation.tryParse(resLocStr);
 
-                Constellation found = null;
-                int totalVis = visibleConstellations.size();
-                int constIndex = 0;
-                for (int i = 0; i < totalVis; i++) {
-                    if (visibleConstellations.get(i).getId().equals(cId)) {
-                        found = visibleConstellations.get(i);
-                        constIndex = i;
-                        break;
+                    if (cId != null) {
+                        Constellation found = null;
+                        int totalVis = (visibleConstellations != null) ? visibleConstellations.size() : 0;
+                        int constIndex = 0;
+                        if (visibleConstellations != null) {
+                            for (int i = 0; i < totalVis; i++) {
+                                if (visibleConstellations.get(i).getId().equals(cId)) {
+                                    found = visibleConstellations.get(i);
+                                    constIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (found == null) {
+                            found = ModConstellations.getById(cId).orElse(null);
+                        }
+
+                        if (found != null && starIdx >= 0 && starIdx < found.getStars().size()) {
+                            ConstellationStar star = found.getStars().get(starIdx);
+                            float baseAzimuth = (float) Math.toRadians(constIndex * (360.0f / Math.max(1, totalVis)));
+                            float baseAltitude = (float) Math.toRadians(8.0f + ((constIndex * 19.5f) % 76.0f));
+
+                            float starSphereAzimuth = baseAzimuth + (float) Math.toRadians((50.0f - star.x()) * 0.28f);
+                            float starSphereAltitude = Mth.clamp(baseAltitude + (float) Math.toRadians((star.y() - 50.0f) * 0.28f), 0.0f, (float) Math.toRadians(90.0f));
+
+                            EssenceType ess = found.getEssenceType();
+                            float r = ess.getR() / 255.0f;
+                            float g = ess.getG() / 255.0f;
+                            float b = ess.getB() / 255.0f;
+                            return new StarSkyPos(starSphereAzimuth, starSphereAltitude, r, g, b);
+                        }
                     }
                 }
-
-                if (found == null) {
-                    found = ModConstellations.getById(cId).orElse(null);
-                }
-
-                if (found != null && starIdx >= 0 && starIdx < found.getStars().size()) {
-                    ConstellationStar star = found.getStars().get(starIdx);
-                    float baseAzimuth = (float) Math.toRadians(constIndex * (360.0f / Math.max(1, totalVis)));
-                    float baseAltitude = (float) Math.toRadians(8.0f + ((constIndex * 19.5f) % 76.0f));
-
-                    float starSphereAzimuth = baseAzimuth + (float) Math.toRadians((50.0f - star.x()) * 0.28f);
-                    float starSphereAltitude = Mth.clamp(baseAltitude + (float) Math.toRadians((star.y() - 50.0f) * 0.28f), 0.0f, (float) Math.toRadians(90.0f));
-
-                    EssenceType ess = found.getEssenceType();
-                    float r = ess.getR() / 255.0f;
-                    float g = ess.getG() / 255.0f;
-                    float b = ess.getB() / 255.0f;
-                    return new StarSkyPos(starSphereAzimuth, starSphereAltitude, r, g, b);
-                }
-            }
+            } catch (Exception ignored) {}
         } else if (starNodeId.startsWith("l:")) {
             // Landmark Star: l:<name>
             String name = starNodeId.substring(2);
             for (LandmarkStar ls : LANDMARK_STARS) {
-                if (ls.name.equals(name)) {
-                    float azim = (float) Math.toRadians(ls.azimuth);
-                    float alt = (float) Math.toRadians(ls.altitude);
-                    float r = ls.essenceType.getR() / 255.0f;
-                    float g = ls.essenceType.getG() / 255.0f;
-                    float b = ls.essenceType.getB() / 255.0f;
+                if (ls.name().equals(name)) {
+                    float azim = (float) Math.toRadians(ls.azimuth());
+                    float alt = (float) Math.toRadians(ls.altitude());
+                    float r = ls.essenceType().getR() / 255.0f;
+                    float g = ls.essenceType().getG() / 255.0f;
+                    float b = ls.essenceType().getB() / 255.0f;
                     return new StarSkyPos(azim, alt, r, g, b);
                 }
             }
@@ -104,11 +112,11 @@ public class CelestialStarHelper {
                 int idx = Integer.parseInt(starNodeId.substring(2));
                 if (idx >= 0 && idx < AMBIENT_STARS.size()) {
                     AmbientStar as = AMBIENT_STARS.get(idx);
-                    float azim = (float) Math.toRadians(as.azimuth);
-                    float alt = (float) Math.toRadians(as.altitude);
-                    float r = as.essenceType.getR() / 255.0f;
-                    float g = as.essenceType.getG() / 255.0f;
-                    float b = as.essenceType.getB() / 255.0f;
+                    float azim = (float) Math.toRadians(as.azimuth());
+                    float alt = (float) Math.toRadians(as.altitude());
+                    float r = as.essenceType().getR() / 255.0f;
+                    float g = as.essenceType().getG() / 255.0f;
+                    float b = as.essenceType().getB() / 255.0f;
                     return new StarSkyPos(azim, alt, r, g, b);
                 }
             } catch (Exception ignored) {}
