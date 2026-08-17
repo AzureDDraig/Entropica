@@ -42,11 +42,12 @@
   - **Organic Multi-Puff Cosmic Nebulae**:
     - Generated `nebula_puff.png` (Gaussian soft transparent radial falloff) and built 4 organic celestial cloud complexes: *Lagoon Veil* (Azure/Cyan), *Amethyst Remnant* (Violet/Magenta), *Amber Nursery* (Golden Amber/Crimson), and *Emerald Shroud* (Deep Teal/Indigo).
     - Replaced flat quad squares with overlapping billowy particle clouds rendered across both `CelestialSkyRenderer.java` and `SkyLookingGlassScreen.java`.
-  - **Universal Star Tracing Across All Stars in the Sky**:
-    - Star charting graph now treats every star in the heavens (all 240 ambient background stars, named guide beacons like Sirius/Vega, and constellation nodes) as connectable graph vertices.
-    - Players can freely draw lines between ANY stars across the entire sky dome, with constellation discovery automatically validating whenever all required star-pair edges are satisfied.
+  - **Dynamic Essence-Type Constellation Coloring & Starlight Signatures**:
+    - Synchronized all celestial rendering systems (`CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`, `ConstellationTracingScreen.java`, and `CompletedStarChartItem.java`) with the constellation's assigned `EssenceType`.
+    - Star vertices, glowing line segment halos, and traveling stardust pulse beads in the skybox are now dynamically tinted by the constellation's signature essence hue (e.g. Amber `§6` for *Resina Succini*, Vitae `§d` for *Vespa Aculeus*, Astral `§5`, Storm `§b`, etc.).
+    - Looking Glass and Tracing Screen UI banners, HUD target readouts, and Star Chart item tooltips now display the constellation name and essence in full color-coded formatting.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 27s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 30s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

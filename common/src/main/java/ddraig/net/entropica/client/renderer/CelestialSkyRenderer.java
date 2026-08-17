@@ -214,6 +214,11 @@ public class CelestialSkyRenderer {
 
             List<ConstellationStar> stars = constellation.getStars();
             float[][] starWorldPos = new float[stars.size()][3];
+            boolean isDiscovered = PlayerAstralProgress.isDiscovered(player, constellation);
+
+            float er = constellation.getEssenceType().getR() / 255.0f;
+            float eg = constellation.getEssenceType().getG() / 255.0f;
+            float eb = constellation.getEssenceType().getB() / 255.0f;
 
             for (int s = 0; s < stars.size(); s++) {
                 ConstellationStar star = stars.get(s);
@@ -229,11 +234,15 @@ public class CelestialSkyRenderer {
                 starWorldPos[s][2] = z;
 
                 int rgb = star.spectralClass().getColorRgb();
-                float r = ((rgb >> 16) & 0xFF) / 255.0f;
-                float g = ((rgb >> 8) & 0xFF) / 255.0f;
-                float b = (rgb & 0xFF) / 255.0f;
+                float specR = ((rgb >> 16) & 0xFF) / 255.0f;
+                float specG = ((rgb >> 8) & 0xFF) / 255.0f;
+                float specB = (rgb & 0xFF) / 255.0f;
 
-                float starSize = Math.max(2.2f, star.brightness() * 2.6f);
+                float r = isDiscovered ? er : Mth.lerp(0.45f, specR, er);
+                float g = isDiscovered ? eg : Mth.lerp(0.45f, specG, eg);
+                float b = isDiscovered ? eb : Mth.lerp(0.45f, specB, eb);
+
+                float starSize = Math.max(2.4f, star.brightness() * 2.8f);
                 float twinkle = 0.85f + 0.15f * Mth.sin(timeAnim * 2.0f + s * 1.5f);
                 float alpha = starBrightness * twinkle;
 
@@ -248,6 +257,10 @@ public class CelestialSkyRenderer {
             Constellation constellation = visibleConstellations.get(i);
             boolean isDiscovered = PlayerAstralProgress.isDiscovered(player, constellation);
             if (isDiscovered) {
+                float er = constellation.getEssenceType().getR() / 255.0f;
+                float eg = constellation.getEssenceType().getG() / 255.0f;
+                float eb = constellation.getEssenceType().getB() / 255.0f;
+
                 float[][] starWorldPos = allConstellationWorldPositions.get(i);
                 List<ConstellationStar> stars = constellation.getStars();
                 int edgeIndex = 0;
@@ -266,7 +279,7 @@ public class CelestialSkyRenderer {
                         float by = y1 * (1.0f - tBead) + y2 * tBead;
                         float bz = z1 * (1.0f - tBead) + z2 * tBead;
 
-                        renderBillboardQuad(starConsumer, matrix, bx, by, bz, 1.6f, 1.0f, 1.0f, 1.0f, starBrightness * 0.98f, light, overlay);
+                        renderBillboardQuad(starConsumer, matrix, bx, by, bz, 1.8f, er, eg, eb, starBrightness * 0.98f, light, overlay);
                     }
                     edgeIndex++;
                 }
@@ -285,6 +298,14 @@ public class CelestialSkyRenderer {
             boolean isDiscovered = PlayerAstralProgress.isDiscovered(player, constellation);
 
             if (isDiscovered) {
+                float er = constellation.getEssenceType().getR() / 255.0f;
+                float eg = constellation.getEssenceType().getG() / 255.0f;
+                float eb = constellation.getEssenceType().getB() / 255.0f;
+
+                float coreR = Mth.lerp(0.35f, er, 1.0f);
+                float coreG = Mth.lerp(0.35f, eg, 1.0f);
+                float coreB = Mth.lerp(0.35f, eb, 1.0f);
+
                 float[][] starWorldPos = allConstellationWorldPositions.get(i);
                 List<ConstellationStar> stars = constellation.getStars();
 
@@ -298,11 +319,11 @@ public class CelestialSkyRenderer {
                         float y2 = starWorldPos[conn.toIndex()][1];
                         float z2 = starWorldPos[conn.toIndex()][2];
 
-                        // Outer Glowing Starlight Halo (Width 1.5f, soft amber-gold)
-                        renderLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 1.5f, 1.0f, 0.75f, 0.1f, starBrightness * 0.45f, light, overlay);
+                        // Outer Glowing Starlight Halo (Width 1.7f, tinted by Essence color)
+                        renderLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 1.7f, er, eg, eb, starBrightness * 0.60f, light, overlay);
 
-                        // Inner Brilliant Starlight Beam (Width 0.7f, luminous gold-white)
-                        renderLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.7f, 1.0f, 0.95f, 0.65f, starBrightness * 0.95f, light, overlay);
+                        // Inner Brilliant Starlight Beam (Width 0.75f, luminous bright essence core)
+                        renderLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.75f, coreR, coreG, coreB, starBrightness * 0.98f, light, overlay);
                     }
                 }
             }

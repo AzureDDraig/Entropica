@@ -442,6 +442,8 @@ public class SkyLookingGlassScreen extends Screen {
                 float baseAzimuth = (float) Math.toRadians(i * (360.0f / Math.max(1, totalVisible)));
                 float baseAltitude = (float) Math.toRadians(35.0f + (float) Math.sin(i * 1.7) * 22.0f);
 
+                int essenceRgb = (constellation.getEssenceType().getR() << 16) | (constellation.getEssenceType().getG() << 8) | constellation.getEssenceType().getB();
+                int essenceColor = 0xFF000000 | essenceRgb;
                 List<ConstellationStar> stars = constellation.getStars();
 
                 for (int s = 0; s < stars.size(); s++) {
@@ -471,7 +473,7 @@ public class SkyLookingGlassScreen extends Screen {
                             this.focusedTarget = new Object[]{constellation, star};
                         }
 
-                        // Render Constellation Star Billets
+                        // Render Constellation Star Billets with Essence Glow
                         guiGraphics.pose().pushMatrix();
                         guiGraphics.pose().translate(sx, sy);
                         guiGraphics.pose().rotate((float) Math.toRadians((timeSec * 15.0f + s * 30.0f) % 360.0f));
@@ -480,8 +482,11 @@ public class SkyLookingGlassScreen extends Screen {
                         guiGraphics.blit(STAR_TEXTURE, -half, -half, half, half, 0.0f, 1.0f, 0.0f, 1.0f);
                         guiGraphics.pose().popMatrix();
 
+                        // Essence-colored outer aura circle
+                        drawCircle(guiGraphics, (int) sx, (int) sy, half + 2, essenceColor);
+
                         if (Math.hypot(mouseX - sx, mouseY - sy) <= 12.0f) {
-                            drawCircle(guiGraphics, (int) sx, (int) sy, half + 3, 0xFFFFE060);
+                            drawCircle(guiGraphics, (int) sx, (int) sy, half + 4, 0xFFFFFFFF);
                         }
                     }
                 }
@@ -503,7 +508,12 @@ public class SkyLookingGlassScreen extends Screen {
                     StarNode nodeA = onScreenStars.get(parts[0]);
                     StarNode nodeB = onScreenStars.get(parts[1]);
                     if (nodeA != null && nodeB != null) {
-                        drawLine(guiGraphics, (int) nodeA.sx(), (int) nodeA.sy(), (int) nodeB.sx(), (int) nodeB.sy(), 0xFF00F0FF);
+                        int lineColor = 0xFF00F0FF;
+                        if (nodeA.constellation() != null && nodeB.constellation() != null && nodeA.constellation().equals(nodeB.constellation())) {
+                            int essRgb = (nodeA.constellation().getEssenceType().getR() << 16) | (nodeA.constellation().getEssenceType().getG() << 8) | nodeA.constellation().getEssenceType().getB();
+                            lineColor = 0xFF000000 | essRgb;
+                        }
+                        drawLine(guiGraphics, (int) nodeA.sx(), (int) nodeA.sy(), (int) nodeB.sx(), (int) nodeB.sy(), lineColor);
                     }
                 }
             }
@@ -528,7 +538,12 @@ public class SkyLookingGlassScreen extends Screen {
                     }
                 }
 
-                drawLine(guiGraphics, (int) startX, (int) startY, (int) targetX, (int) targetY, 0xFFFFF080);
+                int dragColor = 0xFFFFF080;
+                if (startNode.constellation() != null) {
+                    int essRgb = (startNode.constellation().getEssenceType().getR() << 16) | (startNode.constellation().getEssenceType().getG() << 8) | startNode.constellation().getEssenceType().getB();
+                    dragColor = 0xFF000000 | essRgb;
+                }
+                drawLine(guiGraphics, (int) startX, (int) startY, (int) targetX, (int) targetY, dragColor);
             }
         }
 
@@ -546,12 +561,18 @@ public class SkyLookingGlassScreen extends Screen {
                 lastFocusedTarget = focusedTarget;
             }
 
+            int reticleColor = 0xFFFFD700;
+            if (focusedTarget instanceof Object[] pair && pair[0] instanceof Constellation fc) {
+                int essRgb = (fc.getEssenceType().getR() << 16) | (fc.getEssenceType().getG() << 8) | fc.getEssenceType().getB();
+                reticleColor = 0xFF000000 | essRgb;
+            }
+
             float pulseRadius = 16.0f + 2.0f * (float) Math.sin(timeSec * 8.0f);
-            drawCircle(guiGraphics, centerX, centerY, (int) pulseRadius, 0xFFFFD700);
-            guiGraphics.fill(centerX - 1, centerY - (int) pulseRadius - 4, centerX + 1, centerY - (int) pulseRadius + 2, 0xFFFFD700);
-            guiGraphics.fill(centerX - 1, centerY + (int) pulseRadius - 2, centerX + 1, centerY + (int) pulseRadius + 4, 0xFFFFD700);
-            guiGraphics.fill(centerX - (int) pulseRadius - 4, centerY - 1, centerX - (int) pulseRadius + 2, centerY + 1, 0xFFFFD700);
-            guiGraphics.fill(centerX + (int) pulseRadius - 2, centerY - 1, centerX + (int) pulseRadius + 4, centerY + 1, 0xFFFFD700);
+            drawCircle(guiGraphics, centerX, centerY, (int) pulseRadius, reticleColor);
+            guiGraphics.fill(centerX - 1, centerY - (int) pulseRadius - 4, centerX + 1, centerY - (int) pulseRadius + 2, reticleColor);
+            guiGraphics.fill(centerX - 1, centerY + (int) pulseRadius - 2, centerX + 1, centerY + (int) pulseRadius + 4, reticleColor);
+            guiGraphics.fill(centerX - (int) pulseRadius - 4, centerY - 1, centerX - (int) pulseRadius + 2, centerY + 1, reticleColor);
+            guiGraphics.fill(centerX + (int) pulseRadius - 2, centerY - 1, centerX + (int) pulseRadius + 4, centerY + 1, reticleColor);
         } else {
             lastFocusedTarget = null;
         }
@@ -582,11 +603,13 @@ public class SkyLookingGlassScreen extends Screen {
             } else if (focusedTarget instanceof Object[] pair) {
                 Constellation c = (Constellation) pair[0];
                 boolean isDisc = (player != null) && PlayerAstralProgress.isDiscovered(player, c);
+                String title = Component.translatable(c.getUnlocalizedName()).getString();
+                String essCode = c.getEssenceType().getColorCode();
+                String essFormatted = c.getEssenceType().getFormattedName();
                 if (isDisc) {
-                    String title = Component.translatable(c.getUnlocalizedName()).getString();
-                    guiGraphics.drawCenteredString(this.font, "§6✦ CONSTELLATION NODE: §a" + title + " §7[" + c.getTier().getDisplayName() + "]", centerX, centerY + 28, 0xFFFFD700);
+                    guiGraphics.drawCenteredString(this.font, "§6✦ CONSTELLATION NODE: " + essCode + title + " §7[" + c.getTier().getDisplayName() + " • " + essFormatted + "§7]", centerX, centerY + 28, 0xFFFFFFFF);
                 } else {
-                    guiGraphics.drawCenteredString(this.font, "§b✦ UNCHARTED ASTRAL RESONANCE ✦ §7[Hold Shift to Chart]", centerX, centerY + 28, 0xFF80D0FF);
+                    guiGraphics.drawCenteredString(this.font, "§b✦ UNCHARTED RESONANCE: " + essCode + "[" + essFormatted + "§7] §7• Hold Shift to Chart", centerX, centerY + 28, 0xFF80D0FF);
                 }
             }
         }
@@ -613,12 +636,15 @@ public class SkyLookingGlassScreen extends Screen {
             String title = Component.translatable(justDiscovered.getUnlocalizedName()).getString();
             int bannerY = centerY - 30;
 
+            int essRgb = (justDiscovered.getEssenceType().getR() << 16) | (justDiscovered.getEssenceType().getG() << 8) | justDiscovered.getEssenceType().getB();
+            int borderCol = 0xFF000000 | essRgb;
+
             guiGraphics.fill(centerX - 150, bannerY, centerX + 150, bannerY + 60, 0xF2101624);
-            guiGraphics.fill(centerX - 150, bannerY, centerX + 150, bannerY + 2, 0xFFFFD700);
-            guiGraphics.fill(centerX - 150, bannerY + 58, centerX + 150, bannerY + 60, 0xFFFFD700);
+            guiGraphics.fill(centerX - 150, bannerY, centerX + 150, bannerY + 2, borderCol);
+            guiGraphics.fill(centerX - 150, bannerY + 58, centerX + 150, bannerY + 60, borderCol);
 
             guiGraphics.drawCenteredString(this.font, "§6✦ CONSTELLATION DISCOVERED! ✦", centerX, bannerY + 8, 0xFFFFD700);
-            guiGraphics.drawCenteredString(this.font, "§a" + title + " §7[" + justDiscovered.getTier().getDisplayName() + "]", centerX, bannerY + 22, 0xFF80FF80);
+            guiGraphics.drawCenteredString(this.font, justDiscovered.getEssenceType().getColorCode() + title + " §7[" + justDiscovered.getTier().getDisplayName() + " • " + justDiscovered.getEssenceType().getFormattedName() + "§7]", centerX, bannerY + 22, 0xFFFFFFFF);
             guiGraphics.drawCenteredString(this.font, "§eRitual: §f" + justDiscovered.getRitualEffect(), centerX, bannerY + 36, 0xFFFFF0A0);
         }
 

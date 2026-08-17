@@ -113,12 +113,15 @@ public class ConstellationTracingScreen extends Screen {
         // Header Navigation & Title
         String rawTitle = Component.translatable(constellation.getUnlocalizedName()).getString();
         String displayTitle = (isDiscovered || isCompleted) ? rawTitle : "Uncharted Astral Signature";
+        int essRgb = (constellation.getEssenceType().getR() << 16) | (constellation.getEssenceType().getG() << 8) | constellation.getEssenceType().getB();
+        String essColorCode = constellation.getEssenceType().getColorCode();
+        String essFormatted = constellation.getEssenceType().getFormattedName();
 
         if (isDiscovered || isCompleted) {
-            guiGraphics.drawCenteredString(this.font, "§6✦ " + displayTitle + " ✦ §7[" + constellation.getTier().getDisplayName() + "]", centerX, chartY + 10, 0xFFFFD700);
+            guiGraphics.drawCenteredString(this.font, essColorCode + "✦ " + displayTitle + " ✦ §7[" + constellation.getTier().getDisplayName() + " • " + essFormatted + "§7]", centerX, chartY + 10, 0xFFFFFFFF);
             guiGraphics.drawCenteredString(this.font, "§7Chart (" + (currentConstellationIndex + 1) + "/" + availableConstellations.size() + ")  •  §bDiscovered §7•  Spectral Class: " + constellation.getPrimarySpectralClass().getTitle(), centerX, chartY + 22, 0xFFA0C0E0);
         } else {
-            guiGraphics.drawCenteredString(this.font, "§b✦ " + displayTitle + " ✦ §8[" + constellation.getTier().getDisplayName() + "]", centerX, chartY + 10, 0xFFA0D8EF);
+            guiGraphics.drawCenteredString(this.font, "§b✦ " + displayTitle + " ✦ §8[" + constellation.getTier().getDisplayName() + " • " + essFormatted + "§8]", centerX, chartY + 10, 0xFFA0D8EF);
             guiGraphics.drawCenteredString(this.font, "§7Chart (" + (currentConstellationIndex + 1) + "/" + availableConstellations.size() + ")  •  §eUncharted §7•  Spectral Class: " + constellation.getPrimarySpectralClass().getTitle(), centerX, chartY + 22, 0xFFA0C0E0);
         }
 
@@ -145,14 +148,14 @@ public class ConstellationTracingScreen extends Screen {
             float x2 = chartX + (s2.x() / 100.0f) * (chartSize - 60) + 30;
             float y2 = chartY + (s2.y() / 100.0f) * (chartSize - 80) + 40;
 
-            int lineColor = (isDiscovered || isCompleted) ? 0xFFFFE060 : 0xFF00F0FF;
+            int lineColor = (isDiscovered || isCompleted) ? (0xFF000000 | essRgb) : 0xFF00F0FF;
             drawLine(guiGraphics, (int) x1, (int) y1, (int) x2, (int) y2, lineColor);
 
             // Pulse bead traveling along line
             float tBead = ((System.currentTimeMillis() * 0.001f * 0.8f) + (edgeIdx * 0.3f)) % 1.0f;
             float bx = x1 * (1.0f - tBead) + x2 * tBead;
             float by = y1 * (1.0f - tBead) + y2 * tBead;
-            guiGraphics.fill((int) bx - 1, (int) by - 1, (int) bx + 2, (int) by + 2, 0xFFFFFFFF);
+            guiGraphics.fill((int) bx - 1, (int) by - 1, (int) bx + 2, (int) by + 2, 0xFF000000 | essRgb);
             edgeIdx++;
         }
 
@@ -179,7 +182,7 @@ public class ConstellationTracingScreen extends Screen {
                 }
             }
 
-            drawLine(guiGraphics, (int) x1, (int) y1, (int) targetX, (int) targetY, 0xFFFFF080);
+            drawLine(guiGraphics, (int) x1, (int) y1, (int) targetX, (int) targetY, 0xFF000000 | essRgb);
         }
 
         // 4. Render Star Vertices
@@ -193,8 +196,8 @@ public class ConstellationTracingScreen extends Screen {
             boolean isHovered = Math.hypot(mouseX - sx, mouseY - sy) <= 8.0f;
             int starRadius = isHovered ? 5 : 3;
 
-            // Outer glow circle
-            guiGraphics.fill((int) sx - starRadius - 1, (int) sy - starRadius - 1, (int) sx + starRadius + 1, (int) sy + starRadius + 1, 0x8800E0FF);
+            // Outer glow circle tinted by essence
+            guiGraphics.fill((int) sx - starRadius - 1, (int) sy - starRadius - 1, (int) sx + starRadius + 1, (int) sy + starRadius + 1, (0x88 << 24) | essRgb);
             // Center star node
             guiGraphics.fill((int) sx - starRadius, (int) sy - starRadius, (int) sx + starRadius, (int) sy + starRadius, color);
         }
@@ -209,11 +212,11 @@ public class ConstellationTracingScreen extends Screen {
         // 5. Completion / Discovery Banner
         if (isCompleted) {
             guiGraphics.fill(centerX - 140, centerY - 30, centerX + 140, centerY + 30, 0xF5101624);
-            guiGraphics.fill(centerX - 140, centerY - 30, centerX + 140, centerY - 28, 0xFFFFD700);
-            guiGraphics.fill(centerX - 140, centerY + 28, centerX + 140, centerY + 30, 0xFFFFD700);
+            guiGraphics.fill(centerX - 140, centerY - 30, centerX + 140, centerY - 28, 0xFF000000 | essRgb);
+            guiGraphics.fill(centerX - 140, centerY + 28, centerX + 140, centerY + 30, 0xFF000000 | essRgb);
 
             guiGraphics.drawCenteredString(this.font, "§6✦ CONSTELLATION CHARTED! ✦", centerX, centerY - 16, 0xFFFFD700);
-            guiGraphics.drawCenteredString(this.font, "§a" + rawTitle + " Scribed & Ignited in the Heavens", centerX, centerY - 3, 0xFF80FF80);
+            guiGraphics.drawCenteredString(this.font, essColorCode + rawTitle + " §7Scribed & Ignited in the Heavens", centerX, centerY - 3, 0xFFFFFFFF);
             guiGraphics.drawCenteredString(this.font, "§7[Press ESC to close or < / > to view other stars]", centerX, centerY + 12, 0xFFA0A0A0);
         }
     }
