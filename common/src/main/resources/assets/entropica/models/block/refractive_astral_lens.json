@@ -1,0 +1,204 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Entropica Astral Materia Suite - High-Precision Sub-Pixel Specification",
+	"textures": {
+		"particle": "entropica:Model Planning/Entropica Models/complete/refractive_astral_lens/refractive_astral_lens_base",
+		"base": "entropica:Model Planning/Entropica Models/complete/refractive_astral_lens/refractive_astral_lens_base",
+		"brass": "entropica:Model Planning/Entropica Models/complete/refractive_astral_lens/refractive_astral_lens_brass",
+		"ring": "entropica:Model Planning/Entropica Models/complete/refractive_astral_lens/refractive_astral_lens_ring",
+		"lens": "entropica:Model Planning/Entropica Models/complete/refractive_astral_lens/refractive_astral_lens"
+	},
+	"elements": [
+		{
+			"name": "Lens Bezel Top Bar",
+			"from": [4, 12, 7.25],
+			"to": [12, 13, 8.75],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9, 8]},
+			"faces": {
+				"north": {"uv": [4, 0, 12, 1], "texture": "#ring"},
+				"east": {"uv": [7.25, 0, 8.75, 1], "texture": "#ring"},
+				"south": {"uv": [4, 0, 12, 1], "texture": "#ring"},
+				"west": {"uv": [7.25, 0, 8.75, 1], "texture": "#ring"},
+				"up": {"uv": [4, 7.25, 12, 8.75], "texture": "#ring"},
+				"down": {"uv": [4, 7.25, 12, 8.75], "texture": "#ring"}
+			}
+		},
+		{
+			"name": "Lens Bezel Bottom Bar",
+			"from": [4, 5, 7.25],
+			"to": [12, 6, 8.75],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9, 8]},
+			"faces": {
+				"north": {"uv": [4, 2, 12, 3], "texture": "#ring"},
+				"east": {"uv": [7.25, 2, 8.75, 3], "texture": "#ring"},
+				"south": {"uv": [4, 2, 12, 3], "texture": "#ring"},
+				"west": {"uv": [7.25, 2, 8.75, 3], "texture": "#ring"},
+				"up": {"uv": [4, 7.25, 12, 8.75], "texture": "#ring"},
+				"down": {"uv": [4, 7.25, 12, 8.75], "texture": "#ring"}
+			}
+		},
+		{
+			"name": "Lens Bezel Left Bar",
+			"from": [4, 6, 7.25],
+			"to": [5, 12, 8.75],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9, 8]},
+			"faces": {
+				"north": {"uv": [4, 4, 5, 10], "texture": "#ring"},
+				"east": {"uv": [7.25, 4, 8.75, 10], "texture": "#ring"},
+				"south": {"uv": [4, 4, 5, 10], "texture": "#ring"},
+				"west": {"uv": [7.25, 4, 8.75, 10], "texture": "#ring"},
+				"up": {"uv": [4, 7.25, 5, 8.75], "texture": "#ring"},
+				"down": {"uv": [4, 7.25, 5, 8.75], "texture": "#ring"}
+			}
+		},
+		{
+			"name": "Lens Bezel Right Bar",
+			"from": [11, 6, 7.25],
+			"to": [12, 12, 8.75],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9, 8]},
+			"faces": {
+				"north": {"uv": [11, 4, 12, 10], "texture": "#ring"},
+				"east": {"uv": [7.25, 4, 8.75, 10], "texture": "#ring"},
+				"south": {"uv": [11, 4, 12, 10], "texture": "#ring"},
+				"west": {"uv": [7.25, 4, 8.75, 10], "texture": "#ring"},
+				"up": {"uv": [11, 7.25, 12, 8.75], "texture": "#ring"},
+				"down": {"uv": [11, 7.25, 12, 8.75], "texture": "#ring"}
+			}
+		},
+		{
+			"name": "Convex Starlight Quartz Lens Disc",
+			"from": [5, 6, 7.5],
+			"to": [11, 12, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9, 8]},
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#lens"},
+				"east": {"uv": [7.5, 6, 8.5, 12], "texture": "#lens"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#lens"},
+				"west": {"uv": [7.5, 6, 8.5, 12], "texture": "#lens"},
+				"up": {"uv": [5, 7.5, 11, 8.5], "texture": "#lens"},
+				"down": {"uv": [5, 7.5, 11, 8.5], "texture": "#lens"}
+			}
+		},
+		{
+			"name": "Swivel Stem",
+			"from": [6, 2, 6],
+			"to": [10, 4, 10],
+			"faces": {
+				"north": {"uv": [6, 12, 10, 14], "texture": "#brass"},
+				"east": {"uv": [6, 12, 10, 14], "texture": "#brass"},
+				"south": {"uv": [6, 12, 10, 14], "texture": "#brass"},
+				"west": {"uv": [6, 12, 10, 14], "texture": "#brass"},
+				"up": {"uv": [6, 6, 10, 10], "texture": "#brass"},
+				"down": {"uv": [6, 6, 10, 10], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Yoke Bottom Bridge",
+			"from": [3, 4, 7],
+			"to": [13, 5, 9],
+			"faces": {
+				"north": {"uv": [3, 11, 13, 12], "texture": "#brass"},
+				"east": {"uv": [7, 11, 9, 12], "texture": "#brass"},
+				"south": {"uv": [3, 11, 13, 12], "texture": "#brass"},
+				"west": {"uv": [7, 11, 9, 12], "texture": "#brass"},
+				"up": {"uv": [3, 7, 13, 9], "texture": "#brass"},
+				"down": {"uv": [3, 7, 13, 9], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Yoke Arm Left",
+			"from": [2, 5, 7],
+			"to": [4, 13, 9],
+			"faces": {
+				"north": {"uv": [2, 5, 4, 13], "texture": "#brass"},
+				"east": {"uv": [7, 5, 9, 13], "texture": "#brass"},
+				"south": {"uv": [2, 5, 4, 13], "texture": "#brass"},
+				"west": {"uv": [7, 5, 9, 13], "texture": "#brass"},
+				"up": {"uv": [2, 7, 4, 9], "texture": "#brass"},
+				"down": {"uv": [2, 7, 4, 9], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Yoke Arm Right",
+			"from": [12, 5, 7],
+			"to": [14, 13, 9],
+			"faces": {
+				"north": {"uv": [12, 5, 14, 13], "texture": "#brass"},
+				"east": {"uv": [7, 5, 9, 13], "texture": "#brass"},
+				"south": {"uv": [12, 5, 14, 13], "texture": "#brass"},
+				"west": {"uv": [7, 5, 9, 13], "texture": "#brass"},
+				"up": {"uv": [12, 7, 14, 9], "texture": "#brass"},
+				"down": {"uv": [12, 7, 14, 9], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Pivot Thumbscrew Left",
+			"from": [1.25, 8.5, 7.5],
+			"to": [2, 9.5, 8.5],
+			"faces": {
+				"north": {"uv": [0, 0, 1, 1], "texture": "#brass"},
+				"south": {"uv": [0, 0, 1, 1], "texture": "#brass"},
+				"west": {"uv": [0, 0, 1, 1], "texture": "#brass"},
+				"up": {"uv": [0, 0, 1, 1], "texture": "#brass"},
+				"down": {"uv": [0, 0, 1, 1], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Pivot Thumbscrew Right",
+			"from": [14, 8.5, 7.5],
+			"to": [14.75, 9.5, 8.5],
+			"faces": {
+				"north": {"uv": [0, 0, 1, 1], "texture": "#brass"},
+				"east": {"uv": [0, 0, 1, 1], "texture": "#brass"},
+				"south": {"uv": [0, 0, 1, 1], "texture": "#brass"},
+				"up": {"uv": [0, 0, 1, 1], "texture": "#brass"},
+				"down": {"uv": [0, 0, 1, 1], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Pedestal Base",
+			"from": [3, 0, 3],
+			"to": [13, 2, 13],
+			"faces": {
+				"north": {"uv": [3, 14, 13, 16], "texture": "#brass"},
+				"east": {"uv": [3, 14, 13, 16], "texture": "#brass"},
+				"south": {"uv": [3, 14, 13, 16], "texture": "#brass"},
+				"west": {"uv": [3, 14, 13, 16], "texture": "#brass"},
+				"up": {"uv": [3, 3, 13, 13], "texture": "#base"},
+				"down": {"uv": [3, 3, 13, 13], "texture": "#brass", "cullface": "down"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "base",
+			"origin": [8, 0, 8],
+			"scope": 0,
+			"color": 0,
+			"children": [
+				{
+					"name": "azimuth_yoke",
+					"origin": [8, 2, 8],
+					"scope": 0,
+					"color": 0,
+					"children": [
+						{
+							"name": "elevation_lens",
+							"origin": [8, 9, 8],
+							"scope": 0,
+							"color": 0,
+							"children": [0, 1, 2, 3, 4]
+						},
+						5,
+						6,
+						7,
+						8,
+						9,
+						10
+					]
+				},
+				11
+			]
+		}
+	]
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "#  ",
+    "## ",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "entropica:astral_marble"
+    }
+  },
+  "result": {
+    "id": "entropica:astral_marble_stairs",
+    "count": 4
+  }
+}

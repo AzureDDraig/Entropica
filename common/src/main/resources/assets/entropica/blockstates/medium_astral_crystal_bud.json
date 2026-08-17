@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "entropica:block/medium_astral_crystal_bud"
+    },
+    "facing=down": {
+      "model": "entropica:block/medium_astral_crystal_bud",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "entropica:block/medium_astral_crystal_bud",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "entropica:block/medium_astral_crystal_bud",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "entropica:block/medium_astral_crystal_bud",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "entropica:block/medium_astral_crystal_bud",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

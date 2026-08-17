@@ -1,0 +1,124 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Entropica Astral Materia Suite - High-Precision Sub-Pixel Specification",
+	"textures": {
+		"base": "Model Planning/Entropica Models/complete/beam_splitter_prism/beam_splitter_prism_base",
+		"dial": "Model Planning/Entropica Models/complete/beam_splitter_prism/beam_splitter_prism_dial",
+		"brass": "Model Planning/Entropica Models/complete/beam_splitter_prism/beam_splitter_prism_brass",
+		"crystal": "Model Planning/Entropica Models/complete/beam_splitter_prism/beam_splitter_prism_crystal"
+	},
+	"elements": [
+		{
+			"name": "Prism Mounting Turntable Ring",
+			"from": [2.5, 2.5, 2.5],
+			"to": [13.5, 4, 13.5],
+			"faces": {
+				"north": {"uv": [2.5, 14.5, 13.5, 16], "texture": "#brass"},
+				"east": {"uv": [2.5, 14.5, 13.5, 16], "texture": "#brass"},
+				"south": {"uv": [2.5, 14.5, 13.5, 16], "texture": "#brass"},
+				"west": {"uv": [2.5, 14.5, 13.5, 16], "texture": "#brass"},
+				"up": {"uv": [2.5, 2.5, 13.5, 13.5], "texture": "#dial"},
+				"down": {"uv": [2.5, 2.5, 13.5, 13.5], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Refractive Starlight Splitter Prism (Pre-Rotated 45.0 deg on Y-axis)",
+			"from": [4.5, 4, 4.5],
+			"to": [11.5, 14.5, 11.5],
+			"rotation": {"angle": 45, "axis": "y", "origin": [8, 9.25, 8]},
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#crystal"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#crystal"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#crystal"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#crystal"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#crystal"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#crystal"}
+			}
+		},
+		{
+			"name": "Brass Clamping Clip NW",
+			"from": [3.5, 3.5, 3.5],
+			"to": [5.5, 8, 5.5],
+			"faces": {
+				"north": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"east": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"south": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"west": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"up": {"uv": [2, 2, 6, 6], "texture": "#brass"},
+				"down": {"uv": [2, 2, 6, 6], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Brass Clamping Clip NE",
+			"from": [10.5, 3.5, 3.5],
+			"to": [12.5, 8, 5.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9.25, 8]},
+			"faces": {
+				"north": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"east": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"south": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"west": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"up": {"uv": [2, 2, 6, 6], "texture": "#brass"},
+				"down": {"uv": [2, 2, 6, 6], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Brass Clamping Clip SW",
+			"from": [3.5, 3.5, 10.5],
+			"to": [5.5, 8, 12.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9.25, 8]},
+			"faces": {
+				"north": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"east": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"south": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"west": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"up": {"uv": [2, 2, 6, 6], "texture": "#brass"},
+				"down": {"uv": [2, 2, 6, 6], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Brass Clamping Clip SE",
+			"from": [10.5, 3.5, 10.5],
+			"to": [12.5, 8, 12.5],
+			"faces": {
+				"north": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"east": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"south": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"west": {"uv": [0, 4, 16, 12], "texture": "#brass"},
+				"up": {"uv": [2, 2, 6, 6], "texture": "#brass"},
+				"down": {"uv": [2, 2, 6, 6], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Arcanite Base Plinth",
+			"from": [1, 0, 1],
+			"to": [15, 2.5, 15],
+			"faces": {
+				"north": {"uv": [1, 13.5, 15, 16], "texture": "#base"},
+				"east": {"uv": [1, 13.5, 15, 16], "texture": "#base"},
+				"south": {"uv": [1, 13.5, 15, 16], "texture": "#base"},
+				"west": {"uv": [1, 13.5, 15, 16], "texture": "#base"},
+				"up": {"uv": [1, 1, 15, 15], "texture": "#base"},
+				"down": {"uv": [1, 1, 15, 15], "texture": "#base", "cullface": "down"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "base",
+			"origin": [8, 0, 8],
+			"scope": 0,
+			"color": 0,
+			"children": [
+				{
+					"name": "turntable_prism",
+					"origin": [8, 2.5, 8],
+					"scope": 0,
+					"color": 0,
+					"children": [0, 1, 2, 3, 4, 5]
+				},
+				6
+			]
+		}
+	]
+}

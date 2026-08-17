@@ -145,8 +145,21 @@ public class ModCreativeTabs {
                 output.accept(ModItems.ADVANCED_CHALK.get());
                 output.accept(ModItems.ADVANCED_DULL_CHALK.get());
                 output.accept(ModItems.ADVANCED_CONDUCTIVE_CHALK.get());
-                output.accept(ModItems.ADVANCED_RESONANT_CHALK.get());
                 output.accept(ModItems.ADVANCED_EIDOLIC_CHALK.get());
+                // Astral Materia Instruments, Tools & Baubles
+                output.accept(ModItems.LOOKING_GLASS.get());
+                output.accept(ModItems.ASTROLABE.get());
+                output.accept(ModItems.DRAFTING_COMPASS.get());
+                output.accept(ModItems.STAR_CHART_BLANK.get());
+                output.accept(ModItems.STAR_CHART_COMPLETED.get());
+                output.accept(ModItems.ASTRAL_LINKING_WAND.get());
+                output.accept(ModItems.MORTAR_AND_PESTLE.get());
+                output.accept(ModItems.CRYSTAL_PICKAXE.get());
+                output.accept(ModItems.CRYSTAL_AXE.get());
+                output.accept(ModItems.CRYSTAL_SHOVEL.get());
+                output.accept(ModItems.DRAINED_CRYSTAL_TOOL.get());
+                output.accept(ModItems.RESPLENDENT_PRISM.get());
+                output.accept(ModItems.MANTLE_OF_THE_STARS.get());
             }).build());
 
     public static final RegistrySupplier<CreativeModeTab> WEAPON_CRAFTING_TAB = CREATIVE_MODE_TABS.register("weapon_crafting_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 4)
@@ -227,6 +240,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.OBLIVION_BLADE.get());
                 output.accept(ModItems.TIDAL_TRIDENT.get());
                 output.accept(ModItems.VOID_SWORD.get());
+                output.accept(ModItems.CRYSTAL_SWORD.get());
             }).build());
 
     public static final RegistrySupplier<CreativeModeTab> LOGISTICS_TAB = CREATIVE_MODE_TABS.register("logistics_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 6)

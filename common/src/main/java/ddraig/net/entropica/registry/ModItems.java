@@ -1093,4 +1093,67 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> SILVER_PINE_BARREL = ITEMS.registerItem("silver_pine_barrel", props -> new BlockItem(ModBlocks.SILVER_PINE_BARREL.get(), props));
     public static final RegistrySupplier<Item> MATERIA_ECHO_BARREL = ITEMS.registerItem("materia_echo_barrel", props -> new BlockItem(ModBlocks.MATERIA_ECHO_BARREL.get(), props));
 
+
+    // ==========================================
+    // ASTRAL MATERIA & CELESTIAL SUITE ITEMS
+    // ==========================================
+    // BlockItems
+    public static final RegistrySupplier<Item> ASTRAL_MARBLE_ITEM = ITEMS.registerItem("astral_marble", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_MARBLE.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_MARBLE_BRICKS_ITEM = ITEMS.registerItem("astral_marble_bricks", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_MARBLE_BRICKS.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_MARBLE_SLAB_ITEM = ITEMS.registerItem("astral_marble_slab", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_MARBLE_SLAB.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_MARBLE_STAIRS_ITEM = ITEMS.registerItem("astral_marble_stairs", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_MARBLE_STAIRS.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_MARBLE_WALL_ITEM = ITEMS.registerItem("astral_marble_wall", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_MARBLE_WALL.get(), properties));
+    public static final RegistrySupplier<Item> SOOTY_MARBLE_ITEM = ITEMS.registerItem("sooty_marble", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.SOOTY_MARBLE.get(), properties));
+    public static final RegistrySupplier<Item> RUNED_ASTRAL_MARBLE_ITEM = ITEMS.registerItem("runed_astral_marble", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.RUNED_ASTRAL_MARBLE.get(), properties));
+    public static final RegistrySupplier<Item> ENGRAVED_ASTRAL_SLATE_ITEM = ITEMS.registerItem("engraved_astral_slate", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ENGRAVED_ASTRAL_SLATE.get(), properties));
+    public static final RegistrySupplier<Item> CHISELED_ASTRAL_MARBLE_ITEM = ITEMS.registerItem("chiseled_astral_marble", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.CHISELED_ASTRAL_MARBLE.get(), properties));
+    public static final RegistrySupplier<Item> STARLIGHT_PILLAR_ITEM = ITEMS.registerItem("starlight_pillar", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.STARLIGHT_PILLAR.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_MIRROR_BLOCK_ITEM = ITEMS.registerItem("astral_mirror_block", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_MIRROR_BLOCK.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_IMPACTITE_ITEM = ITEMS.registerItem("astral_impactite", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_IMPACTITE.get(), properties));
+    public static final RegistrySupplier<Item> BUDDING_ASTRAL_IMPACTITE_ITEM = ITEMS.registerItem("budding_astral_impactite", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.BUDDING_ASTRAL_IMPACTITE.get(), properties));
+    public static final RegistrySupplier<Item> SMALL_ASTRAL_CRYSTAL_BUD_ITEM = ITEMS.registerItem("small_astral_crystal_bud", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.SMALL_ASTRAL_CRYSTAL_BUD.get(), properties));
+    public static final RegistrySupplier<Item> MEDIUM_ASTRAL_CRYSTAL_BUD_ITEM = ITEMS.registerItem("medium_astral_crystal_bud", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.MEDIUM_ASTRAL_CRYSTAL_BUD.get(), properties));
+    public static final RegistrySupplier<Item> LARGE_ASTRAL_CRYSTAL_BUD_ITEM = ITEMS.registerItem("large_astral_crystal_bud", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.LARGE_ASTRAL_CRYSTAL_BUD.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_CRYSTAL_CLUSTER_ITEM = ITEMS.registerItem("astral_crystal_cluster", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_CRYSTAL_CLUSTER.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_CRYSTAL_BLOCK_ITEM = ITEMS.registerItem("astral_crystal_block", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_CRYSTAL_BLOCK.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_ALTAR_CORE_ITEM = ITEMS.registerItem("astral_altar_core", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_ALTAR_CORE.get(), properties));
+    public static final RegistrySupplier<Item> RESONANCE_PYLON_ITEM = ITEMS.registerItem("resonance_pylon", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.RESONANCE_PYLON.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_PEDESTAL_ITEM = ITEMS.registerItem("astral_pedestal", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_PEDESTAL.get(), properties));
+    public static final RegistrySupplier<Item> FOCAL_LENS_MOUNT_ITEM = ITEMS.registerItem("focal_lens_mount", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.FOCAL_LENS_MOUNT.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_INFUSION_PEDESTAL_ITEM = ITEMS.registerItem("astral_infusion_pedestal", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_INFUSION_PEDESTAL.get(), properties));
+    public static final RegistrySupplier<Item> ASTRAL_COLLECTOR_ITEM = ITEMS.registerItem("astral_collector", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ASTRAL_COLLECTOR.get(), properties));
+    public static final RegistrySupplier<Item> CELESTIAL_BEACON_CONTROLLER_ITEM = ITEMS.registerItem("celestial_beacon_controller", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.CELESTIAL_BEACON_CONTROLLER.get(), properties));
+    public static final RegistrySupplier<Item> DORMANT_CRYSTAL_RELIC_ITEM = ITEMS.registerItem("dormant_crystal_relic", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.DORMANT_CRYSTAL_RELIC.get(), properties));
+    public static final RegistrySupplier<Item> STATIONARY_BRASS_TELESCOPE_ITEM = ITEMS.registerItem("stationary_brass_telescope", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.STATIONARY_BRASS_TELESCOPE.get(), properties));
+    public static final RegistrySupplier<Item> CELESTIAL_ARMILLARY_CONTROLLER_ITEM = ITEMS.registerItem("celestial_armillary_controller", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.CELESTIAL_ARMILLARY_CONTROLLER.get(), properties));
+    public static final RegistrySupplier<Item> STONE_HOPPER_BASIN_ITEM = ITEMS.registerItem("stone_hopper_basin", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.STONE_HOPPER_BASIN.get(), properties));
+    public static final RegistrySupplier<Item> REFRACTIVE_ASTRAL_LENS_ITEM = ITEMS.registerItem("refractive_astral_lens", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.REFRACTIVE_ASTRAL_LENS.get(), properties));
+    public static final RegistrySupplier<Item> BEAM_SPLITTER_PRISM_ITEM = ITEMS.registerItem("beam_splitter_prism", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.BEAM_SPLITTER_PRISM.get(), properties));
+    public static final RegistrySupplier<Item> PURE_OPTIC_FIBER_ITEM = ITEMS.registerItem("pure_optic_fiber", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.PURE_OPTIC_FIBER.get(), properties));
+    public static final RegistrySupplier<Item> OPTICAL_TRANSMITTER_PORT_ITEM = ITEMS.registerItem("optical_transmitter_port", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTICAL_TRANSMITTER_PORT.get(), properties));
+    public static final RegistrySupplier<Item> OPTICAL_RECEIVER_PORT_ITEM = ITEMS.registerItem("optical_receiver_port", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTICAL_RECEIVER_PORT.get(), properties));
+    public static final RegistrySupplier<Item> OPTICAL_BOOSTER_AMPLIFIER_ITEM = ITEMS.registerItem("optical_booster_amplifier", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTICAL_BOOSTER_AMPLIFIER.get(), properties));
+
+    // Standalone Instruments, Scribing & Baubles
+    public static final RegistrySupplier<Item> LOOKING_GLASS = ITEMS.registerItem("looking_glass", properties -> new ddraig.net.entropica.item.LookingGlassItem(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> ASTROLABE = ITEMS.registerItem("astrolabe", properties -> new ddraig.net.entropica.item.AstrolabeItem(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> DRAFTING_COMPASS = ITEMS.registerItem("drafting_compass", properties -> new Item(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> STAR_CHART_BLANK = ITEMS.registerItem("star_chart_blank", Item::new);
+    public static final RegistrySupplier<Item> STAR_CHART_COMPLETED = ITEMS.registerItem("star_chart_completed", properties -> new ddraig.net.entropica.item.CompletedStarChartItem(properties));
+    public static final RegistrySupplier<Item> ASTRAL_LINKING_WAND = ITEMS.registerItem("astral_linking_wand", properties -> new Item(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> MORTAR_AND_PESTLE = ITEMS.registerItem("mortar_and_pestle", properties -> new Item(properties.stacksTo(1).durability(256)));
+
+    // Materials, Crystals & Equipment
+    public static final RegistrySupplier<Item> ASTRAL_CRYSTAL = ITEMS.registerItem("astral_crystal", Item::new);
+    public static final RegistrySupplier<Item> ASTRAL_CRYSTAL_SEED = ITEMS.registerItem("astral_crystal_seed", Item::new);
+    public static final RegistrySupplier<Item> STARLIGHT_SILK = ITEMS.registerItem("starlight_silk", Item::new);
+    public static final RegistrySupplier<Item> ASTRAL_CRYSTAL_THREAD = ITEMS.registerItem("astral_crystal_thread", Item::new);
+    public static final RegistrySupplier<Item> CRYSTAL_SWORD = ITEMS.registerItem("crystal_sword", properties -> new Item(properties.stacksTo(1).durability(1250)));
+    public static final RegistrySupplier<Item> CRYSTAL_PICKAXE = ITEMS.registerItem("crystal_pickaxe", properties -> new Item(properties.stacksTo(1).durability(1250)));
+    public static final RegistrySupplier<Item> CRYSTAL_AXE = ITEMS.registerItem("crystal_axe", properties -> new Item(properties.stacksTo(1).durability(1250)));
+    public static final RegistrySupplier<Item> CRYSTAL_SHOVEL = ITEMS.registerItem("crystal_shovel", properties -> new Item(properties.stacksTo(1).durability(1250)));
+    public static final RegistrySupplier<Item> DRAINED_CRYSTAL_TOOL = ITEMS.registerItem("drained_crystal_tool", properties -> new Item(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> RESPLENDENT_PRISM = ITEMS.registerItem("resplendent_prism", properties -> new Item(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> MANTLE_OF_THE_STARS = ITEMS.registerItem("mantle_of_the_stars", properties -> new Item(properties.stacksTo(1)));
+
 }

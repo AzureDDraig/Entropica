@@ -9,6 +9,8 @@ import ddraig.net.entropica.compat.jei.EssenceExtractionRecipe;
 import ddraig.net.entropica.compat.jei.MagicCircleRecipeCategory;
 import ddraig.net.entropica.compat.jei.FloraHarvestingCategory;
 import ddraig.net.entropica.compat.jei.FloraHarvestingRecipe;
+import ddraig.net.entropica.compat.jei.AstralMultiblockRecipeCategory;
+import ddraig.net.entropica.compat.jei.AstralMultiblockRecipes;
 
 import ddraig.net.entropica.recipe.MagicCircleRecipe;
 import net.minecraft.world.item.Items;
@@ -209,6 +211,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(new EssenceExtractionCategory(guiHelper));
         registration.addRecipeCategories(new MagicCircleRecipeCategory(guiHelper));
         registration.addRecipeCategories(new FloraHarvestingCategory(guiHelper));
+        registration.addRecipeCategories(new AstralMultiblockRecipeCategory(guiHelper));
     }
 
     @Override
@@ -252,6 +255,7 @@ public class EntropicaJEIPlugin implements IModPlugin {
         registration.addRecipes(AethericSynthesizerRecipeCategory.TYPE, synthRecipes);
         registration.addRecipes(EidolicLatheRecipeCategory.TYPE, latheRecipes);
         registration.addRecipes(FloraHarvestingCategory.TYPE, FloraHarvestingRecipe.createAllRecipes());
+        registration.addRecipes(AstralMultiblockRecipeCategory.TYPE, AstralMultiblockRecipes.createRecipes());
     }
 
     @Override
@@ -276,5 +280,12 @@ public class EntropicaJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModItems.CONDUCTIVE_CHALK.get()), MagicCircleRecipeCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModItems.RESONANT_CHALK.get()), MagicCircleRecipeCategory.TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModItems.EIDOLIC_CHALK.get()), MagicCircleRecipeCategory.TYPE);
+
+        // Astral Multiblock Catalysts
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.CELESTIAL_ARMILLARY_CONTROLLER.get()), AstralMultiblockRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.CELESTIAL_BEACON_CONTROLLER.get()), AstralMultiblockRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()), AstralMultiblockRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.ASTROLABE.get()), AstralMultiblockRecipeCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.DRAFTING_COMPASS.get()), AstralMultiblockRecipeCategory.TYPE);
     }
 }

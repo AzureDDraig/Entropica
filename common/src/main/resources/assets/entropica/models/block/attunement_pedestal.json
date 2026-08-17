@@ -1,79 +1,208 @@
 {
-	"format_version": "1.21.6",
-	"credit": "Made with Blockbench",
-	"parent": "minecraft:block/block",
-	"texture_size": [64, 64],
+	"format_version": "1.21.11",
+	"credit": "Entropica Astral Materia Suite - High-Precision Sub-Pixel Specification",
 	"textures": {
-		"4": "entropica:block/attunement_pedestal"
+		"particle": "entropica:Model Planning/Entropica Models/complete/attunement_pedestal/attunement_pedestal_side",
+		"side": "entropica:Model Planning/Entropica Models/complete/attunement_pedestal/attunement_pedestal_side",
+		"top": "entropica:Model Planning/Entropica Models/complete/attunement_pedestal/attunement_pedestal_top",
+		"marble": "entropica:Model Planning/Entropica Models/complete/attunement_pedestal/attunement_pedestal_marble",
+		"trim": "entropica:Model Planning/Entropica Models/complete/attunement_pedestal/attunement_pedestal_trim"
 	},
 	"elements": [
 		{
-			"name": "Base Layer 1",
-			"from": [0, 0, 0],
-			"to": [16, 2, 16],
+			"name": "Tier 1 Plinth Base",
+			"from": [0.5, 0, 0.5],
+			"to": [15.5, 1.75, 15.5],
 			"faces": {
-				"north": {"uv": [0, 7, 8, 8], "texture": "#4"},
-				"east": {"uv": [0, 7, 8, 8], "texture": "#4"},
-				"south": {"uv": [0, 7, 8, 8], "texture": "#4"},
-				"west": {"uv": [0, 7, 8, 8], "texture": "#4"},
-				"up": {"uv": [8, 8, 0, 0], "texture": "#4"}
+				"north": {"uv": [0.5, 14.25, 15.5, 16], "texture": "#marble"},
+				"east": {"uv": [0.5, 14.25, 15.5, 16], "texture": "#marble"},
+				"south": {"uv": [0.5, 14.25, 15.5, 16], "texture": "#marble"},
+				"west": {"uv": [0.5, 14.25, 15.5, 16], "texture": "#marble"},
+				"up": {"uv": [0.5, 0.5, 15.5, 15.5], "texture": "#marble"},
+				"down": {"uv": [0.5, 0.5, 15.5, 15.5], "texture": "#marble", "cullface": "down"}
 			}
 		},
 		{
-			"name": "Base Layer 2",
-			"from": [2, 2, 2],
-			"to": [14, 4, 14],
+			"name": "Tier 2 Chamfer Step",
+			"from": [1.75, 1.75, 1.75],
+			"to": [14.25, 3.25, 14.25],
 			"faces": {
-				"north": {"uv": [1, 6, 7, 7], "texture": "#4"},
-				"east": {"uv": [1, 6, 7, 7], "texture": "#4"},
-				"south": {"uv": [1, 6, 7, 7], "texture": "#4"},
-				"west": {"uv": [1, 6, 7, 7], "texture": "#4"},
-				"up": {"uv": [7, 7, 1, 1], "texture": "#4"}
+				"north": {"uv": [1.75, 12.75, 14.25, 14.25], "texture": "#marble"},
+				"east": {"uv": [1.75, 12.75, 14.25, 14.25], "texture": "#marble"},
+				"south": {"uv": [1.75, 12.75, 14.25, 14.25], "texture": "#marble"},
+				"west": {"uv": [1.75, 12.75, 14.25, 14.25], "texture": "#marble"},
+				"up": {"uv": [1.75, 1.75, 14.25, 14.25], "texture": "#marble"},
+				"down": {"uv": [1.75, 1.75, 14.25, 14.25], "texture": "#marble"}
 			}
 		},
 		{
-			"name": "Pillar",
-			"from": [4, 4, 4],
-			"to": [12, 12, 12],
+			"name": "Tier 3 Sub-Base Collar",
+			"from": [2.75, 3.25, 2.75],
+			"to": [13.25, 4.25, 13.25],
 			"faces": {
-				"north": {"uv": [2, 2, 6, 6], "texture": "#4"},
-				"east": {"uv": [2, 2, 6, 6], "texture": "#4"},
-				"south": {"uv": [2, 2, 6, 6], "texture": "#4"},
-				"west": {"uv": [2, 2, 6, 6], "texture": "#4"}
+				"north": {"uv": [2.75, 11.75, 13.25, 12.75], "texture": "#side"},
+				"east": {"uv": [2.75, 11.75, 13.25, 12.75], "texture": "#side"},
+				"south": {"uv": [2.75, 11.75, 13.25, 12.75], "texture": "#side"},
+				"west": {"uv": [2.75, 11.75, 13.25, 12.75], "texture": "#side"},
+				"up": {"uv": [2.75, 2.75, 13.25, 13.25], "texture": "#marble"},
+				"down": {"uv": [2.75, 2.75, 13.25, 13.25], "texture": "#marble"}
 			}
 		},
 		{
-			"name": "Top Layer 1",
-			"from": [2, 12, 2],
-			"to": [14, 14, 14],
+			"name": "Column Shaft Core",
+			"from": [4.25, 4.25, 4.25],
+			"to": [11.75, 11.75, 11.75],
 			"faces": {
-				"north": {"uv": [1, 6, 7, 7], "texture": "#4"},
-				"east": {"uv": [1, 6, 7, 7], "texture": "#4"},
-				"south": {"uv": [1, 6, 7, 7], "texture": "#4"},
-				"west": {"uv": [1, 6, 7, 7], "texture": "#4"},
-				"down": {"uv": [7, 1, 1, 7], "texture": "#4"}
+				"north": {"uv": [4.25, 4.25, 11.75, 11.75], "texture": "#marble"},
+				"east": {"uv": [4.25, 4.25, 11.75, 11.75], "texture": "#marble"},
+				"south": {"uv": [4.25, 4.25, 11.75, 11.75], "texture": "#marble"},
+				"west": {"uv": [4.25, 4.25, 11.75, 11.75], "texture": "#marble"},
+				"up": {"uv": [4.25, 4.25, 11.75, 11.75], "texture": "#marble"},
+				"down": {"uv": [4.25, 4.25, 11.75, 11.75], "texture": "#marble"}
 			}
 		},
 		{
-			"name": "Top Layer 2",
-			"from": [0, 14, 0],
-			"to": [16, 16, 16],
+			"name": "Gold Fluting Strip North",
+			"from": [7.25, 4.26, 3.74],
+			"to": [8.75, 11.74, 4.24],
 			"faces": {
-				"north": {"uv": [0, 7, 8, 8], "texture": "#4"},
-				"east": {"uv": [0, 7, 8, 8], "texture": "#4"},
-				"south": {"uv": [0, 7, 8, 8], "texture": "#4"},
-				"west": {"uv": [0, 7, 8, 8], "texture": "#4"},
-				"up": {"uv": [8, 16, 0, 8], "texture": "#4"},
-				"down": {"uv": [8, 0, 0, 8], "texture": "#4"}
+				"north": {"uv": [7.25, 4.25, 8.75, 11.75], "texture": "#trim"},
+				"east": {"uv": [3.75, 4.25, 4.25, 11.75], "texture": "#trim"},
+				"south": {"uv": [7.25, 4.25, 8.75, 11.75], "texture": "#trim"},
+				"west": {"uv": [3.75, 4.25, 4.25, 11.75], "texture": "#trim"},
+				"up": {"uv": [7.25, 3.75, 8.75, 4.25], "texture": "#trim"},
+				"down": {"uv": [7.25, 3.75, 8.75, 4.25], "texture": "#trim"}
 			}
-		}
-	],
-	"groups": [
+		},
 		{
-			"name": "pedestal",
-			"origin": [8, 8, 8],
-			"color": 0,
-			"children": [0, 1, 2, 3, 4]
+			"name": "Gold Fluting Strip South",
+			"from": [7.25, 4.26, 11.76],
+			"to": [8.75, 11.74, 12.26],
+			"faces": {
+				"north": {"uv": [7.25, 4.25, 8.75, 11.75], "texture": "#trim"},
+				"east": {"uv": [11.75, 4.25, 12.25, 11.75], "texture": "#trim"},
+				"south": {"uv": [7.25, 4.25, 8.75, 11.75], "texture": "#trim"},
+				"west": {"uv": [11.75, 4.25, 12.25, 11.75], "texture": "#trim"},
+				"up": {"uv": [7.25, 11.75, 8.75, 12.25], "texture": "#trim"},
+				"down": {"uv": [7.25, 11.75, 8.75, 12.25], "texture": "#trim"}
+			}
+		},
+		{
+			"name": "Gold Fluting Strip West",
+			"from": [3.74, 4.26, 7.25],
+			"to": [4.24, 11.74, 8.75],
+			"faces": {
+				"north": {"uv": [3.75, 4.25, 4.25, 11.75], "texture": "#trim"},
+				"east": {"uv": [7.25, 4.25, 8.75, 11.75], "texture": "#trim"},
+				"south": {"uv": [3.75, 4.25, 4.25, 11.75], "texture": "#trim"},
+				"west": {"uv": [7.25, 4.25, 8.75, 11.75], "texture": "#trim"},
+				"up": {"uv": [3.75, 7.25, 4.25, 8.75], "texture": "#trim"},
+				"down": {"uv": [3.75, 7.25, 4.25, 8.75], "texture": "#trim"}
+			}
+		},
+		{
+			"name": "Gold Fluting Strip East",
+			"from": [11.76, 4.26, 7.25],
+			"to": [12.26, 11.74, 8.75],
+			"faces": {
+				"north": {"uv": [11.75, 4.25, 12.25, 11.75], "texture": "#trim"},
+				"east": {"uv": [7.25, 4.25, 8.75, 11.75], "texture": "#trim"},
+				"south": {"uv": [11.75, 4.25, 12.25, 11.75], "texture": "#trim"},
+				"west": {"uv": [7.25, 4.25, 8.75, 11.75], "texture": "#trim"},
+				"up": {"uv": [11.75, 7.25, 12.25, 8.75], "texture": "#trim"},
+				"down": {"uv": [11.75, 7.25, 12.25, 8.75], "texture": "#trim"}
+			}
+		},
+		{
+			"name": "Flared Capital Neck",
+			"from": [2.75, 11.75, 2.75],
+			"to": [13.25, 13.25, 13.25],
+			"faces": {
+				"north": {"uv": [2.75, 2.75, 13.25, 4.25], "texture": "#side"},
+				"east": {"uv": [2.75, 2.75, 13.25, 4.25], "texture": "#side"},
+				"south": {"uv": [2.75, 2.75, 13.25, 4.25], "texture": "#side"},
+				"west": {"uv": [2.75, 2.75, 13.25, 4.25], "texture": "#side"},
+				"up": {"uv": [2.75, 2.75, 13.25, 13.25], "texture": "#marble"},
+				"down": {"uv": [2.75, 2.75, 13.25, 13.25], "texture": "#marble"}
+			}
+		},
+		{
+			"name": "Capital Crown Head",
+			"from": [1.25, 13.25, 1.25],
+			"to": [14.75, 15, 14.75],
+			"faces": {
+				"north": {"uv": [1.25, 1, 14.75, 2.75], "texture": "#side"},
+				"east": {"uv": [1.25, 1, 14.75, 2.75], "texture": "#side"},
+				"south": {"uv": [1.25, 1, 14.75, 2.75], "texture": "#side"},
+				"west": {"uv": [1.25, 1, 14.75, 2.75], "texture": "#side"},
+				"up": {"uv": [1.25, 1.25, 14.75, 14.75], "texture": "#marble"},
+				"down": {"uv": [1.25, 1.25, 14.75, 14.75], "texture": "#marble"}
+			}
+		},
+		{
+			"name": "Obsidian Dish Cavity Rim",
+			"from": [2, 15, 2],
+			"to": [14, 16, 14],
+			"faces": {
+				"north": {"uv": [2, 0, 14, 1], "texture": "#top"},
+				"east": {"uv": [2, 0, 14, 1], "texture": "#top"},
+				"south": {"uv": [2, 0, 14, 1], "texture": "#top"},
+				"west": {"uv": [2, 0, 14, 1], "texture": "#top"},
+				"up": {"uv": [2, 2, 14, 14], "texture": "#top"},
+				"down": {"uv": [2, 2, 14, 14], "texture": "#marble"}
+			}
+		},
+		{
+			"name": "Gold Cardinal Alignment Tab North",
+			"from": [7.25, 15.5, 1.49],
+			"to": [8.75, 16.01, 2.75],
+			"faces": {
+				"north": {"uv": [7.25, 0, 8.75, 0.5], "texture": "#trim"},
+				"east": {"uv": [1.5, 0, 2.75, 0.5], "texture": "#trim"},
+				"south": {"uv": [7.25, 0, 8.75, 0.5], "texture": "#trim"},
+				"west": {"uv": [1.5, 0, 2.75, 0.5], "texture": "#trim"},
+				"up": {"uv": [7.25, 1.5, 8.75, 2.75], "texture": "#trim"},
+				"down": {"uv": [7.25, 1.5, 8.75, 2.75], "texture": "#trim"}
+			}
+		},
+		{
+			"name": "Gold Cardinal Alignment Tab South",
+			"from": [7.25, 15.5, 13.25],
+			"to": [8.75, 16.01, 14.51],
+			"faces": {
+				"north": {"uv": [7.25, 15.5, 8.75, 16], "texture": "#trim"},
+				"east": {"uv": [13.25, 15.5, 14.5, 16], "texture": "#trim"},
+				"south": {"uv": [7.25, 15.5, 8.75, 16], "texture": "#trim"},
+				"west": {"uv": [13.25, 15.5, 14.5, 16], "texture": "#trim"},
+				"up": {"uv": [7.25, 13.25, 8.75, 14.5], "texture": "#trim"},
+				"down": {"uv": [7.25, 13.25, 8.75, 14.5], "texture": "#trim"}
+			}
+		},
+		{
+			"name": "Gold Cardinal Alignment Tab West",
+			"from": [1.49, 15.5, 7.25],
+			"to": [2.75, 16.01, 8.75],
+			"faces": {
+				"north": {"uv": [1.5, 0, 2.75, 0.5], "texture": "#trim"},
+				"east": {"uv": [0, 7.25, 0.5, 8.75], "texture": "#trim"},
+				"south": {"uv": [1.5, 0, 2.75, 0.5], "texture": "#trim"},
+				"west": {"uv": [0, 7.25, 0.5, 8.75], "texture": "#trim"},
+				"up": {"uv": [1.5, 7.25, 2.75, 8.75], "texture": "#trim"},
+				"down": {"uv": [1.5, 7.25, 2.75, 8.75], "texture": "#trim"}
+			}
+		},
+		{
+			"name": "Gold Cardinal Alignment Tab East",
+			"from": [13.25, 15.5, 7.25],
+			"to": [14.51, 16.01, 8.75],
+			"faces": {
+				"north": {"uv": [13.25, 0, 14.5, 0.5], "texture": "#trim"},
+				"east": {"uv": [15.5, 7.25, 16, 8.75], "texture": "#trim"},
+				"south": {"uv": [13.25, 0, 14.5, 0.5], "texture": "#trim"},
+				"west": {"uv": [15.5, 7.25, 16, 8.75], "texture": "#trim"},
+				"up": {"uv": [13.25, 7.25, 14.5, 8.75], "texture": "#trim"},
+				"down": {"uv": [13.25, 7.25, 14.5, 8.75], "texture": "#trim"}
+			}
 		}
 	]
 }

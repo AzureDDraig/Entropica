@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "entropica:astral_marble"
+  },
+  "result": {
+    "id": "entropica:astral_marble_bricks",
+    "count": 1
+  }
+}

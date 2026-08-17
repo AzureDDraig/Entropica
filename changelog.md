@@ -1,3 +1,84 @@
+## Build 000-1-26-229
+
+### Core Additions & Features
+- **Astral Materia Suite Custom 3D Blockbench Workstations & Optics**:
+  - Authored, textured, and configured complete sub-pixel 3D models with clean hierarchical inheritance and dedicated handcrafted texture suites across the primary Astral Materia workstations and optical devices:
+    - 🏛️ **`resonance_pylon`**: Classical Astral Marble base plinth with fluted pilasters, glowing Materia flux conduits, and a floating $45.0^\circ$ faceted Starlight Crystal apex. Textures: `resonance_pylon_marble.png`, `resonance_pylon_trim.png`, `resonance_pylon_side.png`, `resonance_pylon_top.png`. Custom block class: `ResonancePylonBlock.java`.
+    - 🪨 **`attunement_pedestal`**: 15-cube classical Astral Marble offering plinth with golden fluting, Starlight Obsidian ritual bowl, and $+0.01$ Z-fighting offsets. Textures: `attunement_pedestal_marble.png`, `attunement_pedestal_trim.png`, `attunement_pedestal_side.png`, `attunement_pedestal_top.png`.
+    - 🔭 **`stationary_brass_telescope`**: Geared astronomical observation telescope with $+22.5^\circ$ skyward elevation aim, brushed antique brass on deep Arcanite mount, and strict 3-tier kinematic inheritance (`base` $\to$ `azimuth_turntable` $\to$ `elevation_barrel`). Textures: `stationary_brass_telescope_base.png`, `stationary_brass_telescope_brass.png`, `stationary_brass_telescope_lens.png`.
+    - 🧭 **`celestial_armillary_controller`**: Openwork astrometric cage with concentric astrolabe horizon dial, radiant starlight core, 4-band multi-tonal ring textures with $90^\circ$ UV alignment, and strict 5-tier kinematic inheritance (`base` $\to$ `meridian_frame` $\to$ `outer_colure_ring` $\to$ `inner_ecliptic_ring` $\to$ `celestial_core`). Textures: `celestial_armillary_controller_marble.png`, `celestial_armillary_controller_side.png`, `celestial_armillary_controller_dial.png`, `celestial_armillary_controller_ring.png`, `celestial_armillary_controller_top.png`. Custom block class: `CelestialArmillaryControllerBlock.java`.
+    - 💎 **`beam_splitter_prism`**: Symmetrical 4-pillar brass clamping vise (NW, NE, SW, SE) on a circular angle dial with an Arcanite base plinth holding a $45.0^\circ$ refractive diamond starlight crystal with internal chromatic dispersion. Kinematic inheritance: `base` $\to$ `turntable_prism`. Textures: `beam_splitter_prism_base.png`, `beam_splitter_prism_dial.png`, `beam_splitter_prism_brass.png`, `beam_splitter_prism_crystal.png`. Custom block class: `BeamSplitterPrismBlock.java`.
+    - 🔍 **`refractive_astral_lens`**: Heavy circular pedestal base, U-shaped gimbal yoke stand, knurled friction thumbscrews, and an adjustable bezel holding a translucent double-convex starlight quartz disc. Kinematic inheritance: `base` $\to$ `azimuth_yoke` $\to$ `elevation_lens`. Textures: `refractive_astral_lens_base.png`, `refractive_astral_lens_brass.png`, `refractive_astral_lens_ring.png`, `refractive_astral_lens.png`. Custom block class: `RefractiveAstralLensBlock.java`.
+    - 💡 **`pure_optic_fiber`**: Unified single-model $4\times4$ voxel cross-section conduit with 6 branch arms and core node (`pure_optic_fiber` $\to$ `core`, `arm_north`, `arm_south`, `arm_west`, `arm_east`, `arm_down`, `arm_up`), fully insulated in a solid vulcanized matte black rubber jacket with $2\times2$ transparent optical end port apertures for light beam transmission (zero brass). Texture: `pure_optic_fiber.png`. Custom block class: `PureOpticFiberBlock.java`.
+  - Documented standard full-block treatment with directional face textures for `optical_transmitter_port`, `optical_receiver_port`, and `optical_booster_amplifier`.
+- **Subterranean Geode Worldgen & Growth Dynamics**:
+  - Implemented `BuddingCrystalBlock.java` supporting 6-directional random-tick bud growth (`small_astral_crystal_bud` $\to$ `medium_astral_crystal_bud` $\to$ `large_astral_crystal_bud` $\to$ `astral_crystal_cluster`).
+  - Added subterranean Astral Geode configured and placed feature data definitions with NeoForge biome modifiers and Fabric `BiomeModifications` runtime registration.
+- **Interactive Astral Multiblock JEI Blueprint Category (`AstralMultiblockRecipeCategory.java`)**:
+  - Implemented custom JEI category ($180 \times 135$ layout) displaying layer-by-layer blueprints with dynamic 2-second layer cycling ($Y=1 \to Y=6$), 2D color-coded blueprint matrices, and exact material counts.
+  - Defined recipes and layer matrices for:
+    - **7x7x6 Grand Circular Astral Observatory & Celestial Mirror Pool**
+    - **3x3x3 Celestial Beacon Sanctuary**
+    - **Modular Upgradable Astral Altar** (Full block foundation platform without slab restrictions)
+  - Registered JEI category, blueprints, and catalysts in `EntropicaJEIPlugin.java`.
+- **24-Constellation Pantheon & Inverse Flux Rates Calibration (`ModConstellations.java` & `Constellation.java`)**:
+  - Registered all 24 Entropica Pantheon Constellations across 4 tiers with exact `EssenceType` affinities and inverse cosmic energy density flux rates:
+    - *Tier 1 Fundamental*: `vespa_aculeus` ($25\text{ flux/t}$), `lucerna_radialis` ($24\text{ flux/t}$), `serpens_veneni` ($22\text{ flux/t}$), `arbor_vitae` ($18\text{ flux/t}$), `scutum_aegis` ($18\text{ flux/t}$), `athanor_ignis` ($16\text{ flux/t}$), `gladius_ignis` ($10\text{ flux/t}$), `penna_aetheris` ($6\text{ flux/t}$).
+    - *Tier 2 Advanced*: `mineralis_geodae` ($20\text{ flux/t}$), `glacies_crystalline` ($16\text{ flux/t}$), `ulteria_viatoris` ($15\text{ flux/t}$), `resina_succini` ($13\text{ flux/t}$), `sanguis_chalybis` ($12\text{ flux/t}$), `fulgur_tonitrus` ($12\text{ flux/t}$), `horologium_chroni` ($11\text{ flux/t}$), `bootes_pastoralis` ($8\text{ flux/t}$).
+    - *Tier 3 Master*: `vorago_blighti` ($14\text{ flux/t}$), `velum_umbraticum` ($7\text{ flux/t}$), `echo_primordialis` ($5\text{ flux/t}$), `corona_solaris` ($5\text{ flux/t}$).
+    - *Tier 4 Mythic*: `leviathan` ($12\text{ flux/t}$), `yggdrasil` ($8\text{ flux/t}$), `ouroboros` ($6\text{ flux/t}$), `azathoth` ($7\text{ flux/t}$).
+- **Global 24-Language Parity & Codex Synchronization**:
+  - Achieved $100\%$ key parity ($2,457$ translation entries each) across all 24 supported languages in `assets/entropica/lang/`.
+  - Added `astral_pantheon_constellations` research node under `MAGIC` in `CodexCategoryRegistry.java`.
+  - Updated notes in the Entropica OKF Obsidian Vault (`astral_workstations_and_optics.md`).
+- **Multi-Loader Compilation Verification**:
+  - Executed `./gradlew compileJava --parallel` with **`BUILD SUCCESSFUL in 18s`** across `common`, `neoforge`, and `fabric`.
+
+---
+
+## Build 000-1-26-227
+
+### Core Additions & Features
+- **Astral Materia Architectural & Item Suite (35 Blocks & 18 Items)**:
+  - Registered all 35 Astral Materia blocks in `ModBlocks.java` and their corresponding BlockItems in `ModItems.java`:
+    - **Architectural Suite**: `astral_marble`, `astral_marble_bricks`, `astral_marble_slab`, `astral_marble_stairs`, `astral_marble_wall`, `sooty_marble`, `runed_astral_marble`, `engraved_astral_slate`, `chiseled_astral_marble`, `starlight_pillar` (rotatable `RotatedPillarBlock`), and `astral_mirror_block`.
+    - **Extraterrestrial Impactite & Crystal Geodes**: `astral_impactite`, `budding_astral_impactite` (`BuddingCrystalBlock`), `small_astral_crystal_bud`, `medium_astral_crystal_bud`, `large_astral_crystal_bud`, `astral_crystal_cluster`, and `astral_crystal_block`.
+    - **Workstations & Multiblock Devices**: `astral_altar_core`, `resonance_pylon`, `astral_pedestal`, `focal_lens_mount`, `astral_infusion_pedestal`, `astral_collector`, `celestial_beacon_controller`, `dormant_crystal_relic`, `stationary_brass_telescope`, `celestial_armillary_controller`, and `stone_hopper_basin`.
+    - **Optical Conduits & Logistics**: `refractive_astral_lens`, `beam_splitter_prism`, `pure_optic_fiber`, `optical_transmitter_port`, `optical_receiver_port`, and `optical_booster_amplifier`.
+  - Registered all 18 standalone celestial instruments, crystals, tools, and baubles in `ModItems.java`:
+    - `looking_glass`, `astrolabe`, `drafting_compass`, `star_chart_blank`, `star_chart_completed`, `astral_linking_wand`, `mortar_and_pestle`.
+    - `astral_crystal`, `astral_crystal_seed`, `starlight_silk`, `astral_crystal_thread`.
+    - `crystal_sword`, `crystal_pickaxe`, `crystal_axe`, `crystal_shovel`, `drained_crystal_tool`, `resplendent_prism`, `mantle_of_the_stars`.
+- **Connected Astral Mirror Block (`AstralMirrorBlock.java`)**:
+  - Implemented 4-way horizontal connection checking (`NORTH`, `SOUTH`, `EAST`, `WEST`). When placed adjacent to other Astral Mirror blocks, interior borders disappear completely into an unbroken, smooth starlight mercury sheet, with beveled borders rendering only along the outer perimeter.
+- **24-Constellation Engine Registry (`ModConstellations.java`)**:
+  - Implemented `ConstellationTier` (Fundamental, Advanced, Master, Mythic) and `SpectralClass` (8 leakage classes from O to V).
+  - Created immutable registry registering all 24 canonical constellations with star vertices, line segment connections, moon phase visibility bitmasks, and signature ritual powers.
+- **Celestial Sky Rendering & Astronomy Engine (`CelestialSkyRenderer.java`)**:
+  - Implemented 3D volumetric starlight sky rendering engine hooked into both Fabric (`WorldRenderEvents.END`) and NeoForge (`RenderLevelStageEvent.AfterSky`).
+  - **Multi-Dimensional Support**: Fully renders all 24 constellations permanently in The End vacuum firmament, blocks starlight beneath Nether bedrock, and projects moon-phase aligned constellations at night in the Overworld.
+  - **Weather & Cloud Altitude Dynamics**: Attenuates star brightness during rain/thunderstorms below cloud height ($Y < 192$), maintaining 100% crystal clarity above clouds.
+  - Dynamically calculates 3D star billboard vertices with colors corresponding to their `SpectralClass` (Class O azure, B blue-white, A white, F yellow-white, G solar gold, K orange, M crimson, V void purple) with organic twinkling pulsing.
+  - **Skybox Radiant Ignition**: Discovered constellations permanently ignite with golden ribbons and traveling stardust pulse beads in the player's night sky.
+- **Celestial Looking Glass & Astrolabe (`LookingGlassItem.java`, `AstrolabeItem.java` & `LookingGlassOverlayRenderer.java`)**:
+  - Implemented `LookingGlassItem` ($1\times \to 4\times$ zoom) and `AstrolabeItem` ($1\times \to 8\times$ zoom) with scoping states.
+  - Designed custom brass astronomical reticle overlay (`looking_glass_overlay.png`) with degree notches, cardinal headings, crosshairs, and lens vignette.
+  - Live HUD readouts for Azimuth angle, Cardinal heading, Declination / Altitude angle, Moon Phase status, and targeted constellation info card.
+- **Interactive Constellation Scribing Screen (`ConstellationTracingScreen.java`)**:
+  - Sneak-using astronomical instruments opens an interactive midnight parchment star chart with `<` and `>` constellation switching.
+  - Features real-time line dragging between star vertices with a **12-pixel magnetic snap zone** assist and right-click line clearing.
+  - Validates completed constellation geometry, automatically consumes a Blank Star Chart and grants a foil-enchanted Completed Star Chart with rich astrological tooltips.
+- **Stationary Brass Telescope (`StationaryBrassTelescopeBlock.java`)**:
+  - Ground-mounted observation workstation with $1\times \to 16\times$ zoom that opens the observation and scribing viewport on right-click.
+- **Entropic Codex Integration (`CodexCategoryRegistry.java`)**:
+  - Added 5 new branching research sub-nodes under `MAGIC` (`astral_instruments_and_charts`, `astral_altar_and_observatory`, `astral_optics_and_logistics`, `astral_crystals_and_impactite`, `astral_celestial_beacons`).
+- **OKF Obsidian Vault Synchronization**:
+  - Created and linked `wiki/entities/blocks/astral_materia_blocks.md`, `wiki/entities/blocks/astral_workstations_and_optics.md`, and `wiki/entities/items/astral_materia_items.md` in the Entropica OKF Obsidian Vault.
+- **Multi-Loader Compilation Verification**:
+  - Executed `./gradlew compileJava --parallel` with **`BUILD SUCCESSFUL in 10s`** across `common`, `neoforge`, and `fabric`.
+
+---
+
 ## Build 000-1-26-225
 
 ### Core Additions & Features

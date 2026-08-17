@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "entropica:block/refractive_astral_lens"
+    },
+    "facing=south": {
+      "model": "entropica:block/refractive_astral_lens",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "entropica:block/refractive_astral_lens",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "entropica:block/refractive_astral_lens",
+      "y": 90
+    }
+  }
+}

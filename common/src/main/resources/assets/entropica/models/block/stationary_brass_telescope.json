@@ -1,0 +1,220 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Entropica Astral Materia Suite - High-Precision Sub-Pixel Specification",
+	"textures": {
+		"particle": "entropica:Model Planning/Entropica Models/complete/stationary_brass_telescope/stationary_brass_telescope",
+		"mount": "entropica:Model Planning/Entropica Models/complete/stationary_brass_telescope/stationary_brass_telescope",
+		"dial": "entropica:Model Planning/Entropica Models/complete/stationary_brass_telescope/stationary_brass_telescope_dial",
+		"lens": "entropica:Model Planning/Entropica Models/complete/stationary_brass_telescope/stationary_brass_telescope_lens",
+		"brass": "Model Planning/Entropica Models/complete/stationary_brass_telescope/stationary_brass_telescope_brass"
+	},
+	"elements": [
+		{
+			"name": "Left Elevation Cog Wheel (Pre-Rotated 22.5 deg)",
+			"from": [2.25, 7.5, 6.75],
+			"to": [3.25, 10.5, 9.25],
+			"rotation": {"angle": 22.5, "axis": "x", "origin": [2.75, 9, 8]},
+			"faces": {
+				"north": {"uv": [2.25, 7.5, 3.25, 10.5], "texture": "#brass"},
+				"east": {"uv": [2.25, 7.5, 3.25, 10.5], "texture": "#brass"},
+				"south": {"uv": [2.25, 7.5, 3.25, 10.5], "texture": "#brass"},
+				"west": {"uv": [4, 4, 12, 12], "texture": "#dial"},
+				"up": {"uv": [2.25, 6.75, 3.25, 9.25], "texture": "#brass"},
+				"down": {"uv": [2.25, 6.75, 3.25, 9.25], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Right Elevation Cog Wheel (Pre-Rotated 22.5 deg)",
+			"from": [12.75, 7.5, 6.75],
+			"to": [13.75, 10.5, 9.25],
+			"rotation": {"angle": 22.5, "axis": "x", "origin": [13.25, 9, 8]},
+			"faces": {
+				"north": {"uv": [12.75, 7.5, 13.75, 10.5], "texture": "#brass"},
+				"east": {"uv": [4, 4, 12, 12], "texture": "#dial"},
+				"south": {"uv": [12.75, 7.5, 13.75, 10.5], "texture": "#brass"},
+				"west": {"uv": [12.75, 7.5, 13.75, 10.5], "texture": "#brass"},
+				"up": {"uv": [12.75, 6.75, 13.75, 9.25], "texture": "#brass"},
+				"down": {"uv": [12.75, 6.75, 13.75, 9.25], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Optical Telescope Tube Barrel (Pre-Rotated 22.5 deg)",
+			"from": [6.25, 7, -1],
+			"to": [9.75, 11, 16.5],
+			"rotation": {"angle": 22.5, "axis": "x", "origin": [8, 9, 8]},
+			"faces": {
+				"north": {"uv": [6.25, 7, 9.75, 11], "texture": "#brass"},
+				"east": {"uv": [0, 1, 16, 5], "texture": "#brass"},
+				"south": {"uv": [6.25, 7, 9.75, 11], "texture": "#brass"},
+				"west": {"uv": [0, 1, 16, 5], "texture": "#brass"},
+				"up": {"uv": [6.25, 0, 9.75, 16], "texture": "#brass"},
+				"down": {"uv": [6.25, 0, 9.75, 16], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Objective Lens Flange Bevel",
+			"from": [5.75, 6.5, -2.5],
+			"to": [10.25, 11.5, -1],
+			"rotation": {"angle": 22.5, "axis": "x", "origin": [8, 9, 8]},
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#lens"},
+				"east": {"uv": [6.5, 6.5, 8, 11.5], "texture": "#brass"},
+				"south": {"uv": [5.75, 6.5, 10.25, 11.5], "texture": "#brass"},
+				"west": {"uv": [6.5, 6.5, 8, 11.5], "texture": "#brass"},
+				"up": {"uv": [5.75, 6.5, 10.25, 8], "texture": "#brass"},
+				"down": {"uv": [5.75, 6.5, 10.25, 8], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Focus Eyepiece Sleeve",
+			"from": [7, 7.75, 16.5],
+			"to": [9, 10.25, 19.5],
+			"rotation": {"angle": 22.5, "axis": "x", "origin": [8, 9, 8]},
+			"faces": {
+				"north": {"uv": [7, 7.75, 9, 10.25], "texture": "#brass"},
+				"east": {"uv": [16.5, 7.75, 19.5, 10.25], "texture": "#brass"},
+				"south": {"uv": [7, 7, 9, 9], "texture": "#brass"},
+				"west": {"uv": [16.5, 7.75, 19.5, 10.25], "texture": "#brass"},
+				"up": {"uv": [7, 16.5, 9, 19.5], "texture": "#brass"},
+				"down": {"uv": [7, 16.5, 9, 19.5], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Azimuth Graduated Dial Ring",
+			"from": [2.25, 1.75, 2.25],
+			"to": [13.75, 3.75, 13.75],
+			"faces": {
+				"north": {"uv": [0, 4, 16, 12], "texture": "#dial"},
+				"east": {"uv": [0, 4, 16, 12], "texture": "#dial"},
+				"south": {"uv": [0, 4, 16, 12], "texture": "#dial"},
+				"west": {"uv": [0, 4, 16, 12], "texture": "#dial"},
+				"up": {"uv": [2.25, 2.25, 13.75, 13.75], "texture": "#mount"},
+				"down": {"uv": [2.25, 2.25, 13.75, 13.75], "texture": "#mount"}
+			}
+		},
+		{
+			"name": "Central Turntable Hub",
+			"from": [4.5, 3.75, 4.5],
+			"to": [11.5, 5, 11.5],
+			"faces": {
+				"north": {"uv": [4.5, 11, 11.5, 12.25], "texture": "#mount"},
+				"east": {"uv": [4.5, 11, 11.5, 12.25], "texture": "#mount"},
+				"south": {"uv": [4.5, 11, 11.5, 12.25], "texture": "#mount"},
+				"west": {"uv": [4.5, 11, 11.5, 12.25], "texture": "#mount"},
+				"up": {"uv": [4.5, 4.5, 11.5, 11.5], "texture": "#mount"},
+				"down": {"uv": [4.5, 4.5, 11.5, 11.5], "texture": "#mount"}
+			}
+		},
+		{
+			"name": "Left Yoke Arm Upright",
+			"from": [3.25, 5, 6.25],
+			"to": [5.5, 12, 9.75],
+			"faces": {
+				"north": {"uv": [3.25, 6, 5.5, 11], "texture": "#mount"},
+				"east": {"uv": [6.25, 6, 9.75, 11], "texture": "#mount"},
+				"south": {"uv": [3.25, 6, 5.5, 11], "texture": "#mount"},
+				"west": {"uv": [6.25, 6, 9.75, 11], "texture": "#mount"},
+				"up": {"uv": [3.25, 6.25, 5.5, 9.75], "texture": "#mount"},
+				"down": {"uv": [3.25, 6.25, 5.5, 9.75], "texture": "#mount"}
+			}
+		},
+		{
+			"name": "Right Yoke Arm Upright",
+			"from": [10.5, 5, 6.25],
+			"to": [12.75, 12, 9.75],
+			"faces": {
+				"north": {"uv": [10.5, 6, 12.75, 11], "texture": "#mount"},
+				"east": {"uv": [6.25, 6, 9.75, 11], "texture": "#mount"},
+				"south": {"uv": [10.5, 6, 12.75, 11], "texture": "#mount"},
+				"west": {"uv": [6.25, 6, 9.75, 11], "texture": "#mount"},
+				"up": {"uv": [10.5, 6.25, 12.75, 9.75], "texture": "#mount"},
+				"down": {"uv": [10.5, 6.25, 12.75, 9.75], "texture": "#mount"}
+			}
+		},
+		{
+			"name": "Turntable Base Plinth",
+			"from": [1, 0, 1],
+			"to": [15, 1.75, 15],
+			"faces": {
+				"north": {"uv": [1, 14.25, 15, 16], "texture": "#mount"},
+				"east": {"uv": [1, 14.25, 15, 16], "texture": "#mount"},
+				"south": {"uv": [1, 14.25, 15, 16], "texture": "#mount"},
+				"west": {"uv": [1, 14.25, 15, 16], "texture": "#mount"},
+				"up": {"uv": [1, 1, 15, 15], "texture": "#mount"},
+				"down": {"uv": [1, 1, 15, 15], "texture": "#mount", "cullface": "down"}
+			}
+		},
+		{
+			"name": "Tripod Footing Pad Front",
+			"from": [6.5, 0, 0.25],
+			"to": [9.5, 2.25, 2.25],
+			"faces": {
+				"north": {"uv": [6.5, 13.75, 9.5, 16], "texture": "#brass"},
+				"east": {"uv": [0.25, 13.75, 2.25, 16], "texture": "#brass"},
+				"south": {"uv": [6.5, 13.75, 9.5, 16], "texture": "#brass"},
+				"west": {"uv": [0.25, 13.75, 2.25, 16], "texture": "#brass"},
+				"up": {"uv": [6.5, 0.25, 9.5, 2.25], "texture": "#brass"},
+				"down": {"uv": [6.5, 0.25, 9.5, 2.25], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Tripod Footing Pad Back-Left",
+			"from": [0.25, 0, 11.5],
+			"to": [3.25, 2.25, 14.5],
+			"faces": {
+				"north": {"uv": [0.25, 13.75, 3.25, 16], "texture": "#brass"},
+				"east": {"uv": [11.5, 13.75, 14.5, 16], "texture": "#brass"},
+				"south": {"uv": [0.25, 13.75, 3.25, 16], "texture": "#brass"},
+				"west": {"uv": [11.5, 13.75, 14.5, 16], "texture": "#brass"},
+				"up": {"uv": [0.25, 11.5, 3.25, 14.5], "texture": "#brass"},
+				"down": {"uv": [0.25, 11.5, 3.25, 14.5], "texture": "#brass"}
+			}
+		},
+		{
+			"name": "Tripod Footing Pad Back-Right",
+			"from": [12.75, 0, 11.5],
+			"to": [15.75, 2.25, 14.5],
+			"faces": {
+				"north": {"uv": [12.75, 13.75, 15.75, 16], "texture": "#brass"},
+				"east": {"uv": [11.5, 13.75, 14.5, 16], "texture": "#brass"},
+				"south": {"uv": [12.75, 13.75, 15.75, 16], "texture": "#brass"},
+				"west": {"uv": [11.5, 13.75, 14.5, 16], "texture": "#brass"},
+				"up": {"uv": [12.75, 11.5, 15.75, 14.5], "texture": "#brass"},
+				"down": {"uv": [12.75, 11.5, 15.75, 14.5], "texture": "#brass"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "base",
+			"origin": [8, 0, 8],
+			"scope": 0,
+			"color": 0,
+			"children": [
+				{
+					"name": "azimuth_turntable",
+					"origin": [8, 0, 8],
+					"scope": 0,
+					"color": 0,
+					"children": [
+						{
+							"name": "elevation_barrel",
+							"origin": [8, 9, 8],
+							"scope": 0,
+							"color": 0,
+							"children": [0, 1, 2, 3, 4]
+						},
+						5,
+						6,
+						7,
+						8
+					]
+				},
+				9,
+				10,
+				11,
+				12
+			]
+		}
+	]
+}

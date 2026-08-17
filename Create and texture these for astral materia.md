@@ -18,8 +18,9 @@ This document tracks all new blocks, multiblock components, functional tile enti
 | `engraved_astral_slate` | Engraved Astral Slate | High-detail astronomical floor and altar tile. |
 | `chiseled_astral_marble` | Chiseled Astral Marble | Ornate pillar base and capital trim. |
 | `starlight_pillar` | Starlight Pillar | Hybrid column blending *Starlight Aether-Birch* timber core with *Astral Marble* fluting. |
-| `astral_mirror_block` | Astral Mirror Block | Real-time planar reflective mirror block used for the 7x7x6 Observatory Celestial Pool floor. |
-| `budding_astral_marble` | Budding Astral Marble | Natural underground geode block sprouting wild raw Astral Crystals. |
+| `astral_mirror_block` | Astral Mirror Block | Real-time planar reflective connected mirror block used for the 7x7x6 Observatory Celestial Pool floor. |
+| `astral_impactite` | Astral Impactite | Extraterrestrial shock-metamorphosed tektite stone forming the outer shell of celestial geodes. |
+| `budding_astral_impactite` | Budding Astral Impactite | Extraterrestrial impact stone sprouting wild raw Astral Crystals in deep geodes. |
 
 ---
 

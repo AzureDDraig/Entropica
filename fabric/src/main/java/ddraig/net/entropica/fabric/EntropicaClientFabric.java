@@ -260,6 +260,12 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
 
             
+            ModBlocks.SMALL_ASTRAL_CRYSTAL_BUD.get(),
+            ModBlocks.MEDIUM_ASTRAL_CRYSTAL_BUD.get(),
+            ModBlocks.LARGE_ASTRAL_CRYSTAL_BUD.get(),
+            ModBlocks.ASTRAL_CRYSTAL_CLUSTER.get(),
+            ModBlocks.REFRACTIVE_ASTRAL_LENS.get(),
+            ModBlocks.PURE_OPTIC_FIBER.get(),
             ModBlocks.ASTRAL_VEIL_WILLOW_LEAVES.get(),
             ModBlocks.ASTRAL_VEIL_WILLOW_SAPLING.get(),
             ModBlocks.ASTRAL_VEIL_WILLOW_VINES.get(),
@@ -353,6 +359,17 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ddraig.net.entropica.client.HazeOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.ParalyzedOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.LensOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+            ddraig.net.entropica.client.LookingGlassOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+        });
+
+        // Register Celestial Sky Renderer
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(context -> {
+            ddraig.net.entropica.client.renderer.CelestialSkyRenderer.renderSky(
+                context.matrixStack(),
+                context.projectionMatrix(),
+                context.camera(),
+                context.tickCounter().getGameTimeDeltaTicks()
+            );
         });
 
         // Materia Yield Tooltip

@@ -1242,6 +1242,100 @@ public class CodexCategoryRegistry {
                 290f, 0.0f, a_magic + 0.08f, false
         ));
 
+        
+        // ==========================================
+        // ASTRAL MATERIA SUB-BRANCH (Expanding magic_astral)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "astral_instruments_and_charts", "Looking Glass & Star Charts", "MAGIC",
+                "Celestial observation, constellation charting, and vertex alignment.",
+                "Overview & Description:\n" +
+                "The night sky is not empty void—it is a cosmic vault leaking pure Materia through ancient stellar tears. Using a Looking Glass and Blank Star Chart, arkanists map constellations across the 8 lunar phases.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Craft a Looking Glass with Starlight Birch timber and Quartz Lenses. Hold a Blank Star Chart at night while looking at the stars to trace vertices.\n\n" +
+                "Crafting Uses:\n" +
+                "Completed Star Charts are placed into the Astral Altar Core and Celestial Armillary to focus constellation powers.\n\n" +
+                "Special Properties:\n" +
+                "Constellation vertices have a 12px magnetic snap zone when tracing.",
+                "magic_astral", 1, new ItemStack(ModItems.LOOKING_GLASS.get()),
+                390f, 0.0f, a_magic + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_pantheon_constellations", "The 24 Constellations of Entropica", "MAGIC",
+                "Four tiers of celestial stars, spectral classes, and calibrated inverse flux rates.",
+                "Overview & Description:\n" +
+                "Entropica's cosmos is organized into 24 distinct constellations across 4 celestial tiers (Fundamental, Advanced, Master, Mythic):\n" +
+                "▪ Fundamental (T1): Vespa Aculeus (Air, 25 flux/t), Lucerna Radialis (Radiant, 24 flux/t), Serpens Veneni (Umbral, 22 flux/t), Arbor Vitae (Vitae, 18 flux/t), Scutum Aegis (Aegis, 18 flux/t), Athanor Ignis (Magma, 16 flux/t), Gladius Ignis (Pyre, 10 flux/t), Penna Aetheris (Aether, 6 flux/t).\n" +
+                "▪ Advanced (T2): Mineralis Geodae (Earth, 20 flux/t), Glacies Crystalline (Glacial, 16 flux/t), Ulteria Viatoris (Aurora, 15 flux/t), Resina Succini (Amber, 13 flux/t), Sanguis Chalybis (Blood, 12 flux/t), Fulgur Tonitrus (Lightning, 12 flux/t), Horologium Chroni (Astral, 11 flux/t), Bootes Pastoralis (Sylvan, 8 flux/t).\n" +
+                "▪ Master (T3): Vorago Blighti (Blight, 14 flux/t), Velum Umbraticum (Penumbra, 7 flux/t), Echo Primordialis (Entropic, 5 flux/t), Corona Solaris (Celestial, 5 flux/t).\n" +
+                "▪ Mythic (T4): Leviathan (Abyss, 12 flux/t), Yggdrasil (Genesis, 8 flux/t), Ouroboros (Aether, 6 flux/t), Azathoth (Oblivion, 7 flux/t).\n\n" +
+                "Special Properties:\n" +
+                "Follows inverse cosmic energy density scaling: raw primordial stars yield abundant volumetric flux, while apex cosmic essences condense slowly at concentrated high potency.",
+                "magic_astral", 1, new ItemStack(ModItems.STAR_CHART_COMPLETED.get()),
+                390f, 0.0f, a_magic + 0.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_altar_and_observatory", "Astral Altar & Grand Observatory", "MAGIC",
+                "Starlight condensation and multiblock celestial observatories.",
+                "Overview & Description:\n" +
+                "The Astral Altar Core channels direct night starlight into ground-level transmutations, surrounded by Resonance Pylons and Astral Pedestals.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed on a foundation of Astral Marble Bricks, Engraved Astral Slate, and Starlight Pillars.\n\n" +
+                "Crafting Uses:\n" +
+                "Synthesizes Resplendent Prisms, Mantles of the Stars, and infused Crystal Tools.\n\n" +
+                "Special Properties:\n" +
+                "Once established at night, starlight focus persists uninterrupted through daylight hours unless the focus ring is physically moved.",
+                "astral_instruments_and_charts", 2, new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
+                480f, 0.0f, a_magic + 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_optics_and_logistics", "Pure Optic Conduits", "MAGIC",
+                "Lossless optical transmission of starlight energy through solid structures.",
+                "Overview & Description:\n" +
+                "Pure Optic Fiber cables transmit concentrated starlight flux underground and through solid blocks with only 1% attenuation per 16 blocks.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Drawn from high-purity fused quartz encased in a solid vulcanized matte black rubber jacket (zero brass) with 2x2 transparent end apertures.\n\n" +
+                "Crafting Uses:\n" +
+                "Connects Astral Collectors directly to underground subterranean altars, furnaces, and crystal baths.\n\n" +
+                "Special Properties:\n" +
+                "Inline Optical Booster Amplifiers fully restore attenuated starlight flux to 100%.",
+                "astral_altar_and_observatory", 2, new ItemStack(ModBlocks.PURE_OPTIC_FIBER.get()),
+                560f, 0.0f, a_magic + 0.04f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_crystals_and_impactite", "Astral Crystals & Impactite", "MAGIC",
+                "Dual-stat growing crystals, self-repairing tools, and extraterrestrial impactites.",
+                "Overview & Description:\n" +
+                "Astral Crystals possess unique dual statistics: Size (1 to 5) and Purity (10% to 100%). Mined from rare deep-slate Celestial Geodes formed of shock-vitrified Astral Impactite.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Budding Astral Impactite sprouts crystal clusters over time. Mined clusters drop raw Astral Crystals.\n\n" +
+                "Crafting Uses:\n" +
+                "Forges self-repairing Crystal Swords, Pickaxes, Axes, and Shovels that mend under the night sky.\n\n" +
+                "Special Properties:\n" +
+                "When broken, size-5 crystal tools enter a drained dormant state rather than vanishing, regaining full durability when bathed in starlight.",
+                "astral_altar_and_observatory", 2, new ItemStack(ModItems.ASTRAL_CRYSTAL.get()),
+                560f, 0.0f, a_magic + 0.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_celestial_beacons", "Celestial Beacons & Singularity Wards", "MAGIC",
+                "Radial passive constellation fields, mob suppression, and forcefield domes.",
+                "Overview & Description:\n" +
+                "A 3x3x3 multiblock beacon topped with an attuned Astral Crystal projecting planetary-scale astrological fields.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Built using Astral Marble, corner Resonance Pylons, a Celestial Beacon Controller, and tuned crystal apex.\n\n" +
+                "Crafting Uses:\n" +
+                "Projects Lucerna mob suppression (up to 128 blocks), Mineralis automatic stone transmutation, and Scutum forcefield domes.\n\n" +
+                "Special Properties:\n" +
+                "Beacon radius scales dynamically based on crystal Size: Radius = 32 + (Size - 1) * 24 blocks.",
+                "astral_crystals_and_impactite", 3, new ItemStack(ModBlocks.CELESTIAL_BEACON_CONTROLLER.get()),
+                640f, 0.0f, a_magic + 0.08f, false
+        ));
+
         ALL_NODES.add(new CodexNode(
                 "magic_alchemy", "Alchemy & Transmutation", "MAGIC",
                 "Transmutation, catalysts, and brewing.",
@@ -1251,24 +1345,6 @@ public class CodexCategoryRegistry {
                 "Performed at Alchemical Stills and Catalyst Receptacles.",
                 "hub_magic", 1, new ItemStack(Items.POTION),
                 280f, 0.0f, a_magic + 0.25f, false
-        ));
-
-        // ==========================================
-        // CUSTOM WOOD CHESTS (Machinery Sub-Nodes)
-        // ==========================================
-        ALL_NODES.add(new CodexNode(
-                "machinery_custom_wood_chests", "Elemental Wood Chests", "MACHINERY",
-                "Color-coded wooden storage containers crafted from native Entropica wood species.",
-                "Overview & Description:\n" +
-                "Specially crafted wooden storage chests matching the distinct timber grain and color palette of Entropica's 10 native wood species.\n\n" +
-                "Origin & Obtaining:\n" +
-                "Crafted in a 3x3 crafting grid using 8 matching Planks of any specific wood type (Pyre-Ash Cedar, Abyssal Spore-Cypress, Starlight Aether-Birch, Blood-Root Iron-Oak, Astral-Veil Willow, Void-Blight Mangrove, Amber, Rubber, Silver Pine, or Materia-Echo).\n\n" +
-                "Crafting Uses:\n" +
-                "Provides 27 slots of item storage per single chest, and 54 slots when two matching chests are placed adjacent to form a Double Chest.\n\n" +
-                "Special Properties:\n" +
-                "Features unique colored iron latches and wood-grain staining matching each tree family.",
-                "hub_machinery", 0, new ItemStack(ModBlocks.PYRE_ASH_CEDAR_CHEST.get()),
-                310f, 0.0f, a_mach + 0.20f, false
         ));
     }
 

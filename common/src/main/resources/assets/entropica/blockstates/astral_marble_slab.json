@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "entropica:block/astral_marble_slab"
+    },
+    "type=top": {
+      "model": "entropica:block/astral_marble_slab_top"
+    },
+    "type=double": {
+      "model": "entropica:block/astral_marble"
+    }
+  }
+}

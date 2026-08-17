@@ -54,6 +54,14 @@ public class EntropicaClient {
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.AEGIS_SPIRE_ORCHID.get(), ChunkSectionLayer.CUTOUT);
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.TALL_AEGIS_SPIRE_ORCHID.get(), ChunkSectionLayer.CUTOUT);
             
+            
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SMALL_ASTRAL_CRYSTAL_BUD.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.MEDIUM_ASTRAL_CRYSTAL_BUD.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.LARGE_ASTRAL_CRYSTAL_BUD.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.ASTRAL_CRYSTAL_CLUSTER.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.REFRACTIVE_ASTRAL_LENS.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.PURE_OPTIC_FIBER.get(), ChunkSectionLayer.CUTOUT);
+
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.ASTRAL_VEIL_WILLOW_LEAVES.get(), ChunkSectionLayer.CUTOUT);
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.ASTRAL_VEIL_WILLOW_SAPLING.get(), ChunkSectionLayer.CUTOUT);
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.ASTRAL_VEIL_WILLOW_VINES.get(), ChunkSectionLayer.CUTOUT);
@@ -92,6 +100,12 @@ public class EntropicaClient {
             net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "lens_overlay"),
             (guiGraphics, deltaTracker) -> {
                 ddraig.net.entropica.client.LensOverlayRenderer.render(guiGraphics, deltaTracker.getGameTimeDeltaTicks());
+            }
+        );
+        event.registerAboveAll(
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "looking_glass_overlay"),
+            (guiGraphics, deltaTracker) -> {
+                ddraig.net.entropica.client.LookingGlassOverlayRenderer.render(guiGraphics, deltaTracker.getGameTimeDeltaTicks());
             }
         );
     }

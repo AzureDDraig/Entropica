@@ -49,6 +49,13 @@ public class EntropicaFabric implements ModInitializer {
             return InteractionResult.PASS;
         });
 
+        // Register Astral Geode subterranean worldgen feature on Fabric
+        net.fabricmc.fabric.api.biome.v1.BiomeModifications.addFeature(
+            net.fabricmc.fabric.api.biome.v1.BiomeSelectors.foundInOverworld(),
+            net.minecraft.world.level.levelgen.GenerationStep.Decoration.UNDERGROUND_DECORATION,
+            net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.PLACED_FEATURE, ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "astral_geode"))
+        );
+
         // Common initialization
         Entropica.init();
     }

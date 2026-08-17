@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "entropica:block/stationary_brass_telescope"
+    },
+    "facing=south": {
+      "model": "entropica:block/stationary_brass_telescope",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "entropica:block/stationary_brass_telescope",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "entropica:block/stationary_brass_telescope",
+      "y": 90
+    }
+  }
+}

@@ -332,4 +332,18 @@ public class ModClientEvents {
             }
         }
     }
+
+    @SubscribeEvent
+    public static void onRenderLevelStage(net.neoforged.neoforge.client.event.RenderLevelStageEvent.AfterSky event) {
+        PoseStack poseStack = event.getPoseStack();
+        if (poseStack != null) {
+            Minecraft mc = Minecraft.getInstance();
+            ddraig.net.entropica.client.renderer.CelestialSkyRenderer.renderSky(
+                poseStack,
+                event.getModelViewMatrix(),
+                mc.gameRenderer.getMainCamera(),
+                mc.getDeltaTracker().getGameTimeDeltaTicks()
+            );
+        }
+    }
 }
