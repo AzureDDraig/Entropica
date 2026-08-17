@@ -41,7 +41,7 @@ public class LookingGlassOverlayRenderer {
             guiGraphics.fill(0, y + size, screenWidth, screenHeight, 0xFF000000);
         }
 
-        guiGraphics.blit(OVERLAY_TEXTURE, x, y, size, size, 0.0f, 1.0f, 0.0f, 1.0f);
+        guiGraphics.blit(OVERLAY_TEXTURE, x, y, x + size, y + size, 0.0f, 1.0f, 0.0f, 1.0f);
 
         // 2. Astronomical Coordinate Readouts
         float yaw = Mth.wrapDegrees(player.getYRot());

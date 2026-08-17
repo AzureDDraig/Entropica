@@ -292,8 +292,8 @@ public class SkyLookingGlassScreen extends Screen {
             guiGraphics.fill(0, lensY + size, screenWidth, screenHeight, 0xFF000000);
         }
 
-        // 128x128 circular bezel scaled to screen bounds
-        guiGraphics.blit(OVERLAY_TEXTURE, lensX, lensY, size, size, 0.0f, 1.0f, 0.0f, 1.0f);
+        // 128x128 circular bezel scaled to screen bounds (x1, y1, x2, y2, u0, u1, v0, v1)
+        guiGraphics.blit(OVERLAY_TEXTURE, lensX, lensY, lensX + size, lensY + size, 0.0f, 1.0f, 0.0f, 1.0f);
 
         // 5. Header Coordinate HUD
         String dirName = getDirectionName(this.yaw);
