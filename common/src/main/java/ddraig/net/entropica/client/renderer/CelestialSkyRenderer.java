@@ -2,6 +2,7 @@ package ddraig.net.entropica.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.astral.Constellation;
 import ddraig.net.entropica.astral.ConstellationConnection;
 import ddraig.net.entropica.astral.ConstellationStar;
@@ -56,7 +57,7 @@ public class CelestialSkyRenderer {
         lagoon.add(new NebulaPuff(6.0f, 7.0f, 28.0f, 0.05f, 0.55f, 0.85f, 0.24f));
         lagoon.add(new NebulaPuff(-12.0f, -2.0f, 20.0f, 0.15f, 0.75f, 1.0f, 0.18f));
         lagoon.add(new NebulaPuff(13.0f, 3.0f, 22.0f, 0.0f, 0.4f, 0.8f, 0.19f));
-        NEBULA_COMPLEXES.add(new NebulaComplex(45.0f, 30.0f, "Lagoon Veil", lagoon));
+        NEBULA_COMPLEXES.add(new NebulaComplex(45.0f, 25.0f, "Lagoon Veil", lagoon));
 
         // 2. The Amethyst Supernova Remnant (Violet, Rose, Magenta)
         List<NebulaPuff> amethyst = new ArrayList<>();
@@ -67,7 +68,7 @@ public class CelestialSkyRenderer {
         amethyst.add(new NebulaPuff(8.0f, 8.0f, 30.0f, 0.55f, 0.1f, 0.85f, 0.22f));
         amethyst.add(new NebulaPuff(14.0f, 2.0f, 24.0f, 0.75f, 0.2f, 0.8f, 0.18f));
         amethyst.add(new NebulaPuff(-15.0f, -3.0f, 22.0f, 0.4f, 0.05f, 0.7f, 0.16f));
-        NEBULA_COMPLEXES.add(new NebulaComplex(175.0f, 58.0f, "Amethyst Remnant", amethyst));
+        NEBULA_COMPLEXES.add(new NebulaComplex(175.0f, 55.0f, "Amethyst Remnant", amethyst));
 
         // 3. The Amber Solar Nursery (Golden Amber, Crimson, Solar Orange)
         List<NebulaPuff> amber = new ArrayList<>();
@@ -77,7 +78,7 @@ public class CelestialSkyRenderer {
         amber.add(new NebulaPuff(-6.0f, 7.0f, 26.0f, 0.95f, 0.55f, 0.1f, 0.22f));
         amber.add(new NebulaPuff(7.0f, -7.0f, 28.0f, 1.0f, 0.3f, 0.0f, 0.24f));
         amber.add(new NebulaPuff(13.0f, -2.0f, 22.0f, 0.9f, 0.75f, 0.15f, 0.18f));
-        NEBULA_COMPLEXES.add(new NebulaComplex(265.0f, 38.0f, "Amber Nursery", amber));
+        NEBULA_COMPLEXES.add(new NebulaComplex(265.0f, 28.0f, "Amber Nursery", amber));
 
         // 4. The Obsidian Emerald Shroud (Deep Emerald, Viridian, Indigo)
         List<NebulaPuff> emerald = new ArrayList<>();
@@ -86,20 +87,25 @@ public class CelestialSkyRenderer {
         emerald.add(new NebulaPuff(9.0f, -6.0f, 34.0f, 0.0f, 0.95f, 0.45f, 0.22f));
         emerald.add(new NebulaPuff(-7.0f, -6.0f, 24.0f, 0.15f, 0.55f, 0.85f, 0.19f));
         emerald.add(new NebulaPuff(7.0f, 7.0f, 26.0f, 0.05f, 0.8f, 0.6f, 0.20f));
-        NEBULA_COMPLEXES.add(new NebulaComplex(330.0f, 48.0f, "Emerald Shroud", emerald));
+        NEBULA_COMPLEXES.add(new NebulaComplex(330.0f, 45.0f, "Emerald Shroud", emerald));
     }
 
-    // Ambient background stars cache for skybox
+    // Ambient background stars cache with deterministic Essence typings
     private static final List<float[]> SKY_STARS = new ArrayList<>();
     static {
         Random rng = new Random(987654L);
-        for (int i = 0; i < 280; i++) {
+        EssenceType[] essences = EssenceType.values();
+        for (int i = 0; i < 320; i++) {
             float theta = rng.nextFloat() * 360.0f;
-            float phi = -10.0f + rng.nextFloat() * 105.0f;
-            float size = 0.9f + rng.nextFloat() * 1.8f;
-            float r = 0.8f + rng.nextFloat() * 0.2f;
-            float g = 0.85f + rng.nextFloat() * 0.15f;
-            float b = 0.9f + rng.nextFloat() * 0.1f;
+            float phi = -25.0f + rng.nextFloat() * 115.0f; // -25 to +90 degrees for rich sky depth
+            float size = 0.85f + rng.nextFloat() * 1.6f;
+            EssenceType ess = essences[rng.nextInt(essences.length)];
+            float er = ess.getR() / 255.0f;
+            float eg = ess.getG() / 255.0f;
+            float eb = ess.getB() / 255.0f;
+            float r = Mth.lerp(0.55f, 0.9f, er);
+            float g = Mth.lerp(0.55f, 0.9f, eg);
+            float b = Mth.lerp(0.55f, 0.9f, eb);
             SKY_STARS.add(new float[]{theta, phi, size, r, g, b});
         }
     }
@@ -196,13 +202,13 @@ public class CelestialSkyRenderer {
             float y = skyRadius * Mth.sin(phi);
             float z = skyRadius * Mth.cos(phi) * Mth.cos(theta);
 
-            float twinkle = 0.7f + 0.3f * Mth.sin(timeAnim + s[0]);
-            float a = starBrightness * twinkle * 0.9f;
+            float twinkle = 0.75f + 0.25f * Mth.sin(timeAnim + s[0]);
+            float a = starBrightness * twinkle * 0.85f;
 
             renderBillboardQuad(starConsumer, matrix, x, y, z, sSize, sr, sg, sb, a, light, overlay);
         }
 
-        // B. Render Constellation Star Vertices
+        // B. Render Constellation Star Vertices (Elevated high in circumpolar sky: 48° to 72°)
         int totalVisible = visibleConstellations.size();
         List<float[][]> allConstellationWorldPositions = new ArrayList<>();
 
@@ -210,7 +216,7 @@ public class CelestialSkyRenderer {
             Constellation constellation = visibleConstellations.get(i);
 
             float baseAzimuth = (float) Math.toRadians(i * (360.0f / Math.max(1, totalVisible)));
-            float baseAltitude = (float) Math.toRadians(35.0f + (float) Math.sin(i * 1.7) * 22.0f);
+            float baseAltitude = (float) Math.toRadians(48.0f + ((i * 17) % 24));
 
             List<ConstellationStar> stars = constellation.getStars();
             float[][] starWorldPos = new float[stars.size()][3];
@@ -242,7 +248,7 @@ public class CelestialSkyRenderer {
                 float g = isDiscovered ? eg : Mth.lerp(0.45f, specG, eg);
                 float b = isDiscovered ? eb : Mth.lerp(0.45f, specB, eb);
 
-                float starSize = Math.max(2.4f, star.brightness() * 2.8f);
+                float starSize = Math.max(2.0f, star.brightness() * 2.4f);
                 float twinkle = 0.85f + 0.15f * Mth.sin(timeAnim * 2.0f + s * 1.5f);
                 float alpha = starBrightness * twinkle;
 
@@ -252,44 +258,10 @@ public class CelestialSkyRenderer {
             allConstellationWorldPositions.add(starWorldPos);
         }
 
-        // Render traveling stardust pulse sparks on discovered constellation lines
-        for (int i = 0; i < totalVisible; i++) {
-            Constellation constellation = visibleConstellations.get(i);
-            boolean isDiscovered = PlayerAstralProgress.isDiscovered(player, constellation);
-            if (isDiscovered) {
-                float er = constellation.getEssenceType().getR() / 255.0f;
-                float eg = constellation.getEssenceType().getG() / 255.0f;
-                float eb = constellation.getEssenceType().getB() / 255.0f;
-
-                float[][] starWorldPos = allConstellationWorldPositions.get(i);
-                List<ConstellationStar> stars = constellation.getStars();
-                int edgeIndex = 0;
-                for (ConstellationConnection conn : constellation.getConnections()) {
-                    if (conn.fromIndex() < stars.size() && conn.toIndex() < stars.size()) {
-                        float x1 = starWorldPos[conn.fromIndex()][0];
-                        float y1 = starWorldPos[conn.fromIndex()][1];
-                        float z1 = starWorldPos[conn.fromIndex()][2];
-
-                        float x2 = starWorldPos[conn.toIndex()][0];
-                        float y2 = starWorldPos[conn.toIndex()][1];
-                        float z2 = starWorldPos[conn.toIndex()][2];
-
-                        float tBead = ((gameTime + partialTick) * 0.035f + edgeIndex * 0.35f) % 1.0f;
-                        float bx = x1 * (1.0f - tBead) + x2 * tBead;
-                        float by = y1 * (1.0f - tBead) + y2 * tBead;
-                        float bz = z1 * (1.0f - tBead) + z2 * tBead;
-
-                        renderBillboardQuad(starConsumer, matrix, bx, by, bz, 1.8f, er, eg, eb, starBrightness * 0.98f, light, overlay);
-                    }
-                    edgeIndex++;
-                }
-            }
-        }
-
         bufferSource.endBatch(starRenderType);
 
         // ----------------------------------------------------
-        // PASS 3: Glowing Constellation Starlight Lines (Using WHITE_TEXTURE)
+        // PASS 3: Single Clean, Tangent-Aligned Constellation Starlight Lines
         // ----------------------------------------------------
         VertexConsumer lineConsumer = bufferSource.getBuffer(lineRenderType);
 
@@ -302,10 +274,6 @@ public class CelestialSkyRenderer {
                 float eg = constellation.getEssenceType().getG() / 255.0f;
                 float eb = constellation.getEssenceType().getB() / 255.0f;
 
-                float coreR = Mth.lerp(0.35f, er, 1.0f);
-                float coreG = Mth.lerp(0.35f, eg, 1.0f);
-                float coreB = Mth.lerp(0.35f, eb, 1.0f);
-
                 float[][] starWorldPos = allConstellationWorldPositions.get(i);
                 List<ConstellationStar> stars = constellation.getStars();
 
@@ -319,11 +287,8 @@ public class CelestialSkyRenderer {
                         float y2 = starWorldPos[conn.toIndex()][1];
                         float z2 = starWorldPos[conn.toIndex()][2];
 
-                        // Outer Glowing Starlight Halo (Width 1.7f, tinted by Essence color)
-                        renderLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 1.7f, er, eg, eb, starBrightness * 0.60f, light, overlay);
-
-                        // Inner Brilliant Starlight Beam (Width 0.75f, luminous bright essence core)
-                        renderLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.75f, coreR, coreG, coreB, starBrightness * 0.98f, light, overlay);
+                        // Single crisp, spherical-tangent starlight beam
+                        renderSphericalLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.55f, er, eg, eb, starBrightness * 0.85f, light, overlay);
                     }
                 }
             }
@@ -343,12 +308,36 @@ public class CelestialSkyRenderer {
         builder.addVertex(matrix, x - hs, y + hs, z).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
     }
 
-    private static void renderLineSegment(VertexConsumer builder, Matrix4f matrix, float x1, float y1, float z1, float x2, float y2, float z2, float width, float r, float g, float b, float a, int light, int overlay) {
-        float hw = width * 0.5f;
+    private static void renderSphericalLineSegment(VertexConsumer builder, Matrix4f matrix, float x1, float y1, float z1, float x2, float y2, float z2, float width, float r, float g, float b, float a, int light, int overlay) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float dz = z2 - z1;
 
-        builder.addVertex(matrix, x1 - hw, y1 - hw, z1).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        builder.addVertex(matrix, x2 - hw, y2 - hw, z2).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        builder.addVertex(matrix, x2 + hw, y2 + hw, z2).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        builder.addVertex(matrix, x1 + hw, y1 + hw, z1).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        float mx = (x1 + x2) * 0.5f;
+        float my = (y1 + y2) * 0.5f;
+        float mz = (z1 + z2) * 0.5f;
+
+        // Cross product of line vector D and midpoint normal M yields the spherical tangent vector
+        float wx = dy * mz - dz * my;
+        float wy = dz * mx - dx * mz;
+        float wz = dx * my - dy * mx;
+        float wLen = (float) Math.sqrt(wx * wx + wy * wy + wz * wz);
+        if (wLen > 1e-4f) {
+            wx /= wLen;
+            wy /= wLen;
+            wz /= wLen;
+        } else {
+            wx = 0; wy = 1; wz = 0;
+        }
+
+        float hw = width * 0.5f;
+        float offX = wx * hw;
+        float offY = wy * hw;
+        float offZ = wz * hw;
+
+        builder.addVertex(matrix, x1 - offX, y1 - offY, z1 - offZ).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        builder.addVertex(matrix, x2 - offX, y2 - offY, z2 - offZ).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        builder.addVertex(matrix, x2 + offX, y2 + offY, z2 + offZ).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        builder.addVertex(matrix, x1 + offX, y1 + offY, z1 + offZ).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
     }
 }

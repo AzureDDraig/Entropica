@@ -1,6 +1,7 @@
 package ddraig.net.entropica.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.astral.*;
 import ddraig.net.entropica.client.renderer.CelestialSkyRenderer;
 import ddraig.net.entropica.item.CompletedStarChartItem;
@@ -49,7 +50,7 @@ public class SkyLookingGlassScreen extends Screen {
     private boolean isSneakHeld = false;
 
     // Track all on-screen stars during the current frame for universal tracing
-    public record StarNode(String id, float sx, float sy, float size, String label, Constellation constellation, int starIndex) {}
+    public record StarNode(String id, float sx, float sy, float size, String label, EssenceType essence, SpectralClass spectralClass, Constellation constellation, int starIndex) {}
     private final Map<String, StarNode> onScreenStars = new HashMap<>();
 
     public static class CelestialStar {
@@ -60,10 +61,11 @@ public class SkyLookingGlassScreen extends Screen {
         public final float twinkleFreq;
         public final float twinklePhase;
         public final SpectralClass spectralClass;
+        public final EssenceType essenceType;
         public final String name;
         public final String info;
 
-        public CelestialStar(float azimuth, float altitude, float baseSize, float rotSpeed, float twinkleFreq, float twinklePhase, SpectralClass spectralClass, String name, String info) {
+        public CelestialStar(float azimuth, float altitude, float baseSize, float rotSpeed, float twinkleFreq, float twinklePhase, SpectralClass spectralClass, EssenceType essenceType, String name, String info) {
             this.azimuth = azimuth;
             this.altitude = altitude;
             this.baseSize = baseSize;
@@ -71,6 +73,7 @@ public class SkyLookingGlassScreen extends Screen {
             this.twinkleFreq = twinkleFreq;
             this.twinklePhase = twinklePhase;
             this.spectralClass = spectralClass;
+            this.essenceType = essenceType;
             this.name = name;
             this.info = info;
         }
@@ -112,7 +115,7 @@ public class SkyLookingGlassScreen extends Screen {
         } else if (mc.player != null) {
             this.yaw = Mth.wrapDegrees(mc.player.getYRot());
             if (this.yaw < 0) this.yaw += 360.0f;
-            this.pitch = Mth.clamp(-mc.player.getXRot(), -10.0f, 85.0f);
+            this.pitch = Mth.clamp(-mc.player.getXRot(), -35.0f, 88.0f);
         }
 
         Level level = mc.level;
@@ -127,31 +130,33 @@ public class SkyLookingGlassScreen extends Screen {
             this.visibleConstellations = List.of(ModConstellations.VESPA_ACULEUS);
         }
 
-        // Initialize Major Named Celestial Landmark Stars
-        celestialStars.add(new CelestialStar(25.0f, 55.0f, 14.0f, 12.0f, 2.5f, 0.0f, SpectralClass.CLASS_A, "Sirius (Alpha Canis)", "Brightest Northern Guide Star | Mag: -1.46m"));
-        celestialStars.add(new CelestialStar(78.0f, 72.0f, 12.0f, -8.0f, 3.1f, 1.2f, SpectralClass.CLASS_A, "Vega (Alpha Lyrae)", "Stellar Calibration Apex | Mag: 0.03m"));
-        celestialStars.add(new CelestialStar(0.0f, 88.5f, 15.0f, 4.0f, 1.8f, 2.4f, SpectralClass.CLASS_F, "Polaris (True Celestial Pole)", "True North Anchor | Mag: 1.98m"));
-        celestialStars.add(new CelestialStar(145.0f, 38.0f, 14.0f, -15.0f, 2.0f, 3.1f, SpectralClass.CLASS_M, "Betelgeuse (Alpha Orionis)", "Pulsing Red Supergiant | Mag: 0.50m"));
-        celestialStars.add(new CelestialStar(162.0f, 28.0f, 13.0f, 18.0f, 3.6f, 0.7f, SpectralClass.CLASS_B, "Rigel (Beta Orionis)", "Radiant Blue Supergiant | Mag: 0.13m"));
-        celestialStars.add(new CelestialStar(205.0f, 44.0f, 12.0f, -10.0f, 2.7f, 1.9f, SpectralClass.CLASS_K, "Aldebaran (Alpha Tauri)", "Eye of the Cosmic Taurus | Mag: 0.85m"));
-        celestialStars.add(new CelestialStar(235.0f, 65.0f, 13.0f, 7.0f, 3.0f, 4.2f, SpectralClass.CLASS_G, "Capella (Alpha Aurigae)", "Quadruple Golden Star | Mag: 0.08m"));
-        celestialStars.add(new CelestialStar(285.0f, 22.0f, 14.0f, -12.0f, 2.2f, 5.0f, SpectralClass.CLASS_M, "Antares (Heart of Scorpio)", "Heart of the Void | Mag: 0.96m"));
-        celestialStars.add(new CelestialStar(315.0f, 34.0f, 12.0f, 14.0f, 3.4f, 2.8f, SpectralClass.CLASS_B, "Spica (Alpha Virginis)", "Eclipsing Blue Giant | Mag: 0.97m"));
-        celestialStars.add(new CelestialStar(110.0f, 60.0f, 13.0f, -6.0f, 2.8f, 1.5f, SpectralClass.CLASS_A, "Deneb (Alpha Cygni)", "Transmutation Vertex | Mag: 1.25m"));
-        celestialStars.add(new CelestialStar(190.0f, 52.0f, 16.0f, 5.0f, 4.0f, 0.4f, SpectralClass.CLASS_O, "Pleiades Astral Cluster", "Open Cosmic Stardust Cluster | Mag: 1.6m"));
+        // Initialize Major Named Celestial Landmark Stars with authentic Essence Typings
+        celestialStars.add(new CelestialStar(25.0f, 55.0f, 14.0f, 12.0f, 2.5f, 0.0f, SpectralClass.CLASS_A, EssenceType.ASTRAL, "Sirius (Alpha Canis)", "Brightest Northern Guide Star | Mag: -1.46m"));
+        celestialStars.add(new CelestialStar(78.0f, 72.0f, 12.0f, -8.0f, 3.1f, 1.2f, SpectralClass.CLASS_A, EssenceType.CELESTIAL, "Vega (Alpha Lyrae)", "Stellar Calibration Apex | Mag: 0.03m"));
+        celestialStars.add(new CelestialStar(0.0f, 88.5f, 15.0f, 4.0f, 1.8f, 2.4f, SpectralClass.CLASS_F, EssenceType.COHESION, "Polaris (True Celestial Pole)", "True North Anchor | Mag: 1.98m"));
+        celestialStars.add(new CelestialStar(145.0f, 38.0f, 14.0f, -15.0f, 2.0f, 3.1f, SpectralClass.CLASS_M, EssenceType.PYRE, "Betelgeuse (Alpha Orionis)", "Pulsing Red Supergiant | Mag: 0.50m"));
+        celestialStars.add(new CelestialStar(162.0f, 28.0f, 13.0f, 18.0f, 3.6f, 0.7f, SpectralClass.CLASS_B, EssenceType.GLACIAL, "Rigel (Beta Orionis)", "Radiant Blue Supergiant | Mag: 0.13m"));
+        celestialStars.add(new CelestialStar(205.0f, 44.0f, 12.0f, -10.0f, 2.7f, 1.9f, SpectralClass.CLASS_K, EssenceType.AMBER, "Aldebaran (Alpha Tauri)", "Eye of the Cosmic Taurus | Mag: 0.85m"));
+        celestialStars.add(new CelestialStar(235.0f, 65.0f, 13.0f, 7.0f, 3.0f, 4.2f, SpectralClass.CLASS_G, EssenceType.RADIANT, "Capella (Alpha Aurigae)", "Quadruple Golden Star | Mag: 0.08m"));
+        celestialStars.add(new CelestialStar(285.0f, 22.0f, 14.0f, -12.0f, 2.2f, 5.0f, SpectralClass.CLASS_M, EssenceType.BLOOD, "Antares (Heart of Scorpio)", "Heart of the Void | Mag: 0.96m"));
+        celestialStars.add(new CelestialStar(315.0f, 34.0f, 12.0f, 14.0f, 3.4f, 2.8f, SpectralClass.CLASS_B, EssenceType.STORM, "Spica (Alpha Virginis)", "Eclipsing Blue Giant | Mag: 0.97m"));
+        celestialStars.add(new CelestialStar(110.0f, 60.0f, 13.0f, -6.0f, 2.8f, 1.5f, SpectralClass.CLASS_A, EssenceType.AETHER, "Deneb (Alpha Cygni)", "Transmutation Vertex | Mag: 1.25m"));
+        celestialStars.add(new CelestialStar(190.0f, 52.0f, 16.0f, 5.0f, 4.0f, 0.4f, SpectralClass.CLASS_O, EssenceType.ASTRAL, "Pleiades Astral Cluster", "Open Cosmic Stardust Cluster | Mag: 1.6m"));
 
-        // Generate 240 deterministic ambient background stars across the celestial sphere
+        // Generate 260 deterministic ambient background stars with full Essence typings across the celestial sphere (-25° to 90°)
         Random rng = new Random(133742L);
         SpectralClass[] classes = SpectralClass.values();
-        for (int i = 0; i < 240; i++) {
+        EssenceType[] essences = EssenceType.values();
+        for (int i = 0; i < 260; i++) {
             float sTheta = rng.nextFloat() * 360.0f;
-            float sPhi = -5.0f + rng.nextFloat() * 95.0f;
+            float sPhi = -25.0f + rng.nextFloat() * 115.0f;
             float sSize = 5.0f + rng.nextFloat() * 6.5f;
             float sRotSpeed = (rng.nextFloat() - 0.5f) * 30.0f;
             float sFreq = 1.5f + rng.nextFloat() * 3.0f;
             float sPhase = rng.nextFloat() * 6.28f;
             SpectralClass sc = classes[rng.nextInt(classes.length)];
-            celestialStars.add(new CelestialStar(sTheta, sPhi, sSize, sRotSpeed, sFreq, sPhase, sc, null, null));
+            EssenceType ess = essences[rng.nextInt(essences.length)];
+            celestialStars.add(new CelestialStar(sTheta, sPhi, sSize, sRotSpeed, sFreq, sPhase, sc, ess, null, null));
         }
     }
 
@@ -236,7 +241,7 @@ public class SkyLookingGlassScreen extends Screen {
     private void lockAstralLensFocus() {
         String targetName = "Sky Azimuth " + String.format("%.1f°", this.yaw);
         if (this.focusedTarget instanceof CelestialStar cs) {
-            targetName = (cs.name != null) ? cs.name : "Star Beacon";
+            targetName = (cs.name != null) ? cs.name : (cs.essenceType.getDisplayName() + " Star");
         } else if (this.focusedTarget instanceof Object[] pair) {
             Constellation c = (Constellation) pair[0];
             targetName = Component.translatable(c.getUnlocalizedName()).getString();
@@ -311,7 +316,7 @@ public class SkyLookingGlassScreen extends Screen {
         if (!isShiftDown()) {
             this.yaw = Mth.wrapDegrees(this.yaw - (float) dragX * PAN_SPEED);
             if (this.yaw < 0) this.yaw += 360.0f;
-            this.pitch = Mth.clamp(this.pitch + (float) dragY * PAN_SPEED, -10.0f, 85.0f);
+            this.pitch = Mth.clamp(this.pitch + (float) dragY * PAN_SPEED, -35.0f, 88.0f);
             return true;
         }
         return super.mouseDragged(event, dragX, dragY);
@@ -390,7 +395,7 @@ public class SkyLookingGlassScreen extends Screen {
                 }
             }
 
-            // 3. Render Ambient & Named Celestial Stars
+            // 3. Render Ambient & Named Celestial Stars (Each with authentic Essence typing)
             for (int idx = 0; idx < celestialStars.size(); idx++) {
                 CelestialStar star = celestialStars.get(idx);
                 float[] appAngles = celestialToApparentAngles((float) Math.toRadians(star.azimuth), (float) Math.toRadians(star.altitude), celestialAngle);
@@ -411,7 +416,7 @@ public class SkyLookingGlassScreen extends Screen {
                         float rotAngle = (timeSec * star.rotSpeed * 20.0f) % 360.0f;
 
                         String starNodeId = (star.name != null) ? ("l:" + star.name) : ("a:" + idx);
-                        onScreenStars.put(starNodeId, new StarNode(starNodeId, sx, sy, drawSize, star.name, null, -1));
+                        onScreenStars.put(starNodeId, new StarNode(starNodeId, sx, sy, drawSize, star.name, star.essenceType, star.spectralClass, null, -1));
 
                         if (distFromCenter <= 16.0f && this.focusedTarget == null) {
                             this.focusedTarget = star;
@@ -432,7 +437,7 @@ public class SkyLookingGlassScreen extends Screen {
                 }
             }
 
-            // 4. Render Constellation Nodes
+            // 4. Render Constellation Nodes (Situated at 48° to 72° Altitude)
             int totalVisible = visibleConstellations.size();
 
             for (int i = 0; i < totalVisible; i++) {
@@ -440,10 +445,8 @@ public class SkyLookingGlassScreen extends Screen {
                 boolean isDiscovered = (player != null) && PlayerAstralProgress.isDiscovered(player, constellation);
 
                 float baseAzimuth = (float) Math.toRadians(i * (360.0f / Math.max(1, totalVisible)));
-                float baseAltitude = (float) Math.toRadians(35.0f + (float) Math.sin(i * 1.7) * 22.0f);
+                float baseAltitude = (float) Math.toRadians(48.0f + ((i * 17) % 24));
 
-                int essenceRgb = (constellation.getEssenceType().getR() << 16) | (constellation.getEssenceType().getG() << 8) | constellation.getEssenceType().getB();
-                int essenceColor = 0xFF000000 | essenceRgb;
                 List<ConstellationStar> stars = constellation.getStars();
 
                 for (int s = 0; s < stars.size(); s++) {
@@ -465,28 +468,25 @@ public class SkyLookingGlassScreen extends Screen {
                     if (dist < lensRadius - 4.0f) {
                         String cNodeId = "c:" + constellation.getId().toString() + ":" + s;
                         float twinkle = 0.85f + 0.15f * (float) Math.sin(timeSec * 3.0f + s * 1.2f);
-                        float sSize = Math.max(7.0f, star.brightness() * 8.5f) * twinkle;
+                        float sSize = Math.max(6.5f, star.brightness() * 7.5f) * twinkle;
 
-                        onScreenStars.put(cNodeId, new StarNode(cNodeId, sx, sy, sSize, null, constellation, s));
+                        onScreenStars.put(cNodeId, new StarNode(cNodeId, sx, sy, sSize, null, constellation.getEssenceType(), star.spectralClass(), constellation, s));
 
                         if (dist <= 16.0f && this.focusedTarget == null) {
                             this.focusedTarget = new Object[]{constellation, star};
                         }
 
-                        // Render Constellation Star Billets with Essence Glow
+                        // Render Natural Star Billets (No giveaway outer aura circles)
                         guiGraphics.pose().pushMatrix();
                         guiGraphics.pose().translate(sx, sy);
                         guiGraphics.pose().rotate((float) Math.toRadians((timeSec * 15.0f + s * 30.0f) % 360.0f));
 
-                        int half = Math.max(3, Math.round(sSize * 0.5f));
+                        int half = Math.max(2, Math.round(sSize * 0.5f));
                         guiGraphics.blit(STAR_TEXTURE, -half, -half, half, half, 0.0f, 1.0f, 0.0f, 1.0f);
                         guiGraphics.pose().popMatrix();
 
-                        // Essence-colored outer aura circle
-                        drawCircle(guiGraphics, (int) sx, (int) sy, half + 2, essenceColor);
-
-                        if (Math.hypot(mouseX - sx, mouseY - sy) <= 12.0f) {
-                            drawCircle(guiGraphics, (int) sx, (int) sy, half + 4, 0xFFFFFFFF);
+                        if (Math.hypot(mouseX - sx, mouseY - sy) <= 10.0f && isShiftDown()) {
+                            drawCircle(guiGraphics, (int) sx, (int) sy, half + 3, 0x88FFFFFF);
                         }
                     }
                 }
@@ -539,8 +539,8 @@ public class SkyLookingGlassScreen extends Screen {
                 }
 
                 int dragColor = 0xFFFFF080;
-                if (startNode.constellation() != null) {
-                    int essRgb = (startNode.constellation().getEssenceType().getR() << 16) | (startNode.constellation().getEssenceType().getG() << 8) | startNode.constellation().getEssenceType().getB();
+                if (startNode.essence() != null) {
+                    int essRgb = (startNode.essence().getR() << 16) | (startNode.essence().getG() << 8) | startNode.essence().getB();
                     dragColor = 0xFF000000 | essRgb;
                 }
                 drawLine(guiGraphics, (int) startX, (int) startY, (int) targetX, (int) targetY, dragColor);
@@ -563,8 +563,11 @@ public class SkyLookingGlassScreen extends Screen {
 
             int reticleColor = 0xFFFFD700;
             if (focusedTarget instanceof Object[] pair && pair[0] instanceof Constellation fc) {
-                int essRgb = (fc.getEssenceType().getR() << 16) | (fc.getEssenceType().getG() << 8) | fc.getEssenceType().getB();
-                reticleColor = 0xFF000000 | essRgb;
+                boolean isDisc = (player != null) && PlayerAstralProgress.isDiscovered(player, fc);
+                if (isDisc) {
+                    int essRgb = (fc.getEssenceType().getR() << 16) | (fc.getEssenceType().getG() << 8) | fc.getEssenceType().getB();
+                    reticleColor = 0xFF000000 | essRgb;
+                }
             }
 
             float pulseRadius = 16.0f + 2.0f * (float) Math.sin(timeSec * 8.0f);
@@ -589,27 +592,29 @@ public class SkyLookingGlassScreen extends Screen {
 
         guiGraphics.blit(OVERLAY_TEXTURE, lensX, lensY, lensX + size, lensY + size, 0.0f, 1.0f, 0.0f, 1.0f);
 
-        // 8. Text & HUD Readouts on top layer
+        // 8. Text & HUD Readouts on top layer (No giveaway labels before charting)
         if (isObstructed) {
             guiGraphics.drawCenteredString(this.font, "§c⚠ LINE OF SIGHT OBSTRUCTED ⚠", centerX, centerY - 12, 0xFFFF5555);
             guiGraphics.drawCenteredString(this.font, "§7View is blocked by solid structure or ceiling", centerX, centerY + 2, 0xFFAAAAAA);
         } else if (focusedTarget != null) {
             if (focusedTarget instanceof CelestialStar cStar) {
                 if (cStar.name != null) {
-                    guiGraphics.drawCenteredString(this.font, "§6✦ TARGET: §f" + cStar.name + "  §e|  §b" + cStar.info, centerX, centerY + 28, 0xFFE0F0FF);
+                    guiGraphics.drawCenteredString(this.font, "§6✦ TARGET: §f" + cStar.name + "  §e| Essence: " + cStar.essenceType.getFormattedName() + "  §e|  §b" + cStar.info, centerX, centerY + 28, 0xFFE0F0FF);
                 } else {
-                    guiGraphics.drawCenteredString(this.font, String.format("§7✦ Stellar Guide Beacon §e| Class: §b%s §e| Mag: §f%.2fm", cStar.spectralClass.name(), cStar.baseSize / 10.0f), centerX, centerY + 28, 0xFFC0D0E0);
+                    guiGraphics.drawCenteredString(this.font, String.format("§7✦ Stellar Resonance §e| Essence: %s §e| Class: §b%s §e| Mag: §f%.2fm", cStar.essenceType.getFormattedName(), cStar.spectralClass.name(), cStar.baseSize / 10.0f), centerX, centerY + 28, 0xFFC0D0E0);
                 }
             } else if (focusedTarget instanceof Object[] pair) {
                 Constellation c = (Constellation) pair[0];
+                ConstellationStar star = (ConstellationStar) pair[1];
                 boolean isDisc = (player != null) && PlayerAstralProgress.isDiscovered(player, c);
-                String title = Component.translatable(c.getUnlocalizedName()).getString();
-                String essCode = c.getEssenceType().getColorCode();
-                String essFormatted = c.getEssenceType().getFormattedName();
                 if (isDisc) {
+                    String title = Component.translatable(c.getUnlocalizedName()).getString();
+                    String essCode = c.getEssenceType().getColorCode();
+                    String essFormatted = c.getEssenceType().getFormattedName();
                     guiGraphics.drawCenteredString(this.font, "§6✦ CONSTELLATION NODE: " + essCode + title + " §7[" + c.getTier().getDisplayName() + " • " + essFormatted + "§7]", centerX, centerY + 28, 0xFFFFFFFF);
                 } else {
-                    guiGraphics.drawCenteredString(this.font, "§b✦ UNCHARTED RESONANCE: " + essCode + "[" + essFormatted + "§7] §7• Hold Shift to Chart", centerX, centerY + 28, 0xFF80D0FF);
+                    // Uncharted constellation star appears with natural stellar resonance info matching all other stars
+                    guiGraphics.drawCenteredString(this.font, String.format("§7✦ Stellar Resonance §e| Essence: %s §e| Class: §b%s §e| Mag: §f%.2fm", c.getEssenceType().getFormattedName(), star.spectralClass().name(), star.brightness()), centerX, centerY + 28, 0xFFC0D0E0);
                 }
             }
         }

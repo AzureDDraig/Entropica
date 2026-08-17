@@ -42,10 +42,14 @@
   - **Organic Multi-Puff Cosmic Nebulae**:
     - Generated `nebula_puff.png` (Gaussian soft transparent radial falloff) and built 4 organic celestial cloud complexes: *Lagoon Veil* (Azure/Cyan), *Amethyst Remnant* (Violet/Magenta), *Amber Nursery* (Golden Amber/Crimson), and *Emerald Shroud* (Deep Teal/Indigo).
     - Replaced flat quad squares with overlapping billowy particle clouds rendered across both `CelestialSkyRenderer.java` and `SkyLookingGlassScreen.java`.
-  - **Dynamic Essence-Type Constellation Coloring & Starlight Signatures**:
-    - Synchronized all celestial rendering systems (`CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`, `ConstellationTracingScreen.java`, and `CompletedStarChartItem.java`) with the constellation's assigned `EssenceType`.
-    - Star vertices, glowing line segment halos, and traveling stardust pulse beads in the skybox are now dynamically tinted by the constellation's signature essence hue (e.g. Amber `§6` for *Resina Succini*, Vitae `§d` for *Vespa Aculeus*, Astral `§5`, Storm `§b`, etc.).
-    - Looking Glass and Tracing Screen UI banners, HUD target readouts, and Star Chart item tooltips now display the constellation name and essence in full color-coded formatting.
+  - **Dynamic Essence-Type Constellation Coloring & Universal Star Resonance**:
+    - Synchronized all celestial rendering systems (`CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`, `ConstellationTracingScreen.java`, and `CompletedStarChartItem.java`) with assigned `EssenceType` color palettes.
+    - Assigned deterministic essence typings to all 260 ambient stars and named landmark beacons across the heavens.
+    - Removed giveaway circular node indicators from constellation stars; all stars now render with authentic starlight billets and display rich stellar resonance data when inspected.
+  - **Skybox Starlight Line Refinement & Elevation Balancing**:
+    - Replaced multi-layer billboard lines with single spherical-tangent geometry lines (`renderSphericalLineSegment`), perfectly aligned to the celestial curvature without stepped layers.
+    - Removed the moving running star bead along lines for a clean, ethereal starlight appearance.
+    - Adjusted constellation celestial dome placement to $48^\circ \dots 72^\circ$ elevation and expanded Looking Glass declination panning down to $-35^\circ$, ensuring all constellations remain easily visible above the horizon throughout the night.
 - **Multi-Loader Compilation Verification**:
   - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 30s`** across `common`, `neoforge`, and `fabric`.
 
