@@ -31,16 +31,14 @@
   - Achieved $100\%$ key parity ($2,457$ translation entries each) across all 24 supported languages in `assets/entropica/lang/`.
   - Added `astral_pantheon_constellations` research node under `MAGIC` in `CodexCategoryRegistry.java`.
   - Updated notes in the Entropica OKF Obsidian Vault (`astral_workstations_and_optics.md`).
-- **Astral Sorcery-Style In-Sky Observation & Tracing Screen (`SkyLookingGlassScreen.java`)**:
-  - Implemented the authentic Astral Sorcery sky telescope observation screen:
-    - **Spherical Celestial Sky Panning**: Moving the mouse smoothly pans the view across the celestial firmament with 160 ambient background stars and active night constellations at $42^\circ$ FOV.
-    - **1:1 Circular Telescope View**: Scaled $128 \times 128$ pixel art brass telescope bezel with full widescreen letterbox masking.
-    - **Shift-to-Lock & Direct In-Sky Tracing**: Holding **Shift** locks the camera view in place, enabling a magnetic cursor to click and drag starlight lines directly between constellation star nodes in the sky.
-    - **Discovery & Fanfares**: Successfully charting a constellation pattern plays level-up chimes (`PLAYER_LEVELUP` + `AMETHYST_BLOCK_CHIME` + `BEACON_ACTIVATE`), unlocks the constellation in `PlayerAstralProgress`, permanently ignites its golden lines across the sky, and inscribes held `Blank Star Chart` items into `Completed Star Chart` items.
-    - Right-click with Shift held resets uncompleted lines.
-  - Linked `LookingGlassItem.java`, `AstrolabeItem.java`, and `StationaryBrassTelescopeBlock.java` to open `SkyLookingGlassScreen` on use.
+- **Astral Sorcery-Style In-Sky Observation & Stargazing Suite**:
+  - **Camera Rotation & Angle Sync on Exit**: Leaving the telescope (`ESC`) synchronizes the player's world camera (`yRot`, `xRot`, `yHeadRot`, `yBodyRot`) to the exact azimuth and declination observed through the lens.
+  - **Line of Sight / Sky Occlusion Raycasting**: Raycasts 128 blocks from the player's eyes along the viewing vector; if obstructed by ceilings, caves, or solid structures, the telescope view dims with a `"Line of Sight Obstructed"` alert.
+  - **Free-Form Star Tracing & Validation**: Allows drawing lines between any stars in the telescope view; validating the constellation graph upon full puzzle completion, while Shift + Right-Click resets lines.
+  - **Text Layering & Reticle Telemetry**: Relocated all text and telemetry readouts on the top-most rendering layer, preventing the circular bezel overlay and letterbox masks from cutting off text.
+  - **Nebulae, Cosmic Dust & Ambient Starfield**: Rendered luminous celestial dust clouds and 280+ ambient twinkling stars with `star.png` in both `SkyLookingGlassScreen` and the world night sky (`CelestialSkyRenderer.java` with immediate `endBatch` rasterization).
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 24s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 26s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

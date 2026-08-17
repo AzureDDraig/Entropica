@@ -21,10 +21,27 @@ import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class CelestialSkyRenderer {
 
     private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
+    private static final ResourceLocation STAR_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/environment/star.png");
+
+    // Ambient background stars cache for skybox
+    private static final List<float[]> SKY_STARS = new ArrayList<>();
+    static {
+        Random rng = new Random(987654L);
+        for (int i = 0; i < 280; i++) {
+            float theta = rng.nextFloat() * 360.0f;
+            float phi = -5.0f + rng.nextFloat() * 95.0f;
+            float size = 0.8f + rng.nextFloat() * 1.6f;
+            float r = 0.8f + rng.nextFloat() * 0.2f;
+            float g = 0.85f + rng.nextFloat() * 0.15f;
+            float b = 0.9f + rng.nextFloat() * 0.1f;
+            SKY_STARS.add(new float[]{theta, phi, size, r, g, b});
+        }
+    }
 
     public static void renderSky(PoseStack poseStack, Matrix4f projectionMatrix, Camera camera, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
@@ -35,23 +52,20 @@ public class CelestialSkyRenderer {
         // 1. Dimensional Checks
         boolean isEnd = level.dimension().equals(Level.END);
         boolean isNether = level.dimension().equals(Level.NETHER);
-        if (isNether) return; // Nether bedrock roof completely blocks all celestial starlight
+        if (isNether) return; // Nether bedrock roof blocks celestial starlight
 
         float starBrightness;
         List<Constellation> visibleConstellations;
 
         if (isEnd) {
-            // In The End: Vacuum void, all 24 constellations permanently visible at full brightness
             starBrightness = 1.0f;
             visibleConstellations = new ArrayList<>(ModConstellations.getAllConstellations());
         } else {
-            // In Overworld: Day/Night cycle + Moon Phase + Weather attenuation
             if (!level.dimensionType().hasSkyLight()) return;
 
             starBrightness = level.getStarBrightness(partialTick);
             if (starBrightness <= 0.01f) return;
 
-            // Weather cloud attenuation below Y=192
             float rain = level.getRainLevel(partialTick);
             if (rain > 0.01f && player.getY() < 192.0) {
                 starBrightness *= (1.0f - rain * 0.85f);
@@ -62,141 +76,147 @@ public class CelestialSkyRenderer {
             visibleConstellations = ModConstellations.getVisibleConstellations(moonPhase);
         }
 
-        if (visibleConstellations.isEmpty()) return;
-
-        boolean isScoping = ddraig.net.entropica.item.AstrolabeItem.isScoping(player);
         long gameTime = level.getGameTime();
         float timeAnim = (gameTime + partialTick) * 0.05f;
 
         MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucentEmissive(WHITE_TEXTURE));
+        RenderType renderType = RenderType.entityTranslucentEmissive(STAR_TEXTURE);
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
 
-        int light = 15728880; // Full emissive brightness
+        int light = 15728880;
         int overlay = OverlayTexture.NO_OVERLAY;
 
         poseStack.pushPose();
 
-        // Sky rotation matching world celestial rotation
         float celestialAngle = isEnd ? ((gameTime + partialTick) * 0.02f) : (level.getTimeOfDay(partialTick) * 360.0f);
         poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-90.0F));
         poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(celestialAngle));
 
         Matrix4f matrix = poseStack.last().pose();
-
-        // Celestial sphere radius
         float skyRadius = 100.0f;
+
+        // A. Render Ambient Stars in Skybox
+        for (float[] s : SKY_STARS) {
+            float theta = (float) Math.toRadians(s[0]);
+            float phi = (float) Math.toRadians(s[1]);
+            float sSize = s[2];
+            float sr = s[3];
+            float sg = s[4];
+            float sb = s[5];
+
+            float x = skyRadius * Mth.cos(phi) * Mth.sin(theta);
+            float y = skyRadius * Mth.sin(phi);
+            float z = skyRadius * Mth.cos(phi) * Mth.cos(theta);
+
+            float twinkle = 0.7f + 0.3f * Mth.sin(timeAnim + s[0]);
+            float a = starBrightness * twinkle * 0.9f;
+
+            renderBillboardQuad(vertexConsumer, matrix, x, y, z, sSize, sr, sg, sb, a, light, overlay);
+        }
+
+        // B. Render Nebulae Clouds in Skybox
+        renderNebulaCloud(vertexConsumer, matrix, skyRadius, 45.0f, 30.0f, 35.0f, 0.0f, 0.5f, 1.0f, starBrightness * 0.25f, light, overlay);
+        renderNebulaCloud(vertexConsumer, matrix, skyRadius, 180.0f, 60.0f, 40.0f, 0.6f, 0.1f, 0.9f, starBrightness * 0.22f, light, overlay);
+        renderNebulaCloud(vertexConsumer, matrix, skyRadius, 270.0f, 40.0f, 30.0f, 1.0f, 0.5f, 0.1f, starBrightness * 0.18f, light, overlay);
+
+        // C. Render Constellations and Lines
         int totalVisible = visibleConstellations.size();
 
         for (int i = 0; i < totalVisible; i++) {
             Constellation constellation = visibleConstellations.get(i);
             boolean isDiscovered = PlayerAstralProgress.isDiscovered(player, constellation);
-            boolean canPerceive = PlayerAstralProgress.canPerceiveTier(player, constellation.getTier());
 
-            // If player cannot perceive this tier yet, skip or render as ambient background stars only
-            if (!canPerceive && !isDiscovered) {
-                continue;
-            }
-
-            // Calculate spherical center (azimuth theta and altitude phi)
-            float baseAzimuth = (i * (2.0f * (float) Math.PI / totalVisible));
-            float baseAltitude = 0.5f + (float) Math.sin(i * 1.7) * 0.3f; // 30 to 50 degrees above horizon
+            float baseAzimuth = (i * (2.0f * (float) Math.PI / Math.max(1, totalVisible)));
+            float baseAltitude = 0.55f + (float) Math.sin(i * 1.7) * 0.35f;
 
             List<ConstellationStar> stars = constellation.getStars();
-            float[][] star3DPos = new float[stars.size()][3];
+            float[][] starWorldPos = new float[stars.size()][3];
 
-            // Calculate 3D sphere positions for each star in this constellation
             for (int s = 0; s < stars.size(); s++) {
                 ConstellationStar star = stars.get(s);
-                float dAzimuth = (star.x() - 50.0f) * 0.0035f;
-                float dAltitude = (50.0f - star.y()) * 0.0035f;
+                float starAzimuth = baseAzimuth + (star.x() - 50.0f) * 0.0055f;
+                float starAltitude = baseAltitude + (50.0f - star.y()) * 0.0055f;
 
-                float theta = baseAzimuth + dAzimuth;
-                float phi = baseAltitude + dAltitude;
+                float x = skyRadius * Mth.cos(starAltitude) * Mth.sin(starAzimuth);
+                float y = skyRadius * Mth.sin(starAltitude);
+                float z = skyRadius * Mth.cos(starAltitude) * Mth.cos(starAzimuth);
 
-                float x = skyRadius * Mth.cos(phi) * Mth.cos(theta);
-                float y = skyRadius * Mth.sin(phi);
-                float z = skyRadius * Mth.cos(phi) * Mth.sin(theta);
-
-                star3DPos[s][0] = x;
-                star3DPos[s][1] = y;
-                star3DPos[s][2] = z;
-            }
-
-            // Render Constellation Connecting Lines & Pulse Beads (ONLY if charted/discovered)
-            if (isDiscovered) {
-                float lineAlpha = starBrightness * 0.95f;
-                int rLine = 255;
-                int gLine = 220;
-                int bLine = 100;
-                int aLine = (int) (lineAlpha * 255);
-
-                int edgeIdx = 0;
-                for (ConstellationConnection conn : constellation.getConnections()) {
-                    if (conn.fromIndex() < stars.size() && conn.toIndex() < stars.size()) {
-                        float[] p1 = star3DPos[conn.fromIndex()];
-                        float[] p2 = star3DPos[conn.toIndex()];
-
-                        float thickness = 0.35f;
-                        drawLineSegment(matrix, vertexConsumer, p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], thickness, rLine, gLine, bLine, aLine, light, overlay);
-
-                        // Traveling stardust pulse beads along lines for discovered constellations
-                        float tBead = ((timeAnim * 0.4f) + (edgeIdx * 0.25f)) % 1.0f;
-                        float bx = p1[0] * (1.0f - tBead) + p2[0] * tBead;
-                        float by = p1[1] * (1.0f - tBead) + p2[1] * tBead;
-                        float bz = p1[2] * (1.0f - tBead) + p2[2] * tBead;
-
-                        drawStarQuad(matrix, vertexConsumer, bx, by, bz, 0.4f, 255, 255, 255, (int) (lineAlpha * 240), light, overlay);
-                    }
-                    edgeIdx++;
-                }
-            }
-
-            // Render Star Billboards
-            for (int s = 0; s < stars.size(); s++) {
-                ConstellationStar star = stars.get(s);
-                float[] pos = star3DPos[s];
+                starWorldPos[s][0] = x;
+                starWorldPos[s][1] = y;
+                starWorldPos[s][2] = z;
 
                 int rgb = star.spectralClass().getColorRgb();
-                int r = (rgb >> 16) & 0xFF;
-                int g = (rgb >> 8) & 0xFF;
-                int b = rgb & 0xFF;
+                float r = ((rgb >> 16) & 0xFF) / 255.0f;
+                float g = ((rgb >> 8) & 0xFF) / 255.0f;
+                float b = (rgb & 0xFF) / 255.0f;
 
-                float twinkle = 0.8f + 0.2f * (float) Math.sin(timeAnim + star.index() * 1.5f);
-                float starSize = (isDiscovered ? 1.6f : (isScoping ? 1.3f : 0.8f)) * star.brightness() * twinkle;
-                int alpha = (int) (starBrightness * 255);
+                float starSize = star.brightness() * 1.8f;
+                float twinkle = 0.85f + 0.15f * Mth.sin(timeAnim * 2.0f + s * 1.5f);
+                float alpha = starBrightness * twinkle;
 
-                drawStarQuad(matrix, vertexConsumer, pos[0], pos[1], pos[2], starSize, r, g, b, alpha, light, overlay);
+                renderBillboardQuad(vertexConsumer, matrix, x, y, z, starSize, r, g, b, alpha, light, overlay);
+            }
 
-                // Add halo on discovered stars
-                if (isDiscovered) {
-                    drawStarQuad(matrix, vertexConsumer, pos[0], pos[1], pos[2], starSize * 2.0f, 255, 215, 100, (int) (alpha * 0.4f), light, overlay);
+            // Render Connecting Lines for Discovered Constellations
+            if (isDiscovered) {
+                int edgeIndex = 0;
+                for (ConstellationConnection conn : constellation.getConnections()) {
+                    if (conn.fromIndex() < stars.size() && conn.toIndex() < stars.size()) {
+                        float x1 = starWorldPos[conn.fromIndex()][0];
+                        float y1 = starWorldPos[conn.fromIndex()][1];
+                        float z1 = starWorldPos[conn.fromIndex()][2];
+
+                        float x2 = starWorldPos[conn.toIndex()][0];
+                        float y2 = starWorldPos[conn.toIndex()][1];
+                        float z2 = starWorldPos[conn.toIndex()][2];
+
+                        renderLineSegment(vertexConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.25f, 1.0f, 0.85f, 0.2f, starBrightness * 0.8f, light, overlay);
+
+                        // Pulse bead traveling along line
+                        float tBead = ((gameTime + partialTick) * 0.03f + edgeIndex * 0.35f) % 1.0f;
+                        float bx = x1 * (1.0f - tBead) + x2 * tBead;
+                        float by = y1 * (1.0f - tBead) + y2 * tBead;
+                        float bz = z1 * (1.0f - tBead) + z2 * tBead;
+
+                        renderBillboardQuad(vertexConsumer, matrix, bx, by, bz, 0.8f, 1.0f, 1.0f, 1.0f, starBrightness * 0.95f, light, overlay);
+                    }
+                    edgeIndex++;
                 }
             }
         }
 
         poseStack.popPose();
+
+        // Flush and immediately draw all batched vertices to screen!
+        bufferSource.endBatch(renderType);
     }
 
-    private static void drawStarQuad(Matrix4f matrix, VertexConsumer consumer, float x, float y, float z, float size, int r, int g, int b, int a, int light, int overlay) {
-        consumer.addVertex(matrix, x - size, y - size, z).setColor(r, g, b, a).setUv(0, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex(matrix, x + size, y - size, z).setColor(r, g, b, a).setUv(1, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex(matrix, x + size, y + size, z).setColor(r, g, b, a).setUv(1, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex(matrix, x - size, y + size, z).setColor(r, g, b, a).setUv(0, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+    private static void renderNebulaCloud(VertexConsumer builder, Matrix4f matrix, float radius, float azimDeg, float altDeg, float size, float r, float g, float b, float a, int light, int overlay) {
+        float azim = (float) Math.toRadians(azimDeg);
+        float alt = (float) Math.toRadians(altDeg);
+
+        float x = radius * 0.95f * Mth.cos(alt) * Mth.sin(azim);
+        float y = radius * 0.95f * Mth.sin(alt);
+        float z = radius * 0.95f * Mth.cos(alt) * Mth.cos(azim);
+
+        renderBillboardQuad(builder, matrix, x, y, z, size, r, g, b, a, light, overlay);
     }
 
-    private static void drawLineSegment(Matrix4f matrix, VertexConsumer consumer, float x1, float y1, float z1, float x2, float y2, float z2, float thickness, int r, int g, int b, int a, int light, int overlay) {
-        float dx = x2 - x1;
-        float dy = y2 - y1;
-        float dz = z2 - z1;
-        float len = Mth.sqrt(dx * dx + dy * dy + dz * dz);
-        if (len < 0.001f) return;
+    private static void renderBillboardQuad(VertexConsumer builder, Matrix4f matrix, float x, float y, float z, float size, float r, float g, float b, float a, int light, int overlay) {
+        float hs = size * 0.5f;
 
-        float nx = -dy / len * thickness;
-        float ny = dx / len * thickness;
+        builder.addVertex(matrix, x - hs, y - hs, z).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        builder.addVertex(matrix, x + hs, y - hs, z).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        builder.addVertex(matrix, x + hs, y + hs, z).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        builder.addVertex(matrix, x - hs, y + hs, z).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+    }
 
-        consumer.addVertex(matrix, x1 - nx, y1 - ny, z1).setColor(r, g, b, a).setUv(0, 0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
-        consumer.addVertex(matrix, x1 + nx, y1 + ny, z1).setColor(r, g, b, a).setUv(1, 0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
-        consumer.addVertex(matrix, x2 + nx, y2 + ny, z2).setColor(r, g, b, a).setUv(1, 1).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
-        consumer.addVertex(matrix, x2 - nx, y2 - ny, z2).setColor(r, g, b, a).setUv(0, 1).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
+    private static void renderLineSegment(VertexConsumer builder, Matrix4f matrix, float x1, float y1, float z1, float x2, float y2, float z2, float width, float r, float g, float b, float a, int light, int overlay) {
+        float hw = width * 0.5f;
+
+        builder.addVertex(matrix, x1 - hw, y1 - hw, z1).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        builder.addVertex(matrix, x2 - hw, y2 - hw, z2).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        builder.addVertex(matrix, x2 + hw, y2 + hw, z2).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        builder.addVertex(matrix, x1 + hw, y1 + hw, z1).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
     }
 }

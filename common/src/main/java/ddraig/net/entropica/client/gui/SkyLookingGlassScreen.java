@@ -15,7 +15,11 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
@@ -43,6 +47,9 @@ public class SkyLookingGlassScreen extends Screen {
     private int dragStarIndex = -1;
     private float currentMouseX = 0;
     private float currentMouseY = 0;
+
+    // Sneak key held state
+    private boolean isSneakHeld = false;
 
     // Rich Ambient Celestial Star Catalog
     public static class CelestialStar {
@@ -138,8 +145,6 @@ public class SkyLookingGlassScreen extends Screen {
         return false;
     }
 
-    private boolean isSneakHeld = false;
-
     private boolean isShiftDown() {
         if (this.isSneakHeld) return true;
         Minecraft mc = Minecraft.getInstance();
@@ -171,16 +176,30 @@ public class SkyLookingGlassScreen extends Screen {
         return super.keyReleased(event);
     }
 
-    @Override
-    public void onClose() {
+    private void syncPlayerRotation() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) {
             mc.player.setYRot(this.yaw);
             mc.player.setXRot(-this.pitch);
             mc.player.yRotO = this.yaw;
             mc.player.xRotO = -this.pitch;
+            mc.player.yHeadRot = this.yaw;
+            mc.player.yHeadRotO = this.yaw;
+            mc.player.yBodyRot = this.yaw;
+            mc.player.yBodyRotO = this.yaw;
         }
+    }
+
+    @Override
+    public void onClose() {
+        syncPlayerRotation();
         super.onClose();
+    }
+
+    @Override
+    public void removed() {
+        syncPlayerRotation();
+        super.removed();
     }
 
     @Override
@@ -236,163 +255,191 @@ public class SkyLookingGlassScreen extends Screen {
 
         this.focusedTarget = null;
 
-        // 2. Render Ambient & Named Celestial Stars using star.png
-        for (CelestialStar star : celestialStars) {
-            float dYaw = Mth.wrapDegrees(star.azimuth - this.yaw);
-            float dPitch = star.altitude - this.pitch;
-
-            if (Math.abs(dYaw) <= FOV && Math.abs(dPitch) <= FOV) {
-                float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
-                float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
-
-                float distFromCenter = (float) Math.hypot(sx - centerX, sy - centerY);
-                if (distFromCenter < lensRadius - 4.0f) {
-                    float twinkle = 0.75f + 0.25f * (float) Math.sin(timeSec * star.twinkleFreq + star.twinklePhase);
-                    float drawSize = star.baseSize * twinkle;
-                    float rotAngle = (timeSec * star.rotSpeed * 20.0f) % 360.0f;
-
-                    // Check center crosshair aiming alignment (within 16px of center)
-                    if (distFromCenter <= 16.0f && this.focusedTarget == null) {
-                        this.focusedTarget = star;
-                    }
-
-                    // Render star texture
-                    guiGraphics.pose().pushMatrix();
-                    guiGraphics.pose().translate(sx, sy);
-                    guiGraphics.pose().rotate((float) Math.toRadians(rotAngle));
-
-                    int half = Math.max(2, Math.round(drawSize * 0.5f));
-                    guiGraphics.blit(STAR_TEXTURE, -half, -half, half, half, 0.0f, 1.0f, 0.0f, 1.0f);
-                    guiGraphics.pose().popMatrix();
-
-                    // If named landmark star, render label when nearby
-                    if (star.name != null && distFromCenter < lensRadius * 0.8f) {
-                        guiGraphics.drawString(this.font, "§b✦ §f" + star.name, (int) sx + half + 2, (int) sy - 4, 0xFFE0F0FF, false);
-                    }
-                }
+        // Check Line of Sight / Sky Occlusion from player's eye
+        boolean isObstructed = false;
+        if (player != null && mc.level != null) {
+            Vec3 eyePos = player.getEyePosition();
+            float yawRad = (float) Math.toRadians(this.yaw);
+            float pitchRad = (float) Math.toRadians(-this.pitch);
+            Vec3 lookDir = new Vec3(
+                    -Math.sin(yawRad) * Math.cos(pitchRad),
+                    -Math.sin(pitchRad),
+                    Math.cos(yawRad) * Math.cos(pitchRad)
+            );
+            Vec3 endPos = eyePos.add(lookDir.scale(128.0));
+            BlockHitResult hit = mc.level.clip(new ClipContext(eyePos, endPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+            if (hit.getType() == HitResult.Type.BLOCK) {
+                isObstructed = true;
             }
         }
 
-        // 3. Render Active Constellations and Stars
-        int totalVisible = visibleConstellations.size();
+        if (!isObstructed) {
+            // 2. Render Cosmic Nebulae Dust Clouds inside telescope view
+            renderNebulaGlow(guiGraphics, centerX, centerY, size, timeSec, 45.0f, 30.0f, 0x330088FF);
+            renderNebulaGlow(guiGraphics, centerX, centerY, size, timeSec, 180.0f, 60.0f, 0x2A9900FF);
+            renderNebulaGlow(guiGraphics, centerX, centerY, size, timeSec, 270.0f, 40.0f, 0x22FF6600);
 
-        for (int i = 0; i < totalVisible; i++) {
-            Constellation constellation = visibleConstellations.get(i);
-            boolean isDiscovered = (player != null) && PlayerAstralProgress.isDiscovered(player, constellation);
+            // 3. Render Ambient & Named Celestial Stars using star.png
+            for (CelestialStar star : celestialStars) {
+                float dYaw = Mth.wrapDegrees(star.azimuth - this.yaw);
+                float dPitch = star.altitude - this.pitch;
 
-            float baseAzimuth = (i * (360.0f / Math.max(1, totalVisible)));
-            float baseAltitude = 32.0f + (float) Math.sin(i * 1.7) * 22.0f;
+                if (Math.abs(dYaw) <= FOV && Math.abs(dPitch) <= FOV) {
+                    float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
+                    float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
 
-            List<ConstellationStar> stars = constellation.getStars();
-            float[][] starScreenPos = new float[stars.size()][2];
-            boolean[] starInView = new boolean[stars.size()];
+                    float distFromCenter = (float) Math.hypot(sx - centerX, sy - centerY);
+                    if (distFromCenter < lensRadius - 4.0f) {
+                        float twinkle = 0.75f + 0.25f * (float) Math.sin(timeSec * star.twinkleFreq + star.twinklePhase);
+                        float drawSize = star.baseSize * twinkle;
+                        float rotAngle = (timeSec * star.rotSpeed * 20.0f) % 360.0f;
 
-            for (int s = 0; s < stars.size(); s++) {
-                ConstellationStar star = stars.get(s);
-                float starAzimuth = baseAzimuth + (star.x() - 50.0f) * 0.32f;
-                float starAltitude = baseAltitude + (50.0f - star.y()) * 0.32f;
+                        // Check center crosshair aiming alignment (within 16px of center)
+                        if (distFromCenter <= 16.0f && this.focusedTarget == null) {
+                            this.focusedTarget = star;
+                        }
 
-                float dYaw = Mth.wrapDegrees(starAzimuth - this.yaw);
-                float dPitch = starAltitude - this.pitch;
+                        // Render star texture
+                        guiGraphics.pose().pushMatrix();
+                        guiGraphics.pose().translate(sx, sy);
+                        guiGraphics.pose().rotate((float) Math.toRadians(rotAngle));
 
-                float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
-                float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
+                        int half = Math.max(2, Math.round(drawSize * 0.5f));
+                        guiGraphics.blit(STAR_TEXTURE, -half, -half, half, half, 0.0f, 1.0f, 0.0f, 1.0f);
+                        guiGraphics.pose().popMatrix();
 
-                starScreenPos[s][0] = sx;
-                starScreenPos[s][1] = sy;
-
-                float dist = (float) Math.hypot(sx - centerX, sy - centerY);
-                starInView[s] = (dist < lensRadius - 4.0f);
-
-                // Check crosshair aiming alignment on constellation star
-                if (dist <= 16.0f && this.focusedTarget == null) {
-                    this.focusedTarget = new Object[]{constellation, star};
+                        // If named landmark star, render label when nearby
+                        if (star.name != null && distFromCenter < lensRadius * 0.8f) {
+                            guiGraphics.drawString(this.font, "§b✦ §f" + star.name, (int) sx + half + 2, (int) sy - 4, 0xFFE0F0FF, false);
+                        }
+                    }
                 }
             }
 
-            // A. Render Connecting Lines
-            Set<ConstellationConnection> drawn = drawnLines.computeIfAbsent(constellation, k -> new HashSet<>());
-            if (isDiscovered) {
-                drawn.addAll(constellation.getConnections());
-            }
+            // 4. Render Active Constellations and Stars
+            int totalVisible = visibleConstellations.size();
 
-            int edgeIdx = 0;
-            for (ConstellationConnection conn : drawn) {
-                if (conn.fromIndex() < stars.size() && conn.toIndex() < stars.size()) {
-                    if (starInView[conn.fromIndex()] || starInView[conn.toIndex()]) {
-                        float x1 = starScreenPos[conn.fromIndex()][0];
-                        float y1 = starScreenPos[conn.fromIndex()][1];
-                        float x2 = starScreenPos[conn.toIndex()][0];
-                        float y2 = starScreenPos[conn.toIndex()][1];
+            for (int i = 0; i < totalVisible; i++) {
+                Constellation constellation = visibleConstellations.get(i);
+                boolean isDiscovered = (player != null) && PlayerAstralProgress.isDiscovered(player, constellation);
 
-                        int lineColor = isDiscovered ? 0xFFFFD700 : 0xFF00F0FF;
-                        drawLine(guiGraphics, (int) x1, (int) y1, (int) x2, (int) y2, lineColor);
+                float baseAzimuth = (i * (360.0f / Math.max(1, totalVisible)));
+                float baseAltitude = 32.0f + (float) Math.sin(i * 1.7) * 22.0f;
 
-                        // Pulse bead traveling along line
-                        if (isDiscovered) {
-                            float tBead = ((System.currentTimeMillis() * 0.001f * 0.7f) + (edgeIdx * 0.3f)) % 1.0f;
-                            float bx = x1 * (1.0f - tBead) + x2 * tBead;
-                            float by = y1 * (1.0f - tBead) + y2 * tBead;
-                            if (Math.hypot(bx - centerX, by - centerY) < lensRadius - 4.0f) {
-                                guiGraphics.fill((int) bx - 1, (int) by - 1, (int) bx + 2, (int) by + 2, 0xFFFFFFFF);
+                List<ConstellationStar> stars = constellation.getStars();
+                float[][] starScreenPos = new float[stars.size()][2];
+                boolean[] starInView = new boolean[stars.size()];
+
+                for (int s = 0; s < stars.size(); s++) {
+                    ConstellationStar star = stars.get(s);
+                    float starAzimuth = baseAzimuth + (star.x() - 50.0f) * 0.32f;
+                    float starAltitude = baseAltitude + (50.0f - star.y()) * 0.32f;
+
+                    float dYaw = Mth.wrapDegrees(starAzimuth - this.yaw);
+                    float dPitch = starAltitude - this.pitch;
+
+                    float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
+                    float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
+
+                    starScreenPos[s][0] = sx;
+                    starScreenPos[s][1] = sy;
+
+                    float dist = (float) Math.hypot(sx - centerX, sy - centerY);
+                    starInView[s] = (dist < lensRadius - 4.0f);
+
+                    // Check crosshair aiming alignment on constellation star
+                    if (dist <= 16.0f && this.focusedTarget == null) {
+                        this.focusedTarget = new Object[]{constellation, star};
+                    }
+                }
+
+                // A. Render Connecting Lines
+                Set<ConstellationConnection> drawn = drawnLines.computeIfAbsent(constellation, k -> new HashSet<>());
+                if (isDiscovered) {
+                    drawn.addAll(constellation.getConnections());
+                }
+
+                int edgeIdx = 0;
+                for (ConstellationConnection conn : drawn) {
+                    if (conn.fromIndex() < stars.size() && conn.toIndex() < stars.size()) {
+                        if (starInView[conn.fromIndex()] || starInView[conn.toIndex()]) {
+                            float x1 = starScreenPos[conn.fromIndex()][0];
+                            float y1 = starScreenPos[conn.fromIndex()][1];
+                            float x2 = starScreenPos[conn.toIndex()][0];
+                            float y2 = starScreenPos[conn.toIndex()][1];
+
+                            int lineColor = isDiscovered ? 0xFFFFD700 : 0xFF00F0FF;
+                            drawLine(guiGraphics, (int) x1, (int) y1, (int) x2, (int) y2, lineColor);
+
+                            // Pulse bead traveling along line
+                            if (isDiscovered) {
+                                float tBead = ((System.currentTimeMillis() * 0.001f * 0.7f) + (edgeIdx * 0.3f)) % 1.0f;
+                                float bx = x1 * (1.0f - tBead) + x2 * tBead;
+                                float by = y1 * (1.0f - tBead) + y2 * tBead;
+                                if (Math.hypot(bx - centerX, by - centerY) < lensRadius - 4.0f) {
+                                    guiGraphics.fill((int) bx - 1, (int) by - 1, (int) bx + 2, (int) by + 2, 0xFFFFFFFF);
+                                }
                             }
                         }
                     }
+                    edgeIdx++;
                 }
-                edgeIdx++;
-            }
 
-            // B. Render Active In-Sky Drag Line (When Shift is held)
-            if (dragConstellation == constellation && dragStarIndex >= 0 && dragStarIndex < stars.size()) {
-                float startX = starScreenPos[dragStarIndex][0];
-                float startY = starScreenPos[dragStarIndex][1];
+                // B. Render Active In-Sky Drag Line (When Shift is held)
+                if (dragConstellation == constellation && dragStarIndex >= 0 && dragStarIndex < stars.size()) {
+                    float startX = starScreenPos[dragStarIndex][0];
+                    float startY = starScreenPos[dragStarIndex][1];
 
-                float targetX = mouseX;
-                float targetY = mouseY;
+                    float targetX = mouseX;
+                    float targetY = mouseY;
 
-                // 14px magnetic snap to other stars
+                    // 14px magnetic snap to other stars
+                    for (int s = 0; s < stars.size(); s++) {
+                        if (s != dragStarIndex && starInView[s]) {
+                            float sx = starScreenPos[s][0];
+                            float sy = starScreenPos[s][1];
+                            if (Math.hypot(mouseX - sx, mouseY - sy) <= 14.0f) {
+                                targetX = sx;
+                                targetY = sy;
+                                break;
+                            }
+                        }
+                    }
+
+                    drawLine(guiGraphics, (int) startX, (int) startY, (int) targetX, (int) targetY, 0xFFFFF080);
+                }
+
+                // C. Render Star Vertices
                 for (int s = 0; s < stars.size(); s++) {
-                    if (s != dragStarIndex && starInView[s]) {
+                    if (starInView[s]) {
+                        ConstellationStar star = stars.get(s);
                         float sx = starScreenPos[s][0];
                         float sy = starScreenPos[s][1];
-                        if (Math.hypot(mouseX - sx, mouseY - sy) <= 14.0f) {
-                            targetX = sx;
-                            targetY = sy;
-                            break;
+
+                        boolean isHover = isShiftDown() && Math.hypot(mouseX - sx, mouseY - sy) <= 12.0f;
+                        float drawSize = isHover ? 16.0f : (isDiscovered ? 13.0f : 10.0f);
+
+                        guiGraphics.pose().pushMatrix();
+                        guiGraphics.pose().translate(sx, sy);
+                        guiGraphics.pose().rotate((float) Math.toRadians((timeSec * 25.0f) % 360.0f));
+                        int half = Math.round(drawSize * 0.5f);
+                        guiGraphics.blit(STAR_TEXTURE, -half, -half, half, half, 0.0f, 1.0f, 0.0f, 1.0f);
+                        guiGraphics.pose().popMatrix();
+
+                        // Selection ring on hover
+                        if (isHover) {
+                            drawCircle(guiGraphics, (int) sx, (int) sy, half + 3, 0xFFFFD700);
                         }
                     }
                 }
-
-                drawLine(guiGraphics, (int) startX, (int) startY, (int) targetX, (int) targetY, 0xFFFFF080);
             }
-
-            // C. Render Star Vertices
-            for (int s = 0; s < stars.size(); s++) {
-                if (starInView[s]) {
-                    ConstellationStar star = stars.get(s);
-                    float sx = starScreenPos[s][0];
-                    float sy = starScreenPos[s][1];
-
-                    boolean isHover = isShiftDown() && Math.hypot(mouseX - sx, mouseY - sy) <= 12.0f;
-                    float drawSize = isHover ? 16.0f : (isDiscovered ? 13.0f : 10.0f);
-
-                    guiGraphics.pose().pushMatrix();
-                    guiGraphics.pose().translate(sx, sy);
-                    guiGraphics.pose().rotate((float) Math.toRadians((timeSec * 25.0f) % 360.0f));
-                    int half = Math.round(drawSize * 0.5f);
-                    guiGraphics.blit(STAR_TEXTURE, -half, -half, half, half, 0.0f, 1.0f, 0.0f, 1.0f);
-                    guiGraphics.pose().popMatrix();
-
-                    // Selection ring on hover
-                    if (isHover) {
-                        drawCircle(guiGraphics, (int) sx, (int) sy, half + 3, 0xFFFFD700);
-                    }
-                }
-            }
+        } else {
+            // Obstructed Vision Warning Mask
+            guiGraphics.fill(lensX, lensY, lensX + size, lensY + size, 0xDD0A0C14);
         }
 
-        // 4. Optical Aiming Reticle Focus Feedback
-        if (focusedTarget != null) {
+        // 5. Optical Aiming Reticle Focus Feedback
+        if (!isObstructed && focusedTarget != null) {
             if (lastFocusedTarget != focusedTarget) {
                 if (mc.player != null) {
                     mc.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4f, 1.8f);
@@ -407,7 +454,29 @@ public class SkyLookingGlassScreen extends Screen {
             guiGraphics.fill(centerX - 1, centerY + (int) pulseRadius - 2, centerX + 1, centerY + (int) pulseRadius + 4, 0xFFFFD700);
             guiGraphics.fill(centerX - (int) pulseRadius - 4, centerY - 1, centerX - (int) pulseRadius + 2, centerY + 1, 0xFFFFD700);
             guiGraphics.fill(centerX + (int) pulseRadius - 2, centerY - 1, centerX + (int) pulseRadius + 4, centerY + 1, 0xFFFFD700);
+        } else {
+            lastFocusedTarget = null;
+        }
 
+        // 6. Render 128x128 Brass Bezel Overlay & Letterbox Outer Mask FIRST
+        // Solid black letterboxes
+        if (lensX > 0) {
+            guiGraphics.fill(0, 0, lensX, screenHeight, 0xFF000000);
+            guiGraphics.fill(lensX + size, 0, screenWidth, screenHeight, 0xFF000000);
+        }
+        if (lensY > 0) {
+            guiGraphics.fill(0, 0, screenWidth, lensY, 0xFF000000);
+            guiGraphics.fill(0, lensY + size, screenWidth, screenHeight, 0xFF000000);
+        }
+
+        // 128x128 circular bezel scaled to screen bounds (x1, y1, x2, y2, u0, u1, v0, v1)
+        guiGraphics.blit(OVERLAY_TEXTURE, lensX, lensY, lensX + size, lensY + size, 0.0f, 1.0f, 0.0f, 1.0f);
+
+        // 7. ALL TEXT & HUD READOUTS RENDERED ON TOP (Never cut off by overlay)
+        if (isObstructed) {
+            guiGraphics.drawCenteredString(this.font, "§c⚠ LINE OF SIGHT OBSTRUCTED ⚠", centerX, centerY - 12, 0xFFFF5555);
+            guiGraphics.drawCenteredString(this.font, "§7Telescope view is blocked by solid structure or ceiling", centerX, centerY + 2, 0xFFAAAAAA);
+        } else if (focusedTarget != null) {
             // Telemetry Readout
             if (focusedTarget instanceof CelestialStar cStar) {
                 if (cStar.name != null) {
@@ -425,41 +494,25 @@ public class SkyLookingGlassScreen extends Screen {
                     guiGraphics.drawCenteredString(this.font, "§b✦ UNCHARTED ASTRAL RESONANCE ✦ §7[Hold Shift to Chart]", centerX, centerY + 28, 0xFF80D0FF);
                 }
             }
-        } else {
-            lastFocusedTarget = null;
         }
 
-        // 5. Render 128x128 Brass Bezel Overlay & Letterbox Outer Mask
-        // Solid black letterboxes
-        if (lensX > 0) {
-            guiGraphics.fill(0, 0, lensX, screenHeight, 0xFF000000);
-            guiGraphics.fill(lensX + size, 0, screenWidth, screenHeight, 0xFF000000);
-        }
-        if (lensY > 0) {
-            guiGraphics.fill(0, 0, screenWidth, lensY, 0xFF000000);
-            guiGraphics.fill(0, lensY + size, screenWidth, screenHeight, 0xFF000000);
-        }
-
-        // 128x128 circular bezel scaled to screen bounds (x1, y1, x2, y2, u0, u1, v0, v1)
-        guiGraphics.blit(OVERLAY_TEXTURE, lensX, lensY, lensX + size, lensY + size, 0.0f, 1.0f, 0.0f, 1.0f);
-
-        // 6. Header Coordinate HUD
+        // Header Coordinate HUD
         String dirName = getDirectionName(this.yaw);
         int moonPhase = (mc.level != null) ? mc.level.getMoonPhase() : 0;
         String phaseName = getMoonPhaseName(moonPhase);
 
-        guiGraphics.drawCenteredString(this.font, "§6§lCELESTIAL LOOKING GLASS", centerX, 15, 0xFFFFD700);
-        guiGraphics.drawCenteredString(this.font, String.format("§eAzimuth: §f%.1f° %s  §e|  Declination: §f%+.1f°  §e|  Moon: §b%s", this.yaw, dirName, this.pitch, phaseName), centerX, 27, 0xFFE0E0E0);
+        guiGraphics.drawCenteredString(this.font, "§6§lCELESTIAL LOOKING GLASS", centerX, 12, 0xFFFFD700);
+        guiGraphics.drawCenteredString(this.font, String.format("§eAzimuth: §f%.1f° %s  §e|  Declination: §f%+.1f°  §e|  Moon: §b%s", this.yaw, dirName, this.pitch, phaseName), centerX, 24, 0xFFE0E0E0);
 
-        // 7. Footer Controls & Status HUD
+        // Footer Controls & Status HUD
         if (isShiftDown()) {
-            guiGraphics.drawCenteredString(this.font, "§e✦ SHIFT ACTIVE: VIEW LOCKED ✦", centerX, screenHeight - 32, 0xFFFFD700);
-            guiGraphics.drawCenteredString(this.font, "§7Click & drag between stars to trace  •  Right-Click to reset lines", centerX, screenHeight - 20, 0xFFA0C0D0);
+            guiGraphics.drawCenteredString(this.font, "§e✦ SNEAK ACTIVE: VIEW LOCKED ✦", centerX, screenHeight - 28, 0xFFFFD700);
+            guiGraphics.drawCenteredString(this.font, "§7Click & drag between stars to trace  •  Right-Click to reset lines", centerX, screenHeight - 16, 0xFFA0C0D0);
         } else {
-            guiGraphics.drawCenteredString(this.font, "§8[Click & Drag to pan sky  •  Aim crosshairs to inspect stars  •  Hold SHIFT to trace  •  ESC to exit]", centerX, screenHeight - 22, 0xFF88A0B0);
+            guiGraphics.drawCenteredString(this.font, "§8[Click & Drag to pan sky  •  Aim crosshairs to inspect stars  •  Hold SNEAK to trace  •  ESC to exit]", centerX, screenHeight - 18, 0xFF88A0B0);
         }
 
-        // 8. Discovery Fanfare Banner
+        // Discovery Fanfare Banner
         if (justDiscovered != null && (System.currentTimeMillis() - discoveryTime) < 5000) {
             String title = Component.translatable(justDiscovered.getUnlocalizedName()).getString();
             int bannerY = centerY - 30;
@@ -474,6 +527,19 @@ public class SkyLookingGlassScreen extends Screen {
         }
     }
 
+    private void renderNebulaGlow(GuiGraphics guiGraphics, int centerX, int centerY, int size, float timeSec, float azimDeg, float altDeg, int color) {
+        float dYaw = Mth.wrapDegrees(azimDeg - this.yaw);
+        float dPitch = altDeg - this.pitch;
+
+        if (Math.abs(dYaw) <= FOV + 10.0f && Math.abs(dPitch) <= FOV + 10.0f) {
+            float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
+            float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
+
+            int nSize = (int) (size * 0.25f);
+            guiGraphics.fill((int) sx - nSize, (int) sy - nSize, (int) sx + nSize, (int) sy + nSize, color);
+        }
+    }
+
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         int button = event.button();
@@ -481,7 +547,7 @@ public class SkyLookingGlassScreen extends Screen {
         double mouseY = event.y();
 
         if (button == 1 && isShiftDown()) {
-            // Right-click while holding Shift resets drawn uncompleted lines
+            // Right-click while holding Sneak resets drawn lines
             drawnLines.clear();
             dragStarIndex = -1;
             dragConstellation = null;
@@ -574,43 +640,59 @@ public class SkyLookingGlassScreen extends Screen {
                 }
 
                 if (targetIndex >= 0) {
-                    for (ConstellationConnection conn : dragConstellation.getConnections()) {
-                        if ((conn.fromIndex() == dragStarIndex && conn.toIndex() == targetIndex) ||
-                            (conn.fromIndex() == targetIndex && conn.toIndex() == dragStarIndex)) {
-                            Set<ConstellationConnection> drawn = drawnLines.computeIfAbsent(dragConstellation, k -> new HashSet<>());
-                            drawn.add(conn);
+                    // Allow drawing ANY connection between stars (correct or incorrect)!
+                    ConstellationConnection newConn = new ConstellationConnection(dragStarIndex, targetIndex);
+                    Set<ConstellationConnection> drawn = drawnLines.computeIfAbsent(dragConstellation, k -> new HashSet<>());
+                    drawn.add(newConn);
 
-                            if (minecraft != null && minecraft.player != null) {
-                                minecraft.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.7f, 1.2f);
-                            }
+                    if (minecraft != null && minecraft.player != null) {
+                        minecraft.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.7f, 1.1f);
+                    }
 
-                            // Check complete discovery
-                            if (drawn.size() >= dragConstellation.getConnections().size()) {
-                                Player player = minecraft != null ? minecraft.player : null;
-                                if (player != null) {
-                                    PlayerAstralProgress.discover(player, dragConstellation);
-                                    player.playSound(SoundEvents.PLAYER_LEVELUP, 1.0f, 1.0f);
-                                    player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 1.2f, 1.4f);
-                                    player.playSound(SoundEvents.BEACON_ACTIVATE, 0.8f, 1.2f);
-
-                                    this.justDiscovered = dragConstellation;
-                                    this.discoveryTime = System.currentTimeMillis();
-
-                                    // Inscribe Blank Star Chart
-                                    for (int inv = 0; inv < player.getInventory().getContainerSize(); inv++) {
-                                        ItemStack stack = player.getInventory().getItem(inv);
-                                        if (stack.is(ModItems.STAR_CHART_BLANK.get())) {
-                                            stack.shrink(1);
-                                            ItemStack completedChart = CompletedStarChartItem.createFor(ModItems.STAR_CHART_COMPLETED.get(), dragConstellation);
-                                            if (!player.getInventory().add(completedChart)) {
-                                                player.drop(completedChart, false);
-                                            }
-                                            break;
-                                        }
-                                    }
+                    // Validate if ALL required constellation connections are drawn correctly
+                    boolean isMatch = true;
+                    if (drawn.size() < dragConstellation.getConnections().size()) {
+                        isMatch = false;
+                    } else {
+                        for (ConstellationConnection req : dragConstellation.getConnections()) {
+                            boolean found = false;
+                            for (ConstellationConnection d : drawn) {
+                                if ((d.fromIndex() == req.fromIndex() && d.toIndex() == req.toIndex()) ||
+                                    (d.fromIndex() == req.toIndex() && d.toIndex() == req.fromIndex())) {
+                                    found = true;
+                                    break;
                                 }
                             }
-                            break;
+                            if (!found) {
+                                isMatch = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (isMatch) {
+                        Player player = minecraft != null ? minecraft.player : null;
+                        if (player != null) {
+                            PlayerAstralProgress.discover(player, dragConstellation);
+                            player.playSound(SoundEvents.PLAYER_LEVELUP, 1.0f, 1.0f);
+                            player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 1.2f, 1.4f);
+                            player.playSound(SoundEvents.BEACON_ACTIVATE, 0.8f, 1.2f);
+
+                            this.justDiscovered = dragConstellation;
+                            this.discoveryTime = System.currentTimeMillis();
+
+                            // Inscribe Blank Star Chart
+                            for (int inv = 0; inv < player.getInventory().getContainerSize(); inv++) {
+                                ItemStack stack = player.getInventory().getItem(inv);
+                                if (stack.is(ModItems.STAR_CHART_BLANK.get())) {
+                                    stack.shrink(1);
+                                    ItemStack completedChart = CompletedStarChartItem.createFor(ModItems.STAR_CHART_COMPLETED.get(), dragConstellation);
+                                    if (!player.getInventory().add(completedChart)) {
+                                        player.drop(completedChart, false);
+                                    }
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -659,7 +741,7 @@ public class SkyLookingGlassScreen extends Screen {
             guiGraphics.fill(cx - x, cy - y, cx - x + 1, cy - y + 1, color);
             guiGraphics.fill(cx - y, cy - x, cx - y + 1, cy - x + 1, color);
             guiGraphics.fill(cx + y, cy - x, cx + y + 1, cy - x + 1, color);
-            guiGraphics.fill(cx + x, cy - y, cx + x + 1, cy - y + 1, color);
+            guiGraphics.fill(cx + x, cy - y, cx + x + 1, cy - x + 1, color);
 
             if (err <= 0) {
                 y += 1;
