@@ -139,9 +139,9 @@ public class CelestialSkyRenderer {
 
             for (int s = 0; s < stars.size(); s++) {
                 ConstellationStar star = stars.get(s);
-                // Correct Orientation: star.x increases Azimuth (Right), (50 - star.y) increases Altitude (Up)
-                float starAzimuth = baseAzimuth + (float) Math.toRadians((star.x() - 50.0f) * 0.28f);
-                float starAltitude = baseAltitude + (float) Math.toRadians((50.0f - star.y()) * 0.28f);
+                // Correct Orientation: (50 - star.x) preserves Left/Right, (star.y - 50) maps Top to skyward Zenith
+                float starAzimuth = baseAzimuth + (float) Math.toRadians((50.0f - star.x()) * 0.28f);
+                float starAltitude = baseAltitude + (float) Math.toRadians((star.y() - 50.0f) * 0.28f);
 
                 float x = skyRadius * Mth.cos(starAltitude) * Mth.sin(starAzimuth);
                 float y = skyRadius * Mth.sin(starAltitude);

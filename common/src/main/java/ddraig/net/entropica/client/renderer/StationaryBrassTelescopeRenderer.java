@@ -44,41 +44,53 @@ public class StationaryBrassTelescopeRenderer implements BlockEntityRenderer<Sta
         int light = 15728880;
         int overlay = OverlayTexture.NO_OVERLAY;
 
-        // 1. Azimuth Turntable (Yaw Rotation)
+        // 1. Stationary Base Mount & Tripod Stand (Planted on ground)
+        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BASE_TEXTURE), (pose, consumer) -> {
+            // Main Heavy Base Plate (y = 0.0 to 0.12)
+            renderBox(pose.pose(), consumer, 0.15f, 0.0f, 0.15f, 0.85f, 0.12f, 0.85f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+            // Lower Pedestal Step (y = 0.12 to 0.20)
+            renderBox(pose.pose(), consumer, 0.25f, 0.12f, 0.25f, 0.75f, 0.20f, 0.75f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+            // Central Cast Pillar Column (y = 0.20 to 0.48)
+            renderBox(pose.pose(), consumer, 0.35f, 0.20f, 0.35f, 0.65f, 0.48f, 0.65f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+        });
+
+        // 2. Azimuth Turntable (Rotates smoothly around vertical Y axis)
         poseStack.pushPose();
-        poseStack.translate(0.5, 0.52, 0.5);
+        poseStack.translate(0.5, 0.48, 0.5);
         poseStack.mulPose(Axis.YP.rotationDegrees(-state.yaw + 180.0f));
 
-        // Draw Azimuth Turntable Hub & Gear Ring
-        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BRASS_TEXTURE), (pose, consumer) -> {
-            renderBox(pose.pose(), consumer, -0.22f, -0.06f, -0.22f, 0.22f, 0.04f, 0.22f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
-            // Left & Right Elevation Trunnion Fork Mounts
-            renderBox(pose.pose(), consumer, -0.24f, 0.04f, -0.08f, -0.16f, 0.28f, 0.08f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
-            renderBox(pose.pose(), consumer, 0.16f, 0.04f, -0.08f, 0.24f, 0.28f, 0.08f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
-        });
-
-        // Draw Graduated Azimuth Dial
+        // Draw Graduated Azimuth Measurement Dial
         collector.submitCustomGeometry(poseStack, RenderType.entityCutout(DIAL_TEXTURE), (pose, consumer) -> {
-            renderBox(pose.pose(), consumer, -0.20f, -0.08f, -0.20f, 0.20f, -0.05f, 0.20f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+            renderBox(pose.pose(), consumer, -0.22f, 0.0f, -0.22f, 0.22f, 0.05f, 0.22f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
         });
 
-        // 2. Elevation Pivot & Brass Optical Telescope Barrel (Pitch Rotation)
-        poseStack.translate(0.0, 0.22, 0.0);
+        // Draw Azimuth Brass Hub & Elevation Fork Brackets
+        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BRASS_TEXTURE), (pose, consumer) -> {
+            // Rotating Turntable Ring
+            renderBox(pose.pose(), consumer, -0.20f, 0.05f, -0.20f, 0.20f, 0.12f, 0.20f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+            // Left Elevation Fork Arm
+            renderBox(pose.pose(), consumer, -0.24f, 0.12f, -0.07f, -0.16f, 0.36f, 0.07f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+            // Right Elevation Fork Arm
+            renderBox(pose.pose(), consumer, 0.16f, 0.12f, -0.07f, 0.24f, 0.36f, 0.07f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+        });
+
+        // 3. Elevation Pivot & Optical Telescope Tube (Pivots up/down along horizontal X axis)
+        poseStack.translate(0.0, 0.30, 0.0);
         poseStack.mulPose(Axis.XP.rotationDegrees(state.pitch));
 
         // Draw Brass Optical Tube Barrel
         collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BRASS_TEXTURE), (pose, consumer) -> {
-            // Main Central Brass Tube (Length: 1.1 blocks, centered on pivot)
+            // Main Central Brass Tube (Length: 1.1 blocks, centered on elevation axis)
             renderBox(pose.pose(), consumer, -0.14f, -0.14f, -0.45f, 0.14f, 0.14f, 0.45f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
             // Front Objective Lens Hood / Crown (Wider front)
             renderBox(pose.pose(), consumer, -0.17f, -0.17f, -0.65f, 0.17f, 0.17f, -0.45f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
             // Rear Eyepiece Assembly (Tapered rear)
             renderBox(pose.pose(), consumer, -0.10f, -0.10f, 0.45f, 0.10f, 0.10f, 0.68f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
             renderBox(pose.pose(), consumer, -0.13f, -0.13f, 0.68f, 0.13f, 0.13f, 0.76f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
-            // Elevation Trunnion Axis Pins (Connecting to fork mount)
+            // Elevation Trunnion Axis Pins (Connecting barrel to fork mount)
             renderBox(pose.pose(), consumer, -0.22f, -0.04f, -0.04f, 0.22f, 0.04f, 0.04f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
             // Side Elevation Vernier Gear Wheel
-            renderBox(pose.pose(), consumer, 0.18f, -0.10f, -0.10f, 0.24f, 0.10f, 0.10f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
+            renderBox(pose.pose(), consumer, 0.18f, -0.09f, -0.09f, 0.24f, 0.09f, 0.09f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
         });
 
         // Draw Glowing Astral Objective Lens Aperture
