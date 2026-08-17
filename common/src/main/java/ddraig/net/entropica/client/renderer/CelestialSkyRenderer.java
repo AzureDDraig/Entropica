@@ -25,8 +25,69 @@ import java.util.Random;
 
 public class CelestialSkyRenderer {
 
-    private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
-    private static final ResourceLocation STAR_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/environment/star.png");
+    public static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
+    public static final ResourceLocation STAR_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/environment/star.png");
+    public static final ResourceLocation NEBULA_PUFF_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/environment/nebula_puff.png");
+
+    public record NebulaPuff(float dAzim, float dAlt, float size, float r, float g, float b, float a) {}
+
+    public static class NebulaComplex {
+        public final float baseAzim;
+        public final float baseAlt;
+        public final String name;
+        public final List<NebulaPuff> puffs;
+
+        public NebulaComplex(float baseAzim, float baseAlt, String name, List<NebulaPuff> puffs) {
+            this.baseAzim = baseAzim;
+            this.baseAlt = baseAlt;
+            this.name = name;
+            this.puffs = puffs;
+        }
+    }
+
+    public static final List<NebulaComplex> NEBULA_COMPLEXES = new ArrayList<>();
+    static {
+        // 1. The Great Azure Lagoon Veil (Cyan, Teal, Sapphire)
+        List<NebulaPuff> lagoon = new ArrayList<>();
+        lagoon.add(new NebulaPuff(0.0f, 0.0f, 42.0f, 0.0f, 0.65f, 1.0f, 0.32f));
+        lagoon.add(new NebulaPuff(-8.0f, 4.0f, 32.0f, 0.1f, 0.85f, 0.9f, 0.28f));
+        lagoon.add(new NebulaPuff(9.0f, -5.0f, 36.0f, 0.0f, 0.45f, 0.95f, 0.25f));
+        lagoon.add(new NebulaPuff(-5.0f, -6.0f, 26.0f, 0.2f, 0.95f, 1.0f, 0.22f));
+        lagoon.add(new NebulaPuff(6.0f, 7.0f, 28.0f, 0.05f, 0.55f, 0.85f, 0.24f));
+        lagoon.add(new NebulaPuff(-12.0f, -2.0f, 20.0f, 0.15f, 0.75f, 1.0f, 0.18f));
+        lagoon.add(new NebulaPuff(13.0f, 3.0f, 22.0f, 0.0f, 0.4f, 0.8f, 0.19f));
+        NEBULA_COMPLEXES.add(new NebulaComplex(45.0f, 30.0f, "Lagoon Veil", lagoon));
+
+        // 2. The Amethyst Supernova Remnant (Violet, Rose, Magenta)
+        List<NebulaPuff> amethyst = new ArrayList<>();
+        amethyst.add(new NebulaPuff(0.0f, 0.0f, 46.0f, 0.65f, 0.15f, 0.95f, 0.30f));
+        amethyst.add(new NebulaPuff(-10.0f, 6.0f, 34.0f, 0.85f, 0.2f, 0.75f, 0.26f));
+        amethyst.add(new NebulaPuff(11.0f, -7.0f, 38.0f, 0.45f, 0.1f, 0.9f, 0.25f));
+        amethyst.add(new NebulaPuff(-6.0f, -8.0f, 28.0f, 0.95f, 0.25f, 0.65f, 0.20f));
+        amethyst.add(new NebulaPuff(8.0f, 8.0f, 30.0f, 0.55f, 0.1f, 0.85f, 0.22f));
+        amethyst.add(new NebulaPuff(14.0f, 2.0f, 24.0f, 0.75f, 0.2f, 0.8f, 0.18f));
+        amethyst.add(new NebulaPuff(-15.0f, -3.0f, 22.0f, 0.4f, 0.05f, 0.7f, 0.16f));
+        NEBULA_COMPLEXES.add(new NebulaComplex(175.0f, 58.0f, "Amethyst Remnant", amethyst));
+
+        // 3. The Amber Solar Nursery (Golden Amber, Crimson, Solar Orange)
+        List<NebulaPuff> amber = new ArrayList<>();
+        amber.add(new NebulaPuff(0.0f, 0.0f, 44.0f, 1.0f, 0.65f, 0.1f, 0.32f));
+        amber.add(new NebulaPuff(-9.0f, -5.0f, 35.0f, 1.0f, 0.4f, 0.05f, 0.28f));
+        amber.add(new NebulaPuff(8.0f, 6.0f, 36.0f, 1.0f, 0.85f, 0.2f, 0.26f));
+        amber.add(new NebulaPuff(-6.0f, 7.0f, 26.0f, 0.95f, 0.55f, 0.1f, 0.22f));
+        amber.add(new NebulaPuff(7.0f, -7.0f, 28.0f, 1.0f, 0.3f, 0.0f, 0.24f));
+        amber.add(new NebulaPuff(13.0f, -2.0f, 22.0f, 0.9f, 0.75f, 0.15f, 0.18f));
+        NEBULA_COMPLEXES.add(new NebulaComplex(265.0f, 38.0f, "Amber Nursery", amber));
+
+        // 4. The Obsidian Emerald Shroud (Deep Emerald, Viridian, Indigo)
+        List<NebulaPuff> emerald = new ArrayList<>();
+        emerald.add(new NebulaPuff(0.0f, 0.0f, 40.0f, 0.05f, 0.85f, 0.55f, 0.28f));
+        emerald.add(new NebulaPuff(-8.0f, 5.0f, 32.0f, 0.1f, 0.7f, 0.75f, 0.24f));
+        emerald.add(new NebulaPuff(9.0f, -6.0f, 34.0f, 0.0f, 0.95f, 0.45f, 0.22f));
+        emerald.add(new NebulaPuff(-7.0f, -6.0f, 24.0f, 0.15f, 0.55f, 0.85f, 0.19f));
+        emerald.add(new NebulaPuff(7.0f, 7.0f, 26.0f, 0.05f, 0.8f, 0.6f, 0.20f));
+        NEBULA_COMPLEXES.add(new NebulaComplex(330.0f, 48.0f, "Emerald Shroud", emerald));
+    }
 
     // Ambient background stars cache for skybox
     private static final List<float[]> SKY_STARS = new ArrayList<>();
@@ -81,6 +142,7 @@ public class CelestialSkyRenderer {
 
         MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
         RenderType starRenderType = RenderType.entityTranslucentEmissive(STAR_TEXTURE);
+        RenderType nebulaRenderType = RenderType.entityTranslucentEmissive(NEBULA_PUFF_TEXTURE);
         RenderType lineRenderType = RenderType.entityTranslucentEmissive(WHITE_TEXTURE);
 
         int light = 15728880;
@@ -96,7 +158,28 @@ public class CelestialSkyRenderer {
         float skyRadius = 100.0f;
 
         // ----------------------------------------------------
-        // PASS 1: Ambient Stars & Nebulae (Using STAR_TEXTURE)
+        // PASS 1: Organic Nebulae Clouds (Using NEBULA_PUFF_TEXTURE)
+        // ----------------------------------------------------
+        VertexConsumer nebulaConsumer = bufferSource.getBuffer(nebulaRenderType);
+        for (NebulaComplex complex : NEBULA_COMPLEXES) {
+            for (NebulaPuff puff : complex.puffs) {
+                float azimDeg = complex.baseAzim + puff.dAzim();
+                float altDeg = complex.baseAlt + puff.dAlt();
+                float azim = (float) Math.toRadians(azimDeg);
+                float alt = (float) Math.toRadians(altDeg);
+
+                float x = skyRadius * 0.94f * Mth.cos(alt) * Mth.sin(azim);
+                float y = skyRadius * 0.94f * Mth.sin(alt);
+                float z = skyRadius * 0.94f * Mth.cos(alt) * Mth.cos(azim);
+
+                float a = starBrightness * puff.a();
+                renderBillboardQuad(nebulaConsumer, matrix, x, y, z, puff.size(), puff.r(), puff.g(), puff.b(), a, light, overlay);
+            }
+        }
+        bufferSource.endBatch(nebulaRenderType);
+
+        // ----------------------------------------------------
+        // PASS 2: Ambient Stars & Constellation Nodes (Using STAR_TEXTURE)
         // ----------------------------------------------------
         VertexConsumer starConsumer = bufferSource.getBuffer(starRenderType);
 
@@ -119,12 +202,7 @@ public class CelestialSkyRenderer {
             renderBillboardQuad(starConsumer, matrix, x, y, z, sSize, sr, sg, sb, a, light, overlay);
         }
 
-        // B. Render Nebulae Clouds in Skybox
-        renderNebulaCloud(starConsumer, matrix, skyRadius, 45.0f, 30.0f, 35.0f, 0.0f, 0.5f, 1.0f, starBrightness * 0.25f, light, overlay);
-        renderNebulaCloud(starConsumer, matrix, skyRadius, 180.0f, 60.0f, 40.0f, 0.6f, 0.1f, 0.9f, starBrightness * 0.22f, light, overlay);
-        renderNebulaCloud(starConsumer, matrix, skyRadius, 270.0f, 40.0f, 30.0f, 1.0f, 0.5f, 0.1f, starBrightness * 0.18f, light, overlay);
-
-        // C. Render Constellation Star Vertices
+        // B. Render Constellation Star Vertices
         int totalVisible = visibleConstellations.size();
         List<float[][]> allConstellationWorldPositions = new ArrayList<>();
 
@@ -139,7 +217,6 @@ public class CelestialSkyRenderer {
 
             for (int s = 0; s < stars.size(); s++) {
                 ConstellationStar star = stars.get(s);
-                // Correct Orientation: (50 - star.x) preserves Left/Right, (star.y - 50) maps Top to skyward Zenith
                 float starAzimuth = baseAzimuth + (float) Math.toRadians((50.0f - star.x()) * 0.28f);
                 float starAltitude = baseAltitude + (float) Math.toRadians((star.y() - 50.0f) * 0.28f);
 
@@ -196,11 +273,10 @@ public class CelestialSkyRenderer {
             }
         }
 
-        // Flush Pass 1 (Star Textures)
         bufferSource.endBatch(starRenderType);
 
         // ----------------------------------------------------
-        // PASS 2: Glowing Constellation Starlight Lines (Using WHITE_TEXTURE)
+        // PASS 3: Glowing Constellation Starlight Lines (Using WHITE_TEXTURE)
         // ----------------------------------------------------
         VertexConsumer lineConsumer = bufferSource.getBuffer(lineRenderType);
 
@@ -232,21 +308,9 @@ public class CelestialSkyRenderer {
             }
         }
 
-        // Flush Pass 2 (Line Vertices)
         bufferSource.endBatch(lineRenderType);
 
         poseStack.popPose();
-    }
-
-    private static void renderNebulaCloud(VertexConsumer builder, Matrix4f matrix, float radius, float azimDeg, float altDeg, float size, float r, float g, float b, float a, int light, int overlay) {
-        float azim = (float) Math.toRadians(azimDeg);
-        float alt = (float) Math.toRadians(altDeg);
-
-        float x = radius * 0.95f * Mth.cos(alt) * Mth.sin(azim);
-        float y = radius * 0.95f * Mth.sin(alt);
-        float z = radius * 0.95f * Mth.cos(alt) * Mth.cos(azim);
-
-        renderBillboardQuad(builder, matrix, x, y, z, size, r, g, b, a, light, overlay);
     }
 
     private static void renderBillboardQuad(VertexConsumer builder, Matrix4f matrix, float x, float y, float z, float size, float r, float g, float b, float a, int light, int overlay) {

@@ -192,6 +192,7 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.RUBBER_LOG_BE.get(), ddraig.net.entropica.client.renderer.RubberLogBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.MOD_CHEST.get(), ddraig.net.entropica.client.renderer.ModChestRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.STATIONARY_BRASS_TELESCOPE_BE.get(), ddraig.net.entropica.client.renderer.StationaryBrassTelescopeRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.REFRACTIVE_ASTRAL_LENS_BE.get(), ddraig.net.entropica.client.renderer.RefractiveAstralLensRenderer::new);
 
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);

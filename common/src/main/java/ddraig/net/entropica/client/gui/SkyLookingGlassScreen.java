@@ -2,12 +2,17 @@ package ddraig.net.entropica.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import ddraig.net.entropica.astral.*;
+import ddraig.net.entropica.client.renderer.CelestialSkyRenderer;
 import ddraig.net.entropica.item.CompletedStarChartItem;
+import ddraig.net.entropica.network.AstralLensAimPayload;
+import ddraig.net.entropica.network.TelescopeAimPayload;
 import ddraig.net.entropica.registry.ModItems;
+import dev.architectury.networking.NetworkManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -27,6 +32,7 @@ public class SkyLookingGlassScreen extends Screen {
 
     private static final ResourceLocation OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/gui/looking_glass_overlay.png");
     private static final ResourceLocation STAR_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/environment/star.png");
+    private static final ResourceLocation NEBULA_PUFF_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/environment/nebula_puff.png");
 
     private float yaw = 0.0f;
     private float pitch = 45.0f;
@@ -34,12 +40,17 @@ public class SkyLookingGlassScreen extends Screen {
     private static final float PAN_SPEED = 0.045f;
 
     private List<Constellation> visibleConstellations = new ArrayList<>();
-    private final Map<Constellation, Set<ConstellationConnection>> drawnLines = new HashMap<>();
+    
+    // Universal Star Tracing Graph: Edges formatted as "nodeA---nodeB"
+    private final Set<String> drawnEdges = new HashSet<>();
 
     // Interaction & Tracing state
-    private Constellation dragConstellation = null;
-    private int dragStarIndex = -1;
+    private String dragStarId = null;
     private boolean isSneakHeld = false;
+
+    // Track all on-screen stars during the current frame for universal tracing
+    public record StarNode(String id, float sx, float sy, float size, String label, Constellation constellation, int starIndex) {}
+    private final Map<String, StarNode> onScreenStars = new HashMap<>();
 
     public static class CelestialStar {
         public final float azimuth;
@@ -74,21 +85,30 @@ public class SkyLookingGlassScreen extends Screen {
     // Last discovered banner notification
     private Constellation justDiscovered = null;
     private long discoveryTime = 0;
+    private String lensLockMessage = null;
+    private long lensLockTime = 0;
 
-    private net.minecraft.core.BlockPos telescopePos = null;
+    private BlockPos telescopePos = null;
+    private boolean isLensMode = false;
 
     public SkyLookingGlassScreen() {
-        this(null);
+        this(null, false);
     }
 
-    public SkyLookingGlassScreen(net.minecraft.core.BlockPos telescopePos) {
+    public SkyLookingGlassScreen(BlockPos targetPos, boolean isLens) {
         super(Component.literal("Celestial Looking Glass"));
-        this.telescopePos = telescopePos;
+        this.telescopePos = targetPos;
+        this.isLensMode = isLens;
 
         Minecraft mc = Minecraft.getInstance();
-        if (telescopePos != null && mc.level != null && mc.level.getBlockEntity(telescopePos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
-            this.yaw = be.getYaw();
-            this.pitch = be.getPitch();
+        if (targetPos != null && mc.level != null) {
+            if (isLens && mc.level.getBlockEntity(targetPos) instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity lens) {
+                this.yaw = lens.getYaw();
+                this.pitch = lens.getPitch();
+            } else if (mc.level.getBlockEntity(targetPos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
+                this.yaw = be.getYaw();
+                this.pitch = be.getPitch();
+            }
         } else if (mc.player != null) {
             this.yaw = Mth.wrapDegrees(mc.player.getYRot());
             if (this.yaw < 0) this.yaw += 360.0f;
@@ -107,7 +127,7 @@ public class SkyLookingGlassScreen extends Screen {
             this.visibleConstellations = List.of(ModConstellations.VESPA_ACULEUS);
         }
 
-        // Initialize Major Named Celestial Landmark Stars on Celestial Sphere
+        // Initialize Major Named Celestial Landmark Stars
         celestialStars.add(new CelestialStar(25.0f, 55.0f, 14.0f, 12.0f, 2.5f, 0.0f, SpectralClass.CLASS_A, "Sirius (Alpha Canis)", "Brightest Northern Guide Star | Mag: -1.46m"));
         celestialStars.add(new CelestialStar(78.0f, 72.0f, 12.0f, -8.0f, 3.1f, 1.2f, SpectralClass.CLASS_A, "Vega (Alpha Lyrae)", "Stellar Calibration Apex | Mag: 0.03m"));
         celestialStars.add(new CelestialStar(0.0f, 88.5f, 15.0f, 4.0f, 1.8f, 2.4f, SpectralClass.CLASS_F, "Polaris (True Celestial Pole)", "True North Anchor | Mag: 1.98m"));
@@ -139,8 +159,12 @@ public class SkyLookingGlassScreen extends Screen {
         openForTelescope(null);
     }
 
-    public static void openForTelescope(net.minecraft.core.BlockPos pos) {
-        Minecraft.getInstance().setScreen(new SkyLookingGlassScreen(pos));
+    public static void openForTelescope(BlockPos pos) {
+        Minecraft.getInstance().setScreen(new SkyLookingGlassScreen(pos, false));
+    }
+
+    public static void openForLens(BlockPos pos) {
+        Minecraft.getInstance().setScreen(new SkyLookingGlassScreen(pos, true));
     }
 
     @Override
@@ -157,12 +181,10 @@ public class SkyLookingGlassScreen extends Screen {
         float sinTheta = Mth.sin(celestialRad);
         float cosTheta = Mth.cos(celestialRad);
 
-        // 1. Rotate around X by celestialAngle
         float x1 = x;
         float y1 = y * cosTheta - z * sinTheta;
         float z1 = y * sinTheta + z * cosTheta;
 
-        // 2. Rotate around Y by -90 deg: (x, y, z) -> (-z, y, x)
         float xw = -z1;
         float yw = y1;
         float zw = x1;
@@ -201,7 +223,40 @@ public class SkyLookingGlassScreen extends Screen {
             (mc.options != null && mc.options.keyShift != null && mc.options.keyShift.matches(event))) {
             this.isSneakHeld = true;
         }
+
+        // Spacebar locks/calibrates Astral Lens on focused target
+        if (event.key() == GLFW.GLFW_KEY_SPACE && this.isLensMode && this.telescopePos != null) {
+            lockAstralLensFocus();
+            return true;
+        }
+
         return super.keyPressed(event);
+    }
+
+    private void lockAstralLensFocus() {
+        String targetName = "Sky Azimuth " + String.format("%.1f°", this.yaw);
+        if (this.focusedTarget instanceof CelestialStar cs) {
+            targetName = (cs.name != null) ? cs.name : "Star Beacon";
+        } else if (this.focusedTarget instanceof Object[] pair) {
+            Constellation c = (Constellation) pair[0];
+            targetName = Component.translatable(c.getUnlocalizedName()).getString();
+        }
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            mc.player.playSound(SoundEvents.BEACON_POWER_SELECT, 0.9f, 1.3f);
+            mc.player.playSound(SoundEvents.CHISELED_BOOKSHELF_INSERT, 0.8f, 1.1f);
+        }
+
+        if (this.telescopePos != null) {
+            if (mc.level != null && mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity lens) {
+                lens.setFocus(this.yaw, this.pitch, targetName, true);
+            }
+            NetworkManager.sendToServer(new AstralLensAimPayload(this.telescopePos, this.yaw, this.pitch, targetName, true));
+        }
+
+        this.lensLockMessage = "§a✦ ASTRAL LENS CALIBRATED & LOCKED ON: §f" + targetName;
+        this.lensLockTime = System.currentTimeMillis();
     }
 
     public boolean keyReleased(net.minecraft.client.input.KeyEvent event) {
@@ -215,7 +270,7 @@ public class SkyLookingGlassScreen extends Screen {
 
     private void syncPlayerRotation() {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) {
+        if (mc.player != null && !this.isLensMode) {
             mc.player.setYRot(this.yaw);
             mc.player.setXRot(-this.pitch);
             mc.player.yRotO = this.yaw;
@@ -227,10 +282,15 @@ public class SkyLookingGlassScreen extends Screen {
         }
 
         if (this.telescopePos != null) {
-            if (mc.level != null && mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
-                be.setAngles(this.yaw, this.pitch);
+            if (this.isLensMode) {
+                String targetName = (this.focusedTarget instanceof CelestialStar cs && cs.name != null) ? cs.name : "Calibrated Focus";
+                NetworkManager.sendToServer(new AstralLensAimPayload(this.telescopePos, this.yaw, this.pitch, targetName, true));
+            } else {
+                if (mc.level != null && mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
+                    be.setAngles(this.yaw, this.pitch);
+                }
+                NetworkManager.sendToServer(new TelescopeAimPayload(this.telescopePos, this.yaw, this.pitch));
             }
-            dev.architectury.networking.NetworkManager.sendToServer(new ddraig.net.entropica.network.TelescopeAimPayload(this.telescopePos, this.yaw, this.pitch));
         }
     }
 
@@ -257,6 +317,10 @@ public class SkyLookingGlassScreen extends Screen {
         return super.mouseDragged(event, dragX, dragY);
     }
 
+    private static String makeEdgeKey(String a, String b) {
+        return (a.compareTo(b) < 0) ? (a + "---" + b) : (b + "---" + a);
+    }
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         int screenWidth = this.width;
@@ -270,10 +334,12 @@ public class SkyLookingGlassScreen extends Screen {
 
         float timeSec = (System.currentTimeMillis() % 10000000L) * 0.001f;
         this.focusedTarget = null;
+        this.onScreenStars.clear();
+
         float celestialAngle = getCelestialAngle(partialTick);
 
-        // 1. Render Deep Space Background
-        guiGraphics.fill(lensX, lensY, lensX + size, lensY + size, 0xFF04060F);
+        // 1. Deep Space Cosmic Background
+        guiGraphics.fill(lensX, lensY, lensX + size, lensY + size, 0xFF03050D);
 
         // Raycast Line of Sight check
         Minecraft mc = Minecraft.getInstance();
@@ -296,13 +362,37 @@ public class SkyLookingGlassScreen extends Screen {
         }
 
         if (!isObstructed) {
-            // 2. Render Cosmic Nebulae Dust Clouds (Rotating with Celestial Sphere)
-            renderNebulaGlow(guiGraphics, centerX, centerY, size, timeSec, 45.0f, 30.0f, 0x330088FF, celestialAngle);
-            renderNebulaGlow(guiGraphics, centerX, centerY, size, timeSec, 180.0f, 60.0f, 0x2A9900FF, celestialAngle);
-            renderNebulaGlow(guiGraphics, centerX, centerY, size, timeSec, 270.0f, 40.0f, 0x22FF6600, celestialAngle);
+            // 2. Render Organic Multi-Puff Nebulae Clouds using nebula_puff.png
+            for (CelestialSkyRenderer.NebulaComplex complex : CelestialSkyRenderer.NEBULA_COMPLEXES) {
+                for (CelestialSkyRenderer.NebulaPuff puff : complex.puffs) {
+                    float azimDeg = complex.baseAzim + puff.dAzim();
+                    float altDeg = complex.baseAlt + puff.dAlt();
 
-            // 3. Render Ambient & Named Celestial Stars (Rotating in real time with skybox)
-            for (CelestialStar star : celestialStars) {
+                    float[] app = celestialToApparentAngles((float) Math.toRadians(azimDeg), (float) Math.toRadians(altDeg), celestialAngle);
+                    float dYaw = Mth.wrapDegrees(app[0] - this.yaw);
+                    float dPitch = app[1] - this.pitch;
+
+                    if (Math.abs(dYaw) <= FOV + 10.0f && Math.abs(dPitch) <= FOV + 10.0f) {
+                        float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
+                        float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
+
+                        int pSize = (int) (puff.size() * (size / 140.0f));
+                        int half = pSize / 2;
+
+                        guiGraphics.pose().pushMatrix();
+                        guiGraphics.pose().translate(sx, sy);
+                        guiGraphics.pose().rotate((float) Math.toRadians((timeSec * 4.0f + puff.dAzim() * 10.0f) % 360.0f));
+
+                        // Render soft nebula cloud puff
+                        guiGraphics.blit(NEBULA_PUFF_TEXTURE, -half, -half, half, half, 0.0f, 1.0f, 0.0f, 1.0f);
+                        guiGraphics.pose().popMatrix();
+                    }
+                }
+            }
+
+            // 3. Render Ambient & Named Celestial Stars
+            for (int idx = 0; idx < celestialStars.size(); idx++) {
+                CelestialStar star = celestialStars.get(idx);
                 float[] appAngles = celestialToApparentAngles((float) Math.toRadians(star.azimuth), (float) Math.toRadians(star.altitude), celestialAngle);
                 float starYaw = appAngles[0];
                 float starPitch = appAngles[1];
@@ -319,6 +409,9 @@ public class SkyLookingGlassScreen extends Screen {
                         float twinkle = 0.75f + 0.25f * (float) Math.sin(timeSec * star.twinkleFreq + star.twinklePhase);
                         float drawSize = star.baseSize * twinkle;
                         float rotAngle = (timeSec * star.rotSpeed * 20.0f) % 360.0f;
+
+                        String starNodeId = (star.name != null) ? ("l:" + star.name) : ("a:" + idx);
+                        onScreenStars.put(starNodeId, new StarNode(starNodeId, sx, sy, drawSize, star.name, null, -1));
 
                         if (distFromCenter <= 16.0f && this.focusedTarget == null) {
                             this.focusedTarget = star;
@@ -339,7 +432,7 @@ public class SkyLookingGlassScreen extends Screen {
                 }
             }
 
-            // 4. Render Active Constellations and Stars (Rotating in real time with skybox)
+            // 4. Render Constellation Nodes
             int totalVisible = visibleConstellations.size();
 
             for (int i = 0; i < totalVisible; i++) {
@@ -350,8 +443,6 @@ public class SkyLookingGlassScreen extends Screen {
                 float baseAltitude = (float) Math.toRadians(35.0f + (float) Math.sin(i * 1.7) * 22.0f);
 
                 List<ConstellationStar> stars = constellation.getStars();
-                float[][] starScreenPos = new float[stars.size()][2];
-                boolean[] starInView = new boolean[stars.size()];
 
                 for (int s = 0; s < stars.size(); s++) {
                     ConstellationStar star = stars.get(s);
@@ -368,84 +459,19 @@ public class SkyLookingGlassScreen extends Screen {
                     float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
                     float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
 
-                    starScreenPos[s][0] = sx;
-                    starScreenPos[s][1] = sy;
-
                     float dist = (float) Math.hypot(sx - centerX, sy - centerY);
-                    starInView[s] = (dist < lensRadius - 4.0f);
-
-                    if (dist <= 16.0f && this.focusedTarget == null) {
-                        this.focusedTarget = new Object[]{constellation, star};
-                    }
-                }
-
-                // A. Render Connecting Lines
-                Set<ConstellationConnection> drawn = drawnLines.computeIfAbsent(constellation, k -> new HashSet<>());
-                if (isDiscovered) {
-                    drawn.addAll(constellation.getConnections());
-                }
-
-                int edgeIdx = 0;
-                for (ConstellationConnection conn : drawn) {
-                    if (conn.fromIndex() < stars.size() && conn.toIndex() < stars.size()) {
-                        if (starInView[conn.fromIndex()] || starInView[conn.toIndex()]) {
-                            float x1 = starScreenPos[conn.fromIndex()][0];
-                            float y1 = starScreenPos[conn.fromIndex()][1];
-                            float x2 = starScreenPos[conn.toIndex()][0];
-                            float y2 = starScreenPos[conn.toIndex()][1];
-
-                            int lineColor = isDiscovered ? 0xFFFFD700 : 0xFF00F0FF;
-                            drawLine(guiGraphics, (int) x1, (int) y1, (int) x2, (int) y2, lineColor);
-
-                            if (isDiscovered) {
-                                float tBead = ((System.currentTimeMillis() * 0.001f * 0.7f) + (edgeIdx * 0.3f)) % 1.0f;
-                                float bx = x1 * (1.0f - tBead) + x2 * tBead;
-                                float by = y1 * (1.0f - tBead) + y2 * tBead;
-                                if (Math.hypot(bx - centerX, by - centerY) < lensRadius - 4.0f) {
-                                    guiGraphics.fill((int) bx - 1, (int) by - 1, (int) bx + 2, (int) by + 2, 0xFFFFFFFF);
-                                }
-                            }
-                        }
-                    }
-                    edgeIdx++;
-                }
-
-                // B. Render Active In-Sky Drag Line
-                if (dragConstellation == constellation && dragStarIndex >= 0 && dragStarIndex < stars.size()) {
-                    float startX = starScreenPos[dragStarIndex][0];
-                    float startY = starScreenPos[dragStarIndex][1];
-
-                    float targetX = mouseX;
-                    float targetY = mouseY;
-
-                    for (int s = 0; s < stars.size(); s++) {
-                        if (s != dragStarIndex && starInView[s]) {
-                            float sx = starScreenPos[s][0];
-                            float sy = starScreenPos[s][1];
-                            if (Math.hypot(mouseX - sx, mouseY - sy) <= 14.0f) {
-                                targetX = sx;
-                                targetY = sy;
-                                break;
-                            }
-                        }
-                    }
-
-                    drawLine(guiGraphics, (int) startX, (int) startY, (int) targetX, (int) targetY, 0xFFFFF080);
-                }
-
-                // C. Render Constellation Star Billets
-                for (int s = 0; s < stars.size(); s++) {
-                    if (starInView[s]) {
-                        ConstellationStar star = stars.get(s);
-                        float sx = starScreenPos[s][0];
-                        float sy = starScreenPos[s][1];
-
+                    if (dist < lensRadius - 4.0f) {
+                        String cNodeId = "c:" + constellation.getId().toString() + ":" + s;
                         float twinkle = 0.85f + 0.15f * (float) Math.sin(timeSec * 3.0f + s * 1.2f);
                         float sSize = Math.max(7.0f, star.brightness() * 8.5f) * twinkle;
 
-                        int rgb = star.spectralClass().getColorRgb();
-                        if (isDiscovered) rgb = 0xFFFFD700;
+                        onScreenStars.put(cNodeId, new StarNode(cNodeId, sx, sy, sSize, null, constellation, s));
 
+                        if (dist <= 16.0f && this.focusedTarget == null) {
+                            this.focusedTarget = new Object[]{constellation, star};
+                        }
+
+                        // Render Constellation Star Billets
                         guiGraphics.pose().pushMatrix();
                         guiGraphics.pose().translate(sx, sy);
                         guiGraphics.pose().rotate((float) Math.toRadians((timeSec * 15.0f + s * 30.0f) % 360.0f));
@@ -459,10 +485,54 @@ public class SkyLookingGlassScreen extends Screen {
                         }
                     }
                 }
+
+                // If discovered, auto-add its required connections to drawnEdges
+                if (isDiscovered) {
+                    for (ConstellationConnection conn : constellation.getConnections()) {
+                        String k1 = "c:" + constellation.getId().toString() + ":" + conn.fromIndex();
+                        String k2 = "c:" + constellation.getId().toString() + ":" + conn.toIndex();
+                        drawnEdges.add(makeEdgeKey(k1, k2));
+                    }
+                }
+            }
+
+            // 5. Universal Star Tracing: Render ALL User-Drawn Lines Between Any Connected Stars
+            for (String edge : drawnEdges) {
+                String[] parts = edge.split("---");
+                if (parts.length == 2) {
+                    StarNode nodeA = onScreenStars.get(parts[0]);
+                    StarNode nodeB = onScreenStars.get(parts[1]);
+                    if (nodeA != null && nodeB != null) {
+                        drawLine(guiGraphics, (int) nodeA.sx(), (int) nodeA.sy(), (int) nodeB.sx(), (int) nodeB.sy(), 0xFF00F0FF);
+                    }
+                }
+            }
+
+            // Render Active Drag Line Between ANY Two Stars
+            if (dragStarId != null && onScreenStars.containsKey(dragStarId)) {
+                StarNode startNode = onScreenStars.get(dragStarId);
+                float startX = startNode.sx();
+                float startY = startNode.sy();
+
+                float targetX = mouseX;
+                float targetY = mouseY;
+
+                // 14px magnetic snap to ANY other star in the entire sky
+                for (StarNode other : onScreenStars.values()) {
+                    if (!other.id().equals(dragStarId)) {
+                        if (Math.hypot(mouseX - other.sx(), mouseY - other.sy()) <= 14.0f) {
+                            targetX = other.sx();
+                            targetY = other.sy();
+                            break;
+                        }
+                    }
+                }
+
+                drawLine(guiGraphics, (int) startX, (int) startY, (int) targetX, (int) targetY, 0xFFFFF080);
             }
         }
 
-        // 5. Render Reticle Crosshairs & Focus Aiming Target
+        // 6. Reticle Crosshairs & Focus Aiming Target
         guiGraphics.fill(centerX - 12, centerY, centerX - 3, centerY + 1, 0xAAFFFFFF);
         guiGraphics.fill(centerX + 3, centerY, centerX + 12, centerY + 1, 0xAAFFFFFF);
         guiGraphics.fill(centerX, centerY - 12, centerX + 1, centerY - 3, 0xAAFFFFFF);
@@ -486,7 +556,7 @@ public class SkyLookingGlassScreen extends Screen {
             lastFocusedTarget = null;
         }
 
-        // 6. Render Brass Bezel Overlay & Black Letterboxes
+        // 7. Render 128x128 Brass Bezel Overlay & Black Letterboxes
         if (lensX > 0) {
             guiGraphics.fill(0, 0, lensX, screenHeight, 0xFF000000);
             guiGraphics.fill(lensX + size, 0, screenWidth, screenHeight, 0xFF000000);
@@ -498,10 +568,10 @@ public class SkyLookingGlassScreen extends Screen {
 
         guiGraphics.blit(OVERLAY_TEXTURE, lensX, lensY, lensX + size, lensY + size, 0.0f, 1.0f, 0.0f, 1.0f);
 
-        // 7. Text & HUD Readouts on top layer
+        // 8. Text & HUD Readouts on top layer
         if (isObstructed) {
             guiGraphics.drawCenteredString(this.font, "§c⚠ LINE OF SIGHT OBSTRUCTED ⚠", centerX, centerY - 12, 0xFFFF5555);
-            guiGraphics.drawCenteredString(this.font, "§7Telescope view is blocked by solid structure or ceiling", centerX, centerY + 2, 0xFFAAAAAA);
+            guiGraphics.drawCenteredString(this.font, "§7View is blocked by solid structure or ceiling", centerX, centerY + 2, 0xFFAAAAAA);
         } else if (focusedTarget != null) {
             if (focusedTarget instanceof CelestialStar cStar) {
                 if (cStar.name != null) {
@@ -525,16 +595,20 @@ public class SkyLookingGlassScreen extends Screen {
         int moonPhase = (mc.level != null) ? mc.level.getMoonPhase() : 0;
         String phaseName = getMoonPhaseName(moonPhase);
 
-        guiGraphics.drawCenteredString(this.font, "§6§lCELESTIAL LOOKING GLASS", centerX, 12, 0xFFFFD700);
+        String modeTitle = this.isLensMode ? "§6§lREFRACTIVE ASTRAL LENS CALIBRATION" : "§6§lCELESTIAL LOOKING GLASS";
+        guiGraphics.drawCenteredString(this.font, modeTitle, centerX, 12, 0xFFFFD700);
         guiGraphics.drawCenteredString(this.font, String.format("§eAzimuth: §f%.1f° %s  §e|  Declination: §f%+.1f°  §e|  Moon: §b%s", this.yaw, dirName, this.pitch, phaseName), centerX, 24, 0xFFE0E0E0);
 
-        if (isShiftDown()) {
+        if (this.isLensMode) {
+            guiGraphics.drawCenteredString(this.font, "§a[SPACEBAR: Lock Lens on Current Target  •  Drag to Pan]", centerX, screenHeight - 28, 0xFF80FF80);
+        } else if (isShiftDown()) {
             guiGraphics.drawCenteredString(this.font, "§e✦ SNEAK ACTIVE: VIEW LOCKED ✦", centerX, screenHeight - 28, 0xFFFFD700);
-            guiGraphics.drawCenteredString(this.font, "§7Click & drag between stars to trace  •  Right-Click to reset lines", centerX, screenHeight - 16, 0xFFA0C0D0);
+            guiGraphics.drawCenteredString(this.font, "§7Click & drag between ANY stars to trace  •  Right-Click to reset lines", centerX, screenHeight - 16, 0xFFA0C0D0);
         } else {
             guiGraphics.drawCenteredString(this.font, "§8[Click & Drag to pan sky  •  Aim crosshairs to inspect stars  •  Hold SNEAK to trace  •  ESC to exit]", centerX, screenHeight - 18, 0xFF88A0B0);
         }
 
+        // Discovery Fanfare Banner
         if (justDiscovered != null && (System.currentTimeMillis() - discoveryTime) < 5000) {
             String title = Component.translatable(justDiscovered.getUnlocalizedName()).getString();
             int bannerY = centerY - 30;
@@ -547,22 +621,12 @@ public class SkyLookingGlassScreen extends Screen {
             guiGraphics.drawCenteredString(this.font, "§a" + title + " §7[" + justDiscovered.getTier().getDisplayName() + "]", centerX, bannerY + 22, 0xFF80FF80);
             guiGraphics.drawCenteredString(this.font, "§eRitual: §f" + justDiscovered.getRitualEffect(), centerX, bannerY + 36, 0xFFFFF0A0);
         }
-    }
 
-    private void renderNebulaGlow(GuiGraphics guiGraphics, int centerX, int centerY, int size, float timeSec, float azimDeg, float altDeg, int color, float celestialAngle) {
-        float[] appAngles = celestialToApparentAngles((float) Math.toRadians(azimDeg), (float) Math.toRadians(altDeg), celestialAngle);
-        float nebYaw = appAngles[0];
-        float nebPitch = appAngles[1];
-
-        float dYaw = Mth.wrapDegrees(nebYaw - this.yaw);
-        float dPitch = nebPitch - this.pitch;
-
-        if (Math.abs(dYaw) <= FOV + 10.0f && Math.abs(dPitch) <= FOV + 10.0f) {
-            float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
-            float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
-
-            int nSize = (int) (size * 0.25f);
-            guiGraphics.fill((int) sx - nSize, (int) sy - nSize, (int) sx + nSize, (int) sy + nSize, color);
+        // Astral Lens Lock Confirmation Banner
+        if (lensLockMessage != null && (System.currentTimeMillis() - lensLockTime) < 4000) {
+            int bannerY = 40;
+            guiGraphics.fill(centerX - 160, bannerY, centerX + 160, bannerY + 20, 0xDD102010);
+            guiGraphics.drawCenteredString(this.font, lensLockMessage, centerX, bannerY + 6, 0xFF80FF80);
         }
     }
 
@@ -573,9 +637,8 @@ public class SkyLookingGlassScreen extends Screen {
         double mouseY = event.y();
 
         if (button == 1 && isShiftDown()) {
-            drawnLines.clear();
-            dragStarIndex = -1;
-            dragConstellation = null;
+            drawnEdges.clear();
+            dragStarId = null;
             if (minecraft != null && minecraft.player != null) {
                 minecraft.player.playSound(SoundEvents.CHISELED_BOOKSHELF_PICKUP, 0.7f, 0.9f);
             }
@@ -583,46 +646,17 @@ public class SkyLookingGlassScreen extends Screen {
         }
 
         if (button == 0 && isShiftDown()) {
-            int screenWidth = this.width;
-            int screenHeight = this.height;
-            int size = Math.min(screenWidth, screenHeight);
-            int centerX = screenWidth / 2;
-            int centerY = screenHeight / 2;
-            float lensRadius = size * 0.43f;
-            float celestialAngle = getCelestialAngle(0.0f);
-
-            int totalVisible = visibleConstellations.size();
-            for (int i = 0; i < totalVisible; i++) {
-                Constellation constellation = visibleConstellations.get(i);
-                float baseAzimuth = (float) Math.toRadians(i * (360.0f / Math.max(1, totalVisible)));
-                float baseAltitude = (float) Math.toRadians(35.0f + (float) Math.sin(i * 1.7) * 22.0f);
-
-                List<ConstellationStar> stars = constellation.getStars();
-                for (int s = 0; s < stars.size(); s++) {
-                    ConstellationStar star = stars.get(s);
-                    float starSphereAzimuth = baseAzimuth + (float) Math.toRadians((50.0f - star.x()) * 0.28f);
-                    float starSphereAltitude = baseAltitude + (float) Math.toRadians((star.y() - 50.0f) * 0.28f);
-
-                    float[] appAngles = celestialToApparentAngles(starSphereAzimuth, starSphereAltitude, celestialAngle);
-                    float starYaw = appAngles[0];
-                    float starPitch = appAngles[1];
-
-                    float dYaw = Mth.wrapDegrees(starYaw - this.yaw);
-                    float dPitch = starPitch - this.pitch;
-
-                    float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
-                    float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
-
-                    float distFromCenter = (float) Math.hypot(sx - centerX, sy - centerY);
-                    if (distFromCenter < lensRadius - 4.0f) {
-                        if (Math.hypot(mouseX - sx, mouseY - sy) <= 14.0f) {
-                            dragConstellation = constellation;
-                            dragStarIndex = star.index();
-                            return true;
-                        }
-                    }
+            for (StarNode node : onScreenStars.values()) {
+                if (Math.hypot(mouseX - node.sx(), mouseY - node.sy()) <= Math.max(14.0f, node.size() * 0.7f + 4.0f)) {
+                    dragStarId = node.id();
+                    return true;
                 }
             }
+        }
+
+        if (button == 0 && isLensMode) {
+            lockAstralLensFocus();
+            return true;
         }
 
         return super.mouseClicked(event, doubleClick);
@@ -631,83 +665,57 @@ public class SkyLookingGlassScreen extends Screen {
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
         int button = event.button();
-        if (button == 0 && dragConstellation != null && dragStarIndex >= 0) {
-            int screenWidth = this.width;
-            int screenHeight = this.height;
-            int size = Math.min(screenWidth, screenHeight);
-            int centerX = screenWidth / 2;
-            int centerY = screenHeight / 2;
-            float lensRadius = size * 0.43f;
-            float celestialAngle = getCelestialAngle(0.0f);
-
-            int totalVisible = visibleConstellations.size();
-            int cIndex = visibleConstellations.indexOf(dragConstellation);
-            if (cIndex >= 0) {
-                float baseAzimuth = (float) Math.toRadians(cIndex * (360.0f / Math.max(1, totalVisible)));
-                float baseAltitude = (float) Math.toRadians(35.0f + (float) Math.sin(cIndex * 1.7) * 22.0f);
-
-                List<ConstellationStar> stars = dragConstellation.getStars();
-                int targetIndex = -1;
-
-                for (int s = 0; s < stars.size(); s++) {
-                    if (s != dragStarIndex) {
-                        ConstellationStar star = stars.get(s);
-                        float starSphereAzimuth = baseAzimuth + (float) Math.toRadians((50.0f - star.x()) * 0.28f);
-                        float starSphereAltitude = baseAltitude + (float) Math.toRadians((star.y() - 50.0f) * 0.28f);
-
-                        float[] appAngles = celestialToApparentAngles(starSphereAzimuth, starSphereAltitude, celestialAngle);
-                        float starYaw = appAngles[0];
-                        float starPitch = appAngles[1];
-
-                        float dYaw = Mth.wrapDegrees(starYaw - this.yaw);
-                        float dPitch = starPitch - this.pitch;
-
-                        float sx = centerX + (dYaw / (FOV * 0.5f)) * (size * 0.43f);
-                        float sy = centerY - (dPitch / (FOV * 0.5f)) * (size * 0.43f);
-
-                        if (Math.hypot(sx - centerX, sy - centerY) < lensRadius - 4.0f) {
-                            if (Math.hypot(event.x() - sx, event.y() - sy) <= 16.0f) {
-                                targetIndex = star.index();
-                                break;
-                            }
-                        }
+        if (button == 0 && dragStarId != null) {
+            StarNode targetNode = null;
+            for (StarNode node : onScreenStars.values()) {
+                if (!node.id().equals(dragStarId)) {
+                    if (Math.hypot(event.x() - node.sx(), event.y() - node.sy()) <= Math.max(16.0f, node.size() * 0.7f + 6.0f)) {
+                        targetNode = node;
+                        break;
                     }
                 }
+            }
 
-                if (targetIndex >= 0) {
-                    Set<ConstellationConnection> drawn = drawnLines.computeIfAbsent(dragConstellation, k -> new HashSet<>());
-                    drawn.add(new ConstellationConnection(dragStarIndex, targetIndex));
+            if (targetNode != null) {
+                String edgeKey = makeEdgeKey(dragStarId, targetNode.id());
+                drawnEdges.add(edgeKey);
 
-                    Minecraft mc = Minecraft.getInstance();
-                    Player player = mc.player;
-                    if (player != null) {
-                        player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 0.7f, 1.4f);
+                Minecraft mc = Minecraft.getInstance();
+                Player player = mc.player;
+                if (player != null) {
+                    player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 0.7f, 1.4f);
 
-                        boolean allDrawn = true;
-                        for (ConstellationConnection required : dragConstellation.getConnections()) {
-                            if (!drawn.contains(required)) {
-                                allDrawn = false;
-                                break;
-                            }
-                        }
-
-                        if (allDrawn && !PlayerAstralProgress.isDiscovered(player, dragConstellation)) {
-                            PlayerAstralProgress.discover(player, dragConstellation);
-                            player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.0f);
-                            player.playSound(SoundEvents.BEACON_ACTIVATE, 0.8f, 1.2f);
-
-                            this.justDiscovered = dragConstellation;
-                            this.discoveryTime = System.currentTimeMillis();
-
-                            for (int inv = 0; inv < player.getInventory().getContainerSize(); inv++) {
-                                ItemStack stack = player.getInventory().getItem(inv);
-                                if (stack.is(ModItems.STAR_CHART_BLANK.get())) {
-                                    stack.shrink(1);
-                                    ItemStack completedChart = CompletedStarChartItem.createFor(ModItems.STAR_CHART_COMPLETED.get(), dragConstellation);
-                                    if (!player.getInventory().add(completedChart)) {
-                                        player.drop(completedChart, false);
-                                    }
+                    // Check if ANY constellation has all required connections satisfied in drawnEdges
+                    for (Constellation c : visibleConstellations) {
+                        if (!PlayerAstralProgress.isDiscovered(player, c)) {
+                            boolean allSatisfied = true;
+                            for (ConstellationConnection conn : c.getConnections()) {
+                                String k1 = "c:" + c.getId().toString() + ":" + conn.fromIndex();
+                                String k2 = "c:" + c.getId().toString() + ":" + conn.toIndex();
+                                if (!drawnEdges.contains(makeEdgeKey(k1, k2))) {
+                                    allSatisfied = false;
                                     break;
+                                }
+                            }
+
+                            if (allSatisfied) {
+                                PlayerAstralProgress.discover(player, c);
+                                player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.0f);
+                                player.playSound(SoundEvents.BEACON_ACTIVATE, 0.8f, 1.2f);
+
+                                this.justDiscovered = c;
+                                this.discoveryTime = System.currentTimeMillis();
+
+                                for (int inv = 0; inv < player.getInventory().getContainerSize(); inv++) {
+                                    ItemStack stack = player.getInventory().getItem(inv);
+                                    if (stack.is(ModItems.STAR_CHART_BLANK.get())) {
+                                        stack.shrink(1);
+                                        ItemStack completedChart = CompletedStarChartItem.createFor(ModItems.STAR_CHART_COMPLETED.get(), c);
+                                        if (!player.getInventory().add(completedChart)) {
+                                            player.drop(completedChart, false);
+                                        }
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -715,8 +723,7 @@ public class SkyLookingGlassScreen extends Screen {
                 }
             }
 
-            dragConstellation = null;
-            dragStarIndex = -1;
+            dragStarId = null;
             return true;
         }
 
@@ -754,7 +761,7 @@ public class SkyLookingGlassScreen extends Screen {
             guiGraphics.fill(cx + x, cy + y, cx + x + 1, cy + y + 1, color);
             guiGraphics.fill(cx + y, cy + x, cx + y + 1, cy + x + 1, color);
             guiGraphics.fill(cx - y, cy + x, cx - y + 1, cy + x + 1, color);
-            guiGraphics.fill(cx - x, cy + y, cx - x + 1, cy + y + 1, color);
+            guiGraphics.fill(cx - x, cy + y, cx - x + 1, cy + x + 1, color);
             guiGraphics.fill(cx - x, cy - y, cx - x + 1, cy - y + 1, color);
             guiGraphics.fill(cx - y, cy - x, cx - y + 1, cy - x + 1, color);
             guiGraphics.fill(cx + y, cy - x, cx + y + 1, cy - x + 1, color);

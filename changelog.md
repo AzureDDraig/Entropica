@@ -35,11 +35,18 @@
   - **Camera Rotation & Angle Sync on Exit**: Leaving the telescope (`ESC`) synchronizes the player's world camera (`yRot`, `xRot`, `yHeadRot`, `yBodyRot`) to the exact azimuth and declination observed through the lens.
   - **Line of Sight / Sky Occlusion Raycasting**: Raycasts 128 blocks from the player's eyes along the viewing vector; if obstructed by ceilings, caves, or solid structures, the telescope view dims with a `"Line of Sight Obstructed"` alert.
   - **Free-Form Star Tracing & Validation**: Allows drawing lines between any stars in the telescope view; validating the constellation graph upon full puzzle completion, while Shift + Right-Click resets lines.
-  - **Real-Time Dynamic Sky Tracking & Synchronous Projection**:
-    - Replaced static telescope coordinates with real-time celestial sphere projection (`celestialToApparentAngles`), ensuring the pannable Looking Glass and Telescope view continuously tracks and rotates with the passing night sky and moon phases in 100% lockstep with `CelestialSkyRenderer.java`.
-    - Discovering or charting a constellation through the Looking Glass leaves the player aiming directly at that exact constellation in the night skybox upon exiting (`ESC`) with 0 offset.
+  - **Refractive Astral Lens Aiming & Starlight Beam Focusing**:
+    - Created `RefractiveAstralLensBlockEntity.java` and `RefractiveAstralLensRenderer.java` (BER across Fabric & NeoForge).
+    - Right-clicking the Astral Lens opens `SkyLookingGlassScreen.openForLens(pos)` allowing players to pan the heavens, inspect celestial bodies, and lock the optical lens on any star, guide beacon, or constellation (`SPACE` or Click to calibrate).
+    - Physical 3D Astral Lens block in the world pivots its brass gimbal mount to point directly at the calibrated star and emits a concentrated beam of focused starlight.
+  - **Organic Multi-Puff Cosmic Nebulae**:
+    - Generated `nebula_puff.png` (Gaussian soft transparent radial falloff) and built 4 organic celestial cloud complexes: *Lagoon Veil* (Azure/Cyan), *Amethyst Remnant* (Violet/Magenta), *Amber Nursery* (Golden Amber/Crimson), and *Emerald Shroud* (Deep Teal/Indigo).
+    - Replaced flat quad squares with overlapping billowy particle clouds rendered across both `CelestialSkyRenderer.java` and `SkyLookingGlassScreen.java`.
+  - **Universal Star Tracing Across All Stars in the Sky**:
+    - Star charting graph now treats every star in the heavens (all 240 ambient background stars, named guide beacons like Sirius/Vega, and constellation nodes) as connectable graph vertices.
+    - Players can freely draw lines between ANY stars across the entire sky dome, with constellation discovery automatically validating whenever all required star-pair edges are satisfied.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 25s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 27s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

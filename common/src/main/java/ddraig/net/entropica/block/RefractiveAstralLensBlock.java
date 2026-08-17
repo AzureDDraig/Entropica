@@ -1,32 +1,41 @@
 package ddraig.net.entropica.block;
 
 import com.mojang.serialization.MapCodec;
+import ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity;
+import ddraig.net.entropica.client.gui.SkyLookingGlassScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 
-public class RefractiveAstralLensBlock extends HorizontalDirectionalBlock {
+public class RefractiveAstralLensBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final MapCodec<RefractiveAstralLensBlock> CODEC = simpleCodec(RefractiveAstralLensBlock::new);
 
     private static final VoxelShape SHAPE_NS = Shapes.or(
             Block.box(3.0, 0.0, 3.0, 13.0, 2.0, 13.0),
             Block.box(6.0, 2.0, 6.0, 10.0, 4.0, 10.0),
-            Block.box(2.0, 4.0, 7.0, 14.0, 13.0, 9.0)
+            Block.box(2.0, 4.0, 6.0, 14.0, 14.0, 10.0)
     );
 
     private static final VoxelShape SHAPE_EW = Shapes.or(
             Block.box(3.0, 0.0, 3.0, 13.0, 2.0, 13.0),
             Block.box(6.0, 2.0, 6.0, 10.0, 4.0, 10.0),
-            Block.box(7.0, 4.0, 2.0, 9.0, 13.0, 14.0)
+            Block.box(6.0, 4.0, 2.0, 10.0, 14.0, 14.0)
     );
 
     public RefractiveAstralLensBlock(Properties properties) {
@@ -51,7 +60,21 @@ public class RefractiveAstralLensBlock extends HorizontalDirectionalBlock {
 
     @Override
     public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
+        return RenderShape.INVISIBLE;
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new RefractiveAstralLensBlockEntity(pos, state);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (level.isClientSide()) {
+            SkyLookingGlassScreen.openForLens(pos);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override

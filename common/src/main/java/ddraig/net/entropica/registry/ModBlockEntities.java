@@ -349,4 +349,10 @@ public class ModBlockEntities {
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity::new,
                             ModBlocks.STATIONARY_BRASS_TELESCOPE.get()
                     ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity>> REFRACTIVE_ASTRAL_LENS_BE =
+            BLOCK_ENTITIES.register("refractive_astral_lens", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity::new,
+                            ModBlocks.REFRACTIVE_ASTRAL_LENS.get()
+                    ));
 }

@@ -58,6 +58,13 @@ public class ModNetwork {
                 TelescopeAimPayload.STREAM_CODEC,
                 ModNetwork::handleTelescopeAim
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                AstralLensAimPayload.TYPE,
+                AstralLensAimPayload.STREAM_CODEC,
+                ModNetwork::handleAstralLensAim
+        );
     }
 
     public static void handleGeneratorScroll(final GeneratorScrollPayload data, final NetworkManager.PacketContext context) {
@@ -161,6 +168,18 @@ public class ModNetwork {
                 BlockEntity be = player.level().getBlockEntity(data.pos());
                 if (be instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity telescope) {
                     telescope.setAngles(data.yaw(), data.pitch());
+                }
+            }
+        });
+    }
+
+    public static void handleAstralLensAim(final AstralLensAimPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null && player.level().isLoaded(data.pos())) {
+                BlockEntity be = player.level().getBlockEntity(data.pos());
+                if (be instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity lens) {
+                    lens.setFocus(data.yaw(), data.pitch(), data.targetName(), data.isFocused());
                 }
             }
         });
