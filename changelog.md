@@ -68,11 +68,11 @@
     - Aiming within $18\text{px}$ of the target circle snaps focus onto the target lens for optical calibration.
   - **Incoming Link Counter & Dual-Side Beam Mechanics**:
     - Added `incomingLinksCount` tracking to `RefractiveAstralLensBlockEntity.java`.
-    - Beams cleanly stop immediately upon impacting solid blocks or target lenses.
+    - Implemented full 3D AABB bounding box ray intersection (`lensBox.clip(start, end)`), ensuring beams accurately detect and terminate immediately at the surface of target lenses or solid obstacles without overshooting past them into the sky.
     - If `incomingLinksCount == 0` and the lens is sky-focused, it renders the skyward influx beam entering from the heavens on the upper/rear face and projects the output beam on the other side.
     - When receiving a relayed beam from an upstream lens (`incomingLinksCount > 0`), the sky influx is omitted and the relayed starlight is redirected forward along the lens's calibrated angle.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 32s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 31s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

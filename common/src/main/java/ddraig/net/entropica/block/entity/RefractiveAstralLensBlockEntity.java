@@ -13,10 +13,13 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
+
+import java.util.Optional;
 
 public class RefractiveAstralLensBlockEntity extends BlockEntity {
 
@@ -96,10 +99,8 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
     public void receiveRelayBeam(BlockPos sourcePos, String starName) {
         this.incomingLinksCount = 1;
         this.relayTicksLeft = 12;
-        if (!this.isFocused) {
-            this.isRelaying = true;
-            this.relayedStarName = starName;
-        }
+        this.isRelaying = true;
+        this.relayedStarName = starName;
         setChanged();
         if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -131,21 +132,47 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                     -Mth.sin(yawRad) * Mth.cos(pitchRad),
                     -Mth.sin(pitchRad),
                     Mth.cos(yawRad) * Mth.cos(pitchRad)
-            );
+            ).normalize();
+
             Vec3 start = Vec3.atCenterOf(pos).add(0, 0.4375, 0);
             Vec3 end = start.add(lookDir.scale(20.0));
-            BlockHitResult hit = level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
-            double dist = 20.0;
-            if (hit.getType() == HitResult.Type.BLOCK && !hit.getBlockPos().equals(pos) && !hit.getBlockPos().equals(pos.below())) {
-                dist = start.distanceTo(hit.getLocation());
-                BlockPos hitPos = hit.getBlockPos();
-                if (level.getBlockEntity(hitPos) instanceof RefractiveAstralLensBlockEntity nextLens) {
-                    nextLens.receiveRelayBeam(pos, currentStar);
+
+            // 1. Raycast for solid world blocks
+            BlockHitResult blockHit = level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
+            double closestDist = 20.0;
+            if (blockHit.getType() == HitResult.Type.BLOCK && !blockHit.getBlockPos().equals(pos) && !blockHit.getBlockPos().equals(pos.below())) {
+                closestDist = start.distanceTo(blockHit.getLocation());
+            }
+
+            // 2. Scan for other Refractive Astral Lenses intersecting the beam ray (AABB bounding box intersection)
+            RefractiveAstralLensBlockEntity hitLens = null;
+            int r = 20;
+            BlockPos minPos = pos.offset(-r, -r, -r);
+            BlockPos maxPos = pos.offset(r, r, r);
+            for (BlockPos p : BlockPos.betweenClosed(minPos, maxPos)) {
+                if (p.equals(pos) || p.equals(pos.below())) continue;
+                if (level.getBlockEntity(p) instanceof RefractiveAstralLensBlockEntity otherLens) {
+                    AABB lensBox = new AABB(
+                            p.getX() + 0.1, p.getY(), p.getZ() + 0.1,
+                            p.getX() + 0.9, p.getY() + 0.9, p.getZ() + 0.9
+                    );
+                    Optional<Vec3> optHit = lensBox.clip(start, end);
+                    if (optHit.isPresent()) {
+                        double distToLens = start.distanceTo(optHit.get());
+                        if (distToLens < closestDist) {
+                            closestDist = distToLens;
+                            hitLens = otherLens;
+                        }
+                    }
                 }
             }
 
-            if (Math.abs(be.beamDistance - (float) dist) > 0.05f) {
-                be.beamDistance = (float) dist;
+            if (hitLens != null) {
+                hitLens.receiveRelayBeam(pos, currentStar);
+            }
+
+            if (Math.abs(be.beamDistance - (float) closestDist) > 0.05f) {
+                be.beamDistance = (float) closestDist;
                 be.setChanged();
                 level.sendBlockUpdated(pos, state, state, 3);
             }
