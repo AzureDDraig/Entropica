@@ -111,9 +111,9 @@ public class RefractiveAstralLensRenderer implements BlockEntityRenderer<Refract
                 // Outgoing Forward Output Beam (stops precisely at solid block or target lens)
                 renderTexturedBox(pose.pose(), consumer, -0.025f, -0.025f, -dist, 0.025f, 0.025f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 1.0f, 0.98f, 0.85f, 1.0f);
 
-                // Skyward Starlight Influx Stream on the other side of the lens ONLY if incomingLinksCount == 0
+                // Skyward Starlight Influx Stream on the other (rear/sky) side of the lens ONLY if incomingLinksCount == 0
                 if (state.isFocused && state.incomingLinksCount == 0) {
-                    renderTexturedBox(pose.pose(), consumer, -0.03f, -0.03f, -32.0f, 0.03f, 0.03f, 0.0f, 0.0f, 0.0f, 1.0f, 32.0f, light, overlay, 0.85f, 0.95f, 1.0f, 0.95f);
+                    renderTexturedBox(pose.pose(), consumer, -0.03f, -0.03f, 0.0f, 0.03f, 0.03f, 32.0f, 0.0f, 0.0f, 1.0f, 32.0f, light, overlay, 0.85f, 0.95f, 1.0f, 0.95f);
                 }
             });
 
@@ -122,9 +122,9 @@ public class RefractiveAstralLensRenderer implements BlockEntityRenderer<Refract
                 // Outgoing Forward Beam Aura
                 renderTexturedBox(pose.pose(), consumer, -0.055f, -0.055f, -dist, 0.055f, 0.055f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 0.35f, 0.75f, 1.0f, 0.50f);
 
-                // Skyward Influx Aura on the other side of the lens ONLY if incomingLinksCount == 0
+                // Skyward Influx Aura on the other (rear/sky) side of the lens ONLY if incomingLinksCount == 0
                 if (state.isFocused && state.incomingLinksCount == 0) {
-                    renderTexturedBox(pose.pose(), consumer, -0.065f, -0.065f, -32.0f, 0.065f, 0.065f, 0.0f, 0.0f, 0.0f, 1.0f, 32.0f, light, overlay, 0.35f, 0.75f, 1.0f, 0.40f);
+                    renderTexturedBox(pose.pose(), consumer, -0.065f, -0.065f, 0.0f, 0.065f, 0.065f, 32.0f, 0.0f, 0.0f, 1.0f, 32.0f, light, overlay, 0.35f, 0.75f, 1.0f, 0.40f);
                 }
             });
         }

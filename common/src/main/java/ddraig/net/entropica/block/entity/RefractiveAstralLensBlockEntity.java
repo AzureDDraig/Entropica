@@ -19,7 +19,9 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public class RefractiveAstralLensBlockEntity extends BlockEntity {
 
@@ -144,24 +146,26 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                 closestDist = start.distanceTo(blockHit.getLocation());
             }
 
-            // 2. Scan for other Refractive Astral Lenses intersecting the beam ray (AABB bounding box intersection)
+            // 2. Scan along the beam ray path for other Refractive Astral Lenses
             RefractiveAstralLensBlockEntity hitLens = null;
-            int r = 20;
-            BlockPos minPos = pos.offset(-r, -r, -r);
-            BlockPos maxPos = pos.offset(r, r, r);
-            for (BlockPos p : BlockPos.betweenClosed(minPos, maxPos)) {
-                if (p.equals(pos) || p.equals(pos.below())) continue;
-                if (level.getBlockEntity(p) instanceof RefractiveAstralLensBlockEntity otherLens) {
-                    AABB lensBox = new AABB(
-                            p.getX() + 0.1, p.getY(), p.getZ() + 0.1,
-                            p.getX() + 0.9, p.getY() + 0.9, p.getZ() + 0.9
-                    );
-                    Optional<Vec3> optHit = lensBox.clip(start, end);
-                    if (optHit.isPresent()) {
-                        double distToLens = start.distanceTo(optHit.get());
-                        if (distToLens < closestDist) {
-                            closestDist = distToLens;
-                            hitLens = otherLens;
+            Set<BlockPos> checkedPositions = new HashSet<>();
+            for (double step = 0.5; step <= closestDist; step += 0.5) {
+                Vec3 samplePoint = start.add(lookDir.scale(step));
+                BlockPos p = BlockPos.containing(samplePoint);
+                if (checkedPositions.add(p)) {
+                    if (p.equals(pos) || p.equals(pos.below())) continue;
+                    if (level.getBlockEntity(p) instanceof RefractiveAstralLensBlockEntity otherLens) {
+                        AABB lensBox = new AABB(
+                                p.getX() + 0.05, p.getY(), p.getZ() + 0.05,
+                                p.getX() + 0.95, p.getY() + 0.95, p.getZ() + 0.95
+                        );
+                        Optional<Vec3> optHit = lensBox.clip(start, end);
+                        if (optHit.isPresent()) {
+                            double distToLens = start.distanceTo(optHit.get());
+                            if (distToLens < closestDist) {
+                                closestDist = distToLens;
+                                hitLens = otherLens;
+                            }
                         }
                     }
                 }
