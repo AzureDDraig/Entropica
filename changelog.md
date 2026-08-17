@@ -31,17 +31,16 @@
   - Achieved $100\%$ key parity ($2,457$ translation entries each) across all 24 supported languages in `assets/entropica/lang/`.
   - Added `astral_pantheon_constellations` research node under `MAGIC` in `CodexCategoryRegistry.java`.
   - Updated notes in the Entropica OKF Obsidian Vault (`astral_workstations_and_optics.md`).
-- **Astronomical Discovery & Looking Glass Zoom Engine**:
-  - Implemented authentic $10\times$ telescope magnification zoom ($0.1\times$ FOV) when scoping with the **Looking Glass** and **Astrolabe** across both Fabric (via `AbstractClientPlayerMixin`) and NeoForge (via `ViewportEvent.ComputeFov`).
-  - Fixed looking glass overlay distortion: Constrained overlay rendering in `LookingGlassOverlayRenderer.java` to a strict $1:1$ circular aspect ratio (`Math.min(width, height)`) with surrounding solid black letterboxing/pillarboxing masks, eliminating vertical stretching on widescreen displays.
-  - Implemented Astral Sorcery-style smooth telescope camera panning via `MouseHandlerMixin.java`: Damped raw accumulated mouse turn deltas by $85\%$ (`accumulatedDX/DY *= 0.15`) while scoping, preventing twitchy hypersensitive mouse movement at $10\times$ magnification.
-  - Fixed constellation discovery assumptions:
-    - Undiscovered constellations in the night sky now appear strictly as natural celestial star clusters/vertices with spectral class tints, hiding all connecting lines and traveling stardust pulse beads until charted.
-    - Updated `LookingGlassOverlayRenderer.java` HUD to mask names of uncharted constellations (`"Uncharted Stellar Cluster"` + spectral resonance frequency hint) without spoiling constellation identities.
-    - Enhanced `ConstellationTracingScreen.java` with responsive discovery tracking: uncharted constellations show unlinked star patterns and masked titles (`"Uncharted Astral Signature"`), requiring the player to observe and drag connections to chart them.
-    - Completing a star chart discovery awards a fanfare chime (`PLAYER_LEVELUP` + `AMETHYST_BLOCK_CHIME` + `BEACON_ACTIVATE`), unlocks the constellation in `PlayerAstralProgress`, permanently ignites its golden lines and stardust pulses in the night sky, and inscribes held `Blank Star Chart` items into `Completed Star Chart` items.
+- **Astral Sorcery-Style In-Sky Observation & Tracing Screen (`SkyLookingGlassScreen.java`)**:
+  - Implemented the authentic Astral Sorcery sky telescope observation screen:
+    - **Spherical Celestial Sky Panning**: Moving the mouse smoothly pans the view across the celestial firmament with 160 ambient background stars and active night constellations at $42^\circ$ FOV.
+    - **1:1 Circular Telescope View**: Scaled $128 \times 128$ pixel art brass telescope bezel with full widescreen letterbox masking.
+    - **Shift-to-Lock & Direct In-Sky Tracing**: Holding **Shift** locks the camera view in place, enabling a magnetic cursor to click and drag starlight lines directly between constellation star nodes in the sky.
+    - **Discovery & Fanfares**: Successfully charting a constellation pattern plays level-up chimes (`PLAYER_LEVELUP` + `AMETHYST_BLOCK_CHIME` + `BEACON_ACTIVATE`), unlocks the constellation in `PlayerAstralProgress`, permanently ignites its golden lines across the sky, and inscribes held `Blank Star Chart` items into `Completed Star Chart` items.
+    - Right-click with Shift held resets uncompleted lines.
+  - Linked `LookingGlassItem.java`, `AstrolabeItem.java`, and `StationaryBrassTelescopeBlock.java` to open `SkyLookingGlassScreen` on use.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 25s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 24s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

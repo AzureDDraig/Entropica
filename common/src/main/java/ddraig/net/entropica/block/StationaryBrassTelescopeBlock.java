@@ -1,7 +1,7 @@
 package ddraig.net.entropica.block;
 
 import com.mojang.serialization.MapCodec;
-import ddraig.net.entropica.client.gui.ConstellationTracingScreen;
+import ddraig.net.entropica.client.gui.SkyLookingGlassScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -43,7 +43,7 @@ public class StationaryBrassTelescopeBlock extends HorizontalDirectionalBlock {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         level.playSound(player, pos, SoundEvents.SPYGLASS_USE, SoundSource.BLOCKS, 1.0f, 0.8f);
         if (level.isClientSide()) {
-            ConstellationTracingScreen.openForCurrentNight(player);
+            SkyLookingGlassScreen.open();
         }
         return InteractionResult.SUCCESS;
     }
