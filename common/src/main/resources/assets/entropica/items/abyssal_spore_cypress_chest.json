@@ -1,10 +1,6 @@
 {
   "model": {
-    "type": "minecraft:special",
-    "base": "minecraft:item/chest",
-    "model": {
-      "type": "minecraft:chest",
-      "texture": "entropica:abyssal_spore_cypress"
-    }
+    "type": "minecraft:model",
+    "model": "entropica:item/abyssal_spore_cypress_chest"
   }
 }

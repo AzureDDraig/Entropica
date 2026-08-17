@@ -1,11 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/strong_essence",
-    "tints": [
-      {
-        "type": "entropica:essence_tint"
-      }
-    ]
+    "model": "entropica:item/strong_essence"
   }
 }

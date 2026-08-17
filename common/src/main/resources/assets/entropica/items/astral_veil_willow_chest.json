@@ -1,10 +1,6 @@
 {
   "model": {
-    "type": "minecraft:special",
-    "base": "minecraft:item/chest",
-    "model": {
-      "type": "minecraft:chest",
-      "texture": "entropica:astral_veil_willow"
-    }
+    "type": "minecraft:model",
+    "model": "entropica:item/astral_veil_willow_chest"
   }
 }

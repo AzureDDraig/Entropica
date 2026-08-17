@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/abyssal_spore_cypress_barrel"
+    "model": "entropica:item/abyssal_spore_cypress_barrel"
   }
 }

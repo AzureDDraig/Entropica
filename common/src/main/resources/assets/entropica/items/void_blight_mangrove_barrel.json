@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/void_blight_mangrove_barrel"
+    "model": "entropica:item/void_blight_mangrove_barrel"
   }
 }

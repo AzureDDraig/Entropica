@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/silver_pine_barrel"
+    "model": "entropica:item/silver_pine_barrel"
   }
 }

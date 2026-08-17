@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:block/starlight_aether_birch_barrel"
+    "model": "entropica:item/starlight_aether_birch_barrel"
   }
 }

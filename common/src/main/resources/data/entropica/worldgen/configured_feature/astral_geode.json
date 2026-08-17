@@ -23,43 +23,31 @@
       },
       "inner_placements": [
         {
-          "type": "minecraft:simple_state_provider",
-          "state": {
-            "Name": "entropica:small_astral_crystal_bud",
-            "Properties": {
-              "facing": "up",
-              "waterlogged": "false"
-            }
+          "Name": "entropica:small_astral_crystal_bud",
+          "Properties": {
+            "facing": "up",
+            "waterlogged": "false"
           }
         },
         {
-          "type": "minecraft:simple_state_provider",
-          "state": {
-            "Name": "entropica:medium_astral_crystal_bud",
-            "Properties": {
-              "facing": "up",
-              "waterlogged": "false"
-            }
+          "Name": "entropica:medium_astral_crystal_bud",
+          "Properties": {
+            "facing": "up",
+            "waterlogged": "false"
           }
         },
         {
-          "type": "minecraft:simple_state_provider",
-          "state": {
-            "Name": "entropica:large_astral_crystal_bud",
-            "Properties": {
-              "facing": "up",
-              "waterlogged": "false"
-            }
+          "Name": "entropica:large_astral_crystal_bud",
+          "Properties": {
+            "facing": "up",
+            "waterlogged": "false"
           }
         },
         {
-          "type": "minecraft:simple_state_provider",
-          "state": {
-            "Name": "entropica:astral_crystal_cluster",
-            "Properties": {
-              "facing": "up",
-              "waterlogged": "false"
-            }
+          "Name": "entropica:astral_crystal_cluster",
+          "Properties": {
+            "facing": "up",
+            "waterlogged": "false"
           }
         }
       ],
