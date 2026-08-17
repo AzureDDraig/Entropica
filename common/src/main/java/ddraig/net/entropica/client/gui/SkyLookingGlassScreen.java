@@ -345,7 +345,7 @@ public class SkyLookingGlassScreen extends Screen {
                 boolean isDiscovered = (player != null) && PlayerAstralProgress.isDiscovered(player, constellation);
 
                 float baseAzimuth = (i * (360.0f / Math.max(1, totalVisible)));
-                float baseAltitude = 32.0f + (float) Math.sin(i * 1.7) * 22.0f;
+                float baseAltitude = 35.0f + (float) Math.sin(i * 1.7) * 22.0f;
 
                 List<ConstellationStar> stars = constellation.getStars();
                 float[][] starScreenPos = new float[stars.size()][2];
@@ -353,8 +353,8 @@ public class SkyLookingGlassScreen extends Screen {
 
                 for (int s = 0; s < stars.size(); s++) {
                     ConstellationStar star = stars.get(s);
-                    float starAzimuth = baseAzimuth + (star.x() - 50.0f) * 0.32f;
-                    float starAltitude = baseAltitude + (50.0f - star.y()) * 0.32f;
+                    float starAzimuth = baseAzimuth + (star.x() - 50.0f) * 0.28f;
+                    float starAltitude = baseAltitude + (50.0f - star.y()) * 0.28f;
 
                     float dYaw = Mth.wrapDegrees(starAzimuth - this.yaw);
                     float dPitch = starAltitude - this.pitch;
@@ -590,13 +590,13 @@ public class SkyLookingGlassScreen extends Screen {
             for (int i = 0; i < totalVisible; i++) {
                 Constellation constellation = visibleConstellations.get(i);
                 float baseAzimuth = (i * (360.0f / Math.max(1, totalVisible)));
-                float baseAltitude = 32.0f + (float) Math.sin(i * 1.7) * 22.0f;
+                float baseAltitude = 35.0f + (float) Math.sin(i * 1.7) * 22.0f;
 
                 List<ConstellationStar> stars = constellation.getStars();
                 for (int s = 0; s < stars.size(); s++) {
                     ConstellationStar star = stars.get(s);
-                    float starAzimuth = baseAzimuth + (star.x() - 50.0f) * 0.32f;
-                    float starAltitude = baseAltitude + (50.0f - star.y()) * 0.32f;
+                    float starAzimuth = baseAzimuth + (star.x() - 50.0f) * 0.28f;
+                    float starAltitude = baseAltitude + (50.0f - star.y()) * 0.28f;
 
                     float dYaw = Mth.wrapDegrees(starAzimuth - this.yaw);
                     float dPitch = starAltitude - this.pitch;
@@ -634,7 +634,7 @@ public class SkyLookingGlassScreen extends Screen {
             int cIndex = visibleConstellations.indexOf(dragConstellation);
             if (cIndex >= 0) {
                 float baseAzimuth = (cIndex * (360.0f / Math.max(1, totalVisible)));
-                float baseAltitude = 32.0f + (float) Math.sin(cIndex * 1.7) * 22.0f;
+                float baseAltitude = 35.0f + (float) Math.sin(cIndex * 1.7) * 22.0f;
 
                 List<ConstellationStar> stars = dragConstellation.getStars();
                 int targetIndex = -1;
@@ -642,8 +642,8 @@ public class SkyLookingGlassScreen extends Screen {
                 for (int s = 0; s < stars.size(); s++) {
                     if (s != dragStarIndex) {
                         ConstellationStar star = stars.get(s);
-                        float starAzimuth = baseAzimuth + (star.x() - 50.0f) * 0.32f;
-                        float starAltitude = baseAltitude + (50.0f - star.y()) * 0.32f;
+                        float starAzimuth = baseAzimuth + (star.x() - 50.0f) * 0.28f;
+                        float starAltitude = baseAltitude + (50.0f - star.y()) * 0.28f;
 
                         float dYaw = Mth.wrapDegrees(starAzimuth - this.yaw);
                         float dPitch = starAltitude - this.pitch;

@@ -35,13 +35,11 @@
   - **Camera Rotation & Angle Sync on Exit**: Leaving the telescope (`ESC`) synchronizes the player's world camera (`yRot`, `xRot`, `yHeadRot`, `yBodyRot`) to the exact azimuth and declination observed through the lens.
   - **Line of Sight / Sky Occlusion Raycasting**: Raycasts 128 blocks from the player's eyes along the viewing vector; if obstructed by ceilings, caves, or solid structures, the telescope view dims with a `"Line of Sight Obstructed"` alert.
   - **Free-Form Star Tracing & Validation**: Allows drawing lines between any stars in the telescope view; validating the constellation graph upon full puzzle completion, while Shift + Right-Click resets lines.
-  - **Text Layering & Reticle Telemetry**: Relocated all text and telemetry readouts on the top-most rendering layer, preventing the circular bezel overlay and letterbox masks from cutting off text.
-  - **3D Rotating Stationary Brass Telescope Block & Renderer**:
-    - Registered `StationaryBrassTelescopeBlockEntity.java` and `StationaryBrassTelescopeRenderer.java` (BER across Fabric & NeoForge).
-    - The physical brass telescope block in the world smoothly pivots its azimuth turntable ($360^\circ$ yaw) and elevates its brass optical tube ($-10^\circ$ to $+85^\circ$ pitch) in real time to match the exact angles observed through the lens.
-    - Synchronized world-space aiming angles across multiplayer via `TelescopeAimPayload.java` and Architectury's `NetworkManager`.
+  - **Constellation Line Visibility & Upright Orientation Fix**:
+    - Converted `CelestialSkyRenderer.java` to a dual-pass rendering pipeline: Pass 1 renders stars, nebulae, and travelling stardust sparks using `STAR_TEXTURE`, while Pass 2 renders thick, luminous starlight lines with a glowing amber-gold halo (`1.5f` width) and brilliant inner core (`0.7f` width) using `WHITE_TEXTURE`.
+    - Aligned celestial spherical coordinates and altitude/declination mappings across both the telescope screen and world skybox, ensuring constellations (e.g. *Resina Succini*) render upright with top apex pointing skyward and matching discovery orientation.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 25s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 26s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 
