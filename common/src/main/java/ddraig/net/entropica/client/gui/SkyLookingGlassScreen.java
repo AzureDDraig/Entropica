@@ -78,8 +78,17 @@ public class SkyLookingGlassScreen extends Screen {
         Minecraft mc = Minecraft.getInstance();
         if (targetPos != null && mc.level != null) {
             if (isLens && mc.level.getBlockEntity(targetPos) instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity lens) {
-                this.yaw = lens.getYaw();
-                this.pitch = lens.getPitch();
+                if (lens.isFocused()) {
+                    this.yaw = lens.getYaw();
+                    this.pitch = lens.getPitch();
+                } else if (mc.player != null) {
+                    this.yaw = Mth.wrapDegrees(mc.player.getYRot());
+                    if (this.yaw < 0) this.yaw += 360.0f;
+                    this.pitch = Mth.clamp(-mc.player.getXRot(), 15.0f, 90.0f);
+                } else {
+                    this.yaw = lens.getYaw();
+                    this.pitch = lens.getPitch();
+                }
             } else if (mc.level.getBlockEntity(targetPos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
                 this.yaw = be.getYaw();
                 this.pitch = be.getPitch();
@@ -236,12 +245,15 @@ public class SkyLookingGlassScreen extends Screen {
             mc.player.yBodyRotO = this.yaw;
         }
 
-        if (this.telescopePos != null) {
+        if (this.telescopePos != null && mc.level != null) {
             if (this.isLensMode) {
+                if (mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity lens) {
+                    lens.setFocus(this.yaw, this.pitch, lens.getTargetName(), lens.isFocused());
+                }
                 String targetName = (this.focusedTarget instanceof CelestialStarHelper.LandmarkStar ls) ? ls.name() : "Calibrated Focus";
-                NetworkManager.sendToServer(new AstralLensAimPayload(this.telescopePos, this.yaw, this.pitch, targetName, true));
+                NetworkManager.sendToServer(new AstralLensAimPayload(this.telescopePos, this.yaw, this.pitch, targetName, false));
             } else {
-                if (mc.level != null && mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
+                if (mc.level.getBlockEntity(this.telescopePos) instanceof ddraig.net.entropica.block.entity.StationaryBrassTelescopeBlockEntity be) {
                     be.setAngles(this.yaw, this.pitch);
                 }
                 NetworkManager.sendToServer(new TelescopeAimPayload(this.telescopePos, this.yaw, this.pitch));
@@ -267,6 +279,7 @@ public class SkyLookingGlassScreen extends Screen {
             this.yaw = Mth.wrapDegrees(this.yaw - (float) dragX * PAN_SPEED);
             if (this.yaw < 0) this.yaw += 360.0f;
             this.pitch = Mth.clamp(this.pitch + (float) dragY * PAN_SPEED, -35.0f, 90.0f);
+            syncPlayerRotation();
             return true;
         }
         return super.mouseDragged(event, dragX, dragY);
@@ -311,12 +324,15 @@ public class SkyLookingGlassScreen extends Screen {
         // 1. Deep Space Cosmic Background
         guiGraphics.fill(lensX, lensY, lensX + size, lensY + size, 0xFF03050D);
 
-        // Raycast Line of Sight check
+        // Raycast Line of Sight check: Start above telescope/lens block to prevent self-collision
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         boolean isObstructed = false;
         if (player != null && mc.level != null) {
-            Vec3 eyePos = player.getEyePosition(partialTick);
+            Vec3 eyePos = (this.telescopePos != null)
+                    ? Vec3.atCenterOf(this.telescopePos).add(0, 0.75, 0)
+                    : player.getEyePosition(partialTick);
+
             float yawRad = (float) Math.toRadians(this.yaw);
             float pitchRad = (float) Math.toRadians(-this.pitch);
             Vec3 lookDir = new Vec3(
@@ -327,7 +343,10 @@ public class SkyLookingGlassScreen extends Screen {
             Vec3 endPos = eyePos.add(lookDir.scale(128.0));
             BlockHitResult hit = mc.level.clip(new ClipContext(eyePos, endPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
             if (hit.getType() == HitResult.Type.BLOCK) {
-                isObstructed = true;
+                BlockPos hitPos = hit.getBlockPos();
+                if (this.telescopePos == null || (!hitPos.equals(this.telescopePos) && !hitPos.equals(this.telescopePos.below()))) {
+                    isObstructed = true;
+                }
             }
         }
 
@@ -478,7 +497,7 @@ public class SkyLookingGlassScreen extends Screen {
                             this.focusedTarget = new Object[]{constellation, star};
                         }
 
-                        // Render Natural Star Billets (No giveaway outer aura circles)
+                        // Render Natural Star Billets
                         guiGraphics.pose().pushMatrix();
                         guiGraphics.pose().translate(sx, sy);
                         guiGraphics.pose().rotate((float) Math.toRadians((timeSec * 15.0f + s * 30.0f) % 360.0f));
@@ -656,7 +675,7 @@ public class SkyLookingGlassScreen extends Screen {
         guiGraphics.drawCenteredString(this.font, String.format("§eAzimuth: §f%.1f° %s  §e|  Declination: §f%+.1f°  §e|  Moon: §b%s", this.yaw, dirName, this.pitch, phaseName), centerX, 24, 0xFFE0E0E0);
 
         if (this.isLensMode) {
-            guiGraphics.drawCenteredString(this.font, "§a[SPACEBAR: Lock Lens on Current Target  •  Drag to Pan]", centerX, screenHeight - 28, 0xFF80FF80);
+            guiGraphics.drawCenteredString(this.font, "§a[Drag to Aim  •  SPACEBAR: Lock Lens on Target  •  ESC to Exit]", centerX, screenHeight - 28, 0xFF80FF80);
         } else if (isShiftDown()) {
             if (this.hoveredEdgeKey != null) {
                 guiGraphics.drawCenteredString(this.font, "§c✦ LINE SELECTED: Right-Click to Erase ✦", centerX, screenHeight - 28, 0xFFFF6666);
@@ -724,11 +743,6 @@ public class SkyLookingGlassScreen extends Screen {
                     return true;
                 }
             }
-        }
-
-        if (button == 0 && isLensMode) {
-            lockAstralLensFocus();
-            return true;
         }
 
         return super.mouseClicked(event, doubleClick);
@@ -826,7 +840,7 @@ public class SkyLookingGlassScreen extends Screen {
             guiGraphics.fill(cx + x, cy + y, cx + x + 1, cy + y + 1, color);
             guiGraphics.fill(cx + y, cy + x, cx + y + 1, cy + x + 1, color);
             guiGraphics.fill(cx - y, cy + x, cx - y + 1, cy + x + 1, color);
-            guiGraphics.fill(cx - x, cy + y, cx - x + 1, cy + x + 1, color);
+            guiGraphics.fill(cx - x, cy + y, cx - x + 1, cy + y + 1, color);
             guiGraphics.fill(cx - x, cy - y, cx - x + 1, cy - y + 1, color);
             guiGraphics.fill(cx - y, cy - x, cx - y + 1, cy - x + 1, color);
             guiGraphics.fill(cx + y, cy - x, cx + y + 1, cy - x + 1, color);
