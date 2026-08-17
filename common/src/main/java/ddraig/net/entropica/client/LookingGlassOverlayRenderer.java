@@ -71,6 +71,8 @@ public class LookingGlassOverlayRenderer {
                     int cIndex = (int) (yaw / (360.0f / Math.max(1, visible.size()))) % visible.size();
                     Constellation activeC = visible.get(cIndex);
 
+                    boolean isDiscovered = ddraig.net.entropica.astral.PlayerAstralProgress.isDiscovered(player, activeC);
+
                     int cardY = screenHeight - 65;
                     int boxW = 280;
                     int boxH = 45;
@@ -78,15 +80,22 @@ public class LookingGlassOverlayRenderer {
 
                     guiGraphics.fill(bx, cardY, bx + boxW, cardY + boxH, 0xCC0B0E17);
                     // Outline
-                    guiGraphics.fill(bx, cardY, bx + boxW, cardY + 1, 0xFF00E0FF);
-                    guiGraphics.fill(bx, cardY + boxH - 1, bx + boxW, cardY + boxH, 0xFF00E0FF);
-                    guiGraphics.fill(bx, cardY, bx + 1, cardY + boxH, 0xFF00E0FF);
-                    guiGraphics.fill(bx + boxW - 1, cardY, bx + boxW, cardY + boxH, 0xFF00E0FF);
+                    int borderColor = isDiscovered ? 0xFFFFD700 : 0xFF00E0FF;
+                    guiGraphics.fill(bx, cardY, bx + boxW, cardY + 1, borderColor);
+                    guiGraphics.fill(bx, cardY + boxH - 1, bx + boxW, cardY + boxH, borderColor);
+                    guiGraphics.fill(bx, cardY, bx + 1, cardY + boxH, borderColor);
+                    guiGraphics.fill(bx + boxW - 1, cardY, bx + boxW, cardY + boxH, borderColor);
 
-                    String cTitle = Component.translatable(activeC.getUnlocalizedName()).getString();
-                    guiGraphics.drawCenteredString(mc.font, "§b✦ §f" + cTitle + " §7[" + activeC.getTier().getDisplayName() + "] §b✦", screenWidth / 2, cardY + 6, activeC.getTier().getColorHex());
-                    guiGraphics.drawCenteredString(mc.font, "§7" + activeC.getRitualEffect(), screenWidth / 2, cardY + 18, 0xFFA0C0D0);
-                    guiGraphics.drawCenteredString(mc.font, "§eSpectral Class: §f" + activeC.getPrimarySpectralClass().getTitle() + " (" + activeC.getPrimarySpectralClass().getCode() + ")", screenWidth / 2, cardY + 29, 0xFFFFF0A0);
+                    if (isDiscovered) {
+                        String cTitle = Component.translatable(activeC.getUnlocalizedName()).getString();
+                        guiGraphics.drawCenteredString(mc.font, "§6✦ §f" + cTitle + " §7[" + activeC.getTier().getDisplayName() + "] §6✦", screenWidth / 2, cardY + 6, activeC.getTier().getColorHex());
+                        guiGraphics.drawCenteredString(mc.font, "§aRitual: §7" + activeC.getRitualEffect(), screenWidth / 2, cardY + 18, 0xFFA0C0D0);
+                        guiGraphics.drawCenteredString(mc.font, "§eSpectral Class: §f" + activeC.getPrimarySpectralClass().getTitle() + " (" + activeC.getPrimarySpectralClass().getCode() + ")", screenWidth / 2, cardY + 29, 0xFFFFF0A0);
+                    } else {
+                        guiGraphics.drawCenteredString(mc.font, "§b✦ §7Uncharted Stellar Cluster §8[" + activeC.getTier().getDisplayName() + "] §b✦", screenWidth / 2, cardY + 6, 0xFFA0C0E0);
+                        guiGraphics.drawCenteredString(mc.font, "§eSpectral Resonance: §fClass " + activeC.getPrimarySpectralClass().getTitle() + " (" + activeC.getPrimarySpectralClass().getCode() + ")", screenWidth / 2, cardY + 18, 0xFFFFF0A0);
+                        guiGraphics.drawCenteredString(mc.font, "§8[Shift + Right-Click to Chart Pattern]", screenWidth / 2, cardY + 29, 0xFF88A0B0);
+                    }
                 }
             }
         }

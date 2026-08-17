@@ -28,6 +28,12 @@ public class MateriaToxicityClientEffects {
 
         if (player == null) return;
 
+        // 1. Looking Glass & Astrolabe 10x deep zoom magnification
+        if (ddraig.net.entropica.item.AstrolabeItem.isScoping(player)) {
+            event.setFOV(event.getFOV() * 0.1f);
+        }
+
+        // 2. Materia Toxicity FOV Distortion
         MobEffectInstance effect = player.getEffect(ModEffects.MATERIA_TOXICITY);
         if (effect != null) {
             float intensity = 1.0f + effect.getAmplifier();

@@ -13,6 +13,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -38,6 +39,12 @@ public class ConstellationTracingScreen extends Screen {
         this.currentConstellationIndex = Math.max(0, Math.min(initialIndex, this.availableConstellations.size() - 1));
     }
 
+    @Override
+    protected void init() {
+        super.init();
+        loadConstellationState();
+    }
+
     public static void openForCurrentNight(Player player) {
         if (player == null || player.level() == null) return;
         List<Constellation> visible;
@@ -48,7 +55,10 @@ public class ConstellationTracingScreen extends Screen {
             visible = ModConstellations.getVisibleConstellations(moonPhase);
         }
         if (!visible.isEmpty()) {
-            Minecraft.getInstance().setScreen(new ConstellationTracingScreen(visible, 0));
+            float yaw = Mth.wrapDegrees(player.getYRot());
+            if (yaw < 0) yaw += 360f;
+            int targetIdx = (int) (yaw / (360.0f / Math.max(1, visible.size()))) % visible.size();
+            Minecraft.getInstance().setScreen(new ConstellationTracingScreen(visible, targetIdx));
         }
     }
 
@@ -56,11 +66,22 @@ public class ConstellationTracingScreen extends Screen {
         return availableConstellations.get(currentConstellationIndex);
     }
 
-    private void switchConstellation(int delta) {
-        currentConstellationIndex = (currentConstellationIndex + delta + availableConstellations.size()) % availableConstellations.size();
+    private void loadConstellationState() {
         drawnConnections.clear();
         draggingFromIndex = -1;
-        isCompleted = false;
+        Constellation constellation = getCurrentConstellation();
+        Player player = minecraft != null ? minecraft.player : null;
+        if (player != null && PlayerAstralProgress.isDiscovered(player, constellation)) {
+            drawnConnections.addAll(constellation.getConnections());
+            isCompleted = true;
+        } else {
+            isCompleted = false;
+        }
+    }
+
+    private void switchConstellation(int delta) {
+        currentConstellationIndex = (currentConstellationIndex + delta + availableConstellations.size()) % availableConstellations.size();
+        loadConstellationState();
         if (minecraft != null && minecraft.player != null) {
             minecraft.player.playSound(SoundEvents.BOOK_PAGE_TURN, 0.8f, 1.1f);
         }
@@ -71,6 +92,9 @@ public class ConstellationTracingScreen extends Screen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         Constellation constellation = getCurrentConstellation();
+        Player player = minecraft != null ? minecraft.player : null;
+        boolean isDiscovered = player != null && PlayerAstralProgress.isDiscovered(player, constellation);
+
         int centerX = this.width / 2;
         int centerY = this.height / 2;
         int chartSize = 270;
@@ -79,16 +103,24 @@ public class ConstellationTracingScreen extends Screen {
 
         // 1. Render Deep Cosmic Parchment Background
         guiGraphics.fill(chartX, chartY, chartX + chartSize, chartY + chartSize, 0xF2080B16);
-        // Fine Gold & Celestial Cyan Border
-        guiGraphics.fill(chartX, chartY, chartX + chartSize, chartY + 2, 0xFFFFD700);
-        guiGraphics.fill(chartX, chartY + chartSize - 2, chartX + chartSize, chartY + chartSize, 0xFFFFD700);
-        guiGraphics.fill(chartX, chartY + 2, chartX + 2, chartY + chartSize, 0xFFFFD700);
-        guiGraphics.fill(chartX + chartSize - 2, chartY, chartX + chartSize, chartY + chartSize, 0xFFFFD700);
+        // Fine Gold & Celestial Border
+        int borderCol = (isDiscovered || isCompleted) ? 0xFFFFD700 : 0xFF00E0FF;
+        guiGraphics.fill(chartX, chartY, chartX + chartSize, chartY + 2, borderCol);
+        guiGraphics.fill(chartX, chartY + chartSize - 2, chartX + chartSize, chartY + chartSize, borderCol);
+        guiGraphics.fill(chartX, chartY + 2, chartX + 2, chartY + chartSize, borderCol);
+        guiGraphics.fill(chartX + chartSize - 2, chartY, chartX + chartSize, chartY + chartSize, borderCol);
 
         // Header Navigation & Title
-        String title = Component.translatable(constellation.getUnlocalizedName()).getString();
-        guiGraphics.drawCenteredString(this.font, "§6✦ " + title + " ✦ §7[" + constellation.getTier().getDisplayName() + "]", centerX, chartY + 10, 0xFFFFD700);
-        guiGraphics.drawCenteredString(this.font, "§7Chart (" + (currentConstellationIndex + 1) + "/" + availableConstellations.size() + ")  •  Spectral Class: " + constellation.getPrimarySpectralClass().getTitle(), centerX, chartY + 22, 0xFFA0C0E0);
+        String rawTitle = Component.translatable(constellation.getUnlocalizedName()).getString();
+        String displayTitle = (isDiscovered || isCompleted) ? rawTitle : "Uncharted Astral Signature";
+
+        if (isDiscovered || isCompleted) {
+            guiGraphics.drawCenteredString(this.font, "§6✦ " + displayTitle + " ✦ §7[" + constellation.getTier().getDisplayName() + "]", centerX, chartY + 10, 0xFFFFD700);
+            guiGraphics.drawCenteredString(this.font, "§7Chart (" + (currentConstellationIndex + 1) + "/" + availableConstellations.size() + ")  •  §bDiscovered §7•  Spectral Class: " + constellation.getPrimarySpectralClass().getTitle(), centerX, chartY + 22, 0xFFA0C0E0);
+        } else {
+            guiGraphics.drawCenteredString(this.font, "§b✦ " + displayTitle + " ✦ §8[" + constellation.getTier().getDisplayName() + "]", centerX, chartY + 10, 0xFFA0D8EF);
+            guiGraphics.drawCenteredString(this.font, "§7Chart (" + (currentConstellationIndex + 1) + "/" + availableConstellations.size() + ")  •  §eUncharted §7•  Spectral Class: " + constellation.getPrimarySpectralClass().getTitle(), centerX, chartY + 22, 0xFFA0C0E0);
+        }
 
         // Navigation Buttons
         if (availableConstellations.size() > 1) {
@@ -113,7 +145,8 @@ public class ConstellationTracingScreen extends Screen {
             float x2 = chartX + (s2.x() / 100.0f) * (chartSize - 60) + 30;
             float y2 = chartY + (s2.y() / 100.0f) * (chartSize - 80) + 40;
 
-            drawLine(guiGraphics, (int) x1, (int) y1, (int) x2, (int) y2, isCompleted ? 0xFFFFE060 : 0xFF00F0FF);
+            int lineColor = (isDiscovered || isCompleted) ? 0xFFFFE060 : 0xFF00F0FF;
+            drawLine(guiGraphics, (int) x1, (int) y1, (int) x2, (int) y2, lineColor);
 
             // Pulse bead traveling along line
             float tBead = ((System.currentTimeMillis() * 0.001f * 0.8f) + (edgeIdx * 0.3f)) % 1.0f;
@@ -167,17 +200,21 @@ public class ConstellationTracingScreen extends Screen {
         }
 
         // Footer: Ritual & Instruction
-        guiGraphics.drawCenteredString(this.font, "§8" + constellation.getRitualEffect(), centerX, chartY + chartSize - 18, 0xFF88A0B0);
+        if (isDiscovered || isCompleted) {
+            guiGraphics.drawCenteredString(this.font, "§aRitual: §7" + constellation.getRitualEffect(), centerX, chartY + chartSize - 18, 0xFFA0E0A0);
+        } else {
+            guiGraphics.drawCenteredString(this.font, "§8Click & drag between stars to map this stellar signature...", centerX, chartY + chartSize - 18, 0xFF88A0B0);
+        }
 
-        // 5. Completion Banner
+        // 5. Completion / Discovery Banner
         if (isCompleted) {
-            guiGraphics.fill(centerX - 130, centerY - 25, centerX + 130, centerY + 25, 0xEE101624);
-            guiGraphics.fill(centerX - 130, centerY - 25, centerX + 130, centerY - 23, 0xFFFFD700);
-            guiGraphics.fill(centerX - 130, centerY + 23, centerX + 130, centerY + 25, 0xFFFFD700);
+            guiGraphics.fill(centerX - 140, centerY - 30, centerX + 140, centerY + 30, 0xF5101624);
+            guiGraphics.fill(centerX - 140, centerY - 30, centerX + 140, centerY - 28, 0xFFFFD700);
+            guiGraphics.fill(centerX - 140, centerY + 28, centerX + 140, centerY + 30, 0xFFFFD700);
 
-            guiGraphics.drawCenteredString(this.font, "§6✦ CONSTELLATION CHARTED! ✦", centerX, centerY - 12, 0xFFFFD700);
-            guiGraphics.drawCenteredString(this.font, "§a" + title + " Scribed & Ignited in Sky", centerX, centerY + 1, 0xFF80FF80);
-            guiGraphics.drawCenteredString(this.font, "§7[Press ESC to close or < / > to view others]", centerX, centerY + 12, 0xFFA0A0A0);
+            guiGraphics.drawCenteredString(this.font, "§6✦ CONSTELLATION CHARTED! ✦", centerX, centerY - 16, 0xFFFFD700);
+            guiGraphics.drawCenteredString(this.font, "§a" + rawTitle + " Scribed & Ignited in the Heavens", centerX, centerY - 3, 0xFF80FF80);
+            guiGraphics.drawCenteredString(this.font, "§7[Press ESC to close or < / > to view other stars]", centerX, centerY + 12, 0xFFA0A0A0);
         }
     }
 
@@ -205,7 +242,7 @@ public class ConstellationTracingScreen extends Screen {
             }
         }
 
-        // Right click clears all drawn lines if not completed
+        // Right click clears drawn lines if not completed
         if (button == 1 && !isCompleted && !drawnConnections.isEmpty()) {
             drawnConnections.clear();
             if (minecraft != null && minecraft.player != null) {
@@ -281,6 +318,8 @@ public class ConstellationTracingScreen extends Screen {
                     Player player = minecraft != null ? minecraft.player : null;
                     if (player != null) {
                         player.playSound(SoundEvents.PLAYER_LEVELUP, 1.0f, 1.0f);
+                        player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 1.2f, 1.4f);
+                        player.playSound(SoundEvents.BEACON_ACTIVATE, 0.8f, 1.2f);
                         PlayerAstralProgress.discover(player, constellation);
 
                         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {

@@ -122,12 +122,12 @@ public class CelestialSkyRenderer {
                 star3DPos[s][2] = z;
             }
 
-            // Render Constellation Connecting Lines & Pulse Beads
-            if (isDiscovered || isScoping) {
-                float lineAlpha = isDiscovered ? (starBrightness * 0.95f) : (starBrightness * 0.65f);
-                int rLine = isDiscovered ? 255 : 0;
-                int gLine = isDiscovered ? 220 : 220;
-                int bLine = isDiscovered ? 100 : 255;
+            // Render Constellation Connecting Lines & Pulse Beads (ONLY if charted/discovered)
+            if (isDiscovered) {
+                float lineAlpha = starBrightness * 0.95f;
+                int rLine = 255;
+                int gLine = 220;
+                int bLine = 100;
                 int aLine = (int) (lineAlpha * 255);
 
                 int edgeIdx = 0;
@@ -136,18 +136,16 @@ public class CelestialSkyRenderer {
                         float[] p1 = star3DPos[conn.fromIndex()];
                         float[] p2 = star3DPos[conn.toIndex()];
 
-                        float thickness = isDiscovered ? 0.35f : 0.22f;
+                        float thickness = 0.35f;
                         drawLineSegment(matrix, vertexConsumer, p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], thickness, rLine, gLine, bLine, aLine, light, overlay);
 
                         // Traveling stardust pulse beads along lines for discovered constellations
-                        if (isDiscovered) {
-                            float tBead = ((timeAnim * 0.4f) + (edgeIdx * 0.25f)) % 1.0f;
-                            float bx = p1[0] * (1.0f - tBead) + p2[0] * tBead;
-                            float by = p1[1] * (1.0f - tBead) + p2[1] * tBead;
-                            float bz = p1[2] * (1.0f - tBead) + p2[2] * tBead;
+                        float tBead = ((timeAnim * 0.4f) + (edgeIdx * 0.25f)) % 1.0f;
+                        float bx = p1[0] * (1.0f - tBead) + p2[0] * tBead;
+                        float by = p1[1] * (1.0f - tBead) + p2[1] * tBead;
+                        float bz = p1[2] * (1.0f - tBead) + p2[2] * tBead;
 
-                            drawStarQuad(matrix, vertexConsumer, bx, by, bz, 0.4f, 255, 255, 255, (int) (lineAlpha * 240), light, overlay);
-                        }
+                        drawStarQuad(matrix, vertexConsumer, bx, by, bz, 0.4f, 255, 255, 255, (int) (lineAlpha * 240), light, overlay);
                     }
                     edgeIdx++;
                 }
