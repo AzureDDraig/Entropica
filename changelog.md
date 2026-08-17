@@ -66,13 +66,12 @@
     - In `SkyLookingGlassScreen.java`, the pan-and-zoom interface now scans for all nearby `RefractiveAstralLensBlockEntity` within 20 blocks.
     - If a target lens has a clear line of sight (no intervening solid blocks) and is within a $60^\circ$ angle of attack from the current aim angle, it is projected onto the viewscreen as a glowing interactive target circle with live distance readouts (`§b✦ Lens [14.2m]`).
     - Aiming within $18\text{px}$ of the target circle snaps focus onto the target lens for optical calibration.
-  - **Incoming Link Counter & Dual-Side Beam Mechanics**:
-    - Added `incomingLinksCount` tracking to `RefractiveAstralLensBlockEntity.java`.
-    - Implemented step-interpolated 3D AABB bounding box ray intersection (`lensBox.clip(start, end)`), ensuring beams accurately detect and terminate immediately at the surface of target lenses or solid obstacles without overshooting past them into the sky.
-    - Corrected beam orientation in `RefractiveAstralLensRenderer.java`: the forward output beam projects strictly along local `-Z` from $0$ to $-\text{dist}$, while the skyward influx stream is placed exclusively on the rear/sky side ($+Z$) when `incomingLinksCount == 0`, preventing the skyward stream from overriding the forward beam distance.
-    - When receiving a relayed beam from an upstream lens (`incomingLinksCount > 0`), the sky influx is omitted and the relayed starlight is redirected forward along the lens's calibrated angle.
+  - **Astral Lens Center Disc Termination & Entity Beam Blockage**:
+    - Refined beam raycast in `RefractiveAstralLensBlockEntity.java` to terminate directly at the center of the recipient lens disc (`Vec3.atCenterOf(pos).add(0, 0.4375, 0)`), seamlessly connecting optical relays.
+    - Added dynamic entity beam interception: living entities intersecting the starlight beam temporarily pause/block the downstream relay and receive `ModEffects.MATERIA_TOXICITY` attuned to the focused star's `EssenceType`.
+    - Updated `SkyLookingGlassScreen.java` to strictly require aiming at a Star or Astral Lens to lock focus, rejecting empty sky calibrations.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 30s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 33s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

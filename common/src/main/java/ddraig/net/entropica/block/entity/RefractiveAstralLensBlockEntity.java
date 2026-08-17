@@ -1,12 +1,20 @@
 package ddraig.net.entropica.block.entity;
 
 import com.mojang.serialization.Codec;
+import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.astral.CelestialStarHelper;
+import ddraig.net.entropica.astral.Constellation;
+import ddraig.net.entropica.astral.ModConstellations;
+import ddraig.net.entropica.registry.ModAttachments;
 import ddraig.net.entropica.registry.ModBlockEntities;
+import ddraig.net.entropica.registry.ModEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -146,7 +154,7 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                 closestDist = start.distanceTo(blockHit.getLocation());
             }
 
-            // 2. Scan along the beam ray path for other Refractive Astral Lenses
+            // 2. Scan along the beam ray path for other Refractive Astral Lenses (terminates at lens center disc)
             RefractiveAstralLensBlockEntity hitLens = null;
             Set<BlockPos> checkedPositions = new HashSet<>();
             for (double step = 0.5; step <= closestDist; step += 0.5) {
@@ -155,15 +163,16 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                 if (checkedPositions.add(p)) {
                     if (p.equals(pos) || p.equals(pos.below())) continue;
                     if (level.getBlockEntity(p) instanceof RefractiveAstralLensBlockEntity otherLens) {
+                        Vec3 otherCenter = Vec3.atCenterOf(p).add(0, 0.4375, 0);
                         AABB lensBox = new AABB(
                                 p.getX() + 0.05, p.getY(), p.getZ() + 0.05,
                                 p.getX() + 0.95, p.getY() + 0.95, p.getZ() + 0.95
                         );
                         Optional<Vec3> optHit = lensBox.clip(start, end);
                         if (optHit.isPresent()) {
-                            double distToLens = start.distanceTo(optHit.get());
-                            if (distToLens < closestDist) {
-                                closestDist = distToLens;
+                            double distToCenter = start.distanceTo(otherCenter);
+                            if (distToCenter < closestDist) {
+                                closestDist = distToCenter;
                                 hitLens = otherLens;
                             }
                         }
@@ -171,7 +180,27 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                 }
             }
 
-            if (hitLens != null) {
+            // 3. Scan for Living Entities intercepting the beam (pausing the beam and applying Materia Toxicity)
+            AABB beamBounds = new AABB(start, end).inflate(0.5);
+            LivingEntity blockingEntity = null;
+            for (LivingEntity living : level.getEntitiesOfClass(LivingEntity.class, beamBounds, e -> !e.isSpectator() && e.isAlive())) {
+                AABB entityBox = living.getBoundingBox().inflate(0.12);
+                Optional<Vec3> entityHit = entityBox.clip(start, end);
+                if (entityHit.isPresent()) {
+                    double entityDist = start.distanceTo(entityHit.get());
+                    if (entityDist < closestDist) {
+                        closestDist = entityDist;
+                        blockingEntity = living;
+                        hitLens = null; // Beam blocked by entity before reaching downstream lens
+                    }
+                }
+            }
+
+            if (blockingEntity != null) {
+                EssenceType starEssence = resolveStarEssence(currentStar);
+                blockingEntity.addEffect(new MobEffectInstance(ModEffects.MATERIA_TOXICITY, 100, 0, false, true, true));
+                ModAttachments.setToxicitySource(blockingEntity, starEssence.name());
+            } else if (hitLens != null) {
                 hitLens.receiveRelayBeam(pos, currentStar);
             }
 
@@ -187,6 +216,28 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                 level.sendBlockUpdated(pos, state, state, 3);
             }
         }
+    }
+
+    public static EssenceType resolveStarEssence(String starName) {
+        if (starName == null || starName.isEmpty() || starName.equals("Uncalibrated")) {
+            return EssenceType.ASTRAL;
+        }
+        for (CelestialStarHelper.LandmarkStar ls : CelestialStarHelper.LANDMARK_STARS) {
+            if (ls.name().equalsIgnoreCase(starName)) {
+                return ls.essenceType();
+            }
+        }
+        for (CelestialStarHelper.AmbientStar as : CelestialStarHelper.AMBIENT_STARS) {
+            if (as.name().equalsIgnoreCase(starName)) {
+                return as.essenceType();
+            }
+        }
+        for (Constellation c : ModConstellations.getAllConstellations()) {
+            if (starName.toLowerCase().contains(c.getId().getPath().replace("_", " ").toLowerCase())) {
+                return c.getEssenceType();
+            }
+        }
+        return EssenceType.ASTRAL;
     }
 
     public float getInterpolatedYaw(float partialTick) {

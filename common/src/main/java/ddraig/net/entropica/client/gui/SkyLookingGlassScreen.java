@@ -196,7 +196,18 @@ public class SkyLookingGlassScreen extends Screen {
     }
 
     private void lockAstralLensFocus() {
-        String targetName = "Sky Azimuth " + String.format("%.1f°", this.yaw);
+        Minecraft mc = Minecraft.getInstance();
+
+        if (this.focusedTarget == null) {
+            if (mc.player != null) {
+                mc.player.playSound(SoundEvents.DISPENSER_FAIL, 0.8f, 1.2f);
+            }
+            this.lensLockMessage = "§c✦ Calibrate Failed: Crosshair must be aimed at a Star or Astral Lens!";
+            this.lensLockTime = System.currentTimeMillis();
+            return;
+        }
+
+        String targetName = "Unknown Celestial Body";
         if (this.focusedTarget instanceof CelestialStarHelper.LandmarkStar ls) {
             targetName = ls.name();
         } else if (this.focusedTarget instanceof CelestialStarHelper.AmbientStar as) {
@@ -209,7 +220,6 @@ public class SkyLookingGlassScreen extends Screen {
             targetName = "Relay Lens at [" + targetLens.getBlockPos().toShortString() + "]";
         }
 
-        Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) {
             mc.player.playSound(SoundEvents.BEACON_POWER_SELECT, 0.9f, 1.3f);
             mc.player.playSound(SoundEvents.CHISELED_BOOKSHELF_INSERT, 0.8f, 1.1f);
