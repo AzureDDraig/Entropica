@@ -35,11 +35,11 @@
   - **Camera Rotation & Angle Sync on Exit**: Leaving the telescope (`ESC`) synchronizes the player's world camera (`yRot`, `xRot`, `yHeadRot`, `yBodyRot`) to the exact azimuth and declination observed through the lens.
   - **Line of Sight / Sky Occlusion Raycasting**: Raycasts 128 blocks from the player's eyes along the viewing vector; if obstructed by ceilings, caves, or solid structures, the telescope view dims with a `"Line of Sight Obstructed"` alert.
   - **Free-Form Star Tracing & Validation**: Allows drawing lines between any stars in the telescope view; validating the constellation graph upon full puzzle completion, while Shift + Right-Click resets lines.
-  - **Constellation Line Visibility & Upright Orientation Fix**:
-    - Converted `CelestialSkyRenderer.java` to a dual-pass rendering pipeline: Pass 1 renders stars, nebulae, and travelling stardust sparks using `STAR_TEXTURE`, while Pass 2 renders thick, luminous starlight lines with a glowing amber-gold halo (`1.5f` width) and brilliant inner core (`0.7f` width) using `WHITE_TEXTURE`.
-    - Aligned celestial spherical coordinates and altitude/declination mappings across both the telescope screen and world skybox, ensuring constellations (e.g. *Resina Succini*) render upright with top apex pointing skyward and matching discovery orientation.
+  - **Real-Time Dynamic Sky Tracking & Synchronous Projection**:
+    - Replaced static telescope coordinates with real-time celestial sphere projection (`celestialToApparentAngles`), ensuring the pannable Looking Glass and Telescope view continuously tracks and rotates with the passing night sky and moon phases in 100% lockstep with `CelestialSkyRenderer.java`.
+    - Discovering or charting a constellation through the Looking Glass leaves the player aiming directly at that exact constellation in the night skybox upon exiting (`ESC`) with 0 offset.
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 26s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 25s`** across `common`, `neoforge`, and `fabric`.
 
 ---
 
