@@ -11,6 +11,7 @@ public class ModCommands {
             EssenceNodeCommands.register(dispatcher);
             GrotSummonCommands.register(dispatcher);
             VeilFoxCommands.register(dispatcher);
+            SupernovaCommand.register(dispatcher);
         });
     }
 }

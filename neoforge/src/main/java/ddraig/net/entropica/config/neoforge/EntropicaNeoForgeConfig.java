@@ -17,6 +17,14 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_CORE_OVERLOAD;
     public static final ModConfigSpec.BooleanValue REQUIRE_RESEARCH_TO_CRAFT;
     public static final ModConfigSpec.BooleanValue FANCY_MAGIC_CIRCLE_PROCESSING;
+    // Astral Mirror Settings
+    public static final ModConfigSpec.BooleanValue ENABLE_ASTRAL_MIRROR_SKY_REFLECTION;
+    public static final ModConfigSpec.BooleanValue ENABLE_ASTRAL_MIRROR_PARALLAX_DEPTH;
+    public static final ModConfigSpec.BooleanValue ENABLE_ASTRAL_MIRROR_3D_BILLBOARD_STARS;
+    public static final ModConfigSpec.BooleanValue ENABLE_ASTRAL_MIRROR_LIQUID_REFRACTION;
+    public static final ModConfigSpec.BooleanValue ENABLE_ASTRAL_MIRROR_NEBULAE;
+    public static final ModConfigSpec.BooleanValue ENABLE_ASTRAL_MIRROR_CONSTELLATION_LINES;
+    public static final ModConfigSpec.IntValue ASTRAL_COLLECTOR_TRANSFER_RATE;
 
     // Materia Vitae Network Configs
     public static final ModConfigSpec.IntValue ORBIS_CELL_MAX_MATERIA;
@@ -155,6 +163,30 @@ public class EntropicaNeoForgeConfig {
         FANCY_MAGIC_CIRCLE_PROCESSING = BUILDER.comment("If true, enables complex raising, growing, fading, and cascading smash animations during magic circle ritual processing. Default: true")
                 .translation("entropica.configuration.entropic_materia_furnace_settings.fancyMagicCircleProcessing")
                 .define("fancyMagicCircleProcessing", true);
+
+        ENABLE_ASTRAL_MIRROR_SKY_REFLECTION = BUILDER.comment("If true, Astral Mirror Blocks render real-time sky, nebula, and constellation reflections. Default: true")
+                .translation("entropica.configuration.astral_mirror_settings.enableAstralMirrorSkyReflection")
+                .define("enableAstralMirrorSkyReflection", true);
+
+        ENABLE_ASTRAL_MIRROR_PARALLAX_DEPTH = BUILDER.comment("If true, reflections render with 3D multi-layer parallax cosmic well depth (Option 1). Default: true")
+                .translation("entropica.configuration.astral_mirror_settings.enableAstralMirrorParallaxDepth")
+                .define("enableAstralMirrorParallaxDepth", true);
+
+        ENABLE_ASTRAL_MIRROR_3D_BILLBOARD_STARS = BUILDER.comment("If true, reflected stars render as camera-facing 3D spherical billboarding orbs (Option 2). Default: true")
+                .translation("entropica.configuration.astral_mirror_settings.enableAstralMirror3DBillboardStars")
+                .define("enableAstralMirror3DBillboardStars", true);
+
+        ENABLE_ASTRAL_MIRROR_LIQUID_REFRACTION = BUILDER.comment("If true, reflected starlight undergoes liquid ether fluid wave refraction and surface caustic ripples (Option 4). Default: true")
+                .translation("entropica.configuration.astral_mirror_settings.enableAstralMirrorLiquidRefraction")
+                .define("enableAstralMirrorLiquidRefraction", true);
+
+        ENABLE_ASTRAL_MIRROR_NEBULAE = BUILDER.comment("If true, reflected cosmic nebulae clouds are rendered in the mirror pool. Default: true")
+                .translation("entropica.configuration.astral_mirror_settings.enableAstralMirrorNebulae")
+                .define("enableAstralMirrorNebulae", true);
+
+        ENABLE_ASTRAL_MIRROR_CONSTELLATION_LINES = BUILDER.comment("If true, player-charted constellation connection lines are reflected in the mirror pool. Default: true")
+                .translation("entropica.configuration.astral_mirror_settings.enableAstralMirrorConstellationLines")
+                .define("enableAstralMirrorConstellationLines", true);
 
         BUILDER.pop();
 
@@ -349,6 +381,9 @@ public class EntropicaNeoForgeConfig {
 
         MAX_DELAY_TICKS = BUILDER.comment("Maximum delay ticks allowed for a Delay Node. Min: 1, Max: 100, Default: 6")
                 .defineInRange("maxDelayTicks", 6, 1, 100);
+
+        ASTRAL_COLLECTOR_TRANSFER_RATE = BUILDER.comment("Materia collection rate for Astral Collector under focused beam (Materia per second). Min: 1, Max: 100, Default: 8")
+                .defineInRange("astralCollectorTransferRate", 8, 1, 100);
 
         BUILDER.pop();
 

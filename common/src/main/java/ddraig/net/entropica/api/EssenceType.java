@@ -197,6 +197,8 @@ public enum EssenceType implements StringRepresentable {
         };
     }
 
+    public int[][] getColorCycle() { return colorCycle; }
+
     public int getR() { return colorCycle.length > 0 ? colorCycle[0][0] : 255; }
     public int getG() { return colorCycle.length > 0 ? colorCycle[0][1] : 255; }
     public int getB() { return colorCycle.length > 0 ? colorCycle[0][2] : 255; }

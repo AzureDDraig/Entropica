@@ -352,6 +352,36 @@ public class CodexCategoryRegistry {
                 280f, 0.0f, a_multi + 0.15f, false
         ));
 
+        ALL_NODES.add(new CodexNode(
+                "multiblock_grand_observatory", "Grand Circular Astral Observatory (7x7x6)", "MULTIBLOCKS",
+                "Monumental astronomical dome with 5x5 mirror pool and 32x cosmic magnification.",
+                "Overview & Description:\n" +
+                "A monumental 7x7x6 architectural complex designed for deep-sky cosmic observation, singularity tracking, and large-scale starlight collection.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed from 25 Astral Mirror Blocks (5x5 pool), 20 Engraved Astral Slate, 16 Astral Marble Bricks, 8 Starlight Pillars, 8 Astral Marble Walls, 4 cardinal Refractive Astral Lenses, and 1 Celestial Armillary Controller.\n\n" +
+                "Crafting Uses:\n" +
+                "Unlocks the Celestial Armillary Controller (32x cosmic magnification) and feeds multiple high-tier optical conduits.\n\n" +
+                "Special Properties:\n" +
+                "Can be projected as a 3D translucent in-world ghost template using the Astrolabe.",
+                "hub_multiblocks", 3, new ItemStack(ModBlocks.CELESTIAL_ARMILLARY_CONTROLLER.get()),
+                360f, 0.0f, a_multi - 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "multiblock_modular_astral_altar", "Modular Astral Altar (5x5x3)", "MULTIBLOCKS",
+                "Harmonic resonance ritual crafting grid for starlight transmutation.",
+                "Overview & Description:\n" +
+                "A 5x5x3 modular ritual platform designed for high-tier starlight item synthesis and constellation infusions.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed with 12 Astral Marble Bricks, 4 Engraved Astral Slate, 4 Resonance Pylons, 4 Attunement Pedestals, 1 Focal Lens Mount, and 1 central Astral Altar Core.\n\n" +
+                "Crafting Uses:\n" +
+                "Infuses Resplendent Prisms, Mantles of the Stars, and high-purity Astral Crystal Tools.\n\n" +
+                "Special Properties:\n" +
+                "Maintains persistent starlight focus during daylight hours if initialized under a clear night sky.",
+                "hub_multiblocks", 2, new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
+                360f, 0.0f, a_multi + 0.05f, false
+        ));
+
         // ==========================================
         // 6. ENVIRONMENT & NATURE (Lime Green Ring)
         // ==========================================
@@ -1262,18 +1292,68 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
-                "astral_pantheon_constellations", "The 24 Constellations of Entropica", "MAGIC",
-                "Four tiers of celestial stars, spectral classes, and calibrated inverse flux rates.",
+                "astral_astrolabe_and_holograms", "Astrolabe & Holographic Projections", "MAGIC",
+                "Precision astronomical navigation and 3D in-world ghost blueprint projection.",
                 "Overview & Description:\n" +
-                "Entropica's cosmos is organized into 24 distinct constellations across 4 celestial tiers (Fundamental, Advanced, Master, Mythic):\n" +
-                "▪ Fundamental (T1): Vespa Aculeus (Air, 25 flux/t), Lucerna Radialis (Radiant, 24 flux/t), Serpens Veneni (Umbral, 22 flux/t), Arbor Vitae (Vitae, 18 flux/t), Scutum Aegis (Aegis, 18 flux/t), Athanor Ignis (Magma, 16 flux/t), Gladius Ignis (Pyre, 10 flux/t), Penna Aetheris (Aether, 6 flux/t).\n" +
-                "▪ Advanced (T2): Mineralis Geodae (Earth, 20 flux/t), Glacies Crystalline (Glacial, 16 flux/t), Ulteria Viatoris (Aurora, 15 flux/t), Resina Succini (Amber, 13 flux/t), Sanguis Chalybis (Blood, 12 flux/t), Fulgur Tonitrus (Lightning, 12 flux/t), Horologium Chroni (Astral, 11 flux/t), Bootes Pastoralis (Sylvan, 8 flux/t).\n" +
-                "▪ Master (T3): Vorago Blighti (Blight, 14 flux/t), Velum Umbraticum (Penumbra, 7 flux/t), Echo Primordialis (Entropic, 5 flux/t), Corona Solaris (Celestial, 5 flux/t).\n" +
-                "▪ Mythic (T4): Leviathan (Abyss, 12 flux/t), Yggdrasil (Genesis, 8 flux/t), Ouroboros (Aether, 6 flux/t), Azathoth (Oblivion, 7 flux/t).\n\n" +
+                "The Astrolabe is a precision handheld coordinate dial providing up to 8x magnification and fine 15° vernier degree markings for celestial tracking.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Forged with Brass Ingots, Quartz Lenses, and a Resonite gear mechanism.\n\n" +
+                "Crafting Uses:\n" +
+                "Allows arkanists to project 3D in-world translucent holographic ghost templates of complex Astral multiblocks (Observatory, Beacon, Altar).\n\n" +
                 "Special Properties:\n" +
-                "Follows inverse cosmic energy density scaling: raw primordial stars yield abundant volumetric flux, while apex cosmic essences condense slowly at concentrated high potency.",
+                "Shift + Right-Click in air cycles blueprints. Right-Click on a ground block anchors the holographic blueprint with live color-coded status (cyan = missing, green = correct, red = invalid).",
+                "astral_instruments_and_charts", 1, new ItemStack(ModItems.ASTROLABE.get()),
+                470f, 0.0f, a_magic + 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_celestial_atlas", "Celestial Atlas & Compendium", "MAGIC",
+                "Grand astronomical compendium storing up to 24 discovered Star Charts with live sky monitoring.",
+                "Overview & Description:\n" +
+                "The Celestial Atlas is an illustrated astronomical tome that binds and stores completed Star Charts into a unified celestial compendium.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted by binding an Astrolabe with a Book and Gold Ingots.\n\n" +
+                "Crafting & Utility:\n" +
+                "▪ Shift + Right-Click: Automatically scans your inventory and absorbs all completed Star Charts into the atlas.\n" +
+                "▪ Right-Click: Opens the dual-page interactive compendium browser showing all 24 constellations categorized across 4 Tiers.\n\n" +
+                "Special Properties:\n" +
+                "Displays full astrological lore, lunar phase visibility, base flux rates, and real-time horizon status (zenith altitude vs. minutes until rising).",
+                "astral_instruments_and_charts", 2, new ItemStack(ModItems.CELESTIAL_ATLAS.get()),
+                470f, 0.0f, a_magic + 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_pantheon_constellations", "The 50 Constellations of Entropica", "MAGIC",
+                "Five tiers of celestial stars, spectral classes, calibrated inverse flux rates, and coordinate conflicts.",
+                "Overview & Description:\n" +
+                "Entropica's cosmos is organized into 50 distinct constellations across 5 celestial tiers (Fundamental, Advanced, Master, Mythic, Transcendent):\n" +
+                "▪ Fundamental (T1 - 16 Stars): Vespa Aculeus (Air), Lucerna Radialis (Radiant), Serpens Veneni (Umbral), Arbor Vitae (Vitae), Scutum Aegis (Aegis), Athanor Ignis (Magma), Gladius Ignis (Pyre), Penna Aetheris (Aether), Falx Aetheria (Sky Scythe), Cervus Vitae (Sylvan Hart), Noctua Lucis (Luminous Owl), Aranea Tenebrae (Web of Night), Calcar Vulcanis (Forge Hearth), Arcus Sidereus (Starlight Bow), Taurus Petrae (Stone Bull), Iris Spectralis (Prismatic Veil).\n" +
+                "▪ Advanced (T2 - 16 Stars): Mineralis Geodae (Earth), Glacies Crystalline (Glacial), Ulteria Viatoris (Aurora), Resina Succini (Amber), Sanguis Chalybis (Blood), Fulgur Tonitrus (Lightning), Horologium Chroni (Astral), Bootes Pastoralis (Sylvan), Felis Succina (Amber Lynx), Draco Pyrotis (Pyre Drake), Ceraunius Sagitta (Thunder Arrow), Serpens Glacialis (Rime Viper), Speculum Abyssi (Abyssal Mirror), Pallium Tenebrae (Shroud of Dusk), Anulus Aeternus (Gyroscopic Ring), Sol Invictus (Unconquered Sun).\n" +
+                "▪ Master (T3 - 8 Stars): Vorago Blighti (Blight), Velum Umbraticum (Penumbra), Echo Primordialis (Entropic), Corona Solaris (Celestial), Charybdis Profunda (Abyssal Maelstrom), Terranox Primus (World Impactite), Vorator Stellarum (Star Devourer), Aetherion Aeternus (Celestial Weave).\n" +
+                "▪ Mythic (T4 - 4 Stars): Leviathan (Abyss), Yggdrasil (Genesis), Ouroboros (Aether), Azathoth (Oblivion).\n" +
+                "▪ Transcendent (T5 - 6 Stars): Astrape Primordialis, Aegis Ecliptica, Ignis Eschaton, Aether Aeternitas, Umbra Genesis, Nihil Coronatum.\n\n" +
+                "Celestial Coordinate Conflicts & Harmonic Interference:\n" +
+                "Several constellation pairs share identical stellar coordinates. Channeling both simultaneously results in destructive harmonic interference, causing altars and beacons to reject dual attunement.",
                 "magic_astral", 1, new ItemStack(ModItems.STAR_CHART_COMPLETED.get()),
                 390f, 0.0f, a_magic + 0.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_materia_flux_distributor", "Materia-Flux Distributor & Wireless Charging", "MAGIC",
+                "Subterranean pneumatic siphoning and wireless Materia-Flux distribution to Inscribed Crystals.",
+                "Overview & Description:\n" +
+                "The Materia-Flux Distributor wirelessly channels stored Materia Fumus into Inscribed Astral Crystals within a large spherical radius.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled using Astral Brass plates, an Attuned Quartz disc, and a pneumatic manifold port. Connects directly to Materia Fumus pipes.\n\n" +
+                "Vertical Siphoning Physics:\n" +
+                "When placed directly underneath an Astral Collector, the distributor automatically draws stored Materia downward into its internal buffer.\n\n" +
+                "Tier Upgrades & Distribution Range:\n" +
+                "▪ Tier 1: 32-block radius | 4,000 mb buffer | 10 Materia/s charging\n" +
+                "▪ Tier 2: 64-block radius | 8,000 mb buffer | 25 Materia/s charging\n" +
+                "▪ Tier 3: 96-block radius | 16,000 mb buffer | 60 Materia/s charging\n\n" +
+                "Right-clicking the block with Astral Crystals or upgrade plates upgrades the tier up to Tier 3.",
+                "astral_collector_materia_reservoir", 2, new ItemStack(ModBlocks.MATERIA_FLUX_DISTRIBUTOR.get()),
+                720f, 0.0f, a_magic + 0.06f, false
         ));
 
         ALL_NODES.add(new CodexNode(
@@ -1307,6 +1387,102 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
+                "astral_optical_relays_and_hazards", "Optical Relays & Radiation Hazards", "MAGIC",
+                "Gimbaled refractive lenses, 4-way beam splitters, and line-of-sight radiation dangers.",
+                "Overview & Description:\n" +
+                "Refractive Astral Lenses, Secondary Astral Lenses, and Beam Splitter Prisms direct, split, and relay collimated starlight beams across open air.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled using polished Starlight Quartz discs, brass friction gimbals, and Astral Marble plinths.\n\n" +
+                "Crafting Uses:\n" +
+                "Directs focused starlight into collectors, transmutation pedestals, and subterranean optical ports.\n\n" +
+                "Special Properties:\n" +
+                "Walking through an active starlight beam occludes downstream transmission and inflicts Materia Toxicity with elemental debuffs matching the active star.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()),
+                640f, 0.0f, a_magic + 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_secondary_lens", "Secondary Astral Lens & Gimbal Aiming", "MAGIC",
+                "Terrestrial starlight beam redirection and real-time first-person in-world aiming calibration.",
+                "Overview & Description:\n" +
+                "The Secondary Astral Lens is a freestanding optical workstation designed for complex horizontal and vertical beam routing around obstacles and between base facilities.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted using Astral Brass ingots, an Astral Marble plinth, and a polished Starlight Quartz disc.\n\n" +
+                "Aiming & Calibration:\n" +
+                "Right-clicking the lens temporarily shifts player camera perspective directly to the lens gimbal head in first-person mode. Moving the mouse smoothly pans Azimuth (0°-360°) and tilts Pitch (-85° to +85°) with live distance and target HUD readouts.\n\n" +
+                "Astral Linking Wand Auto-Alignment:\n" +
+                "Shift-clicking a Secondary Lens with an Astral Linking Wand then clicking any target block automatically calculates the exact azimuth and pitch angles to lock the beam onto the destination.\n\n" +
+                "Center-Terminating Beam Physics:\n" +
+                "Primary and upstream lenses detect the Secondary Lens and terminate incoming beams cleanly at the central quartz disc, eliminating beam overshoot.",
+                "astral_optical_relays_and_hazards", 3, new ItemStack(ModBlocks.SECONDARY_ASTRAL_LENS.get()),
+                720f, 0.0f, a_magic + 0.01f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_calcite_transmutation", "Calcite Starlight Transmutation", "MAGIC",
+                "Transmuting Calcite into Medium Essence Orbs via concentrated optical starlight beams.",
+                "Overview & Description:\n" +
+                "Direct continuous irradiation of Calcite using a focused starlight beam from a Refractive Astral Lens or Secondary Astral Lens triggers deep mineral transmutation.\n\n" +
+                "In-World Transmutation Process:\n" +
+                "Exposing a placed Calcite block or dropped Calcite item entity directly to a starlight beam for 5.0 seconds (100 ticks) transfigures the calcite matrix into a Medium Essence Orb.\n\n" +
+                "Essence Attribution:\n" +
+                "The resulting Medium Essence Orb inherits the exact elemental Materia essence of the locked celestial star, planet, comet, or supernova remnant (e.g. Vitae from Sylva, Singularity from Stellar Black Holes, Lightning from Pulsars).\n\n" +
+                "Audio & Visual Resonance:\n" +
+                "During charging, the calcite emanates enchanting starlight glyphs, erupting into a resonant amethyst chime and totem particle flash upon successful transfiguration.",
+                "astral_optical_relays_and_hazards", 2, new ItemStack(Items.CALCITE),
+                720f, 0.0f, a_magic + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_beam_splitter_prism", "Beam Splitter Prism & Orthogonal Splitting", "MAGIC",
+                "Incident-angle 90° dual orthogonal starlight splitting turntable.",
+                "Overview & Description:\n" +
+                "The Beam Splitter Prism divides an incoming collimated starlight beam into two orthogonal streams.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted from 1 Astral Crystal Block, 4 Astral Brass Ingots, and 4 Refractive Astral Lenses.\n\n" +
+                "Splitting Physics:\n" +
+                "Dynamically calculates the incoming beam incident angle from the source position. Projects two distinct output beams at exactly 90° left and 90° right relative to the incoming trajectory.\n\n" +
+                "Special Properties:\n" +
+                "Each split beam carries full starlight potency to downstream receivers, with independent entity collision and Materia Toxicity raycasting.",
+                "astral_optical_relays_and_hazards", 3, new ItemStack(ModBlocks.BEAM_SPLITTER_PRISM.get()),
+                720f, 0.0f, a_magic + 0.03f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_infusion_pedestal", "Astral Infusion Pedestal & Elemental Flora", "MAGIC",
+                "Dry optical starlight irradiation, flora elemental transmutations, and soil metamorphism.",
+                "Overview & Description:\n" +
+                "A solid marble plinth that focuses overhead starlight beams onto held items for dry transmutation rituals without liquid pools.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted from an Astral Pedestal, 1 Astral Crystal Block, and Gold Ingots.\n\n" +
+                "Elemental Flora Swapping:\n" +
+                "Irradiating standard vanilla flowers converts them into elemental variants based on the focused constellation:\n" +
+                "▪ Ignis / Pyre / Athanor → Soul-Flame Orchid\n" +
+                "▪ Vitae / Arbor / Sylvan → Vitae Orchid\n" +
+                "▪ Scutum / Aegis → Aegis-Spire Orchid\n" +
+                "▪ Serpens / Vorago / Abyss → Void-Stalker Orchid\n\n" +
+                "Substrate Metamorphism:\n" +
+                "Continuous irradiation transmutes the soil directly beneath into Sooty Marble, Engraved Astral Slate, or Astral Marble.",
+                "astral_altar_and_observatory", 2, new ItemStack(ModBlocks.ASTRAL_INFUSION_PEDESTAL.get()),
+                640f, 0.0f, a_magic - 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_collector_materia_reservoir", "Astral Collector & Condensation", "MAGIC",
+                "Starlight condensation basin and single-essence Materia storage reservoir.",
+                "Overview & Description:\n" +
+                "The Astral Collector condenses concentrated starlight beam radiation into pure liquid Materia, holding up to 2,000 units of single-essence Materia in its internal reservoir.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Sculpted from Astral Marble Bricks, Brass Trim, and an attuned Starlight Crystal receptor node.\n\n" +
+                "Crafting Uses:\n" +
+                "Accumulates Materia at 8 Materia/s (configurable) under concentrated optical starlight irradiation.\n\n" +
+                "Special Properties:\n" +
+                "Automatically purges previously stored Materia if an incompatible essence type is focused into the collector.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.ASTRAL_COLLECTOR.get()),
+                640f, 0.0f, a_magic + 0.06f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
                 "astral_crystals_and_impactite", "Astral Crystals & Impactite", "MAGIC",
                 "Dual-stat growing crystals, self-repairing tools, and extraterrestrial impactites.",
                 "Overview & Description:\n" +
@@ -1334,6 +1510,36 @@ public class CodexCategoryRegistry {
                 "Beacon radius scales dynamically based on crystal Size: Radius = 32 + (Size - 1) * 24 blocks.",
                 "astral_crystals_and_impactite", 3, new ItemStack(ModBlocks.CELESTIAL_BEACON_CONTROLLER.get()),
                 640f, 0.0f, a_magic + 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_supernovae_and_remnants", "Stellar Supernovae & Metamorphosis", "MAGIC",
+                "Core-collapse supernovae, Figure-8 bipolar nebulae, and exotic stellar remnants.",
+                "Overview & Description:\n" +
+                "Isolated stars outside the sacred constellation lattice occasionally undergo thermal instability and cataclysmic core collapse. The resulting detonation produces an expanding Figure-8 Bipolar Hourglass Nebula of ionized gas.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Observed across the nocturnal firmament via the Looking Glass or Telescope. Over thousands of ticks, the precursor instability ignites into a blinding flash before settling into a persistent remnant.\n\n" +
+                "Crafting Uses:\n" +
+                "Aiming a Refractive Astral Lens at a supernova remnant channels mutated high-order essences: STATIC, LIGHTNING, PHOTON, DENSITY, ENTROPICA, and PYRE.\n\n" +
+                "Special Properties:\n" +
+                "Collapsed cores evolve into Pulsars, Magnetars, White Dwarfs, Strange Quark Stars, or Collapsars.",
+                "astral_instruments_and_charts", 2, new ItemStack(ModItems.LOOKING_GLASS.get()),
+                580f, 0.0f, a_magic - 0.18f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_black_holes_and_singularities", "Stellar Black Holes & Singularities", "MAGIC",
+                "Gravitational singularities, swirling accretion disks, and void essence transmutation.",
+                "Overview & Description:\n" +
+                "When high-mass stars undergo complete gravitational collapse, they form Stellar Black Holes: infinite density singularities enveloped in luminous spinning accretion discs and relativistic jets.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Born from Class V stellar collapse events. Located by optical coordinate telemetry in the Looking Glass.\n\n" +
+                "Crafting Uses:\n" +
+                "Calibrating Astral Lenses to a Black Hole channels pure SINGULARITY, VOID, ESCHATON, NULL, ABYSS, OBLIVION, and CHRONOS essences into downstream machinery.\n\n" +
+                "Special Properties:\n" +
+                "Channels highest-tier Materia toxicity and extreme transmutation pressure into connected infusers and generators.",
+                "astral_supernovae_and_remnants", 3, new ItemStack(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()),
+                660f, 0.0f, a_magic - 0.22f, false
         ));
 
         ALL_NODES.add(new CodexNode(

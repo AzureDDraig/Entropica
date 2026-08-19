@@ -355,4 +355,58 @@ public class ModBlockEntities {
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity::new,
                             ModBlocks.REFRACTIVE_ASTRAL_LENS.get()
                     ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.SecondaryAstralLensBlockEntity>> SECONDARY_ASTRAL_LENS_BE =
+            BLOCK_ENTITIES.register("secondary_astral_lens", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.SecondaryAstralLensBlockEntity::new,
+                            ModBlocks.SECONDARY_ASTRAL_LENS.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.BeamSplitterPrismBlockEntity>> BEAM_SPLITTER_PRISM_BE =
+            BLOCK_ENTITIES.register("beam_splitter_prism", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.BeamSplitterPrismBlockEntity::new,
+                            ModBlocks.BEAM_SPLITTER_PRISM.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.AstralCollectorBlockEntity>> ASTRAL_COLLECTOR_BE =
+            BLOCK_ENTITIES.register("astral_collector", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.AstralCollectorBlockEntity::new,
+                            ModBlocks.ASTRAL_COLLECTOR.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.AstralInfusionPedestalBlockEntity>> ASTRAL_INFUSION_PEDESTAL_BE =
+            BLOCK_ENTITIES.register("astral_infusion_pedestal", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.AstralInfusionPedestalBlockEntity::new,
+                            ModBlocks.ASTRAL_INFUSION_PEDESTAL.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.OpticalTransmitterPortBlockEntity>> OPTICAL_TRANSMITTER_PORT_BE =
+            BLOCK_ENTITIES.register("optical_transmitter_port", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.OpticalTransmitterPortBlockEntity::new,
+                            ModBlocks.OPTICAL_TRANSMITTER_PORT.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.OpticalReceiverPortBlockEntity>> OPTICAL_RECEIVER_PORT_BE =
+            BLOCK_ENTITIES.register("optical_receiver_port", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.OpticalReceiverPortBlockEntity::new,
+                            ModBlocks.OPTICAL_RECEIVER_PORT.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.OpticalBoosterAmplifierBlockEntity>> OPTICAL_BOOSTER_AMPLIFIER_BE =
+            BLOCK_ENTITIES.register("optical_booster_amplifier", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.OpticalBoosterAmplifierBlockEntity::new,
+                            ModBlocks.OPTICAL_BOOSTER_AMPLIFIER.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.AstralMirrorBlockEntity>> ASTRAL_MIRROR_BE =
+            BLOCK_ENTITIES.register("astral_mirror_block", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.AstralMirrorBlockEntity::new,
+                            ModBlocks.ASTRAL_MIRROR_BLOCK.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.MateriaFluxDistributorBlockEntity>> MATERIA_FLUX_DISTRIBUTOR_BE =
+            BLOCK_ENTITIES.register("materia_flux_distributor", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.MateriaFluxDistributorBlockEntity::new,
+                            ModBlocks.MATERIA_FLUX_DISTRIBUTOR.get()
+                    ));
 }

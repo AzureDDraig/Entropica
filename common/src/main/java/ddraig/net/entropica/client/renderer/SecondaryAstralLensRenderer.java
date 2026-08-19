@@ -1,0 +1,175 @@
+package ddraig.net.entropica.client.renderer;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
+import ddraig.net.entropica.block.entity.SecondaryAstralLensBlockEntity;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
+
+public class SecondaryAstralLensRenderer implements BlockEntityRenderer<SecondaryAstralLensBlockEntity, SecondaryAstralLensRenderer.LensRenderState> {
+
+    private static final ResourceLocation BASE_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/refractive_astral_lens_base.png");
+    private static final ResourceLocation BRASS_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/refractive_astral_lens_brass.png");
+    private static final ResourceLocation RING_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/refractive_astral_lens_ring.png");
+    private static final ResourceLocation LENS_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/refractive_astral_lens.png");
+    private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
+
+    public SecondaryAstralLensRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
+    @Override
+    public LensRenderState createRenderState() {
+        return new LensRenderState();
+    }
+
+    @Override
+    public void extractRenderState(SecondaryAstralLensBlockEntity be, LensRenderState state, float partialTick, Vec3 cameraPos, @Nullable ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
+        BlockEntityRenderState.extractBase(be, state, crumblingOverlay);
+        state.yaw = be.getYaw();
+        state.pitch = be.getPitch();
+        state.isReceiving = be.isReceiving();
+        state.activeStarName = be.getActiveStarName();
+        state.beamDistance = be.getBeamDistance();
+    }
+
+    @Override
+    public void submit(LensRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraRenderState) {
+        int light = 15728880;
+        int overlay = OverlayTexture.NO_OVERLAY;
+
+        // 1. Group: "base" (Static Pedestal on Floor: [3, 0, 3] to [13, 2, 13])
+        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BASE_TEXTURE), (pose, consumer) -> {
+            renderTexturedBox(pose.pose(), consumer, 0.1875f, 0.0f, 0.1875f, 0.8125f, 0.125f, 0.8125f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+        });
+
+        // 2. Group: "azimuth_yoke" (Rotates around Y axis at [0.5, 0.125, 0.5])
+        poseStack.pushPose();
+        poseStack.translate(0.5, 0.125, 0.5);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-state.yaw));
+
+        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BRASS_TEXTURE), (pose, consumer) -> {
+            // Swivel Stem: [6, 2, 6] to [10, 4, 10]
+            renderTexturedBox(pose.pose(), consumer, -0.125f, 0.0f, -0.125f, 0.125f, 0.125f, 0.125f, 0.375f, 0.375f, 0.625f, 0.625f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+
+            // Yoke Bottom Bridge: [3, 4, 7] to [13, 5, 9]
+            renderTexturedBox(pose.pose(), consumer, -0.3125f, 0.125f, -0.0625f, 0.3125f, 0.1875f, 0.0625f, 0.1875f, 0.6875f, 0.8125f, 0.75f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+
+            // Yoke Arm Left: [2, 5, 7] to [4, 13, 9]
+            renderTexturedBox(pose.pose(), consumer, -0.375f, 0.1875f, -0.0625f, -0.25f, 0.6875f, 0.0625f, 0.125f, 0.3125f, 0.25f, 0.8125f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+
+            // Yoke Arm Right: [12, 5, 7] to [14, 13, 9]
+            renderTexturedBox(pose.pose(), consumer, 0.25f, 0.1875f, -0.0625f, 0.375f, 0.6875f, 0.0625f, 0.75f, 0.3125f, 0.875f, 0.8125f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+
+            // Pivot Thumbscrews
+            renderTexturedBox(pose.pose(), consumer, -0.421875f, 0.40625f, -0.03125f, -0.375f, 0.46875f, 0.03125f, 0.0f, 0.0f, 0.125f, 0.125f, light, overlay, 1, 1, 1, 1);
+            renderTexturedBox(pose.pose(), consumer, 0.375f, 0.40625f, -0.03125f, 0.421875f, 0.46875f, 0.03125f, 0.0f, 0.0f, 0.125f, 0.125f, light, overlay, 1, 1, 1, 1);
+        });
+
+        // 3. Group: "elevation_lens" (Pivots around horizontal axis at trunnion height [0, 0.4375, 0])
+        poseStack.translate(0.0, 0.4375, 0.0);
+        poseStack.mulPose(Axis.XP.rotationDegrees(-state.pitch));
+
+        // Render Outer Lens Bezel
+        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(RING_TEXTURE), (pose, consumer) -> {
+            renderTexturedBox(pose.pose(), consumer, -0.25f, 0.1875f, -0.046875f, 0.25f, 0.25f, 0.046875f, 0.25f, 0.0f, 0.75f, 0.0625f, light, overlay, 1, 1, 1, 1);
+            renderTexturedBox(pose.pose(), consumer, -0.25f, -0.25f, -0.046875f, 0.25f, -0.1875f, 0.046875f, 0.25f, 0.125f, 0.75f, 0.1875f, light, overlay, 1, 1, 1, 1);
+            renderTexturedBox(pose.pose(), consumer, -0.25f, -0.1875f, -0.046875f, -0.1875f, 0.1875f, 0.046875f, 0.25f, 0.25f, 0.3125f, 0.625f, light, overlay, 1, 1, 1, 1);
+            renderTexturedBox(pose.pose(), consumer, 0.1875f, -0.1875f, -0.046875f, 0.25f, 0.1875f, 0.046875f, 0.6875f, 0.25f, 0.75f, 0.625f, light, overlay, 1, 1, 1, 1);
+        });
+
+        // Render Translucent Quartz Lens Disc
+        collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(LENS_TEXTURE), (pose, consumer) -> {
+            float alpha = state.isReceiving ? 0.95f : 0.60f;
+            renderTexturedBox(pose.pose(), consumer, -0.1875f, -0.1875f, -0.015625f, 0.1875f, 0.1875f, 0.015625f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.7f, 0.95f, 1.0f, alpha);
+        });
+
+        // Outgoing Starlight Relay Beam (Emitted along +Z)
+        if (state.isReceiving) {
+            float dist = state.beamDistance > 0.0f ? state.beamDistance : 16.0f;
+            collector.submitCustomGeometry(poseStack, RenderType.beaconBeam(WHITE_TEXTURE, false), (pose, consumer) -> {
+                renderTexturedBox(pose.pose(), consumer, -0.025f, -0.025f, 0.0f, 0.025f, 0.025f, dist, 0.0f, 0.0f, 1.0f, dist, light, overlay, 1.0f, 0.98f, 0.85f, 1.0f);
+            });
+            collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
+                renderBeamQuad(pose.pose(), consumer, dist, 0.08f, 0.4f, 0.85f, 1.0f, 0.65f, light, overlay);
+            });
+        }
+
+        poseStack.popPose();
+    }
+
+    private static void renderBeamQuad(Matrix4f mat, VertexConsumer consumer, float length, float radius, float r, float g, float b, float a, int light, int overlay) {
+        // Plane 1 (Horizontal)
+        consumer.addVertex(mat, -radius, 0.0f, 0.0f).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(mat, -radius, 0.0f, length).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(mat, radius, 0.0f, length).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(mat, radius, 0.0f, 0.0f).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+
+        // Plane 2 (Vertical)
+        consumer.addVertex(mat, 0.0f, -radius, 0.0f).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(mat, 0.0f, -radius, length).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(mat, 0.0f, radius, length).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(mat, 0.0f, radius, 0.0f).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+    }
+
+    private static void renderTexturedBox(Matrix4f mat, VertexConsumer consumer,
+                                          float minX, float minY, float minZ,
+                                          float maxX, float maxY, float maxZ,
+                                          float u0, float v0, float u1, float v1,
+                                          int light, int overlay,
+                                          float r, float g, float b, float a) {
+        // North face (Z = minZ, normal = 0, 0, -1)
+        consumer.addVertex(mat, minX, minY, minZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        consumer.addVertex(mat, minX, maxY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        consumer.addVertex(mat, maxX, maxY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        consumer.addVertex(mat, maxX, minY, minZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+
+        // South face (Z = maxZ, normal = 0, 0, 1)
+        consumer.addVertex(mat, maxX, minY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(mat, maxX, maxY, maxZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(mat, minX, maxY, maxZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(mat, minX, minY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
+
+        // West face (X = minX, normal = -1, 0, 0)
+        consumer.addVertex(mat, minX, minY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        consumer.addVertex(mat, minX, maxY, maxZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        consumer.addVertex(mat, minX, maxY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        consumer.addVertex(mat, minX, minY, minZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+
+        // East face (X = maxX, normal = 1, 0, 0)
+        consumer.addVertex(mat, maxX, minY, minZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(mat, maxX, maxY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(mat, maxX, maxY, maxZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(mat, maxX, minY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+
+        // Top face (Y = maxY, normal = 0, 1, 0)
+        consumer.addVertex(mat, minX, maxY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(mat, minX, maxY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(mat, maxX, maxY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(mat, maxX, maxY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+
+        // Bottom face (Y = minY, normal = 0, -1, 0)
+        consumer.addVertex(mat, minX, minY, maxZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+        consumer.addVertex(mat, minX, minY, minZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+        consumer.addVertex(mat, maxX, minY, minZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+        consumer.addVertex(mat, maxX, minY, maxZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+    }
+
+    public static class LensRenderState extends BlockEntityRenderState {
+        public float yaw;
+        public float pitch;
+        public boolean isReceiving;
+        public String activeStarName;
+        public float beamDistance;
+    }
+}

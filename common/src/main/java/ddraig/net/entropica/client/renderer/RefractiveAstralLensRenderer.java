@@ -102,29 +102,35 @@ public class RefractiveAstralLensRenderer implements BlockEntityRenderer<Refract
         });
 
         // 4. Optical Starlight Beams with Depth-Tested Beacon Beam Pipeline
-        boolean hasBeam = state.isFocused || state.isRelaying || (state.beamDistance > 0.1f);
-        if (hasBeam) {
+        boolean hasForwardBeam = state.isFocused && (state.beamDistance > 0.1f);
+        boolean hasSkywardBeam = state.isFocused && (state.incomingLinksCount == 0);
+
+        if (hasForwardBeam || hasSkywardBeam) {
             float dist = Math.max(0.5f, state.beamDistance);
 
             // Layer 1: Concentrated Core Optical Laser Beam
             collector.submitCustomGeometry(poseStack, RenderType.beaconBeam(WHITE_TEXTURE, false), (pose, consumer) -> {
                 // Outgoing Forward Output Beam (stops precisely at solid block or target lens)
-                renderTexturedBox(pose.pose(), consumer, -0.025f, -0.025f, -dist, 0.025f, 0.025f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 1.0f, 0.98f, 0.85f, 1.0f);
+                if (hasForwardBeam) {
+                    renderTexturedBox(pose.pose(), consumer, -0.025f, -0.025f, -dist, 0.025f, 0.025f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 1.0f, 0.98f, 0.85f, 1.0f);
+                }
 
                 // Skyward Starlight Influx Stream on the other (rear/sky) side of the lens ONLY if incomingLinksCount == 0
-                if (state.isFocused && state.incomingLinksCount == 0) {
-                    renderTexturedBox(pose.pose(), consumer, -0.03f, -0.03f, 0.0f, 0.03f, 0.03f, 32.0f, 0.0f, 0.0f, 1.0f, 32.0f, light, overlay, 0.85f, 0.95f, 1.0f, 0.95f);
+                if (hasSkywardBeam) {
+                    renderTexturedBox(pose.pose(), consumer, -0.035f, -0.035f, 0.0f, 0.035f, 0.035f, 384.0f, 0.0f, 0.0f, 1.0f, 384.0f, light, overlay, 0.90f, 0.96f, 1.0f, 0.95f);
                 }
             });
 
             // Layer 2: Luminous Outer Aura Shroud
             collector.submitCustomGeometry(poseStack, RenderType.beaconBeam(WHITE_TEXTURE, true), (pose, consumer) -> {
                 // Outgoing Forward Beam Aura
-                renderTexturedBox(pose.pose(), consumer, -0.055f, -0.055f, -dist, 0.055f, 0.055f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 0.35f, 0.75f, 1.0f, 0.50f);
+                if (hasForwardBeam) {
+                    renderTexturedBox(pose.pose(), consumer, -0.055f, -0.055f, -dist, 0.055f, 0.055f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 0.35f, 0.75f, 1.0f, 0.50f);
+                }
 
                 // Skyward Influx Aura on the other (rear/sky) side of the lens ONLY if incomingLinksCount == 0
-                if (state.isFocused && state.incomingLinksCount == 0) {
-                    renderTexturedBox(pose.pose(), consumer, -0.065f, -0.065f, 0.0f, 0.065f, 0.065f, 32.0f, 0.0f, 0.0f, 1.0f, 32.0f, light, overlay, 0.35f, 0.75f, 1.0f, 0.40f);
+                if (hasSkywardBeam) {
+                    renderTexturedBox(pose.pose(), consumer, -0.075f, -0.075f, 0.0f, 0.075f, 0.075f, 384.0f, 0.0f, 0.0f, 1.0f, 384.0f, light, overlay, 0.40f, 0.80f, 1.0f, 0.45f);
                 }
             });
         }

@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.Collection;
 import java.util.List;
 
 public class LookingGlassOverlayRenderer {
@@ -70,17 +71,31 @@ public class LookingGlassOverlayRenderer {
         guiGraphics.drawCenteredString(mc.font, "§6§lCELESTIAL LOOKING GLASS", screenWidth / 2, textY, 0xFFFFD700);
         guiGraphics.drawCenteredString(mc.font, String.format("§eAzimuth: §f%.1f° %s  §e|  Declination: §f%+.1f°  §e|  Moon: §b%s", yaw, dirName, pitch, currentPhase), screenWidth / 2, textY + 12, 0xFFE0E0E0);
 
-        // 3. Highlight Detected Constellation if looking towards the sky (Pitch > 15 deg at night)
-        if (pitch > 15.0f && mc.level != null) {
+        // 3. Highlight Detected Constellation if looking towards the sky (Pitch > -15 deg at night)
+        if (pitch > -15.0f && mc.level != null) {
             float skyAngle = mc.level.getTimeOfDay(partialTick);
             boolean isNight = skyAngle > 0.23f && skyAngle < 0.77f;
 
             if (isNight) {
-                List<Constellation> visible = ModConstellations.getVisibleConstellations(moonPhase);
-                if (!visible.isEmpty()) {
-                    int cIndex = (int) (yaw / (360.0f / Math.max(1, visible.size()))) % visible.size();
-                    Constellation activeC = visible.get(cIndex);
-
+                Collection<Constellation> allConstellations = ModConstellations.getAllConstellations();
+                Constellation closest = null;
+                float closestDist = Float.MAX_VALUE;
+                for (Constellation c : allConstellations) {
+                    float[] appAngles = ddraig.net.entropica.client.gui.SkyLookingGlassScreen.celestialToApparentAngles(
+                            c.getCelestialAzimuthRad(), c.getCelestialAltitudeRad(), skyAngle * 360.0f
+                    );
+                    float dYaw = net.minecraft.util.Mth.wrapDegrees(appAngles[0] - yaw);
+                    float dPitch = appAngles[1] - pitch;
+                    float dist = (float) Math.hypot(dYaw, dPitch);
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closest = c;
+                    }
+                }
+                if (closest != null && closestDist <= 30.0f) {
+                    Constellation activeC = closest;
+                    int opticTier = ddraig.net.entropica.astral.PlayerAstralProgress.getInstrumentOpticTier(player);
+                    boolean canSelect = ddraig.net.entropica.astral.PlayerAstralProgress.canHardwareObserve(opticTier, activeC.getTier());
                     boolean isDiscovered = ddraig.net.entropica.astral.PlayerAstralProgress.isDiscovered(player, activeC);
 
                     int cardY = screenHeight - 65;
@@ -90,13 +105,18 @@ public class LookingGlassOverlayRenderer {
 
                     guiGraphics.fill(bx, cardY, bx + boxW, cardY + boxH, 0xCC0B0E17);
                     // Outline
-                    int borderColor = isDiscovered ? 0xFFFFD700 : 0xFF00E0FF;
+                    int borderColor = !canSelect ? 0xFF884444 : (isDiscovered ? 0xFFFFD700 : 0xFF00E0FF);
                     guiGraphics.fill(bx, cardY, bx + boxW, cardY + 1, borderColor);
                     guiGraphics.fill(bx, cardY + boxH - 1, bx + boxW, cardY + boxH, borderColor);
                     guiGraphics.fill(bx, cardY, bx + 1, cardY + boxH, borderColor);
                     guiGraphics.fill(bx + boxW - 1, cardY, bx + boxW, cardY + boxH, borderColor);
 
-                    if (isDiscovered) {
+                    if (!canSelect) {
+                        String req = ddraig.net.entropica.astral.PlayerAstralProgress.getRequiredInstrumentName(activeC.getTier());
+                        guiGraphics.drawCenteredString(mc.font, "§8✦ Faint Stellar Cluster §8[" + activeC.getTier().getDisplayName() + "] ✦", screenWidth / 2, cardY + 6, 0xFFAAAAAA);
+                        guiGraphics.drawCenteredString(mc.font, "§cRequires: §e" + req, screenWidth / 2, cardY + 18, 0xFFFF8080);
+                        guiGraphics.drawCenteredString(mc.font, "§8[Optical power insufficient to resolve or chart]", screenWidth / 2, cardY + 29, 0xFF888888);
+                    } else if (isDiscovered) {
                         String cTitle = Component.translatable(activeC.getUnlocalizedName()).getString();
                         guiGraphics.drawCenteredString(mc.font, "§6✦ §f" + cTitle + " §7[" + activeC.getTier().getDisplayName() + "] §6✦", screenWidth / 2, cardY + 6, activeC.getTier().getColorHex());
                         guiGraphics.drawCenteredString(mc.font, "§aRitual: §7" + activeC.getRitualEffect(), screenWidth / 2, cardY + 18, 0xFFA0C0D0);

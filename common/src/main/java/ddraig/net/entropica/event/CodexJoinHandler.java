@@ -21,6 +21,24 @@ public class CodexJoinHandler {
                     tag.putBoolean("HasReceivedCodex", true);
                     player.displayClientMessage(Component.translatable("msg.entropica.you_received_the_entropic_codex_right"), false);
                 }
+
+                // Sync Astral Constellation Progress & Connections
+                ddraig.net.entropica.astral.PlayerAstralProgress.loadFromPlayer(player);
+                if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                    var discovered = new java.util.ArrayList<>(ddraig.net.entropica.astral.PlayerAstralProgress.getDiscovered(player));
+                    var charted = new java.util.ArrayList<>(ddraig.net.entropica.astral.PlayerAstralProgress.getChartedConnections(player));
+                    dev.architectury.networking.NetworkManager.sendToPlayer(serverPlayer, new ddraig.net.entropica.network.SyncAstralProgressPayload(discovered, charted));
+
+                    // Load & Sync Active Supernovae and Remnants
+                    ddraig.net.entropica.astral.SupernovaSavedData.get((net.minecraft.server.level.ServerLevel) serverPlayer.level());
+                    ddraig.net.entropica.astral.SupernovaManager.syncToPlayer(serverPlayer);
+                }
+            }
+        });
+
+        dev.architectury.event.events.common.TickEvent.SERVER_LEVEL_POST.register(level -> {
+            if (level instanceof net.minecraft.server.level.ServerLevel serverLevel && serverLevel.dimension() == net.minecraft.world.level.Level.OVERWORLD) {
+                ddraig.net.entropica.astral.SupernovaManager.tick(serverLevel);
             }
         });
     }

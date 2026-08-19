@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "entropica:astrolabe"
+    },
+    "B": {
+      "item": "minecraft:book"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    }
+  },
+  "pattern": [
+    " G ",
+    " B ",
+    " A "
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:celestial_atlas"
+  }
+}

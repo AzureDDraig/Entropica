@@ -1,0 +1,22 @@
+{
+  "credit": "Entropica Astral Materia Suite",
+  "textures": {
+    "particle": "entropica:block/pure_optic_fiber",
+    "casing": "entropica:block/pure_optic_fiber"
+  },
+  "elements": [
+    {
+      "name": "Conduit Core Node",
+      "from": [ 6, 6, 6 ],
+      "to": [ 10, 10, 10 ],
+      "faces": {
+        "north": { "uv": [ 4, 8, 8, 12 ], "texture": "#casing" },
+        "east": { "uv": [ 4, 8, 8, 12 ], "texture": "#casing" },
+        "south": { "uv": [ 4, 8, 8, 12 ], "texture": "#casing" },
+        "west": { "uv": [ 4, 8, 8, 12 ], "texture": "#casing" },
+        "up": { "uv": [ 4, 8, 8, 12 ], "texture": "#casing" },
+        "down": { "uv": [ 4, 8, 8, 12 ], "texture": "#casing" }
+      }
+    }
+  ]
+}

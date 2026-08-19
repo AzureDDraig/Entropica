@@ -1128,11 +1128,13 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> CELESTIAL_ARMILLARY_CONTROLLER_ITEM = ITEMS.registerItem("celestial_armillary_controller", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.CELESTIAL_ARMILLARY_CONTROLLER.get(), properties));
     public static final RegistrySupplier<Item> STONE_HOPPER_BASIN_ITEM = ITEMS.registerItem("stone_hopper_basin", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.STONE_HOPPER_BASIN.get(), properties));
     public static final RegistrySupplier<Item> REFRACTIVE_ASTRAL_LENS_ITEM = ITEMS.registerItem("refractive_astral_lens", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.REFRACTIVE_ASTRAL_LENS.get(), properties));
+    public static final RegistrySupplier<Item> SECONDARY_ASTRAL_LENS_ITEM = ITEMS.registerItem("secondary_astral_lens", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.SECONDARY_ASTRAL_LENS.get(), properties));
     public static final RegistrySupplier<Item> BEAM_SPLITTER_PRISM_ITEM = ITEMS.registerItem("beam_splitter_prism", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.BEAM_SPLITTER_PRISM.get(), properties));
     public static final RegistrySupplier<Item> PURE_OPTIC_FIBER_ITEM = ITEMS.registerItem("pure_optic_fiber", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.PURE_OPTIC_FIBER.get(), properties));
     public static final RegistrySupplier<Item> OPTICAL_TRANSMITTER_PORT_ITEM = ITEMS.registerItem("optical_transmitter_port", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTICAL_TRANSMITTER_PORT.get(), properties));
     public static final RegistrySupplier<Item> OPTICAL_RECEIVER_PORT_ITEM = ITEMS.registerItem("optical_receiver_port", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTICAL_RECEIVER_PORT.get(), properties));
     public static final RegistrySupplier<Item> OPTICAL_BOOSTER_AMPLIFIER_ITEM = ITEMS.registerItem("optical_booster_amplifier", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTICAL_BOOSTER_AMPLIFIER.get(), properties));
+    public static final RegistrySupplier<Item> MATERIA_FLUX_DISTRIBUTOR_ITEM = ITEMS.registerItem("materia_flux_distributor", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.MATERIA_FLUX_DISTRIBUTOR.get(), properties));
 
     // Standalone Instruments, Scribing & Baubles
     public static final RegistrySupplier<Item> LOOKING_GLASS = ITEMS.registerItem("looking_glass", properties -> new ddraig.net.entropica.item.LookingGlassItem(properties.stacksTo(1)));
@@ -1140,7 +1142,8 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> DRAFTING_COMPASS = ITEMS.registerItem("drafting_compass", properties -> new Item(properties.stacksTo(1)));
     public static final RegistrySupplier<Item> STAR_CHART_BLANK = ITEMS.registerItem("star_chart_blank", Item::new);
     public static final RegistrySupplier<Item> STAR_CHART_COMPLETED = ITEMS.registerItem("star_chart_completed", properties -> new ddraig.net.entropica.item.CompletedStarChartItem(properties));
-    public static final RegistrySupplier<Item> ASTRAL_LINKING_WAND = ITEMS.registerItem("astral_linking_wand", properties -> new Item(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> ASTRAL_LINKING_WAND = ITEMS.registerItem("astral_linking_wand", properties -> new ddraig.net.entropica.item.AstralLinkingWandItem(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> CELESTIAL_ATLAS = ITEMS.registerItem("celestial_atlas", properties -> new ddraig.net.entropica.item.CelestialAtlasItem(properties.stacksTo(1)));
     public static final RegistrySupplier<Item> MORTAR_AND_PESTLE = ITEMS.registerItem("mortar_and_pestle", properties -> new Item(properties.stacksTo(1).durability(256)));
 
     // Materials, Crystals & Equipment

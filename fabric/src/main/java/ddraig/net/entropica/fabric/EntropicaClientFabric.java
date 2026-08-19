@@ -92,6 +92,12 @@ public class EntropicaClientFabric implements ClientModInitializer {
         BlockEntityRenderers.register(ModBlockEntities.RUBBER_LOG_BE.get(), ddraig.net.entropica.client.renderer.RubberLogBlockEntityRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.STATIONARY_BRASS_TELESCOPE_BE.get(), ddraig.net.entropica.client.renderer.StationaryBrassTelescopeRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.REFRACTIVE_ASTRAL_LENS_BE.get(), ddraig.net.entropica.client.renderer.RefractiveAstralLensRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.SECONDARY_ASTRAL_LENS_BE.get(), ddraig.net.entropica.client.renderer.SecondaryAstralLensRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.BEAM_SPLITTER_PRISM_BE.get(), ddraig.net.entropica.client.renderer.BeamSplitterPrismRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ASTRAL_COLLECTOR_BE.get(), ddraig.net.entropica.client.renderer.AstralCollectorRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ASTRAL_INFUSION_PEDESTAL_BE.get(), ddraig.net.entropica.client.renderer.AstralInfusionPedestalRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.OPTICAL_RECEIVER_PORT_BE.get(), ddraig.net.entropica.client.renderer.OpticalReceiverPortRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ASTRAL_MIRROR_BE.get(), ddraig.net.entropica.client.renderer.AstralMirrorRenderer::new);
 
         // --- 2. Entity Renderers ---
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
@@ -267,6 +273,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ModBlocks.LARGE_ASTRAL_CRYSTAL_BUD.get(),
             ModBlocks.ASTRAL_CRYSTAL_CLUSTER.get(),
             ModBlocks.REFRACTIVE_ASTRAL_LENS.get(),
+            ModBlocks.ASTRAL_MIRROR_BLOCK.get(),
             ModBlocks.PURE_OPTIC_FIBER.get(),
             ModBlocks.ASTRAL_VEIL_WILLOW_LEAVES.get(),
             ModBlocks.ASTRAL_VEIL_WILLOW_SAPLING.get(),
@@ -362,11 +369,28 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ddraig.net.entropica.client.ParalyzedOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.LensOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.LookingGlassOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+            ddraig.net.entropica.client.gui.OpticalInspectionHudOverlay.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
         });
 
         // Register Celestial Sky Renderer
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(context -> {
             ddraig.net.entropica.client.renderer.CelestialSkyRenderer.renderSky(
+                context.matrixStack(),
+                context.projectionMatrix(),
+                context.camera(),
+                context.tickCounter().getGameTimeDeltaTicks()
+            );
+        });
+
+        // Register Astrolabe In-World Ghost Blueprint Renderer & Wand Guide Ray
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+            ddraig.net.entropica.client.renderer.AstrolabeGhostRenderer.renderGhost(
+                context.matrixStack(),
+                context.projectionMatrix(),
+                context.camera(),
+                context.tickCounter().getGameTimeDeltaTicks()
+            );
+            ddraig.net.entropica.client.renderer.AstralLinkingWandGuideRenderer.renderGuide(
                 context.matrixStack(),
                 context.projectionMatrix(),
                 context.camera(),

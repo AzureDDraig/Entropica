@@ -1,7 +1,31 @@
 {
-  "variants": {
-    "": {
-      "model": "entropica:block/pure_optic_fiber"
+  "multipart": [
+    {
+      "apply": { "model": "entropica:block/pure_optic_fiber_core" }
+    },
+    {
+      "when": { "north": "true" },
+      "apply": { "model": "entropica:block/pure_optic_fiber_arm" }
+    },
+    {
+      "when": { "east": "true" },
+      "apply": { "model": "entropica:block/pure_optic_fiber_arm", "y": 90 }
+    },
+    {
+      "when": { "south": "true" },
+      "apply": { "model": "entropica:block/pure_optic_fiber_arm", "y": 180 }
+    },
+    {
+      "when": { "west": "true" },
+      "apply": { "model": "entropica:block/pure_optic_fiber_arm", "y": 270 }
+    },
+    {
+      "when": { "up": "true" },
+      "apply": { "model": "entropica:block/pure_optic_fiber_arm", "x": 270 }
+    },
+    {
+      "when": { "down": "true" },
+      "apply": { "model": "entropica:block/pure_optic_fiber_arm", "x": 90 }
     }
-  }
+  ]
 }

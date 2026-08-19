@@ -48,18 +48,29 @@ public class ConstellationTracingScreen extends Screen {
 
     public static void openForCurrentNight(Player player) {
         if (player == null || player.level() == null) return;
-        List<Constellation> visible;
-        if (player.level().dimension().equals(Level.END)) {
-            visible = new ArrayList<>(ModConstellations.getAllConstellations());
-        } else {
-            int moonPhase = player.level().getMoonPhase();
-            visible = ModConstellations.getVisibleConstellations(moonPhase);
-        }
+        List<Constellation> visible = new ArrayList<>(ModConstellations.getAllConstellations());
         if (!visible.isEmpty()) {
             float yaw = Mth.wrapDegrees(player.getYRot());
             if (yaw < 0) yaw += 360f;
-            int targetIdx = (int) (yaw / (360.0f / Math.max(1, visible.size()))) % visible.size();
-            Minecraft.getInstance().setScreen(new ConstellationTracingScreen(visible, targetIdx));
+            float pitch = -player.getXRot();
+            float skyAngle = player.level().getTimeOfDay(0.0f);
+
+            int closestIdx = 0;
+            float closestDist = Float.MAX_VALUE;
+            for (int i = 0; i < visible.size(); i++) {
+                Constellation c = visible.get(i);
+                float[] appAngles = ddraig.net.entropica.client.gui.SkyLookingGlassScreen.celestialToApparentAngles(
+                        c.getCelestialAzimuthRad(), c.getCelestialAltitudeRad(), skyAngle * 360.0f
+                );
+                float dYaw = Mth.wrapDegrees(appAngles[0] - yaw);
+                float dPitch = appAngles[1] - pitch;
+                float dist = (float) Math.hypot(dYaw, dPitch);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestIdx = i;
+                }
+            }
+            Minecraft.getInstance().setScreen(new ConstellationTracingScreen(visible, closestIdx));
         }
     }
 
@@ -131,15 +142,15 @@ public class ConstellationTracingScreen extends Screen {
         // Header Navigation & Title
         String rawTitle = Component.translatable(constellation.getUnlocalizedName()).getString();
         String displayTitle = (isDiscovered || isCompleted) ? rawTitle : "Uncharted Astral Signature";
-        int essRgb = (constellation.getEssenceType().getR() << 16) | (constellation.getEssenceType().getG() << 8) | constellation.getEssenceType().getB();
+        float timeSec = (System.currentTimeMillis() % 10000000L) * 0.001f;
+        int essRgb = CelestialStarHelper.getShiftingStarRgbInt(constellation.getPrimarySpectralClass(), constellation.getEssenceType(), timeSec, 0.0f);
         String essColorCode = constellation.getEssenceType().getColorCode();
-        String essFormatted = constellation.getEssenceType().getFormattedName();
 
         if (isDiscovered || isCompleted) {
-            guiGraphics.drawCenteredString(this.font, essColorCode + "✦ " + displayTitle + " ✦ §7[" + constellation.getTier().getDisplayName() + " • " + essFormatted + "§7]", centerX, chartY + 10, 0xFFFFFFFF);
+            guiGraphics.drawCenteredString(this.font, essColorCode + "✦ " + displayTitle + " ✦ §7[" + constellation.getTier().getDisplayName() + "§7]", centerX, chartY + 10, 0xFFFFFFFF);
             guiGraphics.drawCenteredString(this.font, "§7Chart (" + (currentConstellationIndex + 1) + "/" + availableConstellations.size() + ")  •  §bDiscovered §7•  Spectral Class: " + constellation.getPrimarySpectralClass().getTitle(), centerX, chartY + 22, 0xFFA0C0E0);
         } else {
-            guiGraphics.drawCenteredString(this.font, "§b✦ " + displayTitle + " ✦ §8[" + constellation.getTier().getDisplayName() + " • " + essFormatted + "§8]", centerX, chartY + 10, 0xFFA0D8EF);
+            guiGraphics.drawCenteredString(this.font, "§b✦ " + displayTitle + " ✦ §8[" + constellation.getTier().getDisplayName() + "§8]", centerX, chartY + 10, 0xFFA0D8EF);
             guiGraphics.drawCenteredString(this.font, "§7Chart (" + (currentConstellationIndex + 1) + "/" + availableConstellations.size() + ")  •  §eUncharted §7•  Spectral Class: " + constellation.getPrimarySpectralClass().getTitle(), centerX, chartY + 22, 0xFFA0C0E0);
         }
 
@@ -260,7 +271,12 @@ public class ConstellationTracingScreen extends Screen {
         }
 
         // Footer: Ritual & Instruction
-        if (isDiscovered || isCompleted) {
+        int opticTier = PlayerAstralProgress.getInstrumentOpticTier(player);
+        boolean canChart = PlayerAstralProgress.canHardwareObserve(opticTier, constellation.getTier());
+
+        if (!canChart && !isDiscovered && !isCompleted) {
+            guiGraphics.drawCenteredString(this.font, "§c✦ Optical Resolution Insufficient (Requires " + PlayerAstralProgress.getRequiredInstrumentName(constellation.getTier()) + ") ✦", centerX, chartY + chartSize - 18, 0xFFFF8888);
+        } else if (isDiscovered || isCompleted) {
             guiGraphics.drawCenteredString(this.font, "§aRitual: §7" + constellation.getRitualEffect(), centerX, chartY + chartSize - 18, 0xFFA0E0A0);
         } else if (this.hoveredConnection != null) {
             guiGraphics.drawCenteredString(this.font, "§c✦ LINE SELECTED: Right-Click to Erase ✦", centerX, chartY + chartSize - 18, 0xFFFF6666);
@@ -292,6 +308,8 @@ public class ConstellationTracingScreen extends Screen {
         int chartX = centerX - chartSize / 2;
         int chartY = centerY - chartSize / 2;
 
+        Constellation constellation = getCurrentConstellation();
+
         // Navigation arrows click
         if (button == 0 && availableConstellations.size() > 1) {
             if (mouseX >= chartX + 8 && mouseX <= chartX + 32 && mouseY >= chartY + 8 && mouseY <= chartY + 24) {
@@ -304,18 +322,47 @@ public class ConstellationTracingScreen extends Screen {
             }
         }
 
-        // Targeted Right-Click line erase: ONLY erases the selected / hovered line!
-        if (button == 1 && !isCompleted && this.hoveredConnection != null) {
-            drawnConnections.remove(this.hoveredConnection);
-            if (minecraft != null && minecraft.player != null) {
-                minecraft.player.playSound(SoundEvents.CHISELED_BOOKSHELF_PICKUP, 0.7f, 1.2f);
+        // Targeted Right-Click line erase: Erases hovered or clicked connection
+        if (button == 1 && !isCompleted) {
+            ConstellationConnection toRemove = this.hoveredConnection;
+            if (toRemove == null) {
+                float minD = 12.0f;
+                for (ConstellationConnection conn : drawnConnections) {
+                    if (conn.fromIndex() < constellation.getStars().size() && conn.toIndex() < constellation.getStars().size()) {
+                        ConstellationStar s1 = constellation.getStars().get(conn.fromIndex());
+                        ConstellationStar s2 = constellation.getStars().get(conn.toIndex());
+                        float x1 = chartX + (s1.x() / 100.0f) * (chartSize - 60) + 30;
+                        float y1 = chartY + (s1.y() / 100.0f) * (chartSize - 80) + 40;
+                        float x2 = chartX + (s2.x() / 100.0f) * (chartSize - 60) + 30;
+                        float y2 = chartY + (s2.y() / 100.0f) * (chartSize - 80) + 40;
+                        float d = pointToSegmentDistance((float) mouseX, (float) mouseY, x1, y1, x2, y2);
+                        if (d < minD) {
+                            minD = d;
+                            toRemove = conn;
+                        }
+                    }
+                }
             }
-            this.hoveredConnection = null;
-            return true;
+            if (toRemove != null) {
+                drawnConnections.remove(toRemove);
+                if (minecraft != null && minecraft.player != null) {
+                    minecraft.player.playSound(SoundEvents.CHISELED_BOOKSHELF_PICKUP, 0.7f, 1.2f);
+                }
+                this.hoveredConnection = null;
+                return true;
+            }
         }
 
-        Constellation constellation = getCurrentConstellation();
         if (button == 0 && !isCompleted) {
+            Player player = minecraft != null ? minecraft.player : null;
+            int opticTier = PlayerAstralProgress.getInstrumentOpticTier(player);
+            if (!PlayerAstralProgress.canHardwareObserve(opticTier, constellation.getTier())) {
+                if (player != null) {
+                    player.playSound(SoundEvents.DISPENSER_FAIL, 0.8f, 1.2f);
+                }
+                return true;
+            }
+
             for (ConstellationStar star : constellation.getStars()) {
                 float sx = chartX + (star.x() / 100.0f) * (chartSize - 60) + 30;
                 float sy = chartY + (star.y() / 100.0f) * (chartSize - 80) + 40;

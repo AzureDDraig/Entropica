@@ -44,6 +44,7 @@ public class EntropicCodexScreen extends Screen {
 
     private CodexNode selectedNode = null;
     private float panelScrollOffset = 0f;
+    private float categoryScrollOffset = 0f;
     private float indexScrollOffset = 0f;
 
     private EditBox searchBox;
@@ -250,26 +251,64 @@ public class EntropicCodexScreen extends Screen {
             }
         }
 
-        int itemY = bookY + 32;
         int itemH = 22;
+        int itemSpacing = 2;
+        int listY = bookY + 28;
+        int listH = bookH - 30;
+        int totalListH = catNodes.size() * (itemH + itemSpacing) + 6;
+        float maxScroll = Math.max(0, totalListH - listH);
+        this.categoryScrollOffset = Mth.clamp(this.categoryScrollOffset, 0, maxScroll);
+
+        // Scissor clip the category entry list viewport
+        guiGraphics.enableScissor(bookX, listY, bookX + sideW, bookY + bookH);
+
+        int itemY = listY + 2 - (int) categoryScrollOffset;
+        int listRightPad = (totalListH > listH) ? 6 : 4;
 
         for (CodexNode node : catNodes) {
-            boolean isSel = (selectedNode != null && selectedNode.id.equals(node.id));
-            boolean isHov = (mouseX >= bookX + 4 && mouseX <= bookX + sideW - 4 && mouseY >= itemY && mouseY <= itemY + itemH);
+            if (itemY + itemH >= listY && itemY <= listY + listH + 4) {
+                boolean isSel = (selectedNode != null && selectedNode.id.equals(node.id));
+                boolean isHov = (mouseX >= bookX + 4 && mouseX <= bookX + sideW - listRightPad && mouseY >= itemY && mouseY <= itemY + itemH && mouseY >= listY && mouseY <= listY + listH);
 
-            int bgCol = isSel ? 0xFF1E2D4A : (isHov ? 0xFF141F33 : 0x00000000);
-            if (bgCol != 0) {
-                guiGraphics.fill(bookX + 4, itemY, bookX + sideW - 4, itemY + itemH, bgCol);
+                int bgCol = isSel ? 0xFF1E2D4A : (isHov ? 0xFF141F33 : 0x00000000);
+                if (bgCol != 0) {
+                    guiGraphics.fill(bookX + 4, itemY, bookX + sideW - listRightPad, itemY + itemH, bgCol);
+                }
+                if (isSel) {
+                    guiGraphics.fill(bookX + 4, itemY, bookX + 7, itemY + itemH, 0xFF00D9FF);
+                }
+
+                guiGraphics.renderItem(node.icon, bookX + 8, itemY + 3);
+
+                // Format & truncate title text if overflowing sidebar width
+                String titleStr = node.title;
+                int maxTextW = sideW - listRightPad - 32;
+                if (this.font.width(titleStr) > maxTextW) {
+                    while (titleStr.length() > 3 && this.font.width(titleStr + "...") > maxTextW) {
+                        titleStr = titleStr.substring(0, titleStr.length() - 1);
+                    }
+                    titleStr = titleStr + "...";
+                }
+                guiGraphics.drawString(this.font, titleStr, bookX + 28, itemY + 7, isSel ? 0xFF00D9FF : (isHov ? 0xFFFFFFFF : 0xFFCCCCCC), true);
             }
-            if (isSel) {
-                guiGraphics.fill(bookX + 4, itemY, bookX + 7, itemY + itemH, 0xFF00D9FF);
-            }
 
-            guiGraphics.renderItem(node.icon, bookX + 8, itemY + 3);
-            Component titleComp = Component.literal(node.title);
-            guiGraphics.drawString(this.font, titleComp, bookX + 28, itemY + 7, isSel ? 0xFF00D9FF : (isHov ? 0xFFFFFFFF : 0xFFCCCCCC), true);
+            itemY += itemH + itemSpacing;
+        }
 
-            itemY += itemH + 2;
+        guiGraphics.disableScissor();
+
+        // Render scrollbar on the right border of the sidebar when entries exceed height
+        if (totalListH > listH) {
+            int scrollbarX = bookX + sideW - 4;
+            int scrollbarW = 3;
+            guiGraphics.fill(scrollbarX, listY, scrollbarX + scrollbarW, listY + listH, 0xFF101422);
+
+            float viewRatio = (float) listH / totalListH;
+            int thumbH = Math.max(16, (int) (listH * viewRatio));
+            float scrollProgress = (maxScroll > 0) ? (categoryScrollOffset / maxScroll) : 0f;
+            int thumbY = listY + (int) ((listH - thumbH) * scrollProgress);
+
+            guiGraphics.fill(scrollbarX, thumbY, scrollbarX + scrollbarW, thumbY + thumbH, 0xFF00D9FF);
         }
 
         // Right Main Reading Page Area
@@ -685,6 +724,7 @@ public class EntropicCodexScreen extends Screen {
                 if (hubNode != null) {
                     this.selectedNode = hubNode;
                 }
+                this.categoryScrollOffset = 0;
                 this.panelScrollOffset = 0;
                 return true;
             }
@@ -703,8 +743,13 @@ public class EntropicCodexScreen extends Screen {
             int bookX = 155;
             int bookY = 36;
             int sideW = 160;
-            int itemY = bookY + 32;
+            int bookH = this.height - 44;
+            int listY = bookY + 28;
+            int listH = bookH - 30;
+
+            int itemY = listY + 2 - (int) categoryScrollOffset;
             int itemH = 22;
+            int itemSpacing = 2;
 
             List<CodexNode> catNodes = new ArrayList<>();
             for (CodexNode n : CodexCategoryRegistry.ALL_NODES) {
@@ -713,13 +758,15 @@ public class EntropicCodexScreen extends Screen {
                 }
             }
 
-            for (CodexNode node : catNodes) {
-                if (mouseX >= bookX + 4 && mouseX <= bookX + sideW - 4 && mouseY >= itemY && mouseY <= itemY + itemH) {
-                    this.selectedNode = node;
-                    this.panelScrollOffset = 0;
-                    return true;
+            if (mouseX >= bookX + 4 && mouseX <= bookX + sideW - 4 && mouseY >= listY && mouseY <= listY + listH) {
+                for (CodexNode node : catNodes) {
+                    if (mouseY >= itemY && mouseY <= itemY + itemH) {
+                        this.selectedNode = node;
+                        this.panelScrollOffset = 0;
+                        return true;
+                    }
+                    itemY += itemH + itemSpacing;
                 }
-                itemY += itemH + 2;
             }
         }
 
@@ -756,6 +803,21 @@ public class EntropicCodexScreen extends Screen {
                     this.selectedCategory = node.category;
                     this.currentMode = CodexMode.BOOK_CATEGORY;
                     this.panelScrollOffset = 0;
+
+                    // Auto scroll category list to show this node
+                    List<CodexNode> catNodes = new ArrayList<>();
+                    for (CodexNode n : CodexCategoryRegistry.ALL_NODES) {
+                        if (n.category.equals(node.category)) catNodes.add(n);
+                    }
+                    int nodeIdx = catNodes.indexOf(node);
+                    if (nodeIdx >= 0) {
+                        int listHeight = (this.height - 44) - 30;
+                        int targetY = nodeIdx * 24;
+                        int totalListH = catNodes.size() * 24 + 6;
+                        float maxScroll = Math.max(0, totalListH - listHeight);
+                        this.categoryScrollOffset = Mth.clamp(targetY - listHeight / 3, 0, maxScroll);
+                    }
+
                     return true;
                 }
                 entryY += entryH + 4;
@@ -780,6 +842,21 @@ public class EntropicCodexScreen extends Screen {
                     this.selectedCategory = node.category;
                     this.currentMode = CodexMode.BOOK_CATEGORY;
                     this.panelScrollOffset = 0;
+
+                    // Auto scroll category list to show this node
+                    List<CodexNode> catNodes = new ArrayList<>();
+                    for (CodexNode n : CodexCategoryRegistry.ALL_NODES) {
+                        if (n.category.equals(node.category)) catNodes.add(n);
+                    }
+                    int nodeIdx = catNodes.indexOf(node);
+                    if (nodeIdx >= 0) {
+                        int listHeight = (this.height - 44) - 30;
+                        int targetY = nodeIdx * 24;
+                        int totalListH = catNodes.size() * 24 + 6;
+                        float maxScroll = Math.max(0, totalListH - listHeight);
+                        this.categoryScrollOffset = Mth.clamp(targetY - listHeight / 3, 0, maxScroll);
+                    }
+
                     return true;
                 }
             }
@@ -814,7 +891,24 @@ public class EntropicCodexScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (currentMode == CodexMode.BOOK_CATEGORY) {
-            this.panelScrollOffset = Math.max(0, this.panelScrollOffset - (float) scrollY * 16);
+            int bookX = 155;
+            int sideW = 160;
+            if (mouseX >= bookX && mouseX <= bookX + sideW) {
+                // Scroll the category entry list on the left
+                List<CodexNode> catNodes = new ArrayList<>();
+                for (CodexNode n : CodexCategoryRegistry.ALL_NODES) {
+                    if (n.category.equals(selectedCategory)) {
+                        catNodes.add(n);
+                    }
+                }
+                int listH = (this.height - 44) - 30;
+                int totalListH = catNodes.size() * (22 + 2) + 6;
+                float maxScroll = Math.max(0, totalListH - listH);
+                this.categoryScrollOffset = Mth.clamp(this.categoryScrollOffset - (float) scrollY * 18, 0, maxScroll);
+            } else {
+                // Scroll the right article reader
+                this.panelScrollOffset = Math.max(0, this.panelScrollOffset - (float) scrollY * 16);
+            }
             return true;
         }
 

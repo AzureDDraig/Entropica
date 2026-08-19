@@ -79,6 +79,27 @@ public class ModNetwork {
                 ConstellationDiscoveryPayload.STREAM_CODEC,
                 ModNetwork::handleConstellationDiscovery
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                ReinscribeStarChartPayload.TYPE,
+                ReinscribeStarChartPayload.STREAM_CODEC,
+                ModNetwork::handleReinscribeStarChart
+        );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.S2C,
+                SyncAstralProgressPayload.TYPE,
+                SyncAstralProgressPayload.STREAM_CODEC,
+                ModNetwork::handleSyncAstralProgress
+        );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.S2C,
+                SyncSupernovaPayload.TYPE,
+                SyncSupernovaPayload.STREAM_CODEC,
+                ModNetwork::handleSyncSupernova
+        );
     }
 
     public static void handleGeneratorScroll(final GeneratorScrollPayload data, final NetworkManager.PacketContext context) {
@@ -194,6 +215,8 @@ public class ModNetwork {
                 BlockEntity be = player.level().getBlockEntity(data.pos());
                 if (be instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity lens) {
                     lens.setFocus(data.yaw(), data.pitch(), data.targetName(), data.isFocused());
+                } else if (be instanceof ddraig.net.entropica.block.entity.SecondaryAstralLensBlockEntity secondaryLens) {
+                    secondaryLens.setFocus(data.yaw(), data.pitch(), data.targetName(), data.isFocused());
                 }
             }
         });
@@ -242,6 +265,59 @@ public class ModNetwork {
                     }
                 }
             }
+        });
+    }
+
+    public static void handleReinscribeStarChart(final ReinscribeStarChartPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null && data.constellationId() != null) {
+                ddraig.net.entropica.astral.Constellation constellation = ddraig.net.entropica.astral.ModConstellations.getById(data.constellationId()).orElse(null);
+                if (constellation != null) {
+                    boolean hasBlank = player.isCreative();
+                    int blankSlot = -1;
+
+                    if (!hasBlank) {
+                        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                            net.minecraft.world.item.ItemStack stack = player.getInventory().getItem(i);
+                            if (stack.is(ddraig.net.entropica.registry.ModItems.STAR_CHART_BLANK.get())) {
+                                hasBlank = true;
+                                blankSlot = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (hasBlank) {
+                        if (!player.isCreative() && blankSlot >= 0) {
+                            player.getInventory().getItem(blankSlot).shrink(1);
+                        }
+
+                        net.minecraft.world.item.ItemStack completedChart = ddraig.net.entropica.item.CompletedStarChartItem.createFor(ddraig.net.entropica.registry.ModItems.STAR_CHART_COMPLETED.get(), constellation);
+                        if (!player.getInventory().add(completedChart)) {
+                            player.drop(completedChart, false);
+                        }
+
+                        player.level().playSound(null, player.blockPosition(), net.minecraft.sounds.SoundEvents.UI_CARTOGRAPHY_TABLE_TAKE_RESULT, net.minecraft.sounds.SoundSource.PLAYERS, 1.0f, 1.2f);
+                        String name = net.minecraft.network.chat.Component.translatable(constellation.getUnlocalizedName()).getString();
+                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§6[Celestial Atlas] §7Reinscribed Star Chart for §b" + name), true);
+                    } else {
+                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Celestial Atlas] You need a Blank Star Chart in your inventory to reinscribe."), true);
+                    }
+                }
+            }
+        });
+    }
+
+    public static void handleSyncAstralProgress(final SyncAstralProgressPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            ddraig.net.entropica.astral.PlayerAstralProgress.setClientProgress(data.discoveredConstellations(), data.chartedConnections());
+        });
+    }
+
+    public static void handleSyncSupernova(final SyncSupernovaPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            ddraig.net.entropica.astral.SupernovaManager.setClientEvents(data.events());
         });
     }
 }

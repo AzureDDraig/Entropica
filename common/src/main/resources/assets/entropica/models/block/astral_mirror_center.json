@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "entropica:block/astral_mirror_block"
+    "all": "entropica:block/astral_mirror_center"
   }
 }

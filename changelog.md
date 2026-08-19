@@ -1,3 +1,165 @@
+## Build 000-1-26-231
+
+### Phase 4: Astral Quality of Life (QoL) Suite across Optics, Scribing & Logistics
+- **Module 1: Optical Alignment & Ray Routing QoL**:
+  - **Astral Linking Wand $45^\circ$ Snap Ratchet Mode (`AstralLinkingWandItem.java`)**: Sneak-right-clicking a Secondary Astral Lens increments its azimuth angle by $+45^\circ$ with spyglass mechanical ratchet audio and instant cardinal compass actionbar readout (`N`, `NE`, `E`, `SE`, `S`, `SW`, `W`, `NW`).
+  - **Real-Time Starlight Guide Ray Preview (`AstralLinkingWandGuideRenderer.java`)**: Actively renders a real-time dotted starlight trajectory connecting the selected source lens to the player's crosshair target block with dynamic line-of-sight clearance (cyan = clear beam line-of-sight, pulsing red = occluded by intervening obstacles).
+  - **In-World Floating Optical HUD Overlay (`OpticalInspectionHudOverlay.java`)**: Holding a Looking Glass or Astrolabe projects a floating celestial HUD inspection card in front of optical devices displaying live beam active state, focused star frequency, azimuth/elevation angles, beam reach, stored Materia, and fiber signal attenuation. Hooked across Fabric (`EntropicaClientFabric.java`) and NeoForge (`ModClientEvents.java`).
+- **Module 2: Astrolabe Layer Slices & Construction Assist QoL**:
+  - **Layer Slice Mode (`AstrolabeItem.java` & `AstrolabeGhostRenderer.java`)**: Right-clicking in air with an anchored Astrolabe cycles through vertical layer slices (`All Layers` $\to$ `Layer 1` $\to \dots \to$ `Layer N`). Ghost rendering filters out non-selected layers, allowing arkanists to construct complex multi-tier structures layer-by-layer without visual clutter.
+  - **Creative Instant Auto-Construct (`AstrolabeItem.java`)**: Shift + Right-clicking the anchor controller origin in Creative mode automatically scans the multiblock recipe and places all missing components into the world with beacon activation audio.
+  - **Missing Materials & Status Tooltip (`AstrolabeItem.java`)**: Hovering over the Astrolabe displays active blueprint name, anchored coordinates, and current layer slice filter.
+- **Module 3: Optic Fiber 16-Color Dyeing & Conduit Isolation QoL**:
+  - **In-World Conduit Dyeing (`PureOpticFiberBlock.java`)**: Right-clicking pure optic fiber with any of Minecraft's 16 `DyeItem`s dyes its conduit casing.
+  - **Isolated Parallel Conduit Runs (`PureOpticFiberBlock.java`)**: Undyed fibers connect to all conduits, but differently dyed parallel fiber lines will NOT cross-connect or bridge into each other, allowing dense, parallel multi-color starlight cable runs.
+- **Module 4: Astral Collector Resonant Harmonic Chime QoL**:
+  - **Harmonic Full-Tank Chime (`AstralCollectorBlockEntity.java`)**: Reaching full condensation capacity ($2,000\text{ mB}$) triggers an acoustic chime (`AMETHYST_BLOCK_CHIME` + `BEACON_ACTIVATE`) and a radial constellation sparkle burst.
+- **Module 5: Celestial Atlas & Astronomy QoL**:
+  - **Celestial Atlas Item (`CelestialAtlasItem.java`)**: Added the Celestial Atlas item with custom 32x32 blue leather texture (recolored from Entropic Codex without center gem). Shift + Right-Clicking automatically scans the player's inventory and absorbs completed Star Charts into its compendium registry; Right-Clicking opens the Atlas.
+  - **Dual-Page Interactive Celestial Compendium Screen (`CelestialAtlasScreen.java`)**: 
+    - **Constellation Index (Root View)**: Features 6 tier navigation tabs (`ALL`, `T1`, `T2`, `T3`, `T4`, `T5`), discovery checkmarks, and pagination.
+    - **Constellation Detail View**: 
+      - Left page renders the constellation's actual star vertices and connecting line segments in **authentic antique sepia tones** inside an aged parchment frame, with shared conflict vertices highlighted by glowing crimson-gold **double-ring glyphs**.
+      - **"Reinscribe Star Chart"** text button allows on-demand reinscription of single physical Star Charts by consuming 1 Blank Star Chart from inventory via server-authoritative `ReinscribeStarChartPayload`.
+      - **Back Button (`[← Index]`)** navigates back to the main constellation directory.
+      - Right page features astronomical statistics (Tier, Essence, Spectral Class, Base Flux) and a **smooth scrollable lore viewport** with mouse wheel support containing cosmological treatise lore, harmonic conflict warnings, and lunar alignments.
+  - **Horizon Rise & Set Directional Tracking & Smooth Auto-Pan (`SkyLookingGlassScreen.java`)**: Added real-time constellation rise/set monitor on the left side of the Looking Glass HUD, calculating degrees below horizon and estimated minutes until rising. Clicking on any monitored constellation in the tray initiates a **smooth, eased camera pan ($1.2\text{s}$ cubic curve)** directly to that constellation's coordinates in the celestial firmament with audio feedback (and instant manual override upon mouse drag).
+- **Module 6: Celestial Expansion & 50-Constellation Pantheon (`ModConstellations.java`, `CelestialAtlasScreen.java`, `SkyLookingGlassScreen.java`)**:
+  - Expanded Entropica's celestial firmament from 24 to **50 total constellations** across 5 distinct tiers:
+    - **Fundamental (T1 - 16 Constellations)**: Added *Falx Aetheria*, *Cervus Vitae*, *Noctua Lucis*, *Aranea Tenebrae*, *Calcar Vulcanis*, *Arcus Sidereus*, *Taurus Petrae*, *Iris Spectralis*.
+    - **Advanced (T2 - 16 Constellations)**: Added *Felis Succina*, *Draco Pyrotis*, *Ceraunius Sagitta*, *Serpens Glacialis*, *Speculum Abyssi*, *Pallium Tenebrae*, *Anulus Aeternus*, *Sol Invictus*.
+    - **Master (T3 - 8 Constellations)**: Added *Charybdis Profunda*, *Terranox Primus*, *Vorator Stellarum*, *Aetherion Aeternus*.
+    - **Mythic (T4 - 4 Constellations)**: Retained apex primal entities *Leviathan*, *Yggdrasil*, *Ouroboros*, *Azathoth*.
+    - **Transcendent (T5 - 6 Constellations - NEW)**: Added *Astrape Primordialis*, *Aegis Ecliptica*, *Ignis Eschaton*, *Aether Aeternitas*, *Umbra Genesis*, *Nihil Coronatum*. Transcendent constellations are visible exclusively during New Moon nights or inside The End dimension.
+  - **Shared-Star Coordinate Conflicts & Mutual Exclusivity Rejection**: Constellations sharing identical celestial vertices (*Astrape* $\leftrightarrow$ *Fulgur*, *Aegis Ecliptica* $\leftrightarrow$ *Scutum*, *Ignis Eschaton* $\leftrightarrow$ *Gladius*, *Aether Aeternitas* $\leftrightarrow$ *Penna*) are tagged with coordinate conflict pairs. Channeling both simultaneously results in destructive harmonic interference, causing altar cores and beacons to reject dual attunement.
+- **Module 7: Materia-Flux Distributor & Wireless Inscribed Crystal Charging (`MateriaFluxDistributorBlock.java`, `MateriaFluxDistributorBlockEntity.java`)**:
+  - Added the **Materia-Flux Distributor**, a hybrid pneumatic-astral machine that connects to Materia Fumus gas pipes (`IVaporHandler`).
+  - **Vertical Collector Siphon**: Automatically drains stored liquid/gaseous Materia from an `AstralCollector` placed directly above it without requiring external piping.
+  - **Wireless Crystal Charging**: Wirelessly streams Materia-Flux to all `ASTRAL_CRYSTAL` items inscribed with constellations within range.
+  - **3 Upgrade Tiers**: Upgradable via right-click with Astral Crystals: Tier 1 ($32\text{m}$ radius, $4,000\text{ mb}$, $10\text{ Materia/s}$), Tier 2 ($64\text{m}$ radius, $8,000\text{ mb}$, $25\text{ Materia/s}$), Tier 3 ($96\text{m}$ radius, $16,000\text{ mb}$, $60\text{ Materia/s}$).
+- **Module 8: Additive Optical Resolution & Skyfield Expansion (`CelestialStarHelper.java`, `CelestialEventHelper.java`, `CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`)**:
+  - Expanded ambient starfield from 320 to **960 deterministic ambient stars** with apparent magnitudes spanning $0.5\text{m} \to 4.0\text{m}$ partitioned into 4 optical equipment tiers.
+  - Added new wandering planets (*Sylva*, *Tartarus*, *Aurelia*, *Noxus*, *Chiron Asteroid Swarm*) and dynamic comets (*Comet Zephyros-IV*, *Comet Borealis-Prime*, *Comet Ouroboros-Omega*).
+  - Added 4 new celestial nebulae (*Phoenix Stellar Nursery*, *Emerald Aurora Veil*, *Void Blossom Nebula*, *Singularity Gravitational Halo*).
+  - Implemented additive optical resolution: naked-eye skybox renders baseline stars and bodies, while holding an Astrolabe, Telescope, or looking through lenses unlocks deeper optical layers.
+- **Module 9: In-Game Entropic Codex & Obsidian OKF Vault Sync**:
+  - Updated in-game Entropic Codex (`CodexCategoryRegistry.java`) with the expanded 50-constellation pantheon, Transcendent Tier V lore, coordinate conflicts, and the Materia-Flux Distributor research node.
+  - Synchronized the project Obsidian OKF Vault with new entity notes (`materia_flux_distributor.md`, `celestial_atlas.md`), master lore book (`celestial_tome_vol6_the_transcendent_firmament.md`), and updated `astral_astronomy_guide.md`.
+- **Module 10: Constellation Celestial Coordinate Invariance & Sky Stretching Fix (`Constellation.java`, `ModConstellations.java`, `CelestialStarHelper.java`, `CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`, `AstralMirrorRenderer.java`, `LookingGlassOverlayRenderer.java`, `ConstellationTracingScreen.java`)**:
+  - **Root Cause**: Constellation base sky coordinates were previously computed dynamically from transient loop indices (`i * (360.0f / totalVisible)`). When new constellations were registered or when moon phases / optical filters changed `totalVisible`, constellation positions shifted, causing previously drawn connection lines to stretch across the entire sky.
+  - **Immutable Celestial Coordinates**: Endowed every [`Constellation`](file:///c:/Users/Ddraig__/Downloads/MODS_CREATION/Entropica/common/src/main/java/ddraig/net/entropica/astral/Constellation.java) with permanent, fixed spherical coordinates (`celestialAzimuthRad`, `celestialAltitudeRad`, `getStarSphereAzimuth()`, `getStarSphereAltitude()`).
+  - **Zero-Shift 100% Additive Guarantee**: The original 24 constellations are locked to their exact historical $15^\circ$ slots ($k \times 15.0^\circ$), while the 26 new constellations occupy dedicated, non-overlapping interstitial positions ($7.5^\circ + m \times 13.846^\circ$), eliminating all line stretching, distortion, and sky displacement.
+  - **Angular Proximity Targeting**: Updated `LookingGlassOverlayRenderer.java` and `ConstellationTracingScreen.java` to detect targeted constellations via genuine 3D angular proximity to the player's crosshair rather than arbitrary linear array indices.
+- **Module 11: Universal Firmament & Optical Hardware Gating (`CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`, `AstralMirrorRenderer.java`, `LookingGlassOverlayRenderer.java`, `ConstellationTracingScreen.java`, `PlayerAstralProgress.java`)**:
+  - **All-Stars Universal Visibility**: All 50 constellations and 960 ambient stars are now permanently visible across the night sky in all worlds and dimensions.
+  - **Per-Tier Natural Dimming**: Higher-tier celestial objects scale their luminescence smoothly down the hierarchy (Tier 1 Fundamental $100\%$, Tier 2 Advanced $82\%$, Tier 3 Master $65\%$, Tier 4 Mythic $48\%$, Tier 5 Transcendent $35\%$), creating depth across the celestial sphere.
+  - **Optical Hardware Gating & Interactivity**: Players can visually observe faint higher-tier stellar clusters with baseline tools, but selecting, mapping, and charting constellations requires optical equipment matching or exceeding the constellation tier (Looking Glass $\to$ T1, Astrolabe $\to$ T1–T2, Brass Telescope $\to$ T1–T3, Grand Observatory Armillary $\to$ T1–T5). Insufficient hardware displays red reticle lock indicators and clear tool requirement prompts.
+- **Module 12: Wandering Spheres Planetary Textures & Celestial Rendering (`gen_planet_textures.py`, `CelestialSkyRenderer.java`, `AstralMirrorRenderer.java`, `SkyLookingGlassScreen.java`)**:
+  - **Custom 64×64 High-Detail Planetary Textures**: Generated distinct high-fidelity textures with 3D spherical diffuse shading, limb darkening, and emissive surface features for all 5 new celestial worlds:
+    - `planet_sylva.png`: Verdant bioluminescent forest world with deep sapphire oceans, jade canopies, and luminous mint mycorrhizal veins.
+    - `planet_tartarus.png`: Heavy iron-silicate terrestrial world with sulfurous plains and incandescent molten magma rift chasms.
+    - `planet_aurelia.png`: High-albedo golden core world with radiant specular core glint and swirling white-gold storm bands.
+    - `planet_noxus.png`: Trans-Neptunian deep void ice dwarf planet with frozen methane fracture sheets and frosted impact craters.
+    - `planet_chiron.png`: Resonant micro-asteroid swarm featuring individually shaded tumbling chondrite rock bodies, secondary companions, and micro-meteorites.
+  - **Universal Planetary Rendering**: Updated celestial sky dome, looking glass/telescope screens, and Astral Mirror water reflection passes to render all 10 Wandering Spheres with per-tier luminescence scaling.
+- **Module 13: Tangent-Plane Conformal Constellation Geometry & $-15^\circ$ Declination Sky Expansion (`Constellation.java`, `ModConstellations.java`, `CelestialStarHelper.java`, `CelestialSkyRenderer.java`, `LookingGlassOverlayRenderer.java`, `ConstellationTracingScreen.java`)**:
+  - **Tangent-Plane Conformal Spherical Projection**: Re-engineered constellation star positioning to project from 2D chart tangent planes $(\vec{N} + u\vec{U} + v\vec{V})$ directly onto the 3D celestial sphere. Completely eliminates polar deformation, stretching, and distortion at any altitude/declination ($ -15^\circ \le \delta \le +90^\circ$), ensuring constellations maintain perfect geometric proportions across the entire night sky.
+  - **Declination $-15^\circ$ Sky Coverage**: Distributed constellation base altitudes across $-12^\circ$ to $+74^\circ$ with stars extending down to $-15^\circ$.
+  - **Southern Landmark Guide Stars**: Added 7 prominent low-declination and southern anchor stars down to $-15^\circ$ (`Canopus`, `Achernar`, `Fomalhaut`, `Deneb Kaitos`, `Procyon`, `Altair`, `Alphard`).
+  - **Dense Ambient Star Field**: Expanded ambient star population to 1,600 stars with 640 stars dedicated to the dense $-15^\circ \le \delta \le +15^\circ$ horizon band.
+  - **Southern Deep Sky Nebulae**: Added 3 new deep-sky nebula complexes reaching into the $-15^\circ$ southern band (`Southern Carina Veil`, `Eridanus Southern Rift`, and `Fornax-Sculptor Void Shroud`).
+  - **Optical Overlay Alignment**: Lowered Looking Glass reticle detection threshold to $-15^\circ$ declination and synchronized pitch sign in `ConstellationTracingScreen.java`.
+- **Module 14: Right-Click Line Erase System Alignment (`SkyLookingGlassScreen.java`, `ConstellationTracingScreen.java`)**:
+  - **3D Sky Looking Glass Erase Fix**: Fixed `SkyLookingGlassScreen.mouseClicked` to recognize **Right-Click (`button == 1`)** alongside hovered line deletion, including immediate 12px dynamic proximity line detection for instant, zero-latency erasing.
+  - **Parchment Tracing Screen Erase Enhancement**: Added immediate proximity connection segment raycasting on right-click in `ConstellationTracingScreen.java` so lines can be instantly removed even during rapid cursor sweeps.
+- **Module 16: Fluid Meteorite Motion & Extended Atmospheric Longevity (`CelestialEventHelper.java`, `CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`)**:
+  - **Tripled Meteorite Atmospheric Longevity**: Extended shooting star flight duration from $\sim 1.5\text{s}$ ($26\text{--}36\text{ ticks}$) up to **$3.5\text{s}\text{--}5.5\text{s}$ ($70\text{--}110\text{ ticks}$)** with expanded orbital recurrence intervals ($180\text{--}480\text{ ticks}$).
+  - **Sub-Tick Smooth Cubic Easing**: Re-engineered trajectory progression with continuous sub-tick quadratic Bézier positions and cubic smoothstep velocity profiling ($3t^2 - 2t^3$) to eliminate abrupt start/end snapping and stepping.
+  - **32-Segment Ribbon Tessellation**: Increased skybox trail ribbon subdivisions from 16 to 32 segments and upgraded Looking Glass / Telescope screen rendering with anti-aliased floating-point quad strips and glowing particle heads.
+- **Module 17: Non-Constellation Star Supernovae, Figure-8 Bipolar Nebulae & Stellar Remnants (`StellarRemnantType.java`, `SupernovaPhase.java`, `SupernovaEvent.java`, `SupernovaSavedData.java`, `SupernovaManager.java`, `SyncSupernovaPayload.java`, `SupernovaCommand.java`, `CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`, `RefractiveAstralLensBlockEntity.java`, `CodexCategoryRegistry.java`)**:
+  - **Supernova Stellar Lifecycle**: Implemented 4-phase astrological lifecycle for non-constellation stars (`PRECURSOR` $\to$ `FLASH` $\to$ `EXPANDING_NEBULA` $\to$ `REMNANT`).
+  - **Bipolar Figure-8 (Hourglass) Nebula Rendering**: Procedurally generates symmetric dual-lobe expanding nebulae with equatorial circumstellar shockwave pinch rings along the progenitor's bipolar magnetic axis.
+  - **Exotic Stellar Remnants & Essence Mutations**:
+    - **Stellar Black Holes (Class V)**: Accretion disk, photon ring, and event horizon singularity yielding `SINGULARITY`, `VOID`, `ESCHATON`, `NULL_U`, `ABYSS`, `OBLIVION`, `CHRONOS`.
+    - **Pulsars (Neutron Stars)**: Rapidly strobing core with dual sweeping radiation cones yielding `STATIC`, `LIGHTNING`, `VOLT`, `KINETIC`, `AXIOM`.
+    - **Magnetars**: High-energy coronal flare auras yielding `PHOTON`, `AURA`, `ASTRAL`, `ECHO`, `FERVOR`.
+    - **White Dwarfs, Strange Quark Stars, and Hypergiant Collapsars**: Distinct compact crystalline and iridescent core geometries yielding `DENSITY`, `ENTROPICA`, `AETHER`, and `PYRE`.
+  - **Astral Lens Calibration & Energy Harvesting**: Refractive and Secondary Astral Lenses lock onto Supernova Remnants and Black Holes, streaming mutated high-order essences into downstream collectors, conduits, and machines.
+  - **World Persistence & Network Sync**: Synchronized via `SupernovaSavedData` and custom `SyncSupernovaPayload`, with admin control commands (`/entropica astral supernova trigger|list|clear`).
+  - **Codex & Obsidian Knowledge Base**: Registered new in-game Codex nodes and documented full cosmological theory in the Obsidian OKF Vault.
+- **Module 18: Trilogy of Master Celestial Lore Books (45 Chapters Total) (`wiki/articles/lore_books/`)**:
+  - **Volume VII: The Wandering Firmament, Cometary Tails & Celestial Swarms (15 Chapters)**: Comprehensive treatise detailing the 5 wandering planets (*Sylva*, *Tartarus*, *Aurelia*, *Noxus*, *Chiron Asteroid Swarm*), the 3 hyperbolic comets (*Zephyros-IV*, *Borealis-Prime*, *Ouroboros-Omega*), cometary dual tail dynamics, sub-tick cubic easing meteor re-entry, and nocturnal polar water reflections.
+  - **Volume VIII: Cataclysms of the Firmament, Bipolar Hourglass Nebulae & Stellar Remnants (15 Chapters)**: Comprehensive treatise on the 4-phase core-collapse supernova lifecycle, bipolar Figure-8 hourglass nebulae physics, shockwave equatorial pinch rings, and the 6 exotic stellar remnants (*Stellar Black Holes*, *Pulsars*, *Magnetars*, *White Dwarfs*, *Strange Quark Stars*, *Hypergiant Collapsars*).
+  - **Volume IX: The Deep Sky Atlas, Spectral Classes & The 960 Ambient Stars (15 Chapters)**: Master compendium cataloging the 960 ambient stars across 8 spectral blackbody classes, the $18\text{--}24\text{s}$ sinusoidal chromatic essence shift mechanism, the 16 landmark guide stars, southern deep-sky declination navigation, and $1\times \to 32\times$ multi-tier instrument magnification.
+- **Module 19: Calcite Starlight Transmutation into Medium Essence Orbs (`RefractiveAstralLensBlockEntity.java`, `SecondaryAstralLensBlockEntity.java`)**:
+  - **Placed Calcite Block Transmutation**: Direct contact between a focused starlight beam and a placed `Blocks.CALCITE` block for $>5.0\text{ seconds}$ ($100\text{ ticks}$) transfigures the calcite matrix into an `EssenceOrbEntity` containing a **Medium Essence Orb** (`ModItems.AVERAGE_ESSENCE.get()`) attuned to the locked star's `EssenceType`.
+  - **Dropped Calcite Item Entity Transmutation**: Dropped `Items.CALCITE` items suspended or resting along the beam path are irradiated for $>5.0\text{ seconds}$, consuming 1 Calcite item from the stack and transmuting it into a corresponding Medium Essence Orb.
+  - **Atmospheric Particle & Audio Feedback**: Displays continuous enchanting rune and end-rod convergence particles while charging, erupting into a resonant chime (`SoundEvents.AMETHYST_BLOCK_CHIME`), level-up chime, totem flash, and particle burst upon transmutation completion.
+  - **Full Celestial Essence Resolution**: Supports all 50 constellations, 960 ambient stars (randomized strictly across Base through Tier 4 Apex fusions), 18 landmark guide stars, 5 wandering planets, 3 comets, and 6 exotic supernova remnants.
+
+### Phase 3: Astronomical Optics, Logistics & Scribing
+- **Pure Optic Fiber Multipart Dynamic 6-Way Connection System (`PureOpticFiberBlock.java`)**:
+  - Implemented modular multipart blockstate (`pure_optic_fiber.json`) using composite submodels (`pure_optic_fiber_core.json`, `pure_optic_fiber_arm.json`).
+  - Added dynamic 6-way connection detection (`NORTH`, `EAST`, `SOUTH`, `WEST`, `UP`, `DOWN`) to adjacent fibers, transmitters, receivers, and booster amplifiers with accurate composite `VoxelShape` hitboxes.
+- **Astrolabe Dedicated Holographic Blueprints & Real-Time Follow Cursor (`AstrolabeItem.java` & `AstrolabeGhostRenderer.java`)**:
+  - **Right-Click in air**: Dedicated to cycling active multiblock blueprints (**Astral Observatory 7x6x7**, **Celestial Beacon 3x3x3**, and **Modular Astral Altar 5x3x5**) with actionbar and sound feedback.
+  - **In-World Raycast Follow Preview**: Actively renders the 3D translucent wireframe ghost following the player's crosshair raycast against ground surfaces in real time before anchoring.
+  - **Right-Click on ground**: Anchors the holographic blueprint origin in place (or clears if clicking the current anchor).
+  - **Shift + Right-Click in air**: Opens the 8x magnified celestial looking glass coordinate dial overlay.
+- **Beam Splitter Prism Double-Render Fix & $90^\circ$ Orthogonal Beam Splitting (`BeamSplitterPrismBlock.java`, `BeamSplitterPrismBlockEntity.java`, `BeamSplitterPrismRenderer.java`)**:
+  - Set `RenderShape.INVISIBLE` on `BeamSplitterPrismBlock`, eliminating the static JSON model duplicate ghosting over the dynamic BER.
+  - Re-engineered prism physics to dynamically calculate the incoming beam incident angle from source emitter positions (`RefractiveAstralLens`, `SecondaryAstralLens`, `OpticalReceiverPort`).
+  - Splitting now projects **two distinct orthogonal beams at exactly $90^\circ$ left and $90^\circ$ right** from the incoming trajectory, raycasting living entity occlusion and propagating starlight to downstream receivers along both split paths.
+- **Secondary Astral Lens & Real-Time In-World Gimbal Aiming (`SecondaryAstralLensBlock.java`, `SecondaryAstralLensBlockEntity.java`, `SecondaryAstralLensRenderer.java`, `RealtimeLensAdjustmentScreen.java`)**:
+  - Added the **Secondary Astral Lens** for terrestrial starlight beam redirection and distribution.
+  - **Component Center Beam Termination & Single-Closest-Interceptor Ray Resolution (`RefractiveAstralLensBlockEntity.java` & `SecondaryAstralLensBlockEntity.java`)**: Aligned optical beam origins to exact lens trunnion height `(pos.y + 0.5625)`. Upgraded starlight beam transmission so upstream primary lenses detect downstream Secondary Astral Lenses along the ray and terminate their beam length **precisely at the geometric center of the secondary lens block/disc** (`(p.getX() + 0.5, p.getY() + 0.5625, p.getZ() + 0.5)`). Starlight energy is relayed exclusively into the secondary lens without punching through to background blocks.
+  - **First-Person Lens Camera & Fail-Safe Restore**: Interacting with the lens temporarily switches the player camera directly to the lens gimbal head (`(pos.x + 0.5, pos.y + 0.5625, pos.z + 0.5)`) in first-person mode. Fixed camera reference retention so exiting calibration (`[ESC]`, `[SPACEBAR]`, or clicking) always guarantees an immediate return to the player body.
+  - **Universal Component Aiming & Step-by-Step Block Scanning**: Upgraded real-time crosshair raycasting with `ClipContext.Block.OUTLINE` and step-by-step volumetric bounding box scanning. Astral Collectors, Infusion Pedestals, Prisms, and non-cube blocks are now accurately identified and targeted.
+  - **Dynamic Texture Reference Fix**: Pointed `SecondaryAstralLensRenderer` to valid astral brass, plinth, and lens textures (`refractive_astral_lens_*.png`), fixing untextured/missing texture rendering.
+  - **Real-Time Live Beam Updating**: Synchronized live beam distance and rotation across client-side BER and server block entity state with immediate 5-tick network packet updates.
+  - **Astral Linking Wand 2-Click Target Alignment**: Shift-clicking a Secondary Lens then right-clicking any target block automatically calculates the exact horizontal azimuth and vertical elevation angles to align the lens and lock its beam.
+  - Full living entity occlusion raycasting and typed **Materia Toxicity** hazard application.
+- **Dynamic Multi-Tier Scroll Magnification & Astrolabe Navigation Reticle (`SkyLookingGlassScreen.java`, `AstrolabeGhostRenderer.java`)**:
+  - Implemented smooth mouse scroll zoom magnification scaling per instrument tier:
+    - Handheld Looking Glass: $1\times \to 4\times$ zoom ($28^\circ \to 7^\circ$ FOV)
+    - Brass Astrolabe: $1\times \to 8\times$ zoom ($28^\circ \to 3.5^\circ$ FOV) with circular 15° vernier brass degree ticks
+    - Stationary Brass Telescope: $1\times \to 16\times$ zoom ($28^\circ \to 1.75^\circ$ FOV)
+    - Grand Observatory Armillary: $1\times \to 32\times$ zoom ($28^\circ \to 0.875^\circ$ FOV)
+  - Real-time **Azimuth** ($\theta \in [0^\circ, 360^\circ]$ + compass cardinal heading) and **Declination** ($\phi \in [-90^\circ, +90^\circ]$ [Zenith/Nadir]) angular tracking.
+  - **In-World 3D Block Model Hologram Projections (`AstrolabeGhostRenderer.java`)**: Upgraded ghost multiblock rendering from simple blue boxes to full authentic 3D block model geometry rendered in-world at required coordinates, framed with glowing cyan starlight edge contours and pulsing error indicators.
+  - **Inventory Anchor Persistence**: Anchored holographic multiblock blueprints now persist in the world even when switching to hold other items (blocks, tools, wands) as long as the anchored Astrolabe remains in the player's inventory.
+- **Astral Infusion Pedestal & Elemental Flora Swapping (`AstralInfusionPedestalBlock.java`, `AstralInfusionPedestalBlockEntity.java`, `AstralInfusionPedestalRenderer.java`)**:
+  - Added dry optical starlight irradiation pedestal performing transmutations on placed items without liquid pools.
+  - **Elemental Flora Swapping**: Beaming vanilla flowers transmutates them into elemental variants (Soul-Flame Orchid for Ignis/Pyre, Vitae Orchid for Vitae/Sylvan, Aegis-Spire Orchid for Scutum/Aegis, Void-Stalker Orchid for Serpens/Void/Abyss).
+  - **Substrate Soil Metamorphism**: Transmutes the foundation block beneath into Sooty Marble, Engraved Astral Slate, or Astral Marble.
+- **Astral Collector Continuous Starlight Condensation (`AstralCollectorBlockEntity.java`)**:
+  - Fixed NBT data packet synchronization (`getUpdateTag`, `onDataPacket`) and collection loop preventing state desynchronization.
+  - Irradiating the collector with focused starlight beams now smoothly condenses and stores liquid Materia (+2 Materia every 5 ticks / 8 Materia/s) up to its 2,000 unit capacity. Right-clicking with an empty hand provides live status and essence readouts in the actionbar.
+- **Optic Fiber Direct Beam Absorption & Network Injection (`PureOpticFiberBlock.java`, `OpticalTransmitterPortBlockEntity.java`, `RefractiveAstralLensBlockEntity.java`, `SecondaryAstralLensBlockEntity.java`)**:
+  - Open-air starlight beams hitting an exposed `PureOpticFiberBlock` are now absorbed on contact (the open-air beam terminates at the fiber face), injecting starlight flux down the fiber network via BFS graph traversal to all connected receivers, amplifiers, and collectors.
+- **Fiber Optics Logistics, Distance Attenuation & Booster Amplification (`OpticalTransmitterPortBlockEntity.java`, `OpticalReceiverPortBlockEntity.java`, `OpticalBoosterAmplifierBlockEntity.java`)**:
+  - BFS cable graph traversal with $1\%$ signal loss per 16 blocks.
+  - In-line `optical_booster_amplifier` resets signal loss to 0 and restores $100\%$ starlight transmission.
+  - `optical_receiver_port` outputs focused open-air starlight beams scaled by signal quality.
+- **Beam Occlusion & Materia Toxicity Hazards (`RefractiveAstralLensBlockEntity.java`, `BeamSplitterPrismBlockEntity.java`, `OpticalReceiverPortBlockEntity.java`)**:
+  - Collimated open-air starlight beams perform living entity intersection raycasts; stepping into active starlight beams occludes downstream optical transmission and inflicts **Materia Toxicity** with typed elemental effects based on the active constellation's `EssenceType`.
+- **Entropic Codex Synchronization & Sub-Node Expansion (`CodexCategoryRegistry.java`)**:
+  - Registered dedicated research sub-nodes with dynamic orbital coordinates and branching prerequisites across `MAGIC` and `MULTIBLOCKS`.
+- **Multi-Loader Build & Dev Deployment (`deploytoDev`)**:
+  - Executed `./gradlew --no-parallel build deploytoDev` with **`BUILD SUCCESSFUL in 31s`**, successfully building and deploying remapped mod jars to both Fabric and NeoForge dev environments.
+
+## Build 000-1-26-230
+
+### Core Additions & Improvements
+- **Astral Collector 3D Blockbench Model & Live Integration**:
+  - Authored, textured, and generated the complete 23-element hierarchical 3D Blockbench model (`astral_collector.bbmodel` and `astral_collector.json`) with sub-pixel UV mapping directly within the live Blockbench session.
+  - Features a stepped Astral Marble plinth foundation, 4 corner reinforcement feet, a central pillar column with 4-way pneumatic pipe ports, an elevated octagonal collector dish, and 4 corner brass focus prongs surrounding a central starlight crystal receptor node.
+  - Textures bound: `astral_marble_bricks.png`, `astral_collector_side.png`, `astral_collector_top.png`, `resonance_pylon_trim.png`, and `astral_crystal_block.png`.
+- **Configurable Materia Collection Rate**:
+  - Calibrated the collection rate to **8 Materia per second** (2 Materia every 5 ticks) and made it fully configurable via `ASTRAL_COLLECTOR_TRANSFER_RATE` across Common, Fabric (`entropica.json`), and NeoForge (`entropica-common.toml`) config systems.
+  - Requires focused starlight beams from optical lenses, beam splitter prisms, or fiber ports (ambient condensation removed).
+  - Maintains single-essence storage with automatic conflict purging and empty-hand HUD readout.
+
 ## Build 000-1-26-229
 
 ### Core Additions & Features
@@ -58,6 +220,35 @@
     - Rebuilt `RefractiveAstralLensRenderer.java` using exact Blockbench model element geometries, UVs, and hierarchical group rotation origins (`base`, `azimuth_yoke`, and `elevation_lens`).
     - Fixed player look angle and lens declination synchronization on screen exit: `syncPlayerRotation` now smoothly aligns player yaw and pitch directly along the calibrated aiming line of sight while preserving the lens's calibrated angles.
     - Fixed persistent beam state: resolved packet issue where closing the screen or mouse-panning previously overwrote `isFocused` with `false`, keeping the focused starlight influx and refracted output beams active indefinitely once calibrated.
+  - **Cosmic Nebulae & Dark Interstellar Dust Clouds Beautification**:
+    - Expanded `CelestialSkyRenderer.java` and `SkyLookingGlassScreen.java` with 19 diverse celestial structures spanning both hemispheres ($0^\circ \to 360^\circ$) across the entire celestial dome:
+      - *The Great Galactic Spine*: 360° sweeping luminous stardust ribbon with embedded dark Coal-Sack dust rifts.
+      - *The Andromeda Spiral Halo*: Soft silver-cyan and violet oval galactic halo.
+      - *The Great Azure Lagoon Veil*: Cyan, teal, and sapphire reflection nebulae.
+      - *The Abyssal Void Rift*: Dark silhouette absorption void rift with violet corona.
+      - *The Tarantula Web Nebula*: Teal, viridian, and neon violet tendrils.
+      - *The Cygnus Swan Veil*: Lilac, silver, and aether cyan filaments.
+      - *The Witchhead Reflection Shroud*: Bioluminescent electric cyan and royal purple shroud.
+      - *The Orion Archon Complex*: Violet, neon rose, magenta, and electric amethyst emission clouds.
+      - *The Southern Cross Dark Horse*: Dense dark interstellar dust lanes.
+      - *The Crimson Carina Superbubble*: Deep crimson, coral, rose quartz, and pyre embers.
+      - *The Great Coal-Sack Dust Rifts*: Dark absorption interstellar clouds with subtle starlight backlighting.
+      - *The Sapphire Helix Filament*: Deep sapphire, cobalt blue, and ultraviolet ribbons.
+      - *The Amber Solar Nursery & Flare*: Golden amber, solar orange, and warm peach clouds.
+      - *The Antares Blood Veil*: Deep ruby, garnet, and amber reflection clouds.
+      - *The Golden Phoenix Remnant*: Incandescent gold and fiery orange supernova shockwaves.
+      - *The Obsidian Emerald Filament*: Deep emerald, viridian, and celestial jade ribbons.
+      - *The Prismatic Stellar Cradle*: Multi-hued iridescent chromatic cloudlets.
+      - *The Polar Auroral Crown*: Circumpolar shimmering turquoise and violet curtains.
+      - *All-Sky Interstellar Cosmic Dust Web*: 16 volumetric background cloudlets filling the cosmic void across all compass directions.
+    - Implemented 3D spherical tangent billboard projection with organic sinusoidal breathing and rotational drift.
+  - **Visual-Only Slow-Shifting RGB Essence Dynamics**:
+    - Implemented `CelestialStarHelper.getShiftingStarRGB(...)` and `getShiftingStarRgbInt(...)` calculating a very slow sinusoidal shift (~18–24s full period) between the star's blackbody spectral class (O, B, A, F, G, K, M) and its Materia Essence color stages.
+    - Applied shifting starlight across all ambient stars, landmark guide stars, and constellation star vertices in `CelestialSkyRenderer.java`, `SkyLookingGlassScreen.java`, and `ConstellationTracingScreen.java`.
+    - Stripped explicit raw essence type text names from all HUD target readouts, reticle cards, constellation discovery banners, and star chart tooltips, allowing players to identify celestial essence purely through starlight chromatic shifting.
+  - **Celestial Coordinates & Declination Horizon Bounding ($\ge -15.0^\circ$)**:
+    - Re-calibrated ambient star spherical distribution in `CelestialStarHelper.java` to span declination $[-15.0^\circ, +90.0^\circ]$, eliminating deep nadir stars below $-15^\circ$.
+    - Clamped constellation star altitude calculations and Looking Glass / Telescope pitch panning across all modes (Item, Stationary Telescope, Refractive Astral Lens) strictly to $[-15.0^\circ, +90.0^\circ]$.
   - **Procedural Unique Astronomical Star Naming System**:
     - Assigned unique astronomical names to all 320 ambient stars in `CelestialStarHelper.java` by combining celestial constellation roots and stellar designations (e.g. `Zephyros-Alpha`, `Thalassa-Prime`, `Astralis-VII`, `Pyralis-Beta`, `Novara-Major`).
     - Added `getConstellationStarName(Constellation, int)` assigning classical Greek designations to every star in every constellation (e.g. `Alpha Aculei (Apex)`, `Beta Aculei`, `Alpha Radialis`).
@@ -70,8 +261,60 @@
     - Refined beam raycast in `RefractiveAstralLensBlockEntity.java` to terminate directly at the center of the recipient lens disc (`Vec3.atCenterOf(pos).add(0, 0.4375, 0)`), seamlessly connecting optical relays.
     - Added dynamic entity beam interception: living entities intersecting the starlight beam temporarily pause/block the downstream relay and receive `ModEffects.MATERIA_TOXICITY` attuned to the focused star's `EssenceType`.
     - Updated `SkyLookingGlassScreen.java` to strictly require aiming at a Star or Astral Lens to lock focus, rejecting empty sky calibrations.
+  - **Astral Mirror Block Option 1D CTM & Sky Reflection Engine**:
+    - Handcrafted **Option 1D (Gilded Arcanite & Polished Brass Corner Brackets)** texture suite with natural metallic noise on the midnight Arcanite rim, L-shaped polished brass corner brackets with golden rivets, and gold midpoint edge studs.
+    - Generated a silky, uniform `astral_mirror_center.png` interior that seamlessly blends across connected blocks without internal grid seams or abrupt color jumps.
+    - Implemented a complete 16-variant single-pass blockstate system in `astral_mirror_block.json` with dedicated models (`single`, `end`, `corner`, `straight`, `side`, `center`), completely eliminating multi-pass Z-fighting and transparency depth issues.
+    - Implemented real-time **Unified World-Space Sky & Constellation Parallax Reflection Engine** (`AstralMirrorRenderer.java`): calculates camera view-vector planar reflections mapped accurately to true diurnal sky rotation matrices in unified world coordinates, allowing multi-block pools of any size to seamlessly act as one unified giant mirror.
+    - Implemented **3D Celestial Infinity Well Engine**: combines multi-layer parallax depth (deep ambient void, mid-depth landmark & constellation focal plane), camera-oriented spherical billboarding (`render3DBillboardStar`), procedural liquid ether fluid refraction, and delicate surface caustic ripples.
+    - Updated background pool textures directly to deep space midnight black obsidian (`#080E22` - `#121C42`), matching the night sky and completely eliminating flat quad overlays.
+    - Added Looking Glass, Telescope, and Astral Lens mirror viewing support: expanded declination range down to `-85°` allowing aiming downward at mirrors to observe reflected stars/constellations and calibrate focus through mirror reflection.
+    - Fixed Astral Lens relay notification: uncalibrated recipient lenses absorbing an incoming beam no longer emit rogue forward beams into empty air, and relay lenses correctly suppress the rear skyward influx stream.
+    - Added dedicated cross-platform **`astral_mirror_settings`** configuration section in `EntropicaConfig` (Fabric & NeoForge) with individual toggles for each feature:
+      - `enableAstralMirrorSkyReflection`: Master toggle to enable/disable real-time celestial sky reflections.
+      - `enableAstralMirrorParallaxDepth`: Toggles 3D multi-layer parallax cosmic well depth (Option 1).
+      - `enableAstralMirror3DBillboardStars`: Toggles camera-facing 3D spherical billboarding orbs (Option 2).
+      - `enableAstralMirrorLiquidRefraction`: Toggles liquid ether fluid wave refraction and surface caustic ripples (Option 4).
+      - `enableAstralMirrorNebulae`: Toggles reflected cosmic nebulae clouds.
+      - `enableAstralMirrorConstellationLines`: Toggles reflected player-charted constellation connection lines.
+    - Synchronized mirror coordinate transformation matrix ($R_Y(-90^\circ) \cdot R_X(\theta)$) in `AstralMirrorRenderer.java`, aligning mirror reflections with true diurnal celestial sky orientations.
+    - Generated and deployed a pristine **High-Resolution Celestial Texture Suite**:
+      - `star.png` (128×128): Optical starlight texture with white-hot core, anti-aliased 4-point primary cross spikes, diagonal sub-spikes, and silky Gaussian corona.
+      - `comet_head.png` (128×128): Luminous nucleus with expanding atmospheric ion coma and directional head flare.
+      - `meteor_trail.png` (256×64): Continuous luminous ribbon texture with Gaussian feathered edges and longitudinal taper.
+    - Upgraded streak geometry to **Continuous Spherical Quad Strips** (`renderSphericalRibbon`), eliminating all disjoint gaps and jagged elbows.
+    - Fixed comet tail vector direction across all renderers to strictly trail behind the orbital velocity vector ($-\text{sgn}(\vec{v}_{\text{orbit}})$), ensuring sweeping ion and dust tails always stream backwards from the moving nucleus.
+    - Created **The 5 Wandering Spheres (Archon Planets)** system in `CelestialEventHelper.java`:
+      - Generated 64×64 planetary textures: `planet_aethelgard.png` (cyan gas giant with equatorial bands and great vortex), `planet_cryos.png` (glacial ice world with ice ridges), `planet_pyroth.png` (volcanic rust terrestrial world with glowing magma rifts), `planet_vespera.png` (amethyst atmosphere with golden cloud bands), and `planet_chronos.png` (warm golden gas giant).
+      - Renders across all 3 visual systems: overhead celestial dome (`CelestialSkyRenderer.java`), 3D parallax mirror pool reflections (`AstralMirrorRenderer.java`), and high-magnification telescopic view (`SkyLookingGlassScreen.java`).
+      - In telescopic view, renders real-time revolving moons (*Lumin*, *Nox*, *Aura*, *Glacies*, *Titan*, *Rhea*, etc.) and tilted elliptical ring bands for *Cryos* and *Chronos*, with full reticle targeting readouts (`§6✦ TARGET: §b🪐 Planet [Classification] | Moons: N | Dist: X.X AU`) and focus lock support.
+    - Created **Transient Supernovae & Expanding Shockwave Remnants** system in `CelestialEventHelper.java`:
+      - Deterministic long-cycle stellar evolution (*SN-Novara 1337*, *SN-Pyralis Flare*) transitioning across Peak Blinding Ignition, Expanding Shockwave Shell, and Dissipation phases.
+      - Generated `supernova_ring.png` (64×64) rendering iridescent expanding planetary nebula shockwave shells and pulsating central pulsar flares across the sky dome, mirror reflections, and telescopic view with target tracking (`§6✦ TARGET: §e💥 SN-Novara Supernova Remnant | Phase: Expanding Shell | Shell Radius: X.X°`).
+    - Extended **Refractive Astral Lens Skyward Starlight Stream** (`RefractiveAstralLensRenderer.java`) to 384 blocks, streaming continuously from the lens all the way up into the celestial skybox dome.
+    - Updated **Astral Lens Calibration Protocol** (`SkyLookingGlassScreen.java`) to strictly disallow locking onto wandering planets, transient comets, and meteors, preserving lens focus solely for fixed stellar landmarks, charted constellations, supernova remnants, and network relay lenses.
+    - Upgraded **Astral Mirror Telescopic Line of Sight Raycaster** (`SkyLookingGlassScreen.java`) to perform a 192-block specular reflection raycast ($\vec{R} = (D_x, -D_y, D_z)$) off the horizontal mirror pool surface, accurately checking for room walls, ceilings, and roofs along the reflection vector and obstructing the view (`isObstructed = true`) when blocked.
+    - Added **Independent Vertical Scrolling & Scissor Clipping for Codex Category Lists** (`EntropicCodexScreen.java`):
+      - Category entry lists (e.g. `ENVIRONMENT & NATURE`, `MATERIALS`) now support full vertical mouse wheel scrolling with dynamic clamping (`categoryScrollOffset`), scissor viewport clipping, auto-scrolling to active selected nodes, and a sleek glowing cyan scrollbar indicator when entries exceed sidebar height.
+    - Implemented **Astral Constellation Tier Progression & Optical Hardware Gating** (`PlayerAstralProgress.java`, `SkyLookingGlassScreen.java`, `LookingGlassOverlayRenderer.java`):
+      - Gated constellation perception by discovered tier progression: Tier 1 (Fundamental) is open to all; Tier 2 (Advanced) requires discovering at least 1 Tier 1 constellation; Tier 3 (Master) requires discovering at least 1 Tier 2 constellation; Tier 4 (Mythic) requires discovering at least 1 Tier 3 constellation.
+      - Enforced optical hardware tier capabilities: Handheld Looking Glass observes up to Tier 2 (Advanced); Stationary Brass Telescope observes up to Tier 3 (Master); Observatory observes up to Tier 4 (Mythic).
+    - Implemented **Retroactive Star Chart Inscribing (Option A)** (`SkyLookingGlassScreen.java`, `ModNetwork.java`):
+      - Aiming at any already-discovered constellation in the Looking Glass / Telescope and right-clicking with a `STAR_CHART_BLANK` in inventory consumes the blank chart and produces a `STAR_CHART_COMPLETED` for that constellation, accompanied by cartography audio cues and HUD notifications.
+  - **Full S2C Astral Progress Synchronization (`SyncAstralProgressPayload.java`)**:
+    - Built comprehensive S2C packet synchronizing all discovered constellation IDs and charted connection graphs from server persistent NBT to client upon player join (`CodexJoinHandler.java`) and progression triggers.
+  - **Phase 3 Optical Routing & Logistics Suite**:
+    - **`AstralLinkingWandItem.java`**: Implemented 2-click node linking wand protocol for linking optical emitters to targets within 32 blocks.
+    - **`BeamSplitterPrismBlock.java` / `BeamSplitterPrismBlockEntity.java` / `BeamSplitterPrismRenderer.java`**: Implemented 4-way orthogonal beam splitting with chromatic dispersion across cardinal directions.
+    - **`AstralCollectorBlock.java` / `AstralCollectorBlockEntity.java` / `AstralCollectorRenderer.java`**: Implemented Astral Collector basin requiring a focused optical starlight beam to collect Materia at exactly 16 Materia/second into its internal 2000-unit reservoir. Strictly enforces single-materia essence storage (purges/empties existing Materia with a steam fizz burst if a conflicting star essence beam is introduced), renders purely as its 3D block model without a fluid level plane, and provides instant HUD readouts of stored quantity and essence type on player interaction.
+    - **`AstralInfusionPedestalBlock.java` / `AstralInfusionPedestalBlockEntity.java` / `AstralInfusionPedestalRenderer.java`**: Implemented dry optical transmutation pedestal with item placement, starlight irradiation progress, ritual disc geometry, particle bursts, optical flora swapping (transmuting base flowers into Soul-Flame, Vitae, Aegis, and Void-Stalker Orchids based on star essence), and substrate metamorphism (transmuting soil/dirt beneath into Sooty Marble, Engraved Slate, or Astral Marble).
+    - **`RefractiveAstralLensBlockEntity.java`**: Enhanced collimated starlight beam raycasting to detect, terminate at, and actively power downstream `AstralCollectorBlockEntity`, `BeamSplitterPrismBlockEntity`, `AstralInfusionPedestalBlockEntity`, and `OpticalTransmitterPortBlockEntity` alongside relay lenses.
+    - **`OpticalTransmitterPortBlock.java` / `OpticalTransmitterPortBlockEntity.java`**: Implemented focused beam to fiber signal injection with BFS network propagation through `PureOpticFiberBlock`.
+    - **`OpticalReceiverPortBlock.java` / `OpticalReceiverPortBlockEntity.java` / `OpticalReceiverPortRenderer.java`**: Implemented directional starlight beam re-emission from fiber conduits into the world.
+    - **`OpticalBoosterAmplifierBlock.java` / `OpticalBoosterAmplifierBlockEntity.java`**: Implemented in-line optical signal amplification (+24 fiber network hops).
+    - Registered all BERs and BlockEntityTypes across Fabric (`EntropicaClientFabric.java`) and NeoForge (`ModClientEvents.java`).
 - **Multi-Loader Compilation Verification**:
-  - Executed `./gradlew deploytoDev` with **`BUILD SUCCESSFUL in 33s`** across `common`, `neoforge`, and `fabric`.
+  - Executed `./gradlew compileJava --parallel` with **`BUILD SUCCESSFUL`** across `common`, `neoforge`, and `fabric`.
 
 ---
 

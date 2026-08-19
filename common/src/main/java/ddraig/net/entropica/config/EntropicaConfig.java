@@ -14,6 +14,14 @@ public class EntropicaConfig {
     public static final Supplier<Boolean> REQUIRE_RESEARCH_TO_CRAFT = EntropicaConfig::getRequireResearchToCraft;
     public static final Supplier<Integer> ORBIS_CELL_MAX_MATERIA = EntropicaConfig::getOrbisCellMaxMateria;
     public static final Supplier<Boolean> FANCY_MAGIC_CIRCLE_PROCESSING = EntropicaConfig::getFancyMagicCircleProcessing;
+    // Astral Mirror Settings
+    public static final Supplier<Boolean> ENABLE_ASTRAL_MIRROR_SKY_REFLECTION = EntropicaConfig::getEnableAstralMirrorSkyReflection;
+    public static final Supplier<Boolean> ENABLE_ASTRAL_MIRROR_PARALLAX_DEPTH = EntropicaConfig::getEnableAstralMirrorParallaxDepth;
+    public static final Supplier<Boolean> ENABLE_ASTRAL_MIRROR_3D_BILLBOARD_STARS = EntropicaConfig::getEnableAstralMirror3DBillboardStars;
+    public static final Supplier<Boolean> ENABLE_ASTRAL_MIRROR_LIQUID_REFRACTION = EntropicaConfig::getEnableAstralMirrorLiquidRefraction;
+    public static final Supplier<Boolean> ENABLE_ASTRAL_MIRROR_NEBULAE = EntropicaConfig::getEnableAstralMirrorNebulae;
+    public static final Supplier<Boolean> ENABLE_ASTRAL_MIRROR_CONSTELLATION_LINES = EntropicaConfig::getEnableAstralMirrorConstellationLines;
+    public static final Supplier<Integer> ASTRAL_COLLECTOR_TRANSFER_RATE = EntropicaConfig::getAstralCollectorTransferRate;
 
     // Materia Fume Network
     public static final Supplier<Integer> COPPER_PIPE_CAPACITY = EntropicaConfig::getCopperPipeCapacity;
@@ -193,6 +201,13 @@ public class EntropicaConfig {
     @ExpectPlatform public static double getWardCircleRadiusBase() { throw new AssertionError(); }
     @ExpectPlatform public static double getWardBlockRadius() { throw new AssertionError(); }
     @ExpectPlatform public static int getMaxDelayTicks() { throw new AssertionError(); }
-    @ExpectPlatform public static boolean getFancyMagicCircleProcessing() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getRequireResearchToCraft() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getFancyMagicCircleProcessing() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableAstralMirrorSkyReflection() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableAstralMirrorParallaxDepth() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableAstralMirror3DBillboardStars() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableAstralMirrorLiquidRefraction() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableAstralMirrorNebulae() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableAstralMirrorConstellationLines() { throw new AssertionError(); }
+    @ExpectPlatform public static int getAstralCollectorTransferRate() { throw new AssertionError(); }
 }

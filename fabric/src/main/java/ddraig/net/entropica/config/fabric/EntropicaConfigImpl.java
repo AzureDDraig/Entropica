@@ -79,6 +79,13 @@ public class EntropicaConfigImpl {
         public BooleanOption enableCoreOverload = new BooleanOption("If true, the Entropic Core will eventually explode if left active while its Materia Buffer is 100% full. Default: true", true);
         public BooleanOption requireResearchToCraft = new BooleanOption("If true, players must unlock research in the Entropic Codex to craft associated items. Default: true", true);
         public BooleanOption fancyMagicCircleProcessing = new BooleanOption("If true, enables complex raising, growing, fading, and cascading smash animations during magic circle ritual processing. Default: true", true);
+        // Astral Mirror Settings
+        public BooleanOption enableAstralMirrorSkyReflection = new BooleanOption("If true, Astral Mirror Blocks render real-time sky, nebula, and constellation reflections. Default: true", true);
+        public BooleanOption enableAstralMirrorParallaxDepth = new BooleanOption("If true, reflections render with 3D multi-layer parallax cosmic well depth (Option 1). Default: true", true);
+        public BooleanOption enableAstralMirror3DBillboardStars = new BooleanOption("If true, reflected stars render as camera-facing 3D spherical billboarding orbs (Option 2). Default: true", true);
+        public BooleanOption enableAstralMirrorLiquidRefraction = new BooleanOption("If true, reflected starlight undergoes liquid ether fluid wave refraction and surface caustic ripples (Option 4). Default: true", true);
+        public BooleanOption enableAstralMirrorNebulae = new BooleanOption("If true, reflected cosmic nebulae clouds are rendered in the mirror pool. Default: true", true);
+        public BooleanOption enableAstralMirrorConstellationLines = new BooleanOption("If true, player-charted constellation connection lines are reflected in the mirror pool. Default: true", true);
         public IntOption orbisCellMaxMateria = new IntOption("Maximum materia storage capacity for a single Orbis Cell. Min: 1, Max: 2147483647, Default: 10000", 1, Integer.MAX_VALUE, 10000);
 
         // Materia Fume Network
@@ -168,6 +175,7 @@ public class EntropicaConfigImpl {
         public DoubleOption wardCircleRadiusBase = new DoubleOption("Base radius for magic circle wards (increases per circle tier). Min: 1.0, Default: 10.0", 1.0, 100.0, 10.0);
         public DoubleOption wardBlockRadius = new DoubleOption("Radius of the dedicated repulsion ward block. Min: 1.0, Default: 15.0", 1.0, 100.0, 15.0);
         public IntOption maxDelayTicks = new IntOption("Maximum delay ticks allowed for a Delay Node. Min: 1, Max: 100, Default: 6", 1, 100, 6);
+        public IntOption astralCollectorTransferRate = new IntOption("Materia collection rate for Astral Collector under focused beam (Materia per second). Min: 1, Max: 100, Default: 8", 1, 100, 8);
 
         public void validateAll() {
             materiaPerEssence.validate();
@@ -255,6 +263,7 @@ public class EntropicaConfigImpl {
             wardCircleRadiusBase.validate();
             wardBlockRadius.validate();
             maxDelayTicks.validate();
+            astralCollectorTransferRate.validate();
             requireResearchToCraft.validate();
         }
     }
@@ -381,4 +390,11 @@ public class EntropicaConfigImpl {
     public static int getExtractionNodeCooldown() { return data.extractionNodeCooldown.value; }
     public static int getMaxDelayTicks() { return data.maxDelayTicks.value; }
     public static boolean getFancyMagicCircleProcessing() { return data.fancyMagicCircleProcessing.value; }
+    public static boolean getEnableAstralMirrorSkyReflection() { return data.enableAstralMirrorSkyReflection.value; }
+    public static boolean getEnableAstralMirrorParallaxDepth() { return data.enableAstralMirrorParallaxDepth.value; }
+    public static boolean getEnableAstralMirror3DBillboardStars() { return data.enableAstralMirror3DBillboardStars.value; }
+    public static boolean getEnableAstralMirrorLiquidRefraction() { return data.enableAstralMirrorLiquidRefraction.value; }
+    public static boolean getEnableAstralMirrorNebulae() { return data.enableAstralMirrorNebulae.value; }
+    public static boolean getEnableAstralMirrorConstellationLines() { return data.enableAstralMirrorConstellationLines.value; }
+    public static int getAstralCollectorTransferRate() { return data.astralCollectorTransferRate.value; }
 }

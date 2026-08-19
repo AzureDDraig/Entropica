@@ -1,5 +1,8 @@
 package ddraig.net.entropica.block;
 
+import com.mojang.serialization.MapCodec;
+import ddraig.net.entropica.block.entity.AstralMirrorBlockEntity;
+import ddraig.net.entropica.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -7,18 +10,30 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import org.jetbrains.annotations.Nullable;
 
-public class AstralMirrorBlock extends Block {
+public class AstralMirrorBlock extends BaseEntityBlock {
+    public static final MapCodec<AstralMirrorBlock> CODEC = simpleCodec(AstralMirrorBlock::new);
 
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty EAST  = BlockStateProperties.EAST;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
     public static final BooleanProperty WEST  = BlockStateProperties.WEST;
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
 
     public AstralMirrorBlock(Properties properties) {
         super(properties);
@@ -64,5 +79,22 @@ public class AstralMirrorBlock extends Block {
             return state.setValue(WEST, connectsTo(neighborState));
         }
         return state;
+    }
+
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new AstralMirrorBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
+        return level.isClientSide() ? createTickerHelper(blockEntityType, ModBlockEntities.ASTRAL_MIRROR_BE.get(), AstralMirrorBlockEntity::clientTick) : null;
     }
 }

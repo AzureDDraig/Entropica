@@ -193,6 +193,12 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.MOD_CHEST.get(), ddraig.net.entropica.client.renderer.ModChestRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.STATIONARY_BRASS_TELESCOPE_BE.get(), ddraig.net.entropica.client.renderer.StationaryBrassTelescopeRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.REFRACTIVE_ASTRAL_LENS_BE.get(), ddraig.net.entropica.client.renderer.RefractiveAstralLensRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.SECONDARY_ASTRAL_LENS_BE.get(), ddraig.net.entropica.client.renderer.SecondaryAstralLensRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.BEAM_SPLITTER_PRISM_BE.get(), ddraig.net.entropica.client.renderer.BeamSplitterPrismRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ASTRAL_COLLECTOR_BE.get(), ddraig.net.entropica.client.renderer.AstralCollectorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ASTRAL_INFUSION_PEDESTAL_BE.get(), ddraig.net.entropica.client.renderer.AstralInfusionPedestalRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.OPTICAL_RECEIVER_PORT_BE.get(), ddraig.net.entropica.client.renderer.OpticalReceiverPortRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ASTRAL_MIRROR_BE.get(), ddraig.net.entropica.client.renderer.AstralMirrorRenderer::new);
 
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
@@ -346,6 +352,36 @@ public class ModClientEvents {
                 mc.gameRenderer.getMainCamera(),
                 mc.getDeltaTracker().getGameTimeDeltaTicks()
             );
+        }
+    }
+
+    @SubscribeEvent
+    public static void onRenderLevelStageAfterTranslucent(net.neoforged.neoforge.client.event.RenderLevelStageEvent.AfterTranslucentBlocks event) {
+        PoseStack poseStack = event.getPoseStack();
+        if (poseStack != null) {
+            Minecraft mc = Minecraft.getInstance();
+            ddraig.net.entropica.client.renderer.AstrolabeGhostRenderer.renderGhost(
+                poseStack,
+                event.getModelViewMatrix(),
+                mc.gameRenderer.getMainCamera(),
+                mc.getDeltaTracker().getGameTimeDeltaTicks()
+            );
+            ddraig.net.entropica.client.renderer.AstralLinkingWandGuideRenderer.renderGuide(
+                poseStack,
+                event.getModelViewMatrix(),
+                mc.gameRenderer.getMainCamera(),
+                mc.getDeltaTracker().getGameTimeDeltaTicks()
+            );
+        }
+    }
+
+    @SubscribeEvent
+    public static void onRenderGui(net.neoforged.neoforge.client.event.RenderGuiEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            float partialTick = mc.getDeltaTracker().getGameTimeDeltaTicks();
+            ddraig.net.entropica.client.LookingGlassOverlayRenderer.render(event.getGuiGraphics(), partialTick);
+            ddraig.net.entropica.client.gui.OpticalInspectionHudOverlay.render(event.getGuiGraphics(), partialTick);
         }
     }
 }

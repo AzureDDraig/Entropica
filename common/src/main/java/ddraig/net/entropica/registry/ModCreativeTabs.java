@@ -153,6 +153,8 @@ public class ModCreativeTabs {
                 output.accept(ModItems.STAR_CHART_BLANK.get());
                 output.accept(ModItems.STAR_CHART_COMPLETED.get());
                 output.accept(ModItems.ASTRAL_LINKING_WAND.get());
+                output.accept(ModItems.CELESTIAL_ATLAS.get());
+                output.accept(ModItems.MATERIA_FLUX_DISTRIBUTOR_ITEM.get());
                 output.accept(ModItems.MORTAR_AND_PESTLE.get());
                 output.accept(ModItems.CRYSTAL_PICKAXE.get());
                 output.accept(ModItems.CRYSTAL_AXE.get());
@@ -269,6 +271,7 @@ public class ModCreativeTabs {
                path.contains("pump") ||
                path.contains("generator") ||
                path.contains("coupling") ||
+               path.contains("distributor") ||
                path.contains("agitator");
     }
 

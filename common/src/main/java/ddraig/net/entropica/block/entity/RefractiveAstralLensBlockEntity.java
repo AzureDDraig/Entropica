@@ -5,9 +5,14 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.astral.CelestialStarHelper;
 import ddraig.net.entropica.astral.Constellation;
 import ddraig.net.entropica.astral.ModConstellations;
+import ddraig.net.entropica.astral.SupernovaEvent;
+import ddraig.net.entropica.astral.SupernovaManager;
+import ddraig.net.entropica.astral.SupernovaPhase;
+import ddraig.net.entropica.block.PureOpticFiberBlock;
+import ddraig.net.entropica.block.RefractiveAstralLensBlock;
 import ddraig.net.entropica.registry.ModAttachments;
-import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModEffects;
+import ddraig.net.entropica.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -27,6 +32,18 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 
+import ddraig.net.entropica.entity.EssenceOrbEntity;
+import ddraig.net.entropica.item.EssenceItem;
+import ddraig.net.entropica.registry.ModItems;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -34,18 +51,23 @@ import java.util.Set;
 public class RefractiveAstralLensBlockEntity extends BlockEntity {
 
     private float yaw = 0.0f;
-    private float pitch = 45.0f;
+    private float pitch = 0.0f;
     private float prevYaw = 0.0f;
-    private float prevPitch = 45.0f;
+    private float prevPitch = 0.0f;
     private String targetName = "Uncalibrated";
     private boolean isFocused = false;
-
-    // Optical Relay & Beam Passing
     private boolean isRelaying = false;
     private String relayedStarName = null;
-    private int relayTicksLeft = 0;
+    private int relayTimeout = 0;
     private int incomingLinksCount = 0;
-    private float beamDistance = 20.0f;
+    private float beamDistance = 16.0f;
+    private float prevBeamDistance = 16.0f;
+
+    // Calcite Transmutation Tracking (5 seconds / 100 ticks)
+    private BlockPos calciteBlockPos = null;
+    private int calciteTransmuteTicks = 0;
+    private int calciteItemEntityId = -1;
+    private int calciteItemTicks = 0;
 
     public RefractiveAstralLensBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.REFRACTIVE_ASTRAL_LENS_BE.get(), pos, state);
@@ -67,8 +89,19 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
         return isFocused;
     }
 
+    public boolean isBeamActive() {
+        return isFocused && (beamDistance > 0.1f);
+    }
+
     public boolean isRelaying() {
         return isRelaying;
+    }
+
+    public String getActiveStarName() {
+        if (this.isRelaying && this.relayedStarName != null) {
+            return this.relayedStarName;
+        }
+        return this.targetName;
     }
 
     public int getIncomingLinksCount() {
@@ -79,26 +112,12 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
         return beamDistance;
     }
 
-    public boolean isBeamActive() {
-        return isFocused || (isRelaying && relayedStarName != null) || (incomingLinksCount > 0);
-    }
-
-    public String getActiveStarName() {
-        if (isFocused && targetName != null && !targetName.isBlank()) {
-            return targetName;
-        }
-        if (isRelaying && relayedStarName != null && !relayedStarName.isBlank()) {
-            return relayedStarName;
-        }
-        return "Uncalibrated";
-    }
-
     public void setFocus(float yaw, float pitch, String targetName, boolean isFocused) {
         this.prevYaw = this.yaw;
         this.prevPitch = this.pitch;
-        this.yaw = yaw;
-        this.pitch = pitch;
-        this.targetName = (targetName != null && !targetName.isBlank()) ? targetName : "Uncalibrated";
+        this.yaw = (yaw % 360.0f + 360.0f) % 360.0f;
+        this.pitch = Math.max(-85.0f, Math.min(85.0f, pitch));
+        this.targetName = targetName != null ? targetName : "Uncalibrated";
         this.isFocused = isFocused;
         setChanged();
         if (level != null && !level.isClientSide()) {
@@ -107,35 +126,42 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
     }
 
     public void receiveRelayBeam(BlockPos sourcePos, String starName) {
-        this.incomingLinksCount = 1;
-        this.relayTicksLeft = 12;
         this.isRelaying = true;
         this.relayedStarName = starName;
+        this.relayTimeout = 10;
+        this.isFocused = true;
         setChanged();
-        if (level != null && !level.isClientSide()) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-        }
+    }
+
+    public void setIncomingLinksCount(int count) {
+        this.incomingLinksCount = count;
+        setChanged();
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, RefractiveAstralLensBlockEntity be) {
+        be.prevYaw = be.yaw;
+        be.prevPitch = be.pitch;
+
+        if (be.relayTimeout > 0) {
+            be.relayTimeout--;
+            if (be.relayTimeout == 0) {
+                be.isRelaying = false;
+                be.relayedStarName = null;
+                be.setChanged();
+                if (!level.isClientSide()) {
+                    level.sendBlockUpdated(pos, state, state, 3);
+                }
+            }
+        }
+
         if (level.isClientSide()) {
             return;
         }
 
-        if (be.relayTicksLeft > 0) {
-            be.relayTicksLeft--;
-            if (be.relayTicksLeft == 0) {
-                be.incomingLinksCount = 0;
-                be.isRelaying = false;
-                be.relayedStarName = null;
-                be.setChanged();
-                level.sendBlockUpdated(pos, state, state, 3);
-            }
-        }
+        boolean hasActiveBeam = be.isFocused;
+        String currentStar = be.getActiveStarName();
 
-        boolean active = be.isBeamActive();
-        if (active) {
-            String currentStar = be.getActiveStarName();
+        if (hasActiveBeam) {
             float yawRad = (float) Math.toRadians(be.yaw);
             float pitchRad = (float) Math.toRadians(-be.pitch);
             Vec3 lookDir = new Vec3(
@@ -144,44 +170,65 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                     Mth.cos(yawRad) * Mth.cos(pitchRad)
             ).normalize();
 
-            Vec3 start = Vec3.atCenterOf(pos).add(0, 0.4375, 0);
-            Vec3 end = start.add(lookDir.scale(20.0));
+            Vec3 start = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5625, pos.getZ() + 0.5);
+            double maxDist = 32.0;
+            Vec3 end = start.add(lookDir.scale(maxDist));
 
-            // 1. Raycast for solid world blocks
-            BlockHitResult blockHit = level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
-            double closestDist = 20.0;
+            // 1. Raycast for solid world terrain blocks
+            BlockHitResult blockHit = level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, CollisionContext.empty()));
+            double closestDist = maxDist;
+            BlockEntity closestBE = null;
             if (blockHit.getType() == HitResult.Type.BLOCK && !blockHit.getBlockPos().equals(pos) && !blockHit.getBlockPos().equals(pos.below())) {
                 closestDist = start.distanceTo(blockHit.getLocation());
+                closestBE = level.getBlockEntity(blockHit.getBlockPos());
             }
 
-            // 2. Scan along the beam ray path for other Refractive Astral Lenses (terminates at lens center disc)
-            RefractiveAstralLensBlockEntity hitLens = null;
+            // 2. Scan along the beam ray path in 0.2m increments for optical components or optic fibers
             Set<BlockPos> checkedPositions = new HashSet<>();
-            for (double step = 0.5; step <= closestDist; step += 0.5) {
+            for (double step = 0.2; step <= closestDist + 0.5; step += 0.2) {
                 Vec3 samplePoint = start.add(lookDir.scale(step));
                 BlockPos p = BlockPos.containing(samplePoint);
                 if (checkedPositions.add(p)) {
                     if (p.equals(pos) || p.equals(pos.below())) continue;
-                    if (level.getBlockEntity(p) instanceof RefractiveAstralLensBlockEntity otherLens) {
-                        Vec3 otherCenter = Vec3.atCenterOf(p).add(0, 0.4375, 0);
-                        AABB lensBox = new AABB(
-                                p.getX() + 0.05, p.getY(), p.getZ() + 0.05,
-                                p.getX() + 0.95, p.getY() + 0.95, p.getZ() + 0.95
-                        );
-                        Optional<Vec3> optHit = lensBox.clip(start, end);
-                        if (optHit.isPresent()) {
-                            double distToCenter = start.distanceTo(otherCenter);
-                            if (distToCenter < closestDist) {
+
+                    BlockState blockState = level.getBlockState(p);
+                    net.minecraft.world.level.block.Block block = blockState.getBlock();
+                    BlockEntity targetBE = level.getBlockEntity(p);
+
+                    if (targetBE != null) {
+                        boolean isOptic = (targetBE instanceof SecondaryAstralLensBlockEntity ||
+                                           targetBE instanceof RefractiveAstralLensBlockEntity ||
+                                           targetBE instanceof BeamSplitterPrismBlockEntity ||
+                                           targetBE instanceof AstralInfusionPedestalBlockEntity ||
+                                           targetBE instanceof OpticalTransmitterPortBlockEntity ||
+                                           targetBE instanceof AstralCollectorBlockEntity);
+
+                        if (isOptic) {
+                            double centerY = (targetBE instanceof SecondaryAstralLensBlockEntity || targetBE instanceof RefractiveAstralLensBlockEntity) ? 0.5625 : 0.5;
+                            Vec3 targetCenter = new Vec3(p.getX() + 0.5, p.getY() + centerY, p.getZ() + 0.5);
+                            double distToCenter = start.distanceTo(targetCenter);
+                            if (distToCenter <= maxDist) {
                                 closestDist = distToCenter;
-                                hitLens = otherLens;
+                                closestBE = targetBE;
+                                break; // Terminate ray directly at the center of the first component block
                             }
+                        }
+                    } else if (block instanceof PureOpticFiberBlock) {
+                        Vec3 fiberCenter = new Vec3(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5);
+                        double distToFiber = start.distanceTo(fiberCenter);
+                        if (distToFiber <= maxDist) {
+                            closestDist = distToFiber;
+                            closestBE = null;
+                            // Inject starlight flux directly into the optic fiber network
+                            OpticalTransmitterPortBlockEntity.propagateFiberNetwork(level, p, currentStar);
+                            break; // Terminate ray on contact with the optic fiber
                         }
                     }
                 }
             }
 
-            // 3. Scan for Living Entities intercepting the beam (pausing the beam and applying Materia Toxicity)
-            AABB beamBounds = new AABB(start, end).inflate(0.5);
+            // 3. Scan for Living Entities intercepting the beam
+            AABB beamBounds = new AABB(start, start.add(lookDir.scale(closestDist))).inflate(0.4);
             LivingEntity blockingEntity = null;
             for (LivingEntity living : level.getEntitiesOfClass(LivingEntity.class, beamBounds, e -> !e.isSpectator() && e.isAlive())) {
                 AABB entityBox = living.getBoundingBox().inflate(0.12);
@@ -191,27 +238,137 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                     if (entityDist < closestDist) {
                         closestDist = entityDist;
                         blockingEntity = living;
-                        hitLens = null; // Beam blocked by entity before reaching downstream lens
+                        closestBE = null;
                     }
                 }
             }
 
+            // 4. Check for Calcite Block Transmutation (after 5 seconds / 100 ticks of direct beam contact)
+            if (blockingEntity == null && closestBE == null && blockHit.getType() == HitResult.Type.BLOCK) {
+                BlockPos hitBlockPos = blockHit.getBlockPos();
+                if (level.getBlockState(hitBlockPos).is(Blocks.CALCITE)) {
+                    if (hitBlockPos.equals(be.calciteBlockPos)) {
+                        be.calciteTransmuteTicks++;
+                        if (level instanceof ServerLevel serverLevel) {
+                            if (be.calciteTransmuteTicks % 4 == 0) {
+                                serverLevel.sendParticles(ParticleTypes.ENCHANT, hitBlockPos.getX() + 0.5, hitBlockPos.getY() + 0.5, hitBlockPos.getZ() + 0.5, 4, 0.3, 0.3, 0.3, 0.05);
+                                serverLevel.sendParticles(ParticleTypes.END_ROD, hitBlockPos.getX() + 0.5, hitBlockPos.getY() + 0.5, hitBlockPos.getZ() + 0.5, 1, 0.1, 0.1, 0.1, 0.02);
+                            }
+                            if (be.calciteTransmuteTicks >= 100) { // 5.0 seconds (100 ticks)
+                                level.destroyBlock(hitBlockPos, false);
+                                EssenceType starEssence = resolveStarEssence(currentStar);
+                                ItemStack orbStack = new ItemStack(ModItems.AVERAGE_ESSENCE.get());
+                                EssenceItem.setEssenceType(orbStack, starEssence);
+                                EssenceOrbEntity orb = new EssenceOrbEntity(
+                                        level, hitBlockPos.getX() + 0.5, hitBlockPos.getY() + 0.5, hitBlockPos.getZ() + 0.5, orbStack
+                                );
+                                level.addFreshEntity(orb);
+                                serverLevel.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, hitBlockPos.getX() + 0.5, hitBlockPos.getY() + 0.5, hitBlockPos.getZ() + 0.5, 24, 0.4, 0.4, 0.4, 0.15);
+                                serverLevel.sendParticles(ParticleTypes.END_ROD, hitBlockPos.getX() + 0.5, hitBlockPos.getY() + 0.5, hitBlockPos.getZ() + 0.5, 12, 0.3, 0.3, 0.3, 0.1);
+                                serverLevel.playSound(null, hitBlockPos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.3f, 1.0f);
+                                serverLevel.playSound(null, hitBlockPos, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.9f, 1.5f);
+                                be.calciteTransmuteTicks = 0;
+                                be.calciteBlockPos = null;
+                            }
+                        }
+                    } else {
+                        be.calciteBlockPos = hitBlockPos;
+                        be.calciteTransmuteTicks = 1;
+                    }
+                } else {
+                    be.calciteTransmuteTicks = 0;
+                    be.calciteBlockPos = null;
+                }
+            } else {
+                be.calciteTransmuteTicks = 0;
+                be.calciteBlockPos = null;
+            }
+
+            // 5. Check for Dropped Calcite ItemEntity Transmutation (after 5 seconds / 100 ticks)
+            ItemEntity targetCalciteItem = null;
+            for (ItemEntity itemEntity : level.getEntitiesOfClass(ItemEntity.class, beamBounds, e -> e.isAlive() && e.getItem().is(Items.CALCITE))) {
+                AABB itemBox = itemEntity.getBoundingBox().inflate(0.15);
+                Optional<Vec3> hitOpt = itemBox.clip(start, end);
+                if (hitOpt.isPresent() && start.distanceTo(hitOpt.get()) <= closestDist) {
+                    targetCalciteItem = itemEntity;
+                    break;
+                }
+            }
+
+            if (targetCalciteItem != null) {
+                if (be.calciteItemEntityId == targetCalciteItem.getId()) {
+                    be.calciteItemTicks++;
+                    if (level instanceof ServerLevel serverLevel) {
+                        if (be.calciteItemTicks % 4 == 0) {
+                            serverLevel.sendParticles(ParticleTypes.ENCHANT, targetCalciteItem.getX(), targetCalciteItem.getY() + 0.2, targetCalciteItem.getZ(), 3, 0.2, 0.2, 0.2, 0.05);
+                        }
+                        if (be.calciteItemTicks >= 100) {
+                            ItemStack stack = targetCalciteItem.getItem();
+                            stack.shrink(1);
+                            if (stack.isEmpty()) {
+                                targetCalciteItem.discard();
+                            } else {
+                                targetCalciteItem.setItem(stack);
+                            }
+                            EssenceType starEssence = resolveStarEssence(currentStar);
+                            ItemStack orbStack = new ItemStack(ModItems.AVERAGE_ESSENCE.get());
+                            EssenceItem.setEssenceType(orbStack, starEssence);
+                            EssenceOrbEntity orb = new EssenceOrbEntity(
+                                    level, targetCalciteItem.getX(), targetCalciteItem.getY() + 0.2, targetCalciteItem.getZ(), orbStack
+                            );
+                            level.addFreshEntity(orb);
+                            serverLevel.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, targetCalciteItem.getX(), targetCalciteItem.getY() + 0.2, targetCalciteItem.getZ(), 16, 0.3, 0.3, 0.3, 0.1);
+                            serverLevel.playSound(null, targetCalciteItem.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.2f, 1.0f);
+                            serverLevel.playSound(null, targetCalciteItem.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.8f, 1.4f);
+                            be.calciteItemTicks = 0;
+                            be.calciteItemEntityId = -1;
+                        }
+                    }
+                } else {
+                    be.calciteItemEntityId = targetCalciteItem.getId();
+                    be.calciteItemTicks = 1;
+                }
+            } else {
+                be.calciteItemTicks = 0;
+                be.calciteItemEntityId = -1;
+            }
+
+            // 6. Propagate optical effects exclusively to the closest interceptor
             if (blockingEntity != null) {
                 EssenceType starEssence = resolveStarEssence(currentStar);
                 blockingEntity.addEffect(new MobEffectInstance(ModEffects.MATERIA_TOXICITY, 100, 0, false, true, true));
                 ModAttachments.setToxicitySource(blockingEntity, starEssence.name());
-            } else if (hitLens != null) {
-                hitLens.receiveRelayBeam(pos, currentStar);
+            } else if (closestBE != null) {
+                if (closestBE instanceof RefractiveAstralLensBlockEntity otherLens) {
+                    otherLens.receiveRelayBeam(pos, currentStar);
+                } else if (closestBE instanceof SecondaryAstralLensBlockEntity otherSecondaryLens) {
+                    otherSecondaryLens.receiveRelayBeam(pos, currentStar);
+                } else if (closestBE instanceof BeamSplitterPrismBlockEntity prism) {
+                    prism.receiveRelayedBeam(pos, currentStar);
+                } else if (closestBE instanceof AstralInfusionPedestalBlockEntity pedestal) {
+                    pedestal.receiveIrradiation(currentStar);
+                } else if (closestBE instanceof OpticalTransmitterPortBlockEntity transmitter) {
+                    transmitter.receiveOpticalBeam(currentStar);
+                } else if (closestBE instanceof AstralCollectorBlockEntity collector) {
+                    EssenceType starEssence = resolveStarEssence(currentStar);
+                    collector.receiveStarlightBeam(currentStar, starEssence);
+                }
             }
 
-            if (Math.abs(be.beamDistance - (float) closestDist) > 0.05f) {
-                be.beamDistance = (float) closestDist;
+            be.beamDistance = (float) closestDist;
+            if (Math.abs(be.prevBeamDistance - be.beamDistance) > 0.05f || level.getGameTime() % 10 == 0) {
+                be.prevBeamDistance = be.beamDistance;
                 be.setChanged();
                 level.sendBlockUpdated(pos, state, state, 3);
             }
         } else {
+            be.calciteTransmuteTicks = 0;
+            be.calciteBlockPos = null;
+            be.calciteItemTicks = 0;
+            be.calciteItemEntityId = -1;
             if (be.beamDistance != 0.0f) {
                 be.beamDistance = 0.0f;
+                be.prevBeamDistance = 0.0f;
                 be.setChanged();
                 level.sendBlockUpdated(pos, state, state, 3);
             }
@@ -222,21 +379,49 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
         if (starName == null || starName.isEmpty() || starName.equals("Uncalibrated")) {
             return EssenceType.ASTRAL;
         }
+        String lower = starName.toLowerCase();
+
+        // 1. Supernova Remnants & Instabilities
+        for (SupernovaEvent se : SupernovaManager.getAllEvents()) {
+            if (se.remnantTitle().equalsIgnoreCase(starName) || se.starNodeId().equalsIgnoreCase(starName)) {
+                return (se.phase() == SupernovaPhase.REMNANT) ? se.remnantEssence() : se.progenitorEssence();
+            }
+        }
+
+        // 2. Wandering Planets (Locked)
+        if (lower.contains("sylva")) return EssenceType.VITAE;
+        if (lower.contains("tartarus")) return EssenceType.MAGMA;
+        if (lower.contains("aurelia")) return EssenceType.RADIANT;
+        if (lower.contains("noxus")) return EssenceType.UMBRAL;
+        if (lower.contains("chiron")) return EssenceType.EARTH;
+
+        // 3. Comets (Locked)
+        if (lower.contains("zephyros")) return EssenceType.STORM;
+        if (lower.contains("borealis")) return EssenceType.GLACIAL;
+        if (lower.contains("ouroboros")) return EssenceType.PYRE;
+
+        // 4. Constellations & Constellation Star Nodes (Locked)
+        for (Constellation c : ModConstellations.getAllConstellations()) {
+            if (lower.contains(c.getId().getPath().replace("_", " ").toLowerCase()) ||
+                lower.contains(c.getId().getPath().toLowerCase())) {
+                return c.getEssenceType();
+            }
+        }
+
+        // 5. Landmark Stars (Randomized)
         for (CelestialStarHelper.LandmarkStar ls : CelestialStarHelper.LANDMARK_STARS) {
             if (ls.name().equalsIgnoreCase(starName)) {
                 return ls.essenceType();
             }
         }
+
+        // 6. Ambient Stars (960 stars with randomly chosen essence types)
         for (CelestialStarHelper.AmbientStar as : CelestialStarHelper.AMBIENT_STARS) {
             if (as.name().equalsIgnoreCase(starName)) {
                 return as.essenceType();
             }
         }
-        for (Constellation c : ModConstellations.getAllConstellations()) {
-            if (starName.toLowerCase().contains(c.getId().getPath().replace("_", " ").toLowerCase())) {
-                return c.getEssenceType();
-            }
-        }
+
         return EssenceType.ASTRAL;
     }
 
@@ -278,7 +463,10 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
         input.read("IsFocused", Codec.BOOL).ifPresent(f -> this.isFocused = f);
         input.read("IsRelaying", Codec.BOOL).ifPresent(r -> this.isRelaying = r);
         input.read("IncomingLinksCount", Codec.INT).ifPresent(c -> this.incomingLinksCount = c);
-        input.read("BeamDistance", Codec.FLOAT).ifPresent(d -> this.beamDistance = d);
+        input.read("BeamDistance", Codec.FLOAT).ifPresent(d -> {
+            this.beamDistance = d;
+            this.prevBeamDistance = d;
+        });
         input.read("RelayedStarName", Codec.STRING).ifPresent(rn -> this.relayedStarName = rn);
     }
 

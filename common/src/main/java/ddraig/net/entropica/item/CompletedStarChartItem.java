@@ -33,10 +33,8 @@ public class CompletedStarChartItem extends Item {
         if (constellation != null) {
             String title = Component.translatable(constellation.getUnlocalizedName()).getString();
             String essCode = constellation.getEssenceType().getColorCode();
-            String essFormatted = constellation.getEssenceType().getFormattedName();
             tooltipComponents.accept(Component.literal("§6✦ Constellation: " + essCode + title));
             tooltipComponents.accept(Component.literal("§eTier: §f" + constellation.getTier().getDisplayName()));
-            tooltipComponents.accept(Component.literal("§dEssence: §f" + essFormatted));
             tooltipComponents.accept(Component.literal("§bSpectral Class: §f" + constellation.getPrimarySpectralClass().getTitle()));
             tooltipComponents.accept(Component.literal("§7Ritual: §a" + constellation.getRitualEffect()));
         } else {

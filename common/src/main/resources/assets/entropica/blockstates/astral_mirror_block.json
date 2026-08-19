@@ -1,9 +1,66 @@
 {
-  "multipart": [
-    {
-      "apply": {
-        "model": "entropica:block/astral_mirror_center"
-      }
+  "variants": {
+    "east=false,north=false,south=false,west=false": {
+      "model": "entropica:block/astral_mirror_single"
+    },
+    "east=false,north=true,south=false,west=false": {
+      "model": "entropica:block/astral_mirror_end",
+      "y": 0
+    },
+    "east=true,north=false,south=false,west=false": {
+      "model": "entropica:block/astral_mirror_end",
+      "y": 90
+    },
+    "east=false,north=false,south=true,west=false": {
+      "model": "entropica:block/astral_mirror_end",
+      "y": 180
+    },
+    "east=false,north=false,south=false,west=true": {
+      "model": "entropica:block/astral_mirror_end",
+      "y": 270
+    },
+    "east=false,north=true,south=true,west=false": {
+      "model": "entropica:block/astral_mirror_straight",
+      "y": 0
+    },
+    "east=true,north=false,south=false,west=true": {
+      "model": "entropica:block/astral_mirror_straight",
+      "y": 90
+    },
+    "east=false,north=true,south=false,west=true": {
+      "model": "entropica:block/astral_mirror_corner",
+      "y": 0
+    },
+    "east=true,north=true,south=false,west=false": {
+      "model": "entropica:block/astral_mirror_corner",
+      "y": 90
+    },
+    "east=true,north=false,south=true,west=false": {
+      "model": "entropica:block/astral_mirror_corner",
+      "y": 180
+    },
+    "east=false,north=false,south=true,west=true": {
+      "model": "entropica:block/astral_mirror_corner",
+      "y": 270
+    },
+    "east=true,north=true,south=false,west=true": {
+      "model": "entropica:block/astral_mirror_side",
+      "y": 0
+    },
+    "east=true,north=true,south=true,west=false": {
+      "model": "entropica:block/astral_mirror_side",
+      "y": 90
+    },
+    "east=true,north=false,south=true,west=true": {
+      "model": "entropica:block/astral_mirror_side",
+      "y": 180
+    },
+    "east=false,north=true,south=true,west=true": {
+      "model": "entropica:block/astral_mirror_side",
+      "y": 270
+    },
+    "east=true,north=true,south=true,west=true": {
+      "model": "entropica:block/astral_mirror_center"
     }
-  ]
+  }
 }

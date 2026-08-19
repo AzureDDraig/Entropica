@@ -94,4 +94,11 @@ public class EntropicaConfigImpl {
     public static int getWardBlockRadius() { return EntropicaNeoForgeConfig.WARD_BLOCK_RADIUS.get().intValue(); }
     public static int getExtractionNodeCooldown() { return EntropicaNeoForgeConfig.EXTRACTION_NODE_COOLDOWN.get(); }
     public static int getMaxDelayTicks() { return EntropicaNeoForgeConfig.MAX_DELAY_TICKS.get(); }
+    public static boolean getEnableAstralMirrorSkyReflection() { return EntropicaNeoForgeConfig.ENABLE_ASTRAL_MIRROR_SKY_REFLECTION.get(); }
+    public static boolean getEnableAstralMirrorParallaxDepth() { return EntropicaNeoForgeConfig.ENABLE_ASTRAL_MIRROR_PARALLAX_DEPTH.get(); }
+    public static boolean getEnableAstralMirror3DBillboardStars() { return EntropicaNeoForgeConfig.ENABLE_ASTRAL_MIRROR_3D_BILLBOARD_STARS.get(); }
+    public static boolean getEnableAstralMirrorLiquidRefraction() { return EntropicaNeoForgeConfig.ENABLE_ASTRAL_MIRROR_LIQUID_REFRACTION.get(); }
+    public static boolean getEnableAstralMirrorNebulae() { return EntropicaNeoForgeConfig.ENABLE_ASTRAL_MIRROR_NEBULAE.get(); }
+    public static boolean getEnableAstralMirrorConstellationLines() { return EntropicaNeoForgeConfig.ENABLE_ASTRAL_MIRROR_CONSTELLATION_LINES.get(); }
+    public static int getAstralCollectorTransferRate() { return EntropicaNeoForgeConfig.ASTRAL_COLLECTOR_TRANSFER_RATE.get(); }
 }
