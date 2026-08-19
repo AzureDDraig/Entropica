@@ -1,18 +1,17 @@
 package ddraig.net.entropica.astral;
 
+import ddraig.net.entropica.network.SyncAstralProgressPayload;
 import ddraig.net.entropica.util.EntityHelper;
+import dev.architectury.networking.NetworkManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerAstralProgress {
@@ -30,9 +29,14 @@ public class PlayerAstralProgress {
 
     public static boolean isDiscovered(Player player, Constellation constellation) {
         if (constellation == null) return false;
+        return isDiscovered(player, constellation.getId());
+    }
+
+    public static boolean isDiscovered(Player player, ResourceLocation constellationId) {
+        if (constellationId == null) return false;
         if (player == null || player.level().isClientSide()) {
             synchronized (CLIENT_DISCOVERED) {
-                return CLIENT_DISCOVERED.contains(constellation.getId());
+                return CLIENT_DISCOVERED.contains(constellationId);
             }
         }
 
@@ -41,17 +45,88 @@ public class PlayerAstralProgress {
             loadFromPlayer(player);
             set = DISCOVERED.get(player.getUUID());
         }
-        return set != null && set.contains(constellation.getId());
+        return set != null && set.contains(constellationId);
     }
 
     public static void discover(Player player, Constellation constellation) {
         if (constellation == null) return;
-        CLIENT_DISCOVERED.add(constellation.getId());
+        discover(player, constellation.getId());
+    }
+
+    public static void discover(Player player, ResourceLocation constellationId) {
+        if (constellationId == null) return;
+        CLIENT_DISCOVERED.add(constellationId);
 
         if (player != null && !player.level().isClientSide()) {
-            DISCOVERED.computeIfAbsent(player.getUUID(), k -> Collections.synchronizedSet(new HashSet<>())).add(constellation.getId());
+            DISCOVERED.computeIfAbsent(player.getUUID(), k -> Collections.synchronizedSet(new HashSet<>())).add(constellationId);
             saveToPlayer(player);
+            if (player instanceof ServerPlayer sp) {
+                sync(sp);
+            }
         }
+    }
+
+    public static boolean undiscover(Player player, Constellation constellation) {
+        if (constellation == null) return false;
+        return undiscover(player, constellation.getId());
+    }
+
+    public static boolean undiscover(Player player, ResourceLocation constellationId) {
+        if (constellationId == null) return false;
+        CLIENT_DISCOVERED.remove(constellationId);
+
+        if (player != null && !player.level().isClientSide()) {
+            Set<ResourceLocation> set = DISCOVERED.get(player.getUUID());
+            if (set != null) {
+                boolean removed = set.remove(constellationId);
+                saveToPlayer(player);
+                if (player instanceof ServerPlayer sp) {
+                    sync(sp);
+                }
+                return removed;
+            }
+        }
+        return false;
+    }
+
+    public static void clearDiscovered(Player player) {
+        CLIENT_DISCOVERED.clear();
+        if (player != null && !player.level().isClientSide()) {
+            Set<ResourceLocation> set = DISCOVERED.get(player.getUUID());
+            if (set != null) {
+                set.clear();
+            }
+            saveToPlayer(player);
+            if (player instanceof ServerPlayer sp) {
+                sync(sp);
+            }
+        }
+    }
+
+    public static void clearPersonal(Player player) {
+        CLIENT_DISCOVERED.clear();
+        CLIENT_CHARTED_CONNECTIONS.clear();
+        if (player != null && !player.level().isClientSide()) {
+            Set<ResourceLocation> disc = DISCOVERED.get(player.getUUID());
+            if (disc != null) {
+                disc.clear();
+            }
+            Set<String> charted = CHARTED_CONNECTIONS.get(player.getUUID());
+            if (charted != null) {
+                charted.clear();
+            }
+            saveToPlayer(player);
+            if (player instanceof ServerPlayer sp) {
+                sync(sp);
+            }
+        }
+    }
+
+    public static void sync(ServerPlayer player) {
+        if (player == null) return;
+        List<ResourceLocation> discovered = new ArrayList<>(getDiscovered(player));
+        List<String> charted = new ArrayList<>(getChartedConnections(player));
+        NetworkManager.sendToPlayer(player, new SyncAstralProgressPayload(discovered, charted));
     }
 
     public static Set<ResourceLocation> getDiscovered(Player player) {

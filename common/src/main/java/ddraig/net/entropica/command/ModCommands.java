@@ -12,6 +12,7 @@ public class ModCommands {
             GrotSummonCommands.register(dispatcher);
             VeilFoxCommands.register(dispatcher);
             SupernovaCommand.register(dispatcher);
+            ConstellationCommand.register(dispatcher);
         });
     }
 }

@@ -99,6 +99,10 @@
   - **Full Block Translation Coverage (`block.entropica.*`)**: Added missing `block.entropica.<name>` entries for all 47 machines, multiblock components, ritual bowls, and decorative blocks (previously only existing under `item.entropica.*`), ensuring placed blocks, HUDs, WAILA/Jade tooltips, and death messages resolve localized names without raw string fallbacks.
   - **Entity, Effect & Potion Localization**: Registered missing translation keys for living entities (`ashen_stalker`, `eidolic_shadow`, `essence_node`, `essence_orb`, `grot`, `veil_fox`, `veil_fox_afterimage`), status effects (`materia_regeneration`, `materia_resonance`, `astral_ward`, `void_tear`, `haze`, `paralyzed`, `bleeding`), and custom potions (`vitae_nectar`, `pyre_nectar` across standard, splash, lingering, and tipped arrow formats).
   - **Complete 24-Language Synchronization**: Fully synchronized 2,550 keys across all 24 translation files (`en_us.json`, `de_de.json`, `fr_fr.json`, `es_es.json`, `es_mx.json`, `zh_cn.json`, `zh_tw.json`, `ru_ru.json`, `ja_jp.json`, `ko_kr.json`, `pt_br.json`, `it_it.json`, `pl_pl.json`, `nl_nl.json`, `sv_se.json`, `no_no.json`, `da_dk.json`, `fi_fi.json`, `cs_cz.json`, `hu_hu.json`, `uk_ua.json`, `vi_vn.json`, `tr_tr.json`, `th_th.json`) with zero missing entries.
+- **Module 21: Astral Constellation Progression Management Command (`ConstellationCommand.java`, `PlayerAstralProgress.java`)**:
+  - **Command Syntax**: `/entropica astral constellations (personal|nonpersonal) (clear|remove|add) [constellation] [targets]`.
+  - **Personal Scope**: Supports `clear [targets]` to wipe personal star chart connections and discovered constellations for specified players, immediately synchronizing state via `SyncAstralProgressPayload`.
+  - **Nonpersonal Scope**: Supports `clear [targets]`, `add <constellation> [targets]`, and `remove <constellation> [targets]` with comprehensive Brigadier tab-completion for all 50 registered constellation identifiers.
 
 ### Phase 3: Astronomical Optics, Logistics & Scribing
 - **Pure Optic Fiber Multipart Dynamic 6-Way Connection System (`PureOpticFiberBlock.java`)**:
