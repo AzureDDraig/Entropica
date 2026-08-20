@@ -1,3 +1,17 @@
+## Build 000-1-26-232
+
+### Phase 5: Complete Celestial OKF Vault & Lore Book Synchronization
+- **Module 1: 50 Constellation OKF Entity Documentation (`wiki/entities/constellations/`)**:
+  - Generated comprehensive OKF entity files for all 50 celestial constellations across 5 tiers (Fundamental 16, Advanced 16, Master 8, Mythic 4, Transcendent 6).
+  - Documented complete astronomical profiles including identifiers (`entropica:<name>`), Latin & English nomenclature, Essence aspect attunements, base flux rates ($2.0 \to 25.0\text{ flux/t}$), spectral classes, lunar phase windows, minimum optical zoom hardware, star node/ribbon geometries, and shared-node coordinate conflicts.
+- **Module 2: Master Lore Book Expansion (`celestial_tome_vol2_the_twenty_four_constellations.md`)**:
+  - Expanded Volume II to **Volume II: Tales of the Fifty Firmaments**, incorporating 26 new narrative chapters (Chapters XVI to XLI) chronicling the mythos, discovering scholars, and ritual wonders of every newly discovered constellation.
+  - Synchronized references across Volume I (*The Shattered Dome*) and Volume VI (*The Transcendent Firmament*).
+- **Module 3: Astral Concepts & Domain Map of Content (MOC)**:
+  - Updated [[concepts/entropica - astral materia]] Section 2 to reflect the **50 Constellation Pantheon (5 Tiers)** with exhaustive data tables and conflict mapping.
+  - Created `indices/Constellations & Astronomy Index.md` linking all 50 constellations, 5 wandering planets, 3 comets, supernovae, and the 9 master lore volumes.
+  - Integrated the new Astronomy MOC into `indices/Entropica Main Index.md` and updated `wiki/articles/astral_astronomy_guide.md`.
+
 ## Build 000-1-26-231
 
 ### Phase 4: Astral Quality of Life (QoL) Suite across Optics, Scribing & Logistics
