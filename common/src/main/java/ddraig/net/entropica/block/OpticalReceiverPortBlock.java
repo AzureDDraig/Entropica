@@ -56,4 +56,19 @@ public class OpticalReceiverPortBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
         return createTickerHelper(blockEntityType, ModBlockEntities.OPTICAL_RECEIVER_PORT_BE.get(), OpticalReceiverPortBlockEntity::tick);
     }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof OpticalReceiverPortBlockEntity receiverBE) {
+            if (receiverBE.isEmitting()) {
+                return (int) Math.max(1, Math.min(15, Math.round(receiverBE.getSignalQuality() * 15.0f)));
+            }
+        }
+        return 0;
+    }
 }

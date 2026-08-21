@@ -5,6 +5,7 @@ import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -21,7 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class AstralInfusionPedestalBlockEntity extends BlockEntity {
+public class AstralInfusionPedestalBlockEntity extends BlockEntity implements net.minecraft.world.Container {
 
     private ItemStack heldItem = ItemStack.EMPTY;
     private boolean isIrradiated = false;
@@ -46,6 +47,68 @@ public class AstralInfusionPedestalBlockEntity extends BlockEntity {
         if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    // --- net.minecraft.world.Container Implementation (Automated Hopper/Pipe Insertion) ---
+    @Override
+    public int getContainerSize() {
+        return 1;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return heldItem.isEmpty();
+    }
+
+    @Override
+    public ItemStack getItem(int slot) {
+        return slot == 0 ? heldItem : ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack removeItem(int slot, int amount) {
+        if (slot == 0 && !heldItem.isEmpty()) {
+            ItemStack split = heldItem.split(amount);
+            if (heldItem.isEmpty()) heldItem = ItemStack.EMPTY;
+            setChanged();
+            if (level != null && !level.isClientSide()) {
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+            }
+            return split;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack removeItemNoUpdate(int slot) {
+        if (slot == 0) {
+            ItemStack stack = heldItem;
+            heldItem = ItemStack.EMPTY;
+            return stack;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        if (slot == 0) {
+            setHeldItem(stack);
+        }
+    }
+
+    @Override
+    public boolean stillValid(net.minecraft.world.entity.player.Player player) {
+        return net.minecraft.world.Container.stillValidBlockEntity(this, player);
+    }
+
+    @Override
+    public void clearContent() {
+        setHeldItem(ItemStack.EMPTY);
+    }
+
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return slot == 0 && heldItem.isEmpty() && infusionProgress == 0;
     }
 
     public boolean isIrradiated() {
@@ -116,6 +179,9 @@ public class AstralInfusionPedestalBlockEntity extends BlockEntity {
                         }
                     }
 
+                    // Downward Container Auto-Ejection (Logistics QoL)
+                    tryEjectDownward(level, pos, be);
+
                     be.setChanged();
                     level.sendBlockUpdated(pos, state, state, 3);
                 }
@@ -123,6 +189,64 @@ public class AstralInfusionPedestalBlockEntity extends BlockEntity {
         } else {
             be.infusionProgress = Math.max(0, be.infusionProgress - 1);
         }
+    }
+
+    private static void tryEjectDownward(Level level, BlockPos pos, AstralInfusionPedestalBlockEntity be) {
+        if (be.heldItem.isEmpty()) return;
+        BlockPos belowPos = pos.below();
+        BlockEntity belowBE = level.getBlockEntity(belowPos);
+        if (belowBE instanceof net.minecraft.world.Container container) {
+            ItemStack remaining = insertIntoContainer(container, be.heldItem, Direction.UP);
+            be.heldItem = remaining;
+            be.setChanged();
+            level.sendBlockUpdated(pos, be.getBlockState(), be.getBlockState(), 3);
+        }
+    }
+
+    private static ItemStack insertIntoContainer(net.minecraft.world.Container container, ItemStack stack, Direction side) {
+        if (stack.isEmpty()) return ItemStack.EMPTY;
+        ItemStack toInsert = stack.copy();
+
+        if (container instanceof net.minecraft.world.WorldlyContainer worldly) {
+            int[] slots = worldly.getSlotsForFace(side != null ? side : Direction.UP);
+            for (int slot : slots) {
+                if (worldly.canPlaceItemThroughFace(slot, toInsert, side)) {
+                    ItemStack slotStack = worldly.getItem(slot);
+                    if (slotStack.isEmpty()) {
+                        worldly.setItem(slot, toInsert);
+                        return ItemStack.EMPTY;
+                    } else if (ItemStack.isSameItemSameComponents(slotStack, toInsert)) {
+                        int max = Math.min(worldly.getMaxStackSize(), slotStack.getMaxStackSize());
+                        int transfer = Math.min(toInsert.getCount(), max - slotStack.getCount());
+                        if (transfer > 0) {
+                            slotStack.grow(transfer);
+                            toInsert.shrink(transfer);
+                            if (toInsert.isEmpty()) return ItemStack.EMPTY;
+                        }
+                    }
+                }
+            }
+        } else {
+            int size = container.getContainerSize();
+            for (int slot = 0; slot < size; slot++) {
+                if (container.canPlaceItem(slot, toInsert)) {
+                    ItemStack slotStack = container.getItem(slot);
+                    if (slotStack.isEmpty()) {
+                        container.setItem(slot, toInsert);
+                        return ItemStack.EMPTY;
+                    } else if (ItemStack.isSameItemSameComponents(slotStack, toInsert)) {
+                        int max = Math.min(container.getMaxStackSize(), slotStack.getMaxStackSize());
+                        int transfer = Math.min(toInsert.getCount(), max - slotStack.getCount());
+                        if (transfer > 0) {
+                            slotStack.grow(transfer);
+                            toInsert.shrink(transfer);
+                            if (toInsert.isEmpty()) return ItemStack.EMPTY;
+                        }
+                    }
+                }
+            }
+        }
+        return toInsert;
     }
 
     public static ItemStack getTransmutationResult(ItemStack input, String starName) {

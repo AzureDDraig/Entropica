@@ -524,6 +524,7 @@ public class CelestialSkyRenderer {
         // C. Render All Constellation Star Vertices (All Tiers Visible, Slightly Dimmer Per Tier)
         for (Constellation constellation : visibleConstellations) {
             List<ConstellationStar> stars = constellation.getStars();
+            boolean isPinned = PlayerAstralProgress.isPinned(constellation.getId(), gameTime);
 
             float tierDimmer = switch (constellation.getTier()) {
                 case FUNDAMENTAL -> 1.0f;
@@ -544,9 +545,9 @@ public class CelestialSkyRenderer {
 
                 float[] rgb = CelestialStarHelper.getShiftingStarRGB(star.spectralClass(), constellation.getEssenceType(), timeAnim, (float) (star.x() + star.y()));
 
-                float starSize = Math.max(2.0f, star.brightness() * 2.4f);
+                float starSize = Math.max(2.0f, star.brightness() * 2.4f) * (isPinned ? 1.8f : 1.0f);
                 float twinkle = 0.85f + 0.15f * Mth.sin(timeAnim * 2.0f + s * 1.5f);
-                float alpha = starBrightness * twinkle * tierDimmer;
+                float alpha = isPinned ? 1.0f : (starBrightness * twinkle * tierDimmer);
 
                 renderSphericalBillboardQuad(starConsumer, matrix, x, y, z, starSize, timeAnim * 0.25f + s, rgb[0], rgb[1], rgb[2], alpha, light, overlay);
             }
@@ -723,6 +724,8 @@ public class CelestialSkyRenderer {
         VertexConsumer lineConsumer = bufferSource.getBuffer(lineRenderType);
         Set<String> chartedEdges = PlayerAstralProgress.getChartedConnections(player);
 
+        ResourceLocation pinnedId = PlayerAstralProgress.getPinnedConstellation(gameTime);
+
         for (String edge : chartedEdges) {
             try {
                 String[] parts = edge.split("---");
@@ -743,7 +746,11 @@ public class CelestialSkyRenderer {
                         float g = (p1.g() + p2.g()) * 0.5f;
                         float b = (p1.b() + p2.b()) * 0.5f;
 
-                        renderSphericalLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, 0.55f, r, g, b, starBrightness * 0.85f, light, overlay);
+                        boolean isEdgePinned = (pinnedId != null) && (parts[0].contains(pinnedId.getPath()) || parts[1].contains(pinnedId.getPath()));
+                        float lineWidth = isEdgePinned ? 1.4f : 0.55f;
+                        float lineAlpha = isEdgePinned ? 1.0f : (starBrightness * 0.85f);
+
+                        renderSphericalLineSegment(lineConsumer, matrix, x1, y1, z1, x2, y2, z2, lineWidth, r, g, b, lineAlpha, light, overlay);
                     }
                 }
             } catch (Exception ignored) {}

@@ -1,3 +1,28 @@
+## Build 000-1-26-233
+
+### Phase 3: Quality of Life (QoL) Suite Implementation
+- **Module 1: Pure Optic Fiber Contiguous Quick-Dye & Sponge Cleanse (`PureOpticFiberBlock.java`)**:
+  - Implemented contiguous cable dyeing up to **8 blocks at a time** when Sneak + Right-clicking connected fibers with a `DyeItem`.
+  - Added universal fiber de-coloring via Sponge, Wet Sponge, Water Bucket, or Water Bottle (resets `color_index = 0` universally, or up to 8 contiguous if sneaking) with acoustic water splash effects.
+- **Module 2: Optical Network Diagnostic Ping & Cable Tracer (`PureOpticFiberBlock.java`)**:
+  - Right-clicking any optic fiber or port with the **Astral Linking Wand** triggers a breadth-first search (BFS) network trace with `AMETHYST_BLOCK_CHIME` audio and `ParticleTypes.END_ROD` conduit tracer particles.
+  - Displays instant actionbar diagnostics reporting total connected fibers, optical amplifiers, receiver ports, and conduit throughput efficiency.
+- **Module 3: Optical Devices Redstone Comparator Signal Integration (`OpticalReceiverPortBlock.java`, `SecondaryAstralLensBlock.java`, `BeamSplitterPrismBlock.java`, `RefractiveAstralLensBlock.java`)**:
+  - Added analog Redstone Comparator support ($0 \to 15$) to Optical Receiver Ports proportional to starlight signal quality ($1.0 \to 15$, $0.5 \to 8$).
+  - Refractive Astral Lenses, Secondary Astral Lenses, and Beam Splitter Prisms output comparator signal strength 15 when actively focusing or splitting starlight beams and 0 when uncalibrated, occluded, or idle.
+- **Module 4: Astral Infusion Pedestal Automation & Downward Auto-Ejection (`AstralInfusionPedestalBlockEntity.java`)**:
+  - Implemented `net.minecraft.world.Container` (1 slot) on the Astral Infusion Pedestal, enabling automated insertion of dry transmutation catalysts via hoppers and pneumatic logistics pipes when empty and idle.
+  - Added downward auto-ejection into bottom chests, hoppers, or item handlers at `pos.below()` upon transmutation recipe completion.
+- **Module 5: Astrolabe 3-Slot Multi-Anchor Memory & Waypoint Horizon Indicator (`AstrolabeItem.java`, `AstrolabeGhostRenderer.java`)**:
+  - Expanded the Astrolabe to support 3 independent blueprint and anchor memory slots (`[Slot 1]`, `[Slot 2]`, `[Slot 3]`).
+  - Shift + Right-clicking in air cycles memory slots with sound feedback and actionbar readout showing active blueprint, anchor coordinates, and distance in meters.
+  - Added a 32m glowing cyan vertical starlight waypoint pillar above the anchored position in-world.
+- **Module 6: 10-Minute Constellation Stargazing Brightness Boost (`CompletedStarChartItem.java`, `PlayerAstralProgress.java`, `CelestialSkyRenderer.java`)**:
+  - Right-clicking a `CompletedStarChartItem` pins that constellation to the night sky HUD for **10 minutes** ($12,000\text{ ticks}$).
+  - Pinned constellations receive $+80\%$ star size, radiant un-dimmed luminance, and $+140\%$ glowing connection line width.
+- **Module 7: Optical Occlusion Audio Sizzle & Particle Alert (`RefractiveAstralLensBlockEntity.java`, `SecondaryAstralLensBlockEntity.java`, `BeamSplitterPrismBlockEntity.java`, `OpticalReceiverPortBlockEntity.java`)**:
+  - Emits high-pitched `SoundEvents.FIRE_EXTINGUISH` audio and showers entities in `ParticleTypes.ELECTRIC_SPARK` whenever a player, mob, or animal steps into and occludes a focused starlight beam.
+
 ## Build 000-1-26-232
 
 ### Phase 5: Complete Celestial OKF Vault & Lore Book Synchronization

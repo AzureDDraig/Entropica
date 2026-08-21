@@ -40,6 +40,23 @@ public class CompletedStarChartItem extends Item {
         } else {
             tooltipComponents.accept(Component.literal("§7Unattuned Star Chart"));
         }
+        tooltipComponents.accept(Component.literal("§8Right-click: Pin to night sky for 10 minutes"));
+    }
+
+    @Override
+    public net.minecraft.world.InteractionResult use(net.minecraft.world.level.Level level, net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        Constellation constellation = getConstellation(stack);
+        if (constellation != null) {
+            if (level.isClientSide()) {
+                ddraig.net.entropica.astral.PlayerAstralProgress.pinConstellation(constellation.getId(), 12000L, level.getGameTime());
+            }
+            level.playSound(null, player.blockPosition(), net.minecraft.sounds.SoundEvents.AMETHYST_BLOCK_CHIME, net.minecraft.sounds.SoundSource.PLAYERS, 1.0f, 1.6f);
+            String title = Component.translatable(constellation.getUnlocalizedName()).getString();
+            player.displayClientMessage(Component.literal("§d✦ [Stargazing Pin] §fPinned §b" + title + " §fto the night sky for 10 minutes!"), true);
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        return super.use(level, player, hand);
     }
 
     public static Constellation getConstellation(ItemStack stack) {

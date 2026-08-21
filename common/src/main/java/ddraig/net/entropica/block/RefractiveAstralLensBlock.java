@@ -97,4 +97,17 @@ public class RefractiveAstralLensBlock extends HorizontalDirectionalBlock implem
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return this.getShape(state, level, pos, context);
     }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof RefractiveAstralLensBlockEntity lensBE) {
+            return lensBE.isFocused() ? 15 : 0;
+        }
+        return 0;
+    }
 }

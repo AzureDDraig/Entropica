@@ -364,4 +364,30 @@ public class PlayerAstralProgress {
             return new HashSet<>(CLIENT_DISCOVERED);
         }
     }
+
+    // --- 10-Minute Stargazing Constellation HUD Pin ---
+    private static ResourceLocation clientPinnedConstellation = null;
+    private static long clientPinnedUntilGameTime = 0;
+
+    public static void pinConstellation(ResourceLocation constellationId, long durationTicks, long currentGameTime) {
+        clientPinnedConstellation = constellationId;
+        clientPinnedUntilGameTime = currentGameTime + durationTicks;
+    }
+
+    public static boolean isPinned(ResourceLocation constellationId, long currentGameTime) {
+        if (constellationId == null || clientPinnedConstellation == null) return false;
+        if (currentGameTime > clientPinnedUntilGameTime) {
+            clientPinnedConstellation = null;
+            return false;
+        }
+        return constellationId.equals(clientPinnedConstellation);
+    }
+
+    public static ResourceLocation getPinnedConstellation(long currentGameTime) {
+        if (clientPinnedConstellation != null && currentGameTime <= clientPinnedUntilGameTime) {
+            return clientPinnedConstellation;
+        }
+        clientPinnedConstellation = null;
+        return null;
+    }
 }

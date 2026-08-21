@@ -102,4 +102,17 @@ public class SecondaryAstralLensBlock extends HorizontalDirectionalBlock impleme
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof SecondaryAstralLensBlockEntity lensBE) {
+            return lensBE.isReceiving() ? 15 : 0;
+        }
+        return 0;
+    }
 }

@@ -125,6 +125,10 @@ public class OpticalReceiverPortBlockEntity extends BlockEntity {
             if (blockingEntity != null) {
                 blockingEntity.addEffect(new net.minecraft.world.effect.MobEffectInstance(ddraig.net.entropica.registry.ModEffects.MATERIA_TOXICITY, 100, 0, false, true, true));
                 ddraig.net.entropica.registry.ModAttachments.setToxicitySource(blockingEntity, starEssence.name());
+                if (level instanceof net.minecraft.server.level.ServerLevel serverLevel && serverLevel.getGameTime() % 10 == 0) {
+                    serverLevel.playSound(null, blockingEntity.getX(), blockingEntity.getY() + 0.5, blockingEntity.getZ(), net.minecraft.sounds.SoundEvents.FIRE_EXTINGUISH, net.minecraft.sounds.SoundSource.BLOCKS, 0.4f, 1.8f);
+                    serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK, blockingEntity.getX(), blockingEntity.getY() + 1.0, blockingEntity.getZ(), 5, 0.2, 0.2, 0.2, 0.05);
+                }
             } else if (hitBlockPos != null) {
                 BlockEntity targetBE = level.getBlockEntity(hitBlockPos);
                 if (targetBE instanceof RefractiveAstralLensBlockEntity lens) {

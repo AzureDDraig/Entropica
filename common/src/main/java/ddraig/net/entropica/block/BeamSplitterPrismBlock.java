@@ -77,4 +77,17 @@ public class BeamSplitterPrismBlock extends BaseEntityBlock {
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof BeamSplitterPrismBlockEntity prismBE) {
+            return prismBE.isReceiving() ? 15 : 0;
+        }
+        return 0;
+    }
 }

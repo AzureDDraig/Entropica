@@ -170,6 +170,18 @@ public class AstrolabeGhostRenderer {
             }
         }
 
+        if (hasAnchor) {
+            float pulse = 0.7f + 0.3f * (float) Math.sin(timeSec * 2.5f);
+            float bx = anchorPos.getX() + 0.5f;
+            float bz = anchorPos.getZ() + 0.5f;
+            float by0 = anchorPos.getY();
+            float by1 = by0 + 32.0f;
+            Matrix4f lineMat = poseStack.last().pose();
+            addLine(lineConsumer, lineMat, bx, by0, bz, bx, by1, bz, 0.2f * pulse, 0.9f * pulse, 1.0f * pulse, 0.65f * pulse);
+            addLine(lineConsumer, lineMat, bx - 0.25f, by0, bz - 0.25f, bx - 0.25f, by1, bz - 0.25f, 0.1f * pulse, 0.7f * pulse, 0.9f * pulse, 0.35f * pulse);
+            addLine(lineConsumer, lineMat, bx + 0.25f, by0, bz + 0.25f, bx + 0.25f, by1, bz + 0.25f, 0.1f * pulse, 0.7f * pulse, 0.9f * pulse, 0.35f * pulse);
+        }
+
         bufferSource.endBatch(RenderType.lines());
         poseStack.popPose();
     }

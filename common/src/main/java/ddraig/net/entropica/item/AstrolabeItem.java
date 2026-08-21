@@ -18,6 +18,7 @@ import net.minecraft.world.level.Level;
 
 public class AstrolabeItem extends Item {
 
+    public static final String TAG_ACTIVE_SLOT = "ActiveSlot";
     public static final String TAG_BLUEPRINT_INDEX = "BlueprintIndex";
     public static final String TAG_HAS_ANCHOR = "HasAnchor";
     public static final String TAG_ANCHOR_X = "AnchorX";
@@ -37,6 +38,31 @@ public class AstrolabeItem extends Item {
         super(properties);
     }
 
+    public static int getActiveSlot(CompoundTag tag) {
+        return Math.max(0, tag.getInt(TAG_ACTIVE_SLOT).orElse(0) % 3);
+    }
+
+    public static void saveCurrentSlotToNbt(CompoundTag tag, int slot) {
+        String prefix = "Slot_" + slot + "_";
+        tag.putInt(prefix + TAG_BLUEPRINT_INDEX, tag.getInt(TAG_BLUEPRINT_INDEX).orElse(0));
+        tag.putBoolean(prefix + TAG_HAS_ANCHOR, tag.getBoolean(TAG_HAS_ANCHOR).orElse(false));
+        tag.putInt(prefix + TAG_ANCHOR_X, tag.getInt(TAG_ANCHOR_X).orElse(0));
+        tag.putInt(prefix + TAG_ANCHOR_Y, tag.getInt(TAG_ANCHOR_Y).orElse(0));
+        tag.putInt(prefix + TAG_ANCHOR_Z, tag.getInt(TAG_ANCHOR_Z).orElse(0));
+        tag.putInt(prefix + TAG_ACTIVE_LAYER, tag.getInt(TAG_ACTIVE_LAYER).orElse(0));
+    }
+
+    public static void loadSlotFromNbt(CompoundTag tag, int slot) {
+        String prefix = "Slot_" + slot + "_";
+        tag.putInt(TAG_ACTIVE_SLOT, slot);
+        tag.putInt(TAG_BLUEPRINT_INDEX, tag.getInt(prefix + TAG_BLUEPRINT_INDEX).orElse(0));
+        tag.putBoolean(TAG_HAS_ANCHOR, tag.getBoolean(prefix + TAG_HAS_ANCHOR).orElse(false));
+        tag.putInt(TAG_ANCHOR_X, tag.getInt(prefix + TAG_ANCHOR_X).orElse(0));
+        tag.putInt(TAG_ANCHOR_Y, tag.getInt(prefix + TAG_ANCHOR_Y).orElse(0));
+        tag.putInt(TAG_ANCHOR_Z, tag.getInt(prefix + TAG_ANCHOR_Z).orElse(0));
+        tag.putInt(TAG_ACTIVE_LAYER, tag.getInt(prefix + TAG_ACTIVE_LAYER).orElse(0));
+    }
+
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
@@ -50,6 +76,7 @@ public class AstrolabeItem extends Item {
 
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = customData.copyTag();
+        int activeSlot = getActiveSlot(tag);
         int bpIdx = tag.getInt(TAG_BLUEPRINT_INDEX).orElse(0);
 
         if (player.isShiftKeyDown()) {
@@ -104,16 +131,17 @@ public class AstrolabeItem extends Item {
                 }
             }
 
-            // Otherwise, shift-clicking clears anchor
+            // Otherwise, shift-clicking clears anchor for current slot
             tag.remove(TAG_HAS_ANCHOR);
             tag.remove(TAG_ANCHOR_X);
             tag.remove(TAG_ANCHOR_Y);
             tag.remove(TAG_ANCHOR_Z);
             tag.remove(TAG_ACTIVE_LAYER);
+            saveCurrentSlotToNbt(tag, activeSlot);
             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
             if (!level.isClientSide()) {
-                player.displayClientMessage(Component.literal("§e[Astrolabe] §7Cleared blueprint anchor."), true);
+                player.displayClientMessage(Component.literal("§e[Astrolabe Slot " + (activeSlot + 1) + "] §7Cleared blueprint anchor."), true);
             }
             return InteractionResult.SUCCESS;
         }
@@ -140,26 +168,28 @@ public class AstrolabeItem extends Item {
                 tag.remove(TAG_ANCHOR_Y);
                 tag.remove(TAG_ANCHOR_Z);
                 tag.remove(TAG_ACTIVE_LAYER);
+                saveCurrentSlotToNbt(tag, activeSlot);
                 stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
                 if (!level.isClientSide()) {
-                    player.displayClientMessage(Component.literal("§e[Astrolabe] §7Cleared holographic blueprint anchor."), true);
+                    player.displayClientMessage(Component.literal("§e[Astrolabe Slot " + (activeSlot + 1) + "] §7Cleared blueprint anchor."), true);
                 }
                 return InteractionResult.SUCCESS;
             }
         }
 
-        // Set new anchor
+        // Set new anchor for current slot
         tag.putBoolean(TAG_HAS_ANCHOR, true);
         tag.putInt(TAG_ANCHOR_X, anchorPos.getX());
         tag.putInt(TAG_ANCHOR_Y, anchorPos.getY());
         tag.putInt(TAG_ANCHOR_Z, anchorPos.getZ());
         tag.putInt(TAG_ACTIVE_LAYER, 0);
+        saveCurrentSlotToNbt(tag, activeSlot);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
         if (!level.isClientSide()) {
             level.playSound(null, clickedPos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0f, 1.3f);
-            player.displayClientMessage(Component.literal("§6[Astrolabe] §7Anchored §b" + BLUEPRINT_NAMES[bpIdx] + " §7at §f(" + anchorPos.toShortString() + ")§7. Shift-right-click to clear."), true);
+            player.displayClientMessage(Component.literal("§6[Astrolabe Slot " + (activeSlot + 1) + "] §7Anchored §b" + BLUEPRINT_NAMES[bpIdx] + " §7at §f(" + anchorPos.toShortString() + ")§7."), true);
         }
         return InteractionResult.SUCCESS;
     }
@@ -170,25 +200,26 @@ public class AstrolabeItem extends Item {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = customData.copyTag();
 
+        int activeSlot = getActiveSlot(tag);
         int bpIdx = tag.getInt(TAG_BLUEPRINT_INDEX).orElse(0);
         boolean hasAnchor = tag.getBoolean(TAG_HAS_ANCHOR).orElse(false);
 
+        // Shift + Right-click in air: Switch Memory Slot ([Slot 1] -> [Slot 2] -> [Slot 3])
         if (player.isShiftKeyDown()) {
-            // Shift-right-click in air cycles blueprint or opens looking glass if None
-            int nextIdx = (bpIdx + 1) % BLUEPRINT_NAMES.length;
-            tag.putInt(TAG_BLUEPRINT_INDEX, nextIdx);
-            tag.remove(TAG_ACTIVE_LAYER);
-            if (nextIdx == 0) {
-                tag.remove(TAG_HAS_ANCHOR);
-                tag.remove(TAG_ANCHOR_X);
-                tag.remove(TAG_ANCHOR_Y);
-                tag.remove(TAG_ANCHOR_Z);
-            }
+            saveCurrentSlotToNbt(tag, activeSlot);
+            int nextSlot = (activeSlot + 1) % 3;
+            loadSlotFromNbt(tag, nextSlot);
             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
+            int nextBp = tag.getInt(TAG_BLUEPRINT_INDEX).orElse(0);
+            boolean nextHasAnchor = tag.getBoolean(TAG_HAS_ANCHOR).orElse(false);
+            BlockPos anchorPos = nextHasAnchor ? new BlockPos(tag.getInt(TAG_ANCHOR_X).orElse(0), tag.getInt(TAG_ANCHOR_Y).orElse(0), tag.getInt(TAG_ANCHOR_Z).orElse(0)) : null;
+            int dist = (nextHasAnchor && player != null) ? (int) Math.sqrt(player.blockPosition().distSqr(anchorPos)) : 0;
+
             if (!level.isClientSide()) {
-                level.playSound(null, player.blockPosition(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 0.7f, 1.4f);
-                player.displayClientMessage(Component.literal("§6[Astrolabe] §7Active Blueprint: §b" + BLUEPRINT_NAMES[nextIdx]), true);
+                level.playSound(null, player.blockPosition(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 0.8f, 1.4f);
+                String status = nextHasAnchor ? (" §a(" + anchorPos.toShortString() + " - " + dist + "m)") : " §8(Unanchored)";
+                player.displayClientMessage(Component.literal("§6[Astrolabe Memory] §7Active Slot: §b[" + (nextSlot + 1) + "/3] §7- Blueprint: §f" + BLUEPRINT_NAMES[nextBp] + status), true);
             }
             return InteractionResult.SUCCESS;
         }
@@ -212,6 +243,7 @@ public class AstrolabeItem extends Item {
             int curLayer = tag.getInt(TAG_ACTIVE_LAYER).orElse(0);
             int nextLayer = (curLayer + 1) % (totalLayers + 1);
             tag.putInt(TAG_ACTIVE_LAYER, nextLayer);
+            saveCurrentSlotToNbt(tag, activeSlot);
             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
             if (!level.isClientSide()) {
@@ -221,14 +253,15 @@ public class AstrolabeItem extends Item {
             }
             return InteractionResult.SUCCESS;
         } else {
-            // Not anchored -> cycle blueprint
+            // Not anchored -> cycle blueprint for current slot
             int nextIdx = (bpIdx + 1) % BLUEPRINT_NAMES.length;
             tag.putInt(TAG_BLUEPRINT_INDEX, nextIdx);
+            saveCurrentSlotToNbt(tag, activeSlot);
             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
             if (!level.isClientSide()) {
                 level.playSound(null, player.blockPosition(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 0.7f, 1.4f);
-                player.displayClientMessage(Component.literal("§6[Astrolabe] §7Active Blueprint: §b" + BLUEPRINT_NAMES[nextIdx]), true);
+                player.displayClientMessage(Component.literal("§6[Astrolabe Slot " + (activeSlot + 1) + "] §7Active Blueprint: §b" + BLUEPRINT_NAMES[nextIdx]), true);
             }
             return InteractionResult.SUCCESS;
         }
@@ -240,23 +273,25 @@ public class AstrolabeItem extends Item {
         CustomData cd = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = cd.copyTag();
 
+        int activeSlot = getActiveSlot(tag);
         int bpIdx = tag.getInt(TAG_BLUEPRINT_INDEX).orElse(0);
         boolean hasAnchor = tag.getBoolean(TAG_HAS_ANCHOR).orElse(false);
         int activeLayer = tag.getInt(TAG_ACTIVE_LAYER).orElse(0);
 
-        tooltipComponents.accept(Component.literal("§6◆ Blueprint: §b" + BLUEPRINT_NAMES[bpIdx]));
+        tooltipComponents.accept(Component.literal("§6◆ Memory Slot: §b[" + (activeSlot + 1) + "/3]"));
+        tooltipComponents.accept(Component.literal("§7  Blueprint: §f" + BLUEPRINT_NAMES[bpIdx]));
         if (hasAnchor) {
             BlockPos anchor = new BlockPos(
                     tag.getInt(TAG_ANCHOR_X).orElse(0),
                     tag.getInt(TAG_ANCHOR_Y).orElse(0),
                     tag.getInt(TAG_ANCHOR_Z).orElse(0)
             );
-            tooltipComponents.accept(Component.literal("§7Anchor: §f(" + anchor.toShortString() + ")"));
-            tooltipComponents.accept(Component.literal("§7Active Slice: §e" + (activeLayer == 0 ? "All Layers" : "Layer " + activeLayer)));
+            tooltipComponents.accept(Component.literal("§7  Anchor: §a(" + anchor.toShortString() + ")"));
+            tooltipComponents.accept(Component.literal("§7  Active Slice: §e" + (activeLayer == 0 ? "All Layers" : "Layer " + activeLayer)));
         }
 
-        tooltipComponents.accept(Component.literal("§8Right-click: Open Sky / Cycle Layer Slices"));
-        tooltipComponents.accept(Component.literal("§8Shift+Right-click: Cycle Blueprints / Clear Anchor"));
+        tooltipComponents.accept(Component.literal("§8Right-click: Open Sky / Cycle Slices / Anchor"));
+        tooltipComponents.accept(Component.literal("§8Shift+Right-click: Cycle Memory Slot [1..3] / Clear Anchor"));
     }
 
     public static boolean isScoping(Player player) {

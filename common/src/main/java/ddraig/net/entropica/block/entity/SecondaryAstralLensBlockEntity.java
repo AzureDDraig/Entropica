@@ -31,6 +31,9 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -335,6 +338,10 @@ public class SecondaryAstralLensBlockEntity extends BlockEntity {
             if (blockingEntity != null) {
                 blockingEntity.addEffect(new MobEffectInstance(ModEffects.MATERIA_TOXICITY, 100, 0, false, true, true));
                 ModAttachments.setToxicitySource(blockingEntity, starEssence.name());
+                if (level instanceof ServerLevel serverLevel && serverLevel.getGameTime() % 10 == 0) {
+                    serverLevel.playSound(null, blockingEntity.getX(), blockingEntity.getY() + 0.5, blockingEntity.getZ(), SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.4f, 1.8f);
+                    serverLevel.sendParticles(ParticleTypes.ELECTRIC_SPARK, blockingEntity.getX(), blockingEntity.getY() + 1.0, blockingEntity.getZ(), 5, 0.2, 0.2, 0.2, 0.05);
+                }
             } else if (closestBE != null) {
                 if (closestBE instanceof RefractiveAstralLensBlockEntity lens) {
                     lens.receiveRelayBeam(pos, be.activeStarName);
