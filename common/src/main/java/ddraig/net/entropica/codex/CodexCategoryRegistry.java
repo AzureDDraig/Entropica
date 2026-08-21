@@ -1277,7 +1277,7 @@ public class CodexCategoryRegistry {
         // ASTRAL MATERIA SUB-BRANCH (Expanding magic_astral)
         // ==========================================
         ALL_NODES.add(new CodexNode(
-                "astral_instruments_and_charts", "Looking Glass & Star Charts", "MAGIC",
+                "astral_instruments_and_charts", "Looking Glass & Celestial Instruments", "MAGIC",
                 "Celestial observation, constellation charting, and vertex alignment.",
                 "Overview & Description:\n" +
                 "The night sky is not empty void—it is a cosmic vault leaking pure Materia through ancient stellar tears. Using a Looking Glass and Blank Star Chart, arkanists map constellations across the 8 lunar phases.\n\n" +
@@ -1293,15 +1293,18 @@ public class CodexCategoryRegistry {
 
         ALL_NODES.add(new CodexNode(
                 "astral_astrolabe_and_holograms", "Astrolabe & Holographic Projections", "MAGIC",
-                "Precision astronomical navigation and 3D in-world ghost blueprint projection.",
+                "Precision astronomical navigation, 3-slot memory bank, and 3D in-world ghost blueprint projection.",
                 "Overview & Description:\n" +
                 "The Astrolabe is a precision handheld coordinate dial providing up to 8x magnification and fine 15° vernier degree markings for celestial tracking.\n\n" +
                 "Origin & Obtaining:\n" +
                 "Forged with Brass Ingots, Quartz Lenses, and a Resonite gear mechanism.\n\n" +
-                "Crafting Uses:\n" +
-                "Allows arkanists to project 3D in-world translucent holographic ghost templates of complex Astral multiblocks (Observatory, Beacon, Altar).\n\n" +
+                "Multi-Slot Memory Bank & Horizon Waypoints:\n" +
+                "▪ Shift + Right-Click in air: Cycles through 3 independent memory slots ([Slot 1..3]) with distance readouts in meters.\n" +
+                "▪ Right-Click on ground: Anchors or clears the holographic blueprint at the target location.\n" +
+                "▪ Right-Click in air: Opens the sky looking glass or cycles blueprint layer slices.\n" +
+                "▪ Waypoint Beacon: Anchored blueprints project a 32m vertical starlight beacon pillar visible from afar across the horizon.\n\n" +
                 "Special Properties:\n" +
-                "Shift + Right-Click in air cycles blueprints. Right-Click on a ground block anchors the holographic blueprint with live color-coded status (cyan = missing, green = correct, red = invalid).",
+                "Translucent ghost templates provide live color-coded validation (cyan = missing, green = correct, red = invalid).",
                 "astral_instruments_and_charts", 1, new ItemStack(ModItems.ASTROLABE.get()),
                 470f, 0.0f, a_magic + 0.02f, false
         ));
@@ -1332,8 +1335,8 @@ public class CodexCategoryRegistry {
                 "▪ Master (T3 - 8 Stars): Vorago Blighti (Blight), Velum Umbraticum (Penumbra), Echo Primordialis (Entropic), Corona Solaris (Celestial), Charybdis Profunda (Abyssal Maelstrom), Terranox Primus (World Impactite), Vorator Stellarum (Star Devourer), Aetherion Aeternus (Celestial Weave).\n" +
                 "▪ Mythic (T4 - 4 Stars): Leviathan (Abyss), Yggdrasil (Genesis), Ouroboros (Aether), Azathoth (Oblivion).\n" +
                 "▪ Transcendent (T5 - 6 Stars): Astrape Primordialis, Aegis Ecliptica, Ignis Eschaton, Aether Aeternitas, Umbra Genesis, Nihil Coronatum.\n\n" +
-                "Celestial Coordinate Conflicts & Harmonic Interference:\n" +
-                "Several constellation pairs share identical stellar coordinates. Channeling both simultaneously results in destructive harmonic interference, causing altars and beacons to reject dual attunement.",
+                "Stargazing Pinning & Coordinate Conflicts:\n" +
+                "Right-clicking a Completed Star Chart pins that constellation to the night sky for 10 minutes, enhancing star size (+80%) and radiant beam lines. Simultaneously attuning conflicting shared-coordinate constellations causes destructive harmonic rejection.",
                 "magic_astral", 1, new ItemStack(ModItems.STAR_CHART_COMPLETED.get()),
                 390f, 0.0f, a_magic + 0.12f, false
         ));
@@ -1357,46 +1360,49 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
-                "astral_altar_and_observatory", "Astral Altar & Grand Observatory", "MAGIC",
-                "Starlight condensation and multiblock celestial observatories.",
+                "astral_altar_and_observatory", "Astral Altar & Observatory Structure", "MAGIC",
+                "Multiblock structures for channeling starlight into transmutations and advanced crafting.",
                 "Overview & Description:\n" +
-                "The Astral Altar Core channels direct night starlight into ground-level transmutations, surrounded by Resonance Pylons and Astral Pedestals.\n\n" +
+                "The Astral Observatory and Astral Altar are multiblock ritual structures designed to capture and focus cosmic energy.\n\n" +
                 "Origin & Obtaining:\n" +
-                "Constructed on a foundation of Astral Marble Bricks, Engraved Astral Slate, and Starlight Pillars.\n\n" +
+                "Constructed using Astral Marble, Chiseled Astral Marble, Sooty Marble, and an Altar Core.\n\n" +
                 "Crafting Uses:\n" +
-                "Synthesizes Resplendent Prisms, Mantles of the Stars, and infused Crystal Tools.\n\n" +
+                "Enables high-tier essence infusions, celestial weapon crafting, and cosmic ritual channeling.\n\n" +
                 "Special Properties:\n" +
-                "Once established at night, starlight focus persists uninterrupted through daylight hours unless the focus ring is physically moved.",
+                "Requires direct line-of-sight to the night sky; enhanced during full moons and solar alignments.",
                 "astral_instruments_and_charts", 2, new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
                 480f, 0.0f, a_magic + 0.08f, false
         ));
 
         ALL_NODES.add(new CodexNode(
-                "astral_optics_and_logistics", "Pure Optic Conduits", "MAGIC",
-                "Lossless optical transmission of starlight energy through solid structures.",
+                "astral_optics_and_logistics", "Pure Optic Conduits & Diagnostic Ping", "MAGIC",
+                "Lossless optical transmission, 8-block quick-dyeing, sponge cleanse, and wand diagnostic ping.",
                 "Overview & Description:\n" +
                 "Pure Optic Fiber cables transmit concentrated starlight flux underground and through solid blocks with only 1% attenuation per 16 blocks.\n\n" +
                 "Origin & Obtaining:\n" +
                 "Drawn from high-purity fused quartz encased in a solid vulcanized matte black rubber jacket (zero brass) with 2x2 transparent end apertures.\n\n" +
-                "Crafting Uses:\n" +
-                "Connects Astral Collectors directly to underground subterranean altars, furnaces, and crystal baths.\n\n" +
+                "Quick-Dyeing, Cleansing & Diagnostic Tracing:\n" +
+                "▪ Sneak + Right-Click with Dye: Propagates color across up to 8 contiguous connected fibers in 1 click.\n" +
+                "▪ Sponge / Water Cleanse: De-colors fibers back to universal white (up to 8 contiguous if sneaking).\n" +
+                "▪ Linking Wand Ping: Right-clicking with the Astral Linking Wand runs a BFS cable trace, pulsing end-rod particles and displaying fiber, amplifier, and receiver counts in the actionbar.\n\n" +
                 "Special Properties:\n" +
-                "Inline Optical Booster Amplifiers fully restore attenuated starlight flux to 100%.",
+                "Adjacent fibers of different colors never cross-connect, allowing dense parallel cable bundles.",
                 "astral_altar_and_observatory", 2, new ItemStack(ModBlocks.PURE_OPTIC_FIBER.get()),
                 560f, 0.0f, a_magic + 0.04f, false
         ));
 
         ALL_NODES.add(new CodexNode(
                 "astral_optical_relays_and_hazards", "Optical Relays & Radiation Hazards", "MAGIC",
-                "Gimbaled refractive lenses, 4-way beam splitters, and line-of-sight radiation dangers.",
+                "Gimbaled refractive lenses, 4-way beam splitters, comparator automation, and occlusion hazards.",
                 "Overview & Description:\n" +
                 "Refractive Astral Lenses, Secondary Astral Lenses, and Beam Splitter Prisms direct, split, and relay collimated starlight beams across open air.\n\n" +
                 "Origin & Obtaining:\n" +
                 "Assembled using polished Starlight Quartz discs, brass friction gimbals, and Astral Marble plinths.\n\n" +
-                "Crafting Uses:\n" +
-                "Directs focused starlight into collectors, transmutation pedestals, and subterranean optical ports.\n\n" +
+                "Automation & Occlusion Alerts:\n" +
+                "▪ Redstone Comparators: Output signal strength 15 when actively focusing or splitting starlight (receiver ports output 0..15 scaled to signal quality).\n" +
+                "▪ Occlusion Sizzle & Sparks: Entities stepping into active starlight beams trigger high-pitched audio sizzles and electric spark particles while incurring Materia Toxicity.\n\n" +
                 "Special Properties:\n" +
-                "Walking through an active starlight beam occludes downstream transmission and inflicts Materia Toxicity with elemental debuffs matching the active star.",
+                "Lenses feature full 3D friction gimbals with first-person alignment and wand auto-calibration.",
                 "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()),
                 640f, 0.0f, a_magic + 0.02f, false
         ));
@@ -1449,12 +1455,15 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
-                "astral_infusion_pedestal", "Astral Infusion Pedestal & Elemental Flora", "MAGIC",
-                "Dry optical starlight irradiation, flora elemental transmutations, and soil metamorphism.",
+                "astral_infusion_pedestal", "Astral Infusion Pedestal & Automation", "MAGIC",
+                "Dry starlight transmutations, elemental flora swapping, hopper input, and downward auto-ejection.",
                 "Overview & Description:\n" +
                 "A solid marble plinth that focuses overhead starlight beams onto held items for dry transmutation rituals without liquid pools.\n\n" +
                 "Origin & Obtaining:\n" +
                 "Crafted from an Astral Pedestal, 1 Astral Crystal Block, and Gold Ingots.\n\n" +
+                "Automated Factory Integration:\n" +
+                "▪ Hopper & Pipe Input: Accepts input items via hoppers or pneumatic pipes into its 1-item container when empty and idle.\n" +
+                "▪ Downward Auto-Ejection: Automatically pushes finished transmutation products into containers or hoppers directly beneath it.\n\n" +
                 "Elemental Flora Swapping:\n" +
                 "Irradiating standard vanilla flowers converts them into elemental variants based on the focused constellation:\n" +
                 "▪ Ignis / Pyre / Athanor → Soul-Flame Orchid\n" +
