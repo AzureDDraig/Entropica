@@ -1144,11 +1144,11 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> STAR_CHART_COMPLETED = ITEMS.registerItem("star_chart_completed", properties -> new ddraig.net.entropica.item.CompletedStarChartItem(properties));
     public static final RegistrySupplier<Item> ASTRAL_LINKING_WAND = ITEMS.registerItem("astral_linking_wand", properties -> new ddraig.net.entropica.item.AstralLinkingWandItem(properties.stacksTo(1)));
     public static final RegistrySupplier<Item> CELESTIAL_ATLAS = ITEMS.registerItem("celestial_atlas", properties -> new ddraig.net.entropica.item.CelestialAtlasItem(properties.stacksTo(1)));
-    public static final RegistrySupplier<Item> MORTAR_AND_PESTLE = ITEMS.registerItem("mortar_and_pestle", properties -> new Item(properties.stacksTo(1).durability(256)));
+    public static final RegistrySupplier<Item> MORTAR_AND_PESTLE = ITEMS.registerItem("mortar_and_pestle", properties -> new ddraig.net.entropica.item.MortarAndPestleItem(properties.stacksTo(1).durability(256)));
 
     // Materials, Crystals & Equipment
-    public static final RegistrySupplier<Item> ASTRAL_CRYSTAL = ITEMS.registerItem("astral_crystal", Item::new);
-    public static final RegistrySupplier<Item> ASTRAL_CRYSTAL_SEED = ITEMS.registerItem("astral_crystal_seed", Item::new);
+    public static final RegistrySupplier<Item> ASTRAL_CRYSTAL = ITEMS.registerItem("astral_crystal", properties -> new ddraig.net.entropica.item.AstralCrystalItem(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> ASTRAL_CRYSTAL_SEED = ITEMS.registerItem("astral_crystal_seed", properties -> new ddraig.net.entropica.item.AstralCrystalSeedItem(properties.stacksTo(64)));
     public static final RegistrySupplier<Item> STARLIGHT_SILK = ITEMS.registerItem("starlight_silk", Item::new);
     public static final RegistrySupplier<Item> ASTRAL_CRYSTAL_THREAD = ITEMS.registerItem("astral_crystal_thread", Item::new);
     public static final RegistrySupplier<Item> CRYSTAL_SWORD = ITEMS.registerItem("crystal_sword", properties -> new Item(properties.stacksTo(1).durability(1250)));

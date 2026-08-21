@@ -11,6 +11,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +38,12 @@ public class AttunementPedestalBlock extends BaseEntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new AttunementPedestalBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
+        return createTickerHelper(blockEntityType, ModBlockEntities.ATTUNEMENT_PEDESTAL_BE.get(), AttunementPedestalBlockEntity::tick);
     }
 
     @Override

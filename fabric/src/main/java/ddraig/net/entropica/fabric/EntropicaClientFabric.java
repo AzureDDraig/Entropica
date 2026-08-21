@@ -98,6 +98,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
         BlockEntityRenderers.register(ModBlockEntities.ASTRAL_INFUSION_PEDESTAL_BE.get(), ddraig.net.entropica.client.renderer.AstralInfusionPedestalRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.OPTICAL_RECEIVER_PORT_BE.get(), ddraig.net.entropica.client.renderer.OpticalReceiverPortRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.ASTRAL_MIRROR_BE.get(), ddraig.net.entropica.client.renderer.AstralMirrorRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ASTRAL_ALTAR_CORE_BE.get(), ddraig.net.entropica.client.renderer.AstralAltarRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.CELESTIAL_ARMILLARY_CONTROLLER_BE.get(), ddraig.net.entropica.client.renderer.CelestialArmillaryRenderer::new);
 
         // --- 2. Entity Renderers ---
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);

@@ -1,21 +1,12 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "minecraft:crafting_shapeless",
   "category": "building",
-  "pattern": [
-    "###",
-    "#C#",
-    "###"
+  "ingredients": [
+    "entropica:astral_marble",
+    "minecraft:coal"
   ],
-  "key": {
-    "#": {
-      "item": "entropica:astral_marble"
-    },
-    "C": {
-      "item": "minecraft:coal"
-    }
-  },
   "result": {
-    "id": "entropica:sooty_marble",
-    "count": 8
+    "count": 1,
+    "id": "entropica:sooty_marble"
   }
 }

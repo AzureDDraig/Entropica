@@ -409,4 +409,16 @@ public class ModBlockEntities {
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.MateriaFluxDistributorBlockEntity::new,
                             ModBlocks.MATERIA_FLUX_DISTRIBUTOR.get()
                     ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.AstralAltarCoreBlockEntity>> ASTRAL_ALTAR_CORE_BE =
+            BLOCK_ENTITIES.register("astral_altar_core", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.AstralAltarCoreBlockEntity::new,
+                            ModBlocks.ASTRAL_ALTAR_CORE.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.CelestialArmillaryControllerBlockEntity>> CELESTIAL_ARMILLARY_CONTROLLER_BE =
+            BLOCK_ENTITIES.register("celestial_armillary_controller", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.CelestialArmillaryControllerBlockEntity::new,
+                            ModBlocks.CELESTIAL_ARMILLARY_CONTROLLER.get()
+                    ));
 }

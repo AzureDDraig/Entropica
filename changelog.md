@@ -1,5 +1,34 @@
 ## Build 000-1-26-233
 
+### Phase 4: Modular Astral Altar, Inscribed Crystal Ritual Fields, & Grand Observatory
+- **Astral Crystal Item & Dynamic Growth Mechanics (`AstralCrystalItem.java`, `AstralCrystalSeedItem.java`, `MortarAndPestleItem.java`)**:
+  - Implemented dynamic Astral Crystal progression tracked via NBT CustomData: `Size` ($1 \to 5$), `Purity` ($1 \to 100\%$), `Cut` ($1 \to 100\%$), `Ritual` (attuned `Constellation`), and stored `Materia` capacity ($1,000 \to 10,000\text{ Materia}$).
+  - Crystals display dynamic Roman numeral titles (e.g. *Size IV Astral Crystal*) and shimmering foil glint when fully grown or inscribed.
+  - Implemented `AstralCrystalSeedItem` which germinates into a Size 1 Astral Crystal when placed in water or atop an `AstralMirrorBlock` in direct starlight.
+  - Implemented `MortarAndPestleItem` (256 durability) for grinding Astral Crystals into 4 Crystal Seeds via offhand right-click or shapeless crafting recipes.
+- **Modular Astral Altar 5x3x5 Multiblock (`AstralAltarCoreBlock.java`, `AstralAltarCoreBlockEntity.java`, `AstralAltarRenderer.java`)**:
+  - Implemented the `AstralAltarCoreBlock` multiblock controller requiring a 5x5 foundation of `astral_marble_bricks` and `engraved_astral_slate`, 4 `ResonancePylon` corner pillars, and 4 cardinal `AttunementPedestal` workstations.
+  - Core continuously validates multiblock integrity and starlight line-of-sight, dynamically updating `FORMED` and `ACTIVE` blockstates.
+  - Core accelerates crystal growth from Size 1 to Size 5 under clear night skies ($2,400\text{ ticks}$ per stage).
+  - 4-pedestal celestial infusion matrix crafting transforms reagents (e.g. Astral Crystals $\to$ Resplendent Prisms $\to$ Mantle of the Stars) with beacon audio chimes and starlight particle convergence.
+  - Built custom 1.21.x BER with `SubmitNodeCollector` rendering floating items with slow vertical levitation, tilted star charts, and glowing runic discs.
+- **Attunement Pedestal Inscribed Sanctuary Fields (`AttunementPedestalBlock.java`, `AttunementPedestalBlockEntity.java`)**:
+  - Pedestals holding Inscribed Astral Crystals project active area-of-effect ritual sanctuary fields matching the inscribed constellation:
+    - *Arbor Vitae*: 12m agricultural crop & sapling tick acceleration.
+    - *Lucerna Radialis*: 24m hostile mob pacification, ignition, and kinetic repulsion field.
+    - *Scutum Aegis*: 16m protective Resistance II and Absorption aura for players.
+    - *Glacies Crystalline*: 14m freezing slowdown and cryogenic freeze ticks for hostile entities.
+    - *Vorago Blighti*: 16m item and experience vacuum magnetic attraction pulling into pedestal core.
+    - *Ulteria Viatoris*: 20m Speed II and Dolphin's Grace mobility aura.
+    - *Penna Aetheris*: 18m Slow Falling and Jump Boost II atmospheric suspension.
+- **Grand Circular Astral Observatory 7x7x6 Multiblock (`CelestialArmillaryControllerBlock.java`, `CelestialArmillaryControllerBlockEntity.java`, `CelestialArmillaryRenderer.java`)**:
+  - Implemented 7x7x6 Grand Observatory multiblock composed of a 7x7 marble foundation with a 5x5 `astral_mirror_block` starlight pool, 4 corner `starlight_pillar` columns ($Y=0 \to 2$), circular dome ring ($Y=+3$), and 4 cardinal `refractive_astral_lens` optical mounts ($Y=+4$).
+  - Controller coordinates 3-axis kinematic gimbal rotations (`colureAngle`, `eclipticAngle`, `coreAngle`) and unlocks 32x celestial magnification and Master/Transcendent constellation scribing.
+  - Custom BER renders central glowing celestial core and 4 converging starlight beams connecting cardinal refractive lenses.
+- **Recipe JSONs & Registrations**:
+  - Added crafting recipes for `mortar_and_pestle`, `astral_altar_core`, `resonance_pylon`, `runed_astral_marble`, `starlight_pillar`, `celestial_armillary_controller`, `focal_lens_mount`, `astral_pedestal`, `sooty_marble`, `engraved_astral_slate`, and `astral_crystal_seed_grinding`.
+  - Registered block entity renderers across Fabric (`EntropicaClientFabric.java`) and NeoForge (`ModClientEvents.java`).
+
 ### Phase 3: Quality of Life (QoL) Suite Implementation
 - **Module 1: Pure Optic Fiber Contiguous Quick-Dye & Sponge Cleanse (`PureOpticFiberBlock.java`)**:
   - Implemented contiguous cable dyeing up to **8 blocks at a time** when Sneak + Right-clicking connected fibers with a `DyeItem`.

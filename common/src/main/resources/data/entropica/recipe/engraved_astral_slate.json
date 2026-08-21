@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "count": 1,
+  "ingredient": "minecraft:deepslate",
+  "result": {
+    "id": "entropica:engraved_astral_slate"
+  }
+}

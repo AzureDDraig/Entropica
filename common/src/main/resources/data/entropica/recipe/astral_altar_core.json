@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "entropica:astral_crystal_block",
+    "R": "entropica:runed_astral_marble",
+    "H": "entropica:chiseled_astral_marble",
+    "M": "entropica:astral_marble_bricks"
+  },
+  "pattern": [
+    " C ",
+    "RHR",
+    "MMM"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:astral_altar_core"
+  }
+}

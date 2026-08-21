@@ -170,6 +170,8 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.VISCANITE_PISTON_PRESS_BE.get(), ViscanitePistonPressRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.MATERIA_BLESSING_BE.get(), MateriaBlessingRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.RUBBER_LOG_BE.get(), ddraig.net.entropica.client.renderer.RubberLogBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ASTRAL_ALTAR_CORE_BE.get(), ddraig.net.entropica.client.renderer.AstralAltarRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CELESTIAL_ARMILLARY_CONTROLLER_BE.get(), ddraig.net.entropica.client.renderer.CelestialArmillaryRenderer::new);
 
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
