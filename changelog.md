@@ -16,6 +16,10 @@
 - **Astral Observatory & Altar Optical Sightlines (`AstralMultiblockRecipes.java`, `CelestialArmillaryRenderer.java`, `AstrolabeGhostRenderer.java`)**:
   - Revised the Grand Observatory 7x7x6 multiblock blueprint (Layer 5 dome ring) with 4 open cardinal apertures, ensuring starlight beams from the overhead lenses travel directly into the Armillary controller without passing through solid marble blocks.
   - Updated `CelestialArmillaryRenderer` beam convergence vectors to exact lens focal centers $(Y = +4.5625)$.
+- **Dynamic Telescopic Star & Celestial Object Magnification (`SkyLookingGlassScreen.java`)**:
+  - Implemented dynamic optical size magnification scaling ($\propto \sqrt{\text{Zoom}}$) for all celestial objects (Constellation Stars, Landmark Guide Stars, Ambient Stars, Nebulae Puffs, Supernova Remnants, Comets, Meteors, and Archon Planets).
+  - Zooming in now visibly expands star nodes and planetary discs into glowing, shimmering stellar bodies rather than only spreading spatial distance.
+  - Dynamically scaled shift-tracing star magnetic snap hitboxes to match magnified star disc radii.
 
 ## Build 000-1-26-233
 

@@ -531,7 +531,8 @@ public class SkyLookingGlassScreen extends Screen {
                         float sx = centerX + (dYaw / (currentFOV * 0.5f)) * (size * 0.43f);
                         float sy = centerY - (dPitch / (currentFOV * 0.5f)) * (size * 0.43f);
 
-                        int pSize = (int) (puff.size() * (size / 130.0f));
+                        float zoomNebulaScale = 1.0f + (float) Math.sqrt(Math.max(0.0f, this.zoom - 1.0f)) * 0.70f;
+                        int pSize = (int) (puff.size() * (size / 130.0f) * zoomNebulaScale);
 
                         float breathing = 0.80f + 0.20f * (float) Math.sin(timeSec * 0.5f + puff.phase());
                         float rotAngle = (timeSec * 2.0f * puff.rotSpeed() + puff.phase() * 10.0f) % 360.0f;
@@ -557,7 +558,8 @@ public class SkyLookingGlassScreen extends Screen {
                             float sx = centerX + (dYaw / (currentFOV * 0.5f)) * (size * 0.43f);
                             float sy = centerY - (dPitch / (currentFOV * 0.5f)) * (size * 0.43f);
 
-                            int pSize = (int) (puff.size() * (size / 110.0f));
+                            float zoomSnScale = 1.0f + (float) Math.sqrt(Math.max(0.0f, this.zoom - 1.0f)) * 0.75f;
+                            int pSize = (int) (puff.size() * (size / 110.0f) * zoomSnScale);
                             float breathing = 0.82f + 0.18f * (float) Math.sin(timeSec * 0.5f + puff.phase());
                             float rotAngle = (timeSec * 2.0f * puff.rotSpeed() + puff.phase() * 10.0f) % 360.0f;
 
@@ -590,8 +592,9 @@ public class SkyLookingGlassScreen extends Screen {
                         String starName = (ov != null) ? ov.name() : star.name();
                         float starBaseSize = (ov != null) ? ov.size() : star.size();
 
+                        float zoomAmbScale = 1.0f + (float) Math.sqrt(Math.max(0.0f, this.zoom - 1.0f)) * 0.65f;
                         float twinkle = 0.75f + 0.25f * (float) Math.sin(timeSec * 2.2f + star.azimuth());
-                        float drawSize = starBaseSize * twinkle;
+                        float drawSize = starBaseSize * twinkle * zoomAmbScale;
                         float rotAngle = (timeSec * 20.0f + idx * 15.0f) % 360.0f;
 
                         float ambTierDimmer = switch (star.minTier()) {
@@ -650,8 +653,9 @@ public class SkyLookingGlassScreen extends Screen {
                         String starName = (ov != null) ? ov.name() : ls.name();
                         float starBaseSize = (ov != null) ? ov.size() : ls.size();
 
+                        float zoomLmScale = 1.0f + (float) Math.sqrt(Math.max(0.0f, this.zoom - 1.0f)) * 0.80f;
                         float twinkle = 0.85f + 0.15f * (float) Math.sin(timeSec * 3.0f + ls.azimuth());
-                        float drawSize = starBaseSize * twinkle;
+                        float drawSize = starBaseSize * twinkle * zoomLmScale;
                         float rotAngle = (timeSec * 15.0f) % 360.0f;
 
                         String starNodeId = "l:" + ls.name();
@@ -710,8 +714,9 @@ public class SkyLookingGlassScreen extends Screen {
                     float dist = (float) Math.hypot(sx - centerX, sy - centerY);
                     if (dist < lensRadius - 4.0f) {
                         String cNodeId = "c:" + constellation.getId().toString() + ":" + s;
+                        float zoomConstScale = 1.0f + (float) Math.sqrt(Math.max(0.0f, this.zoom - 1.0f)) * 0.85f;
                         float twinkle = 0.85f + 0.15f * (float) Math.sin(timeSec * 3.0f + s * 1.2f);
-                        float sSize = Math.max(6.5f, star.brightness() * 7.5f) * twinkle;
+                        float sSize = Math.max(6.5f, star.brightness() * 7.5f) * twinkle * zoomConstScale;
 
                         onScreenStars.put(cNodeId, new StarNode(cNodeId, sx, sy, sSize, null, constellation.getEssenceType(), star.spectralClass(), constellation, s, canSelectConst));
 
@@ -722,7 +727,7 @@ public class SkyLookingGlassScreen extends Screen {
                         float[] rgb = CelestialStarHelper.getShiftingStarRGB(star.spectralClass(), constellation.getEssenceType(), timeSec, (float) (star.x() + star.y()));
                         renderTintedTexturedQuad(guiGraphics, STAR_TEXTURE, sx, sy, sSize, (timeSec * 15.0f + s * 30.0f) % 360.0f, rgb[0] * tierDimmer, rgb[1] * tierDimmer, rgb[2] * tierDimmer, tierDimmer);
 
-                        if (Math.hypot(mouseX - sx, mouseY - sy) <= 10.0f && isShiftDown()) {
+                        if (Math.hypot(mouseX - sx, mouseY - sy) <= Math.max(10.0f, sSize * 0.8f) && isShiftDown()) {
                             int half = Math.max(2, Math.round(sSize * 0.5f));
                             if (canSelectConst) {
                                 drawCircle(guiGraphics, (int) sx, (int) sy, half + 3, 0x88FFFFFF);
@@ -789,7 +794,8 @@ public class SkyLookingGlassScreen extends Screen {
                     float distFromCenter = (float) Math.hypot(sx - centerX, sy - centerY);
 
                     if (distFromCenter < lensRadius - 4.0f) {
-                        float comaSize = comet.comaSize() * (size / 220.0f);
+                        float zoomCometScale = 1.0f + (float) Math.sqrt(Math.max(0.0f, this.zoom - 1.0f)) * 0.75f;
+                        float comaSize = comet.comaSize() * (size / 220.0f) * zoomCometScale;
                         float breathing = 0.88f + 0.12f * (float) Math.sin(timeSec * 2.5f);
                         renderTintedTexturedQuad(guiGraphics, COMET_HEAD_TEXTURE, sx, sy, comaSize * breathing, timeSec * 5.0f, comet.r(), comet.g(), comet.b(), 1.0f);
 
@@ -868,7 +874,8 @@ public class SkyLookingGlassScreen extends Screen {
                     float distFromCenter = (float) Math.hypot(sx - centerX, sy - centerY);
 
                     if (distFromCenter < lensRadius - 4.0f) {
-                        float headSize = (m.size() * 1.6f) * (size / 300.0f);
+                        float zoomMeteorScale = 1.0f + (float) Math.sqrt(Math.max(0.0f, this.zoom - 1.0f)) * 0.60f;
+                        float headSize = (m.size() * 1.6f) * (size / 300.0f) * zoomMeteorScale;
                         renderTintedTexturedQuad(guiGraphics, COMET_HEAD_TEXTURE, sx, sy, headSize, timeSec * 50.0f, m.r(), m.g(), m.b(), m.intensity());
                     }
                 }
@@ -896,7 +903,8 @@ public class SkyLookingGlassScreen extends Screen {
                     float distFromCenter = (float) Math.hypot(sx - centerX, sy - centerY);
 
                     if (distFromCenter < lensRadius - 4.0f) {
-                        float planetSize = planet.angularSize() * (size / 190.0f);
+                        float zoomPlanetScale = 1.0f + (float) Math.sqrt(Math.max(0.0f, this.zoom - 1.0f)) * 0.90f;
+                        float planetSize = planet.angularSize() * (size / 190.0f) * zoomPlanetScale;
 
                         // Draw Planetary Rings (if present, e.g. Cryos, Chronos, Chiron)
                         if (planet.hasRings()) {
@@ -969,12 +977,12 @@ public class SkyLookingGlassScreen extends Screen {
                     float distFromCenter = (float) Math.hypot(sx - centerX, sy - centerY);
 
                     if (distFromCenter < lensRadius - 4.0f) {
-                        // Expanding shockwave shell
-                        float shellSize = (sn.expandingRadiusDeg() * 12.0f) * (size / 240.0f);
+                        float zoomSnShockScale = 1.0f + (float) Math.sqrt(Math.max(0.0f, this.zoom - 1.0f)) * 0.85f;
+                        float shellSize = (sn.expandingRadiusDeg() * 12.0f) * (size / 240.0f) * zoomSnShockScale;
                         renderTintedTexturedQuad(guiGraphics, SUPERNOVA_RING_TEXTURE, sx, sy, shellSize, timeSec * 3.0f, sn.event().r(), sn.event().g(), sn.event().b(), sn.currentBrightness() * 0.85f);
 
                         // Pulsating central pulsar core
-                        float coreSize = 14.0f * sn.currentBrightness() * sn.coreTwinkle();
+                        float coreSize = 14.0f * sn.currentBrightness() * sn.coreTwinkle() * zoomSnShockScale;
                         renderTintedTexturedQuad(guiGraphics, COMET_HEAD_TEXTURE, sx, sy, coreSize, timeSec * 25.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
                         if (distFromCenter <= 20.0f && this.focusedTarget == null) {
