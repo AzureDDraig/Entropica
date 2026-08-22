@@ -138,7 +138,7 @@ public class AstrolabeGhostRenderer {
                     ItemStack expectedStack = legend.get(c);
                     if (expectedStack == null || expectedStack.isEmpty()) continue;
 
-                    BlockPos worldP = anchorPos.offset(x - halfW, l, z - halfD);
+                    BlockPos worldP = anchorPos.offset(x - halfW, l - 1, z - halfD);
                     BlockState existing = mc.level.getBlockState(worldP);
                     BlockState expectedState = (expectedStack.getItem() instanceof BlockItem bi) ? bi.getBlock().defaultBlockState() : null;
 

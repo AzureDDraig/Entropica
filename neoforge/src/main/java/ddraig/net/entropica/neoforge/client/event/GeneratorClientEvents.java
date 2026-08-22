@@ -19,6 +19,22 @@ public class GeneratorClientEvents {
     public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
         Minecraft mc = Minecraft.getInstance();
 
+        if (mc.player != null && mc.player.isShiftKeyDown()) {
+            boolean hasAstrolabe = mc.player.getMainHandItem().is(ddraig.net.entropica.registry.ModItems.ASTROLABE.get()) ||
+                                  mc.player.getOffhandItem().is(ddraig.net.entropica.registry.ModItems.ASTROLABE.get());
+            if (hasAstrolabe) {
+                double scrollAmount = event.getScrollDeltaY();
+                if (scrollAmount != 0) {
+                    int delta = scrollAmount > 0 ? 1 : -1;
+                    dev.architectury.networking.NetworkManager.sendToServer(
+                            new ddraig.net.entropica.network.AstrolabeScrollPayload(delta)
+                    );
+                    event.setCanceled(true);
+                    return;
+                }
+            }
+        }
+
         if (mc.player != null && mc.level != null && mc.hitResult != null) {
             if (mc.hitResult.getType() == HitResult.Type.BLOCK) {
                 BlockHitResult bhr = (BlockHitResult) mc.hitResult;

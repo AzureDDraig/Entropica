@@ -68,15 +68,15 @@ public class AstralMultiblockRecipes {
                         ".......",
                         "C.....C"
                 ),
-                // Layer 5 (Arch Dome Ring)
+                // Layer 5 (Arch Dome Ring with 4 Cardinal Open Beam Apertures)
                 List.of(
-                        ".MMMMM.",
+                        ".MM.MM.",
                         "M.....M",
                         "M.....M",
+                        ".......",
                         "M.....M",
                         "M.....M",
-                        "M.....M",
-                        ".MMMMM."
+                        ".MM.MM."
                 ),
                 // Layer 6 (Sky Aperture & 4 Cardinal Refractive Lenses)
                 List.of(

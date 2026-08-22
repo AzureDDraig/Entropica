@@ -1,3 +1,22 @@
+## Build 000-1-26-234
+
+### Astral Tool Variants, Optical Calibration, Astrolabe Controls & Multiblock Sightlines
+- **Drained Crystal Tool Variants & Night Starlight Self-Repair (`CrystalToolItem.java`, `DrainedCrystalToolItem.java`, `AstralAltarCoreBlockEntity.java`)**:
+  - Registered individual Drained Crystal Tools (`drained_crystal_sword`, `drained_crystal_pickaxe`, `drained_crystal_axe`, `drained_crystal_shovel`, `drained_crystal_hoe`, `drained_crystal_tool`) with dedicated desaturated grey textures and handheld models.
+  - Implemented `CrystalToolItem` with Netherite-tier properties, passive night starlight self-repair ($1\text{ durability} / 5\text{s}$ under open night skies), and graceful degradation into corresponding drained variants upon durability depletion without losing enchantments.
+  - Configured the Modular Astral Altar to passively restore and recharge drained crystal tools placed on the altar under starlight in $30\text{ seconds}$ ($600\text{ ticks}$).
+  - Added shaped crafting recipes for all 5 active crystal tools.
+- **Astral Refractive Lens Aim & Frequency Preservation (`AstralLinkingWandItem.java`)**:
+  - Fixed the Astral Linking Wand so linking a sky-aimed `RefractiveAstralLens` to downstream targets preserves its celestial star attunement name and spectral frequency instead of overwriting it with generic target coordinates.
+- **Astrolabe Controls & Behavior Overhaul (`AstrolabeItem.java`, `AstrolabeScrollPayload.java`, `GeneratorClientEvents.java`)**:
+  - Implemented client mouse scroll interception and C2S packet synchronization for `Sneak + Scroll`, cycling through the 3 blueprint memory slots (`[Slot 1]`, `[Slot 2]`, `[Slot 3]`) with audio click feedback and HUD notifications.
+  - Configured `Sneak + Right-Click` to cycle blueprint types (*None* $\to$ *Astral Observatory* $\to$ *Celestial Beacon* $\to$ *Modular Astral Altar*).
+  - Completely removed instant auto-construction on normal right-click.
+  - Corrected blueprint vertical anchor offset ($l - 1$) so the controller block in the template matches the placed controller block in-world at $(0, 0, 0)$.
+- **Astral Observatory & Altar Optical Sightlines (`AstralMultiblockRecipes.java`, `CelestialArmillaryRenderer.java`, `AstrolabeGhostRenderer.java`)**:
+  - Revised the Grand Observatory 7x7x6 multiblock blueprint (Layer 5 dome ring) with 4 open cardinal apertures, ensuring starlight beams from the overhead lenses travel directly into the Armillary controller without passing through solid marble blocks.
+  - Updated `CelestialArmillaryRenderer` beam convergence vectors to exact lens focal centers $(Y = +4.5625)$.
+
 ## Build 000-1-26-233
 
 ### Phase 4: Modular Astral Altar, Inscribed Crystal Ritual Fields, & Grand Observatory

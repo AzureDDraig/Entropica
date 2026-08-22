@@ -154,6 +154,24 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
             }
         }
 
+        // Drained Crystal Tool Starlight Restoration (30 seconds / 600 ticks)
+        if (be.starlightActive && be.heldItem.getItem() instanceof ddraig.net.entropica.item.DrainedCrystalToolItem drained) {
+            be.crystalGrowthTicks++;
+            if (be.crystalGrowthTicks % 20 == 0 && level instanceof ServerLevel sl) {
+                sl.sendParticles(ParticleTypes.ENCHANT, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 5, 0.2, 0.2, 0.2, 0.05);
+            }
+            if (be.crystalGrowthTicks >= 600) {
+                be.heldItem = drained.getRestoredVariant(be.heldItem);
+                be.crystalGrowthTicks = 0;
+                be.setChanged();
+                level.playSound(null, pos, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 1.0f, 1.5f);
+                if (level instanceof ServerLevel sl) {
+                    sl.sendParticles(ParticleTypes.END_ROD, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 30, 0.4, 0.4, 0.4, 0.1);
+                }
+                level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
+            }
+        }
+
         // Active Crafting Ritual
         if (be.crafting) {
             be.ritualProgress++;

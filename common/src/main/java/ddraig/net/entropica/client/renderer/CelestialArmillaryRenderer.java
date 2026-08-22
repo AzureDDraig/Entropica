@@ -48,22 +48,22 @@ public class CelestialArmillaryRenderer implements BlockEntityRenderer<Celestial
 
         if (state.isStarlightActive) {
             collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
-                // Central Glowing Core
-                renderGlowingCore(pose.pose(), consumer, 0.5f, 0.75f, 0.5f, 0.18f, 0.4f, 0.85f, 1.0f, 0.9f, light, overlay);
+                // Central Glowing Celestial Singularity
+                renderGlowingCore(pose.pose(), consumer, 0.5f, 0.75f, 0.5f, 0.22f, 0.4f, 0.85f, 1.0f, 0.95f, light, overlay);
 
-                // 4 Cardinal Starlight Beam Convergence Lines into Center
+                // 4 Cardinal Starlight Beam Convergence Lines into Center (Exact optical focal vectors)
                 float cx = 0.5f;
                 float cy = 0.75f;
                 float cz = 0.5f;
 
                 // North beam (Z = -3, Y = +4)
-                renderBeamLine(pose.pose(), consumer, cx, cy, cz, cx, 4.0f, -2.5f, 0.3f, 0.9f, 1.0f, 0.75f, light, overlay);
+                renderBeamLine(pose.pose(), consumer, cx, cy, cz, cx, 4.5625f, -2.5f, 0.3f, 0.9f, 1.0f, 0.85f, light, overlay);
                 // South beam (Z = +3, Y = +4)
-                renderBeamLine(pose.pose(), consumer, cx, cy, cz, cx, 4.0f, 3.5f, 0.3f, 0.9f, 1.0f, 0.75f, light, overlay);
+                renderBeamLine(pose.pose(), consumer, cx, cy, cz, cx, 4.5625f, 3.5f, 0.3f, 0.9f, 1.0f, 0.85f, light, overlay);
                 // West beam (X = -3, Y = +4)
-                renderBeamLine(pose.pose(), consumer, cx, cy, cz, -2.5f, 4.0f, cz, 0.3f, 0.9f, 1.0f, 0.75f, light, overlay);
+                renderBeamLine(pose.pose(), consumer, cx, cy, cz, -2.5f, 4.5625f, cz, 0.3f, 0.9f, 1.0f, 0.85f, light, overlay);
                 // East beam (X = +3, Y = +4)
-                renderBeamLine(pose.pose(), consumer, cx, cy, cz, 3.5f, 4.0f, cz, 0.3f, 0.9f, 1.0f, 0.75f, light, overlay);
+                renderBeamLine(pose.pose(), consumer, cx, cy, cz, 3.5f, 4.5625f, cz, 0.3f, 0.9f, 1.0f, 0.85f, light, overlay);
             });
         }
     }
@@ -76,7 +76,7 @@ public class CelestialArmillaryRenderer implements BlockEntityRenderer<Celestial
     }
 
     private static void renderBeamLine(Matrix4f pose, VertexConsumer consumer, float x1, float y1, float z1, float x2, float y2, float z2, float r, float g, float b, float a, int light, int overlay) {
-        float thickness = 0.035f;
+        float thickness = 0.04f;
         consumer.addVertex(pose, x1 - thickness, y1, z1).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
         consumer.addVertex(pose, x1 + thickness, y1, z1).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
         consumer.addVertex(pose, x2 + thickness, y2, z2).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);

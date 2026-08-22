@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "entropica:item/drained_crystal_axe"
+  }
+}

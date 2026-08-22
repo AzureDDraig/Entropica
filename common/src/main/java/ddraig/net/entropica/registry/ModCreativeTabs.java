@@ -156,9 +156,16 @@ public class ModCreativeTabs {
                 output.accept(ModItems.CELESTIAL_ATLAS.get());
                 output.accept(ModItems.MATERIA_FLUX_DISTRIBUTOR_ITEM.get());
                 output.accept(ModItems.MORTAR_AND_PESTLE.get());
+                output.accept(ModItems.CRYSTAL_SWORD.get());
                 output.accept(ModItems.CRYSTAL_PICKAXE.get());
                 output.accept(ModItems.CRYSTAL_AXE.get());
                 output.accept(ModItems.CRYSTAL_SHOVEL.get());
+                output.accept(ModItems.CRYSTAL_HOE.get());
+                output.accept(ModItems.DRAINED_CRYSTAL_SWORD.get());
+                output.accept(ModItems.DRAINED_CRYSTAL_PICKAXE.get());
+                output.accept(ModItems.DRAINED_CRYSTAL_AXE.get());
+                output.accept(ModItems.DRAINED_CRYSTAL_SHOVEL.get());
+                output.accept(ModItems.DRAINED_CRYSTAL_HOE.get());
                 output.accept(ModItems.DRAINED_CRYSTAL_TOOL.get());
                 output.accept(ModItems.RESPLENDENT_PRISM.get());
                 output.accept(ModItems.MANTLE_OF_THE_STARS.get());

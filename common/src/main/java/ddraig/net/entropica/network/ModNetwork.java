@@ -100,6 +100,44 @@ public class ModNetwork {
                 SyncSupernovaPayload.STREAM_CODEC,
                 ModNetwork::handleSyncSupernova
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                AstrolabeScrollPayload.TYPE,
+                AstrolabeScrollPayload.STREAM_CODEC,
+                ModNetwork::handleAstrolabeScroll
+        );
+    }
+
+    public static void handleAstrolabeScroll(final AstrolabeScrollPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null) {
+                ItemStack stack = player.getMainHandItem();
+                if (!stack.is(ddraig.net.entropica.registry.ModItems.ASTROLABE.get())) {
+                    stack = player.getOffhandItem();
+                }
+                if (stack.is(ddraig.net.entropica.registry.ModItems.ASTROLABE.get())) {
+                    net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+                    net.minecraft.nbt.CompoundTag tag = customData.copyTag();
+                    int activeSlot = ddraig.net.entropica.item.AstrolabeItem.getActiveSlot(tag);
+                    ddraig.net.entropica.item.AstrolabeItem.saveCurrentSlotToNbt(tag, activeSlot);
+
+                    int nextSlot = (activeSlot + (data.delta() > 0 ? 1 : 2)) % 3;
+                    ddraig.net.entropica.item.AstrolabeItem.loadSlotFromNbt(tag, nextSlot);
+                    stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(tag));
+
+                    int nextBp = tag.getInt(ddraig.net.entropica.item.AstrolabeItem.TAG_BLUEPRINT_INDEX).orElse(0);
+                    boolean nextHasAnchor = tag.getBoolean(ddraig.net.entropica.item.AstrolabeItem.TAG_HAS_ANCHOR).orElse(false);
+                    net.minecraft.core.BlockPos anchorPos = nextHasAnchor ? new net.minecraft.core.BlockPos(tag.getInt(ddraig.net.entropica.item.AstrolabeItem.TAG_ANCHOR_X).orElse(0), tag.getInt(ddraig.net.entropica.item.AstrolabeItem.TAG_ANCHOR_Y).orElse(0), tag.getInt(ddraig.net.entropica.item.AstrolabeItem.TAG_ANCHOR_Z).orElse(0)) : null;
+                    int dist = (nextHasAnchor) ? (int) Math.sqrt(player.blockPosition().distSqr(anchorPos)) : 0;
+
+                    player.playNotifySound(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK.value(), net.minecraft.sounds.SoundSource.PLAYERS, 0.8f, 1.4f);
+                    String status = nextHasAnchor ? (" §a(" + anchorPos.toShortString() + " - " + dist + "m)") : " §8(Unanchored)";
+                    player.displayClientMessage(Component.literal("§6[Astrolabe Memory] §7Active Slot: §b[" + (nextSlot + 1) + "/3] §7- Blueprint: §f" + ddraig.net.entropica.item.AstrolabeItem.BLUEPRINT_NAMES[nextBp] + status), true);
+                }
+            }
+        });
     }
 
     public static void handleGeneratorScroll(final GeneratorScrollPayload data, final NetworkManager.PacketContext context) {

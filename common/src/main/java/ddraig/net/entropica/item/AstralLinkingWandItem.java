@@ -135,7 +135,11 @@ public class AstralLinkingWandItem extends Item {
                 if (targetYaw < 0) targetYaw += 360.0f;
                 float targetPitch = (float) Math.toDegrees(Math.atan2(dy, distXZ));
 
-                lensBE.setFocus(targetYaw, targetPitch, "Target (" + clickedPos.toShortString() + ")", true);
+                String starName = lensBE.getActiveStarName();
+                if (starName == null || starName.isEmpty() || starName.startsWith("Target")) {
+                    starName = "Calibrated";
+                }
+                lensBE.setFocus(targetYaw, targetPitch, starName, true);
                 lensBE.setChanged();
                 linked = true;
             } else if (sourceBE instanceof ddraig.net.entropica.block.entity.SecondaryAstralLensBlockEntity secondaryLensBE) {
@@ -148,7 +152,11 @@ public class AstralLinkingWandItem extends Item {
                 if (targetYaw < 0) targetYaw += 360.0f;
                 float targetPitch = (float) Math.toDegrees(Math.atan2(dy, distXZ));
 
-                secondaryLensBE.setFocus(targetYaw, targetPitch, "Target: " + clickedPos.toShortString(), true);
+                String starName = secondaryLensBE.getActiveStarName();
+                if (starName == null || starName.isEmpty() || starName.startsWith("Target")) {
+                    starName = "Relayed";
+                }
+                secondaryLensBE.setFocus(targetYaw, targetPitch, starName, true);
                 secondaryLensBE.setChanged();
                 linked = true;
             } else if (sourceBE instanceof BeamSplitterPrismBlockEntity prismBE) {
