@@ -32,7 +32,22 @@ public class AstralAltarRenderer implements BlockEntityRenderer<AstralAltarCoreB
     }
 
     public AABB getRenderBoundingBox(AstralAltarCoreBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(4.5, 6.5, 4.5);
+        return new AABB(blockEntity.getBlockPos()).inflate(32.0, 32.0, 32.0);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
+    @Override
+    public boolean shouldRender(AstralAltarCoreBlockEntity blockEntity, Vec3 cameraPos) {
+        return true;
     }
 
     @Override

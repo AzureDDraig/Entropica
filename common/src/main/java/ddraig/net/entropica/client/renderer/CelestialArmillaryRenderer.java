@@ -26,7 +26,22 @@ public class CelestialArmillaryRenderer implements BlockEntityRenderer<Celestial
     }
 
     public AABB getRenderBoundingBox(CelestialArmillaryControllerBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(6.5, 9.0, 6.5);
+        return new AABB(blockEntity.getBlockPos()).inflate(32.0, 32.0, 32.0);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
+    @Override
+    public boolean shouldRender(CelestialArmillaryControllerBlockEntity blockEntity, Vec3 cameraPos) {
+        return true;
     }
 
     @Override

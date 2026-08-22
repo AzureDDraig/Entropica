@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -28,6 +29,25 @@ public class AstralInfusionPedestalRenderer implements BlockEntityRenderer<Astra
 
     public AstralInfusionPedestalRenderer(BlockEntityRendererProvider.Context context) {
         this.itemModelResolver = context.itemModelResolver();
+    }
+
+    public AABB getRenderBoundingBox(AstralInfusionPedestalBlockEntity blockEntity) {
+        return new AABB(blockEntity.getBlockPos()).inflate(16.0);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
+    @Override
+    public boolean shouldRender(AstralInfusionPedestalBlockEntity blockEntity, Vec3 cameraPos) {
+        return true;
     }
 
     @Override

@@ -25,7 +25,22 @@ public class CelestialBeaconRenderer implements BlockEntityRenderer<CelestialBea
     }
 
     public AABB getRenderBoundingBox(CelestialBeaconControllerBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(4.5, 16.0, 4.5);
+        return new AABB(blockEntity.getBlockPos()).inflate(32.0, 96.0, 32.0);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
+    @Override
+    public boolean shouldRender(CelestialBeaconControllerBlockEntity blockEntity, Vec3 cameraPos) {
+        return true;
     }
 
     @Override

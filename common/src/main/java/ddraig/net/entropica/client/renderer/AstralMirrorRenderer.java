@@ -26,6 +26,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -45,6 +46,25 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
     private static final ResourceLocation SUPERNOVA_RING_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/environment/supernova_ring.png");
 
     public AstralMirrorRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
+    public AABB getRenderBoundingBox(AstralMirrorBlockEntity blockEntity) {
+        return new AABB(blockEntity.getBlockPos()).inflate(16.0, 16.0, 16.0);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
+    @Override
+    public boolean shouldRender(AstralMirrorBlockEntity blockEntity, Vec3 cameraPos) {
+        return true;
     }
 
     public static class MirrorRenderState extends BlockEntityRenderState {

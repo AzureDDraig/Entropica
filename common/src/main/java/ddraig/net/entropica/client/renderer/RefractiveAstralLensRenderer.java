@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -26,6 +27,25 @@ public class RefractiveAstralLensRenderer implements BlockEntityRenderer<Refract
     private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
 
     public RefractiveAstralLensRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
+    public AABB getRenderBoundingBox(RefractiveAstralLensBlockEntity blockEntity) {
+        return new AABB(blockEntity.getBlockPos()).inflate(64.0, 64.0, 64.0);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
+    @Override
+    public boolean shouldRender(RefractiveAstralLensBlockEntity blockEntity, Vec3 cameraPos) {
+        return true;
     }
 
     @Override

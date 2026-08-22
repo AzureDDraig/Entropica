@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -24,6 +25,25 @@ public class OpticalReceiverPortRenderer implements BlockEntityRenderer<OpticalR
     private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");
 
     public OpticalReceiverPortRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
+    public AABB getRenderBoundingBox(OpticalReceiverPortBlockEntity blockEntity) {
+        return new AABB(blockEntity.getBlockPos()).inflate(64.0, 64.0, 64.0);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
+    @Override
+    public boolean shouldRender(OpticalReceiverPortBlockEntity blockEntity, Vec3 cameraPos) {
+        return true;
     }
 
     @Override

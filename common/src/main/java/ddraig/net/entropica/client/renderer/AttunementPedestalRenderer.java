@@ -29,7 +29,22 @@ public class AttunementPedestalRenderer implements BlockEntityRenderer<Attunemen
 
     // Expand the render bounding box so items don't vanish when looking away
     public AABB getRenderBoundingBox(AttunementPedestalBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(2.0);
+        return new AABB(blockEntity.getBlockPos()).inflate(16.0);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
+    @Override
+    public boolean shouldRender(AttunementPedestalBlockEntity blockEntity, Vec3 cameraPos) {
+        return true;
     }
 
     @Override

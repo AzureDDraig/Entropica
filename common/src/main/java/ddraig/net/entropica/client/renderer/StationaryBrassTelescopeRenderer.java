@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -25,6 +26,25 @@ public class StationaryBrassTelescopeRenderer implements BlockEntityRenderer<Sta
     private static final ResourceLocation LENS_TEXTURE = ResourceLocation.fromNamespaceAndPath("entropica", "textures/block/stationary_brass_telescope_lens.png");
 
     public StationaryBrassTelescopeRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
+    public AABB getRenderBoundingBox(StationaryBrassTelescopeBlockEntity blockEntity) {
+        return new AABB(blockEntity.getBlockPos()).inflate(16.0);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
+    @Override
+    public boolean shouldRender(StationaryBrassTelescopeBlockEntity blockEntity, Vec3 cameraPos) {
+        return true;
     }
 
     @Override
