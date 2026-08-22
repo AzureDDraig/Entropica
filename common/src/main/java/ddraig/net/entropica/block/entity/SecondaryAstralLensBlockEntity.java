@@ -66,6 +66,10 @@ public class SecondaryAstralLensBlockEntity extends BlockEntity {
         super(ModBlockEntities.SECONDARY_ASTRAL_LENS_BE.get(), pos, state);
     }
 
+    public AABB getRenderBoundingBox() {
+        return new AABB(this.worldPosition).inflate(64.0, 64.0, 64.0);
+    }
+
     public float getYaw() {
         return yaw;
     }

@@ -41,6 +41,10 @@ public class CelestialBeaconControllerBlockEntity extends BlockEntity {
         super(ModBlockEntities.CELESTIAL_BEACON_CONTROLLER_BE.get(), pos, state);
     }
 
+    public AABB getRenderBoundingBox() {
+        return new AABB(this.worldPosition).inflate(64.0, 128.0, 64.0);
+    }
+
     public boolean isStructureValid() {
         return structureValid;
     }

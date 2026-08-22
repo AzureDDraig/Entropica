@@ -55,6 +55,10 @@ public class BeamSplitterPrismBlockEntity extends BlockEntity {
         super(ModBlockEntities.BEAM_SPLITTER_PRISM_BE.get(), pos, state);
     }
 
+    public AABB getRenderBoundingBox() {
+        return new AABB(this.worldPosition).inflate(64.0, 64.0, 64.0);
+    }
+
     public boolean isReceiving() {
         return isReceiving;
     }

@@ -77,6 +77,10 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
         super(ModBlockEntities.REFRACTIVE_ASTRAL_LENS_BE.get(), pos, state);
     }
 
+    public AABB getRenderBoundingBox() {
+        return new AABB(this.worldPosition).inflate(64.0, 64.0, 64.0);
+    }
+
     public float getYaw() {
         return yaw;
     }

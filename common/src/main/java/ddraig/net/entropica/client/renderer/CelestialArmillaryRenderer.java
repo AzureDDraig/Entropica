@@ -70,63 +70,59 @@ public class CelestialArmillaryRenderer implements BlockEntityRenderer<Celestial
             float cz = 0.5f;
 
             collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
-                // 1. Large Outer Rotating Refractive Optical Sphere Shell (Smooth matrix rotation)
-                poseStack.pushPose();
-                poseStack.translate(cx, cy, cz);
-                poseStack.mulPose(Axis.YP.rotationDegrees(timeSec * 22.0f));
-                poseStack.mulPose(Axis.XP.rotationDegrees((float) Math.sin(timeSec * 0.45f) * 12.0f));
-                renderUnitSphere(poseStack.last().pose(), consumer, 1.35f, 0.80f, 0.92f, 1.0f, 0.28f, light, overlay);
-                poseStack.popPose();
+                Matrix4f basePose = pose.pose();
+
+                // 1. Large Outer Rotating Refractive Optical Sphere Shell (Smooth Matrix4f rotation from basePose)
+                Matrix4f outerSphereMat = new Matrix4f(basePose)
+                        .translate(cx, cy, cz)
+                        .rotateY((float) Math.toRadians(timeSec * 22.0f))
+                        .rotateX((float) Math.toRadians((float) Math.sin(timeSec * 0.45f) * 12.0f));
+                renderUnitSphere(outerSphereMat, consumer, 1.35f, 0.80f, 0.92f, 1.0f, 0.28f, light, overlay);
 
                 // 2. Inner Counter-Rotating Refractive Sphere Shell
-                poseStack.pushPose();
-                poseStack.translate(cx, cy, cz);
-                poseStack.mulPose(Axis.YP.rotationDegrees(-timeSec * 32.0f));
-                poseStack.mulPose(Axis.ZP.rotationDegrees((float) Math.cos(timeSec * 0.55f) * 15.0f));
-                renderUnitSphere(poseStack.last().pose(), consumer, 1.05f, 0.95f, 0.85f, 1.0f, 0.20f, light, overlay);
-                poseStack.popPose();
+                Matrix4f innerSphereMat = new Matrix4f(basePose)
+                        .translate(cx, cy, cz)
+                        .rotateY((float) Math.toRadians(-timeSec * 32.0f))
+                        .rotateZ((float) Math.toRadians((float) Math.cos(timeSec * 0.55f) * 15.0f));
+                renderUnitSphere(innerSphereMat, consumer, 1.05f, 0.95f, 0.85f, 1.0f, 0.20f, light, overlay);
 
                 // 3. Gimbal Ring 1 (Smooth continuous orbital rotation)
-                poseStack.pushPose();
-                poseStack.translate(cx, cy, cz);
-                poseStack.mulPose(Axis.XP.rotationDegrees(35.0f));
-                poseStack.mulPose(Axis.YP.rotationDegrees(timeSec * 28.0f));
-                poseStack.mulPose(Axis.ZP.rotationDegrees((float) Math.sin(timeSec * 0.7f) * 18.0f));
-                renderFlatRing(poseStack.last().pose(), consumer, 1.62f, 0.035f, 0.4f, 0.9f, 1.0f, 0.80f, light, overlay);
-                poseStack.popPose();
+                Matrix4f ring1Mat = new Matrix4f(basePose)
+                        .translate(cx, cy, cz)
+                        .rotateX((float) Math.toRadians(35.0f))
+                        .rotateY((float) Math.toRadians(timeSec * 28.0f))
+                        .rotateZ((float) Math.toRadians((float) Math.sin(timeSec * 0.7f) * 18.0f));
+                renderFlatRing(ring1Mat, consumer, 1.62f, 0.035f, 0.4f, 0.9f, 1.0f, 0.80f, light, overlay);
 
                 // 4. Gimbal Ring 2 (Counter-orbital rotation)
-                poseStack.pushPose();
-                poseStack.translate(cx, cy, cz);
-                poseStack.mulPose(Axis.ZP.rotationDegrees(55.0f));
-                poseStack.mulPose(Axis.YP.rotationDegrees(-timeSec * 24.0f));
-                poseStack.mulPose(Axis.XP.rotationDegrees((float) Math.cos(timeSec * 0.6f) * 22.0f));
-                renderFlatRing(poseStack.last().pose(), consumer, 1.78f, 0.035f, 0.9f, 0.7f, 1.0f, 0.80f, light, overlay);
-                poseStack.popPose();
+                Matrix4f ring2Mat = new Matrix4f(basePose)
+                        .translate(cx, cy, cz)
+                        .rotateZ((float) Math.toRadians(55.0f))
+                        .rotateY((float) Math.toRadians(-timeSec * 24.0f))
+                        .rotateX((float) Math.toRadians((float) Math.cos(timeSec * 0.6f) * 22.0f));
+                renderFlatRing(ring2Mat, consumer, 1.78f, 0.035f, 0.9f, 0.7f, 1.0f, 0.80f, light, overlay);
 
                 // 5. Central Glowing Pulsating Cosmic Singularity inside the Sphere
                 float pulse = 0.85f + 0.15f * (float) Math.sin(timeSec * 3.5f);
-                poseStack.pushPose();
-                poseStack.translate(cx, cy, cz);
-                poseStack.mulPose(Axis.YP.rotationDegrees(timeSec * 50.0f));
-                poseStack.mulPose(Axis.XP.rotationDegrees(timeSec * 35.0f));
-                renderGlowingCore(poseStack.last().pose(), consumer, 0, 0, 0, 0.42f * pulse, 0.7f, 0.95f, 1.0f, 0.95f, light, overlay);
-                poseStack.popPose();
+                Matrix4f coreMat = new Matrix4f(basePose)
+                        .translate(cx, cy, cz)
+                        .rotateY((float) Math.toRadians(timeSec * 50.0f))
+                        .rotateX((float) Math.toRadians(timeSec * 35.0f));
+                renderGlowingCore(coreMat, consumer, 0, 0, 0, 0.42f * pulse, 0.7f, 0.95f, 1.0f, 0.95f, light, overlay);
 
                 // 6. If Starlight Active: 4 Cardinal Inward Starlight Beams from Layer 9 (Y=+7) Lenses
                 if (state.isStarlightActive) {
-                    Matrix4f beamPose = pose.pose();
                     // North beam (Z = -4, Y = +7) -> Lens at (0.5, 7.5625, -3.5)
-                    renderBeamLine(beamPose, consumer, cx, cy, cz, cx, 7.5625f, -3.5f, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
+                    renderBeamLine(basePose, consumer, cx, cy, cz, cx, 7.5625f, -3.5f, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
                     // South beam (Z = +4, Y = +7) -> Lens at (0.5, 7.5625, 4.5)
-                    renderBeamLine(beamPose, consumer, cx, cy, cz, cx, 7.5625f, 4.5f, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
+                    renderBeamLine(basePose, consumer, cx, cy, cz, cx, 7.5625f, 4.5f, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
                     // West beam (X = -4, Y = +7) -> Lens at (-3.5, 7.5625, 0.5)
-                    renderBeamLine(beamPose, consumer, cx, cy, cz, -3.5f, 7.5625f, cz, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
+                    renderBeamLine(basePose, consumer, cx, cy, cz, -3.5f, 7.5625f, cz, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
                     // East beam (X = +4, Y = +7) -> Lens at (4.5, 7.5625, 0.5)
-                    renderBeamLine(beamPose, consumer, cx, cy, cz, 4.5f, 7.5625f, cz, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
+                    renderBeamLine(basePose, consumer, cx, cy, cz, 4.5f, 7.5625f, cz, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
 
                     // Vertical Concentrated Focus Ray: from Ocular Sphere down into Armillary Controller (Y = 0.75)
-                    renderBeamLine(beamPose, consumer, cx, cy, cz, cx, 0.75f, cz, 0.9f, 0.95f, 1.0f, 0.95f, light, overlay);
+                    renderBeamLine(basePose, consumer, cx, cy, cz, cx, 0.75f, cz, 0.9f, 0.95f, 1.0f, 0.95f, light, overlay);
                 }
             });
         }

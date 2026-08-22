@@ -26,6 +26,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
+import net.minecraft.world.phys.AABB;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +46,10 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
 
     public AstralAltarCoreBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntities.ASTRAL_ALTAR_CORE_BE.get(), pos, blockState);
+    }
+
+    public AABB getRenderBoundingBox() {
+        return new AABB(this.worldPosition).inflate(64.0, 64.0, 64.0);
     }
 
     public ItemStack getHeldItem() {

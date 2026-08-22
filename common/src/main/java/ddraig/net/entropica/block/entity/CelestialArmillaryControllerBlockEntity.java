@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 
 public class CelestialArmillaryControllerBlockEntity extends BlockEntity {
 
@@ -33,6 +34,10 @@ public class CelestialArmillaryControllerBlockEntity extends BlockEntity {
 
     public CelestialArmillaryControllerBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntities.CELESTIAL_ARMILLARY_CONTROLLER_BE.get(), pos, blockState);
+    }
+
+    public AABB getRenderBoundingBox() {
+        return new AABB(this.worldPosition).inflate(64.0, 64.0, 64.0);
     }
 
     public boolean isStructureValid() {
