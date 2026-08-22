@@ -12,7 +12,7 @@
   - Implemented client mouse scroll interception and C2S packet synchronization for `Sneak + Scroll`, cycling through the 3 blueprint memory slots (`[Slot 1]`, `[Slot 2]`, `[Slot 3]`) with audio click feedback and HUD notifications.
   - Configured `Sneak + Right-Click` to cycle blueprint types (*None* $\to$ *Astral Observatory* $\to$ *Celestial Beacon* $\to$ *Modular Astral Altar*).
   - Completely removed instant auto-construction on normal right-click.
-  - Corrected blueprint vertical anchor offset ($l - 1$) so the controller block in the template matches the placed controller block in-world at $(0, 0, 0)$.
+  - Adjusted blueprint vertical anchor offset ($l + 1$) so right-clicking ground anchors Layer 1 (foundation plinth) directly on top of the clicked block and Layer 2 (controller core) at $Y+2$.
 - **Astral Observatory & Altar Optical Sightlines (`AstralMultiblockRecipes.java`, `CelestialArmillaryRenderer.java`, `AstrolabeGhostRenderer.java`)**:
   - Revised the Grand Observatory 7x7x6 multiblock blueprint (Layer 5 dome ring) with 4 open cardinal apertures, ensuring starlight beams from the overhead lenses travel directly into the Armillary controller without passing through solid marble blocks.
   - Updated `CelestialArmillaryRenderer` beam convergence vectors to exact lens focal centers $(Y = +4.5625)$.
