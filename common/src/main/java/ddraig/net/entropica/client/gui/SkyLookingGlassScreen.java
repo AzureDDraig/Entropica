@@ -1017,16 +1017,18 @@ public class SkyLookingGlassScreen extends Screen {
                 currentEdgesSnapshot = new ArrayList<>(drawnEdges);
             }
 
-            for (String edge : currentEdgesSnapshot) {
-                String[] parts = edge.split("---");
-                if (parts.length == 2) {
-                    StarNode nodeA = onScreenStars.get(parts[0]);
-                    StarNode nodeB = onScreenStars.get(parts[1]);
-                    if (nodeA != null && nodeB != null) {
-                        float d = pointToSegmentDistance((float) mouseX, (float) mouseY, nodeA.sx(), nodeA.sy(), nodeB.sx(), nodeB.sy());
-                        if (d < minLineDist) {
-                            minLineDist = d;
-                            this.hoveredEdgeKey = edge;
+            if (!isShiftDown() && dragStarId == null) {
+                for (String edge : currentEdgesSnapshot) {
+                    String[] parts = edge.split("---");
+                    if (parts.length == 2) {
+                        StarNode nodeA = onScreenStars.get(parts[0]);
+                        StarNode nodeB = onScreenStars.get(parts[1]);
+                        if (nodeA != null && nodeB != null) {
+                            float d = pointToSegmentDistance((float) mouseX, (float) mouseY, nodeA.sx(), nodeA.sy(), nodeB.sx(), nodeB.sy());
+                            if (d < minLineDist) {
+                                minLineDist = d;
+                                this.hoveredEdgeKey = edge;
+                            }
                         }
                     }
                 }
@@ -1388,41 +1390,43 @@ public class SkyLookingGlassScreen extends Screen {
         double mouseX = event.x();
         double mouseY = event.y();
 
-        // 1. Erase Line Connection (Right-Click near line or Left-Click on hovered line)
-        String edgeToErase = this.hoveredEdgeKey;
-        if (edgeToErase == null && (button == 1 || button == 0)) {
-            float minLineDist = 12.0f;
-            for (String edge : drawnEdges) {
-                String[] parts = edge.split("---");
-                if (parts.length == 2) {
-                    StarNode nodeA = onScreenStars.get(parts[0]);
-                    StarNode nodeB = onScreenStars.get(parts[1]);
-                    if (nodeA != null && nodeB != null) {
-                        float d = pointToSegmentDistance((float) mouseX, (float) mouseY, nodeA.sx(), nodeA.sy(), nodeB.sx(), nodeB.sy());
-                        if (d < minLineDist) {
-                            minLineDist = d;
-                            edgeToErase = edge;
+        // 1. Erase Line Connection (Right-Click only without Shift)
+        if (button == 1 && !isShiftDown()) {
+            String edgeToErase = this.hoveredEdgeKey;
+            if (edgeToErase == null) {
+                float minLineDist = 10.0f;
+                for (String edge : drawnEdges) {
+                    String[] parts = edge.split("---");
+                    if (parts.length == 2) {
+                        StarNode nodeA = onScreenStars.get(parts[0]);
+                        StarNode nodeB = onScreenStars.get(parts[1]);
+                        if (nodeA != null && nodeB != null) {
+                            float d = pointToSegmentDistance((float) mouseX, (float) mouseY, nodeA.sx(), nodeA.sy(), nodeB.sx(), nodeB.sy());
+                            if (d < minLineDist) {
+                                minLineDist = d;
+                                edgeToErase = edge;
+                            }
                         }
                     }
                 }
             }
-        }
 
-        if (edgeToErase != null && (button == 1 || (button == 0 && this.hoveredEdgeKey != null))) {
-            drawnEdges.remove(edgeToErase);
-            Minecraft mc = Minecraft.getInstance();
-            Player player = mc.player;
-            if (player != null) {
-                PlayerAstralProgress.removeChartedConnection(player, edgeToErase);
-                NetworkManager.sendToServer(new SyncChartedConnectionsPayload(edgeToErase, SyncChartedConnectionsPayload.ACTION_REMOVE));
-                player.playSound(SoundEvents.CHISELED_BOOKSHELF_PICKUP, 0.7f, 1.2f);
+            if (edgeToErase != null) {
+                drawnEdges.remove(edgeToErase);
+                Minecraft mc = Minecraft.getInstance();
+                Player player = mc.player;
+                if (player != null) {
+                    PlayerAstralProgress.removeChartedConnection(player, edgeToErase);
+                    NetworkManager.sendToServer(new SyncChartedConnectionsPayload(edgeToErase, SyncChartedConnectionsPayload.ACTION_REMOVE));
+                    player.playSound(SoundEvents.CHISELED_BOOKSHELF_PICKUP, 0.7f, 1.2f);
+                }
+                this.hoveredEdgeKey = null;
+                return true;
             }
-            this.hoveredEdgeKey = null;
-            return true;
         }
 
         // Right-Click on discovered constellation to inscribe a completed star chart!
-        if (button == 1 && edgeToErase == null && !this.isLensMode && this.focusedTarget instanceof Object[] pair && pair[0] instanceof Constellation c) {
+        if (button == 1 && !this.isLensMode && this.focusedTarget instanceof Object[] pair && pair[0] instanceof Constellation c) {
             Minecraft mc = Minecraft.getInstance();
             Player player = mc.player;
             if (player != null && PlayerAstralProgress.isDiscovered(player, c)) {
