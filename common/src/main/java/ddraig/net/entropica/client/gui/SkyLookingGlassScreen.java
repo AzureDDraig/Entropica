@@ -1514,20 +1514,10 @@ public class SkyLookingGlassScreen extends Screen {
 
                     player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 0.7f, 1.4f);
 
-                    // Check if ANY constellation has all required connections satisfied in drawnEdges
+                    // Check if ANY constellation has all required connections satisfied in drawnEdges without extraneous lines
                     for (Constellation c : visibleConstellations) {
                         if (!PlayerAstralProgress.isDiscovered(player, c)) {
-                            boolean allSatisfied = true;
-                            for (ConstellationConnection conn : c.getConnections()) {
-                                String k1 = "c:" + c.getId().toString() + ":" + conn.fromIndex();
-                                String k2 = "c:" + c.getId().toString() + ":" + conn.toIndex();
-                                if (!drawnEdges.contains(makeEdgeKey(k1, k2))) {
-                                    allSatisfied = false;
-                                    break;
-                                }
-                            }
-
-                            if (allSatisfied) {
+                            if (PlayerAstralProgress.matchesConstellationPattern(c, drawnEdges)) {
                                 PlayerAstralProgress.discover(player, c);
                                 NetworkManager.sendToServer(new ConstellationDiscoveryPayload(c.getId()));
 

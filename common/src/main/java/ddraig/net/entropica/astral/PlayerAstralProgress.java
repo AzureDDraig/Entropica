@@ -297,6 +297,47 @@ public class PlayerAstralProgress {
         return (a.compareTo(b) < 0) ? (a + "---" + b) : (b + "---" + a);
     }
 
+    /**
+     * Validates whether a set of drawn edges satisfies the exact pattern for a constellation:
+     * 1. All official connections in the constellation must be present in drawnEdges.
+     * 2. No extraneous lines may be attached to any of the constellation's stars.
+     * 3. Lines connecting other stars (e.g. personal constellations or other constellations) are ignored and permitted.
+     */
+    public static boolean matchesConstellationPattern(Constellation constellation, Collection<String> drawnEdges) {
+        if (constellation == null || drawnEdges == null) return false;
+
+        String cPrefix = "c:" + constellation.getId().toString() + ":";
+        Set<String> expectedEdges = new HashSet<>();
+        for (ConstellationConnection conn : constellation.getConnections()) {
+            String k1 = cPrefix + conn.fromIndex();
+            String k2 = cPrefix + conn.toIndex();
+            expectedEdges.add(makeEdgeKey(k1, k2));
+        }
+
+        // 1. All official connections must be present
+        for (String expected : expectedEdges) {
+            if (!drawnEdges.contains(expected)) {
+                return false;
+            }
+        }
+
+        // 2. No extraneous lines attached to any of this constellation's stars
+        for (String edge : drawnEdges) {
+            String[] parts = edge.split("---");
+            if (parts.length == 2) {
+                boolean nodeATouches = parts[0].startsWith(cPrefix);
+                boolean nodeBTouches = parts[1].startsWith(cPrefix);
+                if (nodeATouches || nodeBTouches) {
+                    if (!expectedEdges.contains(edge)) {
+                        return false; // Extra invalid line connected to one of this constellation's stars
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
     public static int getDiscoveredCount(Player player, ConstellationTier tier) {
         int count = 0;
         for (Constellation c : ModConstellations.getAllConstellations()) {
