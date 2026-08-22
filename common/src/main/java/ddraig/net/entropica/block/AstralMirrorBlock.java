@@ -97,4 +97,23 @@ public class AstralMirrorBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
         return level.isClientSide() ? createTickerHelper(blockEntityType, ModBlockEntities.ASTRAL_MIRROR_BE.get(), AstralMirrorBlockEntity::clientTick) : null;
     }
+
+    @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, net.minecraft.world.entity.player.Player player, net.minecraft.world.phys.BlockHitResult hitResult) {
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                BlockPos checkPos = pos.offset(dx, 1, dz);
+                BlockEntity be = level.getBlockEntity(checkPos);
+                if (be instanceof ddraig.net.entropica.block.entity.CelestialArmillaryControllerBlockEntity armillary) {
+                    if (armillary.isStructureValid()) {
+                        if (level.isClientSide()) {
+                            ddraig.net.entropica.client.gui.SkyLookingGlassScreen.openForArmillary(checkPos);
+                        }
+                        return net.minecraft.world.InteractionResult.SUCCESS;
+                    }
+                }
+            }
+        }
+        return super.useWithoutItem(state, level, pos, player, hitResult);
+    }
 }

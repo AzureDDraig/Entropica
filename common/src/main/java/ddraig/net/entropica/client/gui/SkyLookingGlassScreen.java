@@ -486,37 +486,45 @@ public class SkyLookingGlassScreen extends Screen {
         float effectivePitch = this.pitch;
 
         if (player != null && mc.level != null) {
-            Vec3 eyePos = (this.telescopePos != null)
-                    ? Vec3.atCenterOf(this.telescopePos).add(0, 0.75, 0)
-                    : player.getEyePosition(partialTick);
+            if (this.instrument == InstrumentType.ARMILLARY) {
+                // Grand Observatory Optical Invariance: Dome apertures, lenses, and multiblock blocks do not obstruct celestial sightlines
+                BlockPos checkSkyPos = (this.telescopePos != null) ? this.telescopePos.above(9) : player.blockPosition().above(9);
+                if (!mc.level.canSeeSky(checkSkyPos) && !mc.level.getBlockState(checkSkyPos).isAir() && mc.level.getBlockState(checkSkyPos).isSolid()) {
+                    isObstructed = true;
+                }
+            } else {
+                Vec3 eyePos = (this.telescopePos != null)
+                        ? Vec3.atCenterOf(this.telescopePos).add(0, 0.75, 0)
+                        : player.getEyePosition(partialTick);
 
-            float yawRad = (float) Math.toRadians(this.yaw);
-            float pitchRad = (float) Math.toRadians(-this.pitch);
-            Vec3 lookDir = new Vec3(
-                    -Mth.sin(yawRad) * Mth.cos(pitchRad),
-                    -Mth.sin(pitchRad),
-                    Mth.cos(yawRad) * Mth.cos(pitchRad)
-            );
-            Vec3 endPos = eyePos.add(lookDir.scale(128.0));
-            BlockHitResult hit = mc.level.clip(new ClipContext(eyePos, endPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
-            if (hit.getType() == HitResult.Type.BLOCK) {
-                BlockPos hitPos = hit.getBlockPos();
-                if (this.telescopePos == null || (!hitPos.equals(this.telescopePos) && !hitPos.equals(this.telescopePos.below()))) {
-                    if (mc.level.getBlockState(hitPos).getBlock() instanceof ddraig.net.entropica.block.AstralMirrorBlock) {
-                        // Looking into an Astral Mirror! Specular reflection off the horizontal mirror plane (normal (0,1,0))
-                        Vec3 reflStart = hit.getLocation().add(0, 0.05, 0);
-                        Vec3 reflDir = new Vec3(lookDir.x, -lookDir.y, lookDir.z).normalize();
-                        Vec3 reflEnd = reflStart.add(reflDir.scale(192.0));
+                float yawRad = (float) Math.toRadians(this.yaw);
+                float pitchRad = (float) Math.toRadians(-this.pitch);
+                Vec3 lookDir = new Vec3(
+                        -Mth.sin(yawRad) * Mth.cos(pitchRad),
+                        -Mth.sin(pitchRad),
+                        Mth.cos(yawRad) * Mth.cos(pitchRad)
+                );
+                Vec3 endPos = eyePos.add(lookDir.scale(128.0));
+                BlockHitResult hit = mc.level.clip(new ClipContext(eyePos, endPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+                if (hit.getType() == HitResult.Type.BLOCK) {
+                    BlockPos hitPos = hit.getBlockPos();
+                    if (this.telescopePos == null || (!hitPos.equals(this.telescopePos) && !hitPos.equals(this.telescopePos.below()))) {
+                        if (mc.level.getBlockState(hitPos).getBlock() instanceof ddraig.net.entropica.block.AstralMirrorBlock) {
+                            // Looking into an Astral Mirror! Specular reflection off the horizontal mirror plane (normal (0,1,0))
+                            Vec3 reflStart = hit.getLocation().add(0, 0.05, 0);
+                            Vec3 reflDir = new Vec3(lookDir.x, -lookDir.y, lookDir.z).normalize();
+                            Vec3 reflEnd = reflStart.add(reflDir.scale(192.0));
 
-                        BlockHitResult reflHit = mc.level.clip(new ClipContext(reflStart, reflEnd, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
-                        if (reflHit.getType() == HitResult.Type.MISS || reflHit.getBlockPos().getY() > hitPos.getY() + 120) {
-                            isMirrorReflection = true;
-                            effectivePitch = -this.pitch;
+                            BlockHitResult reflHit = mc.level.clip(new ClipContext(reflStart, reflEnd, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+                            if (reflHit.getType() == HitResult.Type.MISS || reflHit.getBlockPos().getY() > hitPos.getY() + 120) {
+                                isMirrorReflection = true;
+                                effectivePitch = -this.pitch;
+                            } else {
+                                isObstructed = true;
+                            }
                         } else {
                             isObstructed = true;
                         }
-                    } else {
-                        isObstructed = true;
                     }
                 }
             }

@@ -32,10 +32,16 @@ public class CelestialArmillaryControllerBlock extends BaseEntityBlock {
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
-    private static final VoxelShape SHAPE = Shapes.or(
+    private static final VoxelShape BASE_SHAPE = Shapes.or(
             Block.box(0.0, 0.0, 0.0, 16.0, 3.5, 16.0),
             Block.box(1.25, 3.5, 1.25, 14.75, 5.25, 14.75),
             Block.box(3.0, 5.25, 3.0, 13.0, 16.0, 13.0)
+    );
+
+    // Encompasses the entire large floating Optic Orb (floating at Y=2.5 blocks, radius ~1.35 blocks)
+    private static final VoxelShape FORMED_SELECTION_SHAPE = Shapes.or(
+            BASE_SHAPE,
+            Block.box(-14.0, 16.0, -14.0, 30.0, 62.0, 30.0)
     );
 
     public CelestialArmillaryControllerBlock(Properties properties) {
@@ -60,12 +66,12 @@ public class CelestialArmillaryControllerBlock extends BaseEntityBlock {
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
+        return state.getValue(FORMED) ? FORMED_SELECTION_SHAPE : BASE_SHAPE;
     }
 
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
+        return BASE_SHAPE;
     }
 
     @Nullable
