@@ -38,15 +38,14 @@ public class CelestialBeaconRenderer implements BlockEntityRenderer<CelestialBea
         BlockEntityRenderState.extractBase(be, state, crumblingOverlay);
         state.isStructureValid = be.isStructureValid();
         state.isStarlightActive = be.isStarlightActive();
-        long gameTime = (be.getLevel() != null) ? be.getLevel().getGameTime() : 0;
-        state.timeSec = (gameTime + partialTick) * 0.05f;
+        state.timeSec = (float) ((System.nanoTime() / 1_000_000_000.0) % 100000.0);
     }
 
     @Override
     public void submit(BeaconRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraRenderState) {
         int light = 15728880;
         int overlay = OverlayTexture.NO_OVERLAY;
-        float timeSec = state.timeSec;
+        float timeSec = (float) ((System.nanoTime() / 1_000_000_000.0) % 100000.0);
 
         if (state.isStructureValid || state.isStarlightActive) {
             float cx = 0.5f;

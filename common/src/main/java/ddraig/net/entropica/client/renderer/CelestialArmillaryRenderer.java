@@ -2,6 +2,7 @@ package ddraig.net.entropica.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import ddraig.net.entropica.block.entity.CelestialArmillaryControllerBlockEntity;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -39,58 +40,86 @@ public class CelestialArmillaryRenderer implements BlockEntityRenderer<Celestial
         state.isStructureValid = be.isStructureValid();
         state.isStarlightActive = be.isStarlightActive();
         state.beamCount = be.getBeamCount();
-        long gameTime = (be.getLevel() != null) ? be.getLevel().getGameTime() : 0;
-        state.timeSec = (gameTime + partialTick) * 0.05f;
+        state.timeSec = (float) ((System.nanoTime() / 1_000_000_000.0) % 100000.0);
     }
 
     @Override
     public void submit(ArmillaryRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraRenderState) {
         int light = 15728880;
         int overlay = OverlayTexture.NO_OVERLAY;
-        float timeSec = state.timeSec;
+        float timeSec = (float) ((System.nanoTime() / 1_000_000_000.0) % 100000.0);
 
         if (state.isStructureValid || state.isStarlightActive) {
             float cx = 0.5f;
-            float cy = 2.5f; // Floating majestically in the center of the 9x9x9 dome
+            float cy = 2.5f; // Floating in the center of the 9x9x9 dome
             float cz = 0.5f;
 
             collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
-                Matrix4f mat = pose.pose();
+                // 1. Large Outer Rotating Refractive Optical Sphere Shell (Smooth matrix rotation)
+                poseStack.pushPose();
+                poseStack.translate(cx, cy, cz);
+                poseStack.mulPose(Axis.YP.rotationDegrees(timeSec * 22.0f));
+                poseStack.mulPose(Axis.XP.rotationDegrees((float) Math.sin(timeSec * 0.45f) * 12.0f));
+                renderUnitSphere(poseStack.last().pose(), consumer, 1.35f, 0.80f, 0.92f, 1.0f, 0.28f, light, overlay);
+                poseStack.popPose();
 
-                // 1. Large Outer & Inner Rotating Refractive Optical Sphere Shells
-                renderRefractiveSphere(mat, consumer, cx, cy, cz, 1.35f, timeSec, light, overlay, false);
-                renderRefractiveSphere(mat, consumer, cx, cy, cz, 1.05f, timeSec, light, overlay, true);
+                // 2. Inner Counter-Rotating Refractive Sphere Shell
+                poseStack.pushPose();
+                poseStack.translate(cx, cy, cz);
+                poseStack.mulPose(Axis.YP.rotationDegrees(-timeSec * 32.0f));
+                poseStack.mulPose(Axis.ZP.rotationDegrees((float) Math.cos(timeSec * 0.55f) * 15.0f));
+                renderUnitSphere(poseStack.last().pose(), consumer, 1.05f, 0.95f, 0.85f, 1.0f, 0.20f, light, overlay);
+                poseStack.popPose();
 
-                // 2. Dual Counter-Rotating Ethereal Gimbal Rings
-                renderOrbitalGimbalRing(mat, consumer, cx, cy, cz, 1.62f, timeSec * 0.8f, 0.4f, 0.9f, 1.0f, 0.80f, light, overlay, 1.0f, 0.0f, 0.5f);
-                renderOrbitalGimbalRing(mat, consumer, cx, cy, cz, 1.78f, -timeSec * 0.6f, 0.9f, 0.7f, 1.0f, 0.80f, light, overlay, 0.3f, 1.0f, 0.2f);
+                // 3. Gimbal Ring 1 (Smooth continuous orbital rotation)
+                poseStack.pushPose();
+                poseStack.translate(cx, cy, cz);
+                poseStack.mulPose(Axis.XP.rotationDegrees(35.0f));
+                poseStack.mulPose(Axis.YP.rotationDegrees(timeSec * 28.0f));
+                poseStack.mulPose(Axis.ZP.rotationDegrees((float) Math.sin(timeSec * 0.7f) * 18.0f));
+                renderFlatRing(poseStack.last().pose(), consumer, 1.62f, 0.035f, 0.4f, 0.9f, 1.0f, 0.80f, light, overlay);
+                poseStack.popPose();
 
-                // 3. Central Glowing Pulsating Cosmic Singularity inside the Sphere
+                // 4. Gimbal Ring 2 (Counter-orbital rotation)
+                poseStack.pushPose();
+                poseStack.translate(cx, cy, cz);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(55.0f));
+                poseStack.mulPose(Axis.YP.rotationDegrees(-timeSec * 24.0f));
+                poseStack.mulPose(Axis.XP.rotationDegrees((float) Math.cos(timeSec * 0.6f) * 22.0f));
+                renderFlatRing(poseStack.last().pose(), consumer, 1.78f, 0.035f, 0.9f, 0.7f, 1.0f, 0.80f, light, overlay);
+                poseStack.popPose();
+
+                // 5. Central Glowing Pulsating Cosmic Singularity inside the Sphere
                 float pulse = 0.85f + 0.15f * (float) Math.sin(timeSec * 3.5f);
-                renderGlowingCore(mat, consumer, cx, cy, cz, 0.42f * pulse, 0.7f, 0.95f, 1.0f, 0.95f, light, overlay);
+                poseStack.pushPose();
+                poseStack.translate(cx, cy, cz);
+                poseStack.mulPose(Axis.YP.rotationDegrees(timeSec * 50.0f));
+                poseStack.mulPose(Axis.XP.rotationDegrees(timeSec * 35.0f));
+                renderGlowingCore(poseStack.last().pose(), consumer, 0, 0, 0, 0.42f * pulse, 0.7f, 0.95f, 1.0f, 0.95f, light, overlay);
+                poseStack.popPose();
 
-                // 4. If Starlight Active: 4 Cardinal Inward Starlight Beams from Layer 9 (Y=+7) Lenses
+                // 6. If Starlight Active: 4 Cardinal Inward Starlight Beams from Layer 9 (Y=+7) Lenses
                 if (state.isStarlightActive) {
+                    Matrix4f beamPose = pose.pose();
                     // North beam (Z = -4, Y = +7) -> Lens at (0.5, 7.5625, -3.5)
-                    renderBeamLine(mat, consumer, cx, cy, cz, cx, 7.5625f, -3.5f, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
+                    renderBeamLine(beamPose, consumer, cx, cy, cz, cx, 7.5625f, -3.5f, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
                     // South beam (Z = +4, Y = +7) -> Lens at (0.5, 7.5625, 4.5)
-                    renderBeamLine(mat, consumer, cx, cy, cz, cx, 7.5625f, 4.5f, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
+                    renderBeamLine(beamPose, consumer, cx, cy, cz, cx, 7.5625f, 4.5f, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
                     // West beam (X = -4, Y = +7) -> Lens at (-3.5, 7.5625, 0.5)
-                    renderBeamLine(mat, consumer, cx, cy, cz, -3.5f, 7.5625f, cz, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
+                    renderBeamLine(beamPose, consumer, cx, cy, cz, -3.5f, 7.5625f, cz, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
                     // East beam (X = +4, Y = +7) -> Lens at (4.5, 7.5625, 0.5)
-                    renderBeamLine(mat, consumer, cx, cy, cz, 4.5f, 7.5625f, cz, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
+                    renderBeamLine(beamPose, consumer, cx, cy, cz, 4.5f, 7.5625f, cz, 0.4f, 0.95f, 1.0f, 0.88f, light, overlay);
 
                     // Vertical Concentrated Focus Ray: from Ocular Sphere down into Armillary Controller (Y = 0.75)
-                    renderBeamLine(mat, consumer, cx, cy, cz, cx, 0.75f, cz, 0.9f, 0.95f, 1.0f, 0.95f, light, overlay);
+                    renderBeamLine(beamPose, consumer, cx, cy, cz, cx, 0.75f, cz, 0.9f, 0.95f, 1.0f, 0.95f, light, overlay);
                 }
             });
         }
     }
 
-    private static void renderRefractiveSphere(Matrix4f pose, VertexConsumer consumer, float cx, float cy, float cz, float baseRadius, float timeSec, int light, int overlay, boolean inner) {
+    private static void renderUnitSphere(Matrix4f pose, VertexConsumer consumer, float radius, float r, float g, float b, float alpha, int light, int overlay) {
         int lats = 16;
         int lons = 24;
-        float rotSpeed = inner ? -0.45f : 0.35f;
 
         for (int i = 0; i < lats; i++) {
             float lat0 = (float) Math.PI * (-0.5f + (float) i / lats);
@@ -101,82 +130,64 @@ public class CelestialArmillaryRenderer implements BlockEntityRenderer<Celestial
             float z1 = (float) Math.sin(lat1);
             float zr1 = (float) Math.cos(lat1);
 
-            for (int j = 0; j <= lons; j++) {
-                float lon = (float) (2 * Math.PI * j / lons) + timeSec * rotSpeed;
-                float x = (float) Math.cos(lon);
-                float y = (float) Math.sin(lon);
+            for (int j = 0; j < lons; j++) {
+                float lon0 = (float) (2 * Math.PI * j / lons);
+                float lon1 = (float) (2 * Math.PI * (j + 1) / lons);
 
-                float wave0 = 1.0f + 0.04f * (float) Math.sin(4.0f * lon + 3.0f * lat0 + timeSec * 2.0f);
-                float wave1 = 1.0f + 0.04f * (float) Math.sin(4.0f * lon + 3.0f * lat1 + timeSec * 2.0f);
+                float cos0 = (float) Math.cos(lon0);
+                float sin0 = (float) Math.sin(lon0);
+                float cos1 = (float) Math.cos(lon1);
+                float sin1 = (float) Math.sin(lon1);
 
-                float r0 = baseRadius * wave0;
-                float r1 = baseRadius * wave1;
+                float x00 = cos0 * zr0 * radius;
+                float y00 = z0 * radius;
+                float z00 = sin0 * zr0 * radius;
 
-                float vx0 = cx + x * zr0 * r0;
-                float vy0 = cy + z0 * r0;
-                float vz0 = cz + y * zr0 * r0;
+                float x10 = cos0 * zr1 * radius;
+                float y10 = z1 * radius;
+                float z10 = sin0 * zr1 * radius;
 
-                float vx1 = cx + x * zr1 * r1;
-                float vy1 = cy + z1 * r1;
-                float vz1 = cz + y * zr1 * r1;
+                float x01 = cos1 * zr0 * radius;
+                float y01 = z0 * radius;
+                float z01 = sin1 * zr0 * radius;
 
-                float nextLon = (float) (2 * Math.PI * (j + 1) / lons) + timeSec * rotSpeed;
-                float nx = (float) Math.cos(nextLon);
-                float ny = (float) Math.sin(nextLon);
+                float x11 = cos1 * zr1 * radius;
+                float y11 = z1 * radius;
+                float z11 = sin1 * zr1 * radius;
 
-                float nWave0 = 1.0f + 0.04f * (float) Math.sin(4.0f * nextLon + 3.0f * lat0 + timeSec * 2.0f);
-                float nWave1 = 1.0f + 0.04f * (float) Math.sin(4.0f * nextLon + 3.0f * lat1 + timeSec * 2.0f);
-
-                float nvx0 = cx + nx * zr0 * (baseRadius * nWave0);
-                float nvy0 = cy + z0 * (baseRadius * nWave0);
-                float nvz0 = cz + ny * zr0 * (baseRadius * nWave0);
-
-                float nvx1 = cx + nx * zr1 * (baseRadius * nWave1);
-                float nvy1 = cy + z1 * (baseRadius * nWave1);
-                float nvz1 = cz + ny * zr1 * (baseRadius * nWave1);
-
-                // Subtle ethereal refraction tint (soft white/cyan/violet)
-                float r = inner ? 0.95f : 0.80f;
-                float g = inner ? 0.85f : 0.92f;
-                float b = 1.0f;
-                float alpha = inner ? 0.18f : 0.28f;
-
-                consumer.addVertex(pose, vx0, vy0, vz0).setColor(r, g, b, alpha).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(x * zr0, z0, y * zr0);
-                consumer.addVertex(pose, nvx0, nvy0, nvz0).setColor(r, g, b, alpha).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(nx * zr0, z0, ny * zr0);
-                consumer.addVertex(pose, nvx1, nvy1, nvz1).setColor(r, g, b, alpha).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(nx * zr1, z1, ny * zr1);
-                consumer.addVertex(pose, vx1, vy1, vz1).setColor(r, g, b, alpha).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(x * zr1, z1, y * zr1);
+                consumer.addVertex(pose, x00, y00, z00).setColor(r, g, b, alpha).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(x00 / radius, y00 / radius, z00 / radius);
+                consumer.addVertex(pose, x01, y01, z01).setColor(r, g, b, alpha).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(x01 / radius, y01 / radius, z01 / radius);
+                consumer.addVertex(pose, x11, y11, z11).setColor(r, g, b, alpha).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(x11 / radius, y11 / radius, z11 / radius);
+                consumer.addVertex(pose, x10, y10, z10).setColor(r, g, b, alpha).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(x10 / radius, y10 / radius, z10 / radius);
             }
         }
     }
 
-    private static void renderOrbitalGimbalRing(Matrix4f pose, VertexConsumer consumer, float cx, float cy, float cz, float radius, float angle, float r, float g, float b, float a, int light, int overlay, float ax, float ay, float az) {
-        int segs = 32;
-        float thickness = 0.025f;
+    private static void renderFlatRing(Matrix4f pose, VertexConsumer consumer, float radius, float thickness, float r, float g, float b, float a, int light, int overlay) {
+        int segs = 36;
+        for (int i = 0; i < segs; i++) {
+            float theta0 = (float) (2 * Math.PI * i / segs);
+            float theta1 = (float) (2 * Math.PI * (i + 1) / segs);
 
-        float prevX = 0, prevY = 0, prevZ = 0;
-        boolean hasPrev = false;
+            float cos0 = (float) Math.cos(theta0);
+            float sin0 = (float) Math.sin(theta0);
+            float cos1 = (float) Math.cos(theta1);
+            float sin1 = (float) Math.sin(theta1);
 
-        for (int i = 0; i <= segs; i++) {
-            float theta = (float) (2 * Math.PI * i / segs);
-            // Circle in X-Z plane rotated by angle around arbitrary axis
-            float x0 = (float) Math.cos(theta) * radius;
-            float z0 = (float) Math.sin(theta) * radius;
-            float y0 = (float) Math.sin(theta + angle) * 0.3f * radius;
+            float rIn = radius - thickness;
+            float rOut = radius + thickness;
 
-            float curX = cx + x0 * (float) Math.cos(angle) - z0 * (float) Math.sin(angle) * ax;
-            float curY = cy + y0 + z0 * ay * 0.4f;
-            float curZ = cz + x0 * (float) Math.sin(angle) + z0 * (float) Math.cos(angle) * az;
+            // Top ring quad
+            consumer.addVertex(pose, cos0 * rIn, 0.015f, sin0 * rIn).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+            consumer.addVertex(pose, cos1 * rIn, 0.015f, sin1 * rIn).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+            consumer.addVertex(pose, cos1 * rOut, 0.015f, sin1 * rOut).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+            consumer.addVertex(pose, cos0 * rOut, 0.015f, sin0 * rOut).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
 
-            if (hasPrev) {
-                consumer.addVertex(pose, prevX, prevY - thickness, prevZ).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-                consumer.addVertex(pose, curX, curY - thickness, curZ).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-                consumer.addVertex(pose, curX, curY + thickness, curZ).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-                consumer.addVertex(pose, prevX, prevY + thickness, prevZ).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-            }
-            prevX = curX;
-            prevY = curY;
-            prevZ = curZ;
-            hasPrev = true;
+            // Bottom ring quad
+            consumer.addVertex(pose, cos0 * rOut, -0.015f, sin0 * rOut).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+            consumer.addVertex(pose, cos1 * rOut, -0.015f, sin1 * rOut).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+            consumer.addVertex(pose, cos1 * rIn, -0.015f, sin1 * rIn).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+            consumer.addVertex(pose, cos0 * rIn, -0.015f, sin0 * rIn).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
         }
     }
 
