@@ -32,7 +32,7 @@ public class AstralAltarRenderer implements BlockEntityRenderer<AstralAltarCoreB
     }
 
     public AABB getRenderBoundingBox(AstralAltarCoreBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.5);
+        return new AABB(blockEntity.getBlockPos()).inflate(4.5, 6.5, 4.5);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class AstralAltarRenderer implements BlockEntityRenderer<AstralAltarCoreB
         double gameTime = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
         double bob = Math.sin(gameTime * 0.05) * 0.05;
 
-        // 1. Runic / Starlight Circle on Altar Core Surface when formed
+        // 1. Runic / Starlight Circle & Focal Beams on Altar Core Surface when formed
         if (state.isStructureValid) {
             collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
                 float r = state.isStarlightActive ? 0.3f : 0.2f;
@@ -79,6 +79,11 @@ public class AstralAltarRenderer implements BlockEntityRenderer<AstralAltarCoreB
                 float b = state.isStarlightActive ? 1.0f : 0.7f;
                 float a = state.isStarlightActive ? 0.85f : 0.4f;
                 renderCircleDisc(pose.pose(), consumer, 0.5f, 1.01f, 0.5f, 0.45f, r, g, b, a, light, overlay);
+
+                if (state.isStarlightActive) {
+                    // Overhead Starlight Focal Ray (From Focal Lens Mount at Y=+5 down to Altar Core)
+                    renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, 0.5f, 1.25f, 0.5f, 0.8f, 0.95f, 1.0f, 0.80f, light, overlay);
+                }
             });
         }
 
@@ -109,6 +114,14 @@ public class AstralAltarRenderer implements BlockEntityRenderer<AstralAltarCoreB
         consumer.addVertex(pose, cx + radius, cy, cz - radius).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
         consumer.addVertex(pose, cx + radius, cy, cz + radius).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
         consumer.addVertex(pose, cx - radius, cy, cz + radius).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+    }
+
+    private static void renderBeamLine(Matrix4f pose, VertexConsumer consumer, float x1, float y1, float z1, float x2, float y2, float z2, float r, float g, float b, float a, int light, int overlay) {
+        float thickness = 0.04f;
+        consumer.addVertex(pose, x1 - thickness, y1, z1).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, x1 + thickness, y1, z1).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, x2 + thickness, y2, z2).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, x2 - thickness, y2, z2).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
     }
 
     public static class AltarRenderState extends BlockEntityRenderState {

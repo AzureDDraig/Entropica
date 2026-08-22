@@ -266,10 +266,14 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
         if (level == null) return list;
 
         BlockPos[] offsets = {
-                worldPosition.offset(2, 0, 0),
-                worldPosition.offset(-2, 0, 0),
-                worldPosition.offset(0, 0, 2),
-                worldPosition.offset(0, 0, -2)
+                worldPosition.offset(3, 0, 0),
+                worldPosition.offset(-3, 0, 0),
+                worldPosition.offset(0, 0, 3),
+                worldPosition.offset(0, 0, -3),
+                worldPosition.offset(2, 0, 2),
+                worldPosition.offset(2, 0, -2),
+                worldPosition.offset(-2, 0, 2),
+                worldPosition.offset(-2, 0, -2)
         };
 
         for (BlockPos p : offsets) {
@@ -284,47 +288,61 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
     public boolean checkMultiblockStructure() {
         if (level == null) return false;
 
+        // LAYER 1 (Y = -1, 7x7 Foundation):
         BlockPos base = worldPosition.below();
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dz = -2; dz <= 2; dz++) {
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dz = -3; dz <= 3; dz++) {
                 BlockPos checkPos = base.offset(dx, 0, dz);
                 BlockState bs = level.getBlockState(checkPos);
                 int absX = Math.abs(dx);
                 int absZ = Math.abs(dz);
 
-                if (absX == 2 && absZ == 2) {
+                if (absX == 3 && absZ == 3) {
                     if (!bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE.get())) return false;
-                } else if ((absX == 2 && absZ == 0) || (absX == 0 && absZ == 2)) {
+                } else if (absX == 3 || absZ == 3) {
                     if (!bs.is(ModBlocks.ENGRAVED_ASTRAL_SLATE.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) return false;
-                } else if (absX <= 1 && absZ <= 1) {
+                } else {
                     if (!bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE.get()) && !bs.is(ModBlocks.CHISELED_ASTRAL_MARBLE.get())) return false;
                 }
             }
         }
 
-        BlockPos[] pylonPositions = {
+        // LAYER 2 to 5 (Y = 0 to +3, 4 Corner Resonance Pylons at (±3, ±3)):
+        for (int dy = 0; dy <= 3; dy++) {
+            BlockPos[] pylonPositions = {
+                    worldPosition.offset(3, dy, 3),
+                    worldPosition.offset(3, dy, -3),
+                    worldPosition.offset(-3, dy, 3),
+                    worldPosition.offset(-3, dy, -3)
+            };
+            for (BlockPos p : pylonPositions) {
+                BlockState bs = level.getBlockState(p);
+                if (!bs.is(ModBlocks.RESONANCE_PYLON.get()) && !bs.is(ModBlocks.STARLIGHT_PILLAR.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) {
+                    return false;
+                }
+            }
+        }
+
+        // LAYER 2: 8 Attunement Pedestals:
+        BlockPos[] pedestalPositions = {
+                worldPosition.offset(3, 0, 0),
+                worldPosition.offset(-3, 0, 0),
+                worldPosition.offset(0, 0, 3),
+                worldPosition.offset(0, 0, -3),
                 worldPosition.offset(2, 0, 2),
                 worldPosition.offset(2, 0, -2),
                 worldPosition.offset(-2, 0, 2),
                 worldPosition.offset(-2, 0, -2)
         };
-        for (BlockPos p : pylonPositions) {
-            BlockState bs = level.getBlockState(p);
-            if (!bs.is(ModBlocks.RESONANCE_PYLON.get())) return false;
-        }
-
-        BlockPos[] pedestalPositions = {
-                worldPosition.offset(2, 0, 0),
-                worldPosition.offset(-2, 0, 0),
-                worldPosition.offset(0, 0, 2),
-                worldPosition.offset(0, 0, -2)
-        };
+        int pedestalsFound = 0;
         for (BlockPos p : pedestalPositions) {
             BlockState bs = level.getBlockState(p);
-            if (!bs.is(ModBlocks.ATTUNEMENT_PEDESTAL.get()) && !bs.is(ModBlocks.ASTRAL_PEDESTAL.get())) return false;
+            if (bs.is(ModBlocks.ATTUNEMENT_PEDESTAL.get()) || bs.is(ModBlocks.ASTRAL_PEDESTAL.get()) || bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) {
+                pedestalsFound++;
+            }
         }
 
-        return true;
+        return pedestalsFound >= 4; // Tolerant to at least 4 active pedestals, up to 8
     }
 
     public void displayAltarStatus(Player player) {

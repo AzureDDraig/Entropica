@@ -201,6 +201,7 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.ASTRAL_MIRROR_BE.get(), ddraig.net.entropica.client.renderer.AstralMirrorRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ASTRAL_ALTAR_CORE_BE.get(), ddraig.net.entropica.client.renderer.AstralAltarRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.CELESTIAL_ARMILLARY_CONTROLLER_BE.get(), ddraig.net.entropica.client.renderer.CelestialArmillaryRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CELESTIAL_BEACON_CONTROLLER_BE.get(), ddraig.net.entropica.client.renderer.CelestialBeaconRenderer::new);
 
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);

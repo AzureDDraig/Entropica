@@ -202,6 +202,12 @@ public class SkyLookingGlassScreen extends Screen {
         Minecraft.getInstance().setScreen(new SkyLookingGlassScreen(pos, true));
     }
 
+    public static void openForArmillary(BlockPos pos) {
+        SkyLookingGlassScreen screen = new SkyLookingGlassScreen(pos, false);
+        screen.instrument = InstrumentType.ARMILLARY;
+        Minecraft.getInstance().setScreen(screen);
+    }
+
     public static void openForInstrument(InstrumentType type) {
         SkyLookingGlassScreen screen = new SkyLookingGlassScreen(null, false);
         screen.instrument = type;

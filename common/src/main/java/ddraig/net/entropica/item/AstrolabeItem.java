@@ -33,9 +33,9 @@ public class AstrolabeItem extends Item {
 
     public static final String[] BLUEPRINT_NAMES = new String[]{
             "None",
-            "Astral Observatory (7x6x7)",
-            "Celestial Beacon (3x3x3)",
-            "Modular Astral Altar (5x3x5)"
+            "Astral Observatory (9x9x9)",
+            "Celestial Beacon (5x5x5)",
+            "Modular Astral Altar (7x7x7)"
     };
 
     public AstrolabeItem(Properties properties) {

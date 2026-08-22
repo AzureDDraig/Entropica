@@ -15,78 +15,126 @@ public class AstralMultiblockRecipes {
         List<AstralMultiblockRecipe> list = new ArrayList<>();
 
         // ---------------------------------------------------------------------
-        // 1. 7x7x6 GRAND CIRCULAR ASTRAL OBSERVATORY & CELESTIAL MIRROR POOL
+        // 1. 9x9x9 GRAND CIRCULAR ASTRAL OBSERVATORY & CELESTIAL MIRROR POOL
         // ---------------------------------------------------------------------
         List<ItemStack> obsMats = List.of(
-                new ItemStack(ModBlocks.ASTRAL_MIRROR_BLOCK.get(), 25),
-                new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get(), 20),
-                new ItemStack(ModBlocks.ASTRAL_MARBLE_BRICKS.get(), 16),
-                new ItemStack(ModBlocks.STARLIGHT_PILLAR.get(), 8),
-                new ItemStack(ModBlocks.ASTRAL_MARBLE_WALL.get(), 8),
+                new ItemStack(ModBlocks.ASTRAL_MIRROR_BLOCK.get(), 49),
+                new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get(), 28),
+                new ItemStack(ModBlocks.ASTRAL_MARBLE_BRICKS.get(), 68),
+                new ItemStack(ModBlocks.STARLIGHT_PILLAR.get(), 20),
+                new ItemStack(ModBlocks.ASTRAL_MARBLE_WALL.get(), 24),
                 new ItemStack(ModBlocks.REFRACTIVE_ASTRAL_LENS.get(), 4),
                 new ItemStack(ModBlocks.CELESTIAL_ARMILLARY_CONTROLLER.get(), 1)
         );
 
         List<List<String>> obsLayers = List.of(
-                // Layer 1 (Foundation & 5x5 Mirror Pool Floor)
+                // Layer 1 (Foundation & 7x7 Mirror Pool Floor)
                 List.of(
-                        "MSSSSSM",
-                        "SPPPPPS",
-                        "SPPPPPS",
-                        "SPPPPPS",
-                        "SPPPPPS",
-                        "SPPPPPS",
-                        "MSSSSSM"
+                        "MSSSSSSSM",
+                        "SPPPPPPPS",
+                        "SPPPPPPPS",
+                        "SPPPPPPPS",
+                        "SPPPPPPPS",
+                        "SPPPPPPPS",
+                        "SPPPPPPPS",
+                        "SPPPPPPPS",
+                        "MSSSSSSSM"
                 ),
                 // Layer 2 (Lower Ring & Armillary Controller Core)
                 List.of(
-                        "CM...MC",
-                        "M.....M",
-                        ".......",
-                        "...A...",
-                        ".......",
-                        "M.....M",
-                        "CM...MC"
+                        "CMM...MMC",
+                        "M.......M",
+                        "M.......M",
+                        ".........",
+                        "....A....",
+                        ".........",
+                        "M.......M",
+                        "M.......M",
+                        "CMM...MMC"
                 ),
-                // Layer 3 (Pillar Shafts & Marble Walls)
+                // Layer 3 (Pillar Shafts & Marble Wall Arches)
                 List.of(
-                        "CW...WC",
-                        "W.....W",
-                        ".......",
-                        ".......",
-                        ".......",
-                        "W.....W",
-                        "CW...WC"
+                        "CW.....WC",
+                        "W.......W",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        "W.......W",
+                        "CW.....WC"
                 ),
-                // Layer 4 (Pillar Capitals)
+                // Layer 4 (Pillar Shafts & Marble Wall Arches)
                 List.of(
-                        "C.....C",
-                        ".......",
-                        ".......",
-                        ".......",
-                        ".......",
-                        ".......",
-                        "C.....C"
+                        "CW.....WC",
+                        "W.......W",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        "W.......W",
+                        "CW.....WC"
                 ),
-                // Layer 5 (Arch Dome Ring with 4 Cardinal Open Beam Apertures)
+                // Layer 5 (Pillar Shafts & Marble Wall Arches)
                 List.of(
-                        ".MM.MM.",
-                        "M.....M",
-                        "M.....M",
-                        ".......",
-                        "M.....M",
-                        "M.....M",
-                        ".MM.MM."
+                        "CW.....WC",
+                        "W.......W",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        "W.......W",
+                        "CW.....WC"
                 ),
-                // Layer 6 (Sky Aperture & 4 Cardinal Refractive Lenses)
+                // Layer 6 (Pillar Capitals)
                 List.of(
-                        "...R...",
-                        ".......",
-                        ".......",
-                        "R.....R",
-                        ".......",
-                        ".......",
-                        "...R..."
+                        "C.......C",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        ".........",
+                        "C.......C"
+                ),
+                // Layer 7 (Arch Dome Ring with 4 Cardinal Open Beam Apertures)
+                List.of(
+                        ".MMM.MMM.",
+                        "M.......M",
+                        "M.......M",
+                        "M.......M",
+                        ".........",
+                        "M.......M",
+                        "M.......M",
+                        "M.......M",
+                        ".MMM.MMM."
+                ),
+                // Layer 8 (Upper Dome Arch Stepped Ring)
+                List.of(
+                        "..MMMMM..",
+                        ".M.....M.",
+                        "M.......M",
+                        "M.......M",
+                        "M.......M",
+                        "M.......M",
+                        "M.......M",
+                        ".M.....M.",
+                        "..MMMMM.."
+                ),
+                // Layer 9 (Grand Sky Aperture & 4 Cardinal Refractive Lenses)
+                List.of(
+                        "....R....",
+                        ".........",
+                        ".........",
+                        ".........",
+                        "R.......R",
+                        ".........",
+                        ".........",
+                        ".........",
+                        "....R...."
                 )
         );
 
@@ -101,99 +149,171 @@ public class AstralMultiblockRecipes {
 
         list.add(new AstralMultiblockRecipe(
                 Component.literal("Astral Observatory"),
-                "7x6x7",
+                "9x9x9",
                 new ItemStack(ModBlocks.CELESTIAL_ARMILLARY_CONTROLLER.get()),
                 obsMats,
                 obsLayers,
                 obsLegend,
-                Component.literal("5x5 Mirror Pool & 32x Cosmic Magnification")
+                Component.literal("7x7 Mirror Pool, Rotating Ocular Sphere & 32x Cosmic Magnification")
         ));
 
         // ---------------------------------------------------------------------
-        // 2. 3x3x3 CELESTIAL BEACON SANCTUARY
+        // 2. 5x5x5 CELESTIAL BEACON SANCTUARY
         // ---------------------------------------------------------------------
         List<ItemStack> beaconMats = List.of(
-                new ItemStack(ModBlocks.ASTRAL_MARBLE_BRICKS.get(), 12),
-                new ItemStack(ModBlocks.RUNED_ASTRAL_MARBLE.get(), 8),
+                new ItemStack(ModBlocks.ASTRAL_MARBLE_BRICKS.get(), 14),
+                new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get(), 10),
+                new ItemStack(ModBlocks.RUNED_ASTRAL_MARBLE.get(), 9),
                 new ItemStack(ModBlocks.CHISELED_ASTRAL_MARBLE.get(), 4),
-                new ItemStack(ModBlocks.ASTRAL_CRYSTAL_BLOCK.get(), 2),
+                new ItemStack(ModBlocks.STARLIGHT_PILLAR.get(), 4),
+                new ItemStack(ModBlocks.ASTRAL_CRYSTAL_BLOCK.get(), 9),
                 new ItemStack(ModBlocks.CELESTIAL_BEACON_CONTROLLER.get(), 1)
         );
 
         List<List<String>> beaconLayers = List.of(
-                // Layer 1 (Plinth Foundation)
+                // Layer 1 (Stepped Plinth Foundation)
                 List.of(
-                        "MMM",
-                        "MRM",
-                        "MMM"
+                        "MSSSM",
+                        "SMMMS",
+                        "SMRMS",
+                        "SMMMS",
+                        "MSSSM"
                 ),
-                // Layer 2 (Beacon Controller Core & Runed Marble)
+                // Layer 2 (Beacon Controller Core & Runed Marble Channels)
                 List.of(
-                        "HRH",
-                        "RBR",
-                        "HRH"
+                        "HR.RH",
+                        "R...R",
+                        "..B..",
+                        "R...R",
+                        "HR.RH"
                 ),
-                // Layer 3 (Focus Crystals & Chiseled Apex)
+                // Layer 3 (Corner Starlight Pillars)
                 List.of(
-                        "...",
-                        ".K.",
-                        "..."
+                        "C...C",
+                        ".....",
+                        ".....",
+                        ".....",
+                        "C...C"
+                ),
+                // Layer 4 (Crystal Focus Brackets)
+                List.of(
+                        ".K.K.",
+                        "K...K",
+                        ".....",
+                        "K...K",
+                        ".K.K."
+                ),
+                // Layer 5 (Apex Crystal Crown)
+                List.of(
+                        ".....",
+                        ".....",
+                        "..K..",
+                        ".....",
+                        "....."
                 )
         );
 
         Map<Character, ItemStack> beaconLegend = new HashMap<>();
         beaconLegend.put('M', new ItemStack(ModBlocks.ASTRAL_MARBLE_BRICKS.get()));
+        beaconLegend.put('S', new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get()));
         beaconLegend.put('R', new ItemStack(ModBlocks.RUNED_ASTRAL_MARBLE.get()));
         beaconLegend.put('H', new ItemStack(ModBlocks.CHISELED_ASTRAL_MARBLE.get()));
+        beaconLegend.put('C', new ItemStack(ModBlocks.STARLIGHT_PILLAR.get()));
         beaconLegend.put('K', new ItemStack(ModBlocks.ASTRAL_CRYSTAL_BLOCK.get()));
         beaconLegend.put('B', new ItemStack(ModBlocks.CELESTIAL_BEACON_CONTROLLER.get()));
 
         list.add(new AstralMultiblockRecipe(
                 Component.literal("Celestial Beacon"),
-                "3x3x3",
+                "5x5x5",
                 new ItemStack(ModBlocks.CELESTIAL_BEACON_CONTROLLER.get()),
                 beaconMats,
                 beaconLayers,
                 beaconLegend,
-                Component.literal("Projects Constellation Auras & Wards")
+                Component.literal("Projects Wide-Area Constellation Auras & Singularity Wards")
         ));
 
         // ---------------------------------------------------------------------
-        // 3. 5x5x3 MODULAR ASTRAL ALTAR (Tier 2 Starlight Crafting Altar)
+        // 3. 7x7x7 MODULAR ASTRAL ALTAR (Tier 2 Starlight Crafting Altar)
         // ---------------------------------------------------------------------
         List<ItemStack> altarMats = List.of(
-                new ItemStack(ModBlocks.ASTRAL_MARBLE_BRICKS.get(), 12),
-                new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get(), 4),
-                new ItemStack(ModBlocks.RESONANCE_PYLON.get(), 4),
-                new ItemStack(ModBlocks.ATTUNEMENT_PEDESTAL.get(), 4),
+                new ItemStack(ModBlocks.ASTRAL_MARBLE_BRICKS.get(), 33),
+                new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get(), 20),
+                new ItemStack(ModBlocks.RESONANCE_PYLON.get(), 16),
+                new ItemStack(ModBlocks.ATTUNEMENT_PEDESTAL.get(), 8),
                 new ItemStack(ModBlocks.FOCAL_LENS_MOUNT.get(), 1),
                 new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get(), 1)
         );
 
         List<List<String>> altarLayers = List.of(
-                // Layer 1 (Foundation Tiles)
+                // Layer 1 (7x7 Stepped Foundation)
                 List.of(
-                        "M.S.M",
-                        ".MMM.",
-                        "SMMMS",
-                        ".MMM.",
-                        "M.S.M"
+                        "MSSSSSM",
+                        "SMMMMMS",
+                        "SMMMMMS",
+                        "SMMMMMS",
+                        "SMMMMMS",
+                        "SMMMMMS",
+                        "MSSSSSM"
                 ),
-                // Layer 2 (Altar Core, Pedestals & Pylons)
+                // Layer 2 (Altar Core, 8 Pedestals & 4 Corner Pylons)
                 List.of(
-                        "Y.T.Y",
-                        ".....",
-                        "T.A.T",
-                        ".....",
-                        "Y.T.Y"
+                        "Y..T..Y",
+                        ".T...T.",
+                        ".......",
+                        "T..A..T",
+                        ".......",
+                        ".T...T.",
+                        "Y..T..Y"
                 ),
-                // Layer 3 (Overhead Focal Lens Mount)
+                // Layer 3 (Pylon Tower Shafts)
                 List.of(
-                        ".....",
-                        ".....",
-                        "..F..",
-                        ".....",
-                        "....."
+                        "Y.....Y",
+                        ".......",
+                        ".......",
+                        ".......",
+                        ".......",
+                        ".......",
+                        "Y.....Y"
+                ),
+                // Layer 4 (Pylon Tower Shafts)
+                List.of(
+                        "Y.....Y",
+                        ".......",
+                        ".......",
+                        ".......",
+                        ".......",
+                        ".......",
+                        "Y.....Y"
+                ),
+                // Layer 5 (Pylon Tower Shafts)
+                List.of(
+                        "Y.....Y",
+                        ".......",
+                        ".......",
+                        ".......",
+                        ".......",
+                        ".......",
+                        "Y.....Y"
+                ),
+                // Layer 6 (Inward Arch Brackets)
+                List.of(
+                        ".M...M.",
+                        "M.....M",
+                        ".......",
+                        ".......",
+                        ".......",
+                        "M.....M",
+                        ".M...M."
+                ),
+                // Layer 7 (Overhead Focal Lens Mount Apex)
+                List.of(
+                        ".......",
+                        ".......",
+                        ".......",
+                        "...F...",
+                        ".......",
+                        ".......",
+                        "......."
                 )
         );
 
@@ -207,12 +327,12 @@ public class AstralMultiblockRecipes {
 
         list.add(new AstralMultiblockRecipe(
                 Component.literal("Modular Astral Altar"),
-                "5x3x5",
+                "7x7x7",
                 new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
                 altarMats,
                 altarLayers,
                 altarLegend,
-                Component.literal("Harmonic Resonance Ritual Crafting Grid")
+                Component.literal("Harmonic Resonance Ritual Crafting Grid with 8 Workstations")
         ));
 
         return list;

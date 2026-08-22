@@ -99,18 +99,18 @@ public class CelestialArmillaryControllerBlockEntity extends BlockEntity {
     public boolean checkObservatoryStructure() {
         if (level == null) return false;
 
-        // LAYER 1 (Y = -1 relative to controller, 7x7 Foundation & 5x5 Mirror Pool):
+        // LAYER 1 (Y = -1 relative to controller, 9x9 Foundation & 7x7 Mirror Pool):
         BlockPos base = worldPosition.below();
-        for (int dx = -3; dx <= 3; dx++) {
-            for (int dz = -3; dz <= 3; dz++) {
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
                 BlockPos checkPos = base.offset(dx, 0, dz);
                 BlockState bs = level.getBlockState(checkPos);
                 int absX = Math.abs(dx);
                 int absZ = Math.abs(dz);
 
-                if (absX == 3 && absZ == 3) {
+                if (absX == 4 && absZ == 4) {
                     if (!bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE.get())) return false;
-                } else if (absX == 3 || absZ == 3) {
+                } else if (absX == 4 || absZ == 4) {
                     if (!bs.is(ModBlocks.ENGRAVED_ASTRAL_SLATE.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) return false;
                 } else {
                     if (!bs.is(ModBlocks.ASTRAL_MIRROR_BLOCK.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) return false;
@@ -118,13 +118,13 @@ public class CelestialArmillaryControllerBlockEntity extends BlockEntity {
             }
         }
 
-        // LAYER 2 to 4: 4 Corner Starlight Pillars at (±3, ±3) from Y=0 to Y=+2
-        for (int dy = 0; dy <= 2; dy++) {
+        // LAYER 2 to 6: 4 Corner Starlight Pillars at (±4, ±4) from Y=0 to Y=+4
+        for (int dy = 0; dy <= 4; dy++) {
             BlockPos[] pillarPos = {
-                    worldPosition.offset(3, dy, 3),
-                    worldPosition.offset(3, dy, -3),
-                    worldPosition.offset(-3, dy, 3),
-                    worldPosition.offset(-3, dy, -3)
+                    worldPosition.offset(4, dy, 4),
+                    worldPosition.offset(4, dy, -4),
+                    worldPosition.offset(-4, dy, 4),
+                    worldPosition.offset(-4, dy, -4)
             };
             for (BlockPos p : pillarPos) {
                 BlockState bs = level.getBlockState(p);
@@ -134,12 +134,12 @@ public class CelestialArmillaryControllerBlockEntity extends BlockEntity {
             }
         }
 
-        // LAYER 6 (Y=+4): 4 Cardinal Refractive Lenses at (0, 4, ±3) and (±3, 4, 0)
+        // LAYER 9 (Y=+7): 4 Cardinal Refractive Lenses at (0, 7, ±4) and (±4, 7, 0)
         BlockPos[] lensPos = {
-                worldPosition.offset(3, 4, 0),
-                worldPosition.offset(-3, 4, 0),
-                worldPosition.offset(0, 4, 3),
-                worldPosition.offset(0, 4, -3)
+                worldPosition.offset(4, 7, 0),
+                worldPosition.offset(-4, 7, 0),
+                worldPosition.offset(0, 7, 4),
+                worldPosition.offset(0, 7, -4)
         };
         int lensesFound = 0;
         for (BlockPos p : lensPos) {
@@ -155,12 +155,12 @@ public class CelestialArmillaryControllerBlockEntity extends BlockEntity {
 
     public void displayObservatoryStatus(Player player) {
         player.displayClientMessage(Component.literal("§b=== Grand Astral Observatory Status ==="), false);
-        player.displayClientMessage(Component.literal("§7Multiblock Integrity: " + (structureValid ? "§a✓ Fully Assembled & Calibrated" : "§c✗ Incomplete (7x7x6 Blueprint Required)")), false);
+        player.displayClientMessage(Component.literal("§7Multiblock Integrity: " + (structureValid ? "§a✓ Fully Assembled & Calibrated" : "§c✗ Incomplete (9x9x9 Blueprint Required)")), false);
         player.displayClientMessage(Component.literal("§7Celestial Starlight Focus: " + (starlightActive ? "§b✦ Active (Cosmic Resonance)" : "§8○ Inactive (Night Sky Line-of-Sight Required)")), false);
         player.displayClientMessage(Component.literal("§7Cardinal Optical Lenses: §e" + beamCount + " / 4 Aligned"), false);
         if (structureValid && starlightActive) {
             player.displayClientMessage(Component.literal("§d✦ Master & Transcendent Constellation Scribing Unlocked!"), false);
-            player.displayClientMessage(Component.literal("§a✦ 32x Maximum Celestial Magnification Online."), false);
+            player.displayClientMessage(Component.literal("§a✦ 32x Maximum Celestial Magnification & Refractive Ocular Sphere Online."), false);
         }
     }
 

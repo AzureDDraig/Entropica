@@ -421,4 +421,10 @@ public class ModBlockEntities {
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.CelestialArmillaryControllerBlockEntity::new,
                             ModBlocks.CELESTIAL_ARMILLARY_CONTROLLER.get()
                     ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.CelestialBeaconControllerBlockEntity>> CELESTIAL_BEACON_CONTROLLER_BE =
+            BLOCK_ENTITIES.register("celestial_beacon_controller", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.CelestialBeaconControllerBlockEntity::new,
+                            ModBlocks.CELESTIAL_BEACON_CONTROLLER.get()
+                    ));
 }
