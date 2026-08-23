@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/spectral_dye_vitreous",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -1
+      },
+      {
+        "type": "entropica:spectral_dye_tint"
+      }
+    ]
+  }
+}

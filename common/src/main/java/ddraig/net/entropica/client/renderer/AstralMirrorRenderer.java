@@ -69,6 +69,8 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
 
     public static class MirrorRenderState extends BlockEntityRenderState {
         public BlockPos pos = BlockPos.ZERO;
+        public boolean up;
+        public boolean down;
         public boolean north;
         public boolean east;
         public boolean south;
@@ -94,14 +96,12 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         state.camZ = cameraPos.z;
 
         BlockState bs = be.getBlockState();
-        if (bs.hasProperty(AstralMirrorBlock.NORTH)) {
-            state.north = bs.getValue(AstralMirrorBlock.NORTH);
-            state.east = bs.getValue(AstralMirrorBlock.EAST);
-            state.south = bs.getValue(AstralMirrorBlock.SOUTH);
-            state.west = bs.getValue(AstralMirrorBlock.WEST);
-        } else {
-            state.north = state.east = state.south = state.west = false;
-        }
+        state.up    = bs.hasProperty(AstralMirrorBlock.UP)    && bs.getValue(AstralMirrorBlock.UP);
+        state.down  = bs.hasProperty(AstralMirrorBlock.DOWN)  && bs.getValue(AstralMirrorBlock.DOWN);
+        state.north = bs.hasProperty(AstralMirrorBlock.NORTH) && bs.getValue(AstralMirrorBlock.NORTH);
+        state.east  = bs.hasProperty(AstralMirrorBlock.EAST)  && bs.getValue(AstralMirrorBlock.EAST);
+        state.south = bs.hasProperty(AstralMirrorBlock.SOUTH) && bs.getValue(AstralMirrorBlock.SOUTH);
+        state.west  = bs.hasProperty(AstralMirrorBlock.WEST)  && bs.getValue(AstralMirrorBlock.WEST);
     }
 
     @Override
@@ -127,20 +127,6 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         boolean enableNebulae = EntropicaConfig.ENABLE_ASTRAL_MIRROR_NEBULAE.get();
         boolean enableConstellationLines = EntropicaConfig.ENABLE_ASTRAL_MIRROR_CONSTELLATION_LINES.get();
 
-        // Inset pool quad bounds (0.125 on disconnected outer borders, 0.0 on connected interior edges)
-        float minX = state.west  ? 0.0f : 0.125f;
-        float maxX = state.east  ? 1.0f : 0.875f;
-        float minZ = state.north ? 0.0f : 0.125f;
-        float maxZ = state.south ? 1.0f : 0.875f;
-        float y = 1.002f;
-
-        double blockWorldX = state.pos.getX();
-        double blockWorldY = state.pos.getY() + 1.0;
-        double blockWorldZ = state.pos.getZ();
-
-        double camRelY = state.camY - blockWorldY;
-        if (camRelY <= 0.02) return; // Only render when camera is above the mirror plane
-
         long gameTime = level.getGameTime();
         float celestialAngle = level.getTimeOfDay(state.partialTick) * 360.0f;
         float animTime = (gameTime + state.partialTick) * 0.04f;
@@ -148,10 +134,146 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         int light = 15728880;
         int overlay = OverlayTexture.NO_OVERLAY;
 
-        // Transformation helper: Matching CelestialSkyRenderer: R_Y(-90) * R_X(celestialAngle + 180)
         float radX = (float) Math.toRadians(celestialAngle + 180.0f);
         float cosX = Mth.cos(radX);
         float sinX = Mth.sin(radX);
+
+        List<CelestialEventHelper.ActiveMeteor> activeMeteors = CelestialEventHelper.getActiveMeteors(gameTime, state.partialTick);
+        Set<String> chartedEdges = enableConstellationLines ? PlayerAstralProgress.getChartedConnections(player) : Set.of();
+
+        double blockWorldX = state.pos.getX();
+        double blockWorldY = state.pos.getY();
+        double blockWorldZ = state.pos.getZ();
+
+        // 1. UP Face (Top Floor)
+        if (!state.up) {
+            double distAlongNormal = state.camY - (blockWorldY + 1.0);
+            if (distAlongNormal > 0.02) {
+                float minX = state.west  ? 0.0f : 0.125f;
+                float maxX = state.east  ? 1.0f : 0.875f;
+                float minZ = state.north ? 0.0f : 0.125f;
+                float maxZ = state.south ? 1.0f : 0.875f;
+                poseStack.pushPose();
+                renderFaceGeometry(state, poseStack, collector, minX, maxX, minZ, maxZ, distAlongNormal, level, player, starBrightness, gameTime, animTime, cosX, sinX, light, overlay, enableLiquidRefraction, enableParallaxDepth, enable3DBillboard, enableNebulae, enableConstellationLines, activeMeteors, chartedEdges);
+                poseStack.popPose();
+            }
+        }
+
+        // 2. DOWN Face (Bottom Ceiling)
+        if (!state.down) {
+            double distAlongNormal = blockWorldY - state.camY;
+            if (distAlongNormal > 0.02) {
+                float minX = state.west  ? 0.0f : 0.125f;
+                float maxX = state.east  ? 1.0f : 0.875f;
+                float minZ = state.north ? 0.0f : 0.125f;
+                float maxZ = state.south ? 1.0f : 0.875f;
+                poseStack.pushPose();
+                poseStack.translate(0.5, 0.5, 0.5);
+                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(180));
+                poseStack.translate(-0.5, -0.5, -0.5);
+                renderFaceGeometry(state, poseStack, collector, minX, maxX, minZ, maxZ, distAlongNormal, level, player, starBrightness, gameTime, animTime, cosX, sinX, light, overlay, enableLiquidRefraction, enableParallaxDepth, enable3DBillboard, enableNebulae, enableConstellationLines, activeMeteors, chartedEdges);
+                poseStack.popPose();
+            }
+        }
+
+        // 3. NORTH Face (Wall)
+        if (!state.north) {
+            double distAlongNormal = blockWorldZ - state.camZ;
+            if (distAlongNormal > 0.02) {
+                float minX = state.west ? 0.0f : 0.125f;
+                float maxX = state.east ? 1.0f : 0.875f;
+                float minZ = state.down ? 0.0f : 0.125f;
+                float maxZ = state.up   ? 1.0f : 0.875f;
+                poseStack.pushPose();
+                poseStack.translate(0.5, 0.5, 0.5);
+                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90));
+                poseStack.translate(-0.5, -0.5, -0.5);
+                renderFaceGeometry(state, poseStack, collector, minX, maxX, minZ, maxZ, distAlongNormal, level, player, starBrightness, gameTime, animTime, cosX, sinX, light, overlay, enableLiquidRefraction, enableParallaxDepth, enable3DBillboard, enableNebulae, enableConstellationLines, activeMeteors, chartedEdges);
+                poseStack.popPose();
+            }
+        }
+
+        // 4. SOUTH Face (Wall)
+        if (!state.south) {
+            double distAlongNormal = state.camZ - (blockWorldZ + 1.0);
+            if (distAlongNormal > 0.02) {
+                float minX = state.east ? 0.0f : 0.125f;
+                float maxX = state.west ? 1.0f : 0.875f;
+                float minZ = state.down ? 0.0f : 0.125f;
+                float maxZ = state.up   ? 1.0f : 0.875f;
+                poseStack.pushPose();
+                poseStack.translate(0.5, 0.5, 0.5);
+                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-90));
+                poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180));
+                poseStack.translate(-0.5, -0.5, -0.5);
+                renderFaceGeometry(state, poseStack, collector, minX, maxX, minZ, maxZ, distAlongNormal, level, player, starBrightness, gameTime, animTime, cosX, sinX, light, overlay, enableLiquidRefraction, enableParallaxDepth, enable3DBillboard, enableNebulae, enableConstellationLines, activeMeteors, chartedEdges);
+                poseStack.popPose();
+            }
+        }
+
+        // 5. WEST Face (Wall)
+        if (!state.west) {
+            double distAlongNormal = blockWorldX - state.camX;
+            if (distAlongNormal > 0.02) {
+                float minX = state.north ? 0.0f : 0.125f;
+                float maxX = state.south ? 1.0f : 0.875f;
+                float minZ = state.down  ? 0.0f : 0.125f;
+                float maxZ = state.up    ? 1.0f : 0.875f;
+                poseStack.pushPose();
+                poseStack.translate(0.5, 0.5, 0.5);
+                poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(-90));
+                poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-90));
+                poseStack.translate(-0.5, -0.5, -0.5);
+                renderFaceGeometry(state, poseStack, collector, minX, maxX, minZ, maxZ, distAlongNormal, level, player, starBrightness, gameTime, animTime, cosX, sinX, light, overlay, enableLiquidRefraction, enableParallaxDepth, enable3DBillboard, enableNebulae, enableConstellationLines, activeMeteors, chartedEdges);
+                poseStack.popPose();
+            }
+        }
+
+        // 6. EAST Face (Wall)
+        if (!state.east) {
+            double distAlongNormal = state.camX - (blockWorldX + 1.0);
+            if (distAlongNormal > 0.02) {
+                float minX = state.south ? 0.0f : 0.125f;
+                float maxX = state.north ? 1.0f : 0.875f;
+                float minZ = state.down  ? 0.0f : 0.125f;
+                float maxZ = state.up    ? 1.0f : 0.875f;
+                poseStack.pushPose();
+                poseStack.translate(0.5, 0.5, 0.5);
+                poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90));
+                poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
+                poseStack.translate(-0.5, -0.5, -0.5);
+                renderFaceGeometry(state, poseStack, collector, minX, maxX, minZ, maxZ, distAlongNormal, level, player, starBrightness, gameTime, animTime, cosX, sinX, light, overlay, enableLiquidRefraction, enableParallaxDepth, enable3DBillboard, enableNebulae, enableConstellationLines, activeMeteors, chartedEdges);
+                poseStack.popPose();
+            }
+        }
+    }
+
+    private void renderFaceGeometry(
+            MirrorRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            float minX, float maxX, float minZ, float maxZ,
+            double distAlongNormal,
+            ClientLevel level,
+            Player player,
+            float starBrightness,
+            long gameTime,
+            float animTime,
+            float cosX, float sinX,
+            int light, int overlay,
+            boolean enableLiquidRefraction,
+            boolean enableParallaxDepth,
+            boolean enable3DBillboard,
+            boolean enableNebulae,
+            boolean enableConstellationLines,
+            List<CelestialEventHelper.ActiveMeteor> activeMeteors,
+            Set<String> chartedEdges
+    ) {
+        float y = 1.002f;
+        double blockWorldX = state.pos.getX();
+        double blockWorldY = state.pos.getY() + 1.0;
+        double blockWorldZ = state.pos.getZ();
+        double camRelY = Math.max(0.1, distAlongNormal);
 
         // ----------------------------------------------------
         // PASS 0: Continuous World-Space Liquid Ether Surface Caustic Sheen
@@ -177,7 +299,6 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         if (enableNebulae) {
             collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(NEBULA_PUFF_TEXTURE), (pose, consumer) -> {
                 Matrix4f mat = pose.pose();
-
                 for (CelestialSkyRenderer.NebulaComplex complex : CelestialSkyRenderer.NEBULA_COMPLEXES) {
                     for (CelestialSkyRenderer.NebulaPuff puff : complex.puffs) {
                         float azimDeg = complex.baseAzim + puff.dAzim();
@@ -185,12 +306,10 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                         float azim = (float) Math.toRadians(azimDeg);
                         float alt = (float) Math.toRadians(altDeg);
 
-                        // Celestial sphere unrotated
                         float cx = Mth.cos(alt) * Mth.sin(azim);
                         float cy = Mth.sin(alt);
                         float cz = Mth.cos(alt) * Mth.cos(azim);
 
-                        // Apply R_Y(-90) * R_X(celestialAngle + 180)
                         Vector3f app = toDiurnalWorldApparent(cx, cy, cz, cosX, sinX);
 
                         if (app.y > 0.05f) {
@@ -222,11 +341,9 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         }
 
         // ----------------------------------------------------
-        // PASS 2: Twinkling Stars & Constellation Nodes (Using STAR_TEXTURE)
+        // PASS 2: Crisp Constellation & Star Points (Using STAR_TEXTURE)
         // ----------------------------------------------------
         Collection<Constellation> visibleConstellations = ModConstellations.getAllConstellations();
-        List<CelestialEventHelper.ActiveMeteor> activeMeteors = CelestialEventHelper.getActiveMeteors(gameTime, state.partialTick);
-
         collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(STAR_TEXTURE), (pose, consumer) -> {
             Matrix4f mat = pose.pose();
 
@@ -692,7 +809,6 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         // PASS 4: Charted Constellation Connection Lines (Using WHITE_TEXTURE)
         // ----------------------------------------------------
         if (enableConstellationLines) {
-            Set<String> chartedEdges = PlayerAstralProgress.getChartedConnections(player);
             if (!chartedEdges.isEmpty()) {
                 collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
                     Matrix4f mat = pose.pose();
@@ -753,6 +869,8 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                 });
             }
         }
+
+        poseStack.popPose();
     }
 
     /**

@@ -181,7 +181,7 @@ public class ModItemTintSources {
 
         @Override
         public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
-            return ddraig.net.entropica.registry.AestheticGlassRegistry.getGlassColor(stack.getItem());
+            return (0xFF << 24) | (ddraig.net.entropica.registry.AestheticGlassRegistry.getGlassColor(stack.getItem()) & 0xFFFFFF);
         }
 
         @Override

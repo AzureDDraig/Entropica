@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "entropica:item/astral_crystal"
+    "layer0": "entropica:block/small_astral_crystal_bud"
   }
 }

@@ -81,6 +81,16 @@ public class BeamSplitterPrismRenderer implements BlockEntityRenderer<BeamSplitt
         poseStack.translate(0.5, 0.25, 0.5);
         poseStack.mulPose(Axis.YP.rotationDegrees(state.rotationAngle));
 
+        // Render Cutout Crystal Core first so it depth-buffers solidly with correct occlusion
+        collector.submitCustomGeometry(poseStack, RenderType.entityCutout(CRYSTAL_TEXTURE), (pose, consumer) -> {
+            renderTexturedBox(pose.pose(), consumer, -0.1875f, 0.0625f, -0.1875f, 0.1875f, 0.5f, 0.1875f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1.0f, 1.0f, 1.0f, 1.0f);
+        });
+
+        // Luminous Crystalline Emissive Sheen
+        collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(CRYSTAL_TEXTURE), (pose, consumer) -> {
+            renderTexturedBox(pose.pose(), consumer, -0.19f, 0.06f, -0.19f, 0.19f, 0.505f, 0.19f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.8f, 0.95f, 1.0f, 0.50f);
+        });
+
         // Brass 4-Pillar Vise Mounts
         collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BRASS_TEXTURE), (pose, consumer) -> {
             // NW Pillar: [-0.25, 0, -0.25] to [-0.1875, 0.5, -0.1875]
@@ -91,11 +101,6 @@ public class BeamSplitterPrismRenderer implements BlockEntityRenderer<BeamSplitt
             renderTexturedBox(pose.pose(), consumer, -0.28f, 0.0f, 0.20f, -0.20f, 0.55f, 0.28f, 0.0f, 0.0f, 0.25f, 1.0f, light, overlay, 1, 1, 1, 1);
             // SE Pillar: [0.1875, 0, 0.1875] to [0.25, 0.5, 0.25]
             renderTexturedBox(pose.pose(), consumer, 0.20f, 0.0f, 0.20f, 0.28f, 0.55f, 0.28f, 0.0f, 0.0f, 0.25f, 1.0f, light, overlay, 1, 1, 1, 1);
-        });
-
-        // 45-degree Refractive Prism Crystal Core
-        collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(CRYSTAL_TEXTURE), (pose, consumer) -> {
-            renderTexturedBox(pose.pose(), consumer, -0.1875f, 0.0625f, -0.1875f, 0.1875f, 0.5f, 0.1875f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.6f, 0.9f, 1.0f, 0.85f);
         });
 
         poseStack.popPose();
@@ -134,42 +139,42 @@ public class BeamSplitterPrismRenderer implements BlockEntityRenderer<BeamSplitt
         consumer.addVertex(pose, 0.0f, -radius, -length).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
     }
 
-    private static void renderTexturedBox(Matrix4f pose, VertexConsumer consumer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float u0, float v0, float u1, float v1, int light, int overlay, float r, float g, float b, float a) {
-        // Down Face (y = minY)
-        consumer.addVertex(pose, minX, minY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
-        consumer.addVertex(pose, maxX, minY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
-        consumer.addVertex(pose, maxX, minY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
-        consumer.addVertex(pose, minX, minY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+    private static void renderTexturedBox(Matrix4f matrix, VertexConsumer consumer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float u0, float v0, float u1, float v1, int light, int overlay, float r, float g, float b, float a) {
+        // Down face (y-)
+        consumer.addVertex(matrix, minX, minY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+        consumer.addVertex(matrix, maxX, minY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+        consumer.addVertex(matrix, maxX, minY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+        consumer.addVertex(matrix, minX, minY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
 
-        // Up Face (y = maxY)
-        consumer.addVertex(pose, minX, maxY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex(pose, maxX, maxY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex(pose, maxX, maxY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex(pose, minX, maxY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        // Up face (y+)
+        consumer.addVertex(matrix, minX, maxY, maxZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(matrix, maxX, maxY, maxZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(matrix, maxX, maxY, minZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(matrix, minX, maxY, minZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
 
-        // North Face (z = minZ)
-        consumer.addVertex(pose, minX, maxY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
-        consumer.addVertex(pose, maxX, maxY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
-        consumer.addVertex(pose, maxX, minY, minZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
-        consumer.addVertex(pose, minX, minY, minZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        // North face (z-)
+        consumer.addVertex(matrix, maxX, minY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        consumer.addVertex(matrix, minX, minY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        consumer.addVertex(matrix, minX, maxY, minZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        consumer.addVertex(matrix, maxX, maxY, minZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
 
-        // South Face (z = maxZ)
-        consumer.addVertex(pose, minX, minY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
-        consumer.addVertex(pose, maxX, minY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
-        consumer.addVertex(pose, maxX, maxY, maxZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
-        consumer.addVertex(pose, minX, maxY, maxZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
+        // South face (z+)
+        consumer.addVertex(matrix, minX, minY, maxZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(matrix, maxX, minY, maxZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(matrix, maxX, maxY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(matrix, minX, maxY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
 
-        // West Face (x = minX)
-        consumer.addVertex(pose, minX, minY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
-        consumer.addVertex(pose, minX, maxY, maxZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
-        consumer.addVertex(pose, minX, maxY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
-        consumer.addVertex(pose, minX, minY, minZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        // West face (x-)
+        consumer.addVertex(matrix, minX, minY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        consumer.addVertex(matrix, minX, minY, maxZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        consumer.addVertex(matrix, minX, maxY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        consumer.addVertex(matrix, minX, maxY, minZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
 
-        // East Face (x = maxX)
-        consumer.addVertex(pose, maxX, minY, minZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
-        consumer.addVertex(pose, maxX, maxY, minZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
-        consumer.addVertex(pose, maxX, maxY, maxZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
-        consumer.addVertex(pose, maxX, minY, maxZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        // East face (x+)
+        consumer.addVertex(matrix, maxX, minY, maxZ).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(matrix, maxX, minY, minZ).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(matrix, maxX, maxY, minZ).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(matrix, maxX, maxY, maxZ).setColor(r, g, b, a).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
     }
 
     public static class PrismRenderState extends BlockEntityRenderState {

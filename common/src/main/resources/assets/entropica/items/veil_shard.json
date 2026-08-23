@@ -1,6 +1,11 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/veil_shard"
+    "model": "entropica:item/veil_shard",
+    "tints": [
+      {
+        "type": "entropica:shard_tint"
+      }
+    ]
   }
 }

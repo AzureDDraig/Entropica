@@ -47,7 +47,7 @@ public class AestheticGlassRegistry {
 
         public int getColorRGB() {
             if (isStatic) {
-                return staticColorRGB;
+                return 0xFF000000 | (staticColorRGB & 0xFFFFFF);
             }
             if (essenceType != null) {
                 long millis = net.minecraft.Util.getMillis();
@@ -55,7 +55,7 @@ public class AestheticGlassRegistry {
                     return hsbToRgb((float) ((millis % 4000L) / 4000.0), 0.75f, 1.0f);
                 }
                 int[] rgb = essenceType.getCurrentRGB(millis / 50.0);
-                return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+                return 0xFF000000 | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
             }
             return 0xFFFFFFFF;
         }

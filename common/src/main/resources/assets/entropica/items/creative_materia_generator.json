@@ -1,6 +1,11 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/creative_materia_generator"
+    "model": "entropica:item/creative_materia_generator",
+    "tints": [
+      {
+        "type": "entropica:generator_tint"
+      }
+    ]
   }
 }

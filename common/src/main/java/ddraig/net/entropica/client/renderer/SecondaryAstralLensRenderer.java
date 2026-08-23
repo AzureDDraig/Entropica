@@ -68,63 +68,75 @@ public class SecondaryAstralLensRenderer implements BlockEntityRenderer<Secondar
         int light = 15728880;
         int overlay = OverlayTexture.NO_OVERLAY;
 
-        // 1. Group: "base" (Static Pedestal on Floor: [3, 0, 3] to [13, 2, 13])
+        poseStack.pushPose();
+        // Scale 80% around block center (0.5, 0.0, 0.5)
+        poseStack.translate(0.5, 0.0, 0.5);
+        poseStack.scale(0.8f, 0.8f, 0.8f);
+        poseStack.translate(-0.5, 0.0, -0.5);
+
+        // 1. Group: "base" (Static Pedestal on Floor: [3, 0, 3] to [13, 2, 13], origin: [8, 0, 8])
         collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BASE_TEXTURE), (pose, consumer) -> {
-            renderTexturedBox(pose.pose(), consumer, 0.1875f, 0.0f, 0.1875f, 0.8125f, 0.125f, 0.8125f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+            renderTexturedBox(pose.pose(), consumer, 0.1875f, 0.0f, 0.1875f, 0.8125f, 0.125f, 0.8125f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 1, 1, 1, 1);
         });
 
-        // 2. Group: "azimuth_yoke" (Rotates around Y axis at [0.5, 0.125, 0.5])
+        // 2. Group: "azimuth_yoke" (Rotates around Y axis at origin [8, 2, 8] -> [0.5, 0.125, 0.5])
         poseStack.pushPose();
         poseStack.translate(0.5, 0.125, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-state.yaw));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-state.yaw + 180.0f));
 
         collector.submitCustomGeometry(poseStack, RenderType.entityCutout(BRASS_TEXTURE), (pose, consumer) -> {
             // Swivel Stem: [6, 2, 6] to [10, 4, 10]
-            renderTexturedBox(pose.pose(), consumer, -0.125f, 0.0f, -0.125f, 0.125f, 0.125f, 0.125f, 0.375f, 0.375f, 0.625f, 0.625f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+            renderTexturedBox(pose.pose(), consumer, -0.125f, 0.0f, -0.125f, 0.125f, 0.125f, 0.125f, 0.375f, 0.375f, 0.625f, 0.625f, light, overlay, 1, 1, 1, 1);
 
             // Yoke Bottom Bridge: [3, 4, 7] to [13, 5, 9]
-            renderTexturedBox(pose.pose(), consumer, -0.3125f, 0.125f, -0.0625f, 0.3125f, 0.1875f, 0.0625f, 0.1875f, 0.6875f, 0.8125f, 0.75f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+            renderTexturedBox(pose.pose(), consumer, -0.3125f, 0.125f, -0.0625f, 0.3125f, 0.1875f, 0.0625f, 0.1875f, 0.6875f, 0.8125f, 0.75f, light, overlay, 1, 1, 1, 1);
 
             // Yoke Arm Left: [2, 5, 7] to [4, 13, 9]
-            renderTexturedBox(pose.pose(), consumer, -0.375f, 0.1875f, -0.0625f, -0.25f, 0.6875f, 0.0625f, 0.125f, 0.3125f, 0.25f, 0.8125f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+            renderTexturedBox(pose.pose(), consumer, -0.375f, 0.1875f, -0.0625f, -0.25f, 0.6875f, 0.0625f, 0.125f, 0.3125f, 0.25f, 0.8125f, light, overlay, 1, 1, 1, 1);
 
             // Yoke Arm Right: [12, 5, 7] to [14, 13, 9]
-            renderTexturedBox(pose.pose(), consumer, 0.25f, 0.1875f, -0.0625f, 0.375f, 0.6875f, 0.0625f, 0.75f, 0.3125f, 0.875f, 0.8125f, light, overlay, 0.9f, 0.95f, 1.0f, 1.0f);
+            renderTexturedBox(pose.pose(), consumer, 0.25f, 0.1875f, -0.0625f, 0.375f, 0.6875f, 0.0625f, 0.75f, 0.3125f, 0.875f, 0.8125f, light, overlay, 1, 1, 1, 1);
 
-            // Pivot Thumbscrews
+            // Pivot Thumbscrew Left: [1.25, 8.5, 7.5] to [2, 9.5, 8.5]
             renderTexturedBox(pose.pose(), consumer, -0.421875f, 0.40625f, -0.03125f, -0.375f, 0.46875f, 0.03125f, 0.0f, 0.0f, 0.125f, 0.125f, light, overlay, 1, 1, 1, 1);
+
+            // Pivot Thumbscrew Right: [14, 8.5, 7.5] to [14.75, 9.5, 8.5]
             renderTexturedBox(pose.pose(), consumer, 0.375f, 0.40625f, -0.03125f, 0.421875f, 0.46875f, 0.03125f, 0.0f, 0.0f, 0.125f, 0.125f, light, overlay, 1, 1, 1, 1);
         });
 
-        // 3. Group: "elevation_lens" (Pivots around horizontal axis at trunnion height [0, 0.4375, 0])
+        // 3. Group: "elevation_lens" (Pivots around horizontal trunnion axis at origin [8, 9, 8])
         poseStack.translate(0.0, 0.4375, 0.0);
-        poseStack.mulPose(Axis.XP.rotationDegrees(-state.pitch));
+        poseStack.mulPose(Axis.XP.rotationDegrees(state.pitch));
 
-        // Render Outer Lens Bezel
+        // Render Outer Brass/Ring Lens Bezel
         collector.submitCustomGeometry(poseStack, RenderType.entityCutout(RING_TEXTURE), (pose, consumer) -> {
+            // Top Bar
             renderTexturedBox(pose.pose(), consumer, -0.25f, 0.1875f, -0.046875f, 0.25f, 0.25f, 0.046875f, 0.25f, 0.0f, 0.75f, 0.0625f, light, overlay, 1, 1, 1, 1);
+            // Bottom Bar
             renderTexturedBox(pose.pose(), consumer, -0.25f, -0.25f, -0.046875f, 0.25f, -0.1875f, 0.046875f, 0.25f, 0.125f, 0.75f, 0.1875f, light, overlay, 1, 1, 1, 1);
+            // Left Bar
             renderTexturedBox(pose.pose(), consumer, -0.25f, -0.1875f, -0.046875f, -0.1875f, 0.1875f, 0.046875f, 0.25f, 0.25f, 0.3125f, 0.625f, light, overlay, 1, 1, 1, 1);
+            // Right Bar
             renderTexturedBox(pose.pose(), consumer, 0.1875f, -0.1875f, -0.046875f, 0.25f, 0.1875f, 0.046875f, 0.6875f, 0.25f, 0.75f, 0.625f, light, overlay, 1, 1, 1, 1);
         });
 
-        // Render Translucent Quartz Lens Disc
+        // Render Convex Starlight Quartz Lens Disc
         collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(LENS_TEXTURE), (pose, consumer) -> {
-            float alpha = state.isReceiving ? 0.95f : 0.60f;
-            renderTexturedBox(pose.pose(), consumer, -0.1875f, -0.1875f, -0.015625f, 0.1875f, 0.1875f, 0.015625f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.7f, 0.95f, 1.0f, alpha);
+            renderTexturedBox(pose.pose(), consumer, -0.1875f, -0.1875f, -0.03125f, 0.1875f, 0.1875f, 0.03125f, 0.0f, 0.0f, 1.0f, 1.0f, light, overlay, 0.9f, 0.95f, 1.0f, 0.92f);
         });
 
-        // Outgoing Starlight Relay Beam (Emitted along +Z)
-        if (state.isReceiving) {
-            float dist = state.beamDistance > 0.0f ? state.beamDistance : 16.0f;
+        // 4. Optical Starlight Relay Output Beam
+        if (state.isReceiving && state.beamDistance > 0.1f) {
+            float dist = Math.max(0.5f, state.beamDistance);
             collector.submitCustomGeometry(poseStack, RenderType.beaconBeam(WHITE_TEXTURE, false), (pose, consumer) -> {
-                renderTexturedBox(pose.pose(), consumer, -0.025f, -0.025f, 0.0f, 0.025f, 0.025f, dist, 0.0f, 0.0f, 1.0f, dist, light, overlay, 1.0f, 0.98f, 0.85f, 1.0f);
+                renderTexturedBox(pose.pose(), consumer, -0.025f, -0.025f, -dist, 0.025f, 0.025f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 1.0f, 0.98f, 0.85f, 1.0f);
             });
-            collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
-                renderBeamQuad(pose.pose(), consumer, dist, 0.08f, 0.4f, 0.85f, 1.0f, 0.65f, light, overlay);
+            collector.submitCustomGeometry(poseStack, RenderType.beaconBeam(WHITE_TEXTURE, true), (pose, consumer) -> {
+                renderTexturedBox(pose.pose(), consumer, -0.055f, -0.055f, -dist, 0.055f, 0.055f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 0.35f, 0.75f, 1.0f, 0.50f);
             });
         }
 
+        poseStack.popPose();
         poseStack.popPose();
     }
 

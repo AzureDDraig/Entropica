@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cross",
   "textures": {
-    "cross": "entropica:block/astral_crystal"
+    "cross": "entropica:block/small_astral_crystal_bud"
   }
 }

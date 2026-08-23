@@ -618,10 +618,9 @@ public class SkyLookingGlassScreen extends Screen {
                             case 4 -> 0.40f;
                             default -> 1.0f;
                         };
-                        boolean canSelectAmb = getInstrumentOpticTier() >= star.minTier();
 
                         String starNodeId = "a:" + idx;
-                        onScreenStars.put(starNodeId, new StarNode(starNodeId, sx, sy, drawSize, starName, starEss, starSc, null, -1, canSelectAmb));
+                        onScreenStars.put(starNodeId, new StarNode(starNodeId, sx, sy, drawSize, starName, starEss, starSc, null, -1, true));
 
                         if (distFromCenter <= 16.0f && this.focusedTarget == null) {
                             this.focusedTarget = (ov != null) ? ov : star;
@@ -732,7 +731,7 @@ public class SkyLookingGlassScreen extends Screen {
                         float twinkle = 0.85f + 0.15f * (float) Math.sin(timeSec * 3.0f + s * 1.2f);
                         float sSize = Math.max(6.5f, star.brightness() * 7.5f) * twinkle * zoomConstScale;
 
-                        onScreenStars.put(cNodeId, new StarNode(cNodeId, sx, sy, sSize, null, constellation.getEssenceType(), star.spectralClass(), constellation, s, canSelectConst));
+                        onScreenStars.put(cNodeId, new StarNode(cNodeId, sx, sy, sSize, null, constellation.getEssenceType(), star.spectralClass(), constellation, s, true));
 
                         if (dist <= 16.0f && this.focusedTarget == null) {
                             this.focusedTarget = new Object[]{constellation, star};
@@ -743,11 +742,7 @@ public class SkyLookingGlassScreen extends Screen {
 
                         if (Math.hypot(mouseX - sx, mouseY - sy) <= Math.max(10.0f, sSize * 0.8f) && isShiftDown()) {
                             int half = Math.max(2, Math.round(sSize * 0.5f));
-                            if (canSelectConst) {
-                                drawCircle(guiGraphics, (int) sx, (int) sy, half + 3, 0x88FFFFFF);
-                            } else {
-                                drawCircle(guiGraphics, (int) sx, (int) sy, half + 3, 0x66FF4444);
-                            }
+                            drawCircle(guiGraphics, (int) sx, (int) sy, half + 3, 0x88FFFFFF);
                         }
                     }
                 }
@@ -1235,16 +1230,14 @@ public class SkyLookingGlassScreen extends Screen {
             } else if (focusedTarget instanceof Object[] pair) {
                 Constellation c = (Constellation) pair[0];
                 ConstellationStar star = (ConstellationStar) pair[1];
-                String starName = CelestialStarHelper.getConstellationStarName(c, c.getStars().indexOf(star));
                 boolean isDisc = (player != null) && PlayerAstralProgress.isDiscovered(player, c);
-                String title = Component.translatable(c.getUnlocalizedName()).getString();
-                String essCode = c.getEssenceType().getColorCode();
+                int starIdx = c.getStars().indexOf(star);
                 boolean canSelect = PlayerAstralProgress.canHardwareObserve(getInstrumentOpticTier(), c.getTier());
 
-                if (!canSelect) {
-                    String reqInst = PlayerAstralProgress.getRequiredInstrumentName(c.getTier());
-                    guiGraphics.drawCenteredString(this.font, "§8✦ FAINT TARGET: §7" + starName + " §e| Constellation: §f" + title + " §8[" + c.getTier().getDisplayName() + "§8]  §c[Requires: " + reqInst + "]", centerX, centerY + 28, 0xFFFFA0A0);
-                } else if (isDisc) {
+                if (isDisc) {
+                    String starName = CelestialStarHelper.getConstellationStarName(c, starIdx);
+                    String title = Component.translatable(c.getUnlocalizedName()).getString();
+                    String essCode = c.getEssenceType().getColorCode();
                     boolean hasBlankChart = false;
                     if (player != null) {
                         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
@@ -1258,8 +1251,11 @@ public class SkyLookingGlassScreen extends Screen {
                             ? "  §a[✦ Right-Click: Inscribe Chart]"
                             : "  §7(Need Blank Star Chart)";
                     guiGraphics.drawCenteredString(this.font, "§6✦ TARGET: " + essCode + starName + " §e| Constellation: §f" + title + " §7[" + c.getTier().getDisplayName() + "§7]" + chartPrompt, centerX, centerY + 28, 0xFFFFFFFF);
+                } else if (!canSelect) {
+                    String reqInst = PlayerAstralProgress.getRequiredInstrumentName(c.getTier());
+                    guiGraphics.drawCenteredString(this.font, "§8✦ FAINT NODE §8[" + c.getTier().getDisplayName() + "§8]  §e| Class: §b" + star.spectralClass().name() + "  §c[Requires: " + reqInst + "]", centerX, centerY + 28, 0xFFFFA0A0);
                 } else {
-                    guiGraphics.drawCenteredString(this.font, String.format("§6✦ TARGET: §f%s §e| Class: §b%s §e| Mag: §f%.2fm", starName, star.spectralClass().name(), star.brightness()), centerX, centerY + 28, 0xFFC0D0E0);
+                    guiGraphics.drawCenteredString(this.font, String.format("§6✦ TARGET: §fSpectral Node %d §e| Class: §b%s §e| Mag: §f%.2fm", (starIdx + 1), star.spectralClass().name(), star.brightness()), centerX, centerY + 28, 0xFFC0D0E0);
                 }
             } else if (focusedTarget instanceof SupernovaManager.OverriddenStar ov) {
                 String badge = (ov.phase() == SupernovaPhase.REMNANT) ? "§5✦ STELLAR REMNANT: §f" : "§c💥 SUPERNOVA INSTABILITY: §f";
@@ -1273,49 +1269,58 @@ public class SkyLookingGlassScreen extends Screen {
             } else if (focusedTarget instanceof CelestialEventHelper.CometDefinition comet) {
                 guiGraphics.drawCenteredString(this.font, "§6✦ TARGET: §b☄ §f" + comet.name() + " §e| Tail: §a" + String.format("%.1f°", comet.tailLengthDeg()), centerX, centerY + 28, 0xFF80E0FF);
             } else if (focusedTarget instanceof ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity targetLens) {
-                guiGraphics.drawCenteredString(this.font, "§6✦ TARGET: §e🔍 Optical Relay Node §7[" + targetLens.getBlockPos().toShortString() + "]  §b[Shift + Right-Click: Align Relay]", centerX, centerY + 28, 0xFF80E0FF);
+                BlockPos tPos = targetLens.getBlockPos();
+                String starFocus = targetLens.getActiveStarName() != null ? targetLens.getActiveStarName() : targetLens.getTargetName();
+                guiGraphics.drawCenteredString(this.font, "§a✦ OPTICAL RELAY: §fRefractive Lens §7[" + tPos.getX() + ", " + tPos.getY() + ", " + tPos.getZ() + "] §e| Focused: §b" + starFocus, centerX, centerY + 28, 0xFF80FF80);
             }
         }
 
-        // Draw HUD Lens Lock Notification Banner (bottom center)
-        if (System.currentTimeMillis() - this.lensLockTime < 2800 && this.lensLockMessage != null) {
-            float fade = 1.0f - (System.currentTimeMillis() - this.lensLockTime) / 2800.0f;
-            int alpha = (int) (fade * 255);
-            int color = (alpha << 24) | 0x00E5FF;
-            guiGraphics.drawCenteredString(this.font, this.lensLockMessage, centerX, centerY + 42, color);
+        // 10. Draw Notification / Lock Message
+        if (this.lensLockMessage != null && !this.lensLockMessage.isEmpty()) {
+            long elapsed = System.currentTimeMillis() - this.lensLockTime;
+            if (elapsed < 3500) {
+                float alpha = (elapsed < 3000) ? 1.0f : (1.0f - (elapsed - 3000) / 500.0f);
+                int aInt = Math.max(10, Math.min(255, (int) (alpha * 255.0f)));
+                int boxW = this.font.width(this.lensLockMessage) + 16;
+                int boxH = 18;
+                int bx = centerX - boxW / 2;
+                int by = centerY + 46;
+
+                guiGraphics.fill(bx, by, bx + boxW, by + boxH, (aInt << 24) | 0x0B0E17);
+                guiGraphics.fill(bx, by, bx + boxW, by + 1, (aInt << 24) | 0x38BDF8);
+                guiGraphics.fill(bx, by + boxH - 1, bx + boxW, by + boxH, (aInt << 24) | 0x38BDF8);
+                guiGraphics.drawString(this.font, this.lensLockMessage, bx + 8, by + 5, (aInt << 24) | 0xFFFFFF, false);
+            } else {
+                this.lensLockMessage = null;
+            }
         }
 
-        // Discovery Toast Banner Announcement
-        if (justDiscovered != null && (System.currentTimeMillis() - discoveryTime) < 5500) {
-            String title = Component.translatable(justDiscovered.getUnlocalizedName()).getString();
-            int bannerY = centerY - 30;
+        // 11. Constellation Discovery Toast / Banner Animation
+        if (justDiscovered != null) {
+            long elapsed = System.currentTimeMillis() - discoveryTime;
+            if (elapsed < 4000) {
+                float alpha = (elapsed < 3500) ? 1.0f : (1.0f - (elapsed - 3500) / 500.0f);
+                int aInt = Math.max(10, Math.min(255, (int) (alpha * 255.0f)));
+                int bannerY = 20;
+                String title = Component.translatable(justDiscovered.getUnlocalizedName()).getString();
+                String subtitle = "§bConstellation Discovered! §7[" + justDiscovered.getTier().getDisplayName() + "§7]";
+                int bw = Math.max(this.font.width(title), this.font.width(subtitle)) + 30;
+                int bh = 32;
+                int bx = centerX - bw / 2;
 
-            int essRgb = (justDiscovered.getEssenceType().getR() << 16) | (justDiscovered.getEssenceType().getG() << 8) | justDiscovered.getEssenceType().getB();
-            int borderCol = 0xFF000000 | essRgb;
+                guiGraphics.fill(bx, bannerY, bx + bw, bannerY + bh, (aInt << 24) | 0x0B0F19);
+                guiGraphics.fill(bx, bannerY, bx + bw, bannerY + 1, (aInt << 24) | 0xFFD700);
+                guiGraphics.fill(bx, bannerY + bh - 1, bx + bw, bannerY + bh, (aInt << 24) | 0xFFD700);
 
-            guiGraphics.fill(centerX - 150, bannerY, centerX + 150, bannerY + 60, 0xF2101624);
-            guiGraphics.fill(centerX - 150, bannerY, centerX + 150, bannerY + 2, borderCol);
-            guiGraphics.fill(centerX - 150, bannerY + 58, centerX + 150, bannerY + 60, borderCol);
-
-            guiGraphics.drawCenteredString(this.font, "§6✦ CONSTELLATION DISCOVERED! ✦", centerX, bannerY + 8, 0xFFFFD700);
-            guiGraphics.drawCenteredString(this.font, justDiscovered.getEssenceType().getColorCode() + title + " §7[" + justDiscovered.getTier().getDisplayName() + "§7]", centerX, bannerY + 22, 0xFFFFFFFF);
-            guiGraphics.drawCenteredString(this.font, "§eRitual: §f" + justDiscovered.getRitualEffect(), centerX, bannerY + 36, 0xFFFFF0A0);
+                guiGraphics.drawCenteredString(this.font, subtitle, centerX, bannerY + 5, (aInt << 24) | 0x80E0FF);
+                guiGraphics.drawCenteredString(this.font, "§6✦ §f" + title + " §6✦", centerX, bannerY + 17, (aInt << 24) | 0xFFFFE080);
+            } else {
+                justDiscovered = null;
+            }
         }
 
-        String dirName = getDirectionName(this.yaw);
-        int moonPhase = (mc.level != null) ? mc.level.getMoonPhase() : 0;
-        String phaseName = getMoonPhaseName(moonPhase);
-
-        String modeTitle = this.isLensMode ? "§6§lREFRACTIVE ASTRAL LENS CALIBRATION" : ("§6§l" + this.instrument.displayName);
-        guiGraphics.drawCenteredString(this.font, modeTitle, centerX, 12, 0xFFFFD700);
-        String declStr = isMirrorReflection
-                ? String.format("§eDeclination: §f%+.1f° §7[🪞 Mirrored: §a%+.1f°§7]", this.pitch, effectivePitch)
-                : String.format("§eDeclination: §f%+.1f°", this.pitch);
-        String zoomStr = String.format("§eZoom: §b%.1fx §7(Scroll)", this.zoom);
-        guiGraphics.drawCenteredString(this.font, String.format("§eAzimuth: §f%.1f° %s  §e|  %s  §e|  %s  §e|  Moon: §b%s", this.yaw, dirName, declStr, zoomStr, phaseName), centerX, 24, 0xFFE0E0E0);
-
-        // Constellation Horizon Rise / Set Tracking Tray (Left Side)
-        if (screenWidth >= 380 && this.visibleConstellations != null && !this.visibleConstellations.isEmpty()) {
+        // 12. Horizon Monitor Left Tray
+        if (this.width >= 380 && this.visibleConstellations != null && !this.visibleConstellations.isEmpty()) {
             int trayX = 10;
             int trayY = 36;
             int trayW = 135;
@@ -1339,11 +1344,12 @@ public class SkyLookingGlassScreen extends Screen {
                     guiGraphics.fill(trayX + 2, itemY, trayX + trayW - 2, itemY + 13, 0x4438BDF8);
                 }
 
-                String name = Component.translatable(c.getUnlocalizedName()).getString();
-                if (name.length() > 10) name = name.substring(0, 9) + "..";
+                boolean isDisc = (player != null) && PlayerAstralProgress.isDiscovered(player, c);
+                String name = isDisc ? Component.translatable(c.getUnlocalizedName()).getString() : "Uncharted (" + c.getTier().getDisplayName() + ")";
+                if (name.length() > 14) name = name.substring(0, 13) + "..";
 
                 if (curAlt >= 0) {
-                    guiGraphics.drawString(this.font, (isHover ? "§b▶ " : "§a▲ ") + "§f" + name + " §7(+" + (int)curAlt + "°)", trayX + 4, itemY + 2, isHover ? 0xFF00E5FF : 0xFFE0E0E0, false);
+                    guiGraphics.drawString(this.font, (isHover ? "§b▶ " : "§a▲ ") + (isDisc ? "§f" : "§7") + name + " §7(+" + (int)curAlt + "°)", trayX + 4, itemY + 2, isHover ? 0xFF00E5FF : (isDisc ? 0xFFE0E0E0 : 0xFFA0B0C0), false);
                 } else {
                     float degBelow = -curAlt;
                     float minsToRise = degBelow / 18.0f; // 18 deg per real minute in Minecraft 20-min day cycle

@@ -1,3 +1,19 @@
+## Build 000-1-26-235
+
+### Astral Mirror 6-Way Connected Architecture, Multi-Face Celestial Reflection & Crystal Lifecycle
+- **Astral Mirror 6-Way Multi-Directional Connected Architecture (`AstralMirrorBlock.java`, `AstralMirrorRenderer.java`, `astral_mirror_block.json`, `AstralMirrorBlockEntity.java`)**:
+  - Upgraded `AstralMirrorBlock` to full 6-way Boolean connection properties (`UP`, `DOWN`, `NORTH`, `EAST`, `SOUTH`, `WEST`), supporting continuous seamless connections across all 6 faces simultaneously.
+  - Implemented 6-way full voxel shape calculation with perimeter lip recession and dynamic multi-face raycast collision.
+  - Revamped `AstralMirrorRenderer` to evaluate all exposed unblocked faces dynamically, rendering diurnal celestial firmament reflections, nebulae veils, twinkling stars, and charted constellation lines across horizontal floors, vertical walls, ceilings, and parabolic concave mirror dishes.
+  - Overhauled `astral_mirror_block.json` with clean multipart blockstate definitions supporting all 64 connection permutations.
+- **Astral Crystal Budding Lifecycle Asset Suite (`textures/block/`, `models/block/`)**:
+  - Designed and deployed 4 distinct 32x32 hand-shaded crystal textures for each growing tier of the Astral Crystal (`small_astral_crystal_bud.png`, `medium_astral_crystal_bud.png`, `large_astral_crystal_bud.png`, `astral_crystal_cluster.png`) with distinct progressive geometric crystal silhouettes.
+- **Entropic Codex & Obsidian Vault Expansion**:
+  - Registered `astral_mirror_reflection` in `CodexCategoryRegistry.java` under the `MAGIC` branch.
+  - Updated the Obsidian Vault documentation (`astral_materia_blocks.md`) with comprehensive 6-way multi-directional connection specifications and the 4-tier crystal budding lifecycle.
+- **Multi-Loader Compilation & Dev Deployment (`deploytoDev`)**:
+  - Recompiled, built, and deployed to dev environments for both Fabric and NeoForge with zero errors (`BUILD SUCCESSFUL in 30s`).
+
 ## Build 000-1-26-234
 
 ### Astral Tool Variants, Optical Calibration, Astrolabe Controls & Multiblock Sightlines
@@ -27,6 +43,28 @@
 - **Astral & Optical Offscreen Beam & Frustum Culling Overhaul (`CelestialArmillaryRenderer.java`, `CelestialBeaconRenderer.java`, `AstralAltarRenderer.java`, `RefractiveAstralLensRenderer.java`, `SecondaryAstralLensRenderer.java`, `BeamSplitterPrismRenderer.java`, `OpticalReceiverPortRenderer.java`, `AstralMirrorRenderer.java`, `AstralInfusionPedestalRenderer.java`, `AttunementPedestalRenderer.java`, `StationaryBrassTelescopeRenderer.java`)**:
   - Overrode `shouldRenderOffScreen() -> true` across all 11 optical, multiblock, and beam renderers to completely bypass Vanilla frustum culling when the base block entity is out of direct camera view.
   - Overrode `getViewDistance() -> 256` and expanded render bounding boxes up to 64–96 blocks, preventing high-altitude starlight beams, split optical rays, and wide-area multiblock rings from flickering or disappearing when panning the camera.
+- **Constellation Secrecy & Universal Star Tracing Freedom (`SkyLookingGlassScreen.java`)**:
+  - Removed constellation name leakage on undiscovered stars; targeting now displays neutral `Spectral Node N` with spectral class and apparent magnitude.
+  - Constellation titles remain strictly hidden in the HUD and Horizon Monitor (`Uncharted (<Tier>)`) until the constellation is discovered.
+  - Restored full star selection freedom across all ambient, landmark, and constellation stars, allowing players to click and trace lines between any visible stars in the firmament.
+- **Aesthetic Glass 1.21.4 Item Model Definitions & Dynamic Tinting (`items/*.json`, `ModItemTintSources.java`, `AestheticGlassRegistry.java`)**:
+  - Restored 1.21.4 item model definitions for all 1,251 aesthetic glass items and essence items in `assets/entropica/items/` with `entropica:aesthetic_glass_tint`.
+  - Added full alpha mask (`0xFF000000`) across `AestheticGlassRegistry.java` and `ModItemTintSources.java` to guarantee vivid, dynamic item colors in inventory, hand, and GUI.
+- **Handmade Crystal Tool Textures & Drained Item Models (`crystal_hoe.png`, `drained_crystal_*.png`, `items/drained_crystal_*.json`)**:
+  - Restored `crystal_hoe.png` using the hand-crafted user texture.
+  - Generated matching desaturated textures for all 5 drained crystal tools and created 1.21.4 item definitions in `assets/entropica/items/` so all drained variants render their desaturated icons properly.
+- **Astral Machinery, Item Focus & Crystalline Asset Suite (`MateriaFluxDistributorBlock.java`, `models/`, `textures/`)**:
+  - **Materia-Flux Distributor**: Created 32x32 textures (`materia_flux_distributor_top.png`, `_side.png`, `_bottom.png`, `_front.png` with wireless parabolic emitter dish), 3D stepped block model, blockstate, item model, and 1.21.4 item registration.
+  - **Arcanum Focus**: Created 32x32 `arcanum_focus.png` texture depicting a gilded Arcanite ring with floating crystalline core and cardinal runes.
+  - **Basalt Pickaxe**: Created 32x32 `basalt_pickaxe.png` with darkened volcanic basalt stone pickaxe head and rich crimson wood shaft.
+  - **Astral Crystal Budding Lifecycle**: Created 4 distinct 32x32 textures for each growing tier of the Astral Crystal (`small_astral_crystal_bud.png`, `medium_astral_crystal_bud.png`, `large_astral_crystal_bud.png`, `astral_crystal_cluster.png`) and multifaceted `astral_crystal_block.png`.
+  - **Secondary Astral Lens & Pure Optic Fiber**: Configured 80% scaled 3D block and item models for the Secondary Astral Lens, and created a dedicated handheld 3D conduit item model with GUI display transforms for the Pure Optic Fiber.
+- **Beam Splitter Prism Normal & Depth Sorting Fix (`BeamSplitterPrismRenderer.java`)**:
+  - Resolved render order and face occlusion issue on the top crystal prism by converting `renderTexturedBox` to standard CCW face normals and drawing the solid cutout crystal core prior to the brass vise mounts.
+- **Multidirectional Astral Mirror & Parabolic Concave Dish Support (`AstralMirrorBlock.java`, `AstralMirrorRenderer.java`, `astral_mirror_block.json`)**:
+  - Implemented 6-way `FACING` property on `AstralMirrorBlock` allowing mirrors to be mounted on floors, vertical walls, and ceilings.
+  - Updated `AstralMirrorRenderer` to orient reflection quads and normal distance culling according to facing direction, enabling parabolic curved mirror arrays facing upwards.
+  - Expanded `astral_mirror_block.json` blockstate to 96 facing x connection permutation variants.
 
 ## Build 000-1-26-233
 

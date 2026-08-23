@@ -1375,6 +1375,21 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
+                "astral_mirror_reflection", "Astral Mirror & 6-Way Reflections", "MAGIC",
+                "Connected multi-directional mercury mirrors with real-time celestial sky and constellation rendering.",
+                "Overview & Description:\n" +
+                "The Astral Mirror Block is a specialized planar reflective surface that mirrors the real-time diurnal firmament, nebulae, stars, and charted constellations.\n\n" +
+                "6-Way Multi-Directional CTM:\n" +
+                "Features complete 6-way connected texturing (UP, DOWN, NORTH, EAST, SOUTH, WEST). Interior brass borders disappear seamlessly when adjacent mirror blocks are connected horizontally or vertically.\n\n" +
+                "Multi-Surface Sky Reflection:\n" +
+                "Renders celestial starlight reflections across any exposed surface: horizontal floor pools, vertical mirror walls, ceilings, and concave parabolic observation dishes.\n\n" +
+                "Interaction & Observatories:\n" +
+                "Forms the central 5x5 starlight reflective basin for the Grand Astral Observatory. Right-clicking an active mirror pool beneath a valid Celestial Armillary opens the Sky Looking Glass directly.",
+                "astral_altar_and_observatory", 2, new ItemStack(ModBlocks.ASTRAL_MIRROR_BLOCK.get()),
+                560f, 0.0f, a_magic - 0.06f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
                 "astral_optics_and_logistics", "Pure Optic Conduits & Diagnostic Ping", "MAGIC",
                 "Lossless optical transmission, 8-block quick-dyeing, sponge cleanse, and wand diagnostic ping.",
                 "Overview & Description:\n" +

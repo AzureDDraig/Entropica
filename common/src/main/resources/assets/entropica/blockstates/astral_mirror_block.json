@@ -1,66 +1,1309 @@
 {
-  "variants": {
-    "east=false,north=false,south=false,west=false": {
-      "model": "entropica:block/astral_mirror_single"
+  "multipart": [
+    {
+      "apply": {
+        "model": "entropica:block/astral_mirror_core"
+      }
     },
-    "east=false,north=true,south=false,west=false": {
-      "model": "entropica:block/astral_mirror_end",
-      "y": 0
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "east": "false",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_single"
+      }
     },
-    "east=true,north=false,south=false,west=false": {
-      "model": "entropica:block/astral_mirror_end",
-      "y": 90
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "east": "false",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end"
+      }
     },
-    "east=false,north=false,south=true,west=false": {
-      "model": "entropica:block/astral_mirror_end",
-      "y": 180
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "east": "true",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "y": 90
+      }
     },
-    "east=false,north=false,south=false,west=true": {
-      "model": "entropica:block/astral_mirror_end",
-      "y": 270
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "east": "false",
+        "south": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "y": 180
+      }
     },
-    "east=false,north=true,south=true,west=false": {
-      "model": "entropica:block/astral_mirror_straight",
-      "y": 0
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "east": "false",
+        "south": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "y": 270
+      }
     },
-    "east=true,north=false,south=false,west=true": {
-      "model": "entropica:block/astral_mirror_straight",
-      "y": 90
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "east": "false",
+        "south": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight"
+      }
     },
-    "east=false,north=true,south=false,west=true": {
-      "model": "entropica:block/astral_mirror_corner",
-      "y": 0
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "east": "true",
+        "south": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "y": 90
+      }
     },
-    "east=true,north=true,south=false,west=false": {
-      "model": "entropica:block/astral_mirror_corner",
-      "y": 90
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "east": "false",
+        "south": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner"
+      }
     },
-    "east=true,north=false,south=true,west=false": {
-      "model": "entropica:block/astral_mirror_corner",
-      "y": 180
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "east": "true",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "y": 90
+      }
     },
-    "east=false,north=false,south=true,west=true": {
-      "model": "entropica:block/astral_mirror_corner",
-      "y": 270
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "east": "true",
+        "south": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "y": 180
+      }
     },
-    "east=true,north=true,south=false,west=true": {
-      "model": "entropica:block/astral_mirror_side",
-      "y": 0
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "east": "false",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "y": 270
+      }
     },
-    "east=true,north=true,south=true,west=false": {
-      "model": "entropica:block/astral_mirror_side",
-      "y": 90
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "east": "true",
+        "south": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side"
+      }
     },
-    "east=true,north=false,south=true,west=true": {
-      "model": "entropica:block/astral_mirror_side",
-      "y": 180
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "east": "true",
+        "south": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "y": 90
+      }
     },
-    "east=false,north=true,south=true,west=true": {
-      "model": "entropica:block/astral_mirror_side",
-      "y": 270
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "east": "true",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "y": 180
+      }
     },
-    "east=true,north=true,south=true,west=true": {
-      "model": "entropica:block/astral_mirror_center"
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "east": "false",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "east": "true",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_center"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "east": "false",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_single",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "east": "false",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "east": "true",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "east": "false",
+        "south": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "east": "false",
+        "south": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "east": "false",
+        "south": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "east": "true",
+        "south": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "east": "false",
+        "south": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "east": "true",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "east": "true",
+        "south": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "east": "false",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "east": "true",
+        "south": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "east": "true",
+        "south": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "east": "true",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "east": "false",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "east": "true",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_center",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "false",
+        "east": "false",
+        "down": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_single",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "east": "false",
+        "down": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "false",
+        "east": "true",
+        "down": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "false",
+        "east": "false",
+        "down": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "false",
+        "east": "false",
+        "down": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "east": "false",
+        "down": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "false",
+        "east": "true",
+        "down": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "east": "false",
+        "down": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "east": "true",
+        "down": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "false",
+        "east": "true",
+        "down": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "false",
+        "east": "false",
+        "down": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "east": "true",
+        "down": "false",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "east": "true",
+        "down": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "false",
+        "east": "true",
+        "down": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "east": "false",
+        "down": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "east": "true",
+        "down": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_center",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "false",
+        "west": "false",
+        "down": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_single",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "west": "false",
+        "down": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "false",
+        "west": "true",
+        "down": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "false",
+        "west": "false",
+        "down": "true",
+        "east": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "false",
+        "west": "false",
+        "down": "false",
+        "east": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "west": "false",
+        "down": "true",
+        "east": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "false",
+        "west": "true",
+        "down": "false",
+        "east": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "west": "false",
+        "down": "false",
+        "east": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "west": "true",
+        "down": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "false",
+        "west": "true",
+        "down": "true",
+        "east": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "false",
+        "west": "false",
+        "down": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "west": "true",
+        "down": "false",
+        "east": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "west": "true",
+        "down": "true",
+        "east": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "false",
+        "west": "true",
+        "down": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "west": "false",
+        "down": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "west": "true",
+        "down": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_center",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "false",
+        "north": "false",
+        "down": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_single",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "north": "false",
+        "down": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "false",
+        "north": "true",
+        "down": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "false",
+        "north": "false",
+        "down": "true",
+        "south": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "false",
+        "north": "false",
+        "down": "false",
+        "south": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "north": "false",
+        "down": "true",
+        "south": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "false",
+        "north": "true",
+        "down": "false",
+        "south": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "north": "false",
+        "down": "false",
+        "south": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "north": "true",
+        "down": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "false",
+        "north": "true",
+        "down": "true",
+        "south": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "false",
+        "north": "false",
+        "down": "true",
+        "south": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "north": "true",
+        "down": "false",
+        "south": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "north": "true",
+        "down": "true",
+        "south": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "false",
+        "north": "true",
+        "down": "true",
+        "south": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "north": "false",
+        "down": "true",
+        "south": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "north": "true",
+        "down": "true",
+        "south": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_center",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "false",
+        "south": "false",
+        "down": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_single",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "south": "false",
+        "down": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "false",
+        "south": "true",
+        "down": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "false",
+        "south": "false",
+        "down": "true",
+        "north": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "false",
+        "south": "false",
+        "down": "false",
+        "north": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_end",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "south": "false",
+        "down": "true",
+        "north": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "false",
+        "south": "true",
+        "down": "false",
+        "north": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_straight",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "south": "false",
+        "down": "false",
+        "north": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "south": "true",
+        "down": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "false",
+        "south": "true",
+        "down": "true",
+        "north": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "false",
+        "south": "false",
+        "down": "true",
+        "north": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_corner",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "south": "true",
+        "down": "false",
+        "north": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "south": "true",
+        "down": "true",
+        "north": "false"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "false",
+        "south": "true",
+        "down": "true",
+        "north": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "south": "false",
+        "down": "true",
+        "north": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_side",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "south": "true",
+        "down": "true",
+        "north": "true"
+      },
+      "apply": {
+        "model": "entropica:block/astral_mirror_face_center",
+        "x": 90,
+        "y": 90
+      }
     }
-  }
+  ]
 }
