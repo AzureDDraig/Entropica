@@ -69,6 +69,7 @@ processResources {
 shadowJar {
     configurations = [project.configurations.shadowCommon]
     archiveClassifier = "dev-shadow"
+    dependsOn project(":common").tasks.matching { it.name == "transformProductionFabric" }
 }
 
 remapJar {

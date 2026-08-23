@@ -16,10 +16,10 @@
   - Balanced all matrix push/pop operations across all 6 directional face rendering passes (`UP`, `DOWN`, `NORTH`, `SOUTH`, `WEST`, `EAST`).
 - **Optic Fiber Block Model Rotation Fix (`pure_optic_fiber.json`)**:
   - Corrected invalid `x`/`y`/`z` rotation syntax to standard vanilla `angle`/`axis`/`origin` format in `pure_optic_fiber.json`, eliminating JSON deserializer model loading exceptions on startup.
-- **Architectury ExpectPlatform Transformer Task Streamline (`common/build.gradle`)**:
-  - Streamlined `transformProduction` tasks to eliminate the conflicting `doLast` re-run that was deleting valid transformed jars on Windows file systems, ensuring all `@ExpectPlatform` calls are reliably transformed during standard build pipelines.
+- **Architectury ExpectPlatform Transformer Task Pipeline & Shadow Packaging (`common/build.gradle`, `neoforge/build.gradle`, `fabric/build.gradle`)**:
+  - Resolved an issue where `shadowJar` was packaging before `transformProduction` completed its transformation passes on Windows, ensuring full common class and resource shadowing (833 classes, mixin configs, and assets) into the final 12.5MB distribution jars.
 - **Multi-Loader Compilation & Dev Deployment (`deploytoDev`)**:
-  - Recompiled, built, and deployed to dev environments for both Fabric and NeoForge with zero errors (`BUILD SUCCESSFUL in 43s`).
+  - Recompiled, built, and deployed fully bundled production jars to dev environments for both Fabric and NeoForge with zero errors (`BUILD SUCCESSFUL in 21s`).
 
 ## Build 000-1-26-234
 
