@@ -29,29 +29,6 @@ tasks.matching { it.name.startsWith("transformProduction") }.configureEach { tas
             println "[Antigravity] Failed to inject compileClasspath to ClassLoader: " + e.message
         }
     }
-    doLast {
-        def inputJar = task.getInput().get().asFile.toPath()
-        def outputJar = task.getArchiveFile().get().asFile.toPath()
-        def transformersList = task.getTransformers().get()
-        
-        def loader = task.class.classLoader
-        System.setProperty("architectury.platform.name", task.name.toLowerCase().contains("neoforge") ? "neoforge" : "fabric")
-        try {
-            Class<?> transformClass = loader.loadClass("dev.architectury.transformer.Transform")
-            def runMethod = transformClass.getMethod("runTransformers", java.nio.file.Path.class, java.nio.file.Path.class, java.util.List.class)
-            
-            if (java.nio.file.Files.exists(outputJar)) {
-                java.nio.file.Files.delete(outputJar)
-            }
-            
-            runMethod.invoke(null, inputJar, outputJar, transformersList)
-            println "[Antigravity] Successfully re-ran transformer in doLast to write the production jar: " + outputJar
-        } catch (Exception e) {
-            println "[Antigravity] Failed to run transformer in doLast: " + e.message
-        } finally {
-            System.clearProperty("architectury.platform.name")
-        }
-    }
 }
 
 tasks.matching { it.name == "remapSourcesJar" }.configureEach {
