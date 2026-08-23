@@ -417,15 +417,13 @@
         10
       ],
       "rotation": {
-        "x": -180,
-        "y": 0,
-        "z": 0,
+        "angle": 0,
+        "axis": "y",
         "origin": [
           8,
-          3,
+          8,
           8
-        ],
-        "axis": "y"
+        ]
       },
       "faces": {
         "north": {
@@ -502,15 +500,13 @@
         10
       ],
       "rotation": {
-        "x": -180,
-        "y": 0,
-        "z": 0,
+        "angle": 0,
+        "axis": "y",
         "origin": [
           8,
-          13,
+          8,
           8
-        ],
-        "axis": "y"
+        ]
       },
       "faces": {
         "north": {

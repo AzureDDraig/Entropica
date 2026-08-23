@@ -11,8 +11,13 @@
 - **Entropic Codex & Obsidian Vault Expansion**:
   - Registered `astral_mirror_reflection` in `CodexCategoryRegistry.java` under the `MAGIC` branch.
   - Updated the Obsidian Vault documentation (`astral_materia_blocks.md`) with comprehensive 6-way multi-directional connection specifications and the 4-tier crystal budding lifecycle.
+- **Astral Mirror Renderer PoseStack Balance & Crash Fix (`AstralMirrorRenderer.java`)**:
+  - Resolved `NoSuchElementException` during block entity rendering caused by an unbalanced `poseStack.popPose()` at the conclusion of `renderFaceGeometry`.
+  - Balanced all matrix push/pop operations across all 6 directional face rendering passes (`UP`, `DOWN`, `NORTH`, `SOUTH`, `WEST`, `EAST`).
+- **Optic Fiber Block Model Rotation Fix (`pure_optic_fiber.json`)**:
+  - Corrected invalid `x`/`y`/`z` rotation syntax to standard vanilla `angle`/`axis`/`origin` format in `pure_optic_fiber.json`, eliminating JSON deserializer model loading exceptions on startup.
 - **Multi-Loader Compilation & Dev Deployment (`deploytoDev`)**:
-  - Recompiled, built, and deployed to dev environments for both Fabric and NeoForge with zero errors (`BUILD SUCCESSFUL in 30s`).
+  - Recompiled, built, and deployed to dev environments for both Fabric and NeoForge with zero errors (`BUILD SUCCESSFUL in 46s`).
 
 ## Build 000-1-26-234
 

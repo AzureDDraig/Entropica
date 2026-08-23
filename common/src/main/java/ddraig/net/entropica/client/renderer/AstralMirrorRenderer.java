@@ -869,8 +869,6 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                 });
             }
         }
-
-        poseStack.popPose();
     }
 
     /**
