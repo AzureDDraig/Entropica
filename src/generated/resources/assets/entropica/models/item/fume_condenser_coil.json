@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "entropica:item/fume_condenser_coil"
-  }
-}

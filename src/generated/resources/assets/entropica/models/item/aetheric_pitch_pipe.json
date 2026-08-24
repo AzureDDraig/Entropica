@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "entropica:item/aetheric_pitch_pipe"
-  }
-}

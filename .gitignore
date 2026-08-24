@@ -37,4 +37,10 @@ Docu/
 
 # Python scripts and artifacts
 *.py
-__pycache__/
+__pycache__/
+
+# Legacy and external showcase tools
+src/
+texture_pack_showcase/
+.architectury-transformer/
+image_*.png

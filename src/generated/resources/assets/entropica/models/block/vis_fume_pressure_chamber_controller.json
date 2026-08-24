@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/orientable",
-  "textures": {
-    "front": "entropica:block/materia_pressure_chamber_controller_face",
-    "side": "entropica:block/vis_fume_pressure_chamber_side",
-    "top": "entropica:block/vis_fume_pressure_chamber_side"
-  }
-}

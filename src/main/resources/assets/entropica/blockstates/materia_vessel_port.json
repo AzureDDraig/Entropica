@@ -1,6 +1,0 @@
-{
-  "variants": {
-    "is_export=false": { "model": "entropica:block/materia_vessel_port_import" },
-    "is_export=true": { "model": "entropica:block/materia_vessel_port_export" }
-  }
-}

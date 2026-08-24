@@ -1,7 +1,0 @@
-{
-  "parent": "entropica:block/vapor_pneumatic_pipe_arm",
-  "textures": {
-    "particle": "entropica:block/pipe_charged_athanorite",
-    "pipe": "entropica:block/pipe_charged_athanorite"
-  }
-}

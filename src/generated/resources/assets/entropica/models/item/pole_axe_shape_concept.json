@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "entropica:item/pole_axe_shape_concept"
-  }
-}

@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/cube_column",
-  "textures": {
-    "end": "entropica:block/orbis_cell_top",
-    "side": "entropica:block/orbis_cell_side",
-    "particle": "entropica:block/orbis_cell_side"
-  }
-}
