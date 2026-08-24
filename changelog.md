@@ -12,11 +12,8 @@
 - **Improved Reflections**: Corrected multi-bounce reflection physics so stars and constellations reflect accurately across corner mirrors and wall setups.
 - **Looking Glass Wall Aiming**: You can now right-click mirror walls directly to look up into the reflected night sky.
 
-### Aurorafowl Animations & Model Polish
-- **Aerodynamic Flight Pose**: Improved avian flying posture by tucking legs cleanly beneath the body during flight.
-- **New Wading Walk Animation**: Added a high-stepping crane walk animation when moving on the ground.
-- **Complete Animation Set**: Polished all 8 ground and flight animations (idle, walk, flying, takeoff, landing, ground attack, and dive attack).
-- **Visual Optimizations**: Eliminated surface flickering on 2D wing membranes, streamlined texture memory by 75%, and refined plumage colors.
+### Mobs & Creatures
+- **Aurorafowl**: Polished flight poses and ground animations across all behaviors.
 
 ### Automated Builds & GitHub Deployment
 - Configured automated GitHub releases for Fabric and NeoForge on every push.
