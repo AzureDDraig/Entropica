@@ -60,6 +60,8 @@ public class AstralAltarRenderer implements BlockEntityRenderer<AstralAltarCoreB
         BlockEntityRenderState.extractBase(be, state, crumblingOverlay);
         state.isStructureValid = be.isStructureValid();
         state.isStarlightActive = be.isStarlightActive();
+        state.structureTier = be.getStructureTier();
+        state.incomingBeamCount = be.getIncomingBeamCount();
         state.rotation = (be.clientRotation + partialTick * 0.02f) * 57.2958f; // rad to deg
 
         state.hasHeldItem = !be.getHeldItem().isEmpty();
@@ -93,11 +95,28 @@ public class AstralAltarRenderer implements BlockEntityRenderer<AstralAltarCoreB
                 float g = state.isStarlightActive ? 0.8f : 0.5f;
                 float b = state.isStarlightActive ? 1.0f : 0.7f;
                 float a = state.isStarlightActive ? 0.85f : 0.4f;
-                renderCircleDisc(pose.pose(), consumer, 0.5f, 1.01f, 0.5f, 0.45f, r, g, b, a, light, overlay);
+                renderCircleDisc(pose.pose(), consumer, 0.5f, 1.01f, 0.5f, (state.structureTier == 3 ? 0.85f : 0.45f), r, g, b, a, light, overlay);
 
                 if (state.isStarlightActive) {
-                    // Overhead Starlight Focal Ray (From Focal Lens Mount at Y=+5 down to Altar Core)
-                    renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, 0.5f, 1.25f, 0.5f, 0.8f, 0.95f, 1.0f, 0.80f, light, overlay);
+                    if (state.structureTier == 3) {
+                        // Master Astral Altar: 4 Corner Lenses routing into Overhead Central Apex
+                        renderBeamLine(pose.pose(), consumer, 5.5f, 5.5f, 5.5f, 0.5f, 5.0f, 0.5f, 0.85f, 0.95f, 1.0f, 0.75f, light, overlay);
+                        renderBeamLine(pose.pose(), consumer, 5.5f, 5.5f, -4.5f, 0.5f, 5.0f, 0.5f, 0.85f, 0.95f, 1.0f, 0.75f, light, overlay);
+                        renderBeamLine(pose.pose(), consumer, -4.5f, 5.5f, 5.5f, 0.5f, 5.0f, 0.5f, 0.85f, 0.95f, 1.0f, 0.75f, light, overlay);
+                        renderBeamLine(pose.pose(), consumer, -4.5f, 5.5f, -4.5f, 0.5f, 5.0f, 0.5f, 0.85f, 0.95f, 1.0f, 0.75f, light, overlay);
+
+                        // Multi-Beam Spectral Refraction Cascade (Overhead Apex -> Altar Core & Pedestal circle)
+                        renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, 0.5f, 1.25f, 0.5f, 1.0f, 1.0f, 1.0f, 0.90f, light, overlay); // Center White-Blue
+                        renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, 2.5f, 1.15f, 0.5f, 0.9f, 0.1f, 0.2f, 0.80f, light, overlay); // Red
+                        renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, -1.5f, 1.15f, 0.5f, 0.1f, 0.9f, 0.9f, 0.80f, light, overlay); // Cyan
+                        renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, 0.5f, 1.15f, 2.5f, 0.9f, 0.1f, 0.8f, 0.80f, light, overlay); // Magenta
+                        renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, 0.5f, 1.15f, -1.5f, 0.2f, 0.9f, 0.3f, 0.80f, light, overlay); // Green
+                        renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, 1.9f, 1.15f, 1.9f, 1.0f, 0.85f, 0.2f, 0.80f, light, overlay); // Gold
+                        renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, -0.9f, 1.15f, -0.9f, 0.3f, 0.4f, 1.0f, 0.80f, light, overlay); // Deep Blue
+                    } else {
+                        // Standard Tier 2 Altar: Overhead Starlight Focal Ray (From Focal Lens Mount at Y=+5 down to Altar Core)
+                        renderBeamLine(pose.pose(), consumer, 0.5f, 5.0f, 0.5f, 0.5f, 1.25f, 0.5f, 0.8f, 0.95f, 1.0f, 0.80f, light, overlay);
+                    }
                 }
             });
         }
@@ -142,6 +161,8 @@ public class AstralAltarRenderer implements BlockEntityRenderer<AstralAltarCoreB
     public static class AltarRenderState extends BlockEntityRenderState {
         public boolean isStructureValid = false;
         public boolean isStarlightActive = false;
+        public int structureTier = 0;
+        public int incomingBeamCount = 0;
         public float rotation = 0.0f;
         public boolean hasHeldItem = false;
         public boolean hasStarChart = false;

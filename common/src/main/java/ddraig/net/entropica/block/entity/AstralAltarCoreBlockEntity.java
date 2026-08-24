@@ -28,8 +28,11 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import net.minecraft.world.phys.AABB;
 
+import ddraig.net.entropica.api.EssenceType;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AstralAltarCoreBlockEntity extends BlockEntity {
 
@@ -291,14 +294,118 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
         return list;
     }
 
+    private int structureTier = 0; // 0 = Incomplete, 2 = Standard 7x7x7, 3 = Master 11x11x7
+    private final Map<BlockPos, Integer> incomingCollectorBeams = new HashMap<>();
+    private int collectorBeamsTimeout = 0;
+
+    public int getStructureTier() {
+        return structureTier;
+    }
+
+    public int getIncomingBeamCount() {
+        return incomingCollectorBeams.size();
+    }
+
+    public int getTotalIncomingFlux() {
+        return incomingCollectorBeams.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    public void receiveCollectorBeam(BlockPos fromPos, int flux, EssenceType incomingEssence) {
+        this.incomingCollectorBeams.put(fromPos, flux);
+        this.collectorBeamsTimeout = 25;
+        this.starlightActive = true;
+        setChanged();
+    }
+
     public boolean checkMultiblockStructure() {
         if (level == null) return false;
 
+        // 1. Check Master Astral Altar (11x11x7)
+        if (checkMasterAltarStructure()) {
+            this.structureTier = 3;
+            return true;
+        }
+
+        // 2. Check Standard Modular Astral Altar (7x7x7)
+        if (checkStandardAltarStructure()) {
+            this.structureTier = 2;
+            return true;
+        }
+
+        this.structureTier = 0;
+        return false;
+    }
+
+    private boolean checkMasterAltarStructure() {
+        // LAYER 1 (Y = -1, 11x11 Stepped Foundation Dais):
+        BlockPos base = worldPosition.below();
+        for (int dx = -5; dx <= 5; dx++) {
+            for (int dz = -5; dz <= 5; dz++) {
+                BlockPos checkPos = base.offset(dx, 0, dz);
+                if (!level.hasChunkAt(checkPos)) return false;
+                BlockState bs = level.getBlockState(checkPos);
+                int absX = Math.abs(dx);
+                int absZ = Math.abs(dz);
+
+                if (absX == 5 && absZ == 5) {
+                    if (!bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE.get())) return false;
+                } else if (absX == 5 || absZ == 5) {
+                    if (!bs.is(ModBlocks.ENGRAVED_ASTRAL_SLATE.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) return false;
+                } else {
+                    if (!bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE.get()) && !bs.is(ModBlocks.CHISELED_ASTRAL_MARBLE.get())) return false;
+                }
+            }
+        }
+
+        // LAYER 2 to 6 (Y = 0 to +4, 4 Tall Corner Starlight Pillars at (±5, ±5)):
+        for (int dy = 0; dy <= 4; dy++) {
+            BlockPos[] pylonPositions = {
+                    worldPosition.offset(5, dy, 5),
+                    worldPosition.offset(5, dy, -5),
+                    worldPosition.offset(-5, dy, 5),
+                    worldPosition.offset(-5, dy, -5)
+            };
+            for (BlockPos p : pylonPositions) {
+                if (!level.hasChunkAt(p)) return false;
+                BlockState bs = level.getBlockState(p);
+                if (!bs.is(ModBlocks.STARLIGHT_PILLAR.get()) && !bs.is(ModBlocks.RESONANCE_PYLON.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) {
+                    return false;
+                }
+            }
+        }
+
+        // LAYER 7 (Y = +5, 4 Corner Receiver Lenses at (±5, 5, ±5) and Overhead Focal Mount at (0, 5, 0)):
+        BlockPos[] lensPositions = {
+                worldPosition.offset(5, 5, 5),
+                worldPosition.offset(5, 5, -5),
+                worldPosition.offset(-5, 5, 5),
+                worldPosition.offset(-5, 5, -5)
+        };
+        for (BlockPos lp : lensPositions) {
+            if (!level.hasChunkAt(lp)) return false;
+            BlockState bs = level.getBlockState(lp);
+            if (!bs.is(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()) && !bs.is(ModBlocks.SECONDARY_ASTRAL_LENS.get()) && !bs.is(ModBlocks.FOCAL_LENS_MOUNT.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) {
+                return false;
+            }
+        }
+
+        BlockPos apexPos = worldPosition.offset(0, 5, 0);
+        if (!level.hasChunkAt(apexPos)) return false;
+        BlockState apexBs = level.getBlockState(apexPos);
+        if (!apexBs.is(ModBlocks.FOCAL_LENS_MOUNT.get()) && !apexBs.is(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()) && !apexBs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean checkStandardAltarStructure() {
         // LAYER 1 (Y = -1, 7x7 Foundation):
         BlockPos base = worldPosition.below();
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
                 BlockPos checkPos = base.offset(dx, 0, dz);
+                if (!level.hasChunkAt(checkPos)) return false;
                 BlockState bs = level.getBlockState(checkPos);
                 int absX = Math.abs(dx);
                 int absZ = Math.abs(dz);
@@ -322,6 +429,7 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
                     worldPosition.offset(-3, dy, -3)
             };
             for (BlockPos p : pylonPositions) {
+                if (!level.hasChunkAt(p)) return false;
                 BlockState bs = level.getBlockState(p);
                 if (!bs.is(ModBlocks.RESONANCE_PYLON.get()) && !bs.is(ModBlocks.STARLIGHT_PILLAR.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) {
                     return false;
@@ -342,6 +450,7 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
         };
         int pedestalsFound = 0;
         for (BlockPos p : pedestalPositions) {
+            if (!level.hasChunkAt(p)) return false;
             BlockState bs = level.getBlockState(p);
             if (bs.is(ModBlocks.ATTUNEMENT_PEDESTAL.get()) || bs.is(ModBlocks.ASTRAL_PEDESTAL.get()) || bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) {
                 pedestalsFound++;
@@ -352,9 +461,14 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
     }
 
     public void displayAltarStatus(Player player) {
-        player.displayClientMessage(Component.literal("§6=== Modular Astral Altar Status ==="), false);
-        player.displayClientMessage(Component.literal("§7Structure Integrity: " + (structureValid ? "§a✓ Formed & Aligned" : "§c✗ Incomplete (Check Astrolabe Blueprint)")), false);
+        player.displayClientMessage(Component.literal("§6=== Astral Altar Status ==="), false);
+        String tierName = (structureTier == 3) ? "§d✦ Tier 3 (Master Astral Altar 11x11x7)" : ((structureTier == 2) ? "§b✦ Tier 2 (Modular Astral Altar 7x7x7)" : "§c✗ Incomplete");
+        player.displayClientMessage(Component.literal("§7Structure Tier: " + tierName), false);
         player.displayClientMessage(Component.literal("§7Starlight Focus: " + (starlightActive ? "§b✦ Active (Channeling Cosmos)" : "§8○ Inactive (Night Sky / Clear Line Required)")), false);
+
+        if (incomingCollectorBeams.size() > 0) {
+            player.displayClientMessage(Component.literal("§7Connected Collection Beams: §a" + incomingCollectorBeams.size() + " Beams §7(+" + getTotalIncomingFlux() + " flux/s)"), false);
+        }
 
         Constellation c = getAttunedConstellation();
         if (c != null) {
@@ -379,10 +493,12 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
         output.store("HeldItem", ItemStack.OPTIONAL_CODEC, this.heldItem);
         output.store("StarChart", ItemStack.OPTIONAL_CODEC, this.starChart);
         output.store("StructureValid", Codec.BOOL, this.structureValid);
+        output.store("StructureTier", Codec.INT, this.structureTier);
         output.store("StarlightActive", Codec.BOOL, this.starlightActive);
         output.store("GrowthTicks", Codec.INT, this.crystalGrowthTicks);
         output.store("RitualProgress", Codec.INT, this.ritualProgress);
         output.store("Crafting", Codec.BOOL, this.crafting);
+        output.store("IncomingFlux", Codec.INT, getTotalIncomingFlux());
     }
 
     @Override
@@ -391,6 +507,7 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
         input.read("HeldItem", ItemStack.OPTIONAL_CODEC).ifPresent(stack -> this.heldItem = stack);
         input.read("StarChart", ItemStack.OPTIONAL_CODEC).ifPresent(stack -> this.starChart = stack);
         input.read("StructureValid", Codec.BOOL).ifPresent(b -> this.structureValid = b);
+        input.read("StructureTier", Codec.INT).ifPresent(t -> this.structureTier = t);
         input.read("StarlightActive", Codec.BOOL).ifPresent(b -> this.starlightActive = b);
         input.read("GrowthTicks", Codec.INT).ifPresent(i -> this.crystalGrowthTicks = i);
         input.read("RitualProgress", Codec.INT).ifPresent(i -> this.ritualProgress = i);

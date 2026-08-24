@@ -109,6 +109,7 @@ public class CelestialArmillaryControllerBlockEntity extends BlockEntity {
         for (int dx = -4; dx <= 4; dx++) {
             for (int dz = -4; dz <= 4; dz++) {
                 BlockPos checkPos = base.offset(dx, 0, dz);
+                if (!level.hasChunkAt(checkPos)) return false;
                 BlockState bs = level.getBlockState(checkPos);
                 int absX = Math.abs(dx);
                 int absZ = Math.abs(dz);
@@ -132,6 +133,7 @@ public class CelestialArmillaryControllerBlockEntity extends BlockEntity {
                     worldPosition.offset(-4, dy, -4)
             };
             for (BlockPos p : pillarPos) {
+                if (!level.hasChunkAt(p)) return false;
                 BlockState bs = level.getBlockState(p);
                 if (!bs.is(ModBlocks.STARLIGHT_PILLAR.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE.get())) {
                     return false;
@@ -148,6 +150,7 @@ public class CelestialArmillaryControllerBlockEntity extends BlockEntity {
         };
         int lensesFound = 0;
         for (BlockPos p : lensPos) {
+            if (!level.hasChunkAt(p)) return false;
             BlockState bs = level.getBlockState(p);
             if (bs.is(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()) || bs.is(ModBlocks.SECONDARY_ASTRAL_LENS.get()) || bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) {
                 lensesFound++;

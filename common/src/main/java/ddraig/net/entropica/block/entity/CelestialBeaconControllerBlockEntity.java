@@ -142,6 +142,7 @@ public class CelestialBeaconControllerBlockEntity extends BlockEntity {
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
                 BlockPos checkPos = base.offset(dx, 0, dz);
+                if (!level.hasChunkAt(checkPos)) return false;
                 BlockState bs = level.getBlockState(checkPos);
                 int absX = Math.abs(dx);
                 int absZ = Math.abs(dz);
@@ -166,6 +167,7 @@ public class CelestialBeaconControllerBlockEntity extends BlockEntity {
                 worldPosition.offset(-2, 0, -2)
         };
         for (BlockPos p : chiseledCorners) {
+            if (!level.hasChunkAt(p)) return false;
             BlockState bs = level.getBlockState(p);
             if (!bs.is(ModBlocks.CHISELED_ASTRAL_MARBLE.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) return false;
         }
@@ -177,6 +179,7 @@ public class CelestialBeaconControllerBlockEntity extends BlockEntity {
                 worldPosition.offset(0, 0, -2)
         };
         for (BlockPos p : runedCardinals) {
+            if (!level.hasChunkAt(p)) return false;
             BlockState bs = level.getBlockState(p);
             if (!bs.is(ModBlocks.RUNED_ASTRAL_MARBLE.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) return false;
         }
@@ -189,6 +192,7 @@ public class CelestialBeaconControllerBlockEntity extends BlockEntity {
                 worldPosition.offset(-2, 1, -2)
         };
         for (BlockPos p : pillarPos) {
+            if (!level.hasChunkAt(p)) return false;
             BlockState bs = level.getBlockState(p);
             if (!bs.is(ModBlocks.STARLIGHT_PILLAR.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) return false;
         }
@@ -201,12 +205,14 @@ public class CelestialBeaconControllerBlockEntity extends BlockEntity {
                 worldPosition.offset(-1, 2, -1)
         };
         for (BlockPos p : bracketPos) {
+            if (!level.hasChunkAt(p)) return false;
             BlockState bs = level.getBlockState(p);
             if (!bs.is(ModBlocks.ASTRAL_CRYSTAL_BLOCK.get()) && !bs.is(ModBlocks.CHISELED_ASTRAL_MARBLE.get()) && !bs.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get())) return false;
         }
 
         // LAYER 5 (Y = +3, Apex Crystal Crown):
         BlockPos apexPos = worldPosition.offset(0, 3, 0);
+        if (!level.hasChunkAt(apexPos)) return false;
         BlockState apexBs = level.getBlockState(apexPos);
         return apexBs.is(ModBlocks.ASTRAL_CRYSTAL_BLOCK.get()) || apexBs.is(ModBlocks.ASTRAL_CRYSTAL_CLUSTER.get()) || apexBs.is(ModBlocks.CHISELED_ASTRAL_MARBLE.get());
     }

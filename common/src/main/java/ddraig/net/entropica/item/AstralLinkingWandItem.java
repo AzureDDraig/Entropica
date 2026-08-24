@@ -163,6 +163,16 @@ public class AstralLinkingWandItem extends Item {
                 prismBE.addLinkedTarget(clickedPos);
                 prismBE.setChanged();
                 linked = true;
+            } else if (sourceBE instanceof AstralCollectorBlockEntity collectorBE) {
+                if (collectorBE.canLinkTo(clickedPos)) {
+                    collectorBE.setCustomTargetPos(clickedPos);
+                    linked = true;
+                } else {
+                    if (!level.isClientSide()) {
+                        player.displayClientMessage(Component.literal("§c[Astral Linking Wand] §7Cannot link: Loop cycle detected or out of range!"), true);
+                    }
+                    return InteractionResult.FAIL;
+                }
             }
 
             if (linked) {
@@ -188,7 +198,8 @@ public class AstralLinkingWandItem extends Item {
         // 3. Normal Right-Click on an Optical Component -> Select as Source
         if (clickedBE instanceof RefractiveAstralLensBlockEntity ||
             clickedBE instanceof ddraig.net.entropica.block.entity.SecondaryAstralLensBlockEntity ||
-            clickedBE instanceof BeamSplitterPrismBlockEntity) {
+            clickedBE instanceof BeamSplitterPrismBlockEntity ||
+            clickedBE instanceof AstralCollectorBlockEntity) {
             tag.putInt(TAG_SOURCE_X, clickedPos.getX());
             tag.putInt(TAG_SOURCE_Y, clickedPos.getY());
             tag.putInt(TAG_SOURCE_Z, clickedPos.getZ());

@@ -32,8 +32,9 @@ scratch/
 entries.txt
 
 # Docs and Wiki
-docs/
 Wiki/
+Docu/
 
-# Github workflows
-.github/workflows/
+# Python scripts and artifacts
+*.py
+__pycache__/

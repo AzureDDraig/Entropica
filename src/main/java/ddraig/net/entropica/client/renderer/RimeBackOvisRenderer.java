@@ -25,7 +25,16 @@ public class RimeBackOvisRenderer extends MobRenderer<RimeBackOvisEntity, RimeBa
         state.isSheared = entity.isSheared();
         state.isBraced = entity.isBraced();
         state.isStunned = entity.isStunned();
+        state.isCharging = entity.isCharging();
         state.variant = entity.getVariant();
+
+        state.idleAnimationState.copyFrom(entity.idleAnimationState);
+        state.walkAnimationState.copyFrom(entity.walkAnimationState);
+        state.runAnimationState.copyFrom(entity.runAnimationState);
+        state.grazeAnimationState.copyFrom(entity.grazeAnimationState);
+        state.restAnimationState.copyFrom(entity.restAnimationState);
+        state.attackAnimationState.copyFrom(entity.attackAnimationState);
+        state.headbuttAnimationState.copyFrom(entity.headbuttAnimationState);
     }
 
     @Override

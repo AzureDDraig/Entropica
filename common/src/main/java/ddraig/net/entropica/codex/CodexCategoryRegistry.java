@@ -368,18 +368,48 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
-                "multiblock_modular_astral_altar", "Modular Astral Altar (5x5x3)", "MULTIBLOCKS",
+                "multiblock_modular_astral_altar", "Modular Astral Altar (7x7x7)", "MULTIBLOCKS",
                 "Harmonic resonance ritual crafting grid for starlight transmutation.",
                 "Overview & Description:\n" +
-                "A 5x5x3 modular ritual platform designed for high-tier starlight item synthesis and constellation infusions.\n\n" +
+                "A 7x7x7 modular ritual platform designed for high-tier starlight item synthesis and constellation infusions.\n\n" +
                 "Origin & Obtaining:\n" +
-                "Constructed with 12 Astral Marble Bricks, 4 Engraved Astral Slate, 4 Resonance Pylons, 4 Attunement Pedestals, 1 Focal Lens Mount, and 1 central Astral Altar Core.\n\n" +
+                "Constructed with 33 Astral Marble Bricks, 20 Engraved Astral Slate, 16 Resonance Pylons, 8 Attunement Pedestals, 1 Focal Lens Mount, and 1 central Astral Altar Core.\n\n" +
                 "Crafting Uses:\n" +
                 "Infuses Resplendent Prisms, Mantles of the Stars, and high-purity Astral Crystal Tools.\n\n" +
                 "Special Properties:\n" +
                 "Maintains persistent starlight focus during daylight hours if initialized under a clear night sky.",
                 "hub_multiblocks", 2, new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
                 360f, 0.0f, a_multi + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "multiblock_astral_collection_altar", "Astral Collection Altar (5x5x3)", "MULTIBLOCKS",
+                "Starlight Collector Plinth with socketed Astral Crystal and beam forwarding.",
+                "Overview & Description:\n" +
+                "A 5x5x3 celestial gathering plinth designed to capture cosmic starlight through an inscribed Astral Crystal and beam collimated energy into Altars or Lenses.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Built from 8 Chiseled Astral Marble cornerstones, 8 Engraved Astral Slate border slabs, 9 Astral Mirror Blocks (3x3 pool), 1 central Starlight Pillar, and 1 Astral Collector on top.\n\n" +
+                "Collector Cannibalization & Chaining:\n" +
+                "Collection Altars can be linked directly into other Collection Altars. When chained, the downstream collector cannibalizes the upstream flux, compounding the starlight stream.\n\n" +
+                "Special Properties:\n" +
+                "Right-click with an Astral Crystal to socket. Use the Astral Linking Wand to configure target coordinates.",
+                "multiblock_modular_astral_altar", 2, new ItemStack(ModBlocks.ASTRAL_COLLECTOR.get()),
+                440f, 0.0f, a_multi + 0.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "multiblock_master_astral_altar", "Master Astral Altar Network (11x11x7)", "MULTIBLOCKS",
+                "Monumental 11x11x7 ritual matrix with 12 pedestals, corner lens receivers, and multi-spectral cascade.",
+                "Overview & Description:\n" +
+                "The pinnacle of celestial architecture, the 11x11x7 Master Astral Altar integrates 4 tall corner collector towers with an overhead concave lens ring and focal apex.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed from 65 Astral Marble Bricks, 36 Engraved Astral Slate, 24 Starlight Pillars, 12 Attunement Pedestals, 4 Refractive Astral Lenses, 1 Focal Lens Mount, and 1 central Astral Altar Core.\n\n" +
+                "Multi-Beam Spectral Cascade:\n" +
+                "Receives multiple incoming starlight beams from surrounding Astral Collection Altars. Overhead apex focuses a prismatic spectrum of colored starlight rays onto the central crystal and pedestals.\n\n" +
+                "Special Properties:\n" +
+                "Accelerates crystal growth up to 10x and unlocks Master tier celestial transmutations.",
+                "multiblock_modular_astral_altar", 3, new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
+                440f, 0.0f, a_multi - 0.10f, false
         ));
 
         // ==========================================
@@ -1420,6 +1450,21 @@ public class CodexCategoryRegistry {
                 "Lenses feature full 3D friction gimbals with first-person alignment and wand auto-calibration.",
                 "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()),
                 640f, 0.0f, a_magic + 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_beam_interconnection", "Starlight Beam Routing & Multiblock Networks", "MAGIC",
+                "Inter-connecting multiblocks via collimated starlight beams, altar amplification, and collector cannibalization.",
+                "Overview & Description:\n" +
+                "Entropica's celestial architecture allows large-scale multiblock installations to connect wirelessly across space via focused starlight beams.\n\n" +
+                "Multiblock-to-Multiblock Inter-Connection:\n" +
+                "Astral Collection Altars automatically seek out or can be manually linked using the Astral Linking Wand to beam concentrated cosmic flux directly into Master Astral Altar corner receiver lenses.\n\n" +
+                "Collector Cannibalization & Cascading:\n" +
+                "Collection Altars can also target adjacent Collection Altars. When linked in sequence, the downstream altar cannibalizes the incoming starlight stream, compounding its power before beaming it forward.\n\n" +
+                "Cycle Safety:\n" +
+                "The optical network includes cycle detection algorithms that prevent closed loops or harmonic infinite feedback.",
+                "astral_optical_relays_and_hazards", 2, new ItemStack(ModItems.ASTRAL_LINKING_WAND.get()),
+                720f, 0.0f, a_magic + 0.04f, false
         ));
 
         ALL_NODES.add(new CodexNode(

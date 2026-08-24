@@ -15,6 +15,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -22,6 +23,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -482,7 +484,7 @@ public class SkyLookingGlassScreen extends Screen {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         boolean isObstructed = false;
-        boolean isMirrorReflection = false;
+        float effectiveYaw = this.yaw;
         float effectivePitch = this.pitch;
 
         if (player != null && mc.level != null) {
@@ -503,29 +505,57 @@ public class SkyLookingGlassScreen extends Screen {
                         -Mth.sin(yawRad) * Mth.cos(pitchRad),
                         -Mth.sin(pitchRad),
                         Mth.cos(yawRad) * Mth.cos(pitchRad)
-                );
-                Vec3 endPos = eyePos.add(lookDir.scale(128.0));
-                BlockHitResult hit = mc.level.clip(new ClipContext(eyePos, endPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
-                if (hit.getType() == HitResult.Type.BLOCK) {
-                    BlockPos hitPos = hit.getBlockPos();
-                    if (this.telescopePos == null || (!hitPos.equals(this.telescopePos) && !hitPos.equals(this.telescopePos.below()))) {
-                        if (mc.level.getBlockState(hitPos).getBlock() instanceof ddraig.net.entropica.block.AstralMirrorBlock) {
-                            // Looking into an Astral Mirror! Specular reflection off the horizontal mirror plane (normal (0,1,0))
-                            Vec3 reflStart = hit.getLocation().add(0, 0.05, 0);
-                            Vec3 reflDir = new Vec3(lookDir.x, -lookDir.y, lookDir.z).normalize();
-                            Vec3 reflEnd = reflStart.add(reflDir.scale(192.0));
+                ).normalize();
 
-                            BlockHitResult reflHit = mc.level.clip(new ClipContext(reflStart, reflEnd, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
-                            if (reflHit.getType() == HitResult.Type.MISS || reflHit.getBlockPos().getY() > hitPos.getY() + 120) {
-                                isMirrorReflection = true;
-                                effectivePitch = -this.pitch;
-                            } else {
-                                isObstructed = true;
-                            }
-                        } else {
-                            isObstructed = true;
-                        }
+                Vec3 curPos = eyePos;
+                Vec3 curDir = lookDir;
+
+                for (int bounce = 0; bounce < 16; bounce++) {
+                    Vec3 traceEnd = curPos.add(curDir.scale(256.0));
+                    BlockHitResult hit = mc.level.clip(new ClipContext(curPos, traceEnd, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+
+                    if (hit.getType() == HitResult.Type.MISS) {
+                        // Ray escaped into empty air / sky without obstruction!
+                        break;
                     }
+
+                    BlockPos hitPos = hit.getBlockPos();
+                    if (bounce == 0 && this.telescopePos != null && (hitPos.equals(this.telescopePos) || hitPos.equals(this.telescopePos.below()))) {
+                        curPos = hit.getLocation().add(curDir.scale(0.05));
+                        continue;
+                    }
+
+                    BlockState hitState = mc.level.getBlockState(hitPos);
+                    if (hitState.getBlock() instanceof ddraig.net.entropica.block.AstralMirrorBlock) {
+                        Direction hitFace = hit.getDirection();
+                        Vec3 normal = Vec3.atLowerCornerOf(hitFace.getUnitVec3i());
+                        double dot = curDir.dot(normal);
+                        if (dot < -0.0001) { // Ray enters the front of this mirror face
+                            curDir = curDir.subtract(normal.scale(2.0 * dot)).normalize();
+                            curPos = hit.getLocation().add(normal.scale(0.05)); // Offset cleanly along face normal
+                        } else {
+                            // Grazing angle or seam transition into adjacent mirror block: step through
+                            curPos = hit.getLocation().add(curDir.scale(0.05));
+                        }
+                    } else if (hitState.isAir() || !hitState.isSolid() || !hitState.blocksMotion()) {
+                        // Pass through non-solid blocks
+                        curPos = hit.getLocation().add(curDir.scale(0.05));
+                    } else {
+                        // If ray has bounced off a mirror and travels upwards towards open sky
+                        if (bounce > 0 && curDir.y > 0.05 && mc.level.canSeeSky(hitPos.above())) {
+                            break;
+                        }
+                        // Hit solid opaque obstacle
+                        isObstructed = true;
+                        break;
+                    }
+                }
+
+                if (!isObstructed) {
+                    // Convert exiting ray direction to true apparent effective spherical angles
+                    effectivePitch = (float) Math.toDegrees(Math.asin(Mth.clamp(curDir.y, -1.0, 1.0)));
+                    effectiveYaw = (float) Math.toDegrees(Math.atan2(-curDir.x, curDir.z));
+                    if (effectiveYaw < 0) effectiveYaw += 360.0f;
                 }
             }
         }
@@ -538,7 +568,7 @@ public class SkyLookingGlassScreen extends Screen {
                     float altDeg = complex.baseAlt + puff.dAlt();
 
                     float[] app = celestialToApparentAngles((float) Math.toRadians(azimDeg), (float) Math.toRadians(altDeg), celestialAngle);
-                    float dYaw = Mth.wrapDegrees(app[0] - this.yaw);
+                    float dYaw = Mth.wrapDegrees(app[0] - effectiveYaw);
                     float dPitch = app[1] - effectivePitch;
 
                     if (Math.abs(dYaw) <= currentFOV + 15.0f && Math.abs(dPitch) <= currentFOV + 15.0f) {
@@ -565,7 +595,7 @@ public class SkyLookingGlassScreen extends Screen {
                         float altDeg = se.altitudeDeg() + puff.dAlt();
 
                         float[] app = celestialToApparentAngles((float) Math.toRadians(azimDeg), (float) Math.toRadians(altDeg), celestialAngle);
-                        float dYaw = Mth.wrapDegrees(app[0] - this.yaw);
+                        float dYaw = Mth.wrapDegrees(app[0] - effectiveYaw);
                         float dPitch = app[1] - effectivePitch;
 
                         if (Math.abs(dYaw) <= currentFOV + 15.0f && Math.abs(dPitch) <= currentFOV + 15.0f) {
@@ -591,7 +621,7 @@ public class SkyLookingGlassScreen extends Screen {
                 float starYaw = appAngles[0];
                 float starPitch = appAngles[1];
 
-                float dYaw = Mth.wrapDegrees(starYaw - this.yaw);
+                float dYaw = Mth.wrapDegrees(starYaw - effectiveYaw);
                 float dPitch = starPitch - effectivePitch;
 
                 if (Math.abs(dYaw) <= currentFOV && Math.abs(dPitch) <= currentFOV) {
@@ -651,7 +681,7 @@ public class SkyLookingGlassScreen extends Screen {
                 float starYaw = appAngles[0];
                 float starPitch = appAngles[1];
 
-                float dYaw = Mth.wrapDegrees(starYaw - this.yaw);
+                float dYaw = Mth.wrapDegrees(starYaw - effectiveYaw);
                 float dPitch = starPitch - effectivePitch;
 
                 if (Math.abs(dYaw) <= currentFOV && Math.abs(dPitch) <= currentFOV) {
@@ -718,7 +748,7 @@ public class SkyLookingGlassScreen extends Screen {
                     float starYaw = appAngles[0];
                     float starPitch = appAngles[1];
 
-                    float dYaw = Mth.wrapDegrees(starYaw - this.yaw);
+                    float dYaw = Mth.wrapDegrees(starYaw - effectiveYaw);
                     float dPitch = starPitch - effectivePitch;
 
                     float sx = centerX + (dYaw / (currentFOV * 0.5f)) * (size * 0.43f);
@@ -767,7 +797,7 @@ public class SkyLookingGlassScreen extends Screen {
                     float tailAlt = Mth.clamp(alt - segT * (comet.tailLengthDeg() * 0.25f), 5.0f, 88.0f);
 
                     float[] app = celestialToApparentAngles((float) Math.toRadians(tailAzim), (float) Math.toRadians(tailAlt), celestialAngle);
-                    float dYaw = Mth.wrapDegrees(app[0] - this.yaw);
+                    float dYaw = Mth.wrapDegrees(app[0] - effectiveYaw);
                     float dPitch = app[1] - effectivePitch;
 
                     if (Math.abs(dYaw) <= currentFOV + 12.0f && Math.abs(dPitch) <= currentFOV + 12.0f) {
@@ -794,7 +824,7 @@ public class SkyLookingGlassScreen extends Screen {
 
                 // Render Comet Nucleus / Coma
                 float[] appHead = celestialToApparentAngles((float) Math.toRadians(azim), (float) Math.toRadians(alt), celestialAngle);
-                float dYaw = Mth.wrapDegrees(appHead[0] - this.yaw);
+                float dYaw = Mth.wrapDegrees(appHead[0] - effectiveYaw);
                 float dPitch = appHead[1] - effectivePitch;
 
                 if (Math.abs(dYaw) <= currentFOV && Math.abs(dPitch) <= currentFOV) {
@@ -841,7 +871,7 @@ public class SkyLookingGlassScreen extends Screen {
                     if (azim < 0) azim += 360.0f;
 
                     float[] app = celestialToApparentAngles((float) Math.toRadians(azim), (float) Math.toRadians(alt), celestialAngle);
-                    float dYaw = Mth.wrapDegrees(app[0] - this.yaw);
+                    float dYaw = Mth.wrapDegrees(app[0] - effectiveYaw);
                     float dPitch = app[1] - effectivePitch;
 
                     if (Math.abs(dYaw) <= currentFOV + 12.0f && Math.abs(dPitch) <= currentFOV + 12.0f) {
@@ -874,7 +904,7 @@ public class SkyLookingGlassScreen extends Screen {
                 if (hAzim < 0) hAzim += 360.0f;
 
                 float[] appHead = celestialToApparentAngles((float) Math.toRadians(hAzim), (float) Math.toRadians(hAlt), celestialAngle);
-                float dYaw = Mth.wrapDegrees(appHead[0] - this.yaw);
+                float dYaw = Mth.wrapDegrees(appHead[0] - effectiveYaw);
                 float dPitch = appHead[1] - effectivePitch;
 
                 if (Math.abs(dYaw) <= currentFOV && Math.abs(dPitch) <= currentFOV) {
@@ -903,7 +933,7 @@ public class SkyLookingGlassScreen extends Screen {
 
                 float[] skyPos = CelestialEventHelper.getPlanetSkyPos(planet, gameTime, partialTick);
                 float[] app = celestialToApparentAngles((float) Math.toRadians(skyPos[0]), (float) Math.toRadians(skyPos[1]), celestialAngle);
-                float dYaw = Mth.wrapDegrees(app[0] - this.yaw);
+                float dYaw = Mth.wrapDegrees(app[0] - effectiveYaw);
                 float dPitch = app[1] - effectivePitch;
 
                 if (Math.abs(dYaw) <= currentFOV && Math.abs(dPitch) <= currentFOV) {
@@ -977,7 +1007,7 @@ public class SkyLookingGlassScreen extends Screen {
             List<CelestialEventHelper.ActiveSupernovaState> activeSupernovae = CelestialEventHelper.getActiveSupernovae(gameTime, partialTick);
             for (CelestialEventHelper.ActiveSupernovaState sn : activeSupernovae) {
                 float[] app = celestialToApparentAngles((float) Math.toRadians(sn.event().azim()), (float) Math.toRadians(sn.event().alt()), celestialAngle);
-                float dYaw = Mth.wrapDegrees(app[0] - this.yaw);
+                float dYaw = Mth.wrapDegrees(app[0] - effectiveYaw);
                 float dPitch = app[1] - effectivePitch;
 
                 if (Math.abs(dYaw) <= currentFOV && Math.abs(dPitch) <= currentFOV) {

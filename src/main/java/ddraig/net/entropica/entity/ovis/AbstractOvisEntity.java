@@ -12,6 +12,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -37,10 +38,23 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
     private static final EntityDataAccessor<Boolean> BRACED = SynchedEntityData.defineId(AbstractOvisEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> CHARGING = SynchedEntityData.defineId(AbstractOvisEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> STUNNED = SynchedEntityData.defineId(AbstractOvisEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> GRAZING = SynchedEntityData.defineId(AbstractOvisEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> RESTING = SynchedEntityData.defineId(AbstractOvisEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> ATTACKING = SynchedEntityData.defineId(AbstractOvisEntity.class, EntityDataSerializers.BOOLEAN);
+
+    public final AnimationState idleAnimationState = new AnimationState();
+    public final AnimationState walkAnimationState = new AnimationState();
+    public final AnimationState runAnimationState = new AnimationState();
+    public final AnimationState grazeAnimationState = new AnimationState();
+    public final AnimationState restAnimationState = new AnimationState();
+    public final AnimationState attackAnimationState = new AnimationState();
+    public final AnimationState headbuttAnimationState = new AnimationState();
 
     protected int stunTimer = 0;
     protected int braceTimer = 0;
     protected int shearCooldown = 0;
+    protected int grazeTimer = 0;
+    protected int attackAnimTimer = 0;
 
     protected AbstractOvisEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -71,6 +85,9 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
         builder.define(BRACED, false);
         builder.define(CHARGING, false);
         builder.define(STUNNED, false);
+        builder.define(GRAZING, false);
+        builder.define(RESTING, false);
+        builder.define(ATTACKING, false);
     }
 
     @Override
@@ -80,6 +97,8 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
         this.setBraced(input.read("Braced", Codec.BOOL).orElse(false));
         this.setCharging(input.read("Charging", Codec.BOOL).orElse(false));
         this.setStunned(input.read("Stunned", Codec.BOOL).orElse(false));
+        this.setGrazing(input.read("Grazing", Codec.BOOL).orElse(false));
+        this.setResting(input.read("Resting", Codec.BOOL).orElse(false));
         this.stunTimer = input.read("StunTimer", Codec.INT).orElse(0);
         this.braceTimer = input.read("BraceTimer", Codec.INT).orElse(0);
         this.shearCooldown = input.read("ShearCooldown", Codec.INT).orElse(0);
@@ -92,6 +111,8 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
         output.store("Braced", Codec.BOOL, this.isBraced());
         output.store("Charging", Codec.BOOL, this.isCharging());
         output.store("Stunned", Codec.BOOL, this.isStunned());
+        output.store("Grazing", Codec.BOOL, this.isGrazing());
+        output.store("Resting", Codec.BOOL, this.isResting());
         output.store("StunTimer", Codec.INT, this.stunTimer);
         output.store("BraceTimer", Codec.INT, this.braceTimer);
         output.store("ShearCooldown", Codec.INT, this.shearCooldown);
@@ -129,6 +150,30 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
         this.entityData.set(STUNNED, stunned);
     }
 
+    public boolean isGrazing() {
+        return this.entityData.get(GRAZING);
+    }
+
+    public void setGrazing(boolean grazing) {
+        this.entityData.set(GRAZING, grazing);
+    }
+
+    public boolean isResting() {
+        return this.entityData.get(RESTING);
+    }
+
+    public void setResting(boolean resting) {
+        this.entityData.set(RESTING, resting);
+    }
+
+    public boolean isAttacking() {
+        return this.entityData.get(ATTACKING);
+    }
+
+    public void setAttacking(boolean attacking) {
+        this.entityData.set(ATTACKING, attacking);
+    }
+
     public boolean isClimbing() {
         return (this.entityData.get(DATA_FLAGS_ID) & 1) != 0;
     }
@@ -152,7 +197,9 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
     public void tick() {
         super.tick();
 
-        if (!this.level().isClientSide()) {
+        if (this.level().isClientSide()) {
+            this.updateAnimationStates();
+        } else {
             this.setClimbing(this.horizontalCollision);
 
             if (this.isBraced()) {
@@ -176,18 +223,24 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
                 }
             }
 
-            // Stun on horizontal collision while charging
+            if (this.isAttacking()) {
+                this.attackAnimTimer--;
+                if (this.attackAnimTimer <= 0) {
+                    this.setAttacking(false);
+                }
+            }
+
+            // Stun on solid horizontal collision while charging (Fauna 1 spec)
             if (this.isCharging() && this.horizontalCollision) {
                 this.setStunned(true);
                 this.setCharging(false);
-                this.stunTimer = 40; // 2 seconds
+                this.stunTimer = 40; // 2 seconds (40 ticks)
                 this.getNavigation().stop();
 
-                // Sound & particle blast
                 this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.SHIELD_BLOCK, SoundSource.NEUTRAL, 1.5F, 0.5F);
                 if (this.level() instanceof ServerLevel serverLevel) {
                     serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.ICE.defaultBlockState()), this.getX(), this.getY() + 1.0D, this.getZ(), 20, 0.5, 0.5, 0.5, 0.1);
-                    // Shed 1-2 plates
+                    // Shed 1-2 Aegis plates upon impact
                     int count = 1 + this.random.nextInt(2);
                     for (int i = 0; i < count; i++) {
                         this.spawnAtLocation(serverLevel, new ItemStack(getPlateItem()));
@@ -197,11 +250,64 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
         }
     }
 
+    private void updateAnimationStates() {
+        boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6D;
+        boolean isSprinting = this.isCharging() || this.isSprinting();
+
+        if (this.isCharging()) {
+            this.headbuttAnimationState.startIfStopped(this.tickCount);
+            this.attackAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.runAnimationState.stop();
+            this.idleAnimationState.stop();
+            this.grazeAnimationState.stop();
+            this.restAnimationState.stop();
+        } else if (this.isAttacking()) {
+            this.attackAnimationState.startIfStopped(this.tickCount);
+            this.headbuttAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.runAnimationState.stop();
+            this.idleAnimationState.stop();
+            this.grazeAnimationState.stop();
+            this.restAnimationState.stop();
+        } else if (this.isResting()) {
+            this.restAnimationState.startIfStopped(this.tickCount);
+            this.idleAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.runAnimationState.stop();
+            this.grazeAnimationState.stop();
+        } else if (this.isGrazing()) {
+            this.grazeAnimationState.startIfStopped(this.tickCount);
+            this.idleAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.runAnimationState.stop();
+        } else if (isMoving) {
+            if (isSprinting) {
+                this.runAnimationState.startIfStopped(this.tickCount);
+                this.walkAnimationState.stop();
+            } else {
+                this.walkAnimationState.startIfStopped(this.tickCount);
+                this.runAnimationState.stop();
+            }
+            this.idleAnimationState.stop();
+            this.grazeAnimationState.stop();
+            this.restAnimationState.stop();
+        } else {
+            this.idleAnimationState.startIfStopped(this.tickCount);
+            this.walkAnimationState.stop();
+            this.runAnimationState.stop();
+            this.grazeAnimationState.stop();
+            this.restAnimationState.stop();
+            this.attackAnimationState.stop();
+            this.headbuttAnimationState.stop();
+        }
+    }
+
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (!this.isBraced() && !this.isStunned()) {
             this.setBraced(true);
-            this.braceTimer = 60; // 3 seconds
+            this.braceTimer = 60; // 3 seconds frontal brace
         }
 
         if (this.isBraced() && source.getEntity() != null) {
@@ -209,7 +315,7 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
             Vec3 sourceVec = source.getEntity().position().subtract(this.position()).normalize();
             double dot = viewVec.dot(sourceVec);
             if (dot > 0.707) { // 90 degree frontal arc
-                amount *= 0.2F; // 80% reduction
+                amount *= 0.2F; // 80% damage reduction from front
                 this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ANVIL_PLACE, SoundSource.NEUTRAL, 1.0F, 1.5F);
             }
         }
@@ -223,10 +329,11 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
             if (!this.isSheared()) {
                 if (!this.level().isClientSide()) {
                     this.setSheared(true);
-                    this.shearCooldown = 24000; // 1 day
+                    this.shearCooldown = 24000; // 1 Minecraft day (24000 ticks)
                     held.hurtAndBreak(1, player, getEquipmentSlotForItem(held));
                     
-                    if (this.random.nextFloat() < 0.5f) {
+                    // 50% chance to drop 1 plate
+                    if (this.random.nextFloat() < 0.5F) {
                         this.spawnAtLocation((ServerLevel)this.level(), new ItemStack(getPlateItem()));
                     }
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.SHEEP_SHEAR, SoundSource.PLAYERS, 1.0F, 1.0F);
@@ -243,7 +350,7 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
     protected void dropCustomDeathLoot(ServerLevel serverLevel, DamageSource damageSource, boolean recentlyHit) {
         super.dropCustomDeathLoot(serverLevel, damageSource, recentlyHit);
         this.spawnAtLocation(serverLevel, new ItemStack(Items.MUTTON, 2 + this.random.nextInt(2)));
-        if (!this.isSheared() || this.random.nextFloat() < 0.3F) {
+        if (!this.isSheared() || this.random.nextFloat() < 0.5F) {
             this.spawnAtLocation(serverLevel, new ItemStack(getPlateItem()));
         }
     }

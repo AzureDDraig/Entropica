@@ -24,7 +24,16 @@ public class OvergrowthOvisRenderer extends MobRenderer<OvergrowthOvisEntity, Ri
         state.isSheared = entity.isSheared();
         state.isBraced = entity.isBraced();
         state.isStunned = entity.isStunned();
-        state.variant = 0; // Mossy is single variant
+        state.isCharging = entity.isCharging();
+        state.variant = 0;
+
+        state.idleAnimationState.copyFrom(entity.idleAnimationState);
+        state.walkAnimationState.copyFrom(entity.walkAnimationState);
+        state.runAnimationState.copyFrom(entity.runAnimationState);
+        state.grazeAnimationState.copyFrom(entity.grazeAnimationState);
+        state.restAnimationState.copyFrom(entity.restAnimationState);
+        state.attackAnimationState.copyFrom(entity.attackAnimationState);
+        state.headbuttAnimationState.copyFrom(entity.headbuttAnimationState);
     }
 
     @Override

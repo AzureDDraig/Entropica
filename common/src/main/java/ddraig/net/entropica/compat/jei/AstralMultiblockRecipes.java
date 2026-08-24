@@ -335,6 +335,192 @@ public class AstralMultiblockRecipes {
                 Component.literal("Harmonic Resonance Ritual Crafting Grid with 8 Workstations")
         ));
 
+        // ---------------------------------------------------------------------
+        // 4. 5x5x3 ASTRAL COLLECTION ALTAR (Starlight Collector Plinth)
+        // ---------------------------------------------------------------------
+        List<ItemStack> collectorMats = List.of(
+                new ItemStack(ModBlocks.CHISELED_ASTRAL_MARBLE.get(), 8),
+                new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get(), 8),
+                new ItemStack(ModBlocks.ASTRAL_MIRROR_BLOCK.get(), 9),
+                new ItemStack(ModBlocks.STARLIGHT_PILLAR.get(), 1),
+                new ItemStack(ModBlocks.ASTRAL_COLLECTOR.get(), 1)
+        );
+
+        List<List<String>> collectorLayers = List.of(
+                // Layer 1 (Plinth Foundation & 3x3 Sunken Starlight Pool)
+                List.of(
+                        "HSSSH",
+                        "SPPPS",
+                        "SPPPS",
+                        "SPPPS",
+                        "HSSSH"
+                ),
+                // Layer 2 (Corner Capitals & Center Pedestal Shaft)
+                List.of(
+                        "H...H",
+                        ".....",
+                        "..C..",
+                        ".....",
+                        "H...H"
+                ),
+                // Layer 3 (Collector Crown Node)
+                List.of(
+                        ".....",
+                        ".....",
+                        "..A..",
+                        ".....",
+                        "....."
+                )
+        );
+
+        Map<Character, ItemStack> collectorLegend = new HashMap<>();
+        collectorLegend.put('H', new ItemStack(ModBlocks.CHISELED_ASTRAL_MARBLE.get()));
+        collectorLegend.put('S', new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get()));
+        collectorLegend.put('P', new ItemStack(ModBlocks.ASTRAL_MIRROR_BLOCK.get()));
+        collectorLegend.put('C', new ItemStack(ModBlocks.STARLIGHT_PILLAR.get()));
+        collectorLegend.put('A', new ItemStack(ModBlocks.ASTRAL_COLLECTOR.get()));
+
+        list.add(new AstralMultiblockRecipe(
+                Component.literal("Astral Collection Altar"),
+                "5x5x3",
+                new ItemStack(ModBlocks.ASTRAL_COLLECTOR.get()),
+                collectorMats,
+                collectorLayers,
+                collectorLegend,
+                Component.literal("Gathers Cosmic Starlight & Beams into Altars, Lenses, or Cannibalizes Collectors")
+        ));
+
+        // ---------------------------------------------------------------------
+        // 5. 11x11x7 MASTER ASTRAL ALTAR NETWORK (Grand Infusion Matrix)
+        // ---------------------------------------------------------------------
+        List<ItemStack> masterMats = List.of(
+                new ItemStack(ModBlocks.ASTRAL_MARBLE_BRICKS.get(), 65),
+                new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get(), 36),
+                new ItemStack(ModBlocks.STARLIGHT_PILLAR.get(), 24),
+                new ItemStack(ModBlocks.ATTUNEMENT_PEDESTAL.get(), 12),
+                new ItemStack(ModBlocks.REFRACTIVE_ASTRAL_LENS.get(), 4),
+                new ItemStack(ModBlocks.FOCAL_LENS_MOUNT.get(), 1),
+                new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get(), 1)
+        );
+
+        List<List<String>> masterLayers = List.of(
+                // Layer 1 (11x11 Stepped Foundation Dais)
+                List.of(
+                        "MSSSSSSSSSM",
+                        "SMMMMMMMMMS",
+                        "SMMMMMMMMMS",
+                        "SMMMMMMMMMS",
+                        "SMMMMMMMMMS",
+                        "SMMMMMMMMMS",
+                        "SMMMMMMMMMS",
+                        "SMMMMMMMMMS",
+                        "SMMMMMMMMMS",
+                        "SMMMMMMMMMS",
+                        "MSSSSSSSSSM"
+                ),
+                // Layer 2 (Master Altar Core, 12 Pedestals & 4 Pillar Bases)
+                List.of(
+                        "C....T....C",
+                        "...T...T...",
+                        "..T.....T..",
+                        "...........",
+                        "T....A....T",
+                        "...........",
+                        "..T.....T..",
+                        "...T...T...",
+                        "C....T....C"
+                ),
+                // Layer 3 (Corner Pillar Shafts)
+                List.of(
+                        "C.........C",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "C.........C"
+                ),
+                // Layer 4 (Corner Pillar Shafts)
+                List.of(
+                        "C.........C",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "C.........C"
+                ),
+                // Layer 5 (Corner Pillar Shafts)
+                List.of(
+                        "C.........C",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "C.........C"
+                ),
+                // Layer 6 (Pillar Capitals & Inward Mirror Brackets)
+                List.of(
+                        "C...MMM...C",
+                        "..MM...MM..",
+                        ".M.......M.",
+                        "M.........M",
+                        "M.........M",
+                        "M.........M",
+                        "M.........M",
+                        "M.........M",
+                        ".M.......M.",
+                        "..MM...MM..",
+                        "C...MMM...C"
+                ),
+                // Layer 7 (4 Corner Receiver Lenses & Overhead Focal Apex)
+                List.of(
+                        "R.........R",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        ".....F.....",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "R.........R"
+                )
+        );
+
+        Map<Character, ItemStack> masterLegend = new HashMap<>();
+        masterLegend.put('M', new ItemStack(ModBlocks.ASTRAL_MARBLE_BRICKS.get()));
+        masterLegend.put('S', new ItemStack(ModBlocks.ENGRAVED_ASTRAL_SLATE.get()));
+        masterLegend.put('C', new ItemStack(ModBlocks.STARLIGHT_PILLAR.get()));
+        masterLegend.put('T', new ItemStack(ModBlocks.ATTUNEMENT_PEDESTAL.get()));
+        masterLegend.put('A', new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()));
+        masterLegend.put('R', new ItemStack(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()));
+        masterLegend.put('F', new ItemStack(ModBlocks.FOCAL_LENS_MOUNT.get()));
+
+        list.add(new AstralMultiblockRecipe(
+                Component.literal("Master Astral Altar"),
+                "11x11x7",
+                new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
+                masterMats,
+                masterLayers,
+                masterLegend,
+                Component.literal("Receives Multi-Collector Beams, Overhead Lens Focus & Multi-Spectral Prisms")
+        ));
+
         return list;
     }
 }

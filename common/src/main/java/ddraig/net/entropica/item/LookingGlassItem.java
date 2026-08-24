@@ -17,6 +17,20 @@ public class LookingGlassItem extends Item {
     }
 
     @Override
+    public InteractionResult useOn(net.minecraft.world.item.context.UseOnContext context) {
+        Player player = context.getPlayer();
+        if (player != null) {
+            player.playSound(SoundEvents.SPYGLASS_USE, 1.0F, 1.0F);
+            player.awardStat(Stats.ITEM_USED.get(this));
+            if (context.getLevel().isClientSide()) {
+                SkyLookingGlassScreen.open();
+            }
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
+    }
+
+    @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         player.playSound(SoundEvents.SPYGLASS_USE, 1.0F, 1.0F);
         player.awardStat(Stats.ITEM_USED.get(this));

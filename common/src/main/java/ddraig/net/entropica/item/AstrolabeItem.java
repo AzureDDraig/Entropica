@@ -35,7 +35,9 @@ public class AstrolabeItem extends Item {
             "None",
             "Astral Observatory (9x9x9)",
             "Celestial Beacon (5x5x5)",
-            "Modular Astral Altar (7x7x7)"
+            "Modular Astral Altar (7x7x7)",
+            "Astral Collection Altar (5x5x3)",
+            "Master Astral Altar (11x11x7)"
     };
 
     public AstrolabeItem(Properties properties) {

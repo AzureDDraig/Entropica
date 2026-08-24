@@ -140,9 +140,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
 
     private static class FaceContext {
         final Direction face;
-        final boolean connMinU, connMaxU, connMinV, connMaxV;
         final float minU, maxU, minV, maxV;
-        final float clipMinU, clipMaxU, clipMinV, clipMaxV;
         final double normalX, normalY, normalZ;
         final double planeOriginX, planeOriginY, planeOriginZ;
         final double uDirX, uDirY, uDirZ;
@@ -154,7 +152,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
 
         FaceContext(
                 Direction face,
-                boolean connMinU, boolean connMaxU, boolean connMinV, boolean connMaxV,
+                float minU, float maxU, float minV, float maxV,
                 double normalX, double normalY, double normalZ,
                 double planeOriginX, double planeOriginY, double planeOriginZ,
                 double uDirX, double uDirY, double uDirZ,
@@ -164,18 +162,10 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                 ClientLevel level
         ) {
             this.face = face;
-            this.connMinU = connMinU;
-            this.connMaxU = connMaxU;
-            this.connMinV = connMinV;
-            this.connMaxV = connMaxV;
-            this.minU = connMinU ? 0.0f : 0.125f;
-            this.maxU = connMaxU ? 1.0f : 0.875f;
-            this.minV = connMinV ? 0.0f : 0.125f;
-            this.maxV = connMaxV ? 1.0f : 0.875f;
-            this.clipMinU = connMinU ? -10.0f : 0.125f;
-            this.clipMaxU = connMaxU ? 10.0f : 0.875f;
-            this.clipMinV = connMinV ? -10.0f : 0.125f;
-            this.clipMaxV = connMaxV ? 10.0f : 0.875f;
+            this.minU = minU;
+            this.maxU = maxU;
+            this.minV = minV;
+            this.maxV = maxV;
             this.normalX = normalX;
             this.normalY = normalY;
             this.normalZ = normalZ;
@@ -203,7 +193,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                     Direction secNormal = perpDir.getOpposite();
                     boolean foundPlane = false;
                     for (int perpStep = 1; perpStep <= 24; perpStep++) {
-                        for (int fwdStep = 0; fwdStep <= 24; fwdStep++) {
+                        for (int fwdStep = 1; fwdStep <= 24; fwdStep++) {
                             BlockPos checkPos = pos.relative(perpDir, perpStep).relative(face, fwdStep);
                             BlockState bs = level.getBlockState(checkPos);
                             if (bs.getBlock() instanceof AstralMirrorBlock) {
@@ -240,25 +230,6 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                     }
                 }
             }
-        }
-
-        boolean isOwnerOrPerimeter(double rawU, double rawV, double margin) {
-            if (rawU >= 0.0 && rawU < 1.0 && rawV >= 0.0 && rawV < 1.0) {
-                return true;
-            }
-            if (!connMinU && rawU >= minU - margin && rawU < 0.0 && rawV >= minV - margin && rawV <= maxV + margin) {
-                return true;
-            }
-            if (!connMaxU && rawU >= 1.0 && rawU <= maxU + margin && rawV >= minV - margin && rawV <= maxV + margin) {
-                return true;
-            }
-            if (!connMinV && rawV >= minV - margin && rawV < 0.0 && rawU >= minU - margin && rawU <= maxU + margin) {
-                return true;
-            }
-            if (!connMaxV && rawV >= 1.0 && rawV <= maxV + margin && rawU >= minU - margin && rawU <= maxU + margin) {
-                return true;
-            }
-            return false;
         }
     }
 
@@ -314,11 +285,11 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         if (!state.up) {
             double dist = state.camY - (blockWorldY + 1.0);
             if (dist > 0.02) {
-                boolean connMinU = state.west  || isMirror(level, state.pos.west().above());
-                boolean connMaxU = state.east  || isMirror(level, state.pos.east().above());
-                boolean connMinV = state.north || isMirror(level, state.pos.north().above());
-                boolean connMaxV = state.south || isMirror(level, state.pos.south().above());
-                activeFaces.add(new FaceContext(Direction.UP, connMinU, connMaxU, connMinV, connMaxV, 0, 1, 0, blockWorldX, blockWorldY + 1.0, blockWorldZ, 1, 0, 0, 0, 0, 1, dist, state.pos, level));
+                float minU = (state.west  || isMirror(level, state.pos.west().above()))  ? 0.0f : 0.125f;
+                float maxU = (state.east  || isMirror(level, state.pos.east().above()))  ? 1.0f : 0.875f;
+                float minV = (state.north || isMirror(level, state.pos.north().above())) ? 0.0f : 0.125f;
+                float maxV = (state.south || isMirror(level, state.pos.south().above())) ? 1.0f : 0.875f;
+                activeFaces.add(new FaceContext(Direction.UP, minU, maxU, minV, maxV, 0, 1, 0, blockWorldX, blockWorldY + 1.0, blockWorldZ, 1, 0, 0, 0, 0, 1, dist, state.pos, level));
             }
         }
 
@@ -326,11 +297,11 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         if (!state.down) {
             double dist = blockWorldY - state.camY;
             if (dist > 0.02) {
-                boolean connMinU = state.west  || isMirror(level, state.pos.west().below());
-                boolean connMaxU = state.east  || isMirror(level, state.pos.east().below());
-                boolean connMinV = state.north || isMirror(level, state.pos.north().below());
-                boolean connMaxV = state.south || isMirror(level, state.pos.south().below());
-                activeFaces.add(new FaceContext(Direction.DOWN, connMinU, connMaxU, connMinV, connMaxV, 0, -1, 0, blockWorldX, blockWorldY, blockWorldZ, 1, 0, 0, 0, 0, 1, dist, state.pos, level));
+                float minU = (state.west  || isMirror(level, state.pos.west().below()))  ? 0.0f : 0.125f;
+                float maxU = (state.east  || isMirror(level, state.pos.east().below()))  ? 1.0f : 0.875f;
+                float minV = (state.north || isMirror(level, state.pos.north().below())) ? 0.0f : 0.125f;
+                float maxV = (state.south || isMirror(level, state.pos.south().below())) ? 1.0f : 0.875f;
+                activeFaces.add(new FaceContext(Direction.DOWN, minU, maxU, minV, maxV, 0, -1, 0, blockWorldX, blockWorldY, blockWorldZ, 1, 0, 0, 0, 0, 1, dist, state.pos, level));
             }
         }
 
@@ -338,11 +309,11 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         if (!state.north) {
             double dist = blockWorldZ - state.camZ;
             if (dist > 0.02) {
-                boolean connMinU = state.west || isMirror(level, state.pos.west().north());
-                boolean connMaxU = state.east || isMirror(level, state.pos.east().north());
-                boolean connMinV = state.down || isMirror(level, state.pos.below().north());
-                boolean connMaxV = state.up   || isMirror(level, state.pos.above().north());
-                activeFaces.add(new FaceContext(Direction.NORTH, connMinU, connMaxU, connMinV, connMaxV, 0, 0, -1, blockWorldX, blockWorldY, blockWorldZ, 1, 0, 0, 0, 1, 0, dist, state.pos, level));
+                float minU = (state.west || isMirror(level, state.pos.west().north()))  ? 0.0f : 0.125f;
+                float maxU = (state.east || isMirror(level, state.pos.east().north()))  ? 1.0f : 0.875f;
+                float minV = (state.down || isMirror(level, state.pos.below().north())) ? 0.0f : 0.125f;
+                float maxV = (state.up   || isMirror(level, state.pos.above().north())) ? 1.0f : 0.875f;
+                activeFaces.add(new FaceContext(Direction.NORTH, minU, maxU, minV, maxV, 0, 0, -1, blockWorldX, blockWorldY, blockWorldZ, 1, 0, 0, 0, 1, 0, dist, state.pos, level));
             }
         }
 
@@ -350,11 +321,11 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         if (!state.south) {
             double dist = state.camZ - (blockWorldZ + 1.0);
             if (dist > 0.02) {
-                boolean connMinU = state.west || isMirror(level, state.pos.west().south());
-                boolean connMaxU = state.east || isMirror(level, state.pos.east().south());
-                boolean connMinV = state.down || isMirror(level, state.pos.below().south());
-                boolean connMaxV = state.up   || isMirror(level, state.pos.above().south());
-                activeFaces.add(new FaceContext(Direction.SOUTH, connMinU, connMaxU, connMinV, connMaxV, 0, 0, 1, blockWorldX, blockWorldY, blockWorldZ + 1.0, 1, 0, 0, 0, 1, 0, dist, state.pos, level));
+                float minU = (state.west || isMirror(level, state.pos.west().south()))  ? 0.0f : 0.125f;
+                float maxU = (state.east || isMirror(level, state.pos.east().south()))  ? 1.0f : 0.875f;
+                float minV = (state.down || isMirror(level, state.pos.below().south())) ? 0.0f : 0.125f;
+                float maxV = (state.up   || isMirror(level, state.pos.above().south())) ? 1.0f : 0.875f;
+                activeFaces.add(new FaceContext(Direction.SOUTH, minU, maxU, minV, maxV, 0, 0, 1, blockWorldX, blockWorldY, blockWorldZ + 1.0, 1, 0, 0, 0, 1, 0, dist, state.pos, level));
             }
         }
 
@@ -362,11 +333,11 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         if (!state.west) {
             double dist = blockWorldX - state.camX;
             if (dist > 0.02) {
-                boolean connMinU = state.north || isMirror(level, state.pos.north().west());
-                boolean connMaxU = state.south || isMirror(level, state.pos.south().west());
-                boolean connMinV = state.down  || isMirror(level, state.pos.below().west());
-                boolean connMaxV = state.up    || isMirror(level, state.pos.above().west());
-                activeFaces.add(new FaceContext(Direction.WEST, connMinU, connMaxU, connMinV, connMaxV, -1, 0, 0, blockWorldX, blockWorldY, blockWorldZ, 0, 0, 1, 0, 1, 0, dist, state.pos, level));
+                float minU = (state.north || isMirror(level, state.pos.north().west())) ? 0.0f : 0.125f;
+                float maxU = (state.south || isMirror(level, state.pos.south().west())) ? 1.0f : 0.875f;
+                float minV = (state.down  || isMirror(level, state.pos.below().west())) ? 0.0f : 0.125f;
+                float maxV = (state.up    || isMirror(level, state.pos.above().west())) ? 1.0f : 0.875f;
+                activeFaces.add(new FaceContext(Direction.WEST, minU, maxU, minV, maxV, -1, 0, 0, blockWorldX, blockWorldY, blockWorldZ, 0, 0, 1, 0, 1, 0, dist, state.pos, level));
             }
         }
 
@@ -374,11 +345,11 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         if (!state.east) {
             double dist = state.camX - (blockWorldX + 1.0);
             if (dist > 0.02) {
-                boolean connMinU = state.north || isMirror(level, state.pos.north().east());
-                boolean connMaxU = state.south || isMirror(level, state.pos.south().east());
-                boolean connMinV = state.down  || isMirror(level, state.pos.below().east());
-                boolean connMaxV = state.up    || isMirror(level, state.pos.above().east());
-                activeFaces.add(new FaceContext(Direction.EAST, connMinU, connMaxU, connMinV, connMaxV, 1, 0, 0, blockWorldX + 1.0, blockWorldY, blockWorldZ, 0, 0, 1, 0, 1, 0, dist, state.pos, level));
+                float minU = (state.north || isMirror(level, state.pos.north().east())) ? 0.0f : 0.125f;
+                float maxU = (state.south || isMirror(level, state.pos.south().east())) ? 1.0f : 0.875f;
+                float minV = (state.down  || isMirror(level, state.pos.below().east())) ? 0.0f : 0.125f;
+                float maxV = (state.up    || isMirror(level, state.pos.above().east())) ? 1.0f : 0.875f;
+                activeFaces.add(new FaceContext(Direction.EAST, minU, maxU, minV, maxV, 1, 0, 0, blockWorldX + 1.0, blockWorldY, blockWorldZ, 0, 0, 1, 0, 1, 0, dist, state.pos, level));
             }
         }
 
@@ -429,7 +400,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                         for (FaceContext fc : activeFaces) {
                             projectCelestialVectorMultiBounce(app, fc, state, enableParallaxDepth, 1.20, enableLiquidRefraction, animTime, Math.max(0.6, sz * 2.0),
                                     (u, v, alphaMult, wx, wy, wz, dist, bounce) -> {
-                                        renderClippedQuad(consumer, mat, fc.face, u, v, sz * 2.0f, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, 0.0005f, puff.r(), puff.g(), puff.b(), alpha * alphaMult, light, overlay);
+                                        renderClippedQuad(consumer, mat, fc.face, u, v, sz * 2.0f, fc.minU, fc.maxU, fc.minV, fc.maxV, 0.0005f, puff.r(), puff.g(), puff.b(), alpha * alphaMult, light, overlay);
                                     }
                             );
                         }
@@ -467,7 +438,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                 if (enable3DBillboard) {
                                     render3DBillboardStar(consumer, mat, fc, u, v, sz, 0.0010f, state.camX - wx, state.camY - wy, state.camZ - wz, rgb[0], rgb[1], rgb[2], a * alphaMult, light, overlay);
                                 } else {
-                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, 0.0010f, rgb[0], rgb[1], rgb[2], a * alphaMult, light, overlay);
+                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.minU, fc.maxU, fc.minV, fc.maxV, 0.0010f, rgb[0], rgb[1], rgb[2], a * alphaMult, light, overlay);
                                 }
                             }
                     );
@@ -495,7 +466,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                 if (enable3DBillboard) {
                                     render3DBillboardStar(consumer, mat, fc, u, v, sz, 0.0012f, state.camX - wx, state.camY - wy, state.camZ - wz, rgb[0], rgb[1], rgb[2], a * alphaMult, light, overlay);
                                 } else {
-                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, 0.0012f, rgb[0], rgb[1], rgb[2], a * alphaMult, light, overlay);
+                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.minU, fc.maxU, fc.minV, fc.maxV, 0.0012f, rgb[0], rgb[1], rgb[2], a * alphaMult, light, overlay);
                                 }
                             }
                     );
@@ -532,7 +503,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                     if (enable3DBillboard) {
                                         render3DBillboardStar(consumer, mat, fc, u, v, sz, 0.0014f, state.camX - wx, state.camY - wy, state.camZ - wz, rgb[0], rgb[1], rgb[2], a * alphaMult, light, overlay);
                                     } else {
-                                        renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, 0.0014f, rgb[0], rgb[1], rgb[2], a * alphaMult, light, overlay);
+                                        renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.minU, fc.maxU, fc.minV, fc.maxV, 0.0014f, rgb[0], rgb[1], rgb[2], a * alphaMult, light, overlay);
                                     }
                                 }
                         );
@@ -559,7 +530,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                 if (enable3DBillboard) {
                                     render3DBillboardStar(consumer, mat, fc, u, v, sz, 0.0013f, state.camX - wx, state.camY - wy, state.camZ - wz, sn.event().r(), sn.event().g(), sn.event().b(), a * alphaMult, light, overlay);
                                 } else {
-                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, 0.0013f, sn.event().r(), sn.event().g(), sn.event().b(), a * alphaMult, light, overlay);
+                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.minU, fc.maxU, fc.minV, fc.maxV, 0.0013f, sn.event().r(), sn.event().g(), sn.event().b(), a * alphaMult, light, overlay);
                                 }
                             }
                     );
@@ -599,7 +570,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                 if (enable3DBillboard) {
                                     render3DBillboardStar(consumer, mat, fc, u, v, sz, 0.0013f, state.camX - wx, state.camY - wy, state.camZ - wz, 1.0f, 1.0f, 1.0f, a * alphaMult, light, overlay);
                                 } else {
-                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, 0.0013f, 1.0f, 1.0f, 1.0f, a * alphaMult, light, overlay);
+                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.minU, fc.maxU, fc.minV, fc.maxV, 0.0013f, 1.0f, 1.0f, 1.0f, a * alphaMult, light, overlay);
                                 }
                             }
                     );
@@ -628,7 +599,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                     for (FaceContext fc : activeFaces) {
                         projectCelestialVectorMultiBounce(app, fc, state, enableParallaxDepth, 0.50, enableLiquidRefraction, animTime, Math.max(0.6, sz * 1.5),
                                 (u, v, alphaMult, wx, wy, wz, dist, bounce) -> {
-                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, 0.0008f, sn.event().r(), sn.event().g(), sn.event().b(), a * alphaMult, light, overlay);
+                                    renderClippedQuad(consumer, mat, fc.face, u, v, sz, fc.minU, fc.maxU, fc.minV, fc.maxV, 0.0008f, sn.event().r(), sn.event().g(), sn.event().b(), a * alphaMult, light, overlay);
                                 }
                         );
                     }
@@ -664,7 +635,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                 if (enable3DBillboard) {
                                     render3DBillboardStar(consumer, mat, fc, u, v, comaSz, 0.0015f, state.camX - wx, state.camY - wy, state.camZ - wz, comet.r(), comet.g(), comet.b(), a * alphaMult, light, overlay);
                                 } else {
-                                    renderClippedQuad(consumer, mat, fc.face, u, v, comaSz, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, 0.0015f, comet.r(), comet.g(), comet.b(), a * alphaMult, light, overlay);
+                                    renderClippedQuad(consumer, mat, fc.face, u, v, comaSz, fc.minU, fc.maxU, fc.minV, fc.maxV, 0.0015f, comet.r(), comet.g(), comet.b(), a * alphaMult, light, overlay);
                                 }
                             }
                     );
@@ -684,7 +655,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                 if (enable3DBillboard) {
                                     render3DBillboardStar(consumer, mat, fc, u, v, mSize, 0.0016f, state.camX - wx, state.camY - wy, state.camZ - wz, m.r(), m.g(), m.b(), a * alphaMult, light, overlay);
                                 } else {
-                                    renderClippedQuad(consumer, mat, fc.face, u, v, mSize, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, 0.0016f, m.r(), m.g(), m.b(), a * alphaMult, light, overlay);
+                                    renderClippedQuad(consumer, mat, fc.face, u, v, mSize, fc.minU, fc.maxU, fc.minV, fc.maxV, 0.0016f, m.r(), m.g(), m.b(), a * alphaMult, light, overlay);
                                 }
                             }
                     );
@@ -826,7 +797,9 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                             (u1, v1, a1, wx1, wy1, wz1, d1, b1) -> {
                                                 projectCelestialVectorMultiBounce(app2, fc, state, enableParallaxDepth, 0.25, enableLiquidRefraction, animTime, 200.0,
                                                         (u2, v2, a2, wx2, wy2, wz2, d2, b2) -> {
-                                                            renderLiangBarskyClippedLine(consumer, mat, fc, u1, v1, u2, v2, 0.0013f, 0.012f, r, g, b, lineAlpha * (a1 + a2) * 0.5f, light, overlay);
+                                                            if (b1 == b2) {
+                                                                renderLiangBarskyClippedLine(consumer, mat, fc, u1, v1, u2, v2, 0.0013f, 0.012f, r, g, b, lineAlpha * a1, light, overlay);
+                                                            }
                                                         }
                                                 );
                                             }
@@ -881,11 +854,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
             double rawU = dX * fc.uDirX + dY * fc.uDirY + dZ * fc.uDirZ;
             double rawV = dX * fc.vDirX + dY * fc.vDirY + dZ * fc.vDirZ;
 
-            boolean accept = (boundMargin > 10.0)
-                    ? (rawU >= -50.0 && rawU <= 50.0 && rawV >= -50.0 && rawV <= 50.0)
-                    : fc.isOwnerOrPerimeter(rawU, rawV, boundMargin);
-
-            if (accept) {
+            if (rawU >= fc.minU - boundMargin && rawU <= fc.maxU + boundMargin && rawV >= fc.minV - boundMargin && rawV <= fc.maxV + boundMargin) {
                 float waveU = 0.0f, waveV = 0.0f;
                 if (enableLiquidRefraction) {
                     float wx = computeFluidWaveX(surfWorldX, surfWorldZ, animTime);
@@ -902,68 +871,62 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
             for (SecondaryPlane p2 : fc.secondaryPlanes) {
                 Vector3f n2 = getFaceNormal(p2.normal);
                 float dot2 = app.x * n2.x + app.y * n2.y + app.z * n2.z;
-                if (dot2 > 0.005f) {
-                    float d1x = app.x - 2.0f * dot2 * n2.x;
-                    float d1y = app.y - 2.0f * dot2 * n2.y;
-                    float d1z = app.z - 2.0f * dot2 * n2.z;
+                if (dot1 > 0.005f && dot2 > 0.005f) {
+                    // Virtual ray from camera towards F1 reflecting off F1 and P2
+                    float v2x = app.x - 2.0f * dot1 * (float) fc.normalX - 2.0f * dot2 * n2.x;
+                    float v2y = app.y - 2.0f * dot1 * (float) fc.normalY - 2.0f * dot2 * n2.y;
+                    float v2z = app.z - 2.0f * dot1 * (float) fc.normalZ - 2.0f * dot2 * n2.z;
 
-                    float dotRef1 = d1x * (float) fc.normalX + d1y * (float) fc.normalY + d1z * (float) fc.normalZ;
-                    if (dotRef1 > 0.005f) {
-                        float rx = d1x - 2.0f * dotRef1 * (float) fc.normalX;
-                        float ry = d1y - 2.0f * dotRef1 * (float) fc.normalY;
-                        float rz = d1z - 2.0f * dotRef1 * (float) fc.normalZ;
+                    double t1 = fc.camDist / dot1;
+                    double s1WorldX = state.camX + v2x * t1;
+                    double s1WorldY = state.camY + v2y * t1;
+                    double s1WorldZ = state.camZ + v2z * t1;
 
-                        double t1 = fc.camDist / dotRef1;
-                        double s1WorldX = state.camX + rx * t1;
-                        double s1WorldY = state.camY + ry * t1;
-                        double s1WorldZ = state.camZ + rz * t1;
+                    double dX1 = s1WorldX - fc.planeOriginX;
+                    double dY1 = s1WorldY - fc.planeOriginY;
+                    double dZ1 = s1WorldZ - fc.planeOriginZ;
 
-                        double dX1 = s1WorldX - fc.planeOriginX;
-                        double dY1 = s1WorldY - fc.planeOriginY;
-                        double dZ1 = s1WorldZ - fc.planeOriginZ;
+                    double rawU = dX1 * fc.uDirX + dY1 * fc.uDirY + dZ1 * fc.uDirZ;
+                    double rawV = dX1 * fc.vDirX + dY1 * fc.vDirY + dZ1 * fc.vDirZ;
 
-                        double rawU = dX1 * fc.uDirX + dY1 * fc.uDirY + dZ1 * fc.uDirZ;
-                        double rawV = dX1 * fc.vDirX + dY1 * fc.vDirY + dZ1 * fc.vDirZ;
+                    if (rawU >= fc.minU - boundMargin && rawU <= fc.maxU + boundMargin && rawV >= fc.minV - boundMargin && rawV <= fc.maxV + boundMargin) {
+                        float d1x = app.x - 2.0f * dot2 * n2.x;
+                        float d1y = app.y - 2.0f * dot2 * n2.y;
+                        float d1z = app.z - 2.0f * dot2 * n2.z;
 
-                        boolean accept = (boundMargin > 10.0)
-                                ? (rawU >= -50.0 && rawU <= 50.0 && rawV >= -50.0 && rawV <= 50.0)
-                                : fc.isOwnerOrPerimeter(rawU, rawV, boundMargin);
+                        double distToP2 = switch (p2.normal) {
+                            case UP    -> s1WorldY - p2.planeCoord;
+                            case DOWN  -> p2.planeCoord - s1WorldY;
+                            case NORTH -> p2.planeCoord - s1WorldZ;
+                            case SOUTH -> s1WorldZ - p2.planeCoord;
+                            case WEST  -> p2.planeCoord - s1WorldX;
+                            case EAST  -> s1WorldX - p2.planeCoord;
+                        };
 
-                        if (accept) {
-                            double distToP2 = switch (p2.normal) {
-                                case UP    -> s1WorldY - p2.planeCoord;
-                                case DOWN  -> p2.planeCoord - s1WorldY;
-                                case NORTH -> p2.planeCoord - s1WorldZ;
-                                case SOUTH -> s1WorldZ - p2.planeCoord;
-                                case WEST  -> p2.planeCoord - s1WorldX;
-                                case EAST  -> s1WorldX - p2.planeCoord;
+                        if (distToP2 > 0.01) {
+                            double t2 = distToP2 / dot2;
+                            double s2WorldX = s1WorldX + d1x * t2;
+                            double s2WorldY = s1WorldY + d1y * t2;
+                            double s2WorldZ = s1WorldZ + d1z * t2;
+
+                            BlockPos p2BlockPos = switch (p2.normal) {
+                                case UP    -> BlockPos.containing(s2WorldX, p2.planeCoord - 0.5, s2WorldZ);
+                                case DOWN  -> BlockPos.containing(s2WorldX, p2.planeCoord + 0.5, s2WorldZ);
+                                case NORTH -> BlockPos.containing(s2WorldX, s2WorldY, p2.planeCoord + 0.5);
+                                case SOUTH -> BlockPos.containing(s2WorldX, s2WorldY, p2.planeCoord - 0.5);
+                                case WEST  -> BlockPos.containing(p2.planeCoord + 0.5, s2WorldY, s2WorldZ);
+                                case EAST  -> BlockPos.containing(p2.planeCoord - 0.5, s2WorldY, s2WorldZ);
                             };
 
-                            if (distToP2 > 0.01) {
-                                double t2 = distToP2 / dot2;
-                                double s2WorldX = s1WorldX + d1x * t2;
-                                double s2WorldY = s1WorldY + d1y * t2;
-                                double s2WorldZ = s1WorldZ + d1z * t2;
-
-                                BlockPos p2BlockPos = switch (p2.normal) {
-                                    case UP    -> BlockPos.containing(s2WorldX, p2.planeCoord - 0.5, s2WorldZ);
-                                    case DOWN  -> BlockPos.containing(s2WorldX, p2.planeCoord + 0.5, s2WorldZ);
-                                    case NORTH -> BlockPos.containing(s2WorldX, s2WorldY, p2.planeCoord + 0.5);
-                                    case SOUTH -> BlockPos.containing(s2WorldX, s2WorldY, p2.planeCoord - 0.5);
-                                    case WEST  -> BlockPos.containing(p2.planeCoord + 0.5, s2WorldY, s2WorldZ);
-                                    case EAST  -> BlockPos.containing(p2.planeCoord - 0.5, s2WorldY, s2WorldZ);
-                                };
-
-                                if (fc.level == null || fc.level.getBlockState(p2BlockPos).getBlock() instanceof AstralMirrorBlock) {
-                                    float waveU = 0.0f, waveV = 0.0f;
-                                    if (enableLiquidRefraction) {
-                                        float wx = computeFluidWaveX(s1WorldX, s1WorldZ, animTime);
-                                        float wz = computeFluidWaveZ(s1WorldX, s1WorldZ, animTime);
-                                        waveU = (float) (wx * fc.uDirX + wz * fc.uDirZ);
-                                        waveV = (float) (wx * fc.vDirX + wz * fc.vDirZ);
-                                    }
-                                    consumer.accept((float) (rawU + waveU), (float) (rawV + waveV), 0.88f, s1WorldX, s1WorldY, s1WorldZ, fc.camDist + t2, 2);
+                            if (fc.level == null || fc.level.getBlockState(p2BlockPos).getBlock() instanceof AstralMirrorBlock) {
+                                float waveU = 0.0f, waveV = 0.0f;
+                                if (enableLiquidRefraction) {
+                                    float wx = computeFluidWaveX(s1WorldX, s1WorldZ, animTime);
+                                    float wz = computeFluidWaveZ(s1WorldX, s1WorldZ, animTime);
+                                    waveU = (float) (wx * fc.uDirX + wz * fc.uDirZ);
+                                    waveV = (float) (wx * fc.vDirX + wz * fc.vDirZ);
                                 }
+                                consumer.accept((float) (rawU + waveU), (float) (rawV + waveV), 0.88f, s1WorldX, s1WorldY, s1WorldZ, fc.camDist + t2, 2);
                             }
                         }
                     }
@@ -976,92 +939,83 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
             for (CornerPair cp : fc.cornerPlanes) {
                 Vector3f n2 = getFaceNormal(cp.p2.normal);
                 Vector3f n3 = getFaceNormal(cp.p3.normal);
+                float dot2 = app.x * n2.x + app.y * n2.y + app.z * n2.z;
                 float dot3 = app.x * n3.x + app.y * n3.y + app.z * n3.z;
 
-                if (dot3 > 0.005f) {
-                    float d2x = app.x - 2.0f * dot3 * n3.x;
-                    float d2y = app.y - 2.0f * dot3 * n3.y;
-                    float d2z = app.z - 2.0f * dot3 * n3.z;
+                if (dot1 > 0.005f && dot2 > 0.005f && dot3 > 0.005f) {
+                    float v3x = -app.x;
+                    float v3y = -app.y;
+                    float v3z = -app.z;
 
-                    float dotRef2 = d2x * n2.x + d2y * n2.y + d2z * n2.z;
-                    if (dotRef2 > 0.005f) {
-                        float d1x = d2x - 2.0f * dotRef2 * n2.x;
-                        float d1y = d2y - 2.0f * dotRef2 * n2.y;
-                        float d1z = d2z - 2.0f * dotRef2 * n2.z;
+                    double t1 = fc.camDist / dot1;
+                    double s1WorldX = state.camX + v3x * t1;
+                    double s1WorldY = state.camY + v3y * t1;
+                    double s1WorldZ = state.camZ + v3z * t1;
 
-                        float dotRef1 = d1x * (float) fc.normalX + d1y * (float) fc.normalY + d1z * (float) fc.normalZ;
-                        if (dotRef1 > 0.005f) {
-                            float rx = d1x - 2.0f * dotRef1 * (float) fc.normalX;
-                            float ry = d1y - 2.0f * dotRef1 * (float) fc.normalY;
-                            float rz = d1z - 2.0f * dotRef1 * (float) fc.normalZ;
+                    double dX1 = s1WorldX - fc.planeOriginX;
+                    double dY1 = s1WorldY - fc.planeOriginY;
+                    double dZ1 = s1WorldZ - fc.planeOriginZ;
 
-                            double t1 = fc.camDist / dotRef1;
-                            double s1WorldX = state.camX + rx * t1;
-                            double s1WorldY = state.camY + ry * t1;
-                            double s1WorldZ = state.camZ + rz * t1;
+                    double rawU = dX1 * fc.uDirX + dY1 * fc.uDirY + dZ1 * fc.uDirZ;
+                    double rawV = dX1 * fc.vDirX + dY1 * fc.vDirY + dZ1 * fc.vDirZ;
 
-                            double dX1 = s1WorldX - fc.planeOriginX;
-                            double dY1 = s1WorldY - fc.planeOriginY;
-                            double dZ1 = s1WorldZ - fc.planeOriginZ;
+                    if (rawU >= fc.minU - boundMargin && rawU <= fc.maxU + boundMargin && rawV >= fc.minV - boundMargin && rawV <= fc.maxV + boundMargin) {
+                        float d1x = app.x - 2.0f * dot2 * n2.x - 2.0f * dot3 * n3.x;
+                        float d1y = app.y - 2.0f * dot2 * n2.y - 2.0f * dot3 * n3.y;
+                        float d1z = app.z - 2.0f * dot2 * n2.z - 2.0f * dot3 * n3.z;
 
-                            double rawU = dX1 * fc.uDirX + dY1 * fc.uDirY + dZ1 * fc.uDirZ;
-                            double rawV = dX1 * fc.vDirX + dY1 * fc.vDirY + dZ1 * fc.vDirZ;
+                        double distToP2 = switch (cp.p2.normal) {
+                            case UP    -> s1WorldY - cp.p2.planeCoord;
+                            case DOWN  -> cp.p2.planeCoord - s1WorldY;
+                            case NORTH -> cp.p2.planeCoord - s1WorldZ;
+                            case SOUTH -> s1WorldZ - cp.p2.planeCoord;
+                            case WEST  -> cp.p2.planeCoord - s1WorldX;
+                            case EAST  -> s1WorldX - cp.p2.planeCoord;
+                        };
 
-                            boolean accept = (boundMargin > 10.0)
-                                    ? (rawU >= -50.0 && rawU <= 50.0 && rawV >= -50.0 && rawV <= 50.0)
-                                    : fc.isOwnerOrPerimeter(rawU, rawV, boundMargin);
+                        if (distToP2 > 0.01) {
+                            double t2 = distToP2 / dot2;
+                            double s2WorldX = s1WorldX + d1x * t2;
+                            double s2WorldY = s1WorldY + d1y * t2;
+                            double s2WorldZ = s1WorldZ + d1z * t2;
 
-                            if (accept) {
-                                double distToP2 = switch (cp.p2.normal) {
-                                    case UP    -> s1WorldY - cp.p2.planeCoord;
-                                    case DOWN  -> cp.p2.planeCoord - s1WorldY;
-                                    case NORTH -> cp.p2.planeCoord - s1WorldZ;
-                                    case SOUTH -> s1WorldZ - cp.p2.planeCoord;
-                                    case WEST  -> cp.p2.planeCoord - s1WorldX;
-                                    case EAST  -> s1WorldX - cp.p2.planeCoord;
+                            float d2x = app.x - 2.0f * dot3 * n3.x;
+                            float d2y = app.y - 2.0f * dot3 * n3.y;
+                            float d2z = app.z - 2.0f * dot3 * n3.z;
+
+                            double distToP3 = switch (cp.p3.normal) {
+                                case UP    -> s2WorldY - cp.p3.planeCoord;
+                                case DOWN  -> cp.p3.planeCoord - s2WorldY;
+                                case NORTH -> cp.p3.planeCoord - s2WorldZ;
+                                case SOUTH -> s2WorldZ - cp.p3.planeCoord;
+                                case WEST  -> cp.p3.planeCoord - s2WorldX;
+                                case EAST  -> s2WorldX - cp.p3.planeCoord;
+                            };
+
+                            if (distToP3 > 0.01) {
+                                double t3 = distToP3 / dot3;
+                                double s3WorldX = s2WorldX + d2x * t3;
+                                double s3WorldY = s2WorldY + d2y * t3;
+                                double s3WorldZ = s2WorldZ + d2z * t3;
+
+                                BlockPos p3BlockPos = switch (cp.p3.normal) {
+                                    case UP    -> BlockPos.containing(s3WorldX, cp.p3.planeCoord - 0.5, s3WorldZ);
+                                    case DOWN  -> BlockPos.containing(s3WorldX, cp.p3.planeCoord + 0.5, s3WorldZ);
+                                    case NORTH -> BlockPos.containing(s3WorldX, s3WorldY, cp.p3.planeCoord + 0.5);
+                                    case SOUTH -> BlockPos.containing(s3WorldX, s3WorldY, cp.p3.planeCoord - 0.5);
+                                    case WEST  -> BlockPos.containing(cp.p3.planeCoord + 0.5, s3WorldY, s3WorldZ);
+                                    case EAST  -> BlockPos.containing(cp.p3.planeCoord - 0.5, s3WorldY, s3WorldZ);
                                 };
 
-                                if (distToP2 > 0.01) {
-                                    double t2 = distToP2 / dotRef2;
-                                    double s2WorldX = s1WorldX + d1x * t2;
-                                    double s2WorldY = s1WorldY + d1y * t2;
-                                    double s2WorldZ = s1WorldZ + d1z * t2;
-
-                                    double distToP3 = switch (cp.p3.normal) {
-                                        case UP    -> s2WorldY - cp.p3.planeCoord;
-                                        case DOWN  -> cp.p3.planeCoord - s2WorldY;
-                                        case NORTH -> cp.p3.planeCoord - s2WorldZ;
-                                        case SOUTH -> s2WorldZ - cp.p3.planeCoord;
-                                        case WEST  -> cp.p3.planeCoord - s2WorldX;
-                                        case EAST  -> s2WorldX - cp.p3.planeCoord;
-                                    };
-
-                                    if (distToP3 > 0.01) {
-                                        double t3 = distToP3 / dot3;
-                                        double s3WorldX = s2WorldX + d2x * t3;
-                                        double s3WorldY = s2WorldY + d2y * t3;
-                                        double s3WorldZ = s2WorldZ + d2z * t3;
-
-                                        BlockPos p3BlockPos = switch (cp.p3.normal) {
-                                            case UP    -> BlockPos.containing(s3WorldX, cp.p3.planeCoord - 0.5, s3WorldZ);
-                                            case DOWN  -> BlockPos.containing(s3WorldX, cp.p3.planeCoord + 0.5, s3WorldZ);
-                                            case NORTH -> BlockPos.containing(s3WorldX, s3WorldY, cp.p3.planeCoord + 0.5);
-                                            case SOUTH -> BlockPos.containing(s3WorldX, s3WorldY, cp.p3.planeCoord - 0.5);
-                                            case WEST  -> BlockPos.containing(cp.p3.planeCoord + 0.5, s3WorldY, s3WorldZ);
-                                            case EAST  -> BlockPos.containing(cp.p3.planeCoord - 0.5, s3WorldY, s3WorldZ);
-                                        };
-
-                                        if (fc.level == null || fc.level.getBlockState(p3BlockPos).getBlock() instanceof AstralMirrorBlock) {
-                                            float waveU = 0.0f, waveV = 0.0f;
-                                            if (enableLiquidRefraction) {
-                                                float wx = computeFluidWaveX(s1WorldX, s1WorldZ, animTime);
-                                                float wz = computeFluidWaveZ(s1WorldX, s1WorldZ, animTime);
-                                                waveU = (float) (wx * fc.uDirX + wz * fc.uDirZ);
-                                                waveV = (float) (wx * fc.vDirX + wz * fc.vDirZ);
-                                            }
-                                            consumer.accept((float) (rawU + waveU), (float) (rawV + waveV), 0.77f, s1WorldX, s1WorldY, s1WorldZ, fc.camDist + t2 + t3, 3);
-                                        }
+                                if (fc.level == null || fc.level.getBlockState(p3BlockPos).getBlock() instanceof AstralMirrorBlock) {
+                                    float waveU = 0.0f, waveV = 0.0f;
+                                    if (enableLiquidRefraction) {
+                                        float wx = computeFluidWaveX(s1WorldX, s1WorldZ, animTime);
+                                        float wz = computeFluidWaveZ(s1WorldX, s1WorldZ, animTime);
+                                        waveU = (float) (wx * fc.uDirX + wz * fc.uDirZ);
+                                        waveV = (float) (wx * fc.vDirX + wz * fc.vDirZ);
                                     }
+                                    consumer.accept((float) (rawU + waveU), (float) (rawV + waveV), 0.77f, s1WorldX, s1WorldY, s1WorldZ, fc.camDist + t2 + t3, 3);
                                 }
                             }
                         }
@@ -1195,7 +1149,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
             Matrix4f mat,
             Direction face,
             float pu, float pv, float sz,
-            float clipMinU, float clipMaxU, float clipMinV, float clipMaxV,
+            float minU, float maxU, float minV, float maxV,
             float offset,
             float r, float g, float b, float a,
             int light, int overlay
@@ -1207,21 +1161,21 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         float v0 = pv - h;
         float v1 = pv + h;
 
-        if (u1 <= clipMinU || u0 >= clipMaxU || v1 <= clipMinV || v0 >= clipMaxV) return;
+        if (u1 <= minU || u0 >= maxU || v1 <= minV || v0 >= maxV) return;
 
         float spanU = u1 - u0;
         float spanV = v1 - v0;
         if (spanU < 1e-4f || spanV < 1e-4f) return;
 
-        float uv_u0 = (u0 < clipMinU) ? (clipMinU - u0) / spanU : 0.0f;
-        float uv_u1 = (u1 > clipMaxU) ? 1.0f - (u1 - clipMaxU) / spanU : 1.0f;
-        float uv_v0 = (v0 < clipMinV) ? (clipMinV - v0) / spanV : 0.0f;
-        float uv_v1 = (v1 > clipMaxV) ? 1.0f - (v1 - clipMaxV) / spanV : 1.0f;
+        float uv_u0 = (u0 < minU) ? (minU - u0) / spanU : 0.0f;
+        float uv_u1 = (u1 > maxU) ? 1.0f - (u1 - maxU) / spanU : 1.0f;
+        float uv_v0 = (v0 < minV) ? (minV - v0) / spanV : 0.0f;
+        float uv_v1 = (v1 > maxV) ? 1.0f - (v1 - maxV) / spanV : 1.0f;
 
-        float cu0 = Math.max(clipMinU, u0);
-        float cu1 = Math.min(clipMaxU, u1);
-        float cv0 = Math.max(clipMinV, v0);
-        float cv1 = Math.min(clipMaxV, v1);
+        float cu0 = Math.max(minU, u0);
+        float cu1 = Math.min(maxU, u1);
+        float cv0 = Math.max(minV, v0);
+        float cv1 = Math.min(maxV, v1);
 
         addFaceQuad(consumer, mat, face, cu0, cv0, cu1, cv1, uv_u0, uv_v0, uv_u1, uv_v1, offset, r, g, b, a, light, overlay);
     }
@@ -1274,9 +1228,9 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         float bMinV = Math.min(Math.min(v0, v1), Math.min(v2, v3));
         float bMaxV = Math.max(Math.max(v0, v1), Math.max(v2, v3));
 
-        if (bMaxU <= fc.clipMinU || bMinU >= fc.clipMaxU || bMaxV <= fc.clipMinV || bMinV >= fc.clipMaxV) return;
+        if (bMaxU <= fc.minU || bMinU >= fc.maxU || bMaxV <= fc.minV || bMinV >= fc.maxV) return;
 
-        if (bMinU >= fc.clipMinU && bMaxU <= fc.clipMaxU && bMinV >= fc.clipMinV && bMaxV <= fc.clipMaxV) {
+        if (bMinU >= fc.minU && bMaxU <= fc.maxU && bMinV >= fc.minV && bMaxV <= fc.maxV) {
             Vector3f norm = getFaceNormal(fc.face);
             Vector3f p0 = getFaceModelPos(fc.face, u0, v0, offset);
             Vector3f p1 = getFaceModelPos(fc.face, u1, v1, offset);
@@ -1298,7 +1252,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                 }
             }
         } else {
-            renderClippedQuad(consumer, mat, fc.face, pu, pv, sz, fc.clipMinU, fc.clipMaxU, fc.clipMinV, fc.clipMaxV, offset, r, g, b, a, light, overlay);
+            renderClippedQuad(consumer, mat, fc.face, pu, pv, sz, fc.minU, fc.maxU, fc.minV, fc.maxV, offset, r, g, b, a, light, overlay);
         }
     }
 
@@ -1346,15 +1300,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
         float cdu = cu2 - cu1;
         float cdv = cv2 - cv1;
         float clen = (float) Math.sqrt(cdu * cdu + cdv * cdv);
-        if (clen < 0.0005f) return;
-
-        // Slight micro-extension along line direction to ensure perfectly seamless joins across block borders
-        float extU = (cdu / clen) * 0.002f;
-        float extV = (cdv / clen) * 0.002f;
-        cu1 -= extU;
-        cv1 -= extV;
-        cu2 += extU;
-        cv2 += extV;
+        if (clen < 0.001f) return;
 
         float nu = -cdv / clen * (width * 0.5f);
         float nv = cdu / clen * (width * 0.5f);
