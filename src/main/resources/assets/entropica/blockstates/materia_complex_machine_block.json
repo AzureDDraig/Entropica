@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "entropica:block/materia_complex_machine_block"
+    }
+  }
+}

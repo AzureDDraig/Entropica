@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "CC",
+    "CC"
+  ],
+  "key": {
+    "C": "entropica:arcane_clay"
+  },
+  "result": {
+    "id": "entropica:arcane_clay_block",
+    "count": 1
+  }
+}

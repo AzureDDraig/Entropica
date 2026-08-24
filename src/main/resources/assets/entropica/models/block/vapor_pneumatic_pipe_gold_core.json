@@ -1,0 +1,7 @@
+{
+  "parent": "entropica:block/vapor_pneumatic_pipe_core",
+  "textures": {
+    "particle": "entropica:block/pipe_gold",
+    "pipe": "entropica:block/pipe_gold"
+  }
+}

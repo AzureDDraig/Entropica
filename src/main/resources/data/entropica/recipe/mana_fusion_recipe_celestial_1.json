@@ -1,0 +1,15 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "radiant":  18,
+                   "vitae":  12,
+                   "nature":  21,
+                   "air":  11,
+                   "chimera":  11
+               },
+    "success":  "celestial",
+    "failure":  "regular",
+    "chance":  0.15,
+    "yield":  14,
+    "requires_catalyst":  false
+}

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": "entropica:arcane_clay",
+  "result": {
+    "id": "entropica:arcane_brick_piece"
+  },
+  "experience": 0.3,
+  "cookingtime": 200
+}

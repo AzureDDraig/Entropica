@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "void":  21,
+                   "undead":  8
+               },
+    "success":  "wraith",
+    "failure":  "regular",
+    "chance":  0.9,
+    "yield":  8,
+    "requires_catalyst":  false
+}

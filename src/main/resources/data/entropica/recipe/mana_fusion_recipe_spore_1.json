@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "nature":  19,
+                   "air":  10
+               },
+    "success":  "spore",
+    "failure":  "regular",
+    "chance":  0.9,
+    "yield":  8,
+    "requires_catalyst":  false
+}

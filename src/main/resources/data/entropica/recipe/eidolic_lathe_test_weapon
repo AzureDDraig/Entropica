@@ -1,0 +1,25 @@
+{
+  "type": "entropica:eidolic_lathe",
+  "ethereal_shape": {
+    "item": "minecraft:paper"
+  },
+  "core": {
+    "item": "minecraft:nether_star"
+  },
+  "modifiers": [
+    { "item": "minecraft:diamond" },
+    { "item": "minecraft:diamond" },
+    { "item": "minecraft:diamond" },
+    { "item": "minecraft:diamond" },
+    { "item": "entropica:entropic_ore" },
+    { "item": "entropica:entropic_ore" },
+    { "item": "minecraft:blaze_powder" },
+    { "item": "minecraft:blaze_powder" },
+    { "item": "minecraft:blaze_powder" },
+    { "item": "minecraft:echo_shard" }
+  ],
+  "result": {
+    "id": "entropica:test_eidolic_weapon",
+    "count": 1
+  }
+}

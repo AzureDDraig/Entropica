@@ -40,7 +40,5 @@ Docu/
 __pycache__/
 
 # Legacy and external showcase tools
-src/
 texture_pack_showcase/
-.architectury-transformer/
-image_*.png
+.architectury-transformer/

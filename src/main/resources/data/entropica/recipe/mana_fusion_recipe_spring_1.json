@@ -1,0 +1,13 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "vitae":  22,
+                   "nature":  20,
+                   "water":  12
+               },
+    "success":  "spring",
+    "failure":  "regular",
+    "chance":  0.4,
+    "yield":  12,
+    "requires_catalyst":  false
+}

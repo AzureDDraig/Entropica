@@ -1,0 +1,12 @@
+﻿{
+    "type":  "entropica:fusion",
+    "inputs":  {
+                   "nature":  8,
+                   "radiant":  21
+               },
+    "success":  "vitae",
+    "failure":  "regular",
+    "chance":  0.6,
+    "yield":  8,
+    "requires_catalyst":  false
+}

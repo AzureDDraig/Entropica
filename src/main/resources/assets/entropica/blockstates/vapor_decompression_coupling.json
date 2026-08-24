@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "entropica:block/vapor_decompression_coupling" }
+  }
+}

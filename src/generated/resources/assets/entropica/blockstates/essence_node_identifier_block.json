@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "entropica:block/essence_node_identifier_block"
+    }
+  }
+}

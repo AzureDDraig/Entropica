@@ -1,0 +1,12 @@
+{
+  "type": "entropica:diluted_essence",
+  "inputs": [
+    "#c:ingots/zinc"
+  ],
+  "output": {
+    "id": "entropica:arcane_plate",
+    "count": 1
+  },
+  "processingTime": 75,
+  "chargeCost": 1
+}

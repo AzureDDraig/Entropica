@@ -1,0 +1,30 @@
+{
+  "veil_fox_blink": {
+    "category": "neutral",
+    "subtitle": "Veil Fox blinks",
+    "sounds": [
+      "entropica:entity/veil_fox/blink"
+    ]
+  },
+  "veil_fox_ambient": {
+    "category": "neutral",
+    "subtitle": "Veil Fox chirps",
+    "sounds": [
+      "entropica:entity/veil_fox/ambient"
+    ]
+  },
+  "veil_fox_hurt": {
+    "category": "neutral",
+    "subtitle": "Veil Fox hurts",
+    "sounds": [
+      "entropica:entity/veil_fox/hurt"
+    ]
+  },
+  "veil_fox_death": {
+    "category": "neutral",
+    "subtitle": "Veil Fox dies",
+    "sounds": [
+      "entropica:entity/veil_fox/death"
+    ]
+  }
+}

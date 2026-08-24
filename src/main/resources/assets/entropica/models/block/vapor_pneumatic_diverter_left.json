@@ -1,0 +1,6 @@
+{
+  "parent": "entropica:block/vapor_pneumatic_diverter_base",
+  "textures": {
+    "top": "entropica:block/diverter_top_left"
+  }
+}
