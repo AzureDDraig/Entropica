@@ -25,6 +25,10 @@
   - Authored comprehensive Obsidian OKF entries: `wiki/entities/blocks/astral_collection_altar.md`, `wiki/entities/blocks/master_astral_altar.md`, and `wiki/articles/astral_multiblock_interconnections.md`.
 
 ### GitHub Actions CI & GitHub Pages Static Documentation Fix
+- **Automated GitHub Release Publishing on Push**:
+  - Configured `.github/workflows/build.yml` to automatically compile Fabric and NeoForge production JARs on every push to `master`/`main`.
+  - Integrated `softprops/action-gh-release@v2` to publish versioned releases tagged `v<version>-build.<run_number>` with automatically extracted changelog release notes and downloadable mod JARs (`Entropica-fabric-*.jar`, `Entropica-neoforge-*.jar`).
+  - Added `actions/upload-artifact@v4` step to retain all compiled build jars in GitHub Actions workflow run summaries.
 - **Fixed `actions/jekyll-build-pages` `ENOENT: /github/workspace/docs` Failure**:
   - Removed `docs/` and `.github/workflows/` from `.gitignore` to allow GitHub to track the documentation portal and CI workflow configurations.
   - Added `.nojekyll` to `docs/` and repository root to bypass default Jekyll and Sass processing for the static HTML/CSS/JS wiki site.
