@@ -1,91 +1,26 @@
 ## Build 000-1-26-236
 
-### Astral Collection Altar & Master Astral Altar Network Inter-Connections
-- **5x5x3 Astral Collection Altar (Starlight Collector Plinth Multiblock)**:
-  - Implemented the 5x5x3 Starlight Collector Plinth: foundation of `chiseled_astral_marble` cornerstones, `engraved_astral_slate` perimeter, 3x3 sunken `astral_mirror_block` pool, central `starlight_pillar` shaft, and `astral_collector` apex crown.
-  - Added Astral Crystal socketing via right-click (supports `AstralCrystalItem`, `ASTRAL_CRYSTAL_CLUSTER`, and crystal blocks) with shift-click retrieval and drop handling.
-  - Implemented floating crystal rendering with sinusoidal levitation, continuous rotation, and multi-layered starburst billboard flare rendering (`END_ROD` and translucent cosmic glow cross-billboards).
-  - Added nocturnal and diurnal starlight gathering rates ($25\text{ flux/s}$ nocturnal baseline + size/purity scaling) and buffer storage.
-  - Added smart autonomous target discovery (scans up to 48 blocks for nearest Astral Altar, Master Altar corner lens, or downstream collector).
-  - Added collimated open-air starlight beam projection rendering from the crystal apex directly to target coordinates.
-- **Collector-to-Collector Cannibalization & Cascading Networks**:
-  - Implemented starlight stream cannibalization where downstream Collection Altars absorb and compound upstream starlight beams: $\Phi_{\text{output}} = \Phi_{\text{generated}} + \Phi_{\text{cannibalized}}$.
-  - Implemented cycle detection graph algorithms preventing infinite loops or circular harmonic feedback during manual or smart linking.
-  - Extended `AstralLinkingWandItem` to support `AstralCollectorBlockEntity` as both source and destination node with range and loop cycle validation.
-- **11x11x7 Master Astral Altar Network (Grand Celestial Infusion Matrix)**:
-  - Implemented the Tier 3 11x11x7 Master Astral Altar: 11x11 stepped foundation dais, 4 tall corner collector columns ($Y=0 \dots +4$), 4 corner `refractive_astral_lens` receiver mounts ($Y=+5$), concave inward focusing mirror ring, central overhead `focal_lens_mount` apex at $(0, 5, 0)$, and 12-pedestal ritual matrix.
-  - Implemented multi-collector beam reception across the 4 corner lenses, automatically routing starlight inward to the central overhead apex.
-  - Implemented overhead multi-beam spectral refraction cascade rendering: white-blue core ray into the central crystal with red, cyan, magenta, green, gold, and deep blue spectral beams cascading onto the 12 surrounding ritual pedestals.
-  - Implemented throughput scaling: multiplies ritual crafting speed and crystal size maturation rates based on aggregate incoming starlight flux ($\text{Multiplier} = 1.0 + \sum \Phi / 30.0$).
-- **JEI Multiblock Blueprints & Astrolabe Holographic Projection**:
-  - Registered complete layer-by-layer ASCII slices, block totals, and descriptions for both the 5x5x3 Astral Collection Altar and 11x11x7 Master Astral Altar in `AstralMultiblockRecipes`.
-  - Added both new structures to `AstrolabeItem.BLUEPRINT_NAMES` for in-world 3D translucent holographic ghost blueprint projection and layer scrubbing.
-- **Codex & Obsidian OKF Documentation**:
-  - Registered new research nodes in `CodexCategoryRegistry`: `multiblock_astral_collection_altar`, `multiblock_master_astral_altar`, and `astral_beam_interconnection`.
-  - Authored comprehensive Obsidian OKF entries: `wiki/entities/blocks/astral_collection_altar.md`, `wiki/entities/blocks/master_astral_altar.md`, and `wiki/articles/astral_multiblock_interconnections.md`.
+### Astral Multiblocks & Starlight Networks
+- **Astral Collection Altar (5x5x3)**: Added a new multiblock collector that harnesses starlight through a floating crystal. It can store celestial flux and automatically beam energy to nearby altars and optical lenses.
+- **Collector Chaining & Cannibalization**: Multiple collection altars can now link together in sequence to combine their power into stronger starlight beams without creating infinite feedback loops.
+- **Master Astral Altar Network (11x11x7)**: Added the grand Tier 3 altar with 12 ritual pedestals and 4 tall corner towers. When powered by collection beams, it casts a multi-colored rainbow light cascade over the ritual matrix and dramatically speeds up crystal growth and crafting.
+- **JEI & Astrolabe Blueprints**: Added full layer-by-layer structure guides in JEI and 3D holographic ghost previews in the Astrolabe for both new altars.
+- **Codex & Wiki Updates**: Added new research nodes to the Entropic Codex and full guides to the wiki.
 
-### GitHub Actions CI & GitHub Pages Static Documentation Fix
-- **Automated GitHub Release Publishing on Push**:
-  - Configured `.github/workflows/build.yml` to automatically compile Fabric and NeoForge production JARs on every push to `master`/`main`.
-  - Integrated `softprops/action-gh-release@v2` to publish versioned releases tagged `v<version>-build.<run_number>` with automatically extracted changelog release notes and downloadable mod JARs (`Entropica-fabric-*.jar`, `Entropica-neoforge-*.jar`).
-  - Added `actions/upload-artifact@v4` step to retain all compiled build jars in GitHub Actions workflow run summaries.
-- **Fixed `actions/jekyll-build-pages` `ENOENT: /github/workspace/docs` Failure**:
-  - Removed `docs/` and `.github/workflows/` from `.gitignore` to allow GitHub to track the documentation portal and CI workflow configurations.
-  - Added `.nojekyll` to `docs/` and repository root to bypass default Jekyll and Sass processing for the static HTML/CSS/JS wiki site.
-  - Added `.github/workflows/pages.yml` with official `actions/upload-pages-artifact@v3` and `actions/deploy-pages@v4` for zero-configuration static page deployment.
-  - Added `.gitkeep` to `docs/assets` to preserve directory structure in git.
-  - Updated `docs/index.html` copy to strictly conform to Materia terminology.
+### Astral Mirrors & Looking Glass Improvements
+- **Seamless Mirror Pools**: Fixed visual seams and star clipping across multi-block mirror floors and walls.
+- **Improved Reflections**: Corrected multi-bounce reflection physics so stars and constellations reflect accurately across corner mirrors and wall setups.
+- **Looking Glass Wall Aiming**: You can now right-click mirror walls directly to look up into the reflected night sky.
 
-### Astral Mirror Optical Reflections & Celestial Looking Glass Wall Raycasting
-- **Seamless Cross-Block Reflection Rendering across Connected Mirror Pools & Walls**:
-  - Eliminated per-block quad slicing and star discard artifacts where stars, planets, nebulae, and constellation nodes were cut in half or vanished when crossing internal block seams in multi-block mirror arrays.
-  - Assigned celestial bodies to the unique block entity containing their projected center, rendering complete, unclipped 3D billboard and circular star quads across connected neighbor blocks at identical surface elevation.
-  - Preserved exact scissor clipping exclusively along the unconnected outer perimeter (at the brass/marble frame at $0.125$ / $0.875$).
-- **Physically Accurate Multi-Bounce 2-Bounce & 3-Bounce Reflection Optics**:
-  - Corrected secondary (2-bounce) reflection vector physics in `AstralMirrorRenderer`: evaluated incident reflection rays ($\mathbf{S}' = \mathbf{S} - 2(\mathbf{S} \cdot N_2) N_2$) against primary face normals rather than testing unreflected sky vectors, resolving secondary reflections on vertical wall mirrors and orthogonal pool boundaries.
-  - Corrected 3-way corner retroreflection math for tertiary bounces across three mutually orthogonal mirror planes.
-- **Micro-Extended Continuous Constellation Connection Lines**:
-  - Added seamless line rendering with $0.002$ voxel micro-extension joins across connected mirror block boundaries, eliminating sub-pixel floating-point seams.
-  - Supported continuous connection lines across reflection bounce boundaries without dropping lines when stars transition across direct and secondary reflections.
-- **Looking Glass & Telescope Wall Raycast Sightline Resolution**:
-  - Enhanced line-of-sight raytracer in `SkyLookingGlassScreen` to support up to 16 consecutive mirror bounces (wall $\to$ floor $\to$ sky, wall $\to$ wall $\to$ sky) with $0.05$ normal offset to eliminate self-intersection.
-  - Implemented automatic sky aperture resolution when aiming at vertical mirror walls inside observatories or starlight chambers.
-  - Implemented `LookingGlassItem.useOn` so right-clicking any mirror block or solid surface directly opens the Looking Glass celestial interface.
+### Aurorafowl Animations & Model Polish
+- **Aerodynamic Flight Pose**: Improved avian flying posture by tucking legs cleanly beneath the body during flight.
+- **New Wading Walk Animation**: Added a high-stepping crane walk animation when moving on the ground.
+- **Complete Animation Set**: Polished all 8 ground and flight animations (idle, walk, flying, takeoff, landing, ground attack, and dive attack).
+- **Visual Optimizations**: Eliminated surface flickering on 2D wing membranes, streamlined texture memory by 75%, and refined plumage colors.
 
-### Aurorafowl (Glow-Winged Skimmer) Fauna 3 Modded Entity Model & Animation Suite
-- **Compact Body-Tucked Leg Kinematics Across Flight & Transitions**:
-  - Replaced hyper-extended backward trailing legs with a compact, folded aerodynamic belly-tuck across all aerial animations (`idle_flight`, `flying`, `taking_off`, `landing`, `attack_flying`).
-  - Thighs fold horizontal along the lower belly ($X = -60^\circ$), shins fold tightly forward underneath the thighs ($X = +130^\circ$), and feet fold flush and flat against the pelvis/vent ($X = -90^\circ$), eliminating awkward backward protrusion and matching avian flight anatomy.
-  - Smooth deployment transition in `landing` (unfolding down/forward to absorb touchdown impact at $Y = -1.8$) and `taking_off` (crouch $\to$ leap $\to$ belly-tuck fold).
-- **New Bipedal Wading Walk Animation (`walk`)**:
-  - `walk` (Looping, 1.4s): Alternating crane wading stride with high knee lift ($X = +28^\circ, \text{shin } -35^\circ$), toe plant, backward leg drive ($X = -22^\circ$), rhythmic body bob ($Y = 0.4$), dynamic neck thrust cadence, and tail balance counter-sway.
-- **Complete 8-Animation Suite Implementation**:
-  - `idle_ground` (Looping, 3.0s): Upright stilt stance with breathing chest displacement ($Y \pm 0.2$), curious left/right head tilting and scanning, gentle tail pendulum sway, and crest ribbon follow-through flutter.
-  - `walk` (Looping, 1.4s): Bipedal wading walk cycle with high-step knee lift, alternating leg stride, neck bob, and crest flutter.
-  - `idle_flight` (Looping, 2.4s): Streamlined cruise gliding with broad outstretched wings catching updrafts, compact folded belly-tuck legs, horizontal flight mantle pitch, and trailing tail fan.
-  - `flying` (Looping, 0.8s): Dynamic quad-wing flapping cycle featuring a 0.1s phase-lag between forewings and hindwings, wing elbow folding on upstroke ($Z = -55^\circ$), powerful downstroke thrust ($Z = 25^\circ$), surging vertical body bob ($Y = \pm 0.8$), and compact folded body-tuck legs.
-  - `taking_off` (One-shot, 1.2s): Deep knee crouch compression ($Y = -2.5$), explosive launch leap ($Y = +4.0$), massive initial wing downstroke power smash ($Z = 30^\circ$), and smooth tuck fold into flight pose.
-  - `landing` (One-shot, 1.2s): Airspeed dump with broad airbrake wing flare ($X = -30^\circ$) and tail brake pitch ($X = 25^\circ$), forward leg unfold and shock-absorbing contact compression ($Y = -1.8$), and seamless stand-up recovery with wing fold.
-  - `Attack_ground` (One-shot, 0.9s): S-curve neck coil retraction, blinding forward heron spear lunge ($X = -45^\circ$), aggressive downward beak strike with counter-balance wing flare, and alert crest elevation.
-  - `attack_flying` (One-shot, 1.0s): High-speed delta wing dive fold ($X = 40^\circ, Z = 35^\circ$), supersonic swoop with forward talon rake ($X = +45^\circ$) and beak thrust, followed by retraction back into the belly fold during climb-out recovery.
-- **Zero Z-Fighting Plane Membrane Depth Offsets**:
-  - **Eliminated Coplanar Depth Ambiguity**: Offset top/bottom face depth levels with micro-thickness ($0.04$) and staggered joint elevations across wing segments 1, 2, and 3, permanently resolving WebGL/Three.js depth buffer flicker and texture noise on 2D planes.
-  - **Joint & Strut Boundary Separations**: Applied micro-offsets between strut rear bounds and membrane leading edges to prevent boundary coplanar artifacts.
-- **2D Plane Wing Membranes & Shared UV Architecture**:
-  - **Zero-Thickness Plane Conversion**: Converted all 12 wing membrane cuboids to lightweight 2D planes ($H=0$), eliminating vertical side-wall polygons for sleek aerodynamic flight surfaces.
-  - **Symmetrical & Inter-Wing Texture Sharing**: Left forewings and hindwings now share the exact same 3 membrane plane textures and 2 strut textures, with symmetrical right wings referencing the mirrored UV space.
-- **Texture Resolution Optimization (75% Size Reduction: 256x256 $\to$ 128x128)**:
-  - **Optimal 2D Bin Packing Layout**: Packed all model cubes and planes into a tight $128 \times 128$ power-of-2 texture sheet (16,384 px total), reducing VRAM and asset footprint by 75% while maintaining 100% 1:1 voxel pixel-perfection.
-- **Naturalized Plumage, Feathering & Aurora Gradient Shading**:
-  - **Organic Aurora Wings**: Handcrafted multi-stop diagonal feather barb veins, leading white-to-mint ice glints (`#ffffff`, `#ccfbf1`), pure radiant electric cyan sails (`#00fdf4`), scalloped orchid/violet transition folds (`#c026d3`), and hot neon magenta-to-rose trailing fringes (`#f472b6`, `#fda4af`) with serrated alpha notch cutouts.
-  - **Celestial Starlight Breast Constellation**: Textured radiant diamond starlight clusters with soft mint glowing halos (`#59e4d1`) around pure white central stars (`#ffffff`) on a luminous azure backdrop.
-  - **Layered Scalloped Coverts & Mantle**: Painted downward-overlapping wing-covert shingles and dorsal mantle feather scales with starlight flecks.
-  - **Crane Bill & Expressive Face**: Amber horn dorsal centerline (`#c2410c`) with nostril slit, rich tangerine mid-tone (`#ea580c`), peach tip glints (`#fed7aa`), and luminous cyan irises with crisp white catchlights.
-  - **Scuted Stilt Shins**: Alternating horizontal tarsus rings transitioning seamlessly into deep dusk violet ankles (`#2e1065`, `#4c1d95`) and talon highlights.
-- **Shoulder-Anchored Wing Struts & Concept Alignment**:
-  - Anchored all 4 dark navy wing struts directly at the body shoulder brackets (`flank_left` / `flank_right` / `chest_upper`).
-- **Accurate Head Feather Root & Pivot Kinematics**:
-  - Positioned 4-segment articulated crest ribbon root and pivot precisely at the top-rear corner of the skull (`[0, 72.5, -6.0]`), drooping along the dorsal neck.
+### Automated Builds & GitHub Deployment
+- Configured automated GitHub releases for Fabric and NeoForge on every push.
+- Fixed GitHub documentation deployment and added clean static page hosting.
 
 
 ## Build 000-1-26-235
