@@ -32,7 +32,6 @@ scratch/
 entries.txt
 
 # Docs and Wiki
-docs/
 Wiki/
 Docu/
 
@@ -44,7 +43,4 @@ __pycache__/
 src/
 texture_pack_showcase/
 .architectury-transformer/
-image_*.png
-.nojekyll
-build_number.txt
-TEMPLATE_LICENSE.txt
+image_*.png

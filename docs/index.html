@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entropica | Official Fan Wiki</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.154.0/three.min.js"></script>
+</head>
+<body>
+    <aside>
+        <div class="logo-container">
+            <h1 id="home-btn" style="cursor: pointer;">ENTROPICA</h1>
+        </div>
+        <nav id="sidebar-nav">
+            <!-- Navigation categories will be injected here -->
+        </nav>
+    </aside>
+
+    <main>
+        <header>
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="wiki-search" placeholder="Search for blocks, items, or runes...">
+            </div>
+            <div class="header-links">
+                <button id="theme-toggle" title="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <a href="#" class="nav-link" id="getting-started-link"><i class="fa-solid fa-book"></i> <span>Getting Started</span></a>
+            </div>
+        </header>
+
+        <section id="content-area">
+            <!-- Content will be injected here by wiki.js -->
+            <div class="hero">
+                <h2>Welcome to Entropica</h2>
+                <p>Where Life Essence meets Industrial Progress. Explore the mysteries of Materia and the machines that harness it.</p>
+            </div>
+
+            <div class="category-section">
+                <h3>Featured Categories</h3>
+                <div class="grid" id="category-grid">
+                    <!-- Category cards will be injected here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="data.js"></script>
+    <script src="wiki.js"></script>
+</body>
+</html>
