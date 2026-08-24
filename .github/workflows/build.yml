@@ -55,8 +55,31 @@ jobs:
           SHA_SHORT=$(git rev-parse --short HEAD)
           echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
           
-          MOD_VER=$(grep 'mod_version=' gradle.properties | cut -d'=' -f2 | tr -d ' \r\n')
-          echo "mod_version=${MOD_VER:-1.0.0}" >> $GITHUB_OUTPUT
+          TIMESTAMP=$(date -u +'%H.%M')
+          
+          # Extract major version and subversion from latest changelog build heading if available
+          if [ -f changelog.md ]; then
+            LATEST_HEADING=$(grep -m 1 '^## Build ' changelog.md | sed 's/## Build //')
+            MAJOR=$(echo "$LATEST_HEADING" | cut -d'-' -f1 | tr -d ' \r\n')
+            SUB=$(echo "$LATEST_HEADING" | cut -d'-' -f2 | tr -d ' \r\n')
+          fi
+          
+          # Fallback to gradle.properties if not found in changelog
+          if [ -z "$MAJOR" ] && [ -f gradle.properties ]; then
+            MAJOR=$(grep 'mod_version_major=' gradle.properties | cut -d'=' -f2 | tr -d ' \r\n')
+          fi
+          if [ -z "$SUB" ] && [ -f gradle.properties ]; then
+            SUB=$(grep 'mod_version_build=' gradle.properties | cut -d'=' -f2 | tr -d ' \r\n')
+          fi
+          
+          MAJOR=${MAJOR:-000}
+          SUB=${SUB:-1}
+          
+          RELEASE_TAG="v${MAJOR}.${SUB}.${TIMESTAMP}"
+          RELEASE_TITLE="Build - v${MAJOR}.${SUB}.${TIMESTAMP}"
+          
+          echo "release_tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "release_title=${RELEASE_TITLE}" >> $GITHUB_OUTPUT
           
           if [ -f changelog.md ]; then
             awk '/^## /{if (found++) exit} found' changelog.md > release_notes.txt
@@ -70,8 +93,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
         with:
-          tag_name: "v${{ steps.meta.outputs.mod_version }}-build.${{ github.run_number }}"
-          name: "Entropica v${{ steps.meta.outputs.mod_version }} - Build #${{ github.run_number }} (${{ steps.meta.outputs.sha_short }})"
+          tag_name: "${{ steps.meta.outputs.release_tag }}"
+          name: "${{ steps.meta.outputs.release_title }}"
           body_path: release_notes.txt
           draft: false
           prerelease: false
