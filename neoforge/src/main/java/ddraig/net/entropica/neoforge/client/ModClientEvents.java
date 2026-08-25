@@ -218,8 +218,12 @@ public class ModClientEvents {
         event.registerEntityRenderer(ModEntityTypes.SPORE_CLOUD.get(), SporeCloudRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.RIME_BACK_OVIS.get(), RimeBackOvisRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.OVERGROWTH_OVIS.get(), OvergrowthOvisRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.PATINA_OVIS.get(), PatinaOvisRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.RIME_SHEPHERD.get(), RimeShepherdRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.BLOOM_CRAWLER.get(), BloomCrawlerRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.AURORAFOWL.get(), AurorafowlRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.GEYSER_WIGGLE_WORM.get(), GeyserWiggleWormRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.CRYO_STALKER.get(), CryoStalkerRenderer::new);
     }
 
     @SubscribeEvent
@@ -321,6 +325,9 @@ public class ModClientEvents {
         event.registerLayerDefinition(RimeShepherdModel.LAYER_LOCATION, RimeShepherdModel::createBodyLayer);
         event.registerLayerDefinition(SporeDrifterModel.LAYER_LOCATION, SporeDrifterModel::createBodyLayer);
         event.registerLayerDefinition(BloomCrawlerModel.LAYER_LOCATION, BloomCrawlerModel::createBodyLayer);
+        event.registerLayerDefinition(AurorafowlModel.LAYER_LOCATION, AurorafowlModel::createBodyLayer);
+        event.registerLayerDefinition(GeyserWiggleWormModel.LAYER_LOCATION, GeyserWiggleWormModel::createBodyLayer);
+        event.registerLayerDefinition(CryoStalkerModel.LAYER_LOCATION, CryoStalkerModel::createBodyLayer);
     }
 
 

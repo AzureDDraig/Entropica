@@ -421,6 +421,7 @@ public class AstralMultiblockRecipes {
                 // Layer 2 (Master Altar Core, 12 Pedestals & 4 Pillar Bases)
                 List.of(
                         "C....T....C",
+                        "...........",
                         "...T...T...",
                         "..T.....T..",
                         "...........",
@@ -428,6 +429,7 @@ public class AstralMultiblockRecipes {
                         "...........",
                         "..T.....T..",
                         "...T...T...",
+                        "...........",
                         "C....T....C"
                 ),
                 // Layer 3 (Corner Pillar Shafts)

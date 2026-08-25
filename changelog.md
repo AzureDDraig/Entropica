@@ -12,8 +12,12 @@
 - **Improved Reflections**: Corrected multi-bounce reflection physics so stars and constellations reflect accurately across corner mirrors and wall setups.
 - **Looking Glass Wall Aiming**: You can now right-click mirror walls directly to look up into the reflected night sky.
 
-### Mobs & Creatures
-- **Aurorafowl**: Polished flight poses and ground animations across all behaviors.
+### New Mobs & Living World
+- **Aurorafowl**: Added the graceful gliding bird to arctic and aurora skies. It glides on thermals, walks with crane-like steps, and can be sheared or harvested for celestial feathers and poultry.
+- **Geyser Wiggle-Worm**: Added the volcanic leviathan found swimming in lava pools and basalt fissures. Vents pressurized steam blasts when sheared or disturbed, creating physical updrafts and dropping vapor membranes and sulfur.
+- **Cryo-Stalker**: Added the icy apex predator prowling glacial plains and snowy forests. Camouflages in snow, pounces from afar with freezing attacks, and drops crystalline fangs and frost hides.
+- **Patina Galvanic Ovis**: Added the oxidized copper-horned mountain grazer variant that sheds conductive patina aegis plates when charging into stone scree cliffs.
+- **Spawn Eggs & Drops**: Registered spawn eggs, items, and research codex entries for all new creatures.
 
 ### Automated Builds & GitHub Deployment
 - Configured automated GitHub releases for Fabric and NeoForge on every push.

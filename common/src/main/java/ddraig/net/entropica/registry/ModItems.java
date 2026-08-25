@@ -856,6 +856,13 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> RIME_ANTLER_FRAGMENT = ITEMS.registerItem("rime_antler_fragment", Item::new);
     public static final RegistrySupplier<Item> SHEPHERDS_FROST = ITEMS.registerItem("shepherds_frost", Item::new);
     public static final RegistrySupplier<Item> CRAWLER_SHELL_FRAGMENT = ITEMS.registerItem("crawler_shell_fragment", Item::new);
+    public static final RegistrySupplier<Item> AURORAFOWL_FEATHER = ITEMS.registerItem("aurorafowl_feather", Item::new);
+    public static final RegistrySupplier<Item> RAW_AURORAFOWL = ITEMS.registerItem("raw_aurorafowl", properties -> new Item(properties.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(2).saturationModifier(0.3F).build())));
+    public static final RegistrySupplier<Item> COOKED_AURORAFOWL = ITEMS.registerItem("cooked_aurorafowl", properties -> new Item(properties.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(6).saturationModifier(0.6F).build())));
+    public static final RegistrySupplier<Item> VAPOR_VENT_MEMBRANE = ITEMS.registerItem("vapor_vent_membrane", Item::new);
+    public static final RegistrySupplier<Item> SULFUR_CLOD = ITEMS.registerItem("sulfur_clod", Item::new);
+    public static final RegistrySupplier<Item> CRYO_CRYSTALLINE_FANG = ITEMS.registerItem("cryo_crystalline_fang", Item::new);
+    public static final RegistrySupplier<Item> FROST_VEINED_HIDE = ITEMS.registerItem("frost_veined_hide", Item::new);
 
     // Others
     public static final RegistrySupplier<BlockItem> VIS_VITAE_ANCHOR_ITEM = ITEMS.registerItem("vis_vitae_anchor", properties -> new BlockItem(ModBlocks.VIS_VITAE_ANCHOR.get(), properties));
@@ -879,8 +886,12 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> SPORE_DRIFTER_SPAWN_EGG = ITEMS.registerItem("spore_drifter_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.SPORE_DRIFTER, properties));
     public static final RegistrySupplier<Item> RIME_BACK_OVIS_SPAWN_EGG = ITEMS.registerItem("rime_back_ovis_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.RIME_BACK_OVIS, properties));
     public static final RegistrySupplier<Item> OVERGROWTH_OVIS_SPAWN_EGG = ITEMS.registerItem("overgrowth_ovis_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.OVERGROWTH_OVIS, properties));
+    public static final RegistrySupplier<Item> PATINA_OVIS_SPAWN_EGG = ITEMS.registerItem("patina_ovis_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.PATINA_OVIS, properties));
     public static final RegistrySupplier<Item> RIME_SHEPHERD_SPAWN_EGG = ITEMS.registerItem("rime_shepherd_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.RIME_SHEPHERD, properties));
     public static final RegistrySupplier<Item> BLOOM_CRAWLER_SPAWN_EGG = ITEMS.registerItem("bloom_crawler_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.BLOOM_CRAWLER, properties));
+    public static final RegistrySupplier<Item> AURORAFOWL_SPAWN_EGG = ITEMS.registerItem("aurorafowl_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.AURORAFOWL, properties));
+    public static final RegistrySupplier<Item> GEYSER_WIGGLE_WORM_SPAWN_EGG = ITEMS.registerItem("geyser_wiggle_worm_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.GEYSER_WIGGLE_WORM, properties));
+    public static final RegistrySupplier<Item> CRYO_STALKER_SPAWN_EGG = ITEMS.registerItem("cryo_stalker_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.CRYO_STALKER, properties));
 
     // ==========================================
     // DATAGEN ITEM LIST
@@ -890,7 +901,8 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
             ARCANUM_FOCUS, MATERIA_VALUE_DETECTOR, ARCANE_BRICK_PIECE, ARCANE_CLAY, EIDOLON_PATHMARKER,
             VEIL_SHARD, CHALK, DULL_CHALK, CONDUCTIVE_CHALK, RESONANT_CHALK, EIDOLIC_CHALK,
             ADVANCED_CHALK, ADVANCED_DULL_CHALK, ADVANCED_CONDUCTIVE_CHALK, ADVANCED_RESONANT_CHALK, ADVANCED_EIDOLIC_CHALK,
-            GLACIAL_AEGIS_PLATE, PATINA_AEGIS_PLATE, MOSSY_AEGIS_PLATE, LIVING_SPORES, RIME_ANTLER_FRAGMENT, SHEPHERDS_FROST, CRAWLER_SHELL_FRAGMENT, // Added Fauna Drops
+            GLACIAL_AEGIS_PLATE, PATINA_AEGIS_PLATE, MOSSY_AEGIS_PLATE, LIVING_SPORES, RIME_ANTLER_FRAGMENT, SHEPHERDS_FROST, CRAWLER_SHELL_FRAGMENT,
+            AURORAFOWL_FEATHER, RAW_AURORAFOWL, COOKED_AURORAFOWL, VAPOR_VENT_MEMBRANE, SULFUR_CLOD, CRYO_CRYSTALLINE_FANG, FROST_VEINED_HIDE, // Added Fauna Drops
             SMALL_AMPOULE, MEDIUM_AMPOULE, LARGE_AMPOULE, ESSENCE_HARVESTING_BLADE, SOULBOUND_BLADE,
             OBLIVION_BLADE, TIDAL_TRIDENT, VOID_SWORD, BASALT_PICKAXE, WHISPERWOOD_WAND, SHIMMERING_FOCUS,
             ARCANITE_INGOT, VISCANITE_INGOT, RESONITE_INGOT, EIDOLITE_INGOT, CHARGED_ARCANITE_INGOT, CHARGED_VISCANITE_INGOT, CHARGED_RESONITE_INGOT, CHARGED_EIDOLITE_INGOT,

@@ -114,8 +114,12 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntityTypes.SPORE_CLOUD.get(), SporeCloudRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.RIME_BACK_OVIS.get(), RimeBackOvisRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.OVERGROWTH_OVIS.get(), OvergrowthOvisRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.PATINA_OVIS.get(), PatinaOvisRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.RIME_SHEPHERD.get(), RimeShepherdRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.BLOOM_CRAWLER.get(), BloomCrawlerRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.AURORAFOWL.get(), AurorafowlRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.GEYSER_WIGGLE_WORM.get(), GeyserWiggleWormRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.CRYO_STALKER.get(), CryoStalkerRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.SPORE_PROJECTILE.get(), ThrownItemRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.MAGMA_THORN.get(), ThrownItemRenderer::new);
 
@@ -140,6 +144,9 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityModelLayerRegistry.registerModelLayer(RimeShepherdModel.LAYER_LOCATION, RimeShepherdModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(SporeDrifterModel.LAYER_LOCATION, SporeDrifterModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(BloomCrawlerModel.LAYER_LOCATION, BloomCrawlerModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(AurorafowlModel.LAYER_LOCATION, AurorafowlModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(GeyserWiggleWormModel.LAYER_LOCATION, GeyserWiggleWormModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(CryoStalkerModel.LAYER_LOCATION, CryoStalkerModel::createBodyLayer);
 
         // --- 4. Menu Screens ---
         MenuScreens.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);

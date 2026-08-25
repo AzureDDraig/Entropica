@@ -1175,13 +1175,65 @@ public class CodexCategoryRegistry {
 
         ALL_NODES.add(new CodexNode(
                 "env_fauna", "Fauna & Mobs", "ENVIRONMENT & NATURE",
-                "Grots, Veil Foxes, and Rime Shepherds.",
+                "Grots, Veil Foxes, Aurorafowl, Cryo-Stalkers, and Ovis species.",
                 "Overview & Description:\n" +
-                "Indigenous creatures adapted to elemental atmospheric pressures.\n\n" +
+                "Indigenous creatures adapted to elemental atmospheric pressures and regional Materia currents.\n\n" +
                 "Origin & Obtaining:\n" +
                 "Found roaming native biomes or spawned using Fauna Spawn Eggs.",
                 "hub_environment", 0, new ItemStack(Items.BONE),
                 280f, 0.0f, a_env + 0.20f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aurorafowl", "Aurorafowl", "ENVIRONMENT & NATURE",
+                "Ethereal sky-skimming avian with a 7-block biplane delta wingspan gliding along atmospheric Materia currents.",
+                "Overview & Description:\n" +
+                "The Aurorafowl is an ethereal wading avian native to Arctic peaks and Aurora Skies. Features biplane delta wings with radiant cyan-magenta membranes.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Effortlessly catches thermal updrafts, glides across fjords, and performs bipedal crane steps on ground. Can be sheared for Celestial Plumage.\n\n" +
+                "Harvest & Drops:\n" +
+                "Drops Aurorafowl Feathers and Raw Aurorafowl meat.",
+                "env_fauna", 1, new ItemStack(ModItems.AURORAFOWL_FEATHER.get()),
+                360f, 0.0f, a_env + 0.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_geyser_wiggle_worm", "Geyser Wiggle-Worm", "ENVIRONMENT & NATURE",
+                "10-segment geothermal serpentine leviathan residing in magma pools and steaming basalt crevices.",
+                "Overview & Description:\n" +
+                "A massive volcanic worm with an incandescent 16-cube magma collar ring and articulated lower jaw.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Swims through molten lava and vents pressurized high-temperature steam plumes that generate powerful physical updrafts.\n\n" +
+                "Harvest & Drops:\n" +
+                "Shearing or harvesting during venting yields Vapor Vent Membranes; drops Sulfur Clods upon defeat.",
+                "env_fauna", 1, new ItemStack(ModItems.VAPOR_VENT_MEMBRANE.get()),
+                380f, 0.0f, a_env + 0.18f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_cryo_stalker", "Cryo-Stalker", "ENVIRONMENT & NATURE",
+                "Glacial apex predator that camouflages in snow and leaps from 8 blocks away to inflict freezing hypothermia.",
+                "Overview & Description:\n" +
+                "A digitigrade quadrupedal hunter sculpted with glassy black ice textures and glowing cyan blue veins.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Prowls snowy taigas and pack-ice floes, cloaking into snow before launching explosive pounces that slow and freeze prey.\n\n" +
+                "Harvest & Drops:\n" +
+                "Yields Cryo-Crystalline Fangs for frost weapons and Frost-Veined Hide for cold-insulated armor.",
+                "env_fauna", 1, new ItemStack(ModItems.CRYO_CRYSTALLINE_FANG.get()),
+                400f, 0.0f, a_env + 0.24f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_ovis_species", "Ovis Species & Aegis Plates", "ENVIRONMENT & NATURE",
+                "Mountain-climbing horned quadrupeds with frontal aegis bracing and ramming charges.",
+                "Overview & Description:\n" +
+                "Heavy alpine grazers featuring 14-segment spiral horns. Encompasses Rime-Back Ovis, Overgrowth Ovis, and Patina Galvanic Ovis variants.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Climbs sheer scree cliffs, braces defensively against frontal damage (-80%), and sheds Aegis Plates when charging into stone walls.\n\n" +
+                "Harvest & Drops:\n" +
+                "Yields Glacial, Mossy, or Patina Aegis Plates used in reinforced plate armors and runic metallurgy.",
+                "env_fauna", 1, new ItemStack(ModItems.GLACIAL_AEGIS_PLATE.get()),
+                420f, 0.0f, a_env + 0.30f, false
         ));
 
         ALL_NODES.add(new CodexNode(

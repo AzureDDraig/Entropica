@@ -164,4 +164,44 @@ public class ModEntityTypes {
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                      ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "bloom_crawler"))));
+
+    // --- AURORAFOWL (FAUNA 3) ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.aurorafowl.AurorafowlEntity>> AURORAFOWL =
+            ENTITY_TYPES.register("aurorafowl",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.aurorafowl.AurorafowlEntity>of(ddraig.net.entropica.entity.aurorafowl.AurorafowlEntity::new, MobCategory.CREATURE)
+                            .sized(1.2F, 2.0F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "aurorafowl"))));
+
+    // --- GEYSER WIGGLE-WORM (FAUNA 18) ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.geyser_wiggle_worm.GeyserWiggleWormEntity>> GEYSER_WIGGLE_WORM =
+            ENTITY_TYPES.register("geyser_wiggle_worm",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.geyser_wiggle_worm.GeyserWiggleWormEntity>of(ddraig.net.entropica.entity.geyser_wiggle_worm.GeyserWiggleWormEntity::new, MobCategory.MONSTER)
+                            .sized(1.1F, 0.9F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "geyser_wiggle_worm"))));
+
+    // --- CRYO-STALKER (FAUNA 2) ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.cryo_stalker.CryoStalkerEntity>> CRYO_STALKER =
+            ENTITY_TYPES.register("cryo_stalker",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.cryo_stalker.CryoStalkerEntity>of(ddraig.net.entropica.entity.cryo_stalker.CryoStalkerEntity::new, MobCategory.MONSTER)
+                            .sized(1.2F, 1.4F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "cryo_stalker"))));
+
+    // --- PATINA GALVANIC OVIS ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.ovis.PatinaGalvanicOvisEntity>> PATINA_OVIS =
+            ENTITY_TYPES.register("patina_ovis",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.ovis.PatinaGalvanicOvisEntity>of(ddraig.net.entropica.entity.ovis.PatinaGalvanicOvisEntity::new, MobCategory.CREATURE)
+                            .sized(0.9F, 1.3F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "patina_ovis"))));
 }
