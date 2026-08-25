@@ -4,10 +4,12 @@
 - **Constellation Line Rendering**: Fixed stretched and distorted lines in the Astral Mirror reflections by ensuring constellation connections are only drawn between stars on the same reflection plane.
 
 ### Mob Polish & Flight Refinements
-- **Aurorafowl Wing Membranes & Ground Stance**: Wings and flight membranes now fold flat against the bird's body on the ground with precise offsets to prevent any Z-fighting or clipping.
-- **Sinusoidal Air Gliding**: Airborne idling now features smooth, gentle wave oscillations across the wings and wingtips as the bird rides thermals.
-- **Climbing Flap Animation**: The bird now uses an active flapping animation whenever it climbs to gain height or sprints, seamlessly transitioning into a thermal glide once level flight is reached.
-- **Flight Transitions & Safety**: Unfolds wings when taking off, flares and folds them smoothly on touchdown, and takes no fall damage.
+- **Aurorafowl Wing Membranes & Ground Stance**: Wings and flight membranes now fold vertically flush and parallel against the bird's flanks with dedicated polygon spacing to prevent any Z-fighting or clipping.
+- **Flight & Ground Transitions**: The bird stays in flight until it actually nears the ground (within 2-3 blocks) and descends, avoiding any premature mid-air ground transitions, and unfolds its wings upon takeoff.
+- **Walking Pose Stability**: Fixed a glitch where walking over block edges caused brief single-frame flashes of the flight pose.
+- **Sinusoidal Air Gliding**: Airborne idling features smooth wave oscillations across the wings and wingtips as the bird rides thermals in lazy circles.
+- **Climbing Flap Animation**: The bird actively flaps its wings whenever it climbs to gain height or sprints, smoothly gliding once cruising altitude is reached.
+- **Fall Damage Immunity**: Aurorafowl is fully protected against fall damage.
 - **Geyser Wiggle-Worm Scale & Texture**: Restored the original high-resolution volcanic texture and scaled the worm to 1.75x with an expanded hitbox to reflect its true leviathan size in-game.
 
 ## Build 000-1-26-236
