@@ -152,8 +152,18 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
         }
     }
 
+    public boolean isCloseToGround() {
+        BlockPos pos = this.blockPosition();
+        for (int y = 1; y <= 3; y++) {
+            if (!this.level().isEmptyBlock(pos.below(y))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void startLanding() {
-        if (this.isFlying() && !this.isLanding()) {
+        if (this.isFlying() && !this.isLanding() && this.isCloseToGround()) {
             this.setLanding(true);
             this.setTakingOff(false);
             this.landingTimer = 24;
@@ -232,9 +242,10 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
                 }
             } else if (this.isFlying()) {
                 this.flightTimer++;
-                if (this.onGround() && this.flightTimer > 60) {
-                    this.startLanding();
-                } else if (this.flightTimer > 400 && this.random.nextInt(60) == 0) {
+                if (this.onGround() && this.flightTimer > 40) {
+                    this.setFlying(false);
+                    this.flightTimer = 0;
+                } else if (this.flightTimer > 300 && this.isCloseToGround() && this.getDeltaMovement().y <= 0.0D) {
                     this.startLanding();
                 } else {
                     if (!this.isNoGravity()) {
@@ -292,7 +303,7 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
             this.flyingAnimationState.stop();
             this.takingOffAnimationState.stop();
             this.landingAnimationState.startIfStopped(this.tickCount);
-        } else if (this.isFlying() || !this.onGround()) {
+        } else if (this.isFlying()) {
             this.idleGroundAnimationState.stop();
             this.walkAnimationState.stop();
             this.takingOffAnimationState.stop();
@@ -327,7 +338,7 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
         }
 
         if (this.isAttacking()) {
-            if (this.isFlying() || !this.onGround()) {
+            if (this.isFlying()) {
                 this.attackFlyingAnimationState.startIfStopped(this.tickCount);
             } else {
                 this.attackGroundAnimationState.startIfStopped(this.tickCount);

@@ -8,7 +8,7 @@ import net.minecraft.client.animation.KeyframeAnimations;
 public class AurorafowlAnimation {
 
 	// ------------------------------------------------------------------------
-	// IDLE GROUND: Wings folded flat against the body flanks without Z-fighting
+	// IDLE GROUND: Wings folded flat and parallel against the body flanks
 	// ------------------------------------------------------------------------
 	public static final AnimationDefinition idle_ground = AnimationDefinition.Builder.withLength(3.0F).looping()
 		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
@@ -51,63 +51,61 @@ public class AurorafowlAnimation {
 			new Keyframe(2.45F, KeyframeAnimations.degreeVec(6.0F, 6.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
-		// Left Upper Wing (Folded Flat against Flank)
+		// Left Upper Wing (Folded Flat & Parallel against Flank)
 		.addAnimation("wing_left_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-5.0F, 82.0F, -18.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-4.5F, 83.0F, -18.5F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-5.0F, 82.0F, -18.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-80.0F, 75.0F, -26.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-79.0F, 76.0F, -26.5F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-80.0F, 75.0F, -26.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -165.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.5F, KeyframeAnimations.degreeVec(0.0F, -163.0F, 4.5F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, -165.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
-		// Left Lower Wing (Folded neatly below upper wing)
+		// Left Lower Wing (Folded Flat & Parallel beneath upper wing)
 		.addAnimation("wing_left_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-8.0F, 78.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-7.5F, 79.0F, -15.5F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-8.0F, 78.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-95.0F, 70.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-94.0F, 71.0F, -2.5F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-95.0F, 70.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -160.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, -160.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
-		// Right Upper Wing (Folded Flat against Flank)
+		// Right Upper Wing (Folded Flat & Parallel against Flank)
 		.addAnimation("wing_right_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-5.0F, -82.0F, 18.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-4.5F, -83.0F, 18.5F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-5.0F, -82.0F, 18.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-80.0F, -75.0F, 26.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-79.0F, -76.0F, 26.5F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-80.0F, -75.0F, 26.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 165.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.5F, KeyframeAnimations.degreeVec(0.0F, 163.0F, -4.5F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 165.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
-		// Right Lower Wing (Folded neatly below upper wing)
+		// Right Lower Wing (Folded Flat & Parallel beneath upper wing)
 		.addAnimation("wing_right_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-8.0F, -78.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-7.5F, -79.0F, 15.5F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-8.0F, -78.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-95.0F, -70.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-94.0F, -71.0F, 2.5F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-95.0F, -70.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 160.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 160.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("tail_base", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
@@ -125,7 +123,7 @@ public class AurorafowlAnimation {
 		.build();
 
 	// ------------------------------------------------------------------------
-	// WALK: Ground stride with wings securely folded flat
+	// WALK: Ground stride with wings parallel against flanks
 	// ------------------------------------------------------------------------
 	public static final AnimationDefinition walk = AnimationDefinition.Builder.withLength(1.4F).looping()
 		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
@@ -200,61 +198,61 @@ public class AurorafowlAnimation {
 		))
 		// Left Upper Wing (Folded Flat)
 		.addAnimation("wing_left_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-5.0F, 82.0F, -18.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.35F, KeyframeAnimations.degreeVec(-4.0F, 81.0F, -17.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(-6.0F, 83.0F, -19.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.05F, KeyframeAnimations.degreeVec(-4.0F, 81.0F, -17.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(-5.0F, 82.0F, -18.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-80.0F, 75.0F, -26.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.35F, KeyframeAnimations.degreeVec(-79.0F, 74.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.7F, KeyframeAnimations.degreeVec(-81.0F, 76.0F, -27.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.05F, KeyframeAnimations.degreeVec(-79.0F, 74.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(-80.0F, 75.0F, -26.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -165.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, -165.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		// Left Lower Wing (Folded Flat)
 		.addAnimation("wing_left_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-8.0F, 78.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(-8.0F, 78.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-95.0F, 70.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(-95.0F, 70.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -160.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, -160.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		// Right Upper Wing (Folded Flat)
 		.addAnimation("wing_right_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-5.0F, -82.0F, 18.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.35F, KeyframeAnimations.degreeVec(-6.0F, -83.0F, 19.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(-4.0F, -81.0F, 17.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.05F, KeyframeAnimations.degreeVec(-6.0F, -83.0F, 19.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(-5.0F, -82.0F, 18.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-80.0F, -75.0F, 26.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.35F, KeyframeAnimations.degreeVec(-79.0F, -74.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.7F, KeyframeAnimations.degreeVec(-81.0F, -76.0F, 27.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.05F, KeyframeAnimations.degreeVec(-79.0F, -74.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(-80.0F, -75.0F, 26.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 165.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 165.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		// Right Lower Wing (Folded Flat)
 		.addAnimation("wing_right_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-8.0F, -78.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(-8.0F, -78.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-95.0F, -70.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(-95.0F, -70.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 160.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 160.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("tail_base", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
@@ -551,82 +549,78 @@ public class AurorafowlAnimation {
 		))
 		// Left Wing Unfolding
 		.addAnimation("wing_left_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-5.0F, 82.0F, -18.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 35.0F, -35.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-80.0F, 75.0F, -26.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3F, KeyframeAnimations.degreeVec(-40.0F, 35.0F, -35.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(25.0F, -8.0F, 30.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(8.0F, -12.0F, -24.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -165.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, -70.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 10.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 5.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 5.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 10.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_left_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-8.0F, 78.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 30.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-95.0F, 70.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3F, KeyframeAnimations.degreeVec(-45.0F, 30.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(20.0F, -5.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-4.0F, -15.0F, -14.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -160.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, -60.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 10.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 5.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 5.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		// Right Wing Unfolding
 		.addAnimation("wing_right_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-5.0F, -82.0F, 18.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, -35.0F, 35.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-80.0F, -75.0F, 26.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3F, KeyframeAnimations.degreeVec(-40.0F, -35.0F, 35.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(25.0F, 8.0F, -30.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(8.0F, 12.0F, 24.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 165.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 70.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -10.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, -5.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -10.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_right_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-8.0F, -78.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, -30.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-95.0F, -70.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3F, KeyframeAnimations.degreeVec(-45.0F, -30.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(20.0F, 5.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-4.0F, 15.0F, 14.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 160.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, 60.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -10.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.3F, KeyframeAnimations.degreeVec(0.0F, -5.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.6F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.build();
 
 	// ------------------------------------------------------------------------
-	// LANDING: Air-brake aerodynamic flare -> folding wings flush on touchdown
+	// LANDING: Air-brake aerodynamic flare -> folding wings parallel on touchdown
 	// ------------------------------------------------------------------------
 	public static final AnimationDefinition landing = AnimationDefinition.Builder.withLength(1.2F)
 		.addAnimation("root", new AnimationChannel(AnimationChannel.Targets.POSITION, 
@@ -645,75 +639,67 @@ public class AurorafowlAnimation {
 		.addAnimation("wing_left_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(8.0F, -12.0F, -24.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(30.0F, -20.0F, -45.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(5.0F, 45.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-5.0F, 82.0F, -18.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.7F, KeyframeAnimations.degreeVec(-30.0F, 40.0F, -35.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-80.0F, 75.0F, -26.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -10.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, -90.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, -165.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(0.0F, -5.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, 10.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_left_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-4.0F, -15.0F, -14.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(25.0F, -18.0F, -35.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, 40.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-8.0F, 78.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.7F, KeyframeAnimations.degreeVec(-40.0F, 35.0F, -20.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-95.0F, 70.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(0.0F, -10.0F, -8.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, -85.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, -160.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(0.0F, -5.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, 10.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		// Right Wing Folding upon touchdown
 		.addAnimation("wing_right_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(8.0F, 12.0F, 24.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(30.0F, 20.0F, 45.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(5.0F, -45.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-5.0F, -82.0F, 18.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.7F, KeyframeAnimations.degreeVec(-30.0F, -40.0F, 35.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-80.0F, -75.0F, 26.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 10.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, 90.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 165.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(0.0F, 5.0F, 5.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, -10.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_right_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-4.0F, 15.0F, 14.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(25.0F, 18.0F, 35.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, -40.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-8.0F, -78.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.7F, KeyframeAnimations.degreeVec(-40.0F, -35.0F, 20.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(-95.0F, -70.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(0.0F, 10.0F, 8.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, 85.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 160.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
 			new Keyframe(0.4F, KeyframeAnimations.degreeVec(0.0F, 5.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.7F, KeyframeAnimations.degreeVec(0.0F, -10.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(1.2F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("leg_left", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(60.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
@@ -797,60 +783,56 @@ public class AurorafowlAnimation {
 			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_left_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-5.0F, 82.0F, -18.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.22F, KeyframeAnimations.degreeVec(5.0F, 60.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.32F, KeyframeAnimations.degreeVec(15.0F, 65.0F, -20.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(-5.0F, 82.0F, -18.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-80.0F, 75.0F, -26.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.22F, KeyframeAnimations.degreeVec(-60.0F, 60.0F, -20.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.32F, KeyframeAnimations.degreeVec(-50.0F, 65.0F, -20.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(-80.0F, 75.0F, -26.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -165.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.22F, KeyframeAnimations.degreeVec(0.0F, -120.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.32F, KeyframeAnimations.degreeVec(0.0F, -140.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, -165.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_lu_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_left_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-8.0F, 78.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(-8.0F, 78.0F, -15.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-95.0F, 70.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(-95.0F, 70.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -160.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, -160.0F, 4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ll_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 15.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_right_upper", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-5.0F, -82.0F, 18.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.22F, KeyframeAnimations.degreeVec(5.0F, -60.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.32F, KeyframeAnimations.degreeVec(15.0F, -65.0F, 20.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(-5.0F, -82.0F, 18.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-80.0F, -75.0F, 26.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.22F, KeyframeAnimations.degreeVec(-60.0F, -60.0F, 20.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.32F, KeyframeAnimations.degreeVec(-50.0F, -65.0F, 20.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(-80.0F, -75.0F, 26.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 165.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.22F, KeyframeAnimations.degreeVec(0.0F, 120.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.32F, KeyframeAnimations.degreeVec(0.0F, 140.0F, 5.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 165.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_ru_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 3.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_right_lower", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-8.0F, -78.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(-8.0F, -78.0F, 15.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-95.0F, -70.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(-95.0F, -70.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_mid", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 160.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 160.0F, -4.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.addAnimation("wing_rl_tip", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, -15.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM)
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
 		))
 		.build();
 
