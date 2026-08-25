@@ -1,10 +1,13 @@
 ## Build 000-1-26-237
 
+### Astral Mirror Fixes
+- **Constellation Line Rendering**: Fixed stretched and distorted lines in the Astral Mirror reflections by ensuring constellation connections are only drawn between stars on the same reflection plane.
+
 ### Mob Polish & Flight Refinements
-- **Aurorafowl Ground Stance & Wing Folding**: The Aurorafowl now neatly folds its wings against its body while standing, idling, or walking on the ground.
-- **Flight Transitions**: Aurorafowl now unfolds its wings when taking off into the air and smoothly folds them back upon touching down.
-- **Thermal Circling & Glide Momentum**: In mid-air, the Aurorafowl maintains steady forward glide speed and banks in gentle circles across the sky when idling rather than stalling in place.
-- **Fall Damage Immunity**: Aurorafowl no longer takes any fall damage.
+- **Aurorafowl Wing Membranes & Ground Stance**: Wings and flight membranes now fold flat against the bird's body on the ground with precise offsets to prevent any Z-fighting or clipping.
+- **Sinusoidal Air Gliding**: Airborne idling now features smooth, gentle wave oscillations across the wings and wingtips as the bird rides thermals.
+- **Climbing Flap Animation**: The bird now uses an active flapping animation whenever it climbs to gain height or sprints, seamlessly transitioning into a thermal glide once level flight is reached.
+- **Flight Transitions & Safety**: Unfolds wings when taking off, flares and folds them smoothly on touchdown, and takes no fall damage.
 - **Geyser Wiggle-Worm Scale & Texture**: Restored the original high-resolution volcanic texture and scaled the worm to 1.75x with an expanded hitbox to reflect its true leviathan size in-game.
 
 ## Build 000-1-26-236

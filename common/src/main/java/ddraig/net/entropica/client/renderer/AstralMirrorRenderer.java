@@ -826,7 +826,9 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                             (u1, v1, a1, wx1, wy1, wz1, d1, b1) -> {
                                                 projectCelestialVectorMultiBounce(app2, fc, state, enableParallaxDepth, 0.25, enableLiquidRefraction, animTime, 200.0,
                                                         (u2, v2, a2, wx2, wy2, wz2, d2, b2) -> {
-                                                            renderLiangBarskyClippedLine(consumer, mat, fc, u1, v1, u2, v2, 0.0013f, 0.012f, r, g, b, lineAlpha * (a1 + a2) * 0.5f, light, overlay);
+                                                            if (b1 == b2) {
+                                                                renderLiangBarskyClippedLine(consumer, mat, fc, u1, v1, u2, v2, 0.0013f, 0.012f, r, g, b, lineAlpha * (a1 + a2) * 0.5f, light, overlay);
+                                                            }
                                                         }
                                                 );
                                             }
@@ -899,7 +901,8 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
 
         // 2. Secondary Reflection (2 Bounces: Sky -> P2 -> F1 -> Cam)
         if (!fc.secondaryPlanes.isEmpty()) {
-            for (SecondaryPlane p2 : fc.secondaryPlanes) {
+            for (int pIdx = 0; pIdx < fc.secondaryPlanes.size(); pIdx++) {
+                SecondaryPlane p2 = fc.secondaryPlanes.get(pIdx);
                 Vector3f n2 = getFaceNormal(p2.normal);
                 float dot2 = app.x * n2.x + app.y * n2.y + app.z * n2.z;
                 if (dot2 > 0.005f) {
@@ -962,7 +965,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                         waveU = (float) (wx * fc.uDirX + wz * fc.uDirZ);
                                         waveV = (float) (wx * fc.vDirX + wz * fc.vDirZ);
                                     }
-                                    consumer.accept((float) (rawU + waveU), (float) (rawV + waveV), 0.88f, s1WorldX, s1WorldY, s1WorldZ, fc.camDist + t2, 2);
+                                    consumer.accept((float) (rawU + waveU), (float) (rawV + waveV), 0.88f, s1WorldX, s1WorldY, s1WorldZ, fc.camDist + t2, 100 + pIdx);
                                 }
                             }
                         }
@@ -973,7 +976,8 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
 
         // 3. Three-Way Corner Reflection (3 Bounces: Sky -> P3 -> P2 -> F1 -> Cam)
         if (!fc.cornerPlanes.isEmpty()) {
-            for (CornerPair cp : fc.cornerPlanes) {
+            for (int cIdx = 0; cIdx < fc.cornerPlanes.size(); cIdx++) {
+                CornerPair cp = fc.cornerPlanes.get(cIdx);
                 Vector3f n2 = getFaceNormal(cp.p2.normal);
                 Vector3f n3 = getFaceNormal(cp.p3.normal);
                 float dot3 = app.x * n3.x + app.y * n3.y + app.z * n3.z;
@@ -1059,7 +1063,7 @@ public class AstralMirrorRenderer implements BlockEntityRenderer<AstralMirrorBlo
                                                 waveU = (float) (wx * fc.uDirX + wz * fc.uDirZ);
                                                 waveV = (float) (wx * fc.vDirX + wz * fc.vDirZ);
                                             }
-                                            consumer.accept((float) (rawU + waveU), (float) (rawV + waveV), 0.77f, s1WorldX, s1WorldY, s1WorldZ, fc.camDist + t2 + t3, 3);
+                                            consumer.accept((float) (rawU + waveU), (float) (rawV + waveV), 0.77f, s1WorldX, s1WorldY, s1WorldZ, fc.camDist + t2 + t3, 200 + cIdx);
                                         }
                                     }
                                 }

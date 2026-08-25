@@ -298,8 +298,12 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
             this.takingOffAnimationState.stop();
             this.landingAnimationState.stop();
 
-            boolean flapping = this.getDeltaMovement().horizontalDistanceSqr() > 0.08D;
-            if (flapping) {
+            // Flapping when climbing / gaining height (vy > 0.015D) or sprinting fast (> 0.12D)
+            boolean isClimbing = this.getDeltaMovement().y > 0.015D;
+            boolean isSprinting = this.getDeltaMovement().horizontalDistanceSqr() > 0.12D;
+            boolean isFlapping = isClimbing || isSprinting;
+
+            if (isFlapping) {
                 this.idleFlightAnimationState.stop();
                 this.flyingAnimationState.startIfStopped(this.tickCount);
             } else {
