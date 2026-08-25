@@ -36,21 +36,8 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Entropica-Jars
-          path: |
-            fabric/build/libs/Entropica-fabric-*.jar
-            neoforge/build/libs/Entropica-neoforge-*.jar
-            !**/*-dev-shadow.jar
-
       - name: Extract Release Metadata & Notes
         id: meta
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
         run: |
           SHA_SHORT=$(git rev-parse --short HEAD)
           echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
@@ -88,6 +75,18 @@ jobs:
           if [ ! -s release_notes.txt ]; then
             git log -1 --pretty=format:"### Commit Summary%n%s%n%n%b" > release_notes.txt
           fi
+
+      - name: Build with Gradle
+        run: ./gradlew build -PbuildNumber="${{ steps.meta.outputs.release_tag }}"
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Entropica-Jars
+          path: |
+            fabric/build/libs/Entropica-fabric-*.jar
+            neoforge/build/libs/Entropica-neoforge-*.jar
+            !**/*-dev-shadow.jar
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2

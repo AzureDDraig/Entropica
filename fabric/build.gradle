@@ -45,12 +45,26 @@ dependencies {
 
 tasks.register('deploy', Copy) {
     dependsOn remapJar
+    doFirst {
+        file("C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods").listFiles()?.each { f ->
+            if (f.name.startsWith("Entropica-fabric-") && f.name.endsWith(".jar")) {
+                f.delete()
+            }
+        }
+    }
     from remapJar.archiveFile
     into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods"
 }
 
 tasks.register('deploytoDev', Copy) {
     dependsOn remapJar
+    doFirst {
+        file("C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods").listFiles()?.each { f ->
+            if (f.name.startsWith("Entropica-fabric-") && f.name.endsWith(".jar")) {
+                f.delete()
+            }
+        }
+    }
     from remapJar.archiveFile
     into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods"
 }
@@ -74,6 +88,6 @@ shadowJar {
 
 remapJar {
     inputFile.set(shadowJar.archiveFile)
-    archiveFileName = "Entropica-fabric-${project.version}.jar"
+    archiveFileName = "Entropica-fabric-${project.version}${rootProject.ext.jarSuffix}.jar"
     dependsOn shadowJar
 }

@@ -11,6 +11,44 @@ architectury {
 group = mod_group_id
 version = mod_version
 
+def getBuildNumber() {
+    if (project.hasProperty("buildNumber") && project.property("buildNumber").toString().trim()) {
+        return project.property("buildNumber").toString().trim()
+    }
+    if (project.hasProperty("build_number") && project.property("build_number").toString().trim()) {
+        return project.property("build_number").toString().trim()
+    }
+    if (System.getenv("BUILD_NUMBER") != null && !System.getenv("BUILD_NUMBER").isEmpty()) {
+        return System.getenv("BUILD_NUMBER").trim()
+    }
+    File changelogFile = rootProject.file("changelog.md")
+    if (changelogFile.exists()) {
+        def line = changelogFile.readLines().find { it.startsWith("## Build ") }
+        if (line) {
+            return line.replace("## Build ", "").trim()
+        }
+    }
+    if (project.hasProperty("mod_version_major") && project.hasProperty("mod_version_build")) {
+        return "${project.property('mod_version_major')}-${project.property('mod_version_build')}"
+    }
+    return "dev"
+}
+
+ext.buildNumber = getBuildNumber()
+
+def getJarSuffix() {
+    def bn = ext.buildNumber.toString().trim()
+    if (bn.startsWith("v") || bn.startsWith("V")) {
+        return "-${bn}"
+    } else if (bn.toLowerCase().startsWith("build-") || bn.toLowerCase().startsWith("build_")) {
+        return "-${bn}"
+    } else {
+        return "-build-${bn}"
+    }
+}
+
+ext.jarSuffix = getJarSuffix()
+
 subprojects {
     group = mod_group_id
     version = mod_version

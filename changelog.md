@@ -21,6 +21,7 @@
 
 ### Automated Builds & GitHub Deployment
 - Configured automated GitHub releases for Fabric and NeoForge on every push.
+- Mod jar archives now have the active build number automatically appended to their filenames (`Entropica-fabric-<version>-build-<buildNumber>.jar` and `Entropica-neoforge-<version>-build-<buildNumber>.jar`).
 - Fixed GitHub documentation deployment and added clean static page hosting.
 
 

@@ -40,12 +40,26 @@ dependencies {
 
 tasks.register('deploy', Copy) {
     dependsOn remapJar
+    doFirst {
+        file("C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevNF/mods").listFiles()?.each { f ->
+            if (f.name.startsWith("Entropica-neoforge-") && f.name.endsWith(".jar")) {
+                f.delete()
+            }
+        }
+    }
     from remapJar.archiveFile
     into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevNF/mods"
 }
 
 tasks.register('deploytoDev', Copy) {
     dependsOn remapJar
+    doFirst {
+        file("C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevNF/mods").listFiles()?.each { f ->
+            if (f.name.startsWith("Entropica-neoforge-") && f.name.endsWith(".jar")) {
+                f.delete()
+            }
+        }
+    }
     from remapJar.archiveFile
     into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevNF/mods"
 }
@@ -75,7 +89,7 @@ shadowJar {
 
 remapJar {
     inputFile.set(shadowJar.archiveFile)
-    archiveFileName = "Entropica-neoforge-${project.version}.jar"
+    archiveFileName = "Entropica-neoforge-${project.version}${rootProject.ext.jarSuffix}.jar"
     dependsOn shadowJar
 }
 
