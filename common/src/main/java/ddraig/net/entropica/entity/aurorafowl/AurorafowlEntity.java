@@ -70,11 +70,12 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createMobAttributes()
+        return Animal.createAnimalAttributes()
                 .add(Attributes.MAX_HEALTH, 16.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.22D)
                 .add(Attributes.FLYING_SPEED, 0.40D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
+                .add(Attributes.TEMPT_RANGE, 16.0D)
                 .add(Attributes.ATTACK_DAMAGE, 3.0D);
     }
 
