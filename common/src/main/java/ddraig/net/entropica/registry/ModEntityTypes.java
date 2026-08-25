@@ -179,7 +179,7 @@ public class ModEntityTypes {
     public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.geyser_wiggle_worm.GeyserWiggleWormEntity>> GEYSER_WIGGLE_WORM =
             ENTITY_TYPES.register("geyser_wiggle_worm",
                     () -> EntityType.Builder.<ddraig.net.entropica.entity.geyser_wiggle_worm.GeyserWiggleWormEntity>of(ddraig.net.entropica.entity.geyser_wiggle_worm.GeyserWiggleWormEntity::new, MobCategory.MONSTER)
-                            .sized(1.1F, 0.9F)
+                            .sized(1.6F, 1.2F)
                             .clientTrackingRange(10)
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,

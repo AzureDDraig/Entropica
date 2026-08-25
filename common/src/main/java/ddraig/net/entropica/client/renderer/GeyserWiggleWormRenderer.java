@@ -1,5 +1,6 @@
 package ddraig.net.entropica.client.renderer;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.entity.geyser_wiggle_worm.GeyserWiggleWormEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -10,7 +11,7 @@ public class GeyserWiggleWormRenderer extends MobRenderer<GeyserWiggleWormEntity
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "textures/entity/geyser_wiggle_worm/geyser_wiggle_worm.png");
 
     public GeyserWiggleWormRenderer(EntityRendererProvider.Context context) {
-        super(context, new GeyserWiggleWormModel(context.bakeLayer(GeyserWiggleWormModel.LAYER_LOCATION)), 0.6F);
+        super(context, new GeyserWiggleWormModel(context.bakeLayer(GeyserWiggleWormModel.LAYER_LOCATION)), 1.0F);
     }
 
     @Override
@@ -29,6 +30,12 @@ public class GeyserWiggleWormRenderer extends MobRenderer<GeyserWiggleWormEntity
         state.isVentingSteam = entity.isVentingSteam();
         state.isRearingUp = entity.isRearingUp();
         state.isAttacking = entity.isAttacking();
+    }
+
+    @Override
+    protected void scale(GeyserWiggleWormRenderState state, PoseStack poseStack) {
+        super.scale(state, poseStack);
+        poseStack.scale(1.75F, 1.75F, 1.75F);
     }
 
     @Override

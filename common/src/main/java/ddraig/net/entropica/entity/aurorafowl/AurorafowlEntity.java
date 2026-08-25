@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -42,6 +43,8 @@ import java.util.EnumSet;
 public class AurorafowlEntity extends Animal implements FlyingAnimal {
 
     private static final EntityDataAccessor<Boolean> IS_FLYING = SynchedEntityData.defineId(AurorafowlEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_TAKING_OFF = SynchedEntityData.defineId(AurorafowlEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_LANDING = SynchedEntityData.defineId(AurorafowlEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_SHEARED = SynchedEntityData.defineId(AurorafowlEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_ATTACKING = SynchedEntityData.defineId(AurorafowlEntity.class, EntityDataSerializers.BOOLEAN);
 
@@ -57,6 +60,9 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
     private final FlyingPathNavigation flyingNavigation;
     private final GroundPathNavigation groundNavigation;
     public int flightTimer = 0;
+    private int takeoffTimer = 0;
+    private int landingTimer = 0;
+    private float circleDirection = 1.0F;
     private int shearCooldown = 0;
     private int attackTimer = 0;
 
@@ -67,6 +73,7 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
         this.moveControl = new FlyingMoveControl(this, 10, false);
         this.setPathfindingMalus(PathType.DANGER_FIRE, -1.0F);
         this.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.circleDirection = this.random.nextBoolean() ? 1.0F : -1.0F;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -83,6 +90,8 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(IS_FLYING, false);
+        builder.define(IS_TAKING_OFF, false);
+        builder.define(IS_LANDING, false);
         builder.define(IS_SHEARED, false);
         builder.define(IS_ATTACKING, false);
     }
@@ -94,7 +103,7 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
             @Override
             public void start() {
                 super.start();
-                AurorafowlEntity.this.setFlying(true);
+                AurorafowlEntity.this.startTakeoff();
             }
         });
         this.goalSelector.addGoal(2, new BreedGoal(this, 1.0D));
@@ -115,6 +124,42 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
         this.setNoGravity(flying);
     }
 
+    public boolean isTakingOff() {
+        return this.entityData.get(IS_TAKING_OFF);
+    }
+
+    public void setTakingOff(boolean takingOff) {
+        this.entityData.set(IS_TAKING_OFF, takingOff);
+    }
+
+    public boolean isLanding() {
+        return this.entityData.get(IS_LANDING);
+    }
+
+    public void setLanding(boolean landing) {
+        this.entityData.set(IS_LANDING, landing);
+    }
+
+    public void startTakeoff() {
+        if (!this.isFlying() && !this.isTakingOff()) {
+            this.setFlying(true);
+            this.setTakingOff(true);
+            this.setLanding(false);
+            this.takeoffTimer = 24;
+            this.flightTimer = 0;
+            this.circleDirection = this.random.nextBoolean() ? 1.0F : -1.0F;
+            this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.45D, 0.0D));
+        }
+    }
+
+    public void startLanding() {
+        if (this.isFlying() && !this.isLanding()) {
+            this.setLanding(true);
+            this.setTakingOff(false);
+            this.landingTimer = 24;
+        }
+    }
+
     public boolean isSheared() {
         return this.entityData.get(IS_SHEARED);
     }
@@ -129,6 +174,16 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
 
     public void setAttacking(boolean attacking) {
         this.entityData.set(IS_ATTACKING, attacking);
+    }
+
+    @Override
+    public boolean causeFallDamage(double fallDistance, float multiplier, DamageSource source) {
+        return false;
+    }
+
+    @Override
+    protected void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) {
+        // Aurorafowl glides on thermals and does not take fall damage
     }
 
     @Override
@@ -160,23 +215,60 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
             }
         }
 
-        if (this.isFlying()) {
-            if (this.onGround() && this.flightTimer > 100) {
-                this.setFlying(false);
-                this.flightTimer = 0;
-            } else {
-                this.flightTimer++;
+        if (!this.level().isClientSide()) {
+            if (this.isTakingOff()) {
+                this.takeoffTimer--;
+                if (this.takeoffTimer <= 0) {
+                    this.setTakingOff(false);
+                }
+            } else if (this.isLanding()) {
+                this.landingTimer--;
                 Vec3 motion = this.getDeltaMovement();
-                if (!this.isNoGravity()) {
-                    this.setNoGravity(true);
+                this.setDeltaMovement(motion.x * 0.92D, -0.06D, motion.z * 0.92D);
+                if (this.onGround() || this.landingTimer <= 0) {
+                    this.setLanding(false);
+                    this.setFlying(false);
+                    this.flightTimer = 0;
                 }
-                if (motion.y < -0.05) {
-                    this.setDeltaMovement(motion.x, motion.y * 0.6D, motion.z);
+            } else if (this.isFlying()) {
+                this.flightTimer++;
+                if (this.onGround() && this.flightTimer > 60) {
+                    this.startLanding();
+                } else if (this.flightTimer > 400 && this.random.nextInt(60) == 0) {
+                    this.startLanding();
+                } else {
+                    if (!this.isNoGravity()) {
+                        this.setNoGravity(true);
+                    }
+
+                    // Continuous forward gliding / circling when idling in mid-air
+                    if (this.getNavigation().isDone() || this.getNavigation().getTargetPos() == null) {
+                        this.setYRot(this.getYRot() + this.circleDirection * 1.2F);
+                        this.yBodyRot = this.getYRot();
+                        this.yHeadRot = this.getYRot();
+
+                        float yawRad = this.getYRot() * Mth.DEG_TO_RAD;
+                        double speed = 0.22D;
+                        double vx = -Mth.sin(yawRad) * speed;
+                        double vz = Mth.cos(yawRad) * speed;
+                        double vy = this.getDeltaMovement().y;
+
+                        if (vy < -0.03D) {
+                            vy = -0.015D;
+                        }
+                        vy += Math.sin((this.tickCount + this.getId()) * 0.05D) * 0.008D;
+                        this.setDeltaMovement(vx, vy, vz);
+                    } else {
+                        Vec3 motion = this.getDeltaMovement();
+                        if (motion.y < -0.04D) {
+                            this.setDeltaMovement(motion.x, -0.02D, motion.z);
+                        }
+                    }
                 }
-            }
-        } else {
-            if (this.isNoGravity()) {
-                this.setNoGravity(false);
+            } else {
+                if (this.isNoGravity()) {
+                    this.setNoGravity(false);
+                }
             }
         }
 
@@ -186,13 +278,28 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
     }
 
     private void setupAnimationStates() {
-        boolean flying = this.isFlying() || !this.onGround();
-        boolean moving = this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4D;
-
-        if (flying) {
+        if (this.isTakingOff()) {
             this.idleGroundAnimationState.stop();
             this.walkAnimationState.stop();
-            if (moving) {
+            this.idleFlightAnimationState.stop();
+            this.flyingAnimationState.stop();
+            this.landingAnimationState.stop();
+            this.takingOffAnimationState.startIfStopped(this.tickCount);
+        } else if (this.isLanding()) {
+            this.idleGroundAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.idleFlightAnimationState.stop();
+            this.flyingAnimationState.stop();
+            this.takingOffAnimationState.stop();
+            this.landingAnimationState.startIfStopped(this.tickCount);
+        } else if (this.isFlying() || !this.onGround()) {
+            this.idleGroundAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.takingOffAnimationState.stop();
+            this.landingAnimationState.stop();
+
+            boolean flapping = this.getDeltaMovement().horizontalDistanceSqr() > 0.08D;
+            if (flapping) {
                 this.idleFlightAnimationState.stop();
                 this.flyingAnimationState.startIfStopped(this.tickCount);
             } else {
@@ -202,6 +309,10 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
         } else {
             this.idleFlightAnimationState.stop();
             this.flyingAnimationState.stop();
+            this.takingOffAnimationState.stop();
+            this.landingAnimationState.stop();
+
+            boolean moving = this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4D;
             if (moving) {
                 this.idleGroundAnimationState.stop();
                 this.walkAnimationState.startIfStopped(this.tickCount);
@@ -212,7 +323,7 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
         }
 
         if (this.isAttacking()) {
-            if (flying) {
+            if (this.isFlying() || !this.onGround()) {
                 this.attackFlyingAnimationState.startIfStopped(this.tickCount);
             } else {
                 this.attackGroundAnimationState.startIfStopped(this.tickCount);
@@ -302,17 +413,17 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
 
         @Override
         public boolean canUse() {
-            return this.fowl.getRandom().nextInt(100) == 0 && !this.fowl.isFlying() && !this.fowl.isInWater();
+            return this.fowl.getRandom().nextInt(120) == 0 && !this.fowl.isFlying() && !this.fowl.isInWater();
         }
 
         @Override
         public boolean canContinueToUse() {
-            return this.fowl.isFlying() && this.fowl.flightTimer < 300;
+            return this.fowl.isFlying() && this.fowl.flightTimer < 350;
         }
 
         @Override
         public void start() {
-            this.fowl.setFlying(true);
+            this.fowl.startTakeoff();
             RandomSource rand = this.fowl.getRandom();
             double dx = this.fowl.getX() + (rand.nextDouble() * 32.0D - 16.0D);
             double dy = this.fowl.getY() + (rand.nextDouble() * 16.0D + 6.0D);

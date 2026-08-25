@@ -1,3 +1,12 @@
+## Build 000-1-26-237
+
+### Mob Polish & Flight Refinements
+- **Aurorafowl Ground Stance & Wing Folding**: The Aurorafowl now neatly folds its wings against its body while standing, idling, or walking on the ground.
+- **Flight Transitions**: Aurorafowl now unfolds its wings when taking off into the air and smoothly folds them back upon touching down.
+- **Thermal Circling & Glide Momentum**: In mid-air, the Aurorafowl maintains steady forward glide speed and banks in gentle circles across the sky when idling rather than stalling in place.
+- **Fall Damage Immunity**: Aurorafowl no longer takes any fall damage.
+- **Geyser Wiggle-Worm Scale & Texture**: Restored the original high-resolution volcanic texture and scaled the worm to 1.75x with an expanded hitbox to reflect its true leviathan size in-game.
+
 ## Build 000-1-26-236
 
 ### Astral Multiblocks & Starlight Networks
