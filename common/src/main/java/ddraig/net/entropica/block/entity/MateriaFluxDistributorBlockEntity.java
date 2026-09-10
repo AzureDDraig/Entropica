@@ -5,6 +5,7 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.api.materia.IVaporHandler;
 import ddraig.net.entropica.api.materia.MateriaFumusStack;
 import ddraig.net.entropica.api.materia.MateriaStack;
+import ddraig.net.entropica.item.AstralCrystalItem;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModItems;
 import net.minecraft.core.BlockPos;
@@ -24,10 +25,15 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IVaporHandler {
 
     private int tier = 1; // Tiers 1 to 3
+    private final List<BlockPos> cachedPedestals = new ArrayList<>();
+    private final List<BlockPos> cachedWirelessReceivers = new ArrayList<>();
+    private int storedFlux = 0;
     private MateriaFumusStack storedFume = MateriaFumusStack.EMPTY;
     private int animationTicks = 0;
 
@@ -37,6 +43,19 @@ public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IV
 
     public int getDistributorTier() {
         return tier;
+    }
+
+    public int getStoredFlux() {
+        return storedFlux;
+    }
+
+    public void receiveFluxBeam(int flux) {
+        if (flux <= 0) return;
+        this.storedFlux = Math.min(getMaxCapacity(), this.storedFlux + flux);
+        setChanged();
+        if (level != null && !level.isClientSide() && level.getGameTime() % 20 == 0) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
     }
 
     public boolean upgradeTier() {
@@ -93,7 +112,24 @@ public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IV
             }
         }
 
-        // 2. Wireless Materia-Flux Distribution to Inscribed Astral Crystals
+        // 2. Refresh cached pedestals and wireless flux receivers periodically
+        if (level.getGameTime() % 100 == 0) {
+            be.cachedPedestals.clear();
+            be.cachedWirelessReceivers.clear();
+            int scanR = Math.min(be.getDistributionRadius(), 48);
+            BlockPos minP = pos.offset(-scanR, -16, -scanR);
+            BlockPos maxP = pos.offset(scanR, 16, scanR);
+            for (BlockPos p : BlockPos.betweenClosed(minP, maxP)) {
+                BlockEntity targetBe = level.getBlockEntity(p);
+                if (targetBe instanceof AttunementPedestalBlockEntity) {
+                    be.cachedPedestals.add(p.immutable());
+                } else if (targetBe instanceof ddraig.net.entropica.api.starlight.IWirelessFluxReceiver) {
+                    be.cachedWirelessReceivers.add(p.immutable());
+                }
+            }
+        }
+
+        // 3. Wireless Materia-Flux Distribution to Inscribed Astral Crystals & Cosmetic Receivers
         if (be.getStoredAmount() > 0 && level.getGameTime() % 10 == 0) {
             int radius = be.getDistributionRadius();
             int transferRate = switch (be.tier) {
@@ -104,7 +140,7 @@ public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IV
 
             AABB searchBox = new AABB(pos).inflate(radius);
 
-            // Target search: scan players in area with crystals
+            // Target search 1: scan players in area with crystals
             for (Player player : level.getEntitiesOfClass(Player.class, searchBox)) {
                 if (be.getStoredAmount() <= 0) break;
                 for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
@@ -112,6 +148,38 @@ public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IV
                     if (chargeCrystalStack(stack, be, transferRate, level, pos, player.blockPosition())) {
                         changed = true;
                         if (be.getStoredAmount() <= 0) break;
+                    }
+                }
+            }
+
+            // Target search 2: scan nearby cached Attunement Pedestals
+            if (be.getStoredAmount() > 0) {
+                for (BlockPos pPos : be.cachedPedestals) {
+                    if (be.getStoredAmount() <= 0) break;
+                    if (pos.distSqr(pPos) <= (radius * radius)) {
+                        BlockEntity pBe = level.getBlockEntity(pPos);
+                        if (pBe instanceof AttunementPedestalBlockEntity pedestal) {
+                            ItemStack pStack = pedestal.getHeldItem();
+                            if (chargeCrystalStack(pStack, be, transferRate, level, pos, pPos)) {
+                                pedestal.setChanged();
+                                level.sendBlockUpdated(pPos, pedestal.getBlockState(), pedestal.getBlockState(), 3);
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Target search 3: broadcast wireless starlight flux to nearby cosmetic & functional receivers
+            if (be.getStoredAmount() > 0 && !be.cachedWirelessReceivers.isEmpty()) {
+                EssenceType distEssence = !be.storedFume.isEmpty() ? be.storedFume.getType() : EssenceType.ASTRAL;
+                String starName = distEssence != null ? distEssence.name() : "Astral";
+                for (BlockPos rPos : be.cachedWirelessReceivers) {
+                    if (pos.distSqr(rPos) <= (radius * radius)) {
+                        BlockEntity rBe = level.getBlockEntity(rPos);
+                        if (rBe instanceof ddraig.net.entropica.api.starlight.IWirelessFluxReceiver receiver) {
+                            receiver.receiveFluxPulse(starName, distEssence);
+                        }
                     }
                 }
             }
@@ -126,23 +194,30 @@ public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IV
     private static boolean chargeCrystalStack(ItemStack stack, MateriaFluxDistributorBlockEntity be, int maxChargeAmount, Level level, BlockPos sourcePos, BlockPos targetPos) {
         if (stack.isEmpty() || !stack.is(ModItems.ASTRAL_CRYSTAL.get())) return false;
 
-        CompoundTag tag = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
-        if (!tag.contains("ConstellationId")) return false;
+        // Must be an inscribed crystal
+        if (AstralCrystalItem.getRitual(stack) == null) return false;
 
-        int crystalTier = Math.max(1, tag.getInt("Tier").orElse(1));
-        int maxCap = crystalTier * 2000;
-        int currentCharge = tag.getInt("Charge").orElse(0);
+        int maxCap = AstralCrystalItem.getMaxMateria(stack);
+        int currentCharge = AstralCrystalItem.getStoredMateria(stack);
 
         if (currentCharge < maxCap && be.getStoredAmount() > 0) {
             int needed = maxCap - currentCharge;
             int toTransfer = Math.min(needed, Math.min(maxChargeAmount, be.getStoredAmount()));
             if (toTransfer > 0) {
-                be.storedFume.shrink(toTransfer);
-                tag.putInt("Charge", currentCharge + toTransfer);
-                stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(tag));
+                // Drain from stored celestial flux first, then fallback to fumus
+                if (be.storedFlux >= toTransfer) {
+                    be.storedFlux -= toTransfer;
+                } else {
+                    int fromFlux = be.storedFlux;
+                    be.storedFlux = 0;
+                    be.storedFume.shrink(toTransfer - fromFlux);
+                }
+                AstralCrystalItem.setStoredMateria(stack, currentCharge + toTransfer);
+                be.setChanged();
 
                 if (level instanceof ServerLevel serverLevel) {
-                    serverLevel.sendParticles(ParticleTypes.ENCHANT, sourcePos.getX() + 0.5, sourcePos.getY() + 0.8, sourcePos.getZ() + 0.5, 4, 0.2, 0.2, 0.2, 0.05);
+                    serverLevel.sendParticles(ParticleTypes.ENCHANT, sourcePos.getX() + 0.5, sourcePos.getY() + 0.8, sourcePos.getZ() + 0.5, 3, 0.2, 0.2, 0.2, 0.05);
+                    serverLevel.sendParticles(ParticleTypes.END_ROD, targetPos.getX() + 0.5, targetPos.getY() + 1.1, targetPos.getZ() + 0.5, 2, 0.1, 0.1, 0.1, 0.02);
                 }
                 return true;
             }
@@ -151,7 +226,7 @@ public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IV
     }
 
     public int getStoredAmount() {
-        return this.storedFume.isEmpty() ? 0 : this.storedFume.getAmount();
+        return this.storedFlux + (this.storedFume.isEmpty() ? 0 : this.storedFume.getAmount());
     }
 
     // --- IVaporHandler Implementation ---
@@ -216,6 +291,7 @@ public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IV
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         output.store("Tier", Codec.INT, this.tier);
+        output.store("StoredFlux", Codec.INT, this.storedFlux);
         if (!this.storedFume.isEmpty()) {
             output.store("FumeType", Codec.STRING, this.storedFume.getType().name());
             output.store("FumeAmount", Codec.INT, this.storedFume.getAmount());
@@ -226,6 +302,7 @@ public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IV
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         input.read("Tier", Codec.INT).ifPresent(t -> this.tier = t);
+        this.storedFlux = input.read("StoredFlux", Codec.INT).orElse(0);
         if (input.read("FumeType", Codec.STRING).isPresent() && input.read("FumeAmount", Codec.INT).isPresent()) {
             String typeStr = input.read("FumeType", Codec.STRING).get();
             int amount = input.read("FumeAmount", Codec.INT).get();
@@ -243,6 +320,7 @@ public class MateriaFluxDistributorBlockEntity extends BlockEntity implements IV
     public CompoundTag getUpdateTag(HolderLookup.Provider p) {
         CompoundTag tag = super.getUpdateTag(p);
         tag.putInt("Tier", this.tier);
+        tag.putInt("StoredFlux", this.storedFlux);
         tag.putInt("FumeAmount", getStoredAmount());
         if (!this.storedFume.isEmpty()) {
             tag.putString("FumeType", this.storedFume.getType().name());

@@ -108,5 +108,11 @@ public class EntropicaClient {
                 ddraig.net.entropica.client.LookingGlassOverlayRenderer.render(guiGraphics, deltaTracker.getGameTimeDeltaTicks());
             }
         );
+        event.registerAboveAll(
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "gravity_shimmer"),
+            (guiGraphics, deltaTracker) -> {
+                ddraig.net.entropica.client.renderer.GravityScreenShimmerRenderer.render(guiGraphics, deltaTracker.getGameTimeDeltaTicks());
+            }
+        );
     }
 }

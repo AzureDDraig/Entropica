@@ -124,10 +124,11 @@ public class AstralLinkingWandItem extends Item {
             // Perform linking logic based on source block entity
             BlockEntity sourceBE = level.getBlockEntity(sourcePos);
             boolean linked = false;
+            double targetCenterY = getTargetCenterY(level, clickedPos);
 
             if (sourceBE instanceof RefractiveAstralLensBlockEntity lensBE) {
                 double dx = (clickedPos.getX() + 0.5) - (sourcePos.getX() + 0.5);
-                double dy = (clickedPos.getY() + 0.5) - (sourcePos.getY() + 0.5625);
+                double dy = (clickedPos.getY() + targetCenterY) - (sourcePos.getY() + 0.5625);
                 double dz = (clickedPos.getZ() + 0.5) - (sourcePos.getZ() + 0.5);
                 double distXZ = Math.sqrt(dx * dx + dz * dz);
 
@@ -144,7 +145,7 @@ public class AstralLinkingWandItem extends Item {
                 linked = true;
             } else if (sourceBE instanceof ddraig.net.entropica.block.entity.SecondaryAstralLensBlockEntity secondaryLensBE) {
                 double dx = (clickedPos.getX() + 0.5) - (sourcePos.getX() + 0.5);
-                double dy = (clickedPos.getY() + 0.5) - (sourcePos.getY() + 0.5625);
+                double dy = (clickedPos.getY() + targetCenterY) - (sourcePos.getY() + 0.5625);
                 double dz = (clickedPos.getZ() + 0.5) - (sourcePos.getZ() + 0.5);
                 double distXZ = Math.sqrt(dx * dx + dz * dz);
 
@@ -226,5 +227,21 @@ public class AstralLinkingWandItem extends Item {
         else if (yaw >= 202.5f && yaw < 247.5f) return "Southwest";
         else if (yaw >= 247.5f && yaw < 292.5f) return "West";
         else return "Northwest";
+    }
+
+    public static double getTargetCenterY(Level level, BlockPos pos) {
+        if (level != null && pos != null) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof AstralCollectorBlockEntity) {
+                return 1.25; // Top middle of the collector where the crystal sits
+            } else if (be instanceof ddraig.net.entropica.block.entity.AstralAltarCoreBlockEntity) {
+                return 1.25; // Floating celestial disc
+            } else if (be instanceof ddraig.net.entropica.block.entity.AstralInfusionPedestalBlockEntity) {
+                return 1.1; // Top transmutation bowl
+            } else if (be instanceof ddraig.net.entropica.block.entity.SecondaryAstralLensBlockEntity || be instanceof RefractiveAstralLensBlockEntity) {
+                return 0.5625; // Lens gimbal center
+            }
+        }
+        return 0.5;
     }
 }

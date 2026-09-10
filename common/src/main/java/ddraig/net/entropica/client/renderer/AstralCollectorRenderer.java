@@ -3,11 +3,13 @@ package ddraig.net.entropica.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.block.entity.AstralCollectorBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.util.Mth;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
@@ -33,7 +35,7 @@ public class AstralCollectorRenderer implements BlockEntityRenderer<AstralCollec
     }
 
     public AABB getRenderBoundingBox(AstralCollectorBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(64.0, 64.0, 64.0);
+        return new AABB(-30000000.0, -30000000.0, -30000000.0, 30000000.0, 30000000.0, 30000000.0);
     }
 
     @Override
@@ -65,6 +67,7 @@ public class AstralCollectorRenderer implements BlockEntityRenderer<AstralCollec
         state.hasCrystal = !be.getSocketedCrystal().isEmpty();
         state.originPos = be.getBlockPos();
         state.targetPos = be.getTargetPos();
+        state.storedEssence = be.getStoredEssence() != null ? be.getStoredEssence() : EssenceType.ASTRAL;
 
         if (state.hasCrystal && be.getLevel() != null) {
             int seed = be.getBlockPos().hashCode();
@@ -81,6 +84,15 @@ public class AstralCollectorRenderer implements BlockEntityRenderer<AstralCollec
         double gameTime = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
         double bob = Math.sin(gameTime * 0.06) * 0.04;
 
+        EssenceType essence = state.storedEssence != null ? state.storedEssence : EssenceType.ASTRAL;
+        int[] rgb = essence.getCurrentRGB(gameTime);
+        float r = rgb[0] / 255.0f;
+        float g = rgb[1] / 255.0f;
+        float b = rgb[2] / 255.0f;
+        float coreR = Mth.lerp(0.5f, r, 1.0f);
+        float coreG = Mth.lerp(0.5f, g, 1.0f);
+        float coreB = Mth.lerp(0.5f, b, 1.0f);
+
         // 1. Render Floating Socketed Crystal
         if (state.hasCrystal) {
             poseStack.pushPose();
@@ -94,8 +106,8 @@ public class AstralCollectorRenderer implements BlockEntityRenderer<AstralCollec
             collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
                 float pulse = 0.35f + (float) Math.sin(gameTime * 0.1) * 0.08f;
                 // Core Starburst Flare Cross
-                renderCrossBillboard(pose.pose(), consumer, 0.5f, (float) (1.20 + bob), 0.5f, pulse, 0.4f, 0.7f, 1.0f, 0.75f, light, overlay);
-                renderCrossBillboard(pose.pose(), consumer, 0.5f, (float) (1.20 + bob), 0.5f, pulse * 1.5f, 0.6f, 0.3f, 0.9f, 0.40f, light, overlay);
+                renderCrossBillboard(pose.pose(), consumer, 0.5f, (float) (1.20 + bob), 0.5f, pulse, coreR, coreG, coreB, 0.75f, light, overlay);
+                renderCrossBillboard(pose.pose(), consumer, 0.5f, (float) (1.20 + bob), 0.5f, pulse * 1.5f, r, g, b, 0.40f, light, overlay);
 
                 // 2. Collimated Starlight Beam towards target
                 if (state.isBeaming && state.targetPos != null && state.originPos != null) {
@@ -107,8 +119,8 @@ public class AstralCollectorRenderer implements BlockEntityRenderer<AstralCollec
                     float ty = (state.targetPos.getY() - state.originPos.getY()) + 1.25f;
                     float tz = (state.targetPos.getZ() - state.originPos.getZ()) + 0.5f;
 
-                    renderBeam(pose.pose(), consumer, sx, sy, sz, tx, ty, tz, 0.7f, 0.9f, 1.0f, 0.85f, 0.05f, light, overlay);
-                    renderBeam(pose.pose(), consumer, sx, sy, sz, tx, ty, tz, 0.4f, 0.7f, 1.0f, 0.45f, 0.12f, light, overlay);
+                    renderBeam(pose.pose(), consumer, sx, sy, sz, tx, ty, tz, coreR, coreG, coreB, 0.85f, 0.05f, light, overlay);
+                    renderBeam(pose.pose(), consumer, sx, sy, sz, tx, ty, tz, r, g, b, 0.45f, 0.12f, light, overlay);
                 }
             });
         }
@@ -129,10 +141,69 @@ public class AstralCollectorRenderer implements BlockEntityRenderer<AstralCollec
     }
 
     private static void renderBeam(Matrix4f pose, VertexConsumer consumer, float x1, float y1, float z1, float x2, float y2, float z2, float r, float g, float b, float a, float thickness, int light, int overlay) {
-        consumer.addVertex(pose, x1 - thickness, y1, z1).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex(pose, x1 + thickness, y1, z1).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex(pose, x2 + thickness, y2, z2).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex(pose, x2 - thickness, y2, z2).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float dz = z2 - z1;
+        float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len < 0.001f) return;
+
+        float ux = dx / len;
+        float uy = dy / len;
+        float uz = dz / len;
+
+        // Orthogonal vector 1
+        float px, py, pz;
+        if (Math.abs(uy) < 0.95f) {
+            px = -uz;
+            py = 0;
+            pz = ux;
+        } else {
+            px = 0;
+            py = -uz;
+            pz = uy;
+        }
+        float pLen = (float) Math.sqrt(px * px + py * py + pz * pz);
+        if (pLen > 0.0001f) {
+            px /= pLen;
+            py /= pLen;
+            pz /= pLen;
+        }
+
+        // Orthogonal vector 2 (cross u with p)
+        float qx = uy * pz - uz * py;
+        float qy = uz * px - ux * pz;
+        float qz = ux * py - uy * px;
+
+        int segments = 8;
+        for (int i = 0; i < segments; i++) {
+            double a1 = (i * 2.0 * Math.PI) / segments;
+            double a2 = ((i + 1) * 2.0 * Math.PI) / segments;
+
+            float cos1 = (float) Math.cos(a1) * thickness;
+            float sin1 = (float) Math.sin(a1) * thickness;
+            float cos2 = (float) Math.cos(a2) * thickness;
+            float sin2 = (float) Math.sin(a2) * thickness;
+
+            float ox1 = px * cos1 + qx * sin1;
+            float oy1 = py * cos1 + qy * sin1;
+            float oz1 = pz * cos1 + qz * sin1;
+
+            float ox2 = px * cos2 + qx * sin2;
+            float oy2 = py * cos2 + qy * sin2;
+            float oz2 = pz * cos2 + qz * sin2;
+
+            // Outer face
+            consumer.addVertex(pose, x1 + ox1, y1 + oy1, z1 + oz1).setColor(r, g, b, a).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(ox1, oy1, oz1);
+            consumer.addVertex(pose, x1 + ox2, y1 + oy2, z1 + oz2).setColor(r, g, b, a).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(ox2, oy2, oz2);
+            consumer.addVertex(pose, x2 + ox2, y2 + oy2, z2 + oz2).setColor(r, g, b, a).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(ox2, oy2, oz2);
+            consumer.addVertex(pose, x2 + ox1, y2 + oy1, z2 + oz1).setColor(r, g, b, a).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(ox1, oy1, oz1);
+
+            // Inner face (reverse winding so visible from inside)
+            consumer.addVertex(pose, x2 + ox1, y2 + oy1, z2 + oz1).setColor(r, g, b, a * 0.7f).setUv(0.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(-ox1, -oy1, -oz1);
+            consumer.addVertex(pose, x2 + ox2, y2 + oy2, z2 + oz2).setColor(r, g, b, a * 0.7f).setUv(1.0f, 1.0f).setOverlay(overlay).setLight(light).setNormal(-ox2, -oy2, -oz2);
+            consumer.addVertex(pose, x1 + ox2, y1 + oy2, z1 + oz2).setColor(r, g, b, a * 0.7f).setUv(1.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(-ox2, -oy2, -oz2);
+            consumer.addVertex(pose, x1 + ox1, y1 + oy1, z1 + oz1).setColor(r, g, b, a * 0.7f).setUv(0.0f, 0.0f).setOverlay(overlay).setLight(light).setNormal(-ox1, -oy1, -oz1);
+        }
     }
 
     public static class CollectorRenderState extends BlockEntityRenderState {
@@ -142,6 +213,7 @@ public class AstralCollectorRenderer implements BlockEntityRenderer<AstralCollec
         public boolean hasCrystal = false;
         public BlockPos originPos = null;
         public BlockPos targetPos = null;
+        public EssenceType storedEssence = EssenceType.ASTRAL;
         public final ItemStackRenderState crystalState = new ItemStackRenderState();
     }
 }

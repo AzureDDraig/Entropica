@@ -1,5 +1,6 @@
 {
   "credit": "Entropica Astral Materia Suite",
+  "render_type": "minecraft:cutout",
   "textures": {
     "particle": "entropica:block/pure_optic_fiber",
     "casing": "entropica:block/pure_optic_fiber"

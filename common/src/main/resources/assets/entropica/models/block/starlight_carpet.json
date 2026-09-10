@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/carpet",
+  "textures": {
+    "wool": "entropica:block/starlight_carpet",
+    "particle": "entropica:block/starlight_carpet"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "variants": {
+    "mode=zero_g,powered=false": { "model": "entropica:block/gravitational_anchor" },
+    "mode=zero_g,powered=true": { "model": "entropica:block/gravitational_anchor" },
+    "mode=lunar,powered=false": { "model": "entropica:block/gravitational_anchor" },
+    "mode=lunar,powered=true": { "model": "entropica:block/gravitational_anchor" },
+    "mode=inversion,powered=false": { "model": "entropica:block/gravitational_anchor" },
+    "mode=inversion,powered=true": { "model": "entropica:block/gravitational_anchor" },
+    "mode=singularity,powered=false": { "model": "entropica:block/gravitational_anchor" },
+    "mode=singularity,powered=true": { "model": "entropica:block/gravitational_anchor" },
+    "mode=grav_lift,powered=false": { "model": "entropica:block/gravitational_anchor" },
+    "mode=grav_lift,powered=true": { "model": "entropica:block/gravitational_anchor" },
+    "mode=repulsor,powered=false": { "model": "entropica:block/gravitational_anchor" },
+    "mode=repulsor,powered=true": { "model": "entropica:block/gravitational_anchor" },
+    "mode=tidal_pulse,powered=false": { "model": "entropica:block/gravitational_anchor" },
+    "mode=tidal_pulse,powered=true": { "model": "entropica:block/gravitational_anchor" }
+  }
+}

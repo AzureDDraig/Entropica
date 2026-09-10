@@ -85,27 +85,37 @@ public class AstralCollectorBlock extends BaseEntityBlock {
                     ItemStack inserted = heldStack.split(1);
                     collector.setSocketedCrystal(inserted);
                     level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_PLACE, SoundSource.BLOCKS, 1.0f, 1.4f);
-                    player.displayClientMessage(Component.literal("§a[Astral Collection Altar] §7Socketed §b" + inserted.getHoverName().getString()), true);
+
+                    BlockPos autoTarget = collector.findNearestTarget();
+                    if (autoTarget != null) {
+                        player.displayClientMessage(Component.literal("§a[Astral Collection Altar] §7Socketed §b" + inserted.getHoverName().getString() + " §7& automatically linked to §e(" + autoTarget.toShortString() + ")§7!"), true);
+                    } else {
+                        player.displayClientMessage(Component.literal("§a[Astral Collection Altar] §7Socketed §b" + inserted.getHoverName().getString()), true);
+                    }
                 }
                 return InteractionResult.SUCCESS;
             }
         }
 
-        // Shift + Click -> Extract Socketed Crystal
-        if (player.isShiftKeyDown()) {
+        // Shift + Click with non-empty socket -> Extract Socketed Crystal
+        if (player.isShiftKeyDown() && !collector.getSocketedCrystal().isEmpty()) {
             if (!level.isClientSide()) {
-                if (!collector.getSocketedCrystal().isEmpty()) {
-                    ItemStack crystal = collector.getSocketedCrystal().copy();
-                    collector.setSocketedCrystal(ItemStack.EMPTY);
-                    if (!player.getInventory().add(crystal)) {
-                        player.drop(crystal, false);
-                    }
-                    level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_BREAK, SoundSource.BLOCKS, 1.0f, 1.2f);
-                    player.displayClientMessage(Component.literal("§e[Astral Collection Altar] §7Extracted §b" + crystal.getHoverName().getString()), true);
-                    return InteractionResult.SUCCESS;
+                ItemStack crystal = collector.getSocketedCrystal().copy();
+                collector.setSocketedCrystal(ItemStack.EMPTY);
+                if (!player.getInventory().add(crystal)) {
+                    player.drop(crystal, false);
                 }
+                level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_BREAK, SoundSource.BLOCKS, 1.0f, 1.2f);
+                player.displayClientMessage(Component.literal("§e[Astral Collection Altar] §7Extracted §b" + crystal.getHoverName().getString()), true);
             }
             return InteractionResult.SUCCESS;
+        }
+
+        // Empty Hand Click -> Extract Condensed Small Essence (8 mFum per essence)
+        if (heldStack.isEmpty()) {
+            if (collector.extractEssenceByHand(player)) {
+                return InteractionResult.SUCCESS;
+            }
         }
 
         if (!level.isClientSide()) {

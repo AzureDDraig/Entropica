@@ -58,6 +58,7 @@ tasks.register('deploy', Copy) {
 
 tasks.register('deploytoDev', Copy) {
     dependsOn remapJar
+    outputs.upToDateWhen { false }
     doFirst {
         file("C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods").listFiles()?.each { f ->
             if (f.name.startsWith("Entropica-fabric-") && f.name.endsWith(".jar")) {
@@ -68,6 +69,11 @@ tasks.register('deploytoDev', Copy) {
     from remapJar.archiveFile
     into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods"
 }
+
+tasks.register('deployToDev') {
+    dependsOn tasks.named('deploytoDev')
+}
+
 
 processResources {
     var replaceProperties = [

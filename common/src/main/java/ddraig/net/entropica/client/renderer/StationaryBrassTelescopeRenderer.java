@@ -61,7 +61,7 @@ public class StationaryBrassTelescopeRenderer implements BlockEntityRenderer<Sta
 
     @Override
     public void submit(TelescopeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraRenderState) {
-        int light = 15728880;
+        int light = state.lightCoords;
         int overlay = OverlayTexture.NO_OVERLAY;
 
         // 1. Stationary Base Mount & Tripod Stand (Planted on ground)

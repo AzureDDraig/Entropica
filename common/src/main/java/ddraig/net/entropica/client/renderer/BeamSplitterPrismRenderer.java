@@ -3,7 +3,10 @@ package ddraig.net.entropica.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.block.entity.BeamSplitterPrismBlockEntity;
+import ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -13,6 +16,7 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +33,7 @@ public class BeamSplitterPrismRenderer implements BlockEntityRenderer<BeamSplitt
     }
 
     public AABB getRenderBoundingBox(BeamSplitterPrismBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(64.0, 64.0, 64.0);
+        return new AABB(-30000000.0, -30000000.0, -30000000.0, 30000000.0, 30000000.0, 30000000.0);
     }
 
     @Override
@@ -110,6 +114,16 @@ public class BeamSplitterPrismRenderer implements BlockEntityRenderer<BeamSplitt
             float[] beamAngles = new float[]{state.leftSplitYaw, state.rightSplitYaw};
             float[] beamDists = new float[]{state.leftRayDistance, state.rightRayDistance};
 
+            double gameTime = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
+            EssenceType essence = RefractiveAstralLensBlockEntity.resolveStarEssence(state.activeStarName);
+            int[] rgb = essence.getCurrentRGB(gameTime);
+            float r = rgb[0] / 255.0f;
+            float g = rgb[1] / 255.0f;
+            float b = rgb[2] / 255.0f;
+            float coreR = Mth.lerp(0.5f, r, 1.0f);
+            float coreG = Mth.lerp(0.5f, g, 1.0f);
+            float coreB = Mth.lerp(0.5f, b, 1.0f);
+
             for (int i = 0; i < 2; i++) {
                 float angle = beamAngles[i];
                 float dist = beamDists[i] > 0.0f ? beamDists[i] : 16.0f;
@@ -119,7 +133,8 @@ public class BeamSplitterPrismRenderer implements BlockEntityRenderer<BeamSplitt
                 poseStack.mulPose(Axis.YP.rotationDegrees(-angle + 180.0f));
 
                 collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(WHITE_TEXTURE), (pose, consumer) -> {
-                    renderBeamQuad(pose.pose(), consumer, dist, 0.06f, 0.5f, 0.9f, 1.0f, 0.75f, light, overlay);
+                    renderBeamQuad(pose.pose(), consumer, dist, 0.04f, coreR, coreG, coreB, 0.85f, light, overlay);
+                    renderBeamQuad(pose.pose(), consumer, dist, 0.09f, r, g, b, 0.45f, light, overlay);
                 });
 
                 poseStack.popPose();

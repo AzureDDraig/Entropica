@@ -1,0 +1,157 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "part": "single"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_single"
+      }
+    },
+    {
+      "when": {
+        "part": "bottom"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_bottom"
+      }
+    },
+    {
+      "when": {
+        "part": "lower_middle"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_lower_middle"
+      }
+    },
+    {
+      "when": {
+        "part": "middle"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_middle"
+      }
+    },
+    {
+      "when": {
+        "part": "upper_middle"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_upper_middle"
+      }
+    },
+    {
+      "when": {
+        "part": "top"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_top"
+      }
+    },
+    {
+      "when": {
+        "north_arm": "arm|bulb"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_arm_north"
+      }
+    },
+    {
+      "when": {
+        "east_arm": "arm|bulb"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_arm_north",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south_arm": "arm|bulb"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_arm_north",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west_arm": "arm|bulb"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_arm_north",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_arm": "bulb"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_arm_bulb_north"
+      }
+    },
+    {
+      "when": {
+        "east_arm": "bulb"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_arm_bulb_north",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south_arm": "bulb"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_arm_bulb_north",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west_arm": "bulb"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_arm_bulb_north",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_arm": "cable"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_arm_cable_north"
+      }
+    },
+    {
+      "when": {
+        "east_arm": "cable"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_arm_cable_north",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south_arm": "cable"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_arm_cable_north",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west_arm": "cable"
+      },
+      "apply": {
+        "model": "entropica:block/lamp_post_iron_arm_cable_north",
+        "y": 270
+      }
+    }
+  ]
+}

@@ -52,7 +52,7 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
     }
 
     public AABB getRenderBoundingBox() {
-        return new AABB(this.worldPosition).inflate(64.0, 64.0, 64.0);
+        return new AABB(-30000000.0, -30000000.0, -30000000.0, 30000000.0, 30000000.0, 30000000.0);
     }
 
     public ItemStack getHeldItem() {
@@ -186,6 +186,15 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
             be.ritualProgress++;
             if (level instanceof ServerLevel sl) {
                 sl.sendParticles(ParticleTypes.FIREWORK, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 2, 0.2, 0.2, 0.2, 0.02);
+                if (be.ritualProgress % 5 == 0) {
+                    for (AttunementPedestalBlockEntity pedestal : be.getSurroundingPedestals()) {
+                        BlockPos pPos = pedestal.getBlockPos();
+                        double dx = (pos.getX() + 0.5) - (pPos.getX() + 0.5);
+                        double dy = (pos.getY() + 1.2) - (pPos.getY() + 1.1);
+                        double dz = (pos.getZ() + 0.5) - (pPos.getZ() + 0.5);
+                        sl.sendParticles(ParticleTypes.END_ROD, pPos.getX() + 0.5, pPos.getY() + 1.1, pPos.getZ() + 0.5, 1, dx * 0.1, dy * 0.1 + 0.02, dz * 0.1, 0.08);
+                    }
+                }
             }
             if (be.ritualProgress >= 100) {
                 be.finishCrafting();
@@ -205,7 +214,7 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
         }
 
         if (crafting) {
-            player.displayClientMessage(Component.literal("§e[Astral Altar] Ritual already in progress (§b" + ritualProgress + "%§e)."), true);
+            player.displayClientMessage(Component.literal("§e[Astral Altar] §7Ritual already in progress (§b" + ritualProgress + "%§7)."), true);
             return;
         }
 
@@ -215,28 +224,110 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
             if (level != null) {
                 level.playSound(null, worldPosition, SoundEvents.BEACON_POWER_SELECT, SoundSource.BLOCKS, 1.0f, 1.4f);
             }
-            player.displayClientMessage(Component.literal("§d[Astral Altar] Celestial Infusion Ritual commenced!"), true);
+            player.displayClientMessage(Component.literal("§d[Astral Altar] §fCelestial Infusion Ritual commenced!"), true);
         } else {
-            player.displayClientMessage(Component.literal("§7[Astral Altar] No valid infusion pattern found on surrounding pedestals."), true);
+            List<AttunementPedestalBlockEntity> pedestals = getSurroundingPedestals();
+            List<ItemStack> pedestalStacks = new ArrayList<>();
+            for (AttunementPedestalBlockEntity p : pedestals) {
+                if (!p.getHeldItem().isEmpty()) {
+                    pedestalStacks.add(p.getHeldItem());
+                }
+            }
+
+            if (heldItem.isEmpty()) {
+                player.displayClientMessage(Component.literal("§e[Astral Altar] §7Altar core is empty! Place an §fAstral Crystal §7or §fResplendent Prism §7on the center."), false);
+            } else if (pedestals.size() < 4) {
+                player.displayClientMessage(Component.literal("§e[Astral Altar] §7Only found §f" + pedestals.size() + "§7 pedestals nearby. Place at least 8 pedestals around the altar."), false);
+            } else if (heldItem.is(ModItems.ASTRAL_CRYSTAL.get())) {
+                int gold = 0;
+                int glass = 0;
+                for (ItemStack s : pedestalStacks) {
+                    if (isGoldReagent(s)) gold++;
+                    else if (isGlassReagent(s)) glass++;
+                }
+                player.displayClientMessage(Component.literal("§e[Astral Altar] §7Resplendent Prism requires §64 Gold §7and §b4 Glass §7reagents. (Found: §6" + gold + " Gold§7, §b" + glass + " Glass§7)."), false);
+            } else if (heldItem.is(ModItems.RESPLENDENT_PRISM.get())) {
+                int silk = 0;
+                int thread = 0;
+                int marble = 0;
+                for (ItemStack s : pedestalStacks) {
+                    if (s.is(ModItems.STARLIGHT_SILK.get())) silk++;
+                    else if (s.is(ModItems.ASTRAL_CRYSTAL_THREAD.get())) thread++;
+                    else if (isMarbleReagent(s)) marble++;
+                }
+                player.displayClientMessage(Component.literal("§e[Astral Altar] §7Mantle of the Stars requires §b5 Silk§7, §b2 Thread§7, §b1 Marble§7. (Found: §b" + silk + " Silk§7, §b" + thread + " Thread§7, §b" + marble + " Marble§7)."), false);
+            } else {
+                player.displayClientMessage(Component.literal("§e[Astral Altar] §7No matching infusion recipe for §f" + heldItem.getHoverName().getString() + " §7with " + pedestalStacks.size() + " reagents."), false);
+            }
         }
+    }
+
+    public static boolean isGoldReagent(ItemStack s) {
+        return s.is(net.minecraft.world.item.Items.GOLD_INGOT)
+                || s.is(net.minecraft.world.item.Items.RAW_GOLD)
+                || s.is(net.minecraft.world.item.Items.GOLD_BLOCK)
+                || s.is(ModItems.VISCANITE_INGOT.get());
+    }
+
+    public static boolean isGlassReagent(ItemStack s) {
+        return s.is(ModBlocks.ESSENCE_ENRICHED_GLASS.get().asItem())
+                || s.is(ModBlocks.FRAGMENT_LATTICE_GLASS.get().asItem())
+                || s.is(ModBlocks.ASTRAL_MIRROR_BLOCK.get().asItem())
+                || s.is(ModBlocks.MATERIA_FUMUS_STRENGTHENED_GLASS.get().asItem())
+                || s.is(ModBlocks.MATERIA_LIQUIDA_ENRICHED_GLASS.get().asItem())
+                || s.is(net.minecraft.world.item.Items.GLASS)
+                || s.is(net.minecraft.world.item.Items.TINTED_GLASS)
+                || s.is(net.minecraft.tags.ItemTags.SMELTS_TO_GLASS);
+    }
+
+    public static boolean isMarbleReagent(ItemStack s) {
+        return s.is(ModBlocks.RUNED_ASTRAL_MARBLE.get().asItem())
+                || s.is(ModBlocks.ASTRAL_MARBLE.get().asItem())
+                || s.is(ModBlocks.ASTRAL_MARBLE_BRICKS.get().asItem())
+                || s.is(ModBlocks.CHISELED_ASTRAL_MARBLE.get().asItem());
     }
 
     private boolean tryStartCrafting() {
         List<AttunementPedestalBlockEntity> pedestals = getSurroundingPedestals();
         if (pedestals.size() < 4) return false;
 
-        List<ItemStack> pedestalItems = new ArrayList<>();
+        List<ItemStack> pedestalStacks = new ArrayList<>();
         for (AttunementPedestalBlockEntity p : pedestals) {
             if (!p.getHeldItem().isEmpty()) {
-                pedestalItems.add(p.getHeldItem());
+                pedestalStacks.add(p.getHeldItem());
             }
         }
+        if (pedestalStacks.size() != 8) return false;
 
-        if (heldItem.is(ModItems.ASTRAL_CRYSTAL.get()) && pedestalItems.size() == 4) {
-            return true;
+        // Recipe 1: Resplendent Prism (Center: Astral Crystal + 4 Gold + 4 Glass)
+        if (heldItem.is(ModItems.ASTRAL_CRYSTAL.get())) {
+            int goldCount = 0;
+            int glassCount = 0;
+            for (ItemStack s : pedestalStacks) {
+                if (isGoldReagent(s)) {
+                    goldCount++;
+                } else if (isGlassReagent(s)) {
+                    glassCount++;
+                }
+            }
+            return goldCount == 4 && glassCount == 4;
         }
-        if (heldItem.is(ModItems.RESPLENDENT_PRISM.get()) && pedestalItems.size() == 4) {
-            return true;
+
+        // Recipe 2: Mantle of the Stars (Center: Resplendent Prism + 5 Starlight Silk + 2 Astral Crystal Thread + 1 Marble)
+        if (heldItem.is(ModItems.RESPLENDENT_PRISM.get())) {
+            int silkCount = 0;
+            int threadCount = 0;
+            int marbleCount = 0;
+            for (ItemStack s : pedestalStacks) {
+                if (s.is(ModItems.STARLIGHT_SILK.get())) {
+                    silkCount++;
+                } else if (s.is(ModItems.ASTRAL_CRYSTAL_THREAD.get())) {
+                    threadCount++;
+                } else if (isMarbleReagent(s)) {
+                    marbleCount++;
+                }
+            }
+            return silkCount == 5 && threadCount == 2 && marbleCount == 1;
         }
 
         return false;
@@ -263,8 +354,10 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
         setChanged();
         if (level != null) {
             level.playSound(null, worldPosition, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 1.2f, 1.2f);
+            level.playSound(null, worldPosition, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.5f, 1.8f);
             if (level instanceof ServerLevel sl) {
-                sl.sendParticles(ParticleTypes.END_ROD, worldPosition.getX() + 0.5, worldPosition.getY() + 1.3, worldPosition.getZ() + 0.5, 40, 0.4, 0.4, 0.4, 0.1);
+                sl.sendParticles(ParticleTypes.END_ROD, worldPosition.getX() + 0.5, worldPosition.getY() + 1.3, worldPosition.getZ() + 0.5, 50, 0.4, 0.4, 0.4, 0.1);
+                sl.sendParticles(ParticleTypes.FIREWORK, worldPosition.getX() + 0.5, worldPosition.getY() + 1.3, worldPosition.getZ() + 0.5, 30, 0.5, 0.5, 0.5, 0.08);
             }
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
         }
@@ -274,21 +367,16 @@ public class AstralAltarCoreBlockEntity extends BlockEntity {
         List<AttunementPedestalBlockEntity> list = new ArrayList<>();
         if (level == null) return list;
 
-        BlockPos[] offsets = {
-                worldPosition.offset(3, 0, 0),
-                worldPosition.offset(-3, 0, 0),
-                worldPosition.offset(0, 0, 3),
-                worldPosition.offset(0, 0, -3),
-                worldPosition.offset(2, 0, 2),
-                worldPosition.offset(2, 0, -2),
-                worldPosition.offset(-2, 0, 2),
-                worldPosition.offset(-2, 0, -2)
-        };
-
-        for (BlockPos p : offsets) {
-            BlockEntity be = level.getBlockEntity(p);
-            if (be instanceof AttunementPedestalBlockEntity pedestal) {
-                list.add(pedestal);
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                for (int dy = -1; dy <= 2; dy++) {
+                    BlockPos p = worldPosition.offset(dx, dy, dz);
+                    BlockEntity be = level.getBlockEntity(p);
+                    if (be instanceof AttunementPedestalBlockEntity pedestal) {
+                        list.add(pedestal);
+                    }
+                }
             }
         }
         return list;

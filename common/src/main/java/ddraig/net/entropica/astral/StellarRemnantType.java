@@ -7,7 +7,7 @@ public enum StellarRemnantType {
             "Stellar Black Hole",
             "Gravitational Singularity with Accretion Disk & Relativistic Jets",
             SpectralClass.CLASS_V,
-            new EssenceType[]{EssenceType.SINGULARITY, EssenceType.VOID, EssenceType.ESCHATON, EssenceType.NULL_U, EssenceType.ABYSS, EssenceType.OBLIVION, EssenceType.CHRONOS},
+            new EssenceType[]{EssenceType.VOID, EssenceType.ESCHATON, EssenceType.NULL_U, EssenceType.ABYSS, EssenceType.OBLIVION, EssenceType.CATACLYSM, EssenceType.ENTROPIC},
             0xFF110022,
             0.0f
     ),
@@ -15,7 +15,7 @@ public enum StellarRemnantType {
             "Pulsar (Neutron Star)",
             "Hyper-Dense Rapidly Rotating Magnetized Core with Radiation Cones",
             SpectralClass.CLASS_B,
-            new EssenceType[]{EssenceType.STATIC, EssenceType.LIGHTNING, EssenceType.VOLT, EssenceType.KINETIC, EssenceType.AXIOM},
+            new EssenceType[]{EssenceType.STATIC, EssenceType.LIGHTNING, EssenceType.STORM, EssenceType.TERMINUS, EssenceType.ASTRAL},
             0xFF85B5FF,
             4.0f
     ),
@@ -23,7 +23,7 @@ public enum StellarRemnantType {
             "Magnetar",
             "Ultra-Magnetic Core with High-Energy Coronal Flares & UV Emission",
             SpectralClass.CLASS_O,
-            new EssenceType[]{EssenceType.PHOTON, EssenceType.AURA, EssenceType.ASTRAL, EssenceType.ECHO, EssenceType.FERVOR},
+            new EssenceType[]{EssenceType.AURA, EssenceType.ASTRAL, EssenceType.RADIANT, EssenceType.AURORA, EssenceType.CELESTIAL},
             0xFF387BFF,
             3.5f
     ),
@@ -31,7 +31,7 @@ public enum StellarRemnantType {
             "White Dwarf",
             "Crystalline Electron-Degenerate Core with Intense Gravitational Field",
             SpectralClass.CLASS_A,
-            new EssenceType[]{EssenceType.DENSITY, EssenceType.COHESION, EssenceType.RADIANT, EssenceType.APOTHEOSIS},
+            new EssenceType[]{EssenceType.RADIANT, EssenceType.APOTHEOSIS, EssenceType.AEGIS, EssenceType.AUREOLE, EssenceType.DAWN},
             0xFFFFFFFF,
             2.0f
     ),
@@ -39,7 +39,7 @@ public enum StellarRemnantType {
             "Strange Quark Star",
             "Exotic Deconfined Quark Matter with Chromatic Equilibrium Aura",
             SpectralClass.CLASS_O,
-            new EssenceType[]{EssenceType.ENTROPICA, EssenceType.AETHER, EssenceType.PRISMATIC, EssenceType.CHIMERA},
+            new EssenceType[]{EssenceType.ENTROPICA, EssenceType.AETHER, EssenceType.ENTROPIC, EssenceType.APOTHEOSIS},
             0xFFE080FF,
             3.0f
     ),
@@ -66,6 +66,11 @@ public enum StellarRemnantType {
         this.possibleEssences = possibleEssences;
         this.primaryColorRgb = primaryColorRgb;
         this.radianceFactor = radianceFactor;
+        for (EssenceType ess : possibleEssences) {
+            if (ess.isFragment()) {
+                throw new IllegalArgumentException("Supernova remnant " + title + " cannot use fragment essence: " + ess);
+            }
+        }
     }
 
     public String getTitle() {

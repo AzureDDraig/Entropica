@@ -1539,6 +1539,20 @@ public class ModConstellations {
         return Optional.ofNullable(CONSTELLATIONS.get(id));
     }
 
+    public static Optional<Constellation> findByNameOrId(String name) {
+        if (name == null || name.isEmpty()) return Optional.empty();
+        ResourceLocation id = ResourceLocation.tryParse(name.contains(":") ? name : "entropica:" + name.toLowerCase());
+        if (id != null && CONSTELLATIONS.containsKey(id)) {
+            return Optional.of(CONSTELLATIONS.get(id));
+        }
+        for (Constellation c : CONSTELLATIONS.values()) {
+            if (c.getId().getPath().equalsIgnoreCase(name)) {
+                return Optional.of(c);
+            }
+        }
+        return Optional.empty();
+    }
+
     public static List<Constellation> getVisibleConstellations(int moonPhase) {
         List<Constellation> list = new ArrayList<>();
         for (Constellation c : CONSTELLATIONS.values()) {

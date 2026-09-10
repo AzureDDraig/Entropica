@@ -101,8 +101,21 @@ public class EntropicaClientFabric implements ClientModInitializer {
         BlockEntityRenderers.register(ModBlockEntities.ASTRAL_ALTAR_CORE_BE.get(), ddraig.net.entropica.client.renderer.AstralAltarRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.CELESTIAL_ARMILLARY_CONTROLLER_BE.get(), ddraig.net.entropica.client.renderer.CelestialArmillaryRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.CELESTIAL_BEACON_CONTROLLER_BE.get(), ddraig.net.entropica.client.renderer.CelestialBeaconRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.OPTIC_TRANSMITTER_BE.get(), ddraig.net.entropica.client.renderer.OpticTransmitterRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.CAGED_OPTIC_BULB_BE.get(), ddraig.net.entropica.client.renderer.CagedOpticBulbRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.LAMP_POST_BE.get(), ddraig.net.entropica.client.renderer.LampPostRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.PURE_OPTIC_FIBER_BE.get(), ddraig.net.entropica.client.renderer.PureOpticFiberRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.RESONANCE_STARLIGHT_FOUNTAIN_BE.get(), ddraig.net.entropica.client.renderer.ResonanceStarlightFountainRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ATTUNED_DISPLAY_VITRINE_BE.get(), ddraig.net.entropica.client.renderer.AttunedDisplayVitrineRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.CELESTIAL_GRANDFATHER_CLOCK_BE.get(), ddraig.net.entropica.client.renderer.CelestialGrandfatherClockRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ILLUMINATED_BALUSTRADE_BE.get(), ddraig.net.entropica.client.renderer.IlluminatedBalustradeRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.ASTRAL_CRYSTAL_BE.get(), ddraig.net.entropica.client.renderer.AstralCrystalRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.GRAVITATIONAL_ANCHOR_BE.get(), ddraig.net.entropica.client.renderer.GravitationalAnchorRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.GRAV_LIFT_PROJECTOR_BE.get(), ddraig.net.entropica.client.renderer.GravLiftProjectorRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.TIDAL_PULSE_RESONATOR_BE.get(), ddraig.net.entropica.client.renderer.TidalPulseResonatorRenderer::new);
 
         // --- 2. Entity Renderers ---
+        EntityRendererRegistry.register(ModEntityTypes.SINGULARITY_GRENADE.get(), ddraig.net.entropica.client.renderer.SingularityGrenadeRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.EIDOLIC_SHADOW.get(), EidolicShadowRenderer::new);
@@ -120,6 +133,15 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntityTypes.AURORAFOWL.get(), AurorafowlRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.GEYSER_WIGGLE_WORM.get(), GeyserWiggleWormRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.CRYO_STALKER.get(), CryoStalkerRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.GEMINI_GOAT_MAGE.get(), ddraig.net.entropica.client.renderer.gemini_goat_mage.GeminiGoatMageRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.VOID_SEA_SERPENT.get(), ddraig.net.entropica.client.renderer.void_sea_serpent.VoidSeaSerpentRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.VOID_SEA_SERPENT_SEGMENT.get(), net.minecraft.client.renderer.entity.NoopRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.GLACIAL_HYDRA.get(), ddraig.net.entropica.client.renderer.glacial_hydra.GlacialHydraRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.LUMINOTH.get(), ddraig.net.entropica.client.renderer.luminoth.LuminothRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.AMBER_WEEPING_STAG.get(), ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.STORM_KITE.get(), ddraig.net.entropica.client.renderer.storm_kite.StormKiteRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.RADIANT_FIRE_LANCE.get(), ThrownItemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.UMBRAL_VORTEX.get(), ThrownItemRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.SPORE_PROJECTILE.get(), ThrownItemRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.MAGMA_THORN.get(), ThrownItemRenderer::new);
 
@@ -130,6 +152,10 @@ public class EntropicaClientFabric implements ClientModInitializer {
         dev.architectury.registry.client.particle.ParticleProviderRegistry.register(
             ModParticles.GALE_SWIRL_PUFF.get(),
             ddraig.net.entropica.client.particle.GaleSwirlPuffParticle.Provider::new
+        );
+        dev.architectury.registry.client.particle.ParticleProviderRegistry.register(
+            ModParticles.SHADOW_SLASH.get(),
+            ddraig.net.entropica.client.particle.ShadowSlashParticle.Provider::new
         );
 
 
@@ -147,6 +173,12 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityModelLayerRegistry.registerModelLayer(AurorafowlModel.LAYER_LOCATION, AurorafowlModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(GeyserWiggleWormModel.LAYER_LOCATION, GeyserWiggleWormModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(CryoStalkerModel.LAYER_LOCATION, CryoStalkerModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.gemini_goat_mage.GeminiGoatMageModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.gemini_goat_mage.GeminiGoatMageModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.void_sea_serpent.VoidSeaSerpentModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.void_sea_serpent.VoidSeaSerpentModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.glacial_hydra.GlacialHydraModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.glacial_hydra.GlacialHydraModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.luminoth.LuminothModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.luminoth.LuminothModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel::createBodyLayer);
 
         // --- 4. Menu Screens ---
         MenuScreens.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);
@@ -232,11 +264,20 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
         BlockRenderLayerMap.INSTANCE.putBlocks(
             RenderType.translucentMovingBlock(),
+            ModBlocks.GLASS_LAMP_POST.get(),
+            ModBlocks.ATTUNED_DISPLAY_VITRINE.get(),
+            ModBlocks.ILLUMINATED_BALUSTRADE.get()
+        );
+
+        BlockRenderLayerMap.INSTANCE.putBlocks(
+            RenderType.translucentMovingBlock(),
             ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_BLOCKS.stream().map(dev.architectury.registry.registries.RegistrySupplier::get).toArray(net.minecraft.world.level.block.Block[]::new)
         );
 
         BlockRenderLayerMap.INSTANCE.putBlocks(
             RenderType.cutout(),
+            ModBlocks.LUMINOUS_TRELLIS_ARBOR.get(),
+            ModBlocks.PURE_OPTIC_FIBER.get(),
             ModBlocks.MATERIA_ECHO_LEAVES.get(),
             ModBlocks.MATERIA_ECHO_SAPLING.get(),
             ModBlocks.MATERIA_ECHO_FRUIT.get(),
@@ -339,7 +380,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ModBlocks.SMALL_MORTISITE_BUD.get(),
             ModBlocks.MEDIUM_MORTISITE_BUD.get(),
             ModBlocks.LARGE_MORTISITE_BUD.get(),
-            ModBlocks.MORTISITE_CLUSTER.get()
+            ModBlocks.MORTISITE_CLUSTER.get(),
+            ModBlocks.TIDAL_PULSE_RESONATOR.get()
         );
 
 
@@ -366,11 +408,13 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
         // --- 8. Special Model Renderer ---
         registerLoomSpecialModelRenderer(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "dynamic_weapon"), DynamicWeaponRenderer.Unbaked.MAP_CODEC);
+        registerLoomSpecialModelRenderer(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "astral_crystal"), ddraig.net.entropica.client.renderer.item.AstralCrystalSpecialRenderer.Unbaked.MAP_CODEC);
 
         // --- 9. Custom Client Haze Shader Tick ---
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
             ddraig.net.entropica.client.HazeShaderManager.clientTick(client);
             ddraig.net.entropica.client.ParalyzedParticleHandler.clientTick(client);
+            ddraig.net.entropica.client.camera.GravityCameraHandler.clientTick(client);
         });
 
         // Register GUI Overlay HUD Renderer
@@ -380,6 +424,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ddraig.net.entropica.client.LensOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.LookingGlassOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.gui.OpticalInspectionHudOverlay.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+            ddraig.net.entropica.client.renderer.GravityScreenShimmerRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+            ddraig.net.entropica.client.renderer.GravitationalLensingScreenOverlay.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
         });
 
         // Register Celestial Sky Renderer

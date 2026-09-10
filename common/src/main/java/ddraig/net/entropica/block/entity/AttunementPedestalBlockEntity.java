@@ -126,10 +126,19 @@ public class AttunementPedestalBlockEntity extends BlockEntity {
         Constellation ritual = AstralCrystalItem.getRitual(mainStack);
         if (ritual == null) return;
 
+        int storedMateria = AstralCrystalItem.getStoredMateria(mainStack);
+        if (storedMateria <= 0) {
+            if (level instanceof ServerLevel sl && level.getGameTime() % 40 == 0) {
+                sl.sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 1, 0.05, 0.05, 0.05, 0.01);
+            }
+            return;
+        }
+
         int size = AstralCrystalItem.getSize(mainStack);
         int radius = 8 + size * 4; // 12 to 28 blocks
 
         long gameTime = level.getGameTime();
+        boolean drainMateria = false;
 
         // 1. Arbor Vitae: Crop Growth Acceleration
         if ("arbor_vitae".equals(ritual.getId().getPath()) && gameTime % 40 == 0) {
@@ -142,6 +151,7 @@ public class AttunementPedestalBlockEntity extends BlockEntity {
                     if (bonemealable.isValidBonemealTarget(level, target, targetState)) {
                         bonemealable.performBonemeal(sl, level.random, target, targetState);
                         sl.sendParticles(ParticleTypes.HAPPY_VILLAGER, target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5, 5, 0.3, 0.3, 0.3, 0.02);
+                        drainMateria = true;
                         break;
                     }
                 }
@@ -152,10 +162,13 @@ public class AttunementPedestalBlockEntity extends BlockEntity {
         else if ("lucerna_radialis".equals(ritual.getId().getPath()) && gameTime % 20 == 0) {
             AABB aabb = new AABB(pos).inflate(radius);
             List<Monster> monsters = level.getEntitiesOfClass(Monster.class, aabb);
-            for (Monster m : monsters) {
-                m.igniteForSeconds(2);
-                Vec3 push = m.position().subtract(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5).normalize().scale(0.5);
-                m.setDeltaMovement(push.x, 0.2, push.z);
+            if (!monsters.isEmpty()) {
+                drainMateria = true;
+                for (Monster m : monsters) {
+                    m.igniteForSeconds(2);
+                    Vec3 push = m.position().subtract(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5).normalize().scale(0.5);
+                    m.setDeltaMovement(push.x, 0.2, push.z);
+                }
             }
         }
 
@@ -163,9 +176,12 @@ public class AttunementPedestalBlockEntity extends BlockEntity {
         else if ("scutum_aegis".equals(ritual.getId().getPath()) && gameTime % 60 == 0) {
             AABB aabb = new AABB(pos).inflate(radius);
             List<Player> players = level.getEntitiesOfClass(Player.class, aabb);
-            for (Player p : players) {
-                p.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 120, 1, false, false));
-                p.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 120, 0, false, false));
+            if (!players.isEmpty()) {
+                drainMateria = true;
+                for (Player p : players) {
+                    p.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 120, 1, false, false));
+                    p.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 120, 0, false, false));
+                }
             }
         }
 
@@ -173,9 +189,12 @@ public class AttunementPedestalBlockEntity extends BlockEntity {
         else if ("glacies_crystalline".equals(ritual.getId().getPath()) && gameTime % 20 == 0) {
             AABB aabb = new AABB(pos).inflate(radius);
             List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, aabb, e -> !(e instanceof Player));
-            for (LivingEntity e : entities) {
-                e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 2, false, true));
-                e.setTicksFrozen(Math.min(e.getTicksRequiredToFreeze() + 60, e.getTicksFrozen() + 40));
+            if (!entities.isEmpty()) {
+                drainMateria = true;
+                for (LivingEntity e : entities) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 2, false, true));
+                    e.setTicksFrozen(Math.min(e.getTicksRequiredToFreeze() + 60, e.getTicksFrozen() + 40));
+                }
             }
         }
 
@@ -192,24 +211,38 @@ public class AttunementPedestalBlockEntity extends BlockEntity {
                 Vec3 dir = new Vec3(pos.getX() + 0.5 - orb.getX(), pos.getY() + 1.0 - orb.getY(), pos.getZ() + 0.5 - orb.getZ()).normalize().scale(0.35);
                 orb.setDeltaMovement(dir);
             }
+            if (!items.isEmpty() || !orbs.isEmpty()) {
+                drainMateria = true;
+            }
         }
 
         // 6. Ulteria Viatoris & Penna Aetheris: Movement & Slow Falling
         else if ("ulteria_viatoris".equals(ritual.getId().getPath()) && gameTime % 60 == 0) {
             AABB aabb = new AABB(pos).inflate(radius);
             List<Player> players = level.getEntitiesOfClass(Player.class, aabb);
-            for (Player p : players) {
-                p.addEffect(new MobEffectInstance(MobEffects.SPEED, 120, 1, false, false));
-                p.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 120, 0, false, false));
+            if (!players.isEmpty()) {
+                drainMateria = true;
+                for (Player p : players) {
+                    p.addEffect(new MobEffectInstance(MobEffects.SPEED, 120, 1, false, false));
+                    p.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 120, 0, false, false));
+                }
             }
         }
         else if ("penna_aetheris".equals(ritual.getId().getPath()) && gameTime % 60 == 0) {
             AABB aabb = new AABB(pos).inflate(radius);
             List<Player> players = level.getEntitiesOfClass(Player.class, aabb);
-            for (Player p : players) {
-                p.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 120, 0, false, false));
-                p.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 120, 1, false, false));
+            if (!players.isEmpty()) {
+                drainMateria = true;
+                for (Player p : players) {
+                    p.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 120, 0, false, false));
+                    p.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 120, 1, false, false));
+                }
             }
+        }
+
+        if (drainMateria) {
+            AstralCrystalItem.setStoredMateria(mainStack, storedMateria - 1);
+            be.setChanged();
         }
     }
 

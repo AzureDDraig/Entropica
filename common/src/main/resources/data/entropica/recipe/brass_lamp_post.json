@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    " G ",
+    " F "
+  ],
+  "key": {
+    "C": { "item": "minecraft:copper_ingot" },
+    "G": { "item": "minecraft:gold_ingot" },
+    "F": { "item": "entropica:pure_optic_fiber" }
+  },
+  "result": {
+    "id": "entropica:brass_lamp_post",
+    "count": 3
+  }
+}

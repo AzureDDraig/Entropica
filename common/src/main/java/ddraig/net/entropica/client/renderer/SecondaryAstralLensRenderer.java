@@ -3,7 +3,10 @@ package ddraig.net.entropica.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.block.entity.RefractiveAstralLensBlockEntity;
 import ddraig.net.entropica.block.entity.SecondaryAstralLensBlockEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -13,6 +16,7 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +34,7 @@ public class SecondaryAstralLensRenderer implements BlockEntityRenderer<Secondar
     }
 
     public AABB getRenderBoundingBox(SecondaryAstralLensBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(64.0, 64.0, 64.0);
+        return new AABB(-30000000.0, -30000000.0, -30000000.0, 30000000.0, 30000000.0, 30000000.0);
     }
 
     @Override
@@ -128,11 +132,21 @@ public class SecondaryAstralLensRenderer implements BlockEntityRenderer<Secondar
         // 4. Optical Starlight Relay Output Beam
         if (state.isReceiving && state.beamDistance > 0.1f) {
             float dist = Math.max(0.5f, state.beamDistance);
+            double gameTime = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
+            EssenceType essence = RefractiveAstralLensBlockEntity.resolveStarEssence(state.activeStarName);
+            int[] rgb = essence.getCurrentRGB(gameTime);
+            float r = rgb[0] / 255.0f;
+            float g = rgb[1] / 255.0f;
+            float b = rgb[2] / 255.0f;
+            float coreR = Mth.lerp(0.5f, r, 1.0f);
+            float coreG = Mth.lerp(0.5f, g, 1.0f);
+            float coreB = Mth.lerp(0.5f, b, 1.0f);
+
             collector.submitCustomGeometry(poseStack, RenderType.beaconBeam(WHITE_TEXTURE, false), (pose, consumer) -> {
-                renderTexturedBox(pose.pose(), consumer, -0.025f, -0.025f, -dist, 0.025f, 0.025f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 1.0f, 0.98f, 0.85f, 1.0f);
+                renderTexturedBox(pose.pose(), consumer, -0.025f, -0.025f, -dist, 0.025f, 0.025f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, coreR, coreG, coreB, 1.0f);
             });
             collector.submitCustomGeometry(poseStack, RenderType.beaconBeam(WHITE_TEXTURE, true), (pose, consumer) -> {
-                renderTexturedBox(pose.pose(), consumer, -0.055f, -0.055f, -dist, 0.055f, 0.055f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, 0.35f, 0.75f, 1.0f, 0.50f);
+                renderTexturedBox(pose.pose(), consumer, -0.055f, -0.055f, -dist, 0.055f, 0.055f, 0.0f, 0.0f, 0.0f, 1.0f, dist, light, overlay, r, g, b, 0.50f);
             });
         }
 

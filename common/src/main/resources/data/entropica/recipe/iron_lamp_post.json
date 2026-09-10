@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " I ",
+    " I ",
+    " F "
+  ],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "F": { "item": "entropica:pure_optic_fiber" }
+  },
+  "result": {
+    "id": "entropica:iron_lamp_post",
+    "count": 3
+  }
+}

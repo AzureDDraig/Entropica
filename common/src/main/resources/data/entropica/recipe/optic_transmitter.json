@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " I ",
+    "IFI",
+    " C "
+  ],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "F": { "item": "entropica:pure_optic_fiber" },
+    "C": { "item": "entropica:astral_crystal" }
+  },
+  "result": {
+    "id": "entropica:optic_transmitter",
+    "count": 1
+  }
+}

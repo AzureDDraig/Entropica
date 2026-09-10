@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CCC"
+  ],
+  "key": {
+    "C": "entropica:starlight_carpet"
+  },
+  "result": {
+    "id": "entropica:starlight_cloth",
+    "count": 2
+  }
+}

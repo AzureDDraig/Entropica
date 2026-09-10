@@ -1,0 +1,475 @@
+{
+  "credit": "Entropica Astral Materia Suite",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "minecraft:block/dark_oak_planks",
+    "wood": "minecraft:block/dark_oak_planks",
+    "brass": "entropica:block/lamp_post_brass",
+    "dial": "entropica:block/celestial_clock_dial"
+  },
+  "elements": [
+    {
+      "name": "left_wall",
+      "from": [
+        2.0,
+        0,
+        3.5
+      ],
+      "to": [
+        3.5,
+        12,
+        13.0
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            3.5,
+            0,
+            13,
+            12
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            3.5,
+            0,
+            13,
+            12
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            12
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "right_wall",
+      "from": [
+        12.5,
+        0,
+        3.5
+      ],
+      "to": [
+        14.0,
+        12,
+        13.0
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            3.5,
+            0,
+            13,
+            12
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            3.5,
+            0,
+            13,
+            12
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            12.5,
+            0,
+            14,
+            12
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "back_wall",
+      "from": [
+        3.5,
+        0,
+        11.5
+      ],
+      "to": [
+        12.5,
+        12,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            0,
+            12.5,
+            12
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            3.5,
+            0,
+            12.5,
+            12
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "dial_plate",
+      "from": [
+        3.5,
+        1.5,
+        2.8
+      ],
+      "to": [
+        12.5,
+        10.5,
+        3.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#dial"
+        }
+      }
+    },
+    {
+      "name": "bezel_bottom",
+      "from": [
+        2.5,
+        0,
+        2.5
+      ],
+      "to": [
+        13.5,
+        1.5,
+        3.5
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            3.5
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            2.5,
+            0,
+            13.5,
+            1.5
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "bezel_top",
+      "from": [
+        2.5,
+        10.5,
+        2.5
+      ],
+      "to": [
+        13.5,
+        12,
+        3.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            3.5
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            2.5,
+            10.5,
+            13.5,
+            12
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "bezel_left",
+      "from": [
+        2.0,
+        0,
+        2.5
+      ],
+      "to": [
+        3.5,
+        12,
+        3.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            12
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            2.5,
+            0,
+            3.5,
+            12
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "bezel_right",
+      "from": [
+        12.5,
+        0,
+        2.5
+      ],
+      "to": [
+        14.0,
+        12,
+        3.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.5,
+            0,
+            14,
+            12
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            2.5,
+            0,
+            3.5,
+            12
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "hood_cornice",
+      "from": [
+        1.0,
+        12,
+        2.0
+      ],
+      "to": [
+        15.0,
+        14,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            1,
+            2,
+            15,
+            14
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            15,
+            14
+          ],
+          "texture": "#wood"
+        },
+        "north": {
+          "uv": [
+            1,
+            12,
+            15,
+            14
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            1,
+            12,
+            15,
+            14
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            2,
+            12,
+            14,
+            14
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            2,
+            12,
+            14,
+            14
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "arched_bonnet",
+      "from": [
+        2.5,
+        14,
+        3.0
+      ],
+      "to": [
+        13.5,
+        16,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            2.5,
+            3,
+            13.5,
+            13
+          ],
+          "texture": "#wood",
+          "cullface": "up"
+        },
+        "north": {
+          "uv": [
+            2.5,
+            14,
+            13.5,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            2.5,
+            14,
+            13.5,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            3,
+            14,
+            13,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            3,
+            14,
+            13,
+            16
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "brass_finial",
+      "from": [
+        7.0,
+        16,
+        7.0
+      ],
+      "to": [
+        9.0,
+        18,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            7,
+            14,
+            9,
+            16
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            7,
+            14,
+            9,
+            16
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            7,
+            14,
+            9,
+            16
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            7,
+            14,
+            9,
+            16
+          ],
+          "texture": "#brass"
+        }
+      }
+    }
+  ]
+}

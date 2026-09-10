@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "entropica:item/rime_shepherd_spawn_egg"
+    "model": "minecraft:item/pig_spawn_egg"
   }
 }

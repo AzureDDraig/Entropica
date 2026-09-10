@@ -169,6 +169,10 @@ public class ModCreativeTabs {
                 output.accept(ModItems.DRAINED_CRYSTAL_TOOL.get());
                 output.accept(ModItems.RESPLENDENT_PRISM.get());
                 output.accept(ModItems.MANTLE_OF_THE_STARS.get());
+                output.accept(ModItems.GRAVITON_WAND.get());
+                output.accept(ModItems.GRAVITON_SOLES.get());
+                output.accept(ModItems.INERTIAL_ANCHOR_AMULET.get());
+                output.accept(ModItems.SINGULARITY_GRENADE.get());
             }).build());
 
     public static final RegistrySupplier<CreativeModeTab> WEAPON_CRAFTING_TAB = CREATIVE_MODE_TABS.register("weapon_crafting_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 4)
@@ -279,7 +283,15 @@ public class ModCreativeTabs {
                path.contains("generator") ||
                path.contains("coupling") ||
                path.contains("distributor") ||
-               path.contains("agitator");
+               path.contains("agitator") ||
+               path.contains("bulb") ||
+               path.contains("lamp_post") ||
+               path.contains("fountain") ||
+               path.contains("arbor") ||
+               path.contains("vitrine") ||
+               path.contains("clock") ||
+               path.contains("balustrade") ||
+               path.contains("optic");
     }
 
     public static final RegistrySupplier<CreativeModeTab> AESTHETICA_TAB = CREATIVE_MODE_TABS.register("aesthetica_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.BOTTOM, 0)

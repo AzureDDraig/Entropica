@@ -204,4 +204,101 @@ public class ModEntityTypes {
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                      ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "patina_ovis"))));
+
+    // --- GEMINI GOAT MAGE (CAPRINE SPELLCASTER) ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.gemini_goat_mage.GeminiGoatMageEntity>> GEMINI_GOAT_MAGE =
+            ENTITY_TYPES.register("gemini_goat_mage",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.gemini_goat_mage.GeminiGoatMageEntity>of(ddraig.net.entropica.entity.gemini_goat_mage.GeminiGoatMageEntity::new, MobCategory.CREATURE)
+                            .sized(1.2F, 2.5F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "gemini_goat_mage"))));
+
+    // --- SPELL PROJECTILES ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.projectile.RadiantFireLanceEntity>> RADIANT_FIRE_LANCE =
+            ENTITY_TYPES.register("radiant_fire_lance",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.projectile.RadiantFireLanceEntity>of(ddraig.net.entropica.entity.projectile.RadiantFireLanceEntity::new, MobCategory.MISC)
+                            .sized(0.3F, 0.3F)
+                            .clientTrackingRange(8)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "radiant_fire_lance"))));
+
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.projectile.UmbralVortexEntity>> UMBRAL_VORTEX =
+            ENTITY_TYPES.register("umbral_vortex",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.projectile.UmbralVortexEntity>of(ddraig.net.entropica.entity.projectile.UmbralVortexEntity::new, MobCategory.MISC)
+                            .sized(1.2F, 1.2F)
+                            .clientTrackingRange(8)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "umbral_vortex"))));
+
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.projectile.SingularityGrenadeEntity>> SINGULARITY_GRENADE =
+            ENTITY_TYPES.register("singularity_grenade",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.projectile.SingularityGrenadeEntity>of(ddraig.net.entropica.entity.projectile.SingularityGrenadeEntity::new, MobCategory.MISC)
+                            .sized(0.35F, 0.35F)
+                            .clientTrackingRange(8)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "singularity_grenade"))));
+
+    // --- VOID SEA SERPENT ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.void_sea_serpent.VoidSeaSerpentEntity>> VOID_SEA_SERPENT =
+            ENTITY_TYPES.register("void_sea_serpent",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.void_sea_serpent.VoidSeaSerpentEntity>of(ddraig.net.entropica.entity.void_sea_serpent.VoidSeaSerpentEntity::new, MobCategory.MONSTER)
+                            .sized(2.0F, 1.8F)
+                            .clientTrackingRange(12)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "void_sea_serpent"))));
+
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.void_sea_serpent.VoidSeaSerpentSegmentEntity>> VOID_SEA_SERPENT_SEGMENT =
+            ENTITY_TYPES.register("void_sea_serpent_segment",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.void_sea_serpent.VoidSeaSerpentSegmentEntity>of(ddraig.net.entropica.entity.void_sea_serpent.VoidSeaSerpentSegmentEntity::new, MobCategory.MISC)
+                            .sized(1.8F, 1.8F)
+                            .clientTrackingRange(12)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "void_sea_serpent_segment"))));
+
+    // --- GLACIAL HYDRA ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.glacial_hydra.GlacialHydraEntity>> GLACIAL_HYDRA =
+            ENTITY_TYPES.register("glacial_hydra",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.glacial_hydra.GlacialHydraEntity>of(ddraig.net.entropica.entity.glacial_hydra.GlacialHydraEntity::new, MobCategory.MONSTER)
+                            .sized(1.8F, 2.2F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "glacial_hydra"))));
+
+    // --- LUMINOTH ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.luminoth.LuminothEntity>> LUMINOTH =
+            ENTITY_TYPES.register("luminoth",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.luminoth.LuminothEntity>of(ddraig.net.entropica.entity.luminoth.LuminothEntity::new, MobCategory.AMBIENT)
+                            .sized(0.8F, 0.6F)
+                            .clientTrackingRange(8)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "luminoth"))));
+
+    // --- AMBER WEEPING STAG ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.amber_weeping_stag.AmberWeepingStagEntity>> AMBER_WEEPING_STAG =
+            ENTITY_TYPES.register("amber_weeping_stag",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.amber_weeping_stag.AmberWeepingStagEntity>of(ddraig.net.entropica.entity.amber_weeping_stag.AmberWeepingStagEntity::new, MobCategory.CREATURE)
+                            .sized(1.3F, 2.2F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "amber_weeping_stag"))));
+
+    // --- STORM KITE ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.storm_kite.StormKiteEntity>> STORM_KITE =
+            ENTITY_TYPES.register("storm_kite",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.storm_kite.StormKiteEntity>of(ddraig.net.entropica.entity.storm_kite.StormKiteEntity::new, MobCategory.MONSTER)
+                            .sized(2.2F, 0.8F)
+                            .clientTrackingRange(12)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "storm_kite"))));
 }

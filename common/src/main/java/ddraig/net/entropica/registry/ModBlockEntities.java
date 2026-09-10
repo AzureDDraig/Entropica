@@ -51,6 +51,19 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("decompression_coupler", () ->
                     BlockEntityHelper.create(DecompressionCouplerBlockEntity::new, ModBlocks.DECOMPRESSION_COUPLING.get()));
 
+    // --- Gravity Manipulation Block Entities ---
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.GravitationalAnchorBlockEntity>> GRAVITATIONAL_ANCHOR_BE =
+            BLOCK_ENTITIES.register("gravitational_anchor", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.GravitationalAnchorBlockEntity::new, ModBlocks.GRAVITATIONAL_ANCHOR.get()));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.GravLiftProjectorBlockEntity>> GRAV_LIFT_PROJECTOR_BE =
+            BLOCK_ENTITIES.register("grav_lift_projector", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.GravLiftProjectorBlockEntity::new, ModBlocks.GRAV_LIFT_PROJECTOR.get()));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.TidalPulseResonatorBlockEntity>> TIDAL_PULSE_RESONATOR_BE =
+            BLOCK_ENTITIES.register("tidal_pulse_resonator", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.TidalPulseResonatorBlockEntity::new, ModBlocks.TIDAL_PULSE_RESONATOR.get()));
+
     // --- Vapor Pneumatic Network ---
 
     public static final RegistrySupplier<BlockEntityType<VaporPneumaticValveBlockEntity>> VAPOR_PNEUMATIC_VALVE_BE =
@@ -398,6 +411,33 @@ public class ModBlockEntities {
                             ModBlocks.OPTICAL_BOOSTER_AMPLIFIER.get()
                     ));
 
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.OpticReceiverBlockEntity>> OPTIC_RECEIVER_BE =
+            BLOCK_ENTITIES.register("optic_receiver", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.OpticReceiverBlockEntity::new,
+                            ModBlocks.OPTIC_RECEIVER.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.OpticTransmitterBlockEntity>> OPTIC_TRANSMITTER_BE =
+            BLOCK_ENTITIES.register("optic_transmitter", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.OpticTransmitterBlockEntity::new,
+                            ModBlocks.OPTIC_TRANSMITTER.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.CagedOpticBulbBlockEntity>> CAGED_OPTIC_BULB_BE =
+            BLOCK_ENTITIES.register("caged_optic_bulb", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.CagedOpticBulbBlockEntity::new,
+                            ModBlocks.CAGED_OPTIC_BULB.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.LampPostBlockEntity>> LAMP_POST_BE =
+            BLOCK_ENTITIES.register("lamp_post", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.LampPostBlockEntity::new,
+                            ModBlocks.IRON_LAMP_POST.get(),
+                            ModBlocks.BRASS_LAMP_POST.get(),
+                            ModBlocks.STEEL_LAMP_POST.get(),
+                            ModBlocks.GLASS_LAMP_POST.get()
+                    ));
+
     public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.AstralMirrorBlockEntity>> ASTRAL_MIRROR_BE =
             BLOCK_ENTITIES.register("astral_mirror_block", () ->
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.AstralMirrorBlockEntity::new,
@@ -427,4 +467,50 @@ public class ModBlockEntities {
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.CelestialBeaconControllerBlockEntity::new,
                             ModBlocks.CELESTIAL_BEACON_CONTROLLER.get()
                     ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.PureOpticFiberBlockEntity>> PURE_OPTIC_FIBER_BE =
+            BLOCK_ENTITIES.register("pure_optic_fiber", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.PureOpticFiberBlockEntity::new,
+                            ModBlocks.PURE_OPTIC_FIBER.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.ResonanceStarlightFountainBlockEntity>> RESONANCE_STARLIGHT_FOUNTAIN_BE =
+            BLOCK_ENTITIES.register("resonance_starlight_fountain", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.ResonanceStarlightFountainBlockEntity::new,
+                            ModBlocks.RESONANCE_STARLIGHT_FOUNTAIN.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.LuminousTrellisArborBlockEntity>> LUMINOUS_TRELLIS_ARBOR_BE =
+            BLOCK_ENTITIES.register("luminous_trellis_arbor", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.LuminousTrellisArborBlockEntity::new,
+                            ModBlocks.LUMINOUS_TRELLIS_ARBOR.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.AttunedDisplayVitrineBlockEntity>> ATTUNED_DISPLAY_VITRINE_BE =
+            BLOCK_ENTITIES.register("attuned_display_vitrine", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.AttunedDisplayVitrineBlockEntity::new,
+                            ModBlocks.ATTUNED_DISPLAY_VITRINE.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.CelestialGrandfatherClockBlockEntity>> CELESTIAL_GRANDFATHER_CLOCK_BE =
+            BLOCK_ENTITIES.register("celestial_grandfather_clock", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.CelestialGrandfatherClockBlockEntity::new,
+                            ModBlocks.CELESTIAL_GRANDFATHER_CLOCK.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.IlluminatedBalustradeBlockEntity>> ILLUMINATED_BALUSTRADE_BE =
+            BLOCK_ENTITIES.register("illuminated_balustrade", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.IlluminatedBalustradeBlockEntity::new,
+                            ModBlocks.ILLUMINATED_BALUSTRADE.get()
+                    ));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.AstralCrystalBlockEntity>> ASTRAL_CRYSTAL_BE =
+            BLOCK_ENTITIES.register("astral_crystal", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.AstralCrystalBlockEntity::new,
+                            ModBlocks.SMALL_ASTRAL_CRYSTAL_BUD.get(),
+                            ModBlocks.MEDIUM_ASTRAL_CRYSTAL_BUD.get(),
+                            ModBlocks.LARGE_ASTRAL_CRYSTAL_BUD.get(),
+                            ModBlocks.ASTRAL_CRYSTAL_CLUSTER.get()
+                    ));
 }
+

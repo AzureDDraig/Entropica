@@ -26,6 +26,9 @@ run-data
 repo
 .agents/
 scratch/
+scratch_12110/
+/*.png
+/*.html
 
 # VSCode and entry list
 .vscode/

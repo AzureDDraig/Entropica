@@ -1,0 +1,33 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "entropica:block/pipe_silver",
+    "pipe": "entropica:block/pipe_silver",
+    "lens": "entropica:block/astral_crystal_block"
+  },
+  "elements": [
+    {
+      "from": [ 4.5, 0, 4.5 ],
+      "to": [ 11.5, 3, 11.5 ],
+      "faces": {
+        "north": { "uv": [ 4.5, 13, 11.5, 16 ], "texture": "#pipe" },
+        "east":  { "uv": [ 4.5, 13, 11.5, 16 ], "texture": "#pipe" },
+        "south": { "uv": [ 4.5, 13, 11.5, 16 ], "texture": "#pipe" },
+        "west":  { "uv": [ 4.5, 13, 11.5, 16 ], "texture": "#pipe" },
+        "up":    { "uv": [ 4.5, 4.5, 11.5, 11.5 ], "texture": "#pipe" },
+        "down":  { "uv": [ 4.5, 4.5, 11.5, 11.5 ], "texture": "#lens" }
+      }
+    },
+    {
+      "from": [ 5, 3, 5 ],
+      "to": [ 11, 5, 11 ],
+      "faces": {
+        "north": { "uv": [ 5, 11, 11, 13 ], "texture": "#pipe" },
+        "east":  { "uv": [ 5, 11, 11, 13 ], "texture": "#pipe" },
+        "south": { "uv": [ 5, 11, 11, 13 ], "texture": "#pipe" },
+        "west":  { "uv": [ 5, 11, 11, 13 ], "texture": "#pipe" }
+      }
+    }
+  ]
+}

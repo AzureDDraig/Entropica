@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " M ",
+    "GBG",
+    "MMM"
+  ],
+  "key": {
+    "M": "entropica:astral_marble",
+    "B": "entropica:astral_crystal",
+    "G": "minecraft:gold_ingot"
+  },
+  "result": {
+    "id": "entropica:resonance_starlight_fountain",
+    "count": 1
+  }
+}

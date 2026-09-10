@@ -1,0 +1,141 @@
+{
+  "credit": "Entropica Astral Materia Suite",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "entropica:block/astral_marble",
+    "stone": "entropica:block/astral_marble",
+    "brass": "entropica:block/lamp_post_brass",
+    "glass": "entropica:block/lamp_post_glass"
+  },
+  "elements": [
+    {
+      "name": "post",
+      "from": [
+        6,
+        0,
+        6
+      ],
+      "to": [
+        10,
+        15,
+        10
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "texture": "#stone"
+        },
+        "north": {
+          "uv": [
+            6,
+            0,
+            10,
+            15
+          ],
+          "texture": "#stone"
+        },
+        "south": {
+          "uv": [
+            6,
+            0,
+            10,
+            15
+          ],
+          "texture": "#stone"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            10,
+            15
+          ],
+          "texture": "#stone"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            10,
+            15
+          ],
+          "texture": "#stone"
+        }
+      }
+    },
+    {
+      "name": "cap",
+      "from": [
+        5.5,
+        15,
+        5.5
+      ],
+      "to": [
+        10.5,
+        16,
+        10.5
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            5,
+            15,
+            11,
+            16
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            5,
+            15,
+            11,
+            16
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            5,
+            15,
+            11,
+            16
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            5,
+            15,
+            11,
+            16
+          ],
+          "texture": "#brass"
+        }
+      }
+    }
+  ]
+}

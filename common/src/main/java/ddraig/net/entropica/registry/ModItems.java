@@ -361,7 +361,16 @@ public class ModItems {
     public static final RegistrySupplier<Item> ARKANIST_MONOCLE = ITEMS.registerItem("arkanist_monocle", properties -> new ddraig.net.entropica.item.ArkanistMonocleItem(properties));
     public static final RegistrySupplier<Item> RUBBER_TAP = ITEMS.registerItem("rubber_tap", properties -> new ddraig.net.entropica.item.RubberTapItem(properties));
 
+    // --- Gravity Manipulation Gear & Items ---
+    public static final RegistrySupplier<Item> GRAVITON_SOLES = ITEMS.registerItem("graviton_soles", properties -> new ddraig.net.entropica.item.GravitonSolesItem(properties));
+    public static final RegistrySupplier<Item> INERTIAL_ANCHOR_AMULET = ITEMS.registerItem("inertial_anchor_amulet", properties -> new ddraig.net.entropica.item.InertialAnchorAmuletItem(properties));
+    public static final RegistrySupplier<Item> GRAVITON_WAND = ITEMS.registerItem("graviton_wand", properties -> new ddraig.net.entropica.item.GravitonWandItem(properties));
+    public static final RegistrySupplier<Item> SINGULARITY_GRENADE = ITEMS.registerItem("singularity_grenade", properties -> new ddraig.net.entropica.item.SingularityGrenadeItem(properties));
+
     // --- Block Items ---
+    public static final RegistrySupplier<BlockItem> GRAVITATIONAL_ANCHOR_ITEM = ITEMS.registerItem("gravitational_anchor", properties -> new BlockItem(ModBlocks.GRAVITATIONAL_ANCHOR.get(), properties));
+    public static final RegistrySupplier<BlockItem> GRAV_LIFT_PROJECTOR_ITEM = ITEMS.registerItem("grav_lift_projector", properties -> new BlockItem(ModBlocks.GRAV_LIFT_PROJECTOR.get(), properties));
+    public static final RegistrySupplier<BlockItem> TIDAL_PULSE_RESONATOR_ITEM = ITEMS.registerItem("tidal_pulse_resonator", properties -> new BlockItem(ModBlocks.TIDAL_PULSE_RESONATOR.get(), properties));
     public static final RegistrySupplier<BlockItem> ENTROPIC_ORE_ITEM = ITEMS.registerItem("entropic_ore", properties -> new BlockItem(ModBlocks.ENTROPIC_ORE.get(), properties));
     public static final RegistrySupplier<BlockItem> MATERIA_BLESSING_ITEM = ITEMS.registerItem("materia_blessing", properties -> new BlockItem(ModBlocks.MATERIA_BLESSING.get(), properties));
     public static final RegistrySupplier<BlockItem> GREATER_MATERIA_BLESSING_ITEM = ITEMS.registerItem("greater_materia_blessing", properties -> new BlockItem(ModBlocks.GREATER_MATERIA_BLESSING.get(), properties));
@@ -892,6 +901,27 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> AURORAFOWL_SPAWN_EGG = ITEMS.registerItem("aurorafowl_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.AURORAFOWL, properties));
     public static final RegistrySupplier<Item> GEYSER_WIGGLE_WORM_SPAWN_EGG = ITEMS.registerItem("geyser_wiggle_worm_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.GEYSER_WIGGLE_WORM, properties));
     public static final RegistrySupplier<Item> CRYO_STALKER_SPAWN_EGG = ITEMS.registerItem("cryo_stalker_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.CRYO_STALKER, properties));
+    public static final RegistrySupplier<Item> GEMINI_GOAT_MAGE_SPAWN_EGG = ITEMS.registerItem("gemini_goat_mage_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.GEMINI_GOAT_MAGE, properties));
+    public static final RegistrySupplier<Item> VOID_SEA_SERPENT_SPAWN_EGG = ITEMS.registerItem("void_sea_serpent_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.VOID_SEA_SERPENT, properties));
+    public static final RegistrySupplier<Item> GLACIAL_HYDRA_SPAWN_EGG = ITEMS.registerItem("glacial_hydra_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.GLACIAL_HYDRA, properties));
+    public static final RegistrySupplier<Item> LUMINOTH_SPAWN_EGG = ITEMS.registerItem("luminoth_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.LUMINOTH, properties));
+    public static final RegistrySupplier<Item> AMBER_WEEPING_STAG_SPAWN_EGG = ITEMS.registerItem("amber_weeping_stag_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.AMBER_WEEPING_STAG, properties));
+    public static final RegistrySupplier<Item> STORM_KITE_SPAWN_EGG = ITEMS.registerItem("storm_kite_spawn_egg", properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.STORM_KITE, properties));
+
+    // --- FAUNA DROPS & REAGENTS ---
+    public static final RegistrySupplier<Item> SERPENT_VOID_SCALE = ITEMS.registerItem("serpent_void_scale", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.serpent_void_scale"));
+    public static final RegistrySupplier<Item> HYDRA_GLACIAL_HORN = ITEMS.registerItem("hydra_glacial_horn", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.hydra_glacial_horn"));
+    public static final RegistrySupplier<Item> LUMINOTH_DUST = ITEMS.registerItem("luminoth_dust", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.luminoth_dust"));
+    public static final RegistrySupplier<Item> WEEPING_AMBER_TEAR = ITEMS.registerItem("weeping_amber_tear", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.weeping_amber_tear"));
+    public static final RegistrySupplier<Item> STORM_KITE_MEMBRANE = ITEMS.registerItem("storm_kite_membrane", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.storm_kite_membrane"));
+
+    // --- CAPRINE ARTIFACTS & GEAR ---
+    public static final RegistrySupplier<Item> GEMINI_FOCUS_HORN = ITEMS.registerItem("gemini_focus_horn", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.gemini_focus_horn"));
+    public static final RegistrySupplier<Item> EQUINOX_VELVET_CLOTH = ITEMS.registerItem("equinox_velvet_cloth", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.equinox_velvet_cloth"));
+    public static final RegistrySupplier<Item> EQUINOX_ESSENCE = ITEMS.registerItem("equinox_essence", properties -> new EntropicaComponentItem(properties, "tooltip.entropica.equinox_essence"));
+    public static final RegistrySupplier<Item> GEMINI_SCEPTER = ITEMS.registerItem("gemini_scepter", properties -> new ddraig.net.entropica.item.GeminiScepterItem(properties));
+    public static final RegistrySupplier<Item> EQUINOX_MAGE_HAT = ITEMS.registerItem("equinox_mage_hat", properties -> new ddraig.net.entropica.item.EquinoxMageArmorItem(net.minecraft.world.entity.EquipmentSlot.HEAD, properties));
+    public static final RegistrySupplier<Item> EQUINOX_MAGE_ROBE = ITEMS.registerItem("equinox_mage_robe", properties -> new ddraig.net.entropica.item.EquinoxMageArmorItem(net.minecraft.world.entity.EquipmentSlot.CHEST, properties));
 
     // ==========================================
     // DATAGEN ITEM LIST
@@ -902,7 +932,9 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
             VEIL_SHARD, CHALK, DULL_CHALK, CONDUCTIVE_CHALK, RESONANT_CHALK, EIDOLIC_CHALK,
             ADVANCED_CHALK, ADVANCED_DULL_CHALK, ADVANCED_CONDUCTIVE_CHALK, ADVANCED_RESONANT_CHALK, ADVANCED_EIDOLIC_CHALK,
             GLACIAL_AEGIS_PLATE, PATINA_AEGIS_PLATE, MOSSY_AEGIS_PLATE, LIVING_SPORES, RIME_ANTLER_FRAGMENT, SHEPHERDS_FROST, CRAWLER_SHELL_FRAGMENT,
-            AURORAFOWL_FEATHER, RAW_AURORAFOWL, COOKED_AURORAFOWL, VAPOR_VENT_MEMBRANE, SULFUR_CLOD, CRYO_CRYSTALLINE_FANG, FROST_VEINED_HIDE, // Added Fauna Drops
+            AURORAFOWL_FEATHER, RAW_AURORAFOWL, COOKED_AURORAFOWL, VAPOR_VENT_MEMBRANE, SULFUR_CLOD, CRYO_CRYSTALLINE_FANG, FROST_VEINED_HIDE,
+            SERPENT_VOID_SCALE, HYDRA_GLACIAL_HORN, LUMINOTH_DUST, WEEPING_AMBER_TEAR, STORM_KITE_MEMBRANE,
+            GEMINI_FOCUS_HORN, EQUINOX_VELVET_CLOTH, EQUINOX_ESSENCE,
             SMALL_AMPOULE, MEDIUM_AMPOULE, LARGE_AMPOULE, ESSENCE_HARVESTING_BLADE, SOULBOUND_BLADE,
             OBLIVION_BLADE, TIDAL_TRIDENT, VOID_SWORD, BASALT_PICKAXE, WHISPERWOOD_WAND, SHIMMERING_FOCUS,
             ARCANITE_INGOT, VISCANITE_INGOT, RESONITE_INGOT, EIDOLITE_INGOT, CHARGED_ARCANITE_INGOT, CHARGED_VISCANITE_INGOT, CHARGED_RESONITE_INGOT, CHARGED_EIDOLITE_INGOT,
@@ -1147,6 +1179,21 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> OPTICAL_RECEIVER_PORT_ITEM = ITEMS.registerItem("optical_receiver_port", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTICAL_RECEIVER_PORT.get(), properties));
     public static final RegistrySupplier<Item> OPTICAL_BOOSTER_AMPLIFIER_ITEM = ITEMS.registerItem("optical_booster_amplifier", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTICAL_BOOSTER_AMPLIFIER.get(), properties));
     public static final RegistrySupplier<Item> MATERIA_FLUX_DISTRIBUTOR_ITEM = ITEMS.registerItem("materia_flux_distributor", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.MATERIA_FLUX_DISTRIBUTOR.get(), properties));
+    public static final RegistrySupplier<Item> OPTIC_RECEIVER_ITEM = ITEMS.registerItem("optic_receiver", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTIC_RECEIVER.get(), properties));
+    public static final RegistrySupplier<Item> OPTIC_TRANSMITTER_ITEM = ITEMS.registerItem("optic_transmitter", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.OPTIC_TRANSMITTER.get(), properties));
+    public static final RegistrySupplier<Item> CAGED_OPTIC_BULB_ITEM = ITEMS.registerItem("caged_optic_bulb", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.CAGED_OPTIC_BULB.get(), properties));
+    public static final RegistrySupplier<Item> IRON_LAMP_POST_ITEM = ITEMS.registerItem("iron_lamp_post", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.IRON_LAMP_POST.get(), properties));
+    public static final RegistrySupplier<Item> BRASS_LAMP_POST_ITEM = ITEMS.registerItem("brass_lamp_post", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.BRASS_LAMP_POST.get(), properties));
+    public static final RegistrySupplier<Item> STEEL_LAMP_POST_ITEM = ITEMS.registerItem("steel_lamp_post", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.STEEL_LAMP_POST.get(), properties));
+    public static final RegistrySupplier<Item> GLASS_LAMP_POST_ITEM = ITEMS.registerItem("glass_lamp_post", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.GLASS_LAMP_POST.get(), properties));
+    public static final RegistrySupplier<Item> RESONANCE_STARLIGHT_FOUNTAIN_ITEM = ITEMS.registerItem("resonance_starlight_fountain", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.RESONANCE_STARLIGHT_FOUNTAIN.get(), properties));
+    public static final RegistrySupplier<Item> LUMINOUS_TRELLIS_ARBOR_ITEM = ITEMS.registerItem("luminous_trellis_arbor", properties -> new net.minecraft.world.item.DoubleHighBlockItem(ModBlocks.LUMINOUS_TRELLIS_ARBOR.get(), properties));
+    public static final RegistrySupplier<Item> ATTUNED_DISPLAY_VITRINE_ITEM = ITEMS.registerItem("attuned_display_vitrine", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ATTUNED_DISPLAY_VITRINE.get(), properties));
+    public static final RegistrySupplier<Item> CELESTIAL_GRANDFATHER_CLOCK_ITEM = ITEMS.registerItem("celestial_grandfather_clock", properties -> new net.minecraft.world.item.DoubleHighBlockItem(ModBlocks.CELESTIAL_GRANDFATHER_CLOCK.get(), properties));
+    public static final RegistrySupplier<Item> ILLUMINATED_BALUSTRADE_ITEM = ITEMS.registerItem("illuminated_balustrade", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.ILLUMINATED_BALUSTRADE.get(), properties));
+    public static final RegistrySupplier<Item> STARLIGHT_CARPET_ITEM = ITEMS.registerItem("starlight_carpet", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.STARLIGHT_CARPET.get(), properties));
+    public static final RegistrySupplier<Item> GLOWPEG_ITEM = ITEMS.registerItem("glowpeg", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.GLOWPEG.get(), properties));
+    public static final RegistrySupplier<Item> SOUL_GLOWPEG_ITEM = ITEMS.registerItem("soul_glowpeg", properties -> new net.minecraft.world.item.BlockItem(ModBlocks.SOUL_GLOWPEG.get(), properties));
 
     // Standalone Instruments, Scribing & Baubles
     public static final RegistrySupplier<Item> LOOKING_GLASS = ITEMS.registerItem("looking_glass", properties -> new ddraig.net.entropica.item.LookingGlassItem(properties.stacksTo(1)));
@@ -1163,6 +1210,7 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> ASTRAL_CRYSTAL_SEED = ITEMS.registerItem("astral_crystal_seed", properties -> new ddraig.net.entropica.item.AstralCrystalSeedItem(properties.stacksTo(64)));
     public static final RegistrySupplier<Item> STARLIGHT_SILK = ITEMS.registerItem("starlight_silk", Item::new);
     public static final RegistrySupplier<Item> ASTRAL_CRYSTAL_THREAD = ITEMS.registerItem("astral_crystal_thread", Item::new);
+    public static final RegistrySupplier<Item> STARLIGHT_CLOTH = ITEMS.registerItem("starlight_cloth", Item::new);
     public static final RegistrySupplier<Item> CRYSTAL_SWORD = ITEMS.registerItem("crystal_sword", properties -> new ddraig.net.entropica.item.CrystalToolItem(properties.sword(ToolMaterial.NETHERITE, 3.0F, -2.4F).durability(1250), ddraig.net.entropica.item.CrystalToolItem.ToolType.SWORD));
     public static final RegistrySupplier<Item> CRYSTAL_PICKAXE = ITEMS.registerItem("crystal_pickaxe", properties -> new ddraig.net.entropica.item.CrystalToolItem(properties.pickaxe(ToolMaterial.NETHERITE, 1.0F, -2.8F).durability(1250), ddraig.net.entropica.item.CrystalToolItem.ToolType.PICKAXE));
     public static final RegistrySupplier<Item> CRYSTAL_AXE = ITEMS.registerItem("crystal_axe", properties -> new ddraig.net.entropica.item.CrystalToolItem(properties.axe(ToolMaterial.NETHERITE, 5.0F, -3.0F).durability(1250), ddraig.net.entropica.item.CrystalToolItem.ToolType.AXE));

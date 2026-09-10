@@ -19,7 +19,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import java.util.EnumMap;
 import java.util.Map;
 
-public class PureOpticFiberBlock extends Block {
+import ddraig.net.entropica.block.entity.PureOpticFiberBlockEntity;
+import ddraig.net.entropica.registry.ModBlockEntities;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import org.jetbrains.annotations.Nullable;
+
+public class PureOpticFiberBlock extends Block implements EntityBlock {
     public static final MapCodec<PureOpticFiberBlock> CODEC = simpleCodec(PureOpticFiberBlock::new);
 
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
@@ -77,6 +86,24 @@ public class PureOpticFiberBlock extends Block {
         return RenderShape.MODEL;
     }
 
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new PureOpticFiberBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
+        return createTickerHelper(blockEntityType, ModBlockEntities.PURE_OPTIC_FIBER_BE.get(), PureOpticFiberBlockEntity::tick);
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    protected static <E extends BlockEntity, A extends BlockEntity> BlockEntityTicker<A> createTickerHelper(BlockEntityType<A> serverType, BlockEntityType<E> clientType, BlockEntityTicker<? super E> ticker) {
+        return clientType == serverType ? (BlockEntityTicker<A>) ticker : null;
+    }
+
     public static boolean canConnectTo(BlockGetter level, BlockPos pos, Direction direction, BlockState currentState) {
         BlockPos neighborPos = pos.relative(direction);
         BlockState neighborState = level.getBlockState(neighborPos);
@@ -91,7 +118,11 @@ public class PureOpticFiberBlock extends Block {
 
         return block instanceof OpticalTransmitterPortBlock
                 || block instanceof OpticalReceiverPortBlock
-                || block instanceof OpticalBoosterAmplifierBlock;
+                || block instanceof OpticalBoosterAmplifierBlock
+                || block instanceof OpticReceiverBlock
+                || block instanceof OpticTransmitterBlock
+                || block instanceof CagedOpticBulbBlock
+                || block instanceof LampPostBlock;
     }
 
     @Override

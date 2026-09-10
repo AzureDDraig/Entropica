@@ -1237,6 +1237,73 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
+                "env_void_sea_serpent", "Void Sea Serpent", "ENVIRONMENT & NATURE",
+                "16-segment abyssal leviathan with a grand dorsal sail, pectoral fins, and sonic shockwave roars.",
+                "Overview & Description:\n" +
+                "An enormous 16-segment articulated sea serpent swimming through deep abyssal oceanic trenches and void-permeated depths.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Uses an undulating 16-segment Catmull-Rom swimming animation, executes biting lunges that inflict Blindness and Slowness, and unleashes sonic void shockwaves that fling attackers away.\n\n" +
+                "Harvest & Drops:\n" +
+                "Drops Serpent Void Scales, utilized in crafting Void-attuned maritime armor and abyssal diving gear.",
+                "env_fauna", 1, new ItemStack(ModItems.SERPENT_VOID_SCALE.get()),
+                440f, 0.0f, a_env + 0.36f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_glacial_hydra", "Glacial Hydra", "ENVIRONMENT & NATURE",
+                "Multi-tined cryo-beast that breathes sub-zero frost and regenerates rapidly atop ice floes.",
+                "Overview & Description:\n" +
+                "A massive glacial beast possessing layered crystalline antlers, throat fluff, and frost-encrusted armor.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Roams frozen oceans and glacial taigas. Channels intense Cryo breath that deals freezing damage and slows targets, while rapidly healing whenever standing upon ice, packed ice, blue ice, or snow.\n\n" +
+                "Harvest & Drops:\n" +
+                "Drops Hydra Glacial Horns, essential for forging Cryo-infusion matrices and absolute-zero weaponry.",
+                "env_fauna", 1, new ItemStack(ModItems.HYDRA_GLACIAL_HORN.get()),
+                460f, 0.0f, a_env + 0.42f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_luminoth", "Luminoth", "ENVIRONMENT & NATURE",
+                "Bioluminescent moth drawn to light sources, shedding shimmering solar dust and granting night vision.",
+                "Overview & Description:\n" +
+                "A gentle, winged moth with glowing luminescent wings that flutters gracefully through dusk forests and subterranean caverns.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Attracted to torches, lanterns, and Materia nodes. Emits soft floating motes and confers ambient Night Vision to nearby travelers.\n\n" +
+                "Harvest & Drops:\n" +
+                "Yields Luminoth Dust, used in illuminating alchemical tinctures, glow wands, and spectral pigments.",
+                "env_fauna", 1, new ItemStack(ModItems.LUMINOTH_DUST.get()),
+                480f, 0.0f, a_env + 0.48f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_amber_weeping_stag", "Amber Weeping Stag", "ENVIRONMENT & NATURE",
+                "Majestic cervid with weeping crystalline antlers, existing in 3 regional variants (Amber, Frost, Solar).",
+                "Overview & Description:\n" +
+                "An ancient horned stag with elaborate multi-tined crystal antlers that weep elemental essence dew.\n\n" +
+                "Variants & Behavior:\n" +
+                "▪ Amber: Native to temperate groves, weeps Vitae nectar.\n" +
+                "▪ Frost: Native to sub-zero tundras, immune to freezing, weeps Cryo snow crystals.\n" +
+                "▪ Solar: Native to hot savannas and sunlit peaks, weeps Radiant sparks.\n\n" +
+                "Harvest & Drops:\n" +
+                "Yields Weeping Amber Tears, prized for high-purity alchemical elixirs and crystalline catalyst cores.",
+                "env_fauna", 1, new ItemStack(ModItems.WEEPING_AMBER_TEAR.get()),
+                500f, 0.0f, a_env + 0.54f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_storm_kite", "Storm Kite", "ENVIRONMENT & NATURE",
+                "Wide-winged aerial predator that rides thunderhead thermals and swoops down with static shock strikes.",
+                "Overview & Description:\n" +
+                "A majestic ray-like atmospheric predator possessing 6 segmented wing joints, cephalic fins, and an electric glowing underbelly.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Soars at high altitudes. Upon spotting prey, executes dramatic high-speed dive attacks. During thunderstorms, its attacks channel direct lightning discharges.\n\n" +
+                "Harvest & Drops:\n" +
+                "Drops Storm Kite Membranes, utilized in crafting Aer-attuned gliding wings and galvanic capacitors.",
+                "env_fauna", 1, new ItemStack(ModItems.STORM_KITE_MEMBRANE.get()),
+                520f, 0.0f, a_env + 0.60f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
                 "env_aegis_rose", "Aegis Rose", "ENVIRONMENT & NATURE",
                 "A crystalline blue sapphire rose with metallic silver thorns.",
                 "Overview & Description:\n" +
@@ -1489,6 +1556,136 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
+                "astral_optic_receiver_and_transmitter", "Wireless Optic Receiver & Transmitter", "MAGIC",
+                "Straight-line wireless optical interfaces connecting open air starlight beams to pure optic fiber cable runs.",
+                "Overview & Description:\n" +
+                "The Optic Receiver and Optic Transmitter are modular silver pipe components that bridge aerial optical beams and physical optic fiber networks.\n\n" +
+                "Optic Receiver:\n" +
+                "Equipped with a directional quartz sensor aperture on its facing side, the Optic Receiver captures straight-line beams from Refractive Lenses, Secondary Lenses, or Transmitters, and injects the starlight stream into all connected Pure Optic Fiber cables.\n\n" +
+                "Optic Transmitter:\n" +
+                "Draws starlight from connected fiber runs and collimates it into a straight-line laser firing out of its nozzle up to 32 blocks forward. The beam hits pedestals, collectors, prisms, or receivers, while inflicting Materia toxicity on any entities in its path.\n\n" +
+                "Pipe Geometry:\n" +
+                "Both units utilize Entropica's modular pipe model with an all-around silver finish, seamlessly connecting to optic fiber cables.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.OPTIC_TRANSMITTER.get()),
+                600f, 0.0f, a_magic + 0.03f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "caged_optic_bulb", "Caged Optic Bulb", "MAGIC",
+                "Directional filament lamp illuminated and tinted dynamically by active Materia flux through optic fibers.",
+                "Overview & Description:\n" +
+                "The Caged Optic Bulb is a compact, industrial caged lamp that connects directly to Pure Optic Fiber cable networks.\n\n" +
+                "Dynamic Chromatic Illumination:\n" +
+                "Whenever pulses of starlight or Materia flow through the fiber line, the caged bulb illuminates at maximum light level (15) and dynamically tints its inner filament and glowing envelope to the exact hue of the active Materia type.\n\n" +
+                "Omnidirectional Mounting:\n" +
+                "Can be attached to floors, ceilings, walls, or directly onto optic fiber cable runs to serve as an instant visual network activity monitor and decorative atmospheric lighting.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.CAGED_OPTIC_BULB.get()),
+                640f, 0.0f, a_magic + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "glowpeg", "Glowpeg", "MAGIC",
+                "Architectural fence-sized glowing rod providing pure, warm glowstone luminescence across floors, walls, and ceilings.",
+                "Overview & Description:\n" +
+                "The Glowpeg is an architectural light rod sized to match a fence post, capped with polished brass plates and filled with radiant, concentrated glowstone.\n\n" +
+                "Crafting:\n" +
+                "Fashioned from a central wooden stick flanked by 2 pinches of glowstone dust, yielding 1 Glowpeg.\n\n" +
+                "Architectural Mounting:\n" +
+                "Designed to stay strictly vertical across all placements for an authentic classical aesthetic:\n" +
+                "▪ Floor: Stands upright atop blocks, pillars, and pedestals.\n" +
+                "▪ Wall & Pillar: Mounts vertically against vertical surfaces with brass standoff brackets.\n" +
+                "▪ Ceiling & Chains: Suspends vertically from ceilings, aligning seamlessly with hanging chains.\n\n" +
+                "Luminescence:\n" +
+                "Maintains a constant, rich warm-yellow glowstone illumination at Light Level 15, fully waterloggable.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.GLOWPEG.get()),
+                640f, 0.0f, a_magic + 0.055f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "soul_glowpeg", "Soul Glowpeg", "MAGIC",
+                "Ethereal light blue soul fire variant of the architectural Glowpeg, casting calm azure light.",
+                "Overview & Description:\n" +
+                "The Soul Glowpeg combines the fence-sized architectural rod design of the Glowpeg with the supernatural radiance of soul fire.\n\n" +
+                "Crafting & Transmutation:\n" +
+                "▪ Crafted using Glowstone Dust, a wooden Stick, and Soul Sand or Soul Soil.\n" +
+                "▪ Alternatively, any standard Glowpeg can be transmuted with a block of Soul Sand or Soul Soil in a crafting grid.\n\n" +
+                "Supernatural Properties:\n" +
+                "▪ Radiates a gentle, eerie cyan illumination at Light Level 10, preventing Piglin agitation.\n" +
+                "▪ Emits soft soul flame particles when active.\n" +
+                "▪ Retains strictly vertical alignment across floor, wall, and ceiling mounts.",
+                "glowpeg", 2, new ItemStack(ModBlocks.SOUL_GLOWPEG.get()),
+                660f, 0.0f, a_magic + 0.06f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_lamp_posts", "Lamp Posts & Street Illumination", "MAGIC",
+                "Modular 1-to-3 block tall tapered lamp posts conducting starlight flux to cardinal arm bulbs.",
+                "Overview & Description:\n" +
+                "Lamp Posts provide elegant, architectural vertical starlight transmission and municipal illumination across 4 distinct material variants: Iron, Brass, Steel, and Essence Glass.\n\n" +
+                "Zero-Gap Baseplate:\n" +
+                "Each lamp post base features a full 16x16x1 bottom plate that perfectly covers and conceals underlying optic fiber conduits with zero exposed gaps.\n\n" +
+                "Dynamic Vertical Tapering:\n" +
+                "Lamp posts seamlessly adapt their model across 1, 2, or 3 blocks tall (enforcing a hard cap at 3 high), gracefully tapering from a broad 10-pixel pedestal up to a slender 4-pixel neck and crown.\n\n" +
+                "Interactive Cardinal Arms & Bulbs:\n" +
+                "▪ Right-click with an empty hand to toggle ornamental support arms extending North, East, South, or West.\n" +
+                "▪ Right-click an arm with a Caged Optic Bulb to snap and hang the bulb directly from the arm bracket.\n" +
+                "▪ Sneak right-click to safely detach bulbs or remove arms.\n\n" +
+                "Integrated Flux Conduction:\n" +
+                "Lamp posts conduct starlight flux from underground optic fiber cables straight up into all attached arm bulbs, brightly illuminating at light level 15 and dynamically tinting to the flowing Materia color.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.IRON_LAMP_POST.get()),
+                680f, 0.0f, a_magic + 0.07f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_flux_cosmetics", "Celestial Architecture & Wireless Flux Fixtures", "MAGIC",
+                "Decorative and functional fixtures powered wirelessly by the Materia-Flux Distributor or directly via pure optic fiber.",
+                "Overview & Description:\n" +
+                "Beyond utilitarian conduits and municipal street lamps, celestial architects can craft ornate architectural fixtures that harness ambient Materia Flux wirelessly or via direct cable routing.\n\n" +
+                "Resonance Starlight Fountain & Birdbath:\n" +
+                "▪ Carved from Astral Marble with an internal Essence Glass basin.\n" +
+                "▪ When powered, erupts with a bubbling starlight geyser and animated starlight pool surface.\n" +
+                "▪ Emits a soothing celestial aura within 8 blocks that clears harmful status effects (Poison, Wither, Slowness, Weakness) and bestows gentle health regeneration.\n\n" +
+                "Luminous Garden Arbor & Trellis Archways:\n" +
+                "▪ Fine brass lattice work wrapped in star-blossomed wisteria vines.\n" +
+                "▪ When powered, glows softly and bathes nearby crops, saplings, and herbs in astral photosynthetic light, accelerating their growth cycles.\n\n" +
+                "Attuned Display Vitrine & Bell Jar:\n" +
+                "▪ A velvet-cushioned brass plinth protected beneath a crystal glass dome.\n" +
+                "▪ Right-click with any item to display it inside.\n" +
+                "▪ When powered, projects a collimated vertical starlight spotlight beam that suspends the item mid-air in continuous, graceful rotation.\n\n" +
+                "Celestial Grandfather Chronometer:\n" +
+                "▪ Tall, ornate astronomical timepiece with swinging brass pendulum and dual celestial dials.\n" +
+                "▪ The upper dial tracks diurnal solar and nocturnal stellar movements, while the lower dial tracks real-time lunar phases.\n" +
+                "▪ When flux-powered, celestial constellations glow and a deep, resonant celestial bell chimes across the estate at the turn of every in-game hour.\n\n" +
+                "Illuminated Balustrades & Glass Railings:\n" +
+                "▪ Frosted starlight glass panes framed in polished metal balusters.\n" +
+                "▪ Connects seamlessly into straight railings, corner posts, and junctions.\n" +
+                "▪ Edge-lit with vibrant starlight tinting to the frequency of flowing Materia.\n\n" +
+                "Wireless Flux Distribution:\n" +
+                "All 5 fixtures possess internal resonant starlight receivers. They require no cables when placed within range (up to 16 blocks) of an active Materia-Flux Distributor, or they can be placed directly on Pure Optic Fiber cables.",
+                "astral_lamp_posts", 2, new ItemStack(ModBlocks.RESONANCE_STARLIGHT_FOUNTAIN.get()),
+                720f, 0.0f, a_magic + 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "starlight_cloth_and_carpets", "Starlight Cloth & Celestial Carpets", "MAGIC",
+                "Frictionless celestial silk woven from starlight threads, enabling high-speed gliding transit runners.",
+                "Overview & Description:\n" +
+                "By weaving delicate Starlight Silk with reinforced Astral Crystal Thread, celestial artificers produce Starlight Cloth—a fabric imbued with the low-friction properties of deep astral space.\n\n" +
+                "Starlight Cloth:\n" +
+                "▪ A shimmering textile used in astral apparel, ritual sails, and celestial apparatus.\n" +
+                "▪ Woven from Starlight Silk and Astral Crystal Thread.\n\n" +
+                "Starlight Carpet:\n" +
+                "▪ Crafted from 2 Starlight Cloth bolts, producing 3 decorative carpet tiles patterned with midnight constellations.\n" +
+                "▪ Frictionless Glide: Features ultra-low surface friction (comparable to Blue Ice), allowing players and mobs to slide effortlessly across vast distances.\n" +
+                "▪ Kinetic Acceleration: Walking or running along the carpet imparts a passive +35% movement speed boost, turning corridors into high-speed transit runways.\n" +
+                "▪ Emits soft ambient starlight (Light Level 8) and leaves sparkling starlight footprints when traversed.\n\n" +
+                "Reversible Weaving:\n" +
+                "3 Starlight Carpets can be unraveled back into 2 Starlight Cloth bolts at a crafting table.",
+                "astral_flux_cosmetics", 2, new ItemStack(ModBlocks.STARLIGHT_CARPET.get()),
+                750f, 0.0f, a_magic + 0.085f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
                 "astral_optical_relays_and_hazards", "Optical Relays & Radiation Hazards", "MAGIC",
                 "Gimbaled refractive lenses, 4-way beam splitters, comparator automation, and occlusion hazards.",
                 "Overview & Description:\n" +
@@ -1672,6 +1869,21 @@ public class CodexCategoryRegistry {
                 "Performed at Alchemical Stills and Catalyst Receptacles.",
                 "hub_magic", 1, new ItemStack(Items.POTION),
                 280f, 0.0f, a_magic + 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "caprine_duality_arcana", "Caprine Duality Arcana", "MAGIC",
+                "Esoteric secrets of Radiant Fire and Umbral Waters mastered by the Gemini Goat Mage.",
+                "Overview & Description:\n" +
+                "The Caprine Sages discovered that opposing elemental extremes—blinding Radiant Fire and deep Umbral Waters—do not annihilate when harmonized through an Equinox focal matrix. Instead, they unlock phase-inversion alchemy and steam-cavitation shockwaves.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Unlocked by presenting an Entropic Codex or astronomical instrument to an elusive Gemini Goat Mage wandering the alpine summits.\n\n" +
+                "Crafting & Transmutation:\n" +
+                "Unlocks the Gemini Scepter of Equinox, Equinox Velvet Cloth, Equinox Robes & Floppy Wizard Hat, and lossless Radiant-Fire <-> Umbral-Water alchemy.\n\n" +
+                "Special Properties:\n" +
+                "The Floppy Caprine Wizard Hat provides a +20% bonus in the Materia Advantage damage calculation.",
+                "hub_magic", 2, new ItemStack(ModItems.GEMINI_FOCUS_HORN.get()),
+                340f, 0.0f, a_magic + 0.35f, false
         ));
     }
 

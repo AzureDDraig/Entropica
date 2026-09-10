@@ -78,7 +78,7 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
     }
 
     public AABB getRenderBoundingBox() {
-        return new AABB(this.worldPosition).inflate(64.0, 64.0, 64.0);
+        return new AABB(-30000000.0, -30000000.0, -30000000.0, 30000000.0, 30000000.0, 30000000.0);
     }
 
     public float getYaw() {
@@ -182,57 +182,81 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
             double maxDist = 32.0;
             Vec3 end = start.add(lookDir.scale(maxDist));
 
-            // 1. Raycast for solid world terrain blocks
-            BlockHitResult blockHit = level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, CollisionContext.empty()));
             double closestDist = maxDist;
             BlockEntity closestBE = null;
-            if (blockHit.getType() == HitResult.Type.BLOCK && !blockHit.getBlockPos().equals(pos) && !blockHit.getBlockPos().equals(pos.below())) {
-                closestDist = start.distanceTo(blockHit.getLocation());
-                closestBE = level.getBlockEntity(blockHit.getBlockPos());
-            }
-
-            // 2. Scan along the beam ray path in 0.2m increments for optical components or optic fibers
+            BlockPos hitSolidPos = null;
             Set<BlockPos> checkedPositions = new HashSet<>();
-            for (double step = 0.2; step <= closestDist + 0.5; step += 0.2) {
+
+            for (double step = 0.5; step <= maxDist; step += 0.15) {
                 Vec3 samplePoint = start.add(lookDir.scale(step));
                 BlockPos p = BlockPos.containing(samplePoint);
-                if (checkedPositions.add(p)) {
-                    if (p.equals(pos) || p.equals(pos.below())) continue;
+                if (!checkedPositions.add(p)) continue;
+                if (p.equals(pos) || p.equals(pos.below())) continue;
 
-                    BlockState blockState = level.getBlockState(p);
-                    net.minecraft.world.level.block.Block block = blockState.getBlock();
-                    BlockEntity targetBE = level.getBlockEntity(p);
+                BlockState blockState = level.getBlockState(p);
+                net.minecraft.world.level.block.Block block = blockState.getBlock();
+                BlockEntity targetBE = level.getBlockEntity(p);
 
-                    if (targetBE != null) {
-                        boolean isOptic = (targetBE instanceof SecondaryAstralLensBlockEntity ||
-                                           targetBE instanceof RefractiveAstralLensBlockEntity ||
-                                           targetBE instanceof BeamSplitterPrismBlockEntity ||
-                                           targetBE instanceof AstralInfusionPedestalBlockEntity ||
-                                           targetBE instanceof OpticalTransmitterPortBlockEntity ||
-                                           targetBE instanceof AstralCollectorBlockEntity);
-
-                        if (isOptic) {
-                            double centerY = (targetBE instanceof SecondaryAstralLensBlockEntity || targetBE instanceof RefractiveAstralLensBlockEntity) ? 0.5625 : 0.5;
-                            Vec3 targetCenter = new Vec3(p.getX() + 0.5, p.getY() + centerY, p.getZ() + 0.5);
-                            double distToCenter = start.distanceTo(targetCenter);
-                            if (distToCenter <= maxDist) {
-                                closestDist = distToCenter;
-                                closestBE = targetBE;
-                                break; // Terminate ray directly at the center of the first component block
-                            }
-                        }
-                    } else if (block instanceof PureOpticFiberBlock) {
-                        Vec3 fiberCenter = new Vec3(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5);
-                        double distToFiber = start.distanceTo(fiberCenter);
-                        if (distToFiber <= maxDist) {
-                            closestDist = distToFiber;
-                            closestBE = null;
-                            // Inject starlight flux directly into the optic fiber network
-                            OpticalTransmitterPortBlockEntity.propagateFiberNetwork(level, p, currentStar);
-                            break; // Terminate ray on contact with the optic fiber
-                        }
+                // Check if beam intersects an Astral Collector's floating crystal (centered at collector.getY() + 1.20)
+                BlockPos collectorPos = p.below();
+                BlockEntity belowBE = level.getBlockEntity(collectorPos);
+                if (belowBE instanceof AstralCollectorBlockEntity collector) {
+                    Vec3 crystalCenter = new Vec3(collectorPos.getX() + 0.5, collectorPos.getY() + 1.20, collectorPos.getZ() + 0.5);
+                    if (samplePoint.distanceTo(crystalCenter) <= 0.45 || (samplePoint.y <= collectorPos.getY() + 1.25 && Math.abs(samplePoint.x - crystalCenter.x) <= 0.35 && Math.abs(samplePoint.z - crystalCenter.z) <= 0.35)) {
+                        closestDist = start.distanceTo(crystalCenter);
+                        closestBE = collector;
+                        break;
                     }
                 }
+
+                if (targetBE != null) {
+                    if (targetBE instanceof AstralCollectorBlockEntity collector) {
+                        Vec3 crystalCenter = new Vec3(p.getX() + 0.5, p.getY() + 1.20, p.getZ() + 0.5);
+                        closestDist = start.distanceTo(crystalCenter);
+                        closestBE = targetBE;
+                        break;
+                    }
+
+                    boolean isOptic = (targetBE instanceof SecondaryAstralLensBlockEntity ||
+                                       targetBE instanceof RefractiveAstralLensBlockEntity ||
+                                       targetBE instanceof BeamSplitterPrismBlockEntity ||
+                                       targetBE instanceof AstralInfusionPedestalBlockEntity ||
+                                       targetBE instanceof OpticalTransmitterPortBlockEntity ||
+                                       targetBE instanceof OpticReceiverBlockEntity);
+
+                    if (isOptic) {
+                        double centerY = ((targetBE instanceof SecondaryAstralLensBlockEntity || targetBE instanceof RefractiveAstralLensBlockEntity) ? 0.5625 : 
+                                         (targetBE instanceof AstralInfusionPedestalBlockEntity ? 1.1 : 0.5));
+                        Vec3 targetCenter = new Vec3(p.getX() + 0.5, p.getY() + centerY, p.getZ() + 0.5);
+                        closestDist = Math.min(step, start.distanceTo(targetCenter));
+                        closestBE = targetBE;
+                        break;
+                    }
+                }
+
+                if (block instanceof PureOpticFiberBlock) {
+                    Vec3 fiberCenter = new Vec3(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5);
+                    closestDist = Math.min(step, start.distanceTo(fiberCenter));
+                    closestBE = null;
+                    OpticalTransmitterPortBlockEntity.propagateFiberNetwork(level, p, currentStar);
+                    break;
+                }
+
+                if (isOpticalPassthrough(level, p, blockState)) {
+                    continue;
+                }
+
+                net.minecraft.world.phys.shapes.VoxelShape shape = blockState.getCollisionShape(level, p);
+                if (shape.isEmpty()) shape = blockState.getShape(level, p);
+                BlockHitResult hit = shape.clip(start, end, p);
+                if (hit != null && hit.getType() == HitResult.Type.BLOCK) {
+                    closestDist = start.distanceTo(hit.getLocation());
+                } else {
+                    closestDist = step;
+                }
+                closestBE = null;
+                hitSolidPos = p;
+                break;
             }
 
             // 3. Scan for Living Entities intercepting the beam
@@ -252,8 +276,8 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
             }
 
             // 4. Check for Calcite Block Transmutation (after 5 seconds / 100 ticks of direct beam contact)
-            if (blockingEntity == null && closestBE == null && blockHit.getType() == HitResult.Type.BLOCK) {
-                BlockPos hitBlockPos = blockHit.getBlockPos();
+            if (blockingEntity == null && closestBE == null && hitSolidPos != null) {
+                BlockPos hitBlockPos = hitSolidPos;
                 if (level.getBlockState(hitBlockPos).is(Blocks.CALCITE)) {
                     if (hitBlockPos.equals(be.calciteBlockPos)) {
                         be.calciteTransmuteTicks++;
@@ -361,6 +385,8 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                     pedestal.receiveIrradiation(currentStar);
                 } else if (closestBE instanceof OpticalTransmitterPortBlockEntity transmitter) {
                     transmitter.receiveOpticalBeam(currentStar);
+                } else if (closestBE instanceof OpticReceiverBlockEntity receiver) {
+                    receiver.receiveOpticalBeam(currentStar);
                 } else if (closestBE instanceof AstralCollectorBlockEntity collector) {
                     EssenceType starEssence = resolveStarEssence(currentStar);
                     collector.receiveStarlightBeam(currentStar, starEssence);
@@ -385,6 +411,17 @@ public class RefractiveAstralLensBlockEntity extends BlockEntity {
                 level.sendBlockUpdated(pos, state, state, 3);
             }
         }
+    }
+
+    public static boolean isOpticalPassthrough(Level level, BlockPos p, BlockState state) {
+        if (state.isAir()) return true;
+        net.minecraft.world.level.block.Block block = state.getBlock();
+        if (block instanceof net.minecraft.world.level.block.TransparentBlock) return true; // Glass, tinted glass
+        if (block instanceof net.minecraft.world.level.block.IronBarsBlock) return true; // Glass panes, iron bars
+        if (state.is(net.minecraft.tags.BlockTags.IMPERMEABLE)) return true;
+        if (block.getDescriptionId().contains("glass")) return true;
+        if (state.getCollisionShape(level, p).isEmpty()) return true; // Foliage, torches, string, etc.
+        return false;
     }
 
     public static EssenceType resolveStarEssence(String starName) {

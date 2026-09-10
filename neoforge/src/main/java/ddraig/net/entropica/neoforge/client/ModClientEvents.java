@@ -35,6 +35,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.ViewportEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -107,12 +108,31 @@ public class ModClientEvents {
     }
 
     @SubscribeEvent
+    public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
+        float partialTick = (float) event.getPartialTick();
+        float roll = ddraig.net.entropica.client.camera.GravityCameraHandler.getRoll(partialTick);
+        float yawSlant = ddraig.net.entropica.client.camera.GravityCameraHandler.getYawSlant(partialTick);
+        float pitchSlant = ddraig.net.entropica.client.camera.GravityCameraHandler.getPitchSlant(partialTick);
+
+        if (Math.abs(roll) > 0.001f) {
+            event.setRoll(event.getRoll() + roll);
+        }
+        if (Math.abs(yawSlant) > 0.001f) {
+            event.setYaw(event.getYaw() + yawSlant);
+        }
+        if (Math.abs(pitchSlant) > 0.001f) {
+            event.setPitch(event.getPitch() + pitchSlant);
+        }
+    }
+
+    @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
         
         // Custom Haze shader tick manager
         HazeShaderManager.clientTick(mc);
         ddraig.net.entropica.client.ParalyzedParticleHandler.clientTick(mc);
+        ddraig.net.entropica.client.camera.GravityCameraHandler.clientTick(mc);
 
         if (mc.player != null && mc.level != null && mc.level.getGameTime() % 4 == 0) {
             BlockPos p = mc.player.blockPosition();
@@ -142,6 +162,7 @@ public class ModClientEvents {
     @SubscribeEvent
     public static void registerSpecialModels(RegisterSpecialModelRendererEvent event) {
         event.register(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "dynamic_weapon"), DynamicWeaponRenderer.Unbaked.MAP_CODEC);
+        event.register(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "astral_crystal"), ddraig.net.entropica.client.renderer.item.AstralCrystalSpecialRenderer.Unbaked.MAP_CODEC);
     }
 
     @SubscribeEvent
@@ -202,7 +223,20 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.ASTRAL_ALTAR_CORE_BE.get(), ddraig.net.entropica.client.renderer.AstralAltarRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.CELESTIAL_ARMILLARY_CONTROLLER_BE.get(), ddraig.net.entropica.client.renderer.CelestialArmillaryRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.CELESTIAL_BEACON_CONTROLLER_BE.get(), ddraig.net.entropica.client.renderer.CelestialBeaconRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.OPTIC_TRANSMITTER_BE.get(), ddraig.net.entropica.client.renderer.OpticTransmitterRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CAGED_OPTIC_BULB_BE.get(), ddraig.net.entropica.client.renderer.CagedOpticBulbRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.LAMP_POST_BE.get(), ddraig.net.entropica.client.renderer.LampPostRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.PURE_OPTIC_FIBER_BE.get(), ddraig.net.entropica.client.renderer.PureOpticFiberRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.RESONANCE_STARLIGHT_FOUNTAIN_BE.get(), ddraig.net.entropica.client.renderer.ResonanceStarlightFountainRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ATTUNED_DISPLAY_VITRINE_BE.get(), ddraig.net.entropica.client.renderer.AttunedDisplayVitrineRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CELESTIAL_GRANDFATHER_CLOCK_BE.get(), ddraig.net.entropica.client.renderer.CelestialGrandfatherClockRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ILLUMINATED_BALUSTRADE_BE.get(), ddraig.net.entropica.client.renderer.IlluminatedBalustradeRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ASTRAL_CRYSTAL_BE.get(), ddraig.net.entropica.client.renderer.AstralCrystalRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.GRAVITATIONAL_ANCHOR_BE.get(), ddraig.net.entropica.client.renderer.GravitationalAnchorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.GRAV_LIFT_PROJECTOR_BE.get(), ddraig.net.entropica.client.renderer.GravLiftProjectorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.TIDAL_PULSE_RESONATOR_BE.get(), ddraig.net.entropica.client.renderer.TidalPulseResonatorRenderer::new);
 
+        event.registerEntityRenderer(ModEntityTypes.SINGULARITY_GRENADE.get(), ddraig.net.entropica.client.renderer.SingularityGrenadeRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);
 
@@ -224,6 +258,15 @@ public class ModClientEvents {
         event.registerEntityRenderer(ModEntityTypes.AURORAFOWL.get(), AurorafowlRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.GEYSER_WIGGLE_WORM.get(), GeyserWiggleWormRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.CRYO_STALKER.get(), CryoStalkerRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.GEMINI_GOAT_MAGE.get(), ddraig.net.entropica.client.renderer.gemini_goat_mage.GeminiGoatMageRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.VOID_SEA_SERPENT.get(), ddraig.net.entropica.client.renderer.void_sea_serpent.VoidSeaSerpentRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.VOID_SEA_SERPENT_SEGMENT.get(), net.minecraft.client.renderer.entity.NoopRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.GLACIAL_HYDRA.get(), ddraig.net.entropica.client.renderer.glacial_hydra.GlacialHydraRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.LUMINOTH.get(), ddraig.net.entropica.client.renderer.luminoth.LuminothRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.AMBER_WEEPING_STAG.get(), ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.STORM_KITE.get(), ddraig.net.entropica.client.renderer.storm_kite.StormKiteRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.RADIANT_FIRE_LANCE.get(), ThrownItemRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.UMBRAL_VORTEX.get(), ThrownItemRenderer::new);
     }
 
     @SubscribeEvent
@@ -231,6 +274,7 @@ public class ModClientEvents {
         event.registerSpriteSet(ModParticles.FUME_PARTICLE.get(), FumeParticle.Provider::new);
         event.registerSpriteSet(ModParticles.SPECTRUM_SPARKLE.get(), ddraig.net.entropica.client.particle.SpectrumSparkleParticle.Provider::new);
         event.registerSpriteSet(ModParticles.GALE_SWIRL_PUFF.get(), ddraig.net.entropica.client.particle.GaleSwirlPuffParticle.Provider::new);
+        event.registerSpriteSet(ModParticles.SHADOW_SLASH.get(), ddraig.net.entropica.client.particle.ShadowSlashParticle.Provider::new);
     }
 
 
@@ -328,6 +372,12 @@ public class ModClientEvents {
         event.registerLayerDefinition(AurorafowlModel.LAYER_LOCATION, AurorafowlModel::createBodyLayer);
         event.registerLayerDefinition(GeyserWiggleWormModel.LAYER_LOCATION, GeyserWiggleWormModel::createBodyLayer);
         event.registerLayerDefinition(CryoStalkerModel.LAYER_LOCATION, CryoStalkerModel::createBodyLayer);
+        event.registerLayerDefinition(ddraig.net.entropica.client.renderer.gemini_goat_mage.GeminiGoatMageModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.gemini_goat_mage.GeminiGoatMageModel::createBodyLayer);
+        event.registerLayerDefinition(ddraig.net.entropica.client.renderer.void_sea_serpent.VoidSeaSerpentModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.void_sea_serpent.VoidSeaSerpentModel::createBodyLayer);
+        event.registerLayerDefinition(ddraig.net.entropica.client.renderer.glacial_hydra.GlacialHydraModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.glacial_hydra.GlacialHydraModel::createBodyLayer);
+        event.registerLayerDefinition(ddraig.net.entropica.client.renderer.luminoth.LuminothModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.luminoth.LuminothModel::createBodyLayer);
+        event.registerLayerDefinition(ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagModel::createBodyLayer);
+        event.registerLayerDefinition(ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel::createBodyLayer);
     }
 
 
@@ -392,6 +442,8 @@ public class ModClientEvents {
             float partialTick = mc.getDeltaTracker().getGameTimeDeltaTicks();
             ddraig.net.entropica.client.LookingGlassOverlayRenderer.render(event.getGuiGraphics(), partialTick);
             ddraig.net.entropica.client.gui.OpticalInspectionHudOverlay.render(event.getGuiGraphics(), partialTick);
+            ddraig.net.entropica.client.renderer.GravityScreenShimmerRenderer.render(event.getGuiGraphics(), partialTick);
+            ddraig.net.entropica.client.renderer.GravitationalLensingScreenOverlay.render(event.getGuiGraphics(), partialTick);
         }
     }
 }

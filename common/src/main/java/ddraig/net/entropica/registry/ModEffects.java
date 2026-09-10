@@ -30,4 +30,14 @@ public class ModEffects {
     // Registers the new Bleeding effect with a deep blood crimson color
     public static final RegistrySupplier<MobEffect> BLEEDING = EFFECTS.register("bleeding",
             () -> new ddraig.net.entropica.effect.BleedingEffect(MobEffectCategory.HARMFUL, 0x991B1B));
+
+    // --- Gravity Manipulation Status Effects ---
+    public static final RegistrySupplier<MobEffect> WEIGHTLESSNESS = EFFECTS.register("weightlessness",
+            ddraig.net.entropica.effect.WeightlessnessEffect::new);
+
+    public static final RegistrySupplier<MobEffect> GRAVITATIONAL_CRUSH = EFFECTS.register("gravitational_crush",
+            ddraig.net.entropica.effect.GravitationalCrushEffect::new);
+
+    public static final RegistrySupplier<MobEffect> INERTIAL_ANCHOR = EFFECTS.register("inertial_anchor",
+            ddraig.net.entropica.effect.InertialAnchorEffect::new);
 }

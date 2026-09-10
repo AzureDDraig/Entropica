@@ -1,6 +1,9 @@
 package ddraig.net.entropica.block.entity;
 
 import com.mojang.serialization.Codec;
+import ddraig.net.entropica.astral.Constellation;
+import ddraig.net.entropica.astral.ModConstellations;
+import ddraig.net.entropica.item.AstralCrystalItem;
 import ddraig.net.entropica.registry.ModBlockEntities;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModItems;
@@ -21,6 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import java.util.Optional;
 
 public class AstralInfusionPedestalBlockEntity extends BlockEntity implements net.minecraft.world.Container {
 
@@ -267,10 +271,18 @@ public class AstralInfusionPedestalBlockEntity extends BlockEntity implements ne
         } else if (input.is(ModBlocks.ASTRAL_MARBLE.get().asItem())) {
             return new ItemStack(ModBlocks.RUNED_ASTRAL_MARBLE.get().asItem());
         } else if (input.is(ModItems.ASTRAL_CRYSTAL.get())) {
-            return new ItemStack(ModItems.ASTRAL_CRYSTAL_SEED.get(), 4);
+            // Crystal Ritual Inscription: permanently inscribes constellation rituals into raw Astral Crystals
+            Optional<Constellation> c = ModConstellations.findByNameOrId(starName);
+            if (c.isPresent()) {
+                ItemStack inscribed = input.copyWithCount(1);
+                AstralCrystalItem.setRitual(inscribed, c.get().getId());
+                return inscribed;
+            } else {
+                return new ItemStack(ModItems.ASTRAL_CRYSTAL_SEED.get(), 4);
+            }
         }
 
-        // Optical Flora Swapping: Transmute base vanilla flowers into elemental orchids
+        // Optical Flora Swapping: Transmute base vanilla flowers into elemental orchids & flora
         boolean isVanillaFlower = input.is(net.minecraft.tags.ItemTags.FLOWERS) ||
                                   input.is(Items.POPPY) || input.is(Items.DANDELION) ||
                                   input.is(Items.BLUE_ORCHID) || input.is(Items.ALLIUM) ||
@@ -281,10 +293,14 @@ public class AstralInfusionPedestalBlockEntity extends BlockEntity implements ne
 
         if (isVanillaFlower) {
             String lower = (starName != null) ? starName.toLowerCase() : "";
-            if (lower.contains("ignis") || lower.contains("pyre") || lower.contains("athanor") || lower.contains("flame")) {
+            if (lower.contains("ignis") || lower.contains("pyre") || lower.contains("athanor") || lower.contains("flame") || lower.contains("gladius")) {
                 return new ItemStack(ModBlocks.SOUL_FLAME_ORCHID.get().asItem());
-            } else if (lower.contains("vitae") || lower.contains("arbor") || lower.contains("sylvan") || lower.contains("tree")) {
-                return new ItemStack(ModBlocks.VITAE_ORCHID.get().asItem());
+            } else if (lower.contains("leviathan") || lower.contains("profundi") || lower.contains("aqua") || lower.contains("rime") || lower.contains("frost") || lower.contains("glacies")) {
+                return new ItemStack(ModBlocks.RIMEBLOOM.get().asItem());
+            } else if (lower.contains("penna") || lower.contains("aether") || lower.contains("starlight") || lower.contains("shimmer") || lower.contains("stardust")) {
+                return new ItemStack(ModBlocks.STARDUST_BELL.get().asItem());
+            } else if (lower.contains("fulgur") || lower.contains("tonitrus") || lower.contains("lightning") || lower.contains("storm")) {
+                return new ItemStack(ModBlocks.FULGURITE_SWAMP_BLOOM.get().asItem());
             } else if (lower.contains("scutum") || lower.contains("aegis") || lower.contains("shield")) {
                 return new ItemStack(ModBlocks.AEGIS_SPIRE_ORCHID.get().asItem());
             } else if (lower.contains("serpens") || lower.contains("vorago") || lower.contains("abyss") || lower.contains("void") || lower.contains("shadow")) {

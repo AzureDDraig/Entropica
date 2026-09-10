@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "G G",
+    "MMM"
+  ],
+  "key": {
+    "M": "entropica:astral_marble",
+    "G": "minecraft:glass"
+  },
+  "result": {
+    "id": "entropica:attuned_display_vitrine",
+    "count": 1
+  }
+}

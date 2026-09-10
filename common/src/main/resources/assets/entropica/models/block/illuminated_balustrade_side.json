@@ -1,0 +1,147 @@
+{
+  "credit": "Entropica Astral Materia Suite",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "entropica:block/astral_marble",
+    "stone": "entropica:block/astral_marble",
+    "brass": "entropica:block/lamp_post_brass",
+    "glass": "entropica:block/lamp_post_glass"
+  },
+  "elements": [
+    {
+      "name": "top_rail",
+      "from": [
+        6.5,
+        13,
+        0
+      ],
+      "to": [
+        9.5,
+        15,
+        6
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            6,
+            0,
+            10,
+            6
+          ],
+          "texture": "#brass"
+        },
+        "down": {
+          "uv": [
+            6,
+            0,
+            10,
+            6
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            0,
+            13,
+            6,
+            15
+          ],
+          "texture": "#stone"
+        },
+        "east": {
+          "uv": [
+            0,
+            13,
+            6,
+            15
+          ],
+          "texture": "#stone"
+        }
+      }
+    },
+    {
+      "name": "bottom_rail",
+      "from": [
+        6.5,
+        0,
+        0
+      ],
+      "to": [
+        9.5,
+        3,
+        6
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            6,
+            0,
+            10,
+            6
+          ],
+          "texture": "#stone"
+        },
+        "up": {
+          "uv": [
+            6,
+            0,
+            10,
+            6
+          ],
+          "texture": "#stone"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            6,
+            3
+          ],
+          "texture": "#stone"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            6,
+            3
+          ],
+          "texture": "#stone"
+        }
+      }
+    },
+    {
+      "name": "glass_panel",
+      "from": [
+        7,
+        3,
+        0
+      ],
+      "to": [
+        9,
+        13,
+        6
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            3,
+            6,
+            13
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            0,
+            3,
+            6,
+            13
+          ],
+          "texture": "#glass"
+        }
+      }
+    }
+  ]
+}

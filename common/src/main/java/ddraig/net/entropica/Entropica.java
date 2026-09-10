@@ -44,6 +44,21 @@ public class Entropica {
         ddraig.net.entropica.event.MobObservationHandler.register();
         ddraig.net.entropica.event.CodexCraftingLockHandler.register();
 
+        // --- Gravity Field Tick Loop ---
+        dev.architectury.event.events.common.TickEvent.SERVER_LEVEL_POST.register(level -> {
+            ddraig.net.entropica.gravity.GravityFieldManager.tickLevel(level);
+            ddraig.net.entropica.gravity.GravityFieldManager.cleanupExitedEntities(level);
+        });
+
+        // --- Graviton Soles Player Tick & Fall Damage Immunity ---
+        dev.architectury.event.events.common.TickEvent.PLAYER_POST.register(player -> ddraig.net.entropica.gravity.GravityApi.tickGravitonSoles(player));
+        dev.architectury.event.events.common.EntityEvent.LIVING_HURT.register((entity, source, amount) -> {
+            if (source.is(net.minecraft.tags.DamageTypeTags.IS_FALL) && ddraig.net.entropica.gravity.GravityApi.hasGravitonSoles(entity)) {
+                return dev.architectury.event.EventResult.interruptFalse();
+            }
+            return dev.architectury.event.EventResult.pass();
+        });
+
 
         LOGGER.info("Entropica: Common Initialization completed.");
     }

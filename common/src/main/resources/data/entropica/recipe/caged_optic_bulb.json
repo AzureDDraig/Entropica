@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " I ",
+    "IGI",
+    " F "
+  ],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "G": { "item": "minecraft:glass_pane" },
+    "F": { "item": "entropica:pure_optic_fiber" }
+  },
+  "result": {
+    "id": "entropica:caged_optic_bulb",
+    "count": 2
+  }
+}

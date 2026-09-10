@@ -1,0 +1,68 @@
+{
+  "variants": {
+    "facing=north,half=lower,lit=false": {
+      "model": "entropica:block/luminous_trellis_arbor_lower",
+      "y": 0
+    },
+    "facing=north,half=upper,lit=false": {
+      "model": "entropica:block/luminous_trellis_arbor_upper",
+      "y": 0
+    },
+    "facing=north,half=lower,lit=true": {
+      "model": "entropica:block/luminous_trellis_arbor_lower_lit",
+      "y": 0
+    },
+    "facing=north,half=upper,lit=true": {
+      "model": "entropica:block/luminous_trellis_arbor_upper_lit",
+      "y": 0
+    },
+    "facing=east,half=lower,lit=false": {
+      "model": "entropica:block/luminous_trellis_arbor_lower",
+      "y": 90
+    },
+    "facing=east,half=upper,lit=false": {
+      "model": "entropica:block/luminous_trellis_arbor_upper",
+      "y": 90
+    },
+    "facing=east,half=lower,lit=true": {
+      "model": "entropica:block/luminous_trellis_arbor_lower_lit",
+      "y": 90
+    },
+    "facing=east,half=upper,lit=true": {
+      "model": "entropica:block/luminous_trellis_arbor_upper_lit",
+      "y": 90
+    },
+    "facing=south,half=lower,lit=false": {
+      "model": "entropica:block/luminous_trellis_arbor_lower",
+      "y": 180
+    },
+    "facing=south,half=upper,lit=false": {
+      "model": "entropica:block/luminous_trellis_arbor_upper",
+      "y": 180
+    },
+    "facing=south,half=lower,lit=true": {
+      "model": "entropica:block/luminous_trellis_arbor_lower_lit",
+      "y": 180
+    },
+    "facing=south,half=upper,lit=true": {
+      "model": "entropica:block/luminous_trellis_arbor_upper_lit",
+      "y": 180
+    },
+    "facing=west,half=lower,lit=false": {
+      "model": "entropica:block/luminous_trellis_arbor_lower",
+      "y": 270
+    },
+    "facing=west,half=upper,lit=false": {
+      "model": "entropica:block/luminous_trellis_arbor_upper",
+      "y": 270
+    },
+    "facing=west,half=lower,lit=true": {
+      "model": "entropica:block/luminous_trellis_arbor_lower_lit",
+      "y": 270
+    },
+    "facing=west,half=upper,lit=true": {
+      "model": "entropica:block/luminous_trellis_arbor_upper_lit",
+      "y": 270
+    }
+  }
+}

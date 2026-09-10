@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "B B",
+    "PCP",
+    "PAP"
+  ],
+  "key": {
+    "B": "entropica:brass_ingot",
+    "C": "entropica:astral_crystal",
+    "P": "entropica:arcanite_plating",
+    "A": "entropica:gravitational_anchor"
+  },
+  "result": {
+    "id": "entropica:tidal_pulse_resonator",
+    "count": 1
+  }
+}

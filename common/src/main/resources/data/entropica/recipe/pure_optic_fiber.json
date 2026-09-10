@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    "ICI",
+    "GGG"
+  ],
+  "key": {
+    "G": { "item": "minecraft:glass_pane" },
+    "I": { "item": "minecraft:iron_ingot" },
+    "C": { "item": "entropica:astral_crystal" }
+  },
+  "result": {
+    "id": "entropica:pure_optic_fiber",
+    "count": 8
+  }
+}

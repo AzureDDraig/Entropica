@@ -67,7 +67,7 @@ public class SecondaryAstralLensBlockEntity extends BlockEntity {
     }
 
     public AABB getRenderBoundingBox() {
-        return new AABB(this.worldPosition).inflate(64.0, 64.0, 64.0);
+        return new AABB(-30000000.0, -30000000.0, -30000000.0, 30000000.0, 30000000.0, 30000000.0);
     }
 
     public float getYaw() {
@@ -116,8 +116,9 @@ public class SecondaryAstralLensBlockEntity extends BlockEntity {
     public void setTargetPos(BlockPos targetPos) {
         this.targetPos = targetPos;
         if (targetPos != null) {
+            double targetCenterY = ddraig.net.entropica.item.AstralLinkingWandItem.getTargetCenterY(level, targetPos);
             double dx = (targetPos.getX() + 0.5) - (worldPosition.getX() + 0.5);
-            double dy = (targetPos.getY() + 0.5) - (worldPosition.getY() + 0.5625);
+            double dy = (targetPos.getY() + targetCenterY) - (worldPosition.getY() + 0.5625);
             double dz = (targetPos.getZ() + 0.5) - (worldPosition.getZ() + 0.5);
             double distXZ = Math.sqrt(dx * dx + dz * dz);
 
@@ -172,63 +173,81 @@ public class SecondaryAstralLensBlockEntity extends BlockEntity {
             double maxDist = 32.0;
             Vec3 end = start.add(lookDir.scale(maxDist));
 
-            // 1. Raycast for solid world terrain blocks
-            BlockHitResult hit = level.clip(new ClipContext(
-                    start, end,
-                    ClipContext.Block.OUTLINE,
-                    ClipContext.Fluid.NONE,
-                    CollisionContext.empty()
-            ));
-
             double closestDist = maxDist;
             BlockEntity closestBE = null;
-            if (hit.getType() == HitResult.Type.BLOCK && !hit.getBlockPos().equals(pos) && !hit.getBlockPos().equals(pos.below())) {
-                closestDist = start.distanceTo(hit.getLocation());
-                closestBE = level.getBlockEntity(hit.getBlockPos());
-            }
-
-            // 2. Scan along the beam ray path in 0.2m increments for any Astral Materia optical component or optic fiber
+            BlockPos hitSolidPos = null;
             Set<BlockPos> checkedPositions = new HashSet<>();
-            for (double step = 0.2; step <= closestDist + 0.5; step += 0.2) {
+
+            for (double step = 0.5; step <= maxDist; step += 0.15) {
                 Vec3 samplePoint = start.add(lookDir.scale(step));
                 BlockPos p = BlockPos.containing(samplePoint);
-                if (checkedPositions.add(p)) {
-                    if (p.equals(pos) || p.equals(pos.below())) continue;
+                if (!checkedPositions.add(p)) continue;
+                if (p.equals(pos) || p.equals(pos.below())) continue;
 
-                    BlockState blockState = level.getBlockState(p);
-                    net.minecraft.world.level.block.Block block = blockState.getBlock();
-                    BlockEntity targetBE = level.getBlockEntity(p);
+                BlockState blockState = level.getBlockState(p);
+                net.minecraft.world.level.block.Block block = blockState.getBlock();
+                BlockEntity targetBE = level.getBlockEntity(p);
 
-                    if (targetBE != null) {
-                        boolean isOptic = (targetBE instanceof SecondaryAstralLensBlockEntity ||
-                                           targetBE instanceof RefractiveAstralLensBlockEntity ||
-                                           targetBE instanceof BeamSplitterPrismBlockEntity ||
-                                           targetBE instanceof AstralInfusionPedestalBlockEntity ||
-                                           targetBE instanceof OpticalTransmitterPortBlockEntity ||
-                                           targetBE instanceof AstralCollectorBlockEntity);
-
-                        if (isOptic) {
-                            double centerY = (targetBE instanceof SecondaryAstralLensBlockEntity || targetBE instanceof RefractiveAstralLensBlockEntity) ? 0.5625 : 0.5;
-                            Vec3 targetCenter = new Vec3(p.getX() + 0.5, p.getY() + centerY, p.getZ() + 0.5);
-                            double distToCenter = start.distanceTo(targetCenter);
-                            if (distToCenter <= maxDist) {
-                                closestDist = distToCenter;
-                                closestBE = targetBE;
-                                break; // Terminate ray directly at the center of the first component block
-                            }
-                        }
-                    } else if (block instanceof PureOpticFiberBlock) {
-                        Vec3 fiberCenter = new Vec3(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5);
-                        double distToFiber = start.distanceTo(fiberCenter);
-                        if (distToFiber <= maxDist) {
-                            closestDist = distToFiber;
-                            closestBE = null;
-                            // Inject starlight flux directly into the optic fiber network
-                            OpticalTransmitterPortBlockEntity.propagateFiberNetwork(level, p, be.activeStarName);
-                            break; // Terminate ray on contact with optic fiber
-                        }
+                // Check if beam intersects an Astral Collector's floating crystal (centered at collector.getY() + 1.20)
+                BlockPos collectorPos = p.below();
+                BlockEntity belowBE = level.getBlockEntity(collectorPos);
+                if (belowBE instanceof AstralCollectorBlockEntity collector) {
+                    Vec3 crystalCenter = new Vec3(collectorPos.getX() + 0.5, collectorPos.getY() + 1.20, collectorPos.getZ() + 0.5);
+                    if (samplePoint.distanceTo(crystalCenter) <= 0.45 || (samplePoint.y <= collectorPos.getY() + 1.25 && Math.abs(samplePoint.x - crystalCenter.x) <= 0.35 && Math.abs(samplePoint.z - crystalCenter.z) <= 0.35)) {
+                        closestDist = start.distanceTo(crystalCenter);
+                        closestBE = collector;
+                        break;
                     }
                 }
+
+                if (targetBE != null) {
+                    if (targetBE instanceof AstralCollectorBlockEntity collector) {
+                        Vec3 crystalCenter = new Vec3(p.getX() + 0.5, p.getY() + 1.20, p.getZ() + 0.5);
+                        closestDist = start.distanceTo(crystalCenter);
+                        closestBE = targetBE;
+                        break;
+                    }
+
+                    boolean isOptic = (targetBE instanceof SecondaryAstralLensBlockEntity ||
+                                       targetBE instanceof RefractiveAstralLensBlockEntity ||
+                                       targetBE instanceof BeamSplitterPrismBlockEntity ||
+                                       targetBE instanceof AstralInfusionPedestalBlockEntity ||
+                                       targetBE instanceof OpticalTransmitterPortBlockEntity ||
+                                       targetBE instanceof OpticReceiverBlockEntity);
+
+                    if (isOptic) {
+                        double centerY = ((targetBE instanceof SecondaryAstralLensBlockEntity || targetBE instanceof RefractiveAstralLensBlockEntity) ? 0.5625 : 
+                                         (targetBE instanceof AstralInfusionPedestalBlockEntity ? 1.1 : 0.5));
+                        Vec3 targetCenter = new Vec3(p.getX() + 0.5, p.getY() + centerY, p.getZ() + 0.5);
+                        closestDist = Math.min(step, start.distanceTo(targetCenter));
+                        closestBE = targetBE;
+                        break;
+                    }
+                }
+
+                if (block instanceof PureOpticFiberBlock) {
+                    Vec3 fiberCenter = new Vec3(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5);
+                    closestDist = Math.min(step, start.distanceTo(fiberCenter));
+                    closestBE = null;
+                    OpticalTransmitterPortBlockEntity.propagateFiberNetwork(level, p, be.activeStarName);
+                    break;
+                }
+
+                if (RefractiveAstralLensBlockEntity.isOpticalPassthrough(level, p, blockState)) {
+                    continue;
+                }
+
+                net.minecraft.world.phys.shapes.VoxelShape shape = blockState.getCollisionShape(level, p);
+                if (shape.isEmpty()) shape = blockState.getShape(level, p);
+                BlockHitResult bHit = shape.clip(start, end, p);
+                if (bHit != null && bHit.getType() == HitResult.Type.BLOCK) {
+                    closestDist = start.distanceTo(bHit.getLocation());
+                } else {
+                    closestDist = step;
+                }
+                closestBE = null;
+                hitSolidPos = p;
+                break;
             }
 
             // 3. Raycast for Living Entities intersecting the beam
@@ -248,8 +267,8 @@ public class SecondaryAstralLensBlockEntity extends BlockEntity {
             }
 
             // 4. Check for Calcite Block Transmutation (after 5 seconds / 100 ticks of direct beam contact)
-            if (blockingEntity == null && closestBE == null && hit.getType() == HitResult.Type.BLOCK) {
-                BlockPos hitBlockPos = hit.getBlockPos();
+            if (blockingEntity == null && closestBE == null && hitSolidPos != null) {
+                BlockPos hitBlockPos = hitSolidPos;
                 if (level.getBlockState(hitBlockPos).is(Blocks.CALCITE)) {
                     if (hitBlockPos.equals(be.calciteBlockPos)) {
                         be.calciteTransmuteTicks++;
@@ -357,6 +376,8 @@ public class SecondaryAstralLensBlockEntity extends BlockEntity {
                     pedestal.receiveIrradiation(be.activeStarName);
                 } else if (closestBE instanceof OpticalTransmitterPortBlockEntity transmitter) {
                     transmitter.receiveOpticalBeam(be.activeStarName);
+                } else if (closestBE instanceof OpticReceiverBlockEntity receiver) {
+                    receiver.receiveOpticalBeam(be.activeStarName);
                 } else if (closestBE instanceof AstralCollectorBlockEntity collector) {
                     collector.receiveStarlightBeam(be.activeStarName, starEssence);
                 }

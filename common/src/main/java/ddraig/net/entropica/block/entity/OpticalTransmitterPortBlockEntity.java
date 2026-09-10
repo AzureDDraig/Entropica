@@ -69,20 +69,51 @@ public class OpticalTransmitterPortBlockEntity extends BlockEntity {
         queue.add(new FiberNode(startPos, 0));
         visited.add(startPos);
 
+        if (level.getBlockEntity(startPos) instanceof PureOpticFiberBlockEntity startFiber) {
+            startFiber.receivePulse(starName);
+        }
+
         int maxTotalDistance = 64;
 
         while (!queue.isEmpty()) {
             FiberNode current = queue.poll();
+            BlockState currentState = level.getBlockState(current.pos());
+            net.minecraft.world.level.block.Block currentBlock = currentState.getBlock();
 
             for (Direction dir : Direction.values()) {
                 BlockPos neighbor = current.pos().relative(dir);
                 if (visited.contains(neighbor)) continue;
+
+                // Restrict propagation on LampPostBlock:
+                // 1. Vertically up and down along the column
+                // 2. Horizontally if this direction has a CABLE arm or adjacent Caged Optic Bulb
+                if (currentBlock instanceof ddraig.net.entropica.block.LampPostBlock) {
+                    if (dir.getAxis().isHorizontal()) {
+                        net.minecraft.world.level.block.state.properties.EnumProperty<ddraig.net.entropica.block.LampPostArm> armProp = ddraig.net.entropica.block.LampPostBlock.getArmProperty(dir);
+                        ddraig.net.entropica.block.LampPostArm arm = currentState.hasProperty(armProp) ? currentState.getValue(armProp) : ddraig.net.entropica.block.LampPostArm.NONE;
+                        if (arm != ddraig.net.entropica.block.LampPostArm.CABLE) {
+                            BlockState neighborState = level.getBlockState(neighbor);
+                            if (neighborState.getBlock() instanceof ddraig.net.entropica.block.CagedOpticBulbBlock) {
+                                visited.add(neighbor);
+                                BlockEntity bulbBE = level.getBlockEntity(neighbor);
+                                if (bulbBE instanceof CagedOpticBulbBlockEntity bulb) {
+                                    bulb.receiveFiberPulse(starName);
+                                }
+                            }
+                            continue;
+                        }
+                    }
+                }
 
                 BlockState neighborState = level.getBlockState(neighbor);
                 net.minecraft.world.level.block.Block neighborBlock = neighborState.getBlock();
 
                 if (neighborBlock instanceof PureOpticFiberBlock) {
                     visited.add(neighbor);
+                    BlockEntity fiberBE = level.getBlockEntity(neighbor);
+                    if (fiberBE instanceof PureOpticFiberBlockEntity opticBE) {
+                        opticBE.receivePulse(starName);
+                    }
                     if (visited.size() <= maxTotalDistance) {
                         queue.add(new FiberNode(neighbor, current.distSinceBooster() + 1));
                     }
@@ -98,6 +129,12 @@ public class OpticalTransmitterPortBlockEntity extends BlockEntity {
                         float signalQuality = Math.max(0.2f, 1.0f - (current.distSinceBooster() / 16.0f) * 0.01f);
                         receiver.receiveTransmittedSignal(starName, signalQuality);
                     }
+                } else if (neighborBlock instanceof ddraig.net.entropica.block.OpticTransmitterBlock) {
+                    visited.add(neighbor);
+                    BlockEntity transmitterBE = level.getBlockEntity(neighbor);
+                    if (transmitterBE instanceof OpticTransmitterBlockEntity transmitter) {
+                        transmitter.receiveFiberSignal(starName);
+                    }
                 } else if (neighborBlock instanceof ddraig.net.entropica.block.AstralCollectorBlock) {
                     visited.add(neighbor);
                     BlockEntity collectorBE = level.getBlockEntity(neighbor);
@@ -105,6 +142,25 @@ public class OpticalTransmitterPortBlockEntity extends BlockEntity {
                         EssenceType starEssence = RefractiveAstralLensBlockEntity.resolveStarEssence(starName);
                         collector.receiveStarlightBeam(starName, starEssence);
                     }
+                } else if (neighborBlock instanceof ddraig.net.entropica.block.CagedOpticBulbBlock) {
+                    visited.add(neighbor);
+                    BlockEntity bulbBE = level.getBlockEntity(neighbor);
+                    if (bulbBE instanceof CagedOpticBulbBlockEntity bulb) {
+                        bulb.receiveFiberPulse(starName);
+                    }
+                } else if (neighborBlock instanceof ddraig.net.entropica.block.LampPostBlock) {
+                    visited.add(neighbor);
+                    BlockEntity postBE = level.getBlockEntity(neighbor);
+                    if (postBE instanceof LampPostBlockEntity post) {
+                        post.receiveFiberPulse(starName);
+                    }
+                    if (visited.size() <= maxTotalDistance) {
+                        queue.add(new FiberNode(neighbor, current.distSinceBooster() + 1));
+                    }
+                } else if (level.getBlockEntity(neighbor) instanceof ddraig.net.entropica.api.starlight.IWirelessFluxReceiver receiver) {
+                    visited.add(neighbor);
+                    EssenceType starEssence = RefractiveAstralLensBlockEntity.resolveStarEssence(starName);
+                    receiver.receiveFluxPulse(starName, starEssence);
                 }
             }
         }

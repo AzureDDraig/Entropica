@@ -12,6 +12,8 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -19,6 +21,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+
+import net.minecraft.world.phys.AABB;
 
 import java.util.*;
 
@@ -46,6 +50,10 @@ public class AstralCollectorBlockEntity extends BlockEntity {
 
     public AstralCollectorBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.ASTRAL_COLLECTOR_BE.get(), pos, state);
+    }
+
+    public AABB getRenderBoundingBox() {
+        return new AABB(-30000000.0, -30000000.0, -30000000.0, 30000000.0, 30000000.0, 30000000.0);
     }
 
     public int getStoredMateria() {
@@ -130,9 +138,10 @@ public class AstralCollectorBlockEntity extends BlockEntity {
         if (incomingEssence == null) incomingEssence = EssenceType.ASTRAL;
         this.isIrradiated = true;
         this.irradiationTicksLeft = 10;
-        if (this.storedMateria == 0) {
-            this.storedEssence = incomingEssence;
+        if (this.storedMateria > 0 && this.storedEssence != null && this.storedEssence != incomingEssence) {
+            this.storedMateria = 0; // Purge conflicting previous essence
         }
+        this.storedEssence = incomingEssence;
         setChanged();
     }
 
@@ -177,6 +186,19 @@ public class AstralCollectorBlockEntity extends BlockEntity {
 
         boolean changed = false;
 
+        // 0. Standalone Optical Beam Materia Collection
+        // Accumulates Materia whenever irradiated by an optical beam (Astral Lens, Splitter Prism, etc.)
+        if (be.isIrradiated) {
+            if (be.storedMateria < MAX_CAPACITY && level.getGameTime() % 5 == 0) {
+                be.storedMateria = Math.min(MAX_CAPACITY, be.storedMateria + 4);
+                changed = true;
+                if (be.storedMateria == MAX_CAPACITY && level.getGameTime() % 40 == 0) {
+                    level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.2f, 1.5f);
+                    level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.8f, 1.8f);
+                }
+            }
+        }
+
         // 1. Structure & Smart Link Check every 20 ticks
         if (level.getGameTime() % 20 == 0) {
             boolean prevStructure = be.structureValid;
@@ -214,15 +236,35 @@ public class AstralCollectorBlockEntity extends BlockEntity {
             changed = true;
         }
 
-        // 3. Project Beam to Target (Altar, Lens, or Cannibalized Collector)
+        // 3. Project Beam to Target (Altar, Lens, Pedestal, Distributor, or Collector)
         if (be.isBeaming && be.targetPos != null) {
             BlockEntity targetBE = level.getBlockEntity(be.targetPos);
+            String beamStar = "Collector";
+            if (!be.socketedCrystal.isEmpty() && be.socketedCrystal.getItem() instanceof AstralCrystalItem) {
+                ddraig.net.entropica.astral.Constellation ritual = AstralCrystalItem.getRitual(be.socketedCrystal);
+                if (ritual != null) {
+                    beamStar = ritual.getId().getPath();
+                }
+            }
+
             if (targetBE instanceof AstralAltarCoreBlockEntity altarBE) {
                 altarBE.receiveCollectorBeam(pos, totalFlux, be.storedEssence);
             } else if (targetBE instanceof AstralCollectorBlockEntity collectorBE) {
                 collectorBE.receiveCannibalizedBeam(pos, totalFlux, be.storedEssence);
             } else if (targetBE instanceof RefractiveAstralLensBlockEntity lensBE) {
-                lensBE.receiveRelayBeam(pos, "Collector");
+                lensBE.receiveRelayBeam(pos, beamStar);
+            } else if (targetBE instanceof SecondaryAstralLensBlockEntity secondaryLensBE) {
+                secondaryLensBE.receiveRelayBeam(pos, beamStar);
+            } else if (targetBE instanceof AstralInfusionPedestalBlockEntity pedestalBE) {
+                pedestalBE.receiveIrradiation(beamStar);
+            } else if (targetBE instanceof MateriaFluxDistributorBlockEntity distributorBE) {
+                distributorBE.receiveFluxBeam(totalFlux);
+            } else if (targetBE instanceof OpticalTransmitterPortBlockEntity transmitterBE) {
+                transmitterBE.receiveOpticalBeam(beamStar);
+            } else if (targetBE instanceof OpticReceiverBlockEntity receiverBE) {
+                receiverBE.receiveOpticalBeam(beamStar);
+            } else if (targetBE instanceof BeamSplitterPrismBlockEntity prismBE) {
+                prismBE.receiveRelayedBeam(pos, beamStar);
             }
 
             // Fill internal buffer
@@ -291,19 +333,33 @@ public class AstralCollectorBlockEntity extends BlockEntity {
         return true;
     }
 
-    private void findNearestTarget() {
-        if (level == null) return;
+    public BlockPos findNearestTarget() {
+        if (level == null) return null;
         BlockPos bestPos = null;
-        double bestDistSq = MAX_LINK_RANGE * MAX_LINK_RANGE;
+        int searchRadius = 32;
+        double bestDistSq = searchRadius * searchRadius;
 
-        // 1. Search for nearest Astral Altar Core
-        for (int dx = -MAX_LINK_RANGE; dx <= MAX_LINK_RANGE; dx += 4) {
-            for (int dz = -MAX_LINK_RANGE; dz <= MAX_LINK_RANGE; dz += 4) {
-                for (int dy = -16; dy <= 24; dy += 4) {
+        // Search for nearest valid target block entity (Altars, Pedestals, Distributors, Lenses, Collectors)
+        for (int dx = -searchRadius; dx <= searchRadius; dx++) {
+            for (int dz = -searchRadius; dz <= searchRadius; dz++) {
+                double distSq = dx * dx + dz * dz;
+                if (distSq > bestDistSq) continue;
+
+                for (int dy = -12; dy <= 16; dy++) {
                     BlockPos p = worldPosition.offset(dx, dy, dz);
-                    if (!level.hasChunkAt(p)) continue;
+                    if (p.equals(worldPosition) || !level.hasChunkAt(p)) continue;
                     BlockEntity be = level.getBlockEntity(p);
-                    if (be instanceof AstralAltarCoreBlockEntity) {
+                    if (be == null) continue;
+
+                    boolean isValid = (be instanceof AstralAltarCoreBlockEntity) ||
+                                      (be instanceof AstralInfusionPedestalBlockEntity) ||
+                                      (be instanceof MateriaFluxDistributorBlockEntity) ||
+                                      (be instanceof SecondaryAstralLensBlockEntity) ||
+                                      (be instanceof RefractiveAstralLensBlockEntity) ||
+                                      (be instanceof OpticReceiverBlockEntity) ||
+                                      (be instanceof AstralCollectorBlockEntity && canLinkTo(p));
+
+                    if (isValid) {
                         double d = worldPosition.distSqr(p);
                         if (d < bestDistSq) {
                             bestDistSq = d;
@@ -314,30 +370,15 @@ public class AstralCollectorBlockEntity extends BlockEntity {
             }
         }
 
-        // 2. If no altar found, search for nearest Collector (cannibalization)
-        if (bestPos == null) {
-            for (int dx = -MAX_LINK_RANGE; dx <= MAX_LINK_RANGE; dx += 4) {
-                for (int dz = -MAX_LINK_RANGE; dz <= MAX_LINK_RANGE; dz += 4) {
-                    for (int dy = -16; dy <= 24; dy += 4) {
-                        BlockPos p = worldPosition.offset(dx, dy, dz);
-                        if (p.equals(worldPosition) || !level.hasChunkAt(p)) continue;
-                        BlockEntity be = level.getBlockEntity(p);
-                        if (be instanceof AstralCollectorBlockEntity && canLinkTo(p)) {
-                            double d = worldPosition.distSqr(p);
-                            if (d < bestDistSq) {
-                                bestDistSq = d;
-                                bestPos = p;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         if (bestPos != null) {
             this.targetPos = bestPos;
+            this.isBeaming = true;
             setChanged();
+            if (level != null && !level.isClientSide()) {
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+            }
         }
+        return bestPos;
     }
 
     public void displayCollectorStatus(Player player) {
@@ -350,8 +391,32 @@ public class AstralCollectorBlockEntity extends BlockEntity {
         } else {
             player.displayClientMessage(net.minecraft.network.chat.Component.literal("§7Linked Target: §8None (Use Astral Linking Wand)"), false);
         }
+        int smallEssencesCount = storedMateria / 8;
+        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§7Stored Materia: §d" + storedMateria + " / " + MAX_CAPACITY + " mFum §8(" + (storedEssence != null ? storedEssence.name() : "ASTRAL") + ") §e[" + smallEssencesCount + " Small Essences]" + (isIrradiated ? " §a✦ [IRRADIATED - COLLECTING]" : "")), false);
         player.displayClientMessage(net.minecraft.network.chat.Component.literal("§7Generated Starlight Flux: §f" + generatedFlux + " §7| Cannibalized Input: §e+" + incomingCannibalizedFlux), false);
         player.displayClientMessage(net.minecraft.network.chat.Component.literal("§7Total Beam Output: §a" + getTotalOutputFlux() + " flux/s §7[" + (isBeaming ? "§bBEAMING" : "§8IDLE") + "§7]"), false);
+    }
+
+    public boolean extractEssenceByHand(Player player) {
+        if (this.storedMateria >= 8) {
+            int toExtract = player.isShiftKeyDown() ? Math.min(this.storedMateria / 8, 64) : 1;
+            int mFumUsed = toExtract * 8;
+            this.storedMateria -= mFumUsed;
+            ItemStack essenceStack = new ItemStack(ModItems.WEAK_ESSENCE.get(), toExtract);
+            ddraig.net.entropica.item.EssenceItem.setEssenceType(essenceStack, this.storedEssence != null ? this.storedEssence : EssenceType.ASTRAL);
+            if (!player.getInventory().add(essenceStack)) {
+                player.drop(essenceStack, false);
+            }
+            if (level != null && !level.isClientSide()) {
+                level.playSound(null, worldPosition, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.2f, 1.2f);
+                level.playSound(null, worldPosition, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.8f, 1.4f);
+                player.displayClientMessage(net.minecraft.network.chat.Component.literal("§d[Astral Collector] §7Condensed §f" + mFumUsed + " mFum §7into §b" + toExtract + "x " + essenceStack.getHoverName().getString() + "§7!"), true);
+                setChanged();
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+            }
+            return true;
+        }
+        return false;
     }
 
     public int drainMateria(int maxDrain) {

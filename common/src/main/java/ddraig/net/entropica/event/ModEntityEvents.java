@@ -22,5 +22,15 @@ public class ModEntityEvents {
         EntityAttributeRegistry.register(ModEntityTypes.GEYSER_WIGGLE_WORM, ddraig.net.entropica.entity.geyser_wiggle_worm.GeyserWiggleWormEntity::createAttributes);
         EntityAttributeRegistry.register(ModEntityTypes.CRYO_STALKER, ddraig.net.entropica.entity.cryo_stalker.CryoStalkerEntity::createAttributes);
         EntityAttributeRegistry.register(ModEntityTypes.PATINA_OVIS, ddraig.net.entropica.entity.ovis.PatinaGalvanicOvisEntity::createAttributes);
+
+        // Caprine Mage Fix
+        EntityAttributeRegistry.register(ModEntityTypes.GEMINI_GOAT_MAGE, ddraig.net.entropica.entity.gemini_goat_mage.GeminiGoatMageEntity::createAttributes);
+
+        // Fauna Quintet
+        EntityAttributeRegistry.register(ModEntityTypes.VOID_SEA_SERPENT, ddraig.net.entropica.entity.void_sea_serpent.VoidSeaSerpentEntity::createAttributes);
+        EntityAttributeRegistry.register(ModEntityTypes.GLACIAL_HYDRA, ddraig.net.entropica.entity.glacial_hydra.GlacialHydraEntity::createAttributes);
+        EntityAttributeRegistry.register(ModEntityTypes.LUMINOTH, ddraig.net.entropica.entity.luminoth.LuminothEntity::createAttributes);
+        EntityAttributeRegistry.register(ModEntityTypes.AMBER_WEEPING_STAG, ddraig.net.entropica.entity.amber_weeping_stag.AmberWeepingStagEntity::createAttributes);
+        EntityAttributeRegistry.register(ModEntityTypes.STORM_KITE, ddraig.net.entropica.entity.storm_kite.StormKiteEntity::createAttributes);
     }
 }

@@ -28,6 +28,7 @@ public class ModParticles {
 
     public static final RegistrySupplier<SimpleParticleType> SPECTRUM_SPARKLE = PARTICLES.register("spectrum_sparkle", () -> new SimpleParticleType(false) {});
     public static final RegistrySupplier<SimpleParticleType> GALE_SWIRL_PUFF = PARTICLES.register("gale_swirl_puff", () -> new SimpleParticleType(false) {});
+    public static final RegistrySupplier<SimpleParticleType> SHADOW_SLASH = PARTICLES.register("shadow_slash", () -> new SimpleParticleType(false) {});
 
     public static final RegistrySupplier<ParticleType<TimedTintableParticleOption>> TINTABLE_SPARKLE = PARTICLES.register("tintable_sparkle", () -> new ParticleType<TimedTintableParticleOption>(false) {
         @Override

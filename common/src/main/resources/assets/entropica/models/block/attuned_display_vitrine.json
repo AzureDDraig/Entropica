@@ -1,0 +1,261 @@
+{
+  "credit": "Entropica Astral Materia Suite",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "entropica:block/astral_marble",
+    "marble": "entropica:block/astral_marble",
+    "brass": "entropica:block/lamp_post_brass",
+    "glass": "entropica:block/lamp_post_glass"
+  },
+  "elements": [
+    {
+      "name": "plinth",
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        3,
+        14
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#marble"
+        },
+        "up": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#marble"
+        },
+        "north": {
+          "uv": [
+            2,
+            13,
+            14,
+            16
+          ],
+          "texture": "#marble"
+        },
+        "south": {
+          "uv": [
+            2,
+            13,
+            14,
+            16
+          ],
+          "texture": "#marble"
+        },
+        "west": {
+          "uv": [
+            2,
+            13,
+            14,
+            16
+          ],
+          "texture": "#marble"
+        },
+        "east": {
+          "uv": [
+            2,
+            13,
+            14,
+            16
+          ],
+          "texture": "#marble"
+        }
+      }
+    },
+    {
+      "name": "brass_rim",
+      "from": [
+        3,
+        3,
+        3
+      ],
+      "to": [
+        13,
+        4,
+        13
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            3,
+            12,
+            13,
+            13
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            3,
+            12,
+            13,
+            13
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            3,
+            12,
+            13,
+            13
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            3,
+            12,
+            13,
+            13
+          ],
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "name": "glass_dome",
+      "from": [
+        3,
+        4,
+        3
+      ],
+      "to": [
+        13,
+        15,
+        13
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#glass"
+        },
+        "north": {
+          "uv": [
+            3,
+            4,
+            13,
+            15
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            3,
+            4,
+            13,
+            15
+          ],
+          "texture": "#glass"
+        },
+        "west": {
+          "uv": [
+            3,
+            4,
+            13,
+            15
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            3,
+            4,
+            13,
+            15
+          ],
+          "texture": "#glass"
+        }
+      }
+    },
+    {
+      "name": "top_finial",
+      "from": [
+        7,
+        15,
+        7
+      ],
+      "to": [
+        9,
+        16,
+        9
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#brass"
+        },
+        "north": {
+          "uv": [
+            7,
+            14,
+            9,
+            15
+          ],
+          "texture": "#brass"
+        },
+        "south": {
+          "uv": [
+            7,
+            14,
+            9,
+            15
+          ],
+          "texture": "#brass"
+        },
+        "west": {
+          "uv": [
+            7,
+            14,
+            9,
+            15
+          ],
+          "texture": "#brass"
+        },
+        "east": {
+          "uv": [
+            7,
+            14,
+            9,
+            15
+          ],
+          "texture": "#brass"
+        }
+      }
+    }
+  ]
+}

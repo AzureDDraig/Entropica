@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "S S",
+    " T ",
+    "S S"
+  ],
+  "key": {
+    "S": "entropica:starlight_silk",
+    "T": "entropica:astral_crystal_thread"
+  },
+  "result": {
+    "id": "entropica:starlight_cloth",
+    "count": 2
+  }
+}

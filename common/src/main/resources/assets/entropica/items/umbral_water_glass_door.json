@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/umbral_water_glass_door",
+    "tints": [
+      {
+        "type": "entropica:aesthetic_glass_tint"
+      }
+    ]
+  }
+}

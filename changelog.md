@@ -1,3 +1,319 @@
+## Build 000-1-26-252
+
+### Gravity Manipulation System & Spatial Graviton Mechanics
+- **Gravitational Anchor Machine**:
+  - Added a multi-mode field emitter encased in brass plating that projects wide-area gravity fields.
+  - Supports 6 distinct operational modes: *Zero-G Chamber*, *Lunar Pavilion*, *Graviton Inversion*, *Singularity Well*, *Repulsor Dome*, and *Tidal Pulse*.
+  - Features spinning brass gimbals and a floating, mode-colored graviton core in the center.
+  - Fully controllable with redstone levers and wire signals.
+- **Tidal Pulse Resonator Machine**:
+  - Added a dedicated standalone celestial machine block that projects rhythmic gravity tides.
+  - Operates on a continuous 4-second cycle: 3 seconds of gentle low-gravity floating followed by a 1-second heavy downward gravity slam.
+  - Features 4 vibrating brass tuning prongs, a glowing pulsating graviton core, and expanding energy shockwave rings.
+  - Can be turned on or off by hand or locked in place using redstone levers and wire signals.
+- **Grav-Lift Projector**:
+  - Directional elevator fixture that projects a pneumatic travel beam up to 24 blocks.
+  - Smoothly lifts or pushes players and mobs along the beam axis at 0.35 m/s without fall damage.
+  - Can be oriented vertically (+Y/-Y) or horizontally.
+- **Singularity Grenade**:
+  - Thrown tactical projectile that anchors upon landing and opens a 4-second miniature black hole.
+  - Pulls in nearby mobs, bends arrows and fireballs mid-flight, and collapses in a destructive sonic shockwave.
+- **Graviton Wand**:
+  - Handheld tuning rod to cycle personal gravity between Normal (100%), Moon (25%), Zero-G (0%), and Inverted (-100%).
+  - Right-click any mob to float them in zero-g or slam them down with heavy crushing gravity.
+- **Graviton Soles (Curios & Footwear)**:
+  - Advanced pneumatic boots that activate reliably when worn in your armor boots slot, equipped in your Curios/Accessories feet slot, or held in your hands.
+  - **Wall Sticking & Climbing**: Crouching against any wall locks your vertical position with zero slipping or sliding. Moving forward or jumping climbs up the wall face at 0.22 m/s, while moving backward climbs down at -0.22 m/s.
+  - **Ceiling Adhesion**: Jumping into a ceiling or touching ceiling blocks automatically inverts your gravity (-0.08) with a smooth 180° camera flip, letting you walk on ceilings just like regular floors.
+  - **Sneak-Ledge Gravity Flipping**: Crouching over the edge of a platform smoothly wraps your movement around the corner between floor and ceiling/wall, accompanied by musical celestial chimes and glittering starlight particles.
+  - **100% Fall Damage Negation**: Pressurized kinetic dampeners completely absorb all impact shock, setting fall damage to zero and protecting you from falls of any height.
+- **Inertial Anchor Amulet (Curios Charm)**:
+  - Arcane amulet equippable in the Curios charm slot.
+  - Provides total immunity against external gravity shifts, vortex suction, singularity collapse fling, and tidal crushing.
+- **Curios & Accessories Gear System**:
+  - Added official Curios slot definitions for `feet`, `charm`, `head`, `hands`, `belt`, and `ring` slots, complete with custom empty slot icons and built-in mod fallbacks.
+  - Automatically configured default player equipment assignments so all six accessory slots are ready to use in the Curios inventory menu.
+  - Graviton Soles fit into the `feet` slot and Inertial Anchor Amulets fit into the `charm` slot, freeing up standard armor slots for your armor sets.
+- **System Stability & Immersion Refinements**:
+  - Potion effects now cleanly restore standard gravity as soon as the effect expires or is cleared.
+  - Gravity fields and projectors now stay isolated to their own dimension, preventing server desync.
+  - Approaching singularity wells smoothly banks the camera without interfering with crosshair aiming.
+  - Dropped items in zero-gravity chambers float and bob gently in mid-air without sinking to the floor.
+  - Respiration cycles for Tidal Pulse Resonators now resume in perfect sync with physical gravity after being unpaused by redstone.
+  - Redstone signals no longer overwrite manual hand activation states on Tidal Pulse Resonators.
+  - Graviton Soles internal cooldown memory now automatically cleans up expired entries to conserve server resources.
+  - Gravitational lensing overlays now have safety checks to prevent visual glitches at extreme or zero field-of-view camera angles.
+
+### True Black Hole Gravitational Lensing Engine
+- **Authentic 3D Black Hole Graphics**:
+  - Added real astrophysical black hole geometry to Singularity Grenades and Singularity-mode Gravitational Anchors.
+  - Features a pitch-black spherical event horizon that completely blocks the view of objects behind it, surrounded by a blinding white-hot photon halo ring.
+  - Includes a tilted equatorial gas disk and arched light ribbons curving over the top and bottom poles where extreme gravity bends rear starlight directly toward the player.
+  - Relativistic Doppler lighting makes the approaching side of the disk shine brightly in electric cyan while the receding side dims in deep celestial purple.
+- **Dedicated Singularity Grenade Renderer**:
+  - Thrown grenades now display the flying item in mid-air, then smoothly expand into a swirling, pulsating 3D black hole upon anchoring before snapping closed in an implosive shockwave.
+- **Gravitational Anchor Singularity Display**:
+  - Setting a Gravitational Anchor to Singularity mode now places the miniature 3D black hole core spinning smoothly inside the brass gimbal rings instead of a plain colored cube.
+- **Screen-Space Gravitational Distortion Overlay**:
+  - When looking towards a nearby singularity, the player's view dynamically distorts around the black hole's exact screen position with three concentric chromatic rings (electric cyan, caustic white, and magenta) and swirling starlight refraction rays.
+
+### Procedural Irregular Astral Crystals & Starlight Fountain Visual Polish
+- **Procedural Non-Blocky Crystal Geometry**:
+  - Completely replaced Minecraft blocky cuboid shapes for Astral Crystals with custom procedural geometry inspired by the Materia Blessing.
+  - Crystals now have natural, sharp, irregular crystal facets that break standard Minecraft grid lines.
+  - Features asymmetric spiraling rings, fine gemstone sparkle shading, and natural mineral faceting.
+- **Dynamic Growth Stages & Gemstones**:
+  - **In-World Blocks**: Placed crystals grow naturally on floors, walls, and ceilings in 4 distinct irregular formations:
+    - *Small Bud*: A delicate, sharp needle spire with a tiny basal spur.
+    - *Medium Bud*: An angled primary crystal spire with a leaning companion spire.
+    - *Large Bud*: A prominent jagged spire with two leaning satellites and a base shard.
+    - *Cluster*: A grand central obelisk spire flanked by four tilted satellite spires and jagged ground shards.
+  - **Inventory & Held Gem**: The Astral Crystal item now renders as a double-terminated floating gemstone with sharp top and bottom points and two tiny orbiting crystal shards.
+- **Starlight Fountain Depth Sorting & Lighting Fix**:
+  - Fixed a visual glitch where block models (such as the brass telescope) rendered with full-bright colors and appeared in front of the Starlight Fountain.
+  - Starlight Fountain water and spray veil now properly draw in layered passes so they blend in front of background objects smoothly.
+  - Telescopes and background blocks now properly use realistic ambient world and sky lighting.
+
+### Starlight Cloth & Frictionless Starlight Carpets
+- **Starlight Cloth**:
+  - Added a new celestial fabric woven from Starlight Silk and Astral Crystal Thread.
+  - Features an intricate midnight-blue starry weave with constellation designs.
+  - Used for crafting and weaves directly into high-velocity carpets.
+- **Starlight Carpet & Infinite Speed Fix**:
+  - Carpet-style floor covering that gives players and mobs a celestial speed boost and smooth gliding physics.
+  - Fixed an infinite speed bug caused by compounding velocity multiplication; replaced with a controlled celestial speed boost (Speed II) that provides fast movement without runaway acceleration or losing steering control.
+  - Emits soft starlight illumination (light level 8), ambient twinkling sparks, and sparkling starlight footprints underfoot.
+  - Fully reversible: 2 cloth makes 3 carpet, and 3 carpet can be unraveled back into 2 cloth.
+- **Entropic Codex & Knowledge Base**:
+  - Added "Starlight Cloth & Carpets" entry to the in-game Entropic Codex under the Magic branch.
+  - Added complete OKF wiki documentation to the Obsidian vault for both the cloth and carpet.
+- **Multi-Loader Dev Deployment**:
+  - Built and deployed fresh jar files to both Fabric and NeoForge dev clients.
+
+### Glowpeg Architectural Light Rod
+- **Glowpeg**:
+  - Added a fence-sized decorative light fixture capped with polished brass plates and a radiant glowstone core.
+  - Maintains a rich, warm-yellow glowstone light at maximum light level 15.
+  - Designed to stay strictly vertical across all placements:
+    - Stands upright on floors and pillar tops.
+    - Mounts vertically against walls and pillars with brass standoff brackets.
+    - Hangs vertically from ceilings, aligning seamlessly under hanging chains.
+  - Fully waterloggable for underwater decor and fountains.
+- **Crafting Recipe**:
+  - Crafted from 1 stick flanked by 2 pieces of glowstone dust, yielding 1 Glowpeg.
+- **Soul Glowpeg**:
+  - Added an ethereal light blue soul fire variant capped with dark metallic plates and a glowing cyan core.
+  - Emits calm, supernatural illumination at Light Level 10 and gentle floating soul flame embers.
+  - Retains strictly vertical alignment across floor, wall, and ceiling mounts.
+  - Crafted with 1 Glowstone Dust + 1 Stick + 1 Soul Sand/Soil, or by combining a standard Glowpeg with Soul Sand/Soil.
+- **Entropic Codex & Obsidian Documentation**:
+  - Added the Glowpeg and Soul Glowpeg research entries to the in-game Entropic Codex under the Magic branch.
+  - Added full OKF entity notes and architectural cross-links in the Obsidian Wiki.
+- **Multi-Loader Dev Deployment**:
+  - Rebuilt and deployed fresh jars to Fabric and NeoForge dev instances.
+
+
+## Build 000-1-26-249
+
+### Cosmetic & Architectural Inventory Models Polish
+- **Inventory Item Icons Fixed**:
+  - Fixed an issue where the new fixtures (Resonance Starlight Fountain, Luminous Trellis Arbor, Attuned Display Vitrine, Celestial Grandfather Clock, Illuminated Balustrade, and Caged Optic Bulb) rendered as black and purple checkered cubes in the inventory.
+  - Added proper 1.21.10 item definitions and standard 3D inventory positions for all fixtures.
+- **Full-Height Item Previews**:
+  - Two-block-tall fixtures (Trellis Arbor and Grandfather Clock) now render as full miniatures inside the inventory slot, showing both the lower pedestals and the upper arches/clock dials.
+- **Multi-Loader Dev Deployment**:
+  - Built and deployed fresh jar files to both Fabric and NeoForge dev clients.
+
+
+## Build 000-1-26-247
+
+### Celestial Architecture & Wireless Flux Fixtures
+- **Resonance Starlight Fountain & Birdbath**:
+  - Added a decorative marble fountain and birdbath that erupts with a bubbling starlight geyser and flowing water surface when powered by Materia Flux.
+  - Upgraded the starlight geyser into a cohesive, flowing starlight plume with a cascading spray skirt and gentle ambient falling particles, eliminating disjoint overlapping shapes.
+  - Clears negative status effects (poison, wither, slowness, weakness) and grants gentle health regeneration to nearby players within 8 blocks.
+- **Luminous Garden Arbor & Trellis Archways**:
+  - Crafted from 100% natural wood diamond lattice entwined with leafy wisteria vines and celestial fairy lights, completely removing metallic brass trims for an organic garden feel.
+  - Full walk-through archway clearance so players can freely walk through it like an open garden doorway.
+  - Accelerates the growth of nearby crops, saplings, herbs, and flowers when receiving Materia Flux.
+- **Celestial Grandfather Chronometer**:
+  - Stately dark oak grandfather clock with a clearly visible Roman numeral astronomical clock face on the upper hood, animated clock hands, swinging brass pendulum, hanging counterweights, and hourly bell chime.
+  - Fully eliminated overlapping elements and texture flickering on the lower cabinet.
+- **Illuminated Balustrades & Glass Railings**:
+  - Frosted glass railings that connect into straight lines, corners, and junctions.
+  - Seamless 45-degree staircase handrails with complete 6-sided texturing and smooth step-to-step alignment, eliminating gaps and vertical jumps between stair heights.
+  - Automatically routes Materia Flux pulses across flat railings and up/down staircases.
+- **Attuned Display Vitrine & Bell Jar**:
+  - Added a museum pedestal and glass display dome. Right-click with any item to display it inside.
+  - When powered by Materia Flux, projects a vertical starlight spotlight that lifts and slowly spins the displayed item in mid-air.
+- **Wireless Flux Powering & Direct Fiber Support**:
+  - All 5 fixtures feature built-in starlight receivers: they can be powered wirelessly through the air by any Materia-Flux Distributor within 16 blocks (no cables needed), or directly placed on Pure Optic Fiber cables.
+
+- **Entropic Codex & Obsidian Documentation**:
+  - Added the "Celestial Architecture & Wireless Flux Fixtures" research entry to the in-game Entropic Codex under the Magic tree.
+  - Added full articles and OKF entity notes for all 5 fixtures in the Obsidian Wiki.
+- **Multi-Loader Verification & Dev Deployment**:
+  - Built and deployed cleanly to dev environments on both Fabric and NeoForge.
+
+
+## Build 000-1-26-245
+
+### Astral Materia Phase 4 Polish (Altar Crafting, Optical Transmutation, JEI & Round Beams)
+- **Modular Altar Pillar Architecture & Resonance Pylons**:
+  - Standardized the 4 corner columns of the Modular Astral Altar to use 3 `Starlight Pillar` blocks for the pillar shaft, proudly crowned at the top with 1 `Resonance Pylon` containing its faceted starlight crystal apex node.
+- **Floating Celestial Runic Disc**:
+  - Elevated the animated 24-segment rotating celestial runic circle so it floats in mid-air directly above the altar core with a gentle ambient bobbing motion, accompanied by orbiting starlight particles.
+- **Standalone Astral Collector Materia Collection**:
+  - Restored optical Materia accumulation when an Astral Collector is placed standalone (without a multiblock): shining an optical beam from a Refractive or Secondary Astral Lens onto the collector accumulates Materia up to its 2000 mb capacity.
+- **Pedestal Area Detection & Clear Recipe Diagnostics**:
+  - Pedestal scanning now checks the full 9x4x9 area around the altar core, supporting flexible pedestal layouts and all vanilla and modded glass variants.
+  - Right-clicking the altar core with the linking wand now sends clear, helpful chat messages explaining exactly what ingredients are missing if a recipe doesn't match.
+- **JEI Recipe Categories**:
+  - Added dedicated JEI categories for **Celestial Infusion Matrix** (showing all 8-pedestal altar crafting recipes) and **Dry Optical Infusion** (showing flower transmutations and crystal inscriptions).
+- **3D Round Cylindrical Beams**:
+  - Upgraded starlight beams from flat 2D ribbons to smooth 8-sided 3D cylindrical beams with glowing atmospheric auras.
+- **Astral Collector Beaming & Pedestal Transmutation**:
+  - Astral Collectors can now beam starlight directly into Astral Infusion Pedestals, making crystals spin, transmuting flowers, and auto-ejecting products into chests below.
+  - Astral Collectors can beam Starlight Flux directly into Materia-Flux Distributors.
+- **Beam Target Alignment**:
+  - Linked starlight beams from lenses and collectors now aim directly at the top middle of Astral Collectors (Y = +1.25) where the crystal sits, rather than aiming at the lower center of the block.
+- **Automatic Linking On Crystal Placement**:
+  - Placing a crystal into an Astral Collector now immediately searches for and links to the nearest valid altar, pedestal, distributor, or lens, starting starlight beaming automatically without needing manual wand linking.
+- **Universal Off-Screen Beam Rendering**:
+  - Fully eliminated frustum culling on all optical beams (Astral Collectors, Refractive Lenses, Secondary Lenses, Beam Splitter Prisms, Astral Altars, and Optic Transmitters) by applying universal bounding boxes and off-screen rendering registration. Beams now remain completely visible regardless of camera angle or facing direction when the base block is off screen.
+- **Wireless Optic Receiver & Optic Transmitter**:
+  - Added the **Optic Receiver**: A silver modular pipe block with a directional optical aperture face that captures incoming straight-line wireless starlight beams from lenses or collectors and transmits the starlight stream into connected optic fiber cables.
+  - Added the **Optic Transmitter**: A silver modular pipe block that draws starlight from connected optic fiber cables and fires a collimated straight-line starlight laser forward through the air. Intersecting creatures suffer Materia toxicity and damage, and destination blocks (such as pedestals, collectors, and receivers) are irradiated.
+  - Crafted with iron, lenses/crystals, and optic fiber cables, integrating with Entropica's pipe logistics network.
+- **Transmitter Texture & Aperture Fix**:
+  - Fixed missing beam textures on the Optic Transmitter, restoring clean luminous lasers.
+  - Corrected the aperture lens texture mapping and face culling on the Optic Receiver and Transmitter nozzles.
+- **Glass Passthrough & Solid Block Occlusion**:
+  - Optical starlight beams now cleanly pass straight through all glass blocks, tinted glass, glass panes, and foliage.
+  - Starlight beams now reliably stop at the surface of solid, opaque terrain blocks (stone, dirt, wood, metal) rather than passing through them.
+- **Dynamic Materia Beam Tinting**:
+  - Upgraded all optical beams (Refractive Lens, Secondary Lens, Astral Collector, Beam Splitter Prism, and Optic Transmitter) to dynamically tint their core beam and outer glowing aura to match the active Materia type, including smooth chromatic cycling for multi-color Materia.
+- **Caged Optic Bulb**:
+  - Added the **Caged Optic Bulb**: A directional caged industrial filament bulb connecting directly to optic fiber cables.
+  - Lights up to maximum brightness (light level 15) when Materia travels through the fiber line, with its inner filament and glass envelope dynamically glowing in the active Materia type's color.
+  - Mountable in all 6 directions (floor, ceiling, wall, or pipe face) as a network monitor and decorative lamp.
+- **Materia-Flux Distributor Measurement**:
+  - Upgraded the distributor to measure and store pure **Starlight Flux** directly from incoming collector beams, showing accurate flux levels on right-click.
+- **Supernova Remnant Essence Types**:
+  - Fixed supernova remnants in `StellarRemnantType` so they only select from high-tier complete compound essences (e.g. Void, Cataclysm, Static, Lightning, Radiant, Apotheosis, Pyre, Empyrean), strictly eliminating conceptual fragment essences (Singularity, Volt, Kinetic, Density, Photon).
+  - Added runtime safety checks guaranteeing that fragment essences are never assigned to supernova remnants.
+- **Modular Lamp Posts**:
+  - Added the **Lamp Post** family with 4 distinct material variants: **Iron**, **Brass**, **Steel**, and **Essence Glass**.
+  - **Zero-Gap Baseplate**: The base block features a full 16×16×1 flush bottom plate that completely conceals underlying optic fiber conduits and floor holes with zero visible gaps.
+  - **Dynamic 1-to-6 Block Height & Seamless Shaft Stacking**:
+    - Lamp posts can now be extended up to **6 blocks tall** (enforcing a hard cap at 6 high).
+    - Features seamless 6×6 shaft connections with ornamental joint bands across intermediate blocks, stepping gracefully from a broad base plinth up to a slender neck, arm collar, and crown finial at any height from 1 to 6 blocks.
+  - **Pronounced 4:1 Vertical Tapering**:
+    - Re-engineered the column shaft geometry across 6 dynamic tiers (`single`, `bottom`, `lower_middle`, `middle`, `upper_middle`, `top`).
+    - Creates a striking architectural taper from a broad 16-pixel plinth base down to a slender 3-pixel neck and 2-pixel spire finial at the top.
+  - **Translucent Essence Glass & Texture Overhaul**:
+    - Enabled true alpha translucency on `glass_lamp_post` across all models and render layers, letting light, terrain, and blocks shine through the crystal glass.
+    - Overhauled all 4 material textures with higher contrast and depth: authentic gunmetal wrought-iron with stippled grit and bevels, rich polished brass with golden sheen, industrial cold-rolled steel with brushed grain, and crystalline glass with etched facet borders and refraction glints.
+  - **Astral Collector Hand Extraction & mFum Units**:
+    - Astral Collectors now measure stored Materia strictly in **mFum** (milli-fume) rather than mB, where **8 mFum = 1 Small Essence**.
+    - Players can now extract stored Materia directly by hand: clicking with an empty hand condenses 8 mFum into 1 Small Essence orb of the collector's active essence type.
+    - Sneak right-clicking with an empty hand bulk-condenses up to a full stack (up to 64 essences) at once.
+    - Sneak right-clicking with a socketed crystal extracts the crystal safely.
+  - **Lens Beam Focal Alignment on Astral Collectors**:
+    - Beams from Refractive and Secondary Astral Lenses now cut off precisely at the Astral Collector's floating crystal focal point ($Y = 1.20$), meeting the exact spot where the collector's outgoing beam begins. Eliminates beam clipping, floor penetration, and passing through the crystal.
+  - **Continuous Multi-Tier Lamp Post Tapering**:
+    - Re-sculpted the 3D models across all tiers (`single`, `bottom`, `lower_middle`, `middle`, `upper_middle`, `top`) so that every individual tier visibly steps inward as it rises ($16 \rightarrow 12 \rightarrow 10 \rightarrow 9 \rightarrow 8 \rightarrow 7 \rightarrow 6 \rightarrow 5 \rightarrow 4 \rightarrow 3$).
+    - Added automated column synchronisation so placing or breaking any lamp post in a column immediately updates all connected blocks to maintain a continuous, graceful taper from base to finial.
+  - **Optic Cables with Internal Starlight Flux Rendering**:
+    - Pure Optic Fiber cables now feature an active inner starlight core that renders through their observation jacket.
+    - When carrying starlight, the internal core brightly illuminates and pulses in the exact chromatic color of the Materia essence being transported across the network.
+  - **Surgical Arm De-Toggling & Breaking**:
+    - Players can now de-toggle individual arms without breaking the entire lamp post!
+    - **Punching / Left-Click**: Punching an arm with an empty hand or tool pops off only that specific attachment (`BULB` drops the bulb and keeps the bracket; `CABLE` drops the fiber; `ARM` retracts the bracket) while leaving the post standing. Punching the center column mines the post normally.
+    - **Right-Click**: Clicking an arm with an empty hand now cycles and pops off the bulb or cable safely and returns the item.
+
+### Astral Materia Master Implementation Plan Update
+- **Phase 7 Integration (Beyond the Firmament & The Red Void)**:
+  - Integrated Phase 7 into the master architectural flow diagram and detailed specifications within [`Astral Materia Master Implementation Plan.md`](file:///C:/Users/Ddraig__/Downloads/OBSIDIAN%20WIKIS/Entropica/Entropica/wiki/articles/Astral%20Materia%20Master%20Implementation%20Plan.md).
+  - Consolidated the 18 Higher-Dimension Entities (6 Major Celestial Avatars, 6 Minor Craft Watchers, 6 Apex Predators of the Red Void), Dual Constellation Synergy, Horizon Apparition triggers, 64-block battlefield bubble mechanics, multi-part boss anchor combat, sky-stitching restoration, the Ancient Celestial Lexicon, and new registry allocations for blocks, items, and entities.
+
+## Build 000-1-26-241
+
+### Mob Polish & Physics Overhauls (Void Sea Serpent & Storm Kite)
+- **Void Sea Serpent Multi-Hitbox Spine**:
+  - Implemented `VoidSeaSerpentSegmentEntity` multi-hitbox system across common, fabric, and neoforge modules.
+  - Added 5 dynamic body segment collision hitboxes positioned along the 16-segment mesh spine (fore body, upper mid, center mid, pelvic, and tail).
+  - Kinematic history trail smoothly interpolates segment hitboxes along the serpent's swimming path.
+  - All body segments now accurately catch sword swings, projectiles, and spell strikes, seamlessly routing damage to the main entity.
+  - Registered invisible `NoopRenderer` for sub-segments across Fabric and NeoForge.
+- **Storm Kite Flight & Swoop Overhaul**:
+  - Completely removed fall damage accumulation and ground impact damage (`causeFallDamage` and `checkFallDamage`).
+  - Added anti-ground hovering lift that automatically steers the kite upward if it drifts too close to the ground when not actively diving.
+  - High-altitude soaring navigation: cruises 22-36 blocks above terrain.
+  - Expanded follow range to 64 blocks for spotting players on the ground from high altitude.
+  - Upgraded dive swooping combat: positions high above the target, accelerates downward in a high-speed dive (`2.2x` speed) with electric particle trails, strikes target, and immediately pulls up into a steep ascent back into the sky.
+- **Future Planning: Beyond the Firmament & The Red Void**:
+  - Authored Phase 8 master technical specifications and concept documents in the Obsidian Vault.
+  - Defined the 18 Higher-Dimension Beings (6 Major Celestial Avatars, 6 Minor Craft Watchers, 6 Apex Predators of the Red Void), Dual Constellation Synergy, 15–30s horizon apparitions, mountaintop observatory communion rituals, 64-block battlefield bubble boss encounters, firmament stitching, and the ancient celestial lexicon.
+  - Authored a 4-volume, 72-chapter in-universe lore book series (Volumes X, XI, XII, and XIII) detailing the complete chronicles of the Avatars, Craft Watchers, Red Void battles, and the Celestial Covenant.
+
+## Build 000-1-26-238
+
+### Gemini Goat Mage & Caprine Secrets Arcana (Mob, Typing & Gameplay Integration)
+- **Attribute Registration Fix**:
+  - Fixed `"Unable to summon entity"` error when invoking `/summon entropica:gemini_goat_mage` or using spawn eggs by registering its entity attributes in `ModEntityEvents.java` via `EntityAttributeRegistry.register(ModEntityTypes.GEMINI_GOAT_MAGE, GeminiGoatMageEntity::createAttributes)`.
+- **Mod Implementation**:
+  - `GeminiGoatMageEntity`: Added the 2.5-block tall caprine spellcaster mob to common, fabric, and neoforge modules. Features interactive lore dialogue, astronomical observation feedback, and the full multi-phase spellcasting combat suite.
+  - `GeminiGoatMageModel` & `GeminiGoatMageAnimation`: Implemented 95-cube, 37-group hierarchical Java client model with forward-thrusting spellcasting arm animations (`cast_solar_flame`, `cast_umbral_flame`, `cast_dual_gemini`).
+  - `GeminiGoatMageRenderer` & `GeminiGoatMageRenderState`: Entity renderer and render state registered cleanly across Fabric and NeoForge client initializers.
+- **Secret Fusions & Caprine Secrets Typology**:
+  - Added new `Secret Fusions` (`Caprine Secrets`) category to `EssenceType.java`:
+    - `RADIANT_FIRE`: Dynamic Solar Gold $\leftrightarrow$ Blazing Vermilion cycle (`#FFEAA0` $\leftrightarrow$ `#FF3C00`). Strong against Undead, Frozen, Nature.
+    - `UMBRAL_WATER`: Dynamic Shadow Violet $\leftrightarrow$ Abyssal Azure cycle (`#211A21` $\leftrightarrow$ `#14508C`). Strong against Radiant, Nature, Nether.
+    - `EQUINOX`: Quad-phase universal catalyst cycle for all fusions containing Radiant or Umbral lineage.
+  - Added **`AUREOLE`** (`Radiant` + `Air` / Solar Halo) and **`VESPER`** (`Umbral` + `Air` / Dusk Gale) to `EssenceType.java` and formatting registries.
+- **Spell Projectiles & Equipment**:
+  - `RadiantFireLanceEntity`: High-velocity fire projectile triggering steam-cavitation shockwave true damage when striking drenched/slowed targets.
+  - `UmbralVortexEntity`: Persistent area-of-effect water whirlpool entity drawing enemies inward and inflicting Abyssal Drench and Slowness.
+  - `GeminiScepterItem`: Dual-aspect focus weapon with primary Radiant Fire Lance (Right-Click) and secondary Umbral Water Vortex (Sneak + Right-Click).
+  - `EquinoxMageArmorItem`: `EQUINOX_MAGE_ROBE` (50% Fire & Drowning resistance, -20% Materia spell cost) and `EQUINOX_MAGE_HAT` (adds +20% points / +0.2x multiplier in Materia Advantage damage calculation).
+  - Registered `GEMINI_GOAT_MAGE_SPAWN_EGG`, `GEMINI_FOCUS_HORN`, `EQUINOX_VELVET_CLOTH`, `EQUINOX_ESSENCE`.
+- **The Gemini Equinox Exchange (Duality Barter)**:
+  - Added data-driven barter system (`GeminiDualityTrades`) allowing players to trade Radiant Fire catalysts for Umbral Waters assets (and vice versa) and obtain Caprine relics through dual offerings.
+- **Entropic Codex & Obsidian Vault Integration**:
+  - Added `caprine_duality_arcana` research node to `CodexCategoryRegistry.java` under the `MAGIC` category hub.
+  - Created master article `wiki/articles/Secret Typings, Blocks, and Items.md` and atomic concept `concepts/secret_typings/Caprine Alchemy & Secret Typings.md` in the OKF Obsidian Vault.
+  - Updated `Materia Damage Types & Elemental Fusions Guide.md` and `Future Roadmap & Planned Features.md` with Caprine Secrets math and roadmap integration.
+
+### Completed Fauna Quintet (Entities, Models, Animations & Drops)
+- **Void Sea Serpent (`VoidSeaSerpentEntity`)**:
+  - 16-segment articulated mesh with Catmull-Rom swimming, biting lunges, and sonic shockwave roars dealing magic damage and knockback.
+  - Custom emissive glowing eye layer (`VoidSeaSerpentEyesLayer`).
+  - Drops `Serpent Void Scale` and concentrated Void essence.
+- **Glacial Hydra (`GlacialHydraEntity`)**:
+  - Multi-horned icy predator with sub-zero Cryo breath (inflicting freezing ticks and Slowness) and rapid regeneration while standing on ice/snow.
+  - Drops `Hydra Glacial Horn` for cryo-infusion matrices.
+- **Luminoth (`LuminothEntity`)**:
+  - Flying bioluminescent moth with animated wing flaps, phototaxis (attracted to light and essence nodes), shedding solar dust and granting ambient Night Vision to nearby players.
+  - Custom emissive wing vein layer (`LuminothGlowLayer`).
+  - Drops `Luminoth Dust` for glowing tinctures and lenses.
+- **Amber Weeping Stag (`AmberWeepingStagEntity`)**:
+  - 3 dynamic climate variants: `Amber` (temperate groves), `Frost` (snow tundras), `Solar` (savannas and sunlit peaks).
+  - Multi-tined crystal antlers that weep elemental dew particles.
+  - Drops `Weeping Amber Tear` and `Amber Resin`.
+- **Storm Kite (`StormKiteEntity`)**:
+  - Ray-like high-altitude predator with 6 articulated wing joints, cephalic fins, and high-velocity dive attacks.
+  - Unleashes lightning strikes during thunderstorms upon swooping into targets.
+  - Custom emissive galvanic ventral layer (`StormKiteGlowLayer`).
+  - Drops `Storm Kite Membrane` for Aer gliding wings.
+  - Fixed client launch animation baking crash by adding the root `hitbox` part to `StormKiteModel.createBodyLayer()`.
+- **Registries, Codex & Vault**:
+  - Registered all 5 entity types in `ModEntityTypes.java` and attribute creators in `ModEntityEvents.java`.
+  - Registered 5 spawn eggs and unique mob drops in `ModItems.java`.
+  - Registered client renderers and layer definitions in `EntropicaClientFabric.java` and `ModClientEvents.java`.
+  - Added 5 research sub-nodes under `ENVIRONMENT & NATURE` (`env_fauna`) in `CodexCategoryRegistry.java`.
+  - Created 5 comprehensive OKF mob notes in `wiki/entities/mobs/`.
+
 ## Build 000-1-26-237
 
 ### Astral Mirror Fixes
@@ -11,6 +327,9 @@
 - **Climbing Flap Animation**: The bird actively flaps its wings whenever it climbs to gain height or sprints, smoothly gliding once cruising altitude is reached.
 - **Fall Damage Immunity**: Aurorafowl is fully protected against fall damage.
 - **Geyser Wiggle-Worm Scale & Texture**: Restored the original high-resolution volcanic texture and scaled the worm to 1.75x with an expanded hitbox to reflect its true leviathan size in-game.
+
+### Visual FX & Particles
+- **Shadow Slash Particle (`shadow_slash`)**: Added custom emissive violet/obsidian claw swipe attack particle for Abyss/Nighthaunt predators with clean alpha transparency, dynamic rotation, and fading strike expansion.
 
 ## Build 000-1-26-236
 

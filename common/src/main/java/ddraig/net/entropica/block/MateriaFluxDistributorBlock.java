@@ -73,9 +73,10 @@ public class MateriaFluxDistributorBlock extends BaseEntityBlock {
                     }
                 }
 
-                String fumeInfo = distributor.getMateriaInTank().isEmpty() ? "Empty" : (distributor.getMateriaInTank().getAmount() + "mb " + distributor.getMateriaInTank().getType().name());
+                int flux = distributor.getStoredFlux();
+                int maxCap = distributor.getMaxCapacity();
                 player.displayClientMessage(
-                        Component.literal("§6[Materia-Flux Distributor] §eTier " + distributor.getDistributorTier() + " §7| Range: §b" + distributor.getDistributionRadius() + "m §7| Stored Fumus: §f" + fumeInfo + " / " + distributor.getMaxCapacity() + "mb"),
+                        Component.literal("§6[Materia-Flux Distributor] §eTier " + distributor.getDistributorTier() + " §7| Range: §b" + distributor.getDistributionRadius() + "m §7| Stored Starlight Flux: §f" + flux + " / " + maxCap + " Flux"),
                         true
                 );
             }

@@ -1,6 +1,180 @@
 {
-  "parent": "minecraft:item/generated",
+  "credit": "Entropica Mod - 3D Jagged Astral Crystal Item Model",
   "textures": {
-    "layer0": "entropica:item/astral_crystal"
+    "particle": "entropica:block/astral_crystal_crystal",
+    "crystal": "entropica:block/astral_crystal_crystal"
+  },
+  "elements": [
+    {
+      "name": "Main Spire Core",
+      "from": [6, 4, 6],
+      "to": [10, 10, 10],
+      "rotation": {"angle": 45, "axis": "y", "origin": [8, 7, 8]},
+      "faces": {
+        "north": {"uv": [0, 0, 8, 12], "texture": "#crystal"},
+        "east":  {"uv": [8, 0, 16, 12], "texture": "#crystal"},
+        "south": {"uv": [0, 4, 8, 16], "texture": "#crystal"},
+        "west":  {"uv": [8, 4, 16, 16], "texture": "#crystal"}
+      }
+    },
+    {
+      "name": "Main Spire Upper Taper",
+      "from": [6.5, 10, 6.5],
+      "to": [9.5, 13, 9.5],
+      "rotation": {"angle": 45, "axis": "y", "origin": [8, 11.5, 8]},
+      "faces": {
+        "north": {"uv": [2, 2, 8, 8], "texture": "#crystal"},
+        "east":  {"uv": [8, 2, 14, 8], "texture": "#crystal"},
+        "south": {"uv": [2, 8, 8, 14], "texture": "#crystal"},
+        "west":  {"uv": [8, 8, 14, 14], "texture": "#crystal"},
+        "up":    {"uv": [4, 4, 10, 10], "texture": "#crystal"}
+      }
+    },
+    {
+      "name": "Main Spire Needle Apex",
+      "from": [7.5, 13, 7.5],
+      "to": [8.5, 15.5, 8.5],
+      "rotation": {"angle": 45, "axis": "y", "origin": [8, 14, 8]},
+      "faces": {
+        "north": {"uv": [5, 5, 7, 10], "texture": "#crystal"},
+        "east":  {"uv": [9, 5, 11, 10], "texture": "#crystal"},
+        "south": {"uv": [5, 5, 7, 10], "texture": "#crystal"},
+        "west":  {"uv": [9, 5, 11, 10], "texture": "#crystal"},
+        "up":    {"uv": [7, 7, 9, 9], "texture": "#crystal"}
+      }
+    },
+    {
+      "name": "Main Spire Lower Taper",
+      "from": [6.5, 2, 6.5],
+      "to": [9.5, 4, 9.5],
+      "rotation": {"angle": 45, "axis": "y", "origin": [8, 3, 8]},
+      "faces": {
+        "north": {"uv": [2, 4, 8, 8], "texture": "#crystal"},
+        "east":  {"uv": [8, 4, 14, 8], "texture": "#crystal"},
+        "south": {"uv": [2, 8, 8, 12], "texture": "#crystal"},
+        "west":  {"uv": [8, 8, 14, 12], "texture": "#crystal"},
+        "down":  {"uv": [4, 4, 10, 10], "texture": "#crystal"}
+      }
+    },
+    {
+      "name": "Main Spire Bottom Point",
+      "from": [7.5, 0.5, 7.5],
+      "to": [8.5, 2, 8.5],
+      "rotation": {"angle": 45, "axis": "y", "origin": [8, 1.25, 8]},
+      "faces": {
+        "north": {"uv": [5, 5, 7, 8], "texture": "#crystal"},
+        "east":  {"uv": [9, 5, 11, 8], "texture": "#crystal"},
+        "south": {"uv": [5, 5, 7, 8], "texture": "#crystal"},
+        "west":  {"uv": [9, 5, 11, 8], "texture": "#crystal"},
+        "down":  {"uv": [7, 7, 9, 9], "texture": "#crystal"}
+      }
+    },
+    {
+      "name": "Jagged Satellite Shard 1 Base",
+      "from": [4, 3, 6],
+      "to": [6.5, 8, 8.5],
+      "rotation": {"angle": -22.5, "axis": "z", "origin": [5.25, 3, 7.25]},
+      "faces": {
+        "north": {"uv": [0, 2, 5, 12], "texture": "#crystal"},
+        "east":  {"uv": [5, 2, 10, 12], "texture": "#crystal"},
+        "south": {"uv": [0, 4, 5, 14], "texture": "#crystal"},
+        "west":  {"uv": [5, 4, 10, 14], "texture": "#crystal"},
+        "down":  {"uv": [2, 2, 7, 7], "texture": "#crystal"}
+      }
+    },
+    {
+      "name": "Jagged Satellite Shard 1 Tip",
+      "from": [3.5, 8, 6.5],
+      "to": [5.5, 11, 8],
+      "rotation": {"angle": -22.5, "axis": "z", "origin": [5.25, 3, 7.25]},
+      "faces": {
+        "north": {"uv": [2, 0, 6, 6], "texture": "#crystal"},
+        "east":  {"uv": [6, 0, 10, 6], "texture": "#crystal"},
+        "south": {"uv": [2, 6, 6, 12], "texture": "#crystal"},
+        "west":  {"uv": [6, 6, 10, 12], "texture": "#crystal"},
+        "up":    {"uv": [4, 4, 8, 8], "texture": "#crystal"}
+      }
+    },
+    {
+      "name": "Jagged Satellite Shard 2 Base",
+      "from": [8.5, 3, 8.5],
+      "to": [11, 7, 11],
+      "rotation": {"angle": 22.5, "axis": "x", "origin": [9.75, 3, 9.75]},
+      "faces": {
+        "north": {"uv": [3, 2, 8, 10], "texture": "#crystal"},
+        "east":  {"uv": [8, 2, 13, 10], "texture": "#crystal"},
+        "south": {"uv": [3, 4, 8, 12], "texture": "#crystal"},
+        "west":  {"uv": [8, 4, 13, 12], "texture": "#crystal"},
+        "down":  {"uv": [4, 4, 9, 9], "texture": "#crystal"}
+      }
+    },
+    {
+      "name": "Jagged Satellite Shard 2 Tip",
+      "from": [9, 7, 9],
+      "to": [10.5, 9.5, 10.5],
+      "rotation": {"angle": 22.5, "axis": "x", "origin": [9.75, 3, 9.75]},
+      "faces": {
+        "north": {"uv": [4, 1, 7, 6], "texture": "#crystal"},
+        "east":  {"uv": [7, 1, 10, 6], "texture": "#crystal"},
+        "south": {"uv": [4, 6, 7, 11], "texture": "#crystal"},
+        "west":  {"uv": [7, 6, 10, 11], "texture": "#crystal"},
+        "up":    {"uv": [5, 5, 8, 8], "texture": "#crystal"}
+      }
+    },
+    {
+      "name": "Jagged Spur",
+      "from": [6.5, 1.5, 4.5],
+      "to": [8.5, 4.5, 6.5],
+      "rotation": {"angle": -45, "axis": "x", "origin": [7.5, 1.5, 5.5]},
+      "faces": {
+        "north": {"uv": [1, 3, 5, 9], "texture": "#crystal"},
+        "east":  {"uv": [5, 3, 9, 9], "texture": "#crystal"},
+        "south": {"uv": [1, 5, 5, 11], "texture": "#crystal"},
+        "west":  {"uv": [5, 5, 9, 11], "texture": "#crystal"},
+        "up":    {"uv": [3, 3, 7, 7], "texture": "#crystal"},
+        "down":  {"uv": [3, 3, 7, 7], "texture": "#crystal"}
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.45, 0.45, 0.45]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.45, 0.45, 0.45]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "ground": {
+      "translation": [0, 2, 0],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "gui": {
+      "rotation": [30, 225, 0],
+      "translation": [0, 0.5, 0],
+      "scale": [0.8, 0.8, 0.8]
+    },
+    "head": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 14, 0],
+      "scale": [1, 1, 1]
+    },
+    "fixed": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.65, 0.65, 0.65]
+    }
   }
 }

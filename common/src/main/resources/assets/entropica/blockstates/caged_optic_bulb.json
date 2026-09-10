@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "entropica:block/caged_optic_bulb"
+    },
+    "facing=down": {
+      "model": "entropica:block/caged_optic_bulb",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "entropica:block/caged_optic_bulb",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "entropica:block/caged_optic_bulb",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "entropica:block/caged_optic_bulb",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "entropica:block/caged_optic_bulb",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

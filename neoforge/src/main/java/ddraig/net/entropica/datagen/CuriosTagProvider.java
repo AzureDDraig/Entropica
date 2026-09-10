@@ -28,6 +28,7 @@ public class CuriosTagProvider extends TagsProvider<Item> {
         TagKey<Item> CURIOS_HEAD = ItemTags.create(ResourceLocation.fromNamespaceAndPath("curios", "head"));
         TagKey<Item> CURIOS_HANDS = ItemTags.create(ResourceLocation.fromNamespaceAndPath("curios", "hands"));
         TagKey<Item> CURIOS_CHARM = ItemTags.create(ResourceLocation.fromNamespaceAndPath("curios", "charm"));
+        TagKey<Item> CURIOS_FEET = ItemTags.create(ResourceLocation.fromNamespaceAndPath("curios", "feet"));
 
         // Spools -> Belt
         // Using getOrCreateRawBuilder safely initializes the empty JSON tag file!
@@ -40,7 +41,10 @@ public class CuriosTagProvider extends TagsProvider<Item> {
         // Focuses -> Hands
         this.getOrCreateRawBuilder(CURIOS_HANDS);
 
-        // Orbis Cell -> Charm
-        this.getOrCreateRawBuilder(CURIOS_CHARM);
+        // Orbis Cell & Inertial Anchor -> Charm
+        this.getOrCreateRawBuilder(CURIOS_CHARM).addElement(ResourceLocation.fromNamespaceAndPath("entropica", "inertial_anchor_amulet"));
+
+        // Graviton Soles -> Feet
+        this.getOrCreateRawBuilder(CURIOS_FEET).addElement(ResourceLocation.fromNamespaceAndPath("entropica", "graviton_soles"));
     }
 }

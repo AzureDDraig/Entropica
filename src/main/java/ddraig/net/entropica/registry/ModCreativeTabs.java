@@ -263,7 +263,9 @@ public class ModCreativeTabs {
                path.contains("port") ||
                path.contains("pump") ||
                path.contains("generator") ||
-               path.contains("coupling") ||
-               path.contains("agitator");
+               path.contains("agitator") ||
+               path.contains("bulb") ||
+               path.contains("lamp_post") ||
+               path.contains("optic");
     }
 }

@@ -58,6 +58,8 @@ public enum EssenceType implements StringRepresentable {
     NULL_R(new int[][]{{255, 234, 120}, {65, 48, 78}}),
     NULL_U(new int[][]{{65, 48, 78}, {33, 26, 33}}),
     DAWN(new int[][]{{255, 234, 120}, {168, 134, 84}}),
+    AUREOLE(new int[][]{{255, 245, 157}, {129, 212, 250}}),
+    VESPER(new int[][]{{92, 107, 192}, {42, 59, 76}}),
     ABYSS(new int[][]{{33, 26, 33}, {34, 92, 124}}),
     AEGIS(new int[][]{{255, 234, 120}, {119, 50, 20}}),
     AURORA(new int[][]{{255, 234, 120}, {152, 220, 242}}),
@@ -125,7 +127,12 @@ public enum EssenceType implements StringRepresentable {
 
     // Catalysts
     CHIMERA(new int[][]{}),
-    PRISMATIC(new int[][]{});
+    PRISMATIC(new int[][]{}),
+
+    // Secret Fusions (Caprine Secrets)
+    RADIANT_FIRE(new int[][]{{255, 234, 120}, {255, 60, 0}}),
+    UMBRAL_WATER(new int[][]{{33, 26, 33}, {20, 80, 140}}),
+    EQUINOX(new int[][]{{255, 234, 120}, {255, 80, 0}, {33, 26, 33}, {34, 92, 124}});
 
     public static final Codec<EssenceType> CODEC = StringRepresentable.fromEnum(EssenceType::values);
     public static final StreamCodec<FriendlyByteBuf, EssenceType> STREAM_CODEC = StreamCodec.of((buf, type) -> buf.writeEnum(type), buf -> buf.readEnum(EssenceType.class));
@@ -213,23 +220,23 @@ public enum EssenceType implements StringRepresentable {
             // Pinks / Magentas
             case REGULAR, VITAE, SPRING, AURA, GENESIS -> "§d";
             // Yellows
-            case AIR, STATIC, LIGHTNING, ETHER, KINETIC, VOLT, DAWN, EMPYREAN -> "§e";
+            case AIR, STATIC, LIGHTNING, ETHER, KINETIC, VOLT, DAWN, EMPYREAN, AUREOLE -> "§e";
             // Aquas / Cyans
-            case WATER, FROZEN, GLACIAL, STORM, FLOW, STASIS, TAIGA, AURORA, TERMINUS -> "§b";
+            case WATER, FROZEN, GLACIAL, STORM, FLOW, STASIS, TAIGA, AURORA, TERMINUS, VESPER -> "§b";
             // Greens
             case NATURE, OVERGROWTH, GROWTH, MEMORY, ECTO, SPORE, OASIS, SYLVAN -> "§a";
             // Dark Greens
             case UNDEAD, BLIGHT, SOULFIRE, PRIMAL, BARROW, MIASMA -> "§2";
             // Golds / Oranges
-            case EARTH, ARID, DUST, GRAVITY, FERVOR, HEAT, AEGIS, MIRAGE, AMBER -> "§6";
+            case EARTH, ARID, DUST, GRAVITY, FERVOR, HEAT, AEGIS, MIRAGE, AMBER, RADIANT_FIRE -> "§6";
             // Reds
             case NETHER, MAGMA, BLOOD, PYRE, IGNIS, CATACLYSM -> "§c";
             // Whites / Light Grays
             case RADIANT, CELESTIAL, COHESION, FROST, APOTHEOSIS -> "§f";
             // Dark Grays / Blacks
-            case UMBRAL, VOID, ENTROPIC, ECLIPSE, DENSITY, OBLIVION, VACUUM, SILENCE, SHADOW, CONCEALMENT, DESOLATION, ABYSS, WRAITH, OBLIVIATE, ESCHATON -> "§8";
+            case UMBRAL, VOID, ENTROPIC, ECLIPSE, DENSITY, OBLIVION, VACUUM, SILENCE, SHADOW, CONCEALMENT, DESOLATION, ABYSS, WRAITH, OBLIVIATE, ESCHATON, UMBRAL_WATER -> "§8";
             // Purples
-            case ASTRAL, PENUMBRA, AETHER, AXIOM, ECHO, CHRONOS, SINGULARITY, PHOTON, ENTROPICA -> "§5";
+            case ASTRAL, PENUMBRA, AETHER, AXIOM, ECHO, CHRONOS, SINGULARITY, PHOTON, ENTROPICA, EQUINOX -> "§5";
             default -> "§r";
         };
     }

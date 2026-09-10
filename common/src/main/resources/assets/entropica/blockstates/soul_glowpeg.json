@@ -1,0 +1,25 @@
+{
+  "variants": {
+    "face=floor": {
+      "model": "entropica:block/soul_glowpeg_vertical"
+    },
+    "face=ceiling": {
+      "model": "entropica:block/soul_glowpeg_vertical"
+    },
+    "face=wall,facing=south": {
+      "model": "entropica:block/soul_glowpeg_wall"
+    },
+    "face=wall,facing=west": {
+      "model": "entropica:block/soul_glowpeg_wall",
+      "y": 90
+    },
+    "face=wall,facing=north": {
+      "model": "entropica:block/soul_glowpeg_wall",
+      "y": 180
+    },
+    "face=wall,facing=east": {
+      "model": "entropica:block/soul_glowpeg_wall",
+      "y": 270
+    }
+  }
+}
