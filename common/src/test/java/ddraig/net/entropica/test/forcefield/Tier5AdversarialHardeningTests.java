@@ -249,6 +249,61 @@ public class Tier5AdversarialHardeningTests extends AbstractForcefieldTestSuite 
 
             ForcefieldAssert.assertNear(20.0, reflected.z, 1e-4, "Reflected velocity must be +20 m/s");
         });
+
+        register("adv_phys_interior_sphere_bounce_towards_center", 5,
+                "Validates entity inside spherical bubble attempting to exit is intercepted and bounced toward center", () -> {
+            Vec3 center = new Vec3(0, 0, 0);
+            float radius = 10.0F;
+            Vec3 start = new Vec3(0, 0, 8.0); // Inside bubble
+            Vec3 end = new Vec3(0, 0, 15.0);   // Moving outward
+            double entityRadius = 0.3;
+
+            BarrierRaycastHit hit = BarrierGeometry.intersectSphere(center, radius, start, end, entityRadius);
+            ForcefieldAssert.assertTrue(hit.hit(), "Interior exit attempt must trigger collision");
+            ForcefieldAssert.assertTrue(hit.surfaceNormal().z < -0.99, "Surface normal must point inward toward center (-Z)");
+
+            // Effective normal must point inward toward center (-Z)
+            Vec3 approachDir = end.subtract(start);
+            Vec3 nEff = hit.getEffectiveNormal(approachDir);
+            ForcefieldAssert.assertTrue(nEff.z < -0.99, "Effective normal must point inward toward center (-Z)");
+
+            // Reflected velocity must point toward center (-Z)
+            Vec3 v = new Vec3(0, 0, 0.5);
+            double elasticity = 1.0;
+            Vec3 reflected = v.subtract(nEff.scale((1.0 + elasticity) * v.dot(nEff)));
+            ForcefieldAssert.assertTrue(reflected.z < -0.4, "Reflected velocity must fling entity back towards center");
+        });
+
+        register("adv_phys_interior_dome_bounce_towards_center", 5,
+                "Validates entity inside hemispherical dome attempting to exit canopy is intercepted and bounced toward center", () -> {
+            Vec3 center = new Vec3(0, 0, 0);
+            float radius = 10.0F;
+            Vec3 start = new Vec3(0, 5.0, 7.0); // Inside dome
+            Vec3 end = new Vec3(0, 5.0, 15.0);  // Moving outward
+            double entityRadius = 0.3;
+
+            BarrierRaycastHit hit = BarrierGeometry.intersectDome(center, radius, start, end, entityRadius);
+            ForcefieldAssert.assertTrue(hit.hit(), "Interior canopy exit attempt must trigger collision");
+            ForcefieldAssert.assertTrue(hit.surfaceNormal().z < -0.5, "Surface normal must point inward toward center (-Z component)");
+            Vec3 nEff = hit.getEffectiveNormal(end.subtract(start));
+            ForcefieldAssert.assertTrue(nEff.z < -0.5, "Effective normal must face inward");
+        });
+
+        register("adv_phys_interior_cylinder_bounce_towards_center", 5,
+                "Validates entity inside cylinder column attempting to exit radial wall is intercepted and bounced toward axis", () -> {
+            Vec3 center = new Vec3(0, 0, 0);
+            float radius = 10.0F;
+            float height = 10.0F;
+            Vec3 start = new Vec3(8.0, 5.0, 0.0); // Inside cylinder
+            Vec3 end = new Vec3(15.0, 5.0, 0.0);  // Moving outward along +X
+            double entityRadius = 0.3;
+
+            BarrierRaycastHit hit = BarrierGeometry.intersectCylinder(center, radius, height, start, end, entityRadius);
+            ForcefieldAssert.assertTrue(hit.hit(), "Interior radial exit attempt must trigger collision");
+            ForcefieldAssert.assertTrue(hit.surfaceNormal().x < -0.99, "Surface normal must point inward toward center axis (-X)");
+            Vec3 nEff = hit.getEffectiveNormal(end.subtract(start));
+            ForcefieldAssert.assertTrue(nEff.x < -0.99, "Effective normal must point inward toward central axis (-X)");
+        });
     }
 
     // =========================================================================

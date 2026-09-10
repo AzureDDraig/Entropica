@@ -606,7 +606,7 @@ public class ForcefieldBarrierEntity extends Entity {
                     return InteractionResult.SUCCESS;
                 } else {
                     player.displayClientMessage(Component.literal("§d[Firmament Weaver] §7Sneak + Right-Click to open Configuration GUI. Left-Click to dispel."), true);
-                    return InteractionResult.SUCCESS;
+                    return InteractionResult.PASS;
                 }
             } else {
                 player.displayClientMessage(Component.literal("§cOnly the creator can modify or dispel this barrier!"), true);
@@ -651,7 +651,11 @@ public class ForcefieldBarrierEntity extends Entity {
 
     @Override
     public boolean isPickable() {
-        return true;
+        if (!isActive()) return false;
+        if (this.level() != null && this.level().isClientSide()) {
+            return ddraig.net.entropica.client.input.BarrierPickHelper.canPickBarrier(this);
+        }
+        return false;
     }
 
     @Override

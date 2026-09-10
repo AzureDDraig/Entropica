@@ -13,6 +13,9 @@
   - Added 6 custom procedural themes for the Apex Predators of Astral Materia: The Star Eater (black hole void with crimson tendrils), The Void Leviathan (abyssal azure tidal sheen), The Entropic Chimera (shifting fire/frost/lightning flux), The Defiler of Symmetries (non-Euclidean amethyst facets), The Unmaker of Forms (acidic bubbling chartreuse sludge), and The Silencer of Echoes (light-absorbing smoky obsidian).
   - Added custom Materia color tinting so barriers can be tinted with dyes or crystals while preserving beautiful shifting highlights. Right-clicking with a wet sponge or water bottle resets the color to standard rainbow.
   - Supports permission filters to block everyone, only mobs, only players, hostile mobs, or flying projectiles.
+  - **Interior Boundary Bounce**: Entities trying to leave a spherical bubble, dome, or cylinder from the inside are now detected on the inner wall and flung back towards the center, keeping contained creatures securely inside.
+  - **High-Energy Fling Impulses**: Contact with barriers now applies a strong elastic bounce with an upward arc on vertical walls, preventing entities from sticking to ground friction and launching them airborne. Deflected projectiles reverse flight heading cleanly.
+  - **Unobstructed Block & Item Interactions**: Fixed barriers intercepting crosshair clicks. You can now place blocks, open chests, use furnaces, mine, and use items freely inside and around barriers; the barrier only registers clicks when holding the Firmament Weaver or dyes and aiming directly at the shield membrane.
 
 - **Barrier Hardening & Security Defenses**:
   - Fixed shield boundary math so flying or jumping upward into dome shields and diagonal cylinder walls bounces you correctly instead of passing through.
