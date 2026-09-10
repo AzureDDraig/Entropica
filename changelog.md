@@ -13,7 +13,7 @@
   - Looking and moving up or jumping lets you climb up, while looking down or moving backward lets you climb down smoothly.
 
 - **Illuminated Balustrade Diagonal Gap Fix**:
-  - Extended the bottom stone base rails down to floor level on diagonal stair handrails, completely eliminating the empty air gap under the railing on stairs.
+  - Extended the bottom stone base rails down to floor level (and down into the lower stair step on upper slanting-down sections), completely eliminating the empty air gap under the railing on stairs.
 
 - **Astral Crystal Appearance & Hitbox Polish**:
   - Fixed the crystal facet mesh so outer walls are completely solid, brilliant, and opaque from the outside instead of appearing see-through or inverted.

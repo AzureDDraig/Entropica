@@ -219,7 +219,7 @@
       "name": "bottom_rail_1",
       "from": [
         6.5,
-        0,
+        -8,
         0
       ],
       "to": [
@@ -249,36 +249,36 @@
         "north": {
           "uv": [
             6.5,
-            0,
+            7,
             9.5,
-            1
+            16
           ],
           "texture": "#stone"
         },
         "south": {
           "uv": [
             6.5,
-            0,
+            7,
             9.5,
-            1
+            16
           ],
           "texture": "#stone"
         },
         "west": {
           "uv": [
             0,
-            0,
+            7,
             2,
-            1
+            16
           ],
           "texture": "#stone"
         },
         "east": {
           "uv": [
             0,
-            0,
+            7,
             2,
-            1
+            16
           ],
           "texture": "#stone"
         }
@@ -288,7 +288,7 @@
       "name": "bottom_rail_2",
       "from": [
         6.5,
-        0,
+        -8,
         2
       ],
       "to": [
@@ -318,36 +318,36 @@
         "north": {
           "uv": [
             6.5,
-            0,
+            6,
             9.5,
-            2
+            16
           ],
           "texture": "#stone"
         },
         "south": {
           "uv": [
             6.5,
-            0,
+            6,
             9.5,
-            2
+            16
           ],
           "texture": "#stone"
         },
         "west": {
           "uv": [
             2,
-            0,
+            6,
             4,
-            2
+            16
           ],
           "texture": "#stone"
         },
         "east": {
           "uv": [
             2,
-            0,
+            6,
             4,
-            2
+            16
           ],
           "texture": "#stone"
         }
@@ -357,7 +357,7 @@
       "name": "bottom_rail_3",
       "from": [
         6.5,
-        0,
+        -8,
         4
       ],
       "to": [
@@ -387,36 +387,36 @@
         "north": {
           "uv": [
             6.5,
-            0,
+            5,
             9.5,
-            3
+            16
           ],
           "texture": "#stone"
         },
         "south": {
           "uv": [
             6.5,
-            0,
+            5,
             9.5,
-            3
+            16
           ],
           "texture": "#stone"
         },
         "west": {
           "uv": [
             4,
-            0,
+            5,
             6,
-            3
+            16
           ],
           "texture": "#stone"
         },
         "east": {
           "uv": [
             4,
-            0,
+            5,
             6,
-            3
+            16
           ],
           "texture": "#stone"
         }
