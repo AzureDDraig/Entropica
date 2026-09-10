@@ -2630,6 +2630,8 @@
   "tooltip.entropica.grav_lift_projector": "Pneumatic directional projector forming a high-velocity columnar lift beam up to 24 blocks.",
   "message.entropica.anchor.mode": "Gravitational Anchor Mode: %s",
   "message.entropica.gravity_center.range": "Gravity Center Range: %s blocks",
+  "message.entropica.gravity_center.radius_fueled": "§6[Gravity Center] §7Active Radius: §f%s blocks §8(Level %s/5) | Fuel: §e%s mB Materia Fumus",
+  "message.entropica.gravity_center.radius_creative": "§b[Creative Gravity Center] §7Active Radius: §f%s blocks §8(Level %s/6)",
   "block.entropica.gravity_center": "Gravity Center Core",
   "block.entropica.creative_gravity_center": "Creative Gravity Center Core",
   "tooltip.entropica.gravity_center": "Fueled celestial gravity well. Connects to Vapor Pneumatic Pipes to consume Materia Fumus and generates an omnidirectional point-gravity field.",

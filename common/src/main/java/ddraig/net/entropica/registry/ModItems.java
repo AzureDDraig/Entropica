@@ -371,6 +371,8 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> GRAVITATIONAL_ANCHOR_ITEM = ITEMS.registerItem("gravitational_anchor", properties -> new BlockItem(ModBlocks.GRAVITATIONAL_ANCHOR.get(), properties));
     public static final RegistrySupplier<BlockItem> GRAV_LIFT_PROJECTOR_ITEM = ITEMS.registerItem("grav_lift_projector", properties -> new BlockItem(ModBlocks.GRAV_LIFT_PROJECTOR.get(), properties));
     public static final RegistrySupplier<BlockItem> TIDAL_PULSE_RESONATOR_ITEM = ITEMS.registerItem("tidal_pulse_resonator", properties -> new BlockItem(ModBlocks.TIDAL_PULSE_RESONATOR.get(), properties));
+    public static final RegistrySupplier<BlockItem> GRAVITY_CENTER_ITEM = ITEMS.registerItem("gravity_center", properties -> new BlockItem(ModBlocks.GRAVITY_CENTER.get(), properties));
+    public static final RegistrySupplier<BlockItem> CREATIVE_GRAVITY_CENTER_ITEM = ITEMS.registerItem("creative_gravity_center", properties -> new BlockItem(ModBlocks.CREATIVE_GRAVITY_CENTER.get(), properties));
     public static final RegistrySupplier<BlockItem> ENTROPIC_ORE_ITEM = ITEMS.registerItem("entropic_ore", properties -> new BlockItem(ModBlocks.ENTROPIC_ORE.get(), properties));
     public static final RegistrySupplier<BlockItem> MATERIA_BLESSING_ITEM = ITEMS.registerItem("materia_blessing", properties -> new BlockItem(ModBlocks.MATERIA_BLESSING.get(), properties));
     public static final RegistrySupplier<BlockItem> GREATER_MATERIA_BLESSING_ITEM = ITEMS.registerItem("greater_materia_blessing", properties -> new BlockItem(ModBlocks.GREATER_MATERIA_BLESSING.get(), properties));

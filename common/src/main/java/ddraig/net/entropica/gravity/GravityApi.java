@@ -140,6 +140,8 @@ public class GravityApi {
      * Returns true if the entity's gravity is inverted (falling upward).
      */
     public static boolean isInverted(LivingEntity entity) {
+        if (entity == null) return false;
+        if (SOLES_INVERTED_ENTITIES.contains(entity.getUUID())) return true;
         return getEffectiveGravity(entity) < -0.005;
     }
 
@@ -444,7 +446,7 @@ public class GravityApi {
      * Sets target gravity for an entity by applying custom attribute modifiers with fall damage compensation.
      */
     public static void setGravity(LivingEntity entity, ResourceLocation sourceId, double targetGravity) {
-        if (entity == null || entity.level().isClientSide()) return;
+        if (entity == null) return;
         if (isAnchored(entity) && targetGravity != VANILLA_BASE_GRAVITY) return;
 
         AttributeInstance gravInst = entity.getAttribute(Attributes.GRAVITY);
@@ -506,7 +508,7 @@ public class GravityApi {
      * Clears an active gravity override modifier from an entity.
      */
     public static void resetGravity(LivingEntity entity, ResourceLocation sourceId) {
-        if (entity == null || entity.level().isClientSide()) return;
+        if (entity == null) return;
 
         AttributeInstance gravInst = entity.getAttribute(Attributes.GRAVITY);
         if (gravInst != null) gravInst.removeModifier(sourceId);

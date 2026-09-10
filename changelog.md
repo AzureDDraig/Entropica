@@ -1,9 +1,16 @@
 ## Build 000-1-26-252
 
-### Gravity Manipulation System & Spatial Graviton Mechanics
+- **Gravity Center Core (Fueled & Creative Variants)**:
+  - Added an omnidirectional point-gravity block that acts like the center of gravity for mini-planets and asteroids.
+  - Pulls players and creatures directly towards the block center from all 360-degree directions, allowing full spherical and cubical walking around floating structures.
+  - **Fueled Variant**: Encased in arcanite and brass, connects directly to Vapor Pneumatic Pipes on all six sides, and consumes 1 mB of Materia Fumus vapor every 2 seconds to sustain its gravitational field. Right-clicking cycles the active radius between 8, 16, 24, 32, and 48 blocks.
+  - **Creative Mode Variant**: Infinite power version for world builders and mapmakers with configurable radius up to 64 blocks without needing any fuel.
+  - **Planetary Underside Inversion**: When players walk or fall below the equator of the core, gravity smoothly inverts with a 180-degree camera roll so the bottom of the asteroid becomes the new floor.
+  - Features spinning brass planetary gimbal rings, an inner glowing graviton core, and a floating holographic telemetry status readout.
 - **Gravitational Anchor Machine**:
   - Added a multi-mode field emitter encased in brass plating that projects wide-area gravity fields.
   - Supports 6 distinct operational modes: *Zero-G Chamber*, *Lunar Pavilion*, *Graviton Inversion*, *Singularity Well*, *Repulsor Dome*, and *Tidal Pulse*.
+  - Added a floating holographic mode name billboard directly above the anchor and instant action bar feedback when right-clicking to cycle modes with any tool or empty hand.
   - Features spinning brass gimbals and a floating, mode-colored graviton core in the center.
   - Fully controllable with redstone levers and wire signals.
 - **Tidal Pulse Resonator Machine**:
@@ -23,9 +30,10 @@
   - Right-click any mob to float them in zero-g or slam them down with heavy crushing gravity.
 - **Graviton Soles (Curios & Footwear)**:
   - Advanced pneumatic boots that activate reliably when worn in your armor boots slot, equipped in your Curios/Accessories feet slot, or held in your hands.
-  - **Wall Sticking & Climbing**: Crouching against any wall locks your vertical position with zero slipping or sliding. Moving forward or jumping climbs up the wall face at 0.22 m/s, while moving backward climbs down at -0.22 m/s.
-  - **Ceiling Adhesion**: Jumping into a ceiling or touching ceiling blocks automatically inverts your gravity (-0.08) with a smooth 180° camera flip, letting you walk on ceilings just like regular floors.
-  - **Sneak-Ledge Gravity Flipping**: Crouching over the edge of a platform smoothly wraps your movement around the corner between floor and ceiling/wall, accompanied by musical celestial chimes and glittering starlight particles.
+  - **Client-Authoritative Physics Engine**: Movement inputs now execute immediately on the client side with network packet synchronization, delivering instantaneous response without server delay or missed keypresses.
+  - **Wall Sticking & Climbing**: Crouching against any wall locks your vertical position with zero slipping or sliding. Moving forward (W) or jumping (Space) climbs up the wall face at 0.26 m/s, while moving backward (S) climbs down at 0.22 m/s.
+  - **Ceiling Adhesion & Smooth Roll**: Touching or climbing into ceiling blocks automatically inverts your gravity (-0.08) with a smooth 180° camera roll, letting you walk on ceilings just like regular floors.
+  - **360° Block Edge Wrapping**: Crouching (Sneak) over the edge of any platform or block smoothly wraps your footing around the corner between floor and ceiling/wall, accompanied by musical celestial chimes and glittering starlight particles.
   - **100% Fall Damage Negation**: Pressurized kinetic dampeners completely absorb all impact shock, setting fall damage to zero and protecting you from falls of any height.
 - **Inertial Anchor Amulet (Curios Charm)**:
   - Arcane amulet equippable in the Curios charm slot.

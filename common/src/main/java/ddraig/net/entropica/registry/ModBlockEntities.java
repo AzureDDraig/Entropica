@@ -64,6 +64,14 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("tidal_pulse_resonator", () ->
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.TidalPulseResonatorBlockEntity::new, ModBlocks.TIDAL_PULSE_RESONATOR.get()));
 
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.GravityCenterBlockEntity>> GRAVITY_CENTER_BE =
+            BLOCK_ENTITIES.register("gravity_center", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.GravityCenterBlockEntity::new, ModBlocks.GRAVITY_CENTER.get()));
+
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.CreativeGravityCenterBlockEntity>> CREATIVE_GRAVITY_CENTER_BE =
+            BLOCK_ENTITIES.register("creative_gravity_center", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.CreativeGravityCenterBlockEntity::new, ModBlocks.CREATIVE_GRAVITY_CENTER.get()));
+
     // --- Vapor Pneumatic Network ---
 
     public static final RegistrySupplier<BlockEntityType<VaporPneumaticValveBlockEntity>> VAPOR_PNEUMATIC_VALVE_BE =

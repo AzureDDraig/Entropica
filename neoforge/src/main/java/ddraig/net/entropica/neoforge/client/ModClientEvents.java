@@ -133,6 +133,7 @@ public class ModClientEvents {
         HazeShaderManager.clientTick(mc);
         ddraig.net.entropica.client.ParalyzedParticleHandler.clientTick(mc);
         ddraig.net.entropica.client.camera.GravityCameraHandler.clientTick(mc);
+        ddraig.net.entropica.client.gravity.GravitonSolesClientHandler.clientTick(mc);
 
         if (mc.player != null && mc.level != null && mc.level.getGameTime() % 4 == 0) {
             BlockPos p = mc.player.blockPosition();
@@ -235,6 +236,8 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.GRAVITATIONAL_ANCHOR_BE.get(), ddraig.net.entropica.client.renderer.GravitationalAnchorRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.GRAV_LIFT_PROJECTOR_BE.get(), ddraig.net.entropica.client.renderer.GravLiftProjectorRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.TIDAL_PULSE_RESONATOR_BE.get(), ddraig.net.entropica.client.renderer.TidalPulseResonatorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.GRAVITY_CENTER_BE.get(), ddraig.net.entropica.client.renderer.GravityCenterRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_GRAVITY_CENTER_BE.get(), ddraig.net.entropica.client.renderer.GravityCenterRenderer::new);
 
         event.registerEntityRenderer(ModEntityTypes.SINGULARITY_GRENADE.get(), ddraig.net.entropica.client.renderer.SingularityGrenadeRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);

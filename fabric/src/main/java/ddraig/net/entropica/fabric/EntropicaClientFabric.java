@@ -113,6 +113,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
         BlockEntityRenderers.register(ModBlockEntities.GRAVITATIONAL_ANCHOR_BE.get(), ddraig.net.entropica.client.renderer.GravitationalAnchorRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.GRAV_LIFT_PROJECTOR_BE.get(), ddraig.net.entropica.client.renderer.GravLiftProjectorRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.TIDAL_PULSE_RESONATOR_BE.get(), ddraig.net.entropica.client.renderer.TidalPulseResonatorRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.GRAVITY_CENTER_BE.get(), ddraig.net.entropica.client.renderer.GravityCenterRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.CREATIVE_GRAVITY_CENTER_BE.get(), ddraig.net.entropica.client.renderer.GravityCenterRenderer::new);
 
         // --- 2. Entity Renderers ---
         EntityRendererRegistry.register(ModEntityTypes.SINGULARITY_GRENADE.get(), ddraig.net.entropica.client.renderer.SingularityGrenadeRenderer::new);
@@ -415,6 +417,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ddraig.net.entropica.client.HazeShaderManager.clientTick(client);
             ddraig.net.entropica.client.ParalyzedParticleHandler.clientTick(client);
             ddraig.net.entropica.client.camera.GravityCameraHandler.clientTick(client);
+            ddraig.net.entropica.client.gravity.GravitonSolesClientHandler.clientTick(client);
         });
 
         // Register GUI Overlay HUD Renderer

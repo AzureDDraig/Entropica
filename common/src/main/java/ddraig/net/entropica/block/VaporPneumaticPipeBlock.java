@@ -173,7 +173,8 @@ public class VaporPneumaticPipeBlock extends Block implements EntityBlock {
                 || neighborState.is(ModBlocks.CREATIVE_MATERIA_GENERATOR.get())
                 || neighborState.is(ModBlocks.MATERIA_VESSEL_PORT.get())
                 || neighborState.is(ModBlocks.VAPOR_PNEUMATIC_INPUT_PORT.get())
-                || neighborState.is(ModBlocks.ESSENCE_REPULSION_WARD.get()); // Now correctly interfaces with the Repulsion Ward!
+                || neighborState.is(ModBlocks.ESSENCE_REPULSION_WARD.get())
+                || (ModBlocks.GRAVITY_CENTER != null && neighborState.is(ModBlocks.GRAVITY_CENTER.get())); // Connects to Gravity Center!
     }
 
     public static BooleanProperty getDirectionProperty(Direction direction) {

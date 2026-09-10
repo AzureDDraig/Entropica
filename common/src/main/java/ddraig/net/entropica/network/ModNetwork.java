@@ -107,6 +107,28 @@ public class ModNetwork {
                 AstrolabeScrollPayload.STREAM_CODEC,
                 ModNetwork::handleAstrolabeScroll
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                GravityFlipPayload.TYPE,
+                GravityFlipPayload.STREAM_CODEC,
+                ModNetwork::handleGravityFlip
+        );
+    }
+
+    public static void handleGravityFlip(final GravityFlipPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null) {
+                if (data.inverted()) {
+                    ddraig.net.entropica.gravity.GravityApi.SOLES_INVERTED_ENTITIES.add(player.getUUID());
+                    ddraig.net.entropica.gravity.GravityApi.setGravity(player, data.targetGravity());
+                } else {
+                    ddraig.net.entropica.gravity.GravityApi.SOLES_INVERTED_ENTITIES.remove(player.getUUID());
+                    ddraig.net.entropica.gravity.GravityApi.resetGravity(player);
+                }
+            }
+        });
     }
 
     public static void handleAstrolabeScroll(final AstrolabeScrollPayload data, final NetworkManager.PacketContext context) {

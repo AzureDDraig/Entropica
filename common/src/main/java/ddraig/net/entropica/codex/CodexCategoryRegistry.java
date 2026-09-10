@@ -309,6 +309,66 @@ public class CodexCategoryRegistry {
                 310f, 0.0f, a_mach + 0.35f, false
         ));
 
+        ALL_NODES.add(new CodexNode(
+                "machinery_gravitational_anchor", "Gravitational Anchor", "MACHINERY",
+                "Spatial field projector supporting Zero-G, Lunar, Inversion, Singularity, Repulsor, and Tidal modes.",
+                "Overview & Description:\n" +
+                "The Gravitational Anchor is a celestial field emitter encased in heavy brass plating. It manipulates local spacetime to establish customizable gravitational perimeters for research chambers and orbital habitats.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled using Arcanite Plating, Brass Ingots, and resonant Astral Crystals.\n\n" +
+                "Operational Modes:\n" +
+                "Right-clicking cycles between 6 distinct operational modes: Zero-G Chamber, Lunar Pavilion, Graviton Inversion, Singularity Well, Repulsor Dome, and Tidal Pulse.\n\n" +
+                "Special Properties:\n" +
+                "Displays floating holographic telemetry and can be toggled or locked using redstone signals.",
+                "hub_machinery", 0, new ItemStack(ModItems.GRAVITATIONAL_ANCHOR_ITEM.get()),
+                360f, 0.0f, a_mach - 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "machinery_gravity_center", "Gravity Center Core", "MACHINERY",
+                "Omnidirectional point-gravity well powered by Materia Fumus via Vapor Pneumatic Pipes.",
+                "Overview & Description:\n" +
+                "An advanced celestial gravity core that exerts a true spherical point-gravity field. Entities in its orbit are drawn toward the center, allowing 360-degree walking around floating planetoids and asteroid habitats.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted by infusing a Gravitational Anchor with Astral Crystals and Arcanite Plating.\n\n" +
+                "Fuel & Connections:\n" +
+                "Connects directly to Vapor Pneumatic Pipes on all six faces, consuming 1 mB of Materia Fumus vapor every 40 ticks.\n\n" +
+                "Planetary Inversion:\n" +
+                "When travelers cross below the core's equator, their orientation smoothly inverts by 180 degrees, allowing seamless walking on the underside of celestial bodies.",
+                "machinery_gravitational_anchor", 0, new ItemStack(ModItems.GRAVITY_CENTER_ITEM.get()),
+                440f, 0.0f, a_mach - 0.22f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "machinery_tidal_pulse_resonator", "Tidal Pulse Resonator", "MACHINERY",
+                "Cyclic celestial resonator pulsing rhythmic gravity tides.",
+                "Overview & Description:\n" +
+                "A standalone tuning resonator equipped with 4 vibrating brass prongs that project rhythmic gravitational waves across an area.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted with Brass Ingots, Astral Crystals, Arcanite Plating, and a Gravitational Anchor.\n\n" +
+                "Respiration Cycle:\n" +
+                "Operates on a continuous 4-second cycle: 3 seconds of gentle lunar float followed by a 1-second heavy downward gravity slam.\n\n" +
+                "Redstone Control:\n" +
+                "Can be toggled by hand or locked into pause using redstone wire signals.",
+                "machinery_gravitational_anchor", 0, new ItemStack(ModItems.TIDAL_PULSE_RESONATOR_ITEM.get()),
+                440f, 0.0f, a_mach - 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "machinery_graviton_soles", "Graviton Soles & Gear", "MACHINERY",
+                "Pneumatic boots and Curios gear for 360-degree surface walking, wall climbing, and fall negation.",
+                "Overview & Description:\n" +
+                "Engineered footwear equipped with micro-graviton magnets that interface with block surfaces.\n\n" +
+                "Wall Traversal:\n" +
+                "Walking forward into a wall climbs up at 0.26 m/s, moving backward descends at 0.22 m/s, and crouching locks you in place with zero slipping.\n\n" +
+                "Ceiling & Corner Wrapping:\n" +
+                "Touching a ceiling inverts gravity with a smooth 180-degree camera roll. Crouching off block ledges smoothly wraps your footing around corners.\n\n" +
+                "Curios Support:\n" +
+                "Fits seamlessly in the Curios feet accessory slot, completely negating all kinetic fall damage.",
+                "hub_machinery", 0, new ItemStack(ModItems.GRAVITON_SOLES.get()),
+                360f, 0.0f, a_mach + 0.10f, false
+        ));
+
 
         // ==========================================
         // 5. MULTIBLOCKS (Yellow Ring)
