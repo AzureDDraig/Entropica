@@ -1,60 +1,83 @@
 package ddraig.net.entropica.forcefield;
 
+import ddraig.net.entropica.client.renderer.forcefield.ForcefieldShaderHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Locale;
 
 /**
- * Visual and energetic theme representing the 6 Apex Predators of the Red Void,
- * as well as the standard iridescent thin-film soap barrier.
+ * Pluggable theme definition representing the 6 Apex Predators of Astral Materia
+ * and standard thin-film forcefield barriers.
  */
-public enum ApexPredatorTheme implements StringRepresentable {
-    STANDARD("Iridescent Film", "Shifting spectral pastel rainbow soap-film", 0xFFE0F7FA, 0.25F),
-    STAR_EATER("The Star Eater", "Eclipse Maw: Pitch-black void core with swirling crimson tendrils", 0xFF9E0000, 0.45F),
-    VOID_LEVIATHAN("The Void Leviathan", "Abyssal Rift: Deep midnight-cyan with bioluminescent azure tidal waves", 0xFF0077B6, 0.40F),
-    ENTROPIC_CHIMERA("The Entropic Chimera", "Discordant Swarm: Tripartite shifting fire, frost, and voltaic flux", 0xFFFFB703, 0.38F),
-    DEFILER_OF_SYMMETRIES("Defiler of Symmetries", "Shattered Symmetry: Razor-thin non-Euclidean geometric tessellation", 0xFF9D4EDD, 0.35F),
-    UNMAKER_OF_FORMS("Unmaker of Forms", "Dissolution Sludge: Acidic chartreuse-emerald with decaying bubble cells", 0xFF55A630, 0.42F),
-    SILENCER_OF_ECHOES("Silencer of Echoes", "Null Monolith: Smoky obsidian-amethyst that visually absorbs ambient light", 0xFF2B2D42, 0.50F);
+public interface ApexPredatorTheme extends StringRepresentable {
 
-    private final String displayName;
-    private final String description;
-    private final int baseColorRgba;
-    private final float baseAlpha;
-
-    ApexPredatorTheme(String displayName, String description, int baseColorRgba, float baseAlpha) {
-        this.displayName = displayName;
-        this.description = description;
-        this.baseColorRgba = baseColorRgba;
-        this.baseAlpha = baseAlpha;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public int getBaseColorRgba() {
-        return baseColorRgba;
-    }
-
-    public float getBaseAlpha() {
-        return baseAlpha;
-    }
+    ResourceLocation getId();
+    int getOrdinal();
+    String getDisplayName();
+    String getDescription();
+    int getBaseColorRgba();
+    float getBaseAlpha();
 
     @Override
-    public String getSerializedName() {
-        return this.name().toLowerCase(Locale.ROOT);
+    default String getSerializedName() {
+        return getId().getPath();
     }
 
-    public static ApexPredatorTheme fromOrdinal(int ordinal) {
-        ApexPredatorTheme[] values = values();
-        if (ordinal < 0 || ordinal >= values.length) {
-            return STANDARD;
-        }
-        return values[ordinal];
+    default int ordinal() {
+        return getOrdinal();
+    }
+
+    default String name() {
+        return getId().getPath().toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Evaluates the procedural RGBA color at a specific vertex or surface coordinate.
+     *
+     * @param u Horizontal normalized coordinate [-1.0, 1.0]
+     * @param v Vertical normalized coordinate [-1.0, 1.0]
+     * @param normal Surface normal at the vertex
+     * @param viewDir Normalized vector from vertex toward camera
+     * @param ageTicks Total entity age ticks with partial tick
+     * @param rippleIntensity Local impact ripple brightness [0.0, 1.0]
+     * @param customColorTint Packed RGB/ARGB custom Materia crystal or dye color (null if none)
+     * @param isDormant Whether the barrier is currently unpowered/inactive
+     * @return Evaluated ColorResult (r, g, b, a)
+     */
+    ForcefieldShaderHelper.ColorResult evaluateColor(
+            float u,
+            float v,
+            Vec3 normal,
+            Vec3 viewDir,
+            float ageTicks,
+            float rippleIntensity,
+            @Nullable Integer customColorTint,
+            boolean isDormant
+    );
+
+    // --- Backward Compatibility Delegates ---
+    ApexPredatorTheme STANDARD = ApexPredatorThemeRegistry.STANDARD;
+    ApexPredatorTheme STAR_EATER = ApexPredatorThemeRegistry.STAR_EATER;
+    ApexPredatorTheme VOID_LEVIATHAN = ApexPredatorThemeRegistry.VOID_LEVIATHAN;
+    ApexPredatorTheme ENTROPIC_CHIMERA = ApexPredatorThemeRegistry.ENTROPIC_CHIMERA;
+    ApexPredatorTheme DEFILER_OF_SYMMETRIES = ApexPredatorThemeRegistry.DEFILER_OF_SYMMETRIES;
+    ApexPredatorTheme UNMAKER_OF_FORMS = ApexPredatorThemeRegistry.UNMAKER_OF_FORMS;
+    ApexPredatorTheme SILENCER_OF_ECHOES = ApexPredatorThemeRegistry.SILENCER_OF_ECHOES;
+
+    static ApexPredatorTheme fromOrdinal(int ordinal) {
+        return ApexPredatorThemeRegistry.fromOrdinal(ordinal);
+    }
+
+    static ApexPredatorTheme valueOf(String name) {
+        return ApexPredatorThemeRegistry.fromName(name);
+    }
+
+    static ApexPredatorTheme[] values() {
+        Collection<ApexPredatorTheme> all = ApexPredatorThemeRegistry.getAll();
+        return all.toArray(new ApexPredatorTheme[0]);
     }
 }

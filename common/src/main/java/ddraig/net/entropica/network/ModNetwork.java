@@ -128,6 +128,13 @@ public class ModNetwork {
                 UpdateBarrierConfigPayload.STREAM_CODEC,
                 ModNetwork::handleUpdateBarrierConfig
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                WeaverScrollPayload.TYPE,
+                WeaverScrollPayload.STREAM_CODEC,
+                ModNetwork::handleWeaverScroll
+        );
     }
 
     public static void handleBarrierImpact(final BarrierImpactPayload data, final NetworkManager.PacketContext context) {
@@ -148,16 +155,40 @@ public class ModNetwork {
             if (player != null && player.level() != null) {
                 net.minecraft.world.entity.Entity entity = player.level().getEntity(data.entityId());
                 if (entity instanceof ddraig.net.entropica.entity.forcefield.ForcefieldBarrierEntity barrier) {
-                    boolean isOwner = barrier.getOwnerUUID().map(u -> u.equals(player.getUUID())).orElse(false);
-                    if (isOwner || player.isCreative()) {
-                        barrier.setShape(ddraig.net.entropica.forcefield.BarrierShape.fromOrdinal(data.shapeOrdinal()));
-                        barrier.setWidth(data.width());
-                        barrier.setHeight(data.height());
-                        barrier.setRadius(data.radius());
-                        barrier.setFilterMode(ddraig.net.entropica.forcefield.BarrierFilterMode.fromOrdinal(data.filterModeOrdinal()));
-                        barrier.setPredatorTheme(ddraig.net.entropica.forcefield.ApexPredatorTheme.fromOrdinal(data.themeOrdinal()));
-                        barrier.setBounceElasticity(data.elasticity());
+                    if (!barrier.isAlive() || barrier.isRemoved() || barrier.distanceToSqr(player) > 64.0 * 64.0) {
+                        return;
                     }
+                    boolean isOwner = barrier.getOwnerUUID().map(u -> u.equals(player.getUUID())).orElse(false);
+                    if (!isOwner && !player.isCreative()) {
+                        player.displayClientMessage(Component.literal("§cOnly the creator can modify this barrier!"), true);
+                        return;
+                    }
+                    if (barrier.isBossEncounter() && !player.isCreative()) {
+                        player.displayClientMessage(Component.literal("§cThis barrier is bound to an active Apex Predator and cannot be modified!"), true);
+                        return;
+                    }
+
+                    barrier.setShape(ddraig.net.entropica.forcefield.BarrierShape.fromOrdinal(data.shapeOrdinal()));
+                    float safeWidth = Float.isFinite(data.width()) ? Math.max(1.0F, Math.min(32.0F, data.width())) : 4.0F;
+                    float safeHeight = Float.isFinite(data.height()) ? Math.max(1.0F, Math.min(32.0F, data.height())) : 4.0F;
+                    float safeRadius = Float.isFinite(data.radius()) ? Math.max(1.0F, Math.min(32.0F, data.radius())) : 4.0F;
+                    float safeElasticity = Float.isFinite(data.elasticity()) ? Math.max(0.20F, Math.min(2.00F, data.elasticity())) : 1.0F;
+                    barrier.setWidth(safeWidth);
+                    barrier.setHeight(safeHeight);
+                    barrier.setRadius(safeRadius);
+                    barrier.setFilterMode(ddraig.net.entropica.forcefield.BarrierFilterMode.fromOrdinal(data.filterModeOrdinal()));
+                    barrier.setPredatorTheme(ddraig.net.entropica.forcefield.ApexPredatorTheme.fromOrdinal(data.themeOrdinal()));
+                    barrier.setBounceElasticity(safeElasticity);
+                    barrier.setOneWay(data.oneWay());
+                    barrier.setRedstoneMode(Math.max(0, Math.min(2, data.redstoneMode())));
+                    if (data.colorTint() != 0) {
+                        barrier.setColorTint(data.colorTint());
+                    }
+                    if (data.whitelistUsernames() != null) {
+                        barrier.setWhitelistUsernames(data.whitelistUsernames(), player.level().getServer());
+                    }
+
+                    player.displayClientMessage(Component.literal("§aBarrier configuration updated successfully!"), true);
                 }
             }
         });
@@ -425,6 +456,23 @@ public class ModNetwork {
     public static void handleSyncSupernova(final SyncSupernovaPayload data, final NetworkManager.PacketContext context) {
         context.queue(() -> {
             ddraig.net.entropica.astral.SupernovaManager.setClientEvents(data.events());
+        });
+    }
+
+    public static void handleWeaverScroll(final WeaverScrollPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null) {
+                ItemStack stack = player.getMainHandItem();
+                if (!stack.is(ddraig.net.entropica.registry.ModItems.FIRMAMENT_WEAVER.get())) {
+                    stack = player.getOffhandItem();
+                }
+                if (stack.is(ddraig.net.entropica.registry.ModItems.FIRMAMENT_WEAVER.get())) {
+                    if (!ddraig.net.entropica.item.FirmamentWeaverItem.hasAnchor(stack)) {
+                        ddraig.net.entropica.item.FirmamentWeaverItem.cycleShape(stack, data.delta());
+                    }
+                }
+            }
         });
     }
 }

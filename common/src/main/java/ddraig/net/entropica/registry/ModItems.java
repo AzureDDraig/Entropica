@@ -366,7 +366,7 @@ public class ModItems {
     public static final RegistrySupplier<Item> INERTIAL_ANCHOR_AMULET = ITEMS.registerItem("inertial_anchor_amulet", properties -> new ddraig.net.entropica.item.InertialAnchorAmuletItem(properties));
     public static final RegistrySupplier<Item> GRAVITON_WAND = ITEMS.registerItem("graviton_wand", properties -> new ddraig.net.entropica.item.GravitonWandItem(properties));
     public static final RegistrySupplier<Item> SINGULARITY_GRENADE = ITEMS.registerItem("singularity_grenade", properties -> new ddraig.net.entropica.item.SingularityGrenadeItem(properties));
-    public static final RegistrySupplier<Item> SOAP_FILM_WEAVER = ITEMS.registerItem("soap_film_weaver", properties -> new ddraig.net.entropica.item.SoapFilmWeaverItem(properties));
+    public static final RegistrySupplier<Item> FIRMAMENT_WEAVER = ITEMS.registerItem("firmament_weaver", properties -> new ddraig.net.entropica.item.FirmamentWeaverItem(properties));
 
     // --- Block Items ---
     public static final RegistrySupplier<BlockItem> GRAVITATIONAL_ANCHOR_ITEM = ITEMS.registerItem("gravitational_anchor", properties -> new BlockItem(ModBlocks.GRAVITATIONAL_ANCHOR.get(), properties));

@@ -1,122 +1,90 @@
-# Project: Gravity Manipulation System for Entropica
+# Project: Forcefield & Firmament Barrier System (Entropica)
 
 ## Architecture
-- **Framework & Loaders**: Architectury multi-loader (`common`, `fabric`, `neoforge`) targeting Minecraft 1.21.10 on Java 21.
-- **Subproject Organization**:
-  - `common`: Universal gravity math, spatial fields, status effects, items, blocks, block entities, BER renderers, common mixins.
-  - `fabric`: Fabric client/common entrypoints, client events (`HudRenderCallback`, `ClientTickEvents`), Fabric mixins (`CameraMixin`).
-  - `neoforge`: NeoForge client/common entrypoints, NeoForge events (`ViewportEvent.ComputeCameraAngles`, `RegisterGuiLayersEvent`), datagen (`CuriosTagProvider`).
-- **Data Flow & Lifecycle**:
-  - `GravityApi`: Central query & mutation facade for `Attributes.GRAVITY`, `Attributes.SAFE_FALL_DISTANCE`, `Attributes.FALL_DAMAGE_MULTIPLIER`.
-  - `GravityFieldManager`: Spatial manager ticking in `SERVER_LEVEL_POST`. Scans entities, manages zero-g item drift, bends projectiles towards singularity centers, repulses in shields, cycles tidal pulse.
-  - `GravityCameraHandler`: Client-side 10-tick smoothstep (Hermite cubic) camera roll for 180° inversion and 15°–25° singularity slant. Hooked on NeoForge via `ViewportEvent.ComputeCameraAngles` and Fabric via `CameraMixin`.
-  - Third-Person Models: Inverted via `LivingEntityRendererMixin` setting `state.isUpsideDown = true` for inverted entities.
-  - Blocks & BERs: `GravitationalAnchorBlock` (multi-mode emitter) and `GravLiftProjectorBlock` (directional pneumatic beam) using 1.21.10 `BlockEntityRenderer<BE, RenderState>` and `SubmitNodeCollector`.
-  - Curios/Accessories: `GravitonSolesItem` (`curios:feet`) and `InertialAnchorAmuletItem` (`curios:charm`) registered via `CuriosTagProvider` and data tags.
+- **Multi-Loader Core**: Architectury API targeting Minecraft 1.21.10 (`common`, `fabric`, `neoforge`).
+- **Data & Entity Model**: Paper-thin, non-block entity `ForcefieldBarrierEntity` with continuous swept collision detection, avoiding block voxel grid restrictions so blocks and machines can pass directly through.
+- **Pluggable Registries**:
+  - `BarrierShapeRegistry` & `BarrierShapeHandler` for arbitrary mathematical primitives.
+  - `ApexPredatorThemeRegistry` & `ApexPredatorTheme` for standard thin-film and the 6 Apex Predators of Astral Materia.
+- **Rendering Pipeline**: Procedural vertex emission using `SubmitNodeCollector` and `RenderType.entityTranslucentEmissive(WHITE_TEXTURE)` with full emissive light (`FULL_LIGHT = 15728880`). Ensures 100% compatibility with shader engines (Iris, Sodium, Oculus) without fragile CoreShader replacements.
+- **Physics & Collision Engine**: Swept continuous collision detection in `BarrierFieldManager` and `EntityMixin`, sorting by earliest collision parameter $t_{\min}$, evaluating approach normal $d \cdot n$, side-of-approach elastic velocity reflection $v' = v - (1+e)(v \cdot n_{\text{effective}})n_{\text{effective}}$, and directional one-way valve pass-through.
+- **Creator UI & Networking**: Extended container menu `BarrierConfigMenu`, celestial screen `BarrierConfigScreen`, and C2S `UpdateBarrierConfigPayload` with server-side creator/creative validation.
+- **Weaver Utilities & In-World Preview**: `FirmamentWeaverItem` with Two-Point Drag & Snap, 0.5m Edge-Fusing, holographic wireframe preview, look-at telemetry, and quick dispel.
+- **Physics Parity**: `GravitonBouncepadBlock` with gravity-relative upward launch ($-g$), analogue redstone scaling (0–15), and fall damage landing immunity.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Core Gravity API & Attributes | `GravityApi.java` managing `Attributes.GRAVITY`, `SAFE_FALL_DISTANCE`, `FALL_DAMAGE_MULTIPLIER` for zero-g, moon, inverted, and crush | M1 | ORIGINAL_REQUEST §R1 |
-| 2 | Status Effects Implementation | `WeightlessnessEffect` (I/II/III), `GravitationalCrushEffect`, `InertialAnchorEffect` registered in `ModEffects.java` | M1 | ORIGINAL_REQUEST §R1 |
-| 3 | Spatial Gravity Field Container | `GravityField.java` with 7 operational modes, bounding boxes, and spherical containment | M2 | ORIGINAL_REQUEST §R2 |
-| 4 | Spatial Gravity Field Manager | `GravityFieldManager.java` level ticking, entity sync, cleanup on exit | M2 | ORIGINAL_REQUEST §R2 |
-| 5 | Dropped Item Drift | Zero-G items float and gently bob in 3D space instead of falling | M2 | ORIGINAL_REQUEST §R2 |
-| 6 | Projectile Gravitational Lensing | Bends trajectory vectors of arrows, tridents, fireballs toward singularity well center | M2 | ORIGINAL_REQUEST §R2 |
-| 7 | Repulsor Dome Deflection | Deflects incoming projectiles outward and pushes mobs away from barrier | M2 | ORIGINAL_REQUEST §R2 |
-| 8 | Tidal Pulse Respiration | 80-tick rhythmic cycle (60 ticks moon float / 20 ticks heavy slam) | M2 | ORIGINAL_REQUEST §R2 |
-| 9 | 180° Inversion Camera Roll | Smooth 10-tick cubic slerp/smoothstep camera roll rendering ceilings as floors | M3 | ORIGINAL_REQUEST §R3 |
-| 10 | Gravitational Slant (Tidal Tilt) | Dynamic 15°–25° camera roll towards nearby singularity wells | M3 | ORIGINAL_REQUEST §R3 |
-| 11 | Camera Roll Hooks (Multi-Loader) | NeoForge `ViewportEvent.ComputeCameraAngles` & Fabric `CameraMixin.java` | M3 | ORIGINAL_REQUEST §R3 |
-| 12 | Third-Person & First-Person Orientation | Upside-down third-person models on ceilings and intuitive first-person hands | M3 | ORIGINAL_REQUEST §R3 |
-| 13 | Screen Shimmer & Chromatic Lensing | `GravityScreenShimmerRenderer.java` 2D accretion overlay near singularities | M3 | ORIGINAL_REQUEST §R3 |
-| 14 | Gravitational Anchor Block & BE | Multi-mode field emitter block & block entity with redstone control | M4 | ORIGINAL_REQUEST §R4 |
-| 15 | Gravitational Anchor BER | Custom BER with spinning brass gimbals and mode-colored floating core (1.21.10 SubmitNodeCollector) | M4 | ORIGINAL_REQUEST §R4 |
-| 16 | Grav-Lift Projector Block & BE | Directional elevator projector (+Y, -Y, horizontal) with 0.35 m/s travel beam | M4 | ORIGINAL_REQUEST §R4 |
-| 17 | Grav-Lift Projector BER | Dynamic pneumatic beam renderer with animated wavefront rings | M4 | ORIGINAL_REQUEST §R4 |
-| 18 | Graviton Soles Curio | Footwear/curio (`curios:feet`) for ceiling surface locking and zero fall damage | M5 | ORIGINAL_REQUEST §R5 |
-| 19 | Singularity Grenade Projectile & Item | Thrown projectile creating 4-second singularity vortex, suction, and implosive collapse | M5 | ORIGINAL_REQUEST §R5 |
-| 20 | Inertial Anchor Amulet Curio | Curio amulet (`curios:charm`) granting total immunity to gravity shifts & vortex suction | M5 | ORIGINAL_REQUEST §R5 |
-| 21 | Graviton Wand Handheld Tool | Cycles player gravity or inflicts zero-g / crush on target mobs | M5 | ORIGINAL_REQUEST §R5 |
-| 22 | Curios & Accessory Tags | `CuriosTagProvider.java` and data pack tags for feet & charm slots | M5 | ORIGINAL_REQUEST §R5 |
-| 23 | Registries & Client Renderers | Wire `ModBlocks`, `ModItems`, `ModBlockEntities`, `ModEntityTypes`, Fabric & NeoForge client renderers | M6 | ORIGINAL_REQUEST §R6 |
-| 24 | Compilation & Deployment Validation | Clean `./gradlew --no-parallel build` and `./gradlew --no-parallel deploytoDev` | M6 | ORIGINAL_REQUEST §R6 |
-| 25 | Rolling Changelog Maintenance | Update `changelog.md` under `Build 000-1-26-252` in simple layman's terms | M7 | Core Rules §4 |
-| 26 | Obsidian OKF Vault Documentation | Update/create notes in Entropica OKF vault using Materia terminology (never Vis) | M7 | Core Rules §1, §5 |
-| 27 | Graviton Soles Ticking & Curios Detection | Hook `TickEvent.PLAYER_POST` in `Entropica.java`, correct `inventoryTick`, multi-loader Curios/Accessories reflection | M8 | ORIGINAL_REQUEST (2026-09-10) §R1 |
-| 28 | Graviton Soles Wall Sticking & Climbing | Crouch-lock on wall, 0.22 m/s forward climbing, -0.22 m/s backward descending | M8 | ORIGINAL_REQUEST (2026-09-10) §R1 |
-| 29 | Graviton Soles Ceiling Adhesion | Invert gravity to -0.08 on ceiling contact, 180° camera flip, upside-down model, surface locking | M8 | ORIGINAL_REQUEST (2026-09-10) §R1 |
-| 30 | Graviton Soles Sneak-Ledge Gravity Flipping | Corner wrapping between Floor and Ceiling/Wall with 10-tick debounce, chime sound, sparkle particles | M8 | ORIGINAL_REQUEST (2026-09-10) §R1 |
-| 31 | Graviton Soles Absolute Fall Negation | Layered attribute modifiers + `EntityEvent.LIVING_HURT` cancellation | M8 | ORIGINAL_REQUEST (2026-09-10) §R1 |
-| 32 | True 3D Black Hole Geometry Engine | `GravitationalLensingRenderer.java`: Schwarzschild horizon, photon sphere, warped Einstein arcs, Doppler asymmetry | M9 | ORIGINAL_REQUEST (2026-09-10) §R2 |
-| 33 | Singularity Grenade 3D Entity Renderer | `SingularityGrenadeRenderer.java` replacing `ThrownItemRenderer` with 4-second celestial vortex animation | M9 | ORIGINAL_REQUEST (2026-09-10) §R2 |
-| 34 | Screen-Space Optical Distortion Overlay | `GravitationalLensingScreenOverlay.java`: quaternion world-to-screen projection, radial refraction, chromatic aberration | M9 | ORIGINAL_REQUEST (2026-09-10) §R2 |
-| 35 | Curios Slot Datapack Definitions | `feet.json`, `charm.json`, `head.json`, `hands.json`, `belt.json`, `ring.json` in `data/curios/curios/slots/` | M10 | ORIGINAL_REQUEST (2026-09-10) §R3 |
-| 36 | Curios Entity Slot Assignments | `default.json` and `player.json` assigning slots to `minecraft:player` with `data/entropica/curios/` fallback | M10 | ORIGINAL_REQUEST (2026-09-10) §R3 |
-| 37 | Standalone Tidal Pulse Resonator Block & BE | `TidalPulseResonatorBlock.java` and `TidalPulseResonatorBlockEntity.java` with 80-tick respiration cycle and redstone toggle | M11 | ORIGINAL_REQUEST (2026-09-10) §R4 |
-| 38 | Tidal Pulse Resonator Animated BER | `TidalPulseResonatorRenderer.java` with 4 vibrating tuning prongs, pulsating graviton core, and expanding shockwave rings | M11 | ORIGINAL_REQUEST (2026-09-10) §R4 |
-| 39 | Resonator Recipes, Loot Table & Client Wire-Up | Blockstate, models, recipe, loot table, and registration in `ModBlocks`, `ModItems`, `ModBlockEntities`, Fabric & NeoForge | M11 | ORIGINAL_REQUEST (2026-09-10) §R4 |
-| 40 | Multi-Loader Compilation & Deployment | Clean `./gradlew --no-parallel build` and `./gradlew --no-parallel deploytoDev` across common, fabric, neoforge | M12 | ORIGINAL_REQUEST (2026-09-10) §R5 |
-| 41 | Documentation, Changelog & OKF Sync | `changelog.md` under `Build 000-1-26-252` and OKF Obsidian Vault note `tidal_pulse_resonator.md` | M13 | ORIGINAL_REQUEST (2026-09-10) §R5 |
+| 1 | Compilation Baseline Fix | Add missing `BarrierRenderState` to `ForcefieldBarrierRenderer.java`, fix mixin shadowing | M1 | Survey 1, 2, 3 |
+| 2 | Modular Geometry Handlers | Pluggable `BarrierShapeHandler` & `BarrierShapeRegistry` for 6 primitives (QUAD, DISC, DOME, BUBBLE, CYLINDER, POLYGON) | M1 | R1 |
+| 3 | Modular Theme Architecture | `ApexPredatorThemeRegistry` & `ApexPredatorTheme` for thin-film rainbow and 6 Apex Predator themes | M1 | R1 |
+| 4 | Continuous Swept Collision (CCD) | Earliest-$t$ swept intersection sorting, swept projectile tick interception, safe boundary displacement | M2 | R5 |
+| 5 | Side-of-Approach Velocity Reflection | $v' = v - (1+e)(v \cdot n)n$, tangential conservation, minimum rebound impulse, ripple impact payload | M2 | R5 |
+| 6 | One-Way Directional Valve Mode | `DATA_ONE_WAY` synched boolean, passage check ($d \cdot n < 0$ pass, $d \cdot n > 0$ reflect), drifting starlight arrows | M1, M2 | R2, R5 |
+| 7 | Redstone & Materia Switchability | `DATA_IS_ACTIVE`, `DATA_REDSTONE_MODE`, neighbor signal sampling, dormant collision-free state, Materia linking | M2 | R2 |
+| 8 | Materia Color Tinting | `DATA_COLOR_TINT`, right-click with vanilla dyes or Materia crystals, procedural tint blending in shader helper | M1, M3 | R2 |
+| 9 | Interactive Creator Config Screen | `BarrierConfigMenu` & `BarrierConfigScreen` (shape, filter, width, height, radius, elasticity, one-way, redstone, whitelist) | M4 | R3 |
+| 10 | Network Config Synchronization | Expand `UpdateBarrierConfigPayload` (C2S), creator/creative validation, client broadcast | M4 | R3 |
+| 11 | Two-Point Drag & Snap | Right-click Point A (anchor beacon), right-click Point B (auto-span planar barrier between A and B) | M3 | R2 |
+| 12 | Edge-Fusing / Seamless Snapping | 0.5m snap distance query in `BarrierFieldManager`, vertex/angle flush alignment to eliminate z-fighting | M3 | R2 |
+| 13 | Holographic Placement Preview | Real-time starlight wireframe preview when holding Weaver (`FirmamentHologramPreviewRenderer`) in Fabric & NeoForge | M3 | R4 |
+| 14 | Weaver Fast-Action Utilities | Shift+Scroll shape cycling, creator look-at telemetry HUD, quick dispel on left-click (`SoundEvents.BUBBLE_POP`) | M3 | R4 |
+| 15 | Boss Arena Barrier Integration | Invulnerability while Apex Predator lives (`hurtServer` fix), `EntityEvent.LIVING_DEATH` dissolution fanfare | M2 | R5 |
+| 16 | Graviton Bouncepad Parity | Omnidirectional mounting, gravity-relative upward launch ($-g$), analogue redstone scaling (0–15), landing fall immunity | M2 | R6 |
+| 17 | Registries, Recipes & Localization | Recipes for `firmament_weaver` and `graviton_bouncepad`, complete `en_us.json` strings | M5 | R7 |
+| 18 | Entropic Codex Integration | Research nodes in `CodexCategoryRegistry.java` branching from `MAGIC` and `MACHINERY` hubs | M5 | Custom Rules |
+| 19 | Obsidian OKF Vault Synchronization | Update `firmament_weaver.md`, `graviton_bouncepad.md`, `forcefield_barriers.md` in OKF vault | M5 | R7, Custom Rules |
+| 20 | Multi-Loader Build & Deployment | `./gradlew --no-parallel build` (0 errors), `./gradlew --no-parallel deploytoDev`, `changelog.md` under `Build 000-1-26-253` | M5 | R7 |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Core Gravity API & Status Effects | `GravityApi.java`, `WeightlessnessEffect`, `GravitationalCrushEffect`, `InertialAnchorEffect`, `ModEffects.java` | None | DONE |
-| M2 | Spatial Gravity Field Manager | `GravityField.java`, `GravityFieldManager.java`, server tick registration in `Entropica.java` | M1 | DONE |
-| M3 | Client Camera & Visual Immersion | `GravityCameraHandler.java`, `GravityScreenShimmerRenderer.java`, `CameraMixin.java`, `LivingEntityRendererMixin.java`, client event subscriptions | M1, M2 | DONE |
-| M4 | In-World Blocks, Emitters & Renderers | `GravitationalAnchorBlock`, BE & BER, `GravLiftProjectorBlock`, BE & BER, blockstates/models | M1, M2 | DONE |
-| M5 | Gear, Curios, Projectiles & Tuning Wand | `GravitonSolesItem`, `SingularityGrenadeEntity` & Item, `InertialAnchorAmuletItem`, `GravitonWandItem`, Curios tags | M1, M2 | DONE |
-| M6 | Platform Registries & Build Validation | `ModBlocks`, `ModItems`, `ModBlockEntities`, `ModEntityTypes`, `EntropicaClientFabric`, `ModClientEvents`, full compile & deploy | M1, M2, M3, M4, M5 | DONE |
-| M7 | Documentation, Changelog & Wiki Sync | `changelog.md` (Build 000-1-26-252), Obsidian OKF vault notes, Materia terminology audit | M6 | DONE |
-| M8 | Graviton Soles Overhaul & Physics | Ticking hook, wall-sticking, climbing, ceiling adhesion, sneak-ledge flipping, fall damage cancellation | M1, M5 | DONE |
-| M9 | True Black Hole Gravitational Lensing Engine | `GravitationalLensingRenderer`, `SingularityGrenadeRenderer`, `GravitationalLensingScreenOverlay`, anchor integration | M3, M5 | DONE |
-| M10 | Curios Slots Infrastructure & Datapack Definitions | `slots/*.json` and `entities/*.json` across `data/curios/curios/` and `data/entropica/curios/` | None | DONE |
-| M11 | Standalone Tidal Pulse Resonator Block & BER | Block, BE, BER, blockstate, models, recipe, loot table, multi-loader registration | M2, M4 | DONE |
-| M12 | Multi-Loader Compilation & Dev Deployment | Full gradle build and dev deployment verification across common, fabric, neoforge | M8, M9, M10, M11 | DONE |
-| M13 | Documentation, Changelog & Obsidian OKF Sync | Rolling changelog and OKF Obsidian Vault note for Tidal Pulse Resonator | M11, M12 | DONE |
+| M1 | Geometry, Themes & Rendering | Baseline compilation fix, `BarrierShapeRegistry`, `ApexPredatorThemeRegistry`, procedural shader & starlight arrows | none | DONE |
+| M2 | Physics, CCD, One-Way & Bouncepad | Earliest-$t$ CCD, projectile swept interception, velocity reflection, one-way valves, boss arenas, bouncepad parity | M1 | DONE |
+| M3 | Weaver Utilities, QoL & Holographic Preview | Drag & Snap, Edge-Fusing, holographic wireframe preview, telemetry HUD, quick dispel, color tinting | M1, M2 | DONE |
+| M4 | Creator Config GUI & Network Sync | `BarrierConfigMenu`, `BarrierConfigScreen`, screen registration, `UpdateBarrierConfigPayload` expansion | M1, M2 | DONE |
+| M5 | Registries, Codex, Vault, Build & Deploy | Recipes, localization, Codex nodes, Obsidian Vault docs, Gradle compile, dev deploy, changelog | M1, M2, M3, M4 | DONE |
+| M6 | E2E Testing Verification & Hardening | Phase 1: 100% E2E test suite pass (Tiers 1-4); Phase 2: Adversarial coverage hardening (Tier 5) | M1, M2, M3, M4, M5 | DONE |
+| E2E | E2E Testing Track | Requirement-driven test harness, Tiers 1-4 tests covering all features, publishes `TEST_READY.md` | none (parallel) | DONE |
 
 ## Interface Contracts
-### `GravityApi` ↔ Entities & Fields
-- `GravityApi.setGravity(LivingEntity entity, double gravityMultiplier, double fallDistanceMultiplier)`
-- `GravityApi.resetGravity(LivingEntity entity)`
-- `GravityApi.isInverted(LivingEntity entity) -> boolean`
-- `GravityApi.isAnchored(LivingEntity entity) -> boolean`
-- `GravityApi.getNearestSingularityPos(Level level, Vec3 pos, double maxRadius) -> Vec3`
-- `GravityApi.tickGravitonSoles(LivingEntity entity)`
-- `GravityApi.hasGravitonSoles(LivingEntity entity) -> boolean`
 
-### `GravitationalLensingRenderer` ↔ Renderers
-- `GravitationalLensingRenderer.renderBlackHole(PoseStack poseStack, SubmitNodeCollector collector, float radius, float ageTicks, int light, int overlay)`
+### `BarrierShapeHandler` ↔ `ForcefieldBarrierEntity` / `ForcefieldBarrierRenderer`
+- `ResourceLocation getId()`
+- `int getOrdinal()`
+- `BarrierRaycastHit intersect(Vec3 center, float yRot, float xRot, float width, float height, float radius, Vec3 rayStart, Vec3 rayEnd, double entityRadius, ForcefieldBarrierEntity barrier)`
+- `AABB computeBoundingBox(Vec3 center, float yRot, float xRot, float width, float height, float radius)`
+- `void render(Matrix4f matrix, VertexConsumer consumer, BarrierRenderState state, PoseStack poseStack)`
+- `void renderPreview(PoseStack poseStack, VertexConsumer consumer, Matrix4f pose, float width, float height, float radius, float r, float g, float b, float a)`
 
-### `GravitationalLensingScreenOverlay` ↔ Client GUI
-- `GravitationalLensingScreenOverlay.render(GuiGraphics guiGraphics, DeltaTracker deltaTracker)`
+### `ApexPredatorTheme` ↔ `ForcefieldShaderHelper`
+- `ColorResult evaluateColor(float u, float v, Vec3 normal, Vec3 viewDir, float ageTicks, float rippleIntensity, @Nullable Integer customColorTint)`
 
-### `GravityFieldManager` ↔ Level Ticking & Blocks
-- `GravityFieldManager.registerField(ResourceLocation id, GravityField field)`
-- `GravityFieldManager.unregisterField(ResourceLocation id)`
-- `GravityFieldManager.tickLevel(ServerLevel level)`
-- `GravityFieldManager.cleanupExitedEntities(ServerLevel level)`
+### `BarrierFieldManager` ↔ `EntityMixin`
+- `boolean checkMovementCollisions(Entity entity, Vec3 startPos, Vec3 endPos)`
+- Sorts intersecting candidate barriers by ascending swept hit time $t \in [0, 1]$ before executing reflection.
 
-### `GravityCameraHandler` ↔ Mixins & Events
-- `GravityCameraHandler.clientTick(Minecraft mc)`
-- `GravityCameraHandler.calculateCameraRoll(Camera camera, float partialTick) -> float`
+### `BarrierConfigMenu` ↔ `UpdateBarrierConfigPayload`
+- Carries: `entityId, shapeOrdinal, width, height, radius, filterModeOrdinal, themeOrdinal, elasticity, oneWay, redstoneMode, colorTint, whitelistUsernames`
+- Verified by server: sender is creator or creative mode player.
 
 ## Code Layout
-- `common/src/main/java/ddraig/net/entropica/api/`: `GravityApi.java`
-- `common/src/main/java/ddraig/net/entropica/gravity/`: `GravityField.java`, `GravityFieldManager.java`
-- `common/src/main/java/ddraig/net/entropica/effect/`: `WeightlessnessEffect.java`, `GravitationalCrushEffect.java`, `InertialAnchorEffect.java`
-- `common/src/main/java/ddraig/net/entropica/block/`: `GravitationalAnchorBlock.java`, `GravLiftProjectorBlock.java`, `TidalPulseResonatorBlock.java`
-- `common/src/main/java/ddraig/net/entropica/block/entity/`: `GravitationalAnchorBlockEntity.java`, `GravLiftProjectorBlockEntity.java`, `TidalPulseResonatorBlockEntity.java`
-- `common/src/main/java/ddraig/net/entropica/client/renderer/`: `GravitationalAnchorRenderer.java`, `GravLiftProjectorRenderer.java`, `TidalPulseResonatorRenderer.java`, `GravitationalLensingRenderer.java`, `SingularityGrenadeRenderer.java`, `GravitationalLensingScreenOverlay.java`, `GravityScreenShimmerRenderer.java`
-- `common/src/main/java/ddraig/net/entropica/client/camera/`: `GravityCameraHandler.java`
-- `common/src/main/java/ddraig/net/entropica/item/`: `GravitonSolesItem.java`, `SingularityGrenadeItem.java`, `InertialAnchorAmuletItem.java`, `GravitonWandItem.java`
-- `common/src/main/java/ddraig/net/entropica/entity/projectile/`: `SingularityGrenadeEntity.java`
-- `common/src/main/java/ddraig/net/entropica/mixin/`: `LivingEntityRendererMixin.java`
-- `fabric/src/main/java/ddraig/net/entropica/mixin/`: `CameraMixin.java`
-- `neoforge/src/main/java/ddraig/net/entropica/datagen/`: `CuriosTagProvider.java`
-- `common/src/main/resources/data/curios/curios/slots/`: `feet.json`, `charm.json`, `head.json`, `hands.json`, `belt.json`, `ring.json`
-- `common/src/main/resources/data/curios/curios/entities/`: `default.json`, `player.json`
-- `common/src/main/resources/data/entropica/curios/`: fallback slot and entity definitions
-- `changelog.md`: Workspace root rolling changelog under `## Build 000-1-26-252`
-- `C:\Users\Ddraig__\Downloads\OBSIDIAN WIKIS\Entropica\Entropica\`: OKF notes for items, blocks, mechanics, and articles
+- `common/src/main/java/ddraig/net/entropica/`:
+  - `forcefield/`: `BarrierShapeRegistry.java`, `BarrierShapeHandler.java`, `BarrierShape.java`, `ApexPredatorThemeRegistry.java`, `ApexPredatorTheme.java`, `BarrierFieldManager.java`, `BarrierGeometry.java`, `BarrierRaycastHit.java`, `BarrierFilterMode.java`
+  - `entity/forcefield/`: `ForcefieldBarrierEntity.java`
+  - `item/`: `FirmamentWeaverItem.java`
+  - `inventory/barrier/`: `BarrierConfigMenu.java`
+  - `network/`: `UpdateBarrierConfigPayload.java`, `BarrierImpactPayload.java`
+  - `block/`: `GravitonBouncepadBlock.java`
+  - `block/entity/`: `GravitonBouncepadBlockEntity.java`
+  - `client/renderer/forcefield/`: `ForcefieldBarrierRenderer.java`, `ForcefieldShaderHelper.java`, `FirmamentHologramPreviewRenderer.java`
+  - `client/gui/`: `BarrierConfigScreen.java`, `BarrierTelemetryHudOverlay.java`
+  - `client/renderer/`: `GravitonBouncepadRenderer.java`
+- `common/src/main/resources/`:
+  - `assets/entropica/lang/en_us.json`
+  - `data/entropica/recipe/`: `firmament_weaver.json`, `graviton_bouncepad.json`
+- `fabric/` & `neoforge/`: client screen registrations, preview renderer hooks, mixins.
+- Obsidian Vault: `C:\Users\Ddraig__\Downloads\OBSIDIAN WIKIS\Entropica\Entropica`:
+  - `wiki/entities/items/tools/firmament_weaver.md`
+  - `wiki/entities/blocks/machines/graviton_bouncepad.md`
+  - `wiki/articles/forcefield_barriers.md`

@@ -113,74 +113,95 @@ public class GravitonBouncepadBlock extends Block implements EntityBlock {
     }
 
     /**
-     * Propels entity upwards relative to their currently experienced downward gravity.
+     * Propels entity upwards relative to their currently experienced downward gravity,
+     * or horizontally/normal if wall-mounted or in zero-g.
      */
     public static void launchEntity(Level level, BlockPos pos, BlockState state, Entity entity) {
         if (!entity.isAlive()) return;
 
-        // Calculate currently experienced downward gravity vector
-        Vec3 downGravity = new Vec3(0, -1, 0); // Default vanilla gravity
-
-        if (entity instanceof LivingEntity living) {
-            // Check for Gravity Center point gravity
-            GravityCenterBlockEntity center = GravityCenterBlockEntity.getAffectingCenter(level, entity.position());
-            if (center != null) {
-                Vec3 toCore = center.getBlockPos().getCenter().subtract(entity.position());
-                if (toCore.lengthSqr() > 1e-4) {
-                    downGravity = toCore.normalize();
-                }
-            } else if (GravityApi.isInverted(living)) {
-                // Inverted gravity: ceiling is floor, down is +Y
-                downGravity = new Vec3(0, 1, 0);
+        // Debounce check: prevent rapid multi-triggering across stepOn/fallOn/entityInside and physics pinning
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof GravitonBouncepadBlockEntity bouncepadBE) {
+            if (!bouncepadBE.canBounce()) {
+                return;
             }
+            bouncepadBE.triggerBounce();
         }
 
-        // Upwards relative to gravity = -downGravity
-        Vec3 relativeUp = downGravity.scale(-1.0).normalize();
+        Direction facing = state.getValue(FACING);
+        Vec3 padNormal = new Vec3(facing.getStepX(), facing.getStepY(), facing.getStepZ());
 
-        // Launch force: Base 1.35 m/s (~10-12 blocks high), Redstone powered 2.2 m/s (~25 blocks high)
-        boolean isPowered = state.getValue(POWERED);
-        double launchSpeed = isPowered ? 2.2 : 1.35;
+        Vec3 launchDir;
+        if (facing.getAxis().isHorizontal()) {
+            // Wall-mounted bouncepad launches horizontally along facing normal
+            launchDir = padNormal;
+        } else {
+            // Calculate currently experienced downward gravity vector
+            Vec3 downGravity = new Vec3(0, -1, 0); // Default vanilla gravity
+            boolean hasGravity = true;
 
-        // Combine launch vector: replace component along relativeUp, keep perpendicular momentum
+            if (entity instanceof LivingEntity living) {
+                if (GravityApi.isZeroG(living)) {
+                    hasGravity = false;
+                } else {
+                    // Check for Gravity Center point gravity
+                    GravityCenterBlockEntity center = GravityCenterBlockEntity.getAffectingCenter(level, entity.position());
+                    if (center != null) {
+                        Vec3 toCore = center.getBlockPos().getCenter().subtract(entity.position());
+                        if (toCore.lengthSqr() > 1e-4) {
+                            downGravity = toCore.normalize();
+                        }
+                    } else if (GravityApi.isInverted(living)) {
+                        // Inverted gravity: ceiling is floor, down is +Y
+                        downGravity = new Vec3(0, 1, 0);
+                    }
+                }
+            }
+
+            // Upwards relative to gravity = -downGravity, or pad normal in Zero-G
+            launchDir = hasGravity ? downGravity.scale(-1.0).normalize() : padNormal;
+        }
+
+        // Analogue redstone power scaling: v_launch = 1.35 + 1.15 * (power / 15.0)
+        int redstonePower = Math.min(15, Math.max(0, level.getBestNeighborSignal(pos)));
+        double launchSpeed = 1.35 + 1.15 * (redstonePower / 15.0);
+
+        // Combine launch vector: replace component along launchDir, keep perpendicular momentum
         Vec3 currentV = entity.getDeltaMovement();
-        double currentAlongUp = currentV.dot(relativeUp);
+        double currentAlongUp = currentV.dot(launchDir);
 
         Vec3 newV;
         if (currentAlongUp < launchSpeed) {
-            Vec3 perpV = currentV.subtract(relativeUp.scale(currentAlongUp));
-            newV = perpV.add(relativeUp.scale(launchSpeed));
+            Vec3 perpV = currentV.subtract(launchDir.scale(currentAlongUp));
+            newV = perpV.add(launchDir.scale(launchSpeed));
         } else {
-            newV = currentV.add(relativeUp.scale(0.3));
+            newV = currentV.add(launchDir.scale(0.3));
         }
 
         entity.setDeltaMovement(newV);
         entity.resetFallDistance();
         entity.hasImpulse = true;
-
-        // Trigger block entity compression/rebound animation
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof GravitonBouncepadBlockEntity bouncepadBE) {
-            bouncepadBE.triggerBounce();
-        }
+        entity.addTag("entropica:bouncepad_immune");
 
         // Sound and particle chimes
+        float pitch = 1.0F + (redstonePower / 15.0F) * 0.35F;
         level.playSound(
                 null,
                 pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                 ModSounds.BOUNCEPAD_LAUNCH.get(),
                 SoundSource.BLOCKS,
                 1.0F,
-                isPowered ? 1.25F : 1.0F
+                pitch
         );
 
         if (level instanceof ServerLevel serverLevel) {
-            Vec3 centerPos = pos.getCenter().add(relativeUp.scale(0.4));
+            Vec3 centerPos = pos.getCenter().add(launchDir.scale(0.4));
+            int count = 12 + (int) (redstonePower * 0.8F);
             serverLevel.sendParticles(
                     ParticleTypes.GLOW,
                     centerPos.x, centerPos.y, centerPos.z,
-                    15,
-                    relativeUp.x * 0.2, relativeUp.y * 0.2, relativeUp.z * 0.2,
+                    count,
+                    launchDir.x * 0.2, launchDir.y * 0.2, launchDir.z * 0.2,
                     0.05
             );
         }

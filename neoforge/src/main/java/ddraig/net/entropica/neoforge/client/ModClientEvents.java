@@ -26,6 +26,7 @@ import ddraig.net.entropica.registry.ModMenuTypes;
 import ddraig.net.entropica.block.entity.CreativeMateriaGeneratorBlockEntity;
 import ddraig.net.entropica.block.entity.MateriaEnrichedGlassBlockEntity;
 import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity;
+import ddraig.net.entropica.client.gui.BarrierConfigScreen;
 import ddraig.net.entropica.client.gui.SynthesizerUserInterfaceScreen;
 import ddraig.net.entropica.client.gui.WeaponNamingScreen;
 import ddraig.net.entropica.Entropica;
@@ -108,6 +109,13 @@ public class ModClientEvents {
     }
 
     @SubscribeEvent
+    public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
+        if (ddraig.net.entropica.client.input.FirmamentWeaverClientHandler.handleMouseScroll(event.getScrollDeltaY())) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
     public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
         float partialTick = (float) event.getPartialTick();
         float roll = ddraig.net.entropica.client.camera.GravityCameraHandler.getRoll(partialTick);
@@ -158,6 +166,7 @@ public class ModClientEvents {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);
+        event.register(ModMenuTypes.BARRIER_CONFIG_MENU.get(), BarrierConfigScreen::new);
     }
 
     @SubscribeEvent
@@ -437,6 +446,12 @@ public class ModClientEvents {
                 mc.gameRenderer.getMainCamera(),
                 mc.getDeltaTracker().getGameTimeDeltaTicks()
             );
+            ddraig.net.entropica.client.renderer.forcefield.FirmamentHologramPreviewRenderer.renderPreview(
+                poseStack,
+                event.getModelViewMatrix(),
+                mc.gameRenderer.getMainCamera(),
+                mc.getDeltaTracker().getGameTimeDeltaTicks()
+            );
         }
     }
 
@@ -447,6 +462,7 @@ public class ModClientEvents {
             float partialTick = mc.getDeltaTracker().getGameTimeDeltaTicks();
             ddraig.net.entropica.client.LookingGlassOverlayRenderer.render(event.getGuiGraphics(), partialTick);
             ddraig.net.entropica.client.gui.OpticalInspectionHudOverlay.render(event.getGuiGraphics(), partialTick);
+            ddraig.net.entropica.client.gui.BarrierTelemetryHudOverlay.render(event.getGuiGraphics(), partialTick);
             ddraig.net.entropica.client.renderer.GravityScreenShimmerRenderer.render(event.getGuiGraphics(), partialTick);
             ddraig.net.entropica.client.renderer.GravitationalLensingScreenOverlay.render(event.getGuiGraphics(), partialTick);
         }

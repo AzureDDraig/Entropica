@@ -6,6 +6,7 @@ import ddraig.net.entropica.block.entity.CreativeMateriaGeneratorBlockEntity;
 import ddraig.net.entropica.block.entity.DilutedEssenceFluidBlockEntity;
 import ddraig.net.entropica.block.entity.MateriaEnrichedGlassBlockEntity;
 import ddraig.net.entropica.client.ModItemTintSources;
+import ddraig.net.entropica.client.gui.BarrierConfigScreen;
 import ddraig.net.entropica.client.gui.SynthesizerUserInterfaceScreen;
 import ddraig.net.entropica.client.model.AshenStalkerModel;
 import ddraig.net.entropica.client.model.GrotModel;
@@ -186,6 +187,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
 
         // --- 4. Menu Screens ---
         MenuScreens.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);
+        MenuScreens.register(ModMenuTypes.BARRIER_CONFIG_MENU.get(), BarrierConfigScreen::new);
 
         // --- 5. Block Colors ---
         ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
@@ -429,6 +431,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ddraig.net.entropica.client.LensOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.LookingGlassOverlayRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.gui.OpticalInspectionHudOverlay.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+            ddraig.net.entropica.client.gui.BarrierTelemetryHudOverlay.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.renderer.GravityScreenShimmerRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.renderer.GravitationalLensingScreenOverlay.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
         });
@@ -443,7 +446,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
             );
         });
 
-        // Register Astrolabe In-World Ghost Blueprint Renderer & Wand Guide Ray
+        // Register Astrolabe In-World Ghost Blueprint Renderer, Wand Guide Ray, and Firmament Hologram Preview
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
             ddraig.net.entropica.client.renderer.AstrolabeGhostRenderer.renderGhost(
                 context.matrixStack(),
@@ -452,6 +455,12 @@ public class EntropicaClientFabric implements ClientModInitializer {
                 context.tickCounter().getGameTimeDeltaTicks()
             );
             ddraig.net.entropica.client.renderer.AstralLinkingWandGuideRenderer.renderGuide(
+                context.matrixStack(),
+                context.projectionMatrix(),
+                context.camera(),
+                context.tickCounter().getGameTimeDeltaTicks()
+            );
+            ddraig.net.entropica.client.renderer.forcefield.FirmamentHologramPreviewRenderer.renderPreview(
                 context.matrixStack(),
                 context.projectionMatrix(),
                 context.camera(),

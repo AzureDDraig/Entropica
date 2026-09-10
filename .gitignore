@@ -25,6 +25,13 @@ run-data
 
 repo
 .agents/
+PROJECT.md
+ORIGINAL_REQUEST.md
+TEST_INFRA.md
+TEST_READY.md
+logs/
+common/logs/
+*.log
 scratch/
 scratch_12110/
 /*.png

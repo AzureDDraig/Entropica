@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "L": [
+      {
+        "item": "entropica:refractive_astral_lens"
+      },
+      {
+        "item": "entropica:essence_enriched_glass"
+      }
+    ],
+    "C": {
+      "item": "entropica:astral_crystal"
+    },
+    "R": [
+      {
+        "item": "entropica:arcanite_ingot"
+      },
+      {
+        "item": "minecraft:end_rod"
+      }
+    ]
+  },
+  "pattern": [
+    "  L",
+    " C ",
+    "R  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:firmament_weaver"
+  }
+}

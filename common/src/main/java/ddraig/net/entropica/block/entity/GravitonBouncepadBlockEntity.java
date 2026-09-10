@@ -43,6 +43,14 @@ public class GravitonBouncepadBlockEntity extends BlockEntity {
         }
     }
 
+    public boolean canBounce() {
+        return this.bounceTimer <= 0;
+    }
+
+    public int getBounceTimer() {
+        return this.bounceTimer;
+    }
+
     public void triggerBounce() {
         this.compression = 1.0F;
         this.compressionVelocity = 0.15F;

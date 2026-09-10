@@ -2,11 +2,15 @@ package ddraig.net.entropica.entity.forcefield;
 
 import com.mojang.serialization.Codec;
 import ddraig.net.entropica.forcefield.*;
-import ddraig.net.entropica.item.SoapFilmWeaverItem;
+import ddraig.net.entropica.item.FirmamentWeaverItem;
 import ddraig.net.entropica.network.BarrierImpactPayload;
 import ddraig.net.entropica.registry.ModSounds;
 import dev.architectury.networking.NetworkManager;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -22,7 +26,17 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
+import ddraig.net.entropica.item.SpectralDyeItem;
+import ddraig.net.entropica.inventory.barrier.BarrierConfigMenu;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -30,8 +44,10 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -63,9 +79,19 @@ public class ForcefieldBarrierEntity extends Entity {
             SynchedEntityData.defineId(ForcefieldBarrierEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> DATA_OWNER_NAME =
             SynchedEntityData.defineId(ForcefieldBarrierEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<Boolean> DATA_IS_ACTIVE =
+            SynchedEntityData.defineId(ForcefieldBarrierEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_ONE_WAY =
+            SynchedEntityData.defineId(ForcefieldBarrierEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> DATA_COLOR_TINT =
+            SynchedEntityData.defineId(ForcefieldBarrierEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_REDSTONE_MODE =
+            SynchedEntityData.defineId(ForcefieldBarrierEntity.class, EntityDataSerializers.INT);
 
     private final Set<UUID> whitelist = new CopyOnWriteArraySet<>();
+    private final List<String> whitelistUsernames = new CopyOnWriteArrayList<>();
     private UUID bossEntityUUID = null;
+    private int deactivationDebounce = 0;
 
     // Client-side ripple rendering queue: (impactVec, triggerTick, intensity)
     public record RippleImpact(Vec3 pos, long tick, float intensity) {}
@@ -85,10 +111,22 @@ public class ForcefieldBarrierEntity extends Entity {
         builder.define(DATA_RADIUS, 5.0F);
         builder.define(DATA_FILTER_MODE, BarrierFilterMode.ALL_ENTITIES.ordinal());
         builder.define(DATA_PREDATOR_THEME, ApexPredatorTheme.STANDARD.ordinal());
-        builder.define(DATA_BOUNCE_ELASTICITY, 1.0F);
+        builder.define(DATA_BOUNCE_ELASTICITY, 1.25F);
         builder.define(DATA_IS_BOSS_ENCOUNTER, false);
         builder.define(DATA_OWNER_UUID, "");
         builder.define(DATA_OWNER_NAME, "");
+        builder.define(DATA_IS_ACTIVE, true);
+        builder.define(DATA_ONE_WAY, false);
+        builder.define(DATA_COLOR_TINT, 0);
+        builder.define(DATA_REDSTONE_MODE, 0);
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+        super.onSyncedDataUpdated(key);
+        if (DATA_SHAPE.equals(key) || DATA_WIDTH.equals(key) || DATA_HEIGHT.equals(key) || DATA_RADIUS.equals(key)) {
+            updateBoundingBox();
+        }
     }
 
     @Override
@@ -98,8 +136,8 @@ public class ForcefieldBarrierEntity extends Entity {
         // Register in spatial level manager
         BarrierFieldManager.registerBarrier(this);
 
-        // Periodically refresh bounding box to encompass active shape & size
-        if (this.tickCount % 20 == 0) {
+        // Ensure bounding box matches current position
+        if (this.tickCount % 100 == 0) {
             updateBoundingBox();
         }
 
@@ -107,6 +145,27 @@ public class ForcefieldBarrierEntity extends Entity {
         if (this.level().isClientSide() && !activeRipples.isEmpty()) {
             long current = this.level().getGameTime();
             activeRipples.removeIf(r -> (current - r.tick()) > 40);
+        }
+
+        // Redstone & Materia Switchability sampling on server
+        if (!this.level().isClientSide()) {
+            int mode = getRedstoneMode();
+            if (mode != 0) {
+                boolean receivingPower = checkRedstonePower();
+                boolean shouldBeActive = (mode == 1) ? !receivingPower : receivingPower;
+                if (shouldBeActive) {
+                    deactivationDebounce = 2;
+                    if (!isActive()) {
+                        setActive(true);
+                    }
+                } else {
+                    if (deactivationDebounce > 0) {
+                        deactivationDebounce--;
+                    } else if (isActive()) {
+                        setActive(false);
+                    }
+                }
+            }
         }
 
         // Boss encounter tracking: if the boss dies or despawns, dissolve the barrier
@@ -120,6 +179,18 @@ public class ForcefieldBarrierEntity extends Entity {
         }
     }
 
+    public boolean checkRedstonePower() {
+        Level lvl = this.level();
+        BlockPos center = this.blockPosition();
+        if (lvl.hasNeighborSignal(center)) return true;
+        AABB box = this.getBoundingBox();
+        if (box.getXsize() > 1.5 || box.getYsize() > 1.5 || box.getZsize() > 1.5) {
+            BlockPos base = BlockPos.containing(this.getX(), box.minY, this.getZ());
+            if (!base.equals(center) && lvl.hasNeighborSignal(base)) return true;
+        }
+        return false;
+    }
+
     @Override
     public void remove(RemovalReason reason) {
         super.remove(reason);
@@ -127,12 +198,20 @@ public class ForcefieldBarrierEntity extends Entity {
     }
 
     public void updateBoundingBox() {
-        double maxDim = Math.max(Math.max(getWidth(), getHeight()), getRadius()) + 2.0;
-        Vec3 pos = this.position();
-        this.setBoundingBox(new AABB(
-                pos.x - maxDim, pos.y - maxDim, pos.z - maxDim,
-                pos.x + maxDim, pos.y + maxDim, pos.z + maxDim
-        ));
+        BarrierShapeHandler handler = BarrierShapeRegistry.get(getShape().ordinal());
+        if (handler != null) {
+            this.setBoundingBox(handler.computeBoundingBox(
+                    this.position(), this.getYRot(), this.getXRot(),
+                    getWidth(), getHeight(), getRadius()
+            ));
+        } else {
+            double maxDim = Math.max(Math.max(getWidth(), getHeight()), getRadius()) + 2.0;
+            Vec3 pos = this.position();
+            this.setBoundingBox(new AABB(
+                    pos.x - maxDim, pos.y - maxDim, pos.z - maxDim,
+                    pos.x + maxDim, pos.y + maxDim, pos.z + maxDim
+            ));
+        }
     }
 
     /**
@@ -140,7 +219,7 @@ public class ForcefieldBarrierEntity extends Entity {
      * Checks swept-ray manifold intersection, verifies permissions, and applies side-relative bounce.
      */
     public boolean handleEntityCollision(Entity entity, Vec3 startPos, Vec3 endPos) {
-        if (!isAlive()) return false;
+        if (!isAlive() || !isActive()) return false;
 
         UUID owner = getOwnerUUID().orElse(null);
         if (!getFilterMode().isBlocked(entity, owner, whitelist)) {
@@ -148,31 +227,69 @@ public class ForcefieldBarrierEntity extends Entity {
         }
 
         double entityRadius = Math.max(0.15, entity.getBbWidth() * 0.5);
-        BarrierRaycastHit hit = BarrierGeometry.intersect(
-                getShape(),
-                this.position(),
-                this.getYRot(),
-                this.getXRot(),
-                getWidth(),
-                getHeight(),
-                getRadius(),
-                startPos,
-                endPos,
-                entityRadius
-        );
+        BarrierShapeHandler handler = BarrierShapeRegistry.get(getShape().ordinal());
+        BarrierRaycastHit hit;
+        if (handler != null) {
+            hit = handler.intersect(
+                    this.position(), this.getYRot(), this.getXRot(),
+                    getWidth(), getHeight(), getRadius(),
+                    startPos, endPos, entityRadius, this
+            );
+        } else {
+            hit = BarrierGeometry.intersect(
+                    getShape(), this.position(), this.getYRot(), this.getXRot(),
+                    getWidth(), getHeight(), getRadius(),
+                    startPos, endPos, entityRadius
+            );
+        }
 
-        if (!hit.hit()) {
+        if (!hit.hit() || hit.t() < 0.0 || hit.t() > 1.0) {
             return false;
         }
 
-        // --- Calculate Side-Relative Normal & Elastic Bounce ---
+        return handleCollisionHit(entity, startPos, endPos, hit, entityRadius);
+    }
+
+    /**
+     * Resolves physical impact, velocity reflection, safe displacement, and audio/visual ripples for a verified hit.
+     */
+    public boolean handleCollisionHit(Entity entity, Vec3 startPos, Vec3 endPos, BarrierRaycastHit hit, double entityRadius) {
+        if (!isAlive() || !isActive()) return false;
+
+        UUID owner = getOwnerUUID().orElse(null);
+        if (!getFilterMode().isBlocked(entity, owner, whitelist)) {
+            return false; // Permitted, passes freely
+        }
+
+        if (hit == null || !hit.hit()) {
+            return false;
+        }
+
         Vec3 approachDir = endPos.subtract(startPos);
         if (approachDir.lengthSqr() < 1e-6) {
             approachDir = entity.getDeltaMovement();
         }
 
+        // --- One-Way Directional Valve ---
+        // Forward approach (Front -> Back, approachDir . normal <= 0) passes through freely without displacement or impulse.
+        // Reverse approach (Back -> Front, approachDir . normal > 0) triggers full elastic reflection.
+        if (isOneWay()) {
+            if (approachDir.lengthSqr() < 1e-6) {
+                Vec3 posRel = startPos.subtract(position());
+                if (posRel.dot(hit.surfaceNormal()) < 0.0) {
+                    // Stationary entity on reverse side is blocked, proceed to bounce/displacement
+                } else {
+                    return false; // Permitted on front side
+                }
+            } else if (approachDir.dot(hit.surfaceNormal()) <= 0.0) {
+                return false;
+            }
+        }
+
+        // --- Calculate Side-Relative Normal & Elastic Bounce ---
         Vec3 nEff = hit.getEffectiveNormal(approachDir);
-        double elasticity = (double) getBounceElasticity();
+        float rawElasticity = getBounceElasticity();
+        double elasticity = (!Float.isFinite(rawElasticity)) ? 1.0 : Math.max(0.0, (double) rawElasticity);
 
         Vec3 v = entity.getDeltaMovement();
         double dot = v.dot(nEff);
@@ -193,19 +310,21 @@ public class ForcefieldBarrierEntity extends Entity {
         entity.resetFallDistance();
         entity.hasImpulse = true;
 
-        // If projectile, update flight rotation
+        // If projectile, update flight heading and rotation
         if (entity instanceof Projectile projectile) {
             projectile.shoot(reflected.x, reflected.y, reflected.z, (float) reflected.length(), 0.0F);
         }
 
-        // Trigger audio chime and visual ripple effects
-        onBounceImpact(hit.impactPoint(), nEff);
+        // Trigger audio chime and visual ripple effects scaling with impact velocity
+        float speed = (float) Math.abs(dot);
+        float intensity = (float) Math.min(2.0, Math.max(0.2, speed * 0.1));
+        onBounceImpact(hit.impactPoint(), nEff, intensity);
 
         return true;
     }
 
-    public void onBounceImpact(Vec3 impactPos, Vec3 normal) {
-        // Play soap-film rebound sound
+    public void onBounceImpact(Vec3 impactPos, Vec3 normal, float intensity) {
+        // Play forcefield rebound sound
         this.level().playSound(
                 null,
                 impactPos.x, impactPos.y, impactPos.z,
@@ -220,7 +339,7 @@ public class ForcefieldBarrierEntity extends Entity {
             serverLevel.sendParticles(
                     ParticleTypes.END_ROD,
                     impactPos.x, impactPos.y, impactPos.z,
-                    12,
+                    Math.max(6, (int) (12 * intensity)),
                     normal.x * 0.1, normal.y * 0.1, normal.z * 0.1,
                     0.08
             );
@@ -231,7 +350,7 @@ public class ForcefieldBarrierEntity extends Entity {
                     (float) impactPos.x,
                     (float) impactPos.y,
                     (float) impactPos.z,
-                    1.0F
+                    intensity
             );
             for (ServerPlayer player : serverLevel.players()) {
                 if (player.distanceToSqr(impactPos) <= 64.0 * 64.0) {
@@ -239,8 +358,12 @@ public class ForcefieldBarrierEntity extends Entity {
                 }
             }
         } else {
-            addRipple(impactPos, 1.0F);
+            addRipple(impactPos, intensity);
         }
+    }
+
+    public void onBounceImpact(Vec3 impactPos, Vec3 normal) {
+        onBounceImpact(impactPos, normal, 1.0F);
     }
 
     public void addRipple(Vec3 pos, float intensity) {
@@ -251,13 +374,99 @@ public class ForcefieldBarrierEntity extends Entity {
         return activeRipples;
     }
 
-    public void dissolveInGlitter() {
-        if (this.level() instanceof ServerLevel serverLevel) {
-            Vec3 pos = this.position();
-            serverLevel.sendParticles(ParticleTypes.FIREWORK, pos.x, pos.y, pos.z, 50, 2.0, 2.0, 2.0, 0.15);
-            serverLevel.sendParticles(ParticleTypes.GLOW, pos.x, pos.y, pos.z, 30, 2.0, 2.0, 2.0, 0.1);
+    /**
+     * Dispels the barrier quietly on creator or creative operator manual action (e.g. left-click with Firmament Weaver).
+     * Plays a crisp, gentle bubble pop audio cue and subtle particle burst, completely decoupled from
+     * the celebratory boss defeat fanfare (UI_TOAST_CHALLENGE_COMPLETE).
+     *
+     * @param player The player dispelling the barrier, or null if triggered programmatically
+     */
+    public void dispelByCreator(@Nullable Player player) {
+        Level lvl = this.level();
+        Vec3 pos = this.position();
+
+        // 1. Crisp Bubble Pop Audio Cue (Decoupled from victory fanfare)
+        lvl.playSound(null, pos.x, pos.y, pos.z, net.minecraft.sounds.SoundEvents.BUBBLE_POP, SoundSource.PLAYERS, 1.0F, 1.2F);
+
+        // 2. Gentle Starlight & Smoke Puff Burst
+        if (lvl instanceof ServerLevel serverLevel) {
+            double spread = Math.min(1.0, Math.max(getWidth(), getRadius()) * 0.25);
+            double hSpread = Math.min(1.0, getHeight() * 0.25);
+            double centerY = pos.y + Math.min(1.0, getHeight() * 0.5);
+
+            serverLevel.sendParticles(ParticleTypes.POOF, pos.x, centerY, pos.z, 12, spread, hSpread, spread, 0.05);
+            serverLevel.sendParticles(ParticleTypes.END_ROD, pos.x, centerY, pos.z, 8, spread, hSpread, spread, 0.04);
         }
+
+        // 3. User Feedback Message
+        if (player != null) {
+            player.displayClientMessage(Component.literal("§7[Firmament Weaver] §fDispelled barrier."), true);
+        }
+
+        // 4. Entity Discard
         this.discard();
+    }
+
+    public void dissolveInGlitter() {
+        Level lvl = this.level();
+        Vec3 pos = this.position();
+
+        // 1. Acoustic Fanfare
+        lvl.playSound(null, pos.x, pos.y, pos.z, net.minecraft.sounds.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.MASTER, 1.2F, 1.0F);
+        lvl.playSound(null, pos.x, pos.y, pos.z, net.minecraft.sounds.SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 0.7F, 1.4F);
+        lvl.playSound(null, pos.x, pos.y, pos.z, net.minecraft.sounds.SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.5F, 1.2F);
+
+        // 2. Multi-Tier Celestial Particles
+        if (lvl instanceof ServerLevel serverLevel) {
+            double spread = Math.max(2.0, Math.max(getWidth(), getRadius()) * 0.5);
+            double hSpread = Math.max(1.5, getHeight() * 0.5);
+
+            // Tier 1: Core Flash & Fireworks
+            serverLevel.sendParticles(ColorParticleOption.create(ParticleTypes.FLASH, 1.0F, 1.0F, 1.0F), pos.x, pos.y + 1.0, pos.z, 2, 0.5, 0.5, 0.5, 0.0);
+            serverLevel.sendParticles(ParticleTypes.FIREWORK, pos.x, pos.y + 1.0, pos.z, 75, spread, hSpread, spread, 0.22);
+
+            // Tier 2: Radiating Starlight Beams & Totem Ascension
+            serverLevel.sendParticles(ParticleTypes.END_ROD, pos.x, pos.y + 1.0, pos.z, 50, spread, hSpread, spread, 0.12);
+            serverLevel.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, pos.x, pos.y + 0.5, pos.z, 40, spread, hSpread, spread, 0.25);
+
+            // Tier 3: Celestial Shimmer
+            serverLevel.sendParticles(ParticleTypes.GLOW, pos.x, pos.y + 1.0, pos.z, 50, spread, hSpread, spread, 0.05);
+        }
+
+        this.discard();
+    }
+
+    public static @Nullable Integer resolveColorTint(ItemStack held) {
+        if (held.isEmpty()) return null;
+        if (held.is(Items.WET_SPONGE)) {
+            return 0; // Cleanser signal
+        }
+        if (held.is(Items.POTION)) {
+            PotionContents contents = held.get(DataComponents.POTION_CONTENTS);
+            if (contents != null && contents.is(Potions.WATER)) {
+                return 0; // Cleanser signal
+            }
+        }
+        if (held.getItem() instanceof DyeItem dyeItem) {
+            return dyeItem.getDyeColor().getTextureDiffuseColor() & 0xFFFFFF;
+        }
+        if (held.getItem() instanceof SpectralDyeItem spectralDye) {
+            return spectralDye.getColor() & 0xFFFFFF;
+        }
+        String itemId = BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
+        if (itemId.contains("astral_crystal")) {
+            return 0x38BDF8;
+        }
+        if (itemId.contains("aeterium")) {
+            return 0x67E8F9;
+        }
+        if (itemId.contains("ignisite")) {
+            return 0xF59E0B;
+        }
+        if (itemId.contains("mortisite")) {
+            return 0xDC2626;
+        }
+        return null;
     }
 
     @Override
@@ -276,27 +485,87 @@ public class ForcefieldBarrierEntity extends Entity {
         }
 
         ItemStack held = player.getItemInHand(hand);
-        if (held.getItem() instanceof SoapFilmWeaverItem) {
-            if (isCreator || isCreative) {
-                if (player.isShiftKeyDown()) {
-                    BarrierFilterMode next = BarrierFilterMode.fromOrdinal((getFilterMode().ordinal() + 1) % BarrierFilterMode.values().length);
-                    setFilterMode(next);
-                    player.displayClientMessage(Component.literal("§d[Soap-Film Weaver] §fFilter updated: §e" + next.getDisplayName()), true);
-                } else {
-                    dissolveInGlitter();
-                    player.displayClientMessage(Component.literal("§7[Soap-Film Weaver] §fDispelled barrier."), true);
-                    this.level().playSound(null, getX(), getY(), getZ(), net.minecraft.sounds.SoundEvents.BUBBLE_POP, SoundSource.PLAYERS, 1.0F, 1.2F);
+
+        // 1. Materia and Dye Color Tinting / Cleansing
+        Integer newTint = resolveColorTint(held);
+        if (newTint != null) {
+            if (!isCreator && !isCreative) {
+                player.displayClientMessage(Component.literal("§cOnly the creator can dye this barrier!"), true);
+                return InteractionResult.CONSUME;
+            }
+
+            if (newTint == 0) {
+                // Reset to default iridescent sheen
+                setColorTint(null);
+                this.level().playSound(null, getX(), getY(), getZ(), net.minecraft.sounds.SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 1.0F, 1.2F);
+                player.displayClientMessage(Component.literal("§b[Firmament] §7Restored natural iridescent sheen."), true);
+            } else {
+                setColorTint(newTint);
+                if (!isCreative) {
+                    held.shrink(1);
                 }
-                return InteractionResult.SUCCESS;
+                this.level().playSound(null, getX(), getY(), getZ(), net.minecraft.sounds.SoundEvents.DYE_USE, SoundSource.PLAYERS, 1.0F, 1.2F);
+                player.displayClientMessage(Component.literal("§d[Firmament] §fAttuned Materia color tint."), true);
+
+                if (this.level() instanceof ServerLevel serverLevel) {
+                    float r = ((newTint >> 16) & 0xFF) / 255.0F;
+                    float g = ((newTint >> 8) & 0xFF) / 255.0F;
+                    float b = (newTint & 0xFF) / 255.0F;
+                    serverLevel.sendParticles(ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, r, g, b),
+                            getX(), getY(), getZ(), 25, Math.max(0.5, getWidth() * 0.3), Math.max(0.5, getHeight() * 0.3), Math.max(0.5, getWidth() * 0.3), 0.05);
+                }
+            }
+            return InteractionResult.SUCCESS;
+        }
+
+        // 2. Weaver Interaction
+        if (held.getItem() instanceof FirmamentWeaverItem) {
+            if (isCreator || isCreative) {
+                if (isBossEncounter() && !isCreative) {
+                    player.displayClientMessage(Component.literal("§cThis barrier is bound to an active Apex Predator and cannot be modified!"), true);
+                    return InteractionResult.CONSUME;
+                }
+
+                if (player.isShiftKeyDown()) {
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(
+                                serverPlayer,
+                                new dev.architectury.registry.menu.ExtendedMenuProvider() {
+                                    @Override
+                                    public void saveExtraData(FriendlyByteBuf buf) {
+                                        buf.writeVarInt(getId());
+                                        buf.writeVarInt(whitelistUsernames.size());
+                                        for (String u : whitelistUsernames) {
+                                            buf.writeUtf(u, 64);
+                                        }
+                                    }
+
+                                    @Override
+                                    public Component getDisplayName() {
+                                        return Component.literal("Barrier Configuration");
+                                    }
+
+                                    @Override
+                                    public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
+                                        return new BarrierConfigMenu(id, inv, ForcefieldBarrierEntity.this, new ArrayList<>(whitelistUsernames));
+                                    }
+                                }
+                        );
+                    }
+                    return InteractionResult.SUCCESS;
+                } else {
+                    player.displayClientMessage(Component.literal("§d[Firmament Weaver] §7Sneak + Right-Click to open Configuration GUI. Left-Click to dispel."), true);
+                    return InteractionResult.SUCCESS;
+                }
             } else {
                 player.displayClientMessage(Component.literal("§cOnly the creator can modify or dispel this barrier!"), true);
                 return InteractionResult.CONSUME;
             }
         }
 
+        // 3. Creator Sneak-Interact Info
         if (isCreator || isCreative) {
             if (player.isShiftKeyDown()) {
-                // Creator sneak-interact: open configuration info
                 player.displayClientMessage(Component.literal("§d[Barrier] §fShape: §b" + getShape().getDisplayName() + " §8| §fFilter: §e" + getFilterMode().getDisplayName()), true);
                 return InteractionResult.SUCCESS;
             }
@@ -308,14 +577,21 @@ public class ForcefieldBarrierEntity extends Entity {
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof Player player) {
-            if (player.getMainHandItem().getItem() instanceof SoapFilmWeaverItem) {
+            if (isBossEncounter() && !player.isCreative()) {
+                player.displayClientMessage(Component.literal("§cThe firmament barrier is bound to an active Apex Predator and cannot be dismantled!"), true);
+                level.playSound(null, getX(), getY(), getZ(), net.minecraft.sounds.SoundEvents.SHIELD_BLOCK, SoundSource.PLAYERS, 1.0F, 0.8F);
+                return false;
+            }
+
+            if (player.getMainHandItem().getItem() instanceof FirmamentWeaverItem) {
                 UUID owner = getOwnerUUID().orElse(null);
                 boolean isCreator = owner != null && owner.equals(player.getUUID());
                 if (isCreator || player.isCreative()) {
-                    dissolveInGlitter();
-                    player.displayClientMessage(Component.literal("§7[Soap-Film Weaver] §fDispelled barrier."), true);
-                    level.playSound(null, getX(), getY(), getZ(), net.minecraft.sounds.SoundEvents.BUBBLE_POP, SoundSource.PLAYERS, 1.0F, 1.2F);
+                    dispelByCreator(player);
                     return true;
+                } else {
+                    player.displayClientMessage(Component.literal("§cOnly the creator can modify or dispel this barrier!"), true);
+                    return false;
                 }
             }
         }
@@ -343,7 +619,8 @@ public class ForcefieldBarrierEntity extends Entity {
     }
 
     public void setWidth(float width) {
-        this.entityData.set(DATA_WIDTH, Math.max(0.5F, width));
+        float val = (!Float.isFinite(width)) ? 4.0F : Math.max(0.5F, width);
+        this.entityData.set(DATA_WIDTH, val);
         updateBoundingBox();
     }
 
@@ -352,7 +629,8 @@ public class ForcefieldBarrierEntity extends Entity {
     }
 
     public void setHeight(float height) {
-        this.entityData.set(DATA_HEIGHT, Math.max(0.5F, height));
+        float val = (!Float.isFinite(height)) ? 4.0F : Math.max(0.5F, height);
+        this.entityData.set(DATA_HEIGHT, val);
         updateBoundingBox();
     }
 
@@ -361,7 +639,8 @@ public class ForcefieldBarrierEntity extends Entity {
     }
 
     public void setRadius(float radius) {
-        this.entityData.set(DATA_RADIUS, Math.max(0.5F, radius));
+        float val = (!Float.isFinite(radius)) ? 4.0F : Math.max(0.5F, radius);
+        this.entityData.set(DATA_RADIUS, val);
         updateBoundingBox();
     }
 
@@ -386,7 +665,8 @@ public class ForcefieldBarrierEntity extends Entity {
     }
 
     public void setBounceElasticity(float elasticity) {
-        this.entityData.set(DATA_BOUNCE_ELASTICITY, Math.max(0.1F, Math.min(3.0F, elasticity)));
+        float val = (!Float.isFinite(elasticity)) ? 1.0F : Math.max(0.0F, Math.min(3.0F, elasticity));
+        this.entityData.set(DATA_BOUNCE_ELASTICITY, val);
     }
 
     public boolean isBossEncounter() {
@@ -423,6 +703,32 @@ public class ForcefieldBarrierEntity extends Entity {
         return whitelist;
     }
 
+    public List<String> getWhitelistUsernames() {
+        return Collections.unmodifiableList(this.whitelistUsernames);
+    }
+
+    public void setWhitelistUsernames(List<String> usernames, @Nullable MinecraftServer server) {
+        this.whitelistUsernames.clear();
+        this.whitelist.clear();
+        for (String name : usernames) {
+            String trimmed = name.trim();
+            if (!trimmed.isEmpty()) {
+                this.whitelistUsernames.add(trimmed);
+                UUID resolvedUUID = null;
+                if (server != null && server.getPlayerList() != null) {
+                    ServerPlayer online = server.getPlayerList().getPlayerByName(trimmed);
+                    if (online != null) {
+                        resolvedUUID = online.getUUID();
+                    }
+                }
+                if (resolvedUUID == null) {
+                    resolvedUUID = UUID.nameUUIDFromBytes(("OfflinePlayer:" + trimmed).getBytes(StandardCharsets.UTF_8));
+                }
+                this.whitelist.add(resolvedUUID);
+            }
+        }
+    }
+
     public void addWhitelist(UUID playerUUID) {
         whitelist.add(playerUUID);
     }
@@ -439,6 +745,43 @@ public class ForcefieldBarrierEntity extends Entity {
         this.bossEntityUUID = uuid;
     }
 
+    public boolean isActive() {
+        return this.entityData.get(DATA_IS_ACTIVE);
+    }
+
+    public void setActive(boolean active) {
+        this.entityData.set(DATA_IS_ACTIVE, active);
+    }
+
+    public boolean isOneWay() {
+        return this.entityData.get(DATA_ONE_WAY);
+    }
+
+    public void setOneWay(boolean oneWay) {
+        this.entityData.set(DATA_ONE_WAY, oneWay);
+    }
+
+    public @Nullable Integer getColorTint() {
+        int tint = this.entityData.get(DATA_COLOR_TINT);
+        return (tint != 0 && (tint & 0x00FFFFFF) != 0) ? tint : null;
+    }
+
+    public void setColorTint(@Nullable Integer colorTint) {
+        this.entityData.set(DATA_COLOR_TINT, colorTint != null ? colorTint : 0);
+    }
+
+    public int getColorTintRaw() {
+        return this.entityData.get(DATA_COLOR_TINT);
+    }
+
+    public int getRedstoneMode() {
+        return this.entityData.get(DATA_REDSTONE_MODE);
+    }
+
+    public void setRedstoneMode(int mode) {
+        this.entityData.set(DATA_REDSTONE_MODE, Math.max(0, Math.min(2, mode)));
+    }
+
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         setShape(BarrierShape.fromOrdinal(input.read("Shape", Codec.INT).orElse(0)));
@@ -449,6 +792,10 @@ public class ForcefieldBarrierEntity extends Entity {
         setPredatorTheme(ApexPredatorTheme.fromOrdinal(input.read("PredatorTheme", Codec.INT).orElse(0)));
         setBounceElasticity(input.read("Elasticity", Codec.FLOAT).orElse(1.25F));
         setBossEncounter(input.read("IsBossEncounter", Codec.BOOL).orElse(false));
+        setActive(input.read("IsActive", Codec.BOOL).orElse(true));
+        setOneWay(input.read("IsOneWay", Codec.BOOL).orElse(false));
+        setColorTint(input.read("ColorTint", Codec.INT).orElse(0));
+        setRedstoneMode(input.read("RedstoneMode", Codec.INT).orElse(0));
 
         input.read("OwnerUUID", Codec.STRING).ifPresent(str -> {
             try {
@@ -470,6 +817,10 @@ public class ForcefieldBarrierEntity extends Entity {
             } catch (Exception ignored) {}
         }
 
+        whitelistUsernames.clear();
+        List<String> uList = input.read("WhitelistUsernames", Codec.STRING.listOf()).orElse(List.of());
+        whitelistUsernames.addAll(uList);
+
         updateBoundingBox();
     }
 
@@ -483,6 +834,10 @@ public class ForcefieldBarrierEntity extends Entity {
         output.store("PredatorTheme", Codec.INT, getPredatorTheme().ordinal());
         output.store("Elasticity", Codec.FLOAT, getBounceElasticity());
         output.store("IsBossEncounter", Codec.BOOL, isBossEncounter());
+        output.store("IsActive", Codec.BOOL, isActive());
+        output.store("IsOneWay", Codec.BOOL, isOneWay());
+        output.store("ColorTint", Codec.INT, this.entityData.get(DATA_COLOR_TINT));
+        output.store("RedstoneMode", Codec.INT, getRedstoneMode());
 
         getOwnerUUID().ifPresent(uuid -> output.store("OwnerUUID", Codec.STRING, uuid.toString()));
         output.store("OwnerName", Codec.STRING, getOwnerName());
@@ -494,6 +849,10 @@ public class ForcefieldBarrierEntity extends Entity {
         if (!whitelist.isEmpty()) {
             List<String> list = whitelist.stream().map(UUID::toString).toList();
             output.store("Whitelist", Codec.STRING.listOf(), list);
+        }
+
+        if (!whitelistUsernames.isEmpty()) {
+            output.store("WhitelistUsernames", Codec.STRING.listOf(), new ArrayList<>(whitelistUsernames));
         }
     }
 }

@@ -8,13 +8,12 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 @Mixin(Entity.class)
-public class EntityMixin implements PersistentDataHolder {
+public class FabricEntityMixin implements PersistentDataHolder {
     @Unique
     private CompoundTag entropica$persistentData;
 

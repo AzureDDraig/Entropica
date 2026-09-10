@@ -1,21 +1,58 @@
 ## Build 000-1-26-253
 
-- **Soap-Film Forcefield Barriers**:
+- **Forcefield & Firmament Barriers**:
   - Added paper-thin, iridescent forcefield barriers that float in mid-air without occupying block space (you can place and build blocks freely through them).
-  - Supports multiple customizable shapes: flat rectangular walls, circular discs, hemispherical domes, spherical bubbles, and cylinders.
-  - Fully impenetrable with continuous collision detection—running, jumping, or flying into them never clips through, and bounces entities backward based on the side they approached from.
-  - Visuals shimmer like real soap bubbles with rainbow light effects, edge glows, and expanding wave ripples whenever anything strikes the barrier.
+  - Built a pluggable modular shape system supporting 6 shapes: flat rectangular walls, circular discs, hemispherical domes, spherical bubbles, cylindrical columns, and arbitrary convex polygons.
+  - Fully impenetrable with continuous swept collision detection—running, jumping, falling, or shooting fast arrows and fireballs into them never clips through, and bounces them cleanly away from the side they approached.
+  - Fast flight-path tracking intercepts high-speed arrows, tridents, and fireballs in mid-air and reflects them along realistic bounce angles.
+  - If a path crosses multiple shields, the game sorts them by distance and bounces off the closest shield first without skipping past.
+  - Shimmers like real celestial thin films with rainbow light effects, edge glows, and expanding wave ripples that grow larger the faster an object hits the shield.
+  - Added One-Way Directional Valve mode: walking through the front face lets you pass through freely, while approaching from behind acts as a solid elastic bounce wall, with drifting starlight arrows showing the open direction.
+  - Added Redstone and Materia switchability: barriers can be turned on or off using redstone signals (switches, buttons, wire), turning dormant, transparent, and collision-free when powered down.
+  - Boss arena barriers are invincible against survival player dismantling while the boss lives, and instantly dissolve in a brilliant starlight and musical chime fanfare when the boss is defeated.
+  - Added 6 custom procedural themes for the Apex Predators of Astral Materia: The Star Eater (black hole void with crimson tendrils), The Void Leviathan (abyssal azure tidal sheen), The Entropic Chimera (shifting fire/frost/lightning flux), The Defiler of Symmetries (non-Euclidean amethyst facets), The Unmaker of Forms (acidic bubbling chartreuse sludge), and The Silencer of Echoes (light-absorbing smoky obsidian).
+  - Added custom Materia color tinting so barriers can be tinted with dyes or crystals while preserving beautiful shifting highlights. Right-clicking with a wet sponge or water bottle resets the color to standard rainbow.
   - Supports permission filters to block everyone, only mobs, only players, hostile mobs, or flying projectiles.
-  - Integrates arena firmament domes for the 6 Apex Predators of Astral Materia from the Red Void, each featuring distinct colors, textures, and boundary runes.
 
-- **Soap-Film Weaver Tool**:
-  - Handheld wand to weave and dispel forcefields. Right-clicking creates a barrier; crouching and right-clicking cycles between shapes; clicking an existing barrier dispels it (creator or creative mode only) or updates permission filters.
+- **Barrier Hardening & Security Defenses**:
+  - Fixed shield boundary math so flying or jumping upward into dome shields and diagonal cylinder walls bounces you correctly instead of passing through.
+  - Blocked stationary and slow-moving creatures on the reverse side of one-way shields so they can never leak or squeeze through backwards.
+  - Protected bounce velocity calculations against invalid or negative values so players and mobs never get pinned or stuck in a jitter loop.
+  - Added strict network safeguards to stop bad data packets with broken numbers or oversized player lists from disabling barrier collision.
+  - Reinforced boss battle arenas so shields only dissolve when the real boss is defeated, not if friendly helpers or players fall in battle.
+  - Added a delay buffer to redstone switches so rapid clock pulses cannot flicker a shield off for a split second to let fast entities slip through.
+  - Locked in clean, reliable edge-fusing snapping when using the Firmament Weaver to connect shield walls together seamlessly.
+
+- **Firmament Weaver Tool & Hologram Utilities**:
+  - **Two-Point Drag & Snap ("Anchor & Stretch")**: Click once on any block or surface to drop a glowing anchor point (Point A). As you move, a starlight guide line and live preview box stretch out to your crosshair (Point B). Clicking again locks in the placement and spans a flat barrier wall between the two points to seal doorways and hallways. Crouching and right-clicking cancels the active anchor.
+  - **Shift + Mouse Wheel Shape Cycling**: Sneak and scroll your mouse wheel up or down while holding the Firmament Weaver to cycle forward and backward through all 6 barrier shapes. The in-world hologram updates instantly with audio feedback and syncs across the network, while regular hotbar slot scrolling is protected.
+  - **Seamless Edge-Fusing Snapping**: Barriers now automatically snap cleanly to nearby existing barriers within half a block (0.5m). Easily snap barriers flush end-to-end to build long walls, snap at 90-degree corners, snap at 45-degree angles, or stack them vertically on top of each other with zero gaps.
+  - **In-World Holographic Placement Preview**: Holding the Firmament Weaver projects a real-time starlight hologram showing the exact shape, size, and angle of the barrier before you place it. The hologram glows emerald green when snapping into place against another barrier, starlight cyan for standard placement, and crimson red if obstructed or out of reach.
+  - **Barrier Telemetry HUD**: Pointing the Firmament Weaver at any barrier within 16 blocks brings up a celestial telemetry card on screen. It displays the creator's name, shield shape and exact dimensions, permission filter, bounce elasticity, one-way flow direction, redstone mode, and active status.
+  - **Shape Cycling & Left-Click Quick Dispel**: Sneak and right-click or mouse scroll to cycle barrier shapes in your hand. Left-clicking an existing barrier you own instantly dispels it with a gentle, crisp bubble pop sound effect and subtle starlight puff, decoupled from boss battle victory fanfares. Right-clicking is safely reserved for tinting and configurations, preventing accidental deletion.
+  - **Materia Crystal & Dye Tinting**: Right-clicking a barrier with vanilla dyes or Materia crystals (Astral, Aeterium, Ignisite, Mortisite) tints the barrier while preserving its iridescent shine. Right-clicking with a wet sponge or water bottle cleans the barrier and resets it back to normal.
+
+- **Creator Configuration Screen & Network Synchronization**:
+  - Sneak and right-click any forcefield barrier you own with the Firmament Weaver to open the celestial creator configuration screen.
+  - Interactive shape and permission filter selectors let you cycle between all 6 barrier shapes and 5 entity filter modes directly from the menu.
+  - Smooth stepped sliders let you customize barrier width, height, and radius from 1 to 32 blocks (in half-block steps), and dial bounce springiness from soft cushion to high-velocity trampoline.
+  - Added one-way directional valve toggles and redstone switch mode buttons right inside the interface.
+  - Built-in player whitelist manager allows adding or removing permitted player usernames with text input and quick-delete so friends can walk through freely.
+  - Saves and applies settings instantly across the server with built-in security checks so only the shield's creator or creative players can modify them, while protecting boss arena shields against tampering.
 
 - **Graviton Bouncepad Block**:
   - Added a celestial spring bouncepad that launches players and mobs upward relative to whatever downward gravity they currently feel.
-  - Works consistently whether you are on normal floors, upside down on ceilings, walking around curved asteroids with a Gravity Center, or wall-running.
-  - Powering the bouncepad with redstone boosts launch height from ~10 blocks up to ~25 blocks high.
+  - Works consistently whether you are on normal floors, upside down on ceilings (launching downward into the room), walking around curved asteroids with a Gravity Center, or wall-running.
+  - Wall-mounted bouncepads launch players horizontally across chasms, and zero-gravity pads launch directly outward from the pad face.
+  - Smooth analogue redstone scaling: redstone power smoothly dials launch velocity from a gentle hop up to a massive 28-block launch.
+  - Added total landing fall damage protection: entities launched by bouncepads land safely with zero fall damage.
+  - Added mechanical recoil timing so pads compress cleanly without rapid-fire re-triggering or physics pinning.
   - Features animated pneumatic piston recoil, metallic launch sounds, and glowing sparkle bursts.
+
+- **Survival Crafting Recipes & Entropic Codex Progression**:
+  - Added shaped crafting recipes for the Firmament Weaver (using Arcanite ingots or End rods, Astral Crystals, and Starlight Lenses) and Graviton Bouncepad (using Arcanite or Resonite plates, Piston, and Graviton Core).
+  - Integrated research entries for the Firmament Weaver (under Magic) and Graviton Bouncepad (under Machinery) into the in-game Entropic Codex with detailed guides, prerequisites, and lore.
+  - Added full in-game translations (`en_us.json`) for all barrier settings, telemetry HUD readouts, bouncepad tooltips, and codex entries.
 
 - **Gravity & Barrier Debug Commands**:
   - Added `/entropica gravity` commands to view, set, reset, or invert personal gravity and spawn test fields.
@@ -40,6 +77,13 @@
   - Fixed the crystal facet mesh so outer walls are completely solid, brilliant, and opaque from the outside instead of appearing see-through or inverted.
   - Connected crystal rings with seamless, watertight corners to eliminate cracks and gaps along mesh seams.
   - Added dynamic, custom hitboxes for all 4 crystal growth stages (Small Bud, Medium Bud, Large Bud, and Cluster) that match their actual spires and shapes across floors, walls, and ceilings.
+
+- **Multi-Loader Verification & Dev Deployment**:
+  - Verified 0-error build across Architectury Common, Fabric, and NeoForge modules with 100% test suite pass rate.
+  - Built and deployed fresh jar files to both Fabric and NeoForge dev test instances.
+  - Synchronized complete OKF documentation in the Obsidian Vault.
+
+
 
 ## Build 000-1-26-252
 

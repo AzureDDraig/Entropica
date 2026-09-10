@@ -17,6 +17,9 @@ public class GeneratorClientEvents {
 
     @SubscribeEvent
     public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
+        if (event.isCanceled()) {
+            return;
+        }
         Minecraft mc = Minecraft.getInstance();
 
         if (mc.player != null && mc.player.isShiftKeyDown()) {

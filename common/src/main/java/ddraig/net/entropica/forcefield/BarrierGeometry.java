@@ -26,14 +26,9 @@ public class BarrierGeometry {
             Vec3 rayEnd,
             double entityRadius
     ) {
-        return switch (shape) {
-            case PLANAR_QUAD -> intersectPlanarQuad(center, yRot, xRot, width, height, rayStart, rayEnd, entityRadius);
-            case CIRCULAR_DISC -> intersectCircularDisc(center, yRot, xRot, radius, rayStart, rayEnd, entityRadius);
-            case HEMISPHERICAL_DOME -> intersectDome(center, radius, rayStart, rayEnd, entityRadius);
-            case SPHERICAL_BUBBLE -> intersectSphere(center, radius, rayStart, rayEnd, entityRadius);
-            case CYLINDER -> intersectCylinder(center, radius, height, rayStart, rayEnd, entityRadius);
-            case CONVEX_POLYGON -> intersectPlanarQuad(center, yRot, xRot, width, height, rayStart, rayEnd, entityRadius);
-        };
+        return BarrierShapeRegistry.get(shape.ordinal()).intersect(
+                center, yRot, xRot, width, height, radius, rayStart, rayEnd, entityRadius, null
+        );
     }
 
     /**
@@ -67,6 +62,10 @@ public class BarrierGeometry {
             Vec3 rayEnd,
             double entityRadius
     ) {
+        if (width <= 1e-4F || height <= 1e-4F) {
+            return BarrierRaycastHit.MISS;
+        }
+
         Vec3 normal = getNormal(yRot, xRot);
         Vec3 tangent = getTangent(yRot);
         Vec3 bitangent = normal.cross(tangent).normalize();
@@ -112,6 +111,10 @@ public class BarrierGeometry {
             Vec3 rayEnd,
             double entityRadius
     ) {
+        if (radius <= 1e-6F) {
+            return BarrierRaycastHit.MISS;
+        }
+
         Vec3 normal = getNormal(yRot, xRot);
         Vec3 d = rayEnd.subtract(rayStart);
         double denom = d.dot(normal);
@@ -139,6 +142,7 @@ public class BarrierGeometry {
 
     /**
      * Hemispherical Dome (Upper hemisphere oriented +Y).
+     * Hardened against under-approach blind spot by checking t2 when t1 is below equator (V2).
      */
     public static BarrierRaycastHit intersectDome(
             Vec3 center,
@@ -147,10 +151,53 @@ public class BarrierGeometry {
             Vec3 rayEnd,
             double entityRadius
     ) {
-        BarrierRaycastHit sphereHit = intersectSphere(center, radius, rayStart, rayEnd, entityRadius);
-        if (sphereHit.hit() && sphereHit.impactPoint().y >= center.y - entityRadius) {
-            return sphereHit;
+        if (radius <= 1e-6F) {
+            return BarrierRaycastHit.MISS;
         }
+
+        Vec3 d = rayEnd.subtract(rayStart);
+        Vec3 oc = rayStart.subtract(center);
+
+        double effRadius = radius + entityRadius;
+        double a = d.lengthSqr();
+        if (a < EPSILON) {
+            return BarrierRaycastHit.MISS;
+        }
+
+        double b = 2.0 * oc.dot(d);
+        double c = oc.lengthSqr() - (effRadius * effRadius);
+        double discriminant = (b * b) - (4.0 * a * c);
+
+        if (discriminant < 0.0) {
+            return BarrierRaycastHit.MISS;
+        }
+
+        double sqrtDisc = Math.sqrt(discriminant);
+        double t1 = (-b - sqrtDisc) / (2.0 * a);
+        double t2 = (-b + sqrtDisc) / (2.0 * a);
+
+        double minY = center.y - entityRadius;
+
+        // Test earliest root t1 first
+        if (t1 >= 0.0 && t1 <= 1.0) {
+            Vec3 impact1 = rayStart.add(d.scale(t1));
+            if (impact1.y >= minY) {
+                Vec3 normal = impact1.subtract(center).normalize();
+                boolean fromFront = d.dot(normal) < 0.0;
+                return new BarrierRaycastHit(true, t1, impact1, normal, fromFront);
+            }
+        }
+
+        // If t1 did not hit upper hemisphere canopy, test root t2 (e.g. upward approach from below)
+        if (t2 >= 0.0 && t2 <= 1.0) {
+            Vec3 impact2 = rayStart.add(d.scale(t2));
+            if (impact2.y >= minY) {
+                Vec3 normal = impact2.subtract(center).normalize();
+                boolean fromFront = d.dot(normal) < 0.0;
+                return new BarrierRaycastHit(true, t2, impact2, normal, fromFront);
+            }
+        }
+
         return BarrierRaycastHit.MISS;
     }
 
@@ -164,6 +211,10 @@ public class BarrierGeometry {
             Vec3 rayEnd,
             double entityRadius
     ) {
+        if (radius <= 1e-6F) {
+            return BarrierRaycastHit.MISS;
+        }
+
         Vec3 d = rayEnd.subtract(rayStart);
         Vec3 oc = rayStart.subtract(center);
 
@@ -204,6 +255,7 @@ public class BarrierGeometry {
 
     /**
      * Cylinder Column Intersection.
+     * Hardened against diagonal entry blind spots by evaluating both roots against height bounds (V3).
      */
     public static BarrierRaycastHit intersectCylinder(
             Vec3 center,
@@ -213,6 +265,10 @@ public class BarrierGeometry {
             Vec3 rayEnd,
             double entityRadius
     ) {
+        if (radius <= 1e-6F || height <= 1e-6F) {
+            return BarrierRaycastHit.MISS;
+        }
+
         Vec3 d = rayEnd.subtract(rayStart);
         double dx = d.x;
         double dz = d.z;
@@ -237,21 +293,26 @@ public class BarrierGeometry {
         double t1 = (-b - sqrtDisc) / (2.0 * a);
         double t2 = (-b + sqrtDisc) / (2.0 * a);
 
-        double t = -1.0;
+        double minY = center.y;
+        double maxY = center.y + height;
+
+        // Test earliest root t1 first
         if (t1 >= 0.0 && t1 <= 1.0) {
-            t = t1;
-        } else if (t2 >= 0.0 && t2 <= 1.0) {
-            t = t2;
+            Vec3 impact1 = rayStart.add(d.scale(t1));
+            if (impact1.y >= minY && impact1.y <= maxY) {
+                Vec3 normal = new Vec3(impact1.x - center.x, 0.0, impact1.z - center.z).normalize();
+                boolean fromFront = d.dot(normal) < 0.0;
+                return new BarrierRaycastHit(true, t1, impact1, normal, fromFront);
+            }
         }
 
-        if (t >= 0.0) {
-            Vec3 impact = rayStart.add(d.scale(t));
-            double minY = center.y;
-            double maxY = center.y + height;
-            if (impact.y >= minY && impact.y <= maxY) {
-                Vec3 normal = new Vec3(impact.x - center.x, 0.0, impact.z - center.z).normalize();
+        // If t1 was outside height bounds (e.g. diagonal grazing ray), test root t2
+        if (t2 >= 0.0 && t2 <= 1.0) {
+            Vec3 impact2 = rayStart.add(d.scale(t2));
+            if (impact2.y >= minY && impact2.y <= maxY) {
+                Vec3 normal = new Vec3(impact2.x - center.x, 0.0, impact2.z - center.z).normalize();
                 boolean fromFront = d.dot(normal) < 0.0;
-                return new BarrierRaycastHit(true, t, impact, normal, fromFront);
+                return new BarrierRaycastHit(true, t2, impact2, normal, fromFront);
             }
         }
 

@@ -20,6 +20,10 @@ public record BarrierRaycastHit(
 ) {
     public static final BarrierRaycastHit MISS = new BarrierRaycastHit(false, 1.0, Vec3.ZERO, Vec3.ZERO, true);
 
+    public static BarrierRaycastHit miss() {
+        return MISS;
+    }
+
     /**
      * Calculates the effective normal pointing back toward the approaching entity,
      * ensuring proper side-of-approach bounce physics.

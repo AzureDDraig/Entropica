@@ -369,6 +369,24 @@ public class CodexCategoryRegistry {
                 360f, 0.0f, a_mach + 0.10f, false
         ));
 
+        ALL_NODES.add(new CodexNode(
+                "graviton_bouncepad", "Graviton Bouncepad", "MACHINERY",
+                "Omnidirectional kinetic launch pad utilizing localized anti-gravity impulses with fall-damage immunity and redstone scaling.",
+                "Overview & Description:\n" +
+                "The Graviton Bouncepad is a compact technomantic kinetic propulsion machine encased in heavy Arcanite plating. When stepped upon by players, mobs, or propelled objects, it instantly neutralizes incoming kinetic energy and discharges an upward anti-gravitational shockwave.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled in a crafting table using a Heavy Weighted Pressure Plate, Slime Block, and Arcanite Ingots.\n\n" +
+                "Kinetic Mechanics & Parity:\n" +
+                "▪ Omnidirectional Mounting: Can be placed flush against floors, vertical walls, or suspended overhead from ceilings, adapting its launch orientation accordingly.\n" +
+                "▪ Gravity-Relative Upward Launch: Evaluates the entity's current local gravity vector (accounting for inverted, lunar, or planetary gravity wells) and launches in the entity's relative upward direction (-g).\n" +
+                "▪ Analogue Redstone Scaling: Connecting redstone dust scales the kinetic launch impulse dynamically from level 0 (base impulse) up to level 15 (extreme high-velocity ejection).\n\n" +
+                "Special Properties:\n" +
+                "Grants complete kinetic fall damage immunity on landing, preventing injury regardless of launch velocity or fall height. Synergizes with Graviton Soles and Forcefield Barriers for advanced traversal courses.",
+                "hub_machinery", 0, new ItemStack(ModBlocks.GRAVITON_BOUNCEPAD.get()),
+                280f, 0.0f, a_mach - 0.20f, false
+        ));
+
+
 
         // ==========================================
         // 5. MULTIBLOCKS (Yellow Ring)
@@ -1945,7 +1963,27 @@ public class CodexCategoryRegistry {
                 "hub_magic", 2, new ItemStack(ModItems.GEMINI_FOCUS_HORN.get()),
                 340f, 0.0f, a_magic + 0.35f, false
         ));
+
+        ALL_NODES.add(new CodexNode(
+                "firmament_weaver", "Firmament Weaver & Forcefield Barriers", "MAGIC",
+                "Celestial tool for weaving customizable iridescent forcefield barriers, elastic deflectors, and directional one-way valves.",
+                "Overview & Description:\n" +
+                "The Firmament Weaver is an advanced celestial focus wand used to manipulate localized spacetime fabrics into paper-thin, non-block forcefield barriers. Rather than occupying bulky block voxels, firmament membranes coexist freely in world-space, allowing blocks and machinery to pass through them while presenting an impenetrable barrier to unauthorized entities and high-velocity projectiles.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted at a crafting table using an Astral Crystal, Materia Crystals, and Astral Silver Rods.\n\n" +
+                "Weaving & Barrier Operations:\n" +
+                "▪ Two-Point Drag & Snap: Right-click Point A to set an anchor beacon, then right-click Point B across an opening to automatically calculate dimensions and span a planar barrier flush with the frame.\n" +
+                "▪ 0.5m Edge-Fusing: Placing adjacent barriers within 0.5 blocks automatically snaps border vertices together seamlessly, eliminating visual seams and z-fighting.\n" +
+                "▪ Configuration GUI: Sneak + Right-Click an existing barrier while holding the Weaver to open the Celestial Configuration Screen, modifying shape, filter modes, dimensions, elasticity, redstone response, and whitelist access.\n" +
+                "▪ Holographic Preview: Holding the Weaver projects a real-time, shimmering wireframe outline showing exact in-world placement before commitment.\n" +
+                "▪ Quick Dispel: Left-click a placed barrier as creator to instantly dissipate it into sparkling starlight bubbles.\n\n" +
+                "Special Properties & Physics:\n" +
+                "Features Continuous Swept Collision Detection (CCD) preventing projectile tunneling, side-of-approach elastic reflection, drifting starlight arrow directional valves, redstone & Materia switchability, dye/crystal color tinting, and Apex Predator boss arena protection.",
+                "hub_magic", 1, new ItemStack(ModItems.FIRMAMENT_WEAVER.get()),
+                280f, 0.0f, a_magic + 0.16f, false
+        ));
     }
+
 
     public static CodexNode getNodeById(String id) {
         for (CodexNode node : ALL_NODES) {

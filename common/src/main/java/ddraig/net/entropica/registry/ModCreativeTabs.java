@@ -173,7 +173,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.GRAVITON_SOLES.get());
                 output.accept(ModItems.INERTIAL_ANCHOR_AMULET.get());
                 output.accept(ModItems.SINGULARITY_GRENADE.get());
-                output.accept(ModItems.SOAP_FILM_WEAVER.get());
+                output.accept(ModItems.FIRMAMENT_WEAVER.get());
                 output.accept(ModBlocks.GRAVITON_BOUNCEPAD.get());
             }).build());
 

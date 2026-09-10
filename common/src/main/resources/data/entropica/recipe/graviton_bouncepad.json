@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": [
+      {
+        "item": "entropica:resonite_plate"
+      },
+      {
+        "item": "entropica:arcanite_plate"
+      },
+      {
+        "item": "entropica:arcanite_plating"
+      }
+    ],
+    "S": [
+      {
+        "item": "minecraft:piston"
+      },
+      {
+        "item": "entropica:resonite_piston"
+      }
+    ],
+    "G": [
+      {
+        "item": "entropica:gravitational_anchor"
+      },
+      {
+        "item": "entropica:gravity_center"
+      }
+    ]
+  },
+  "pattern": [
+    "PPP",
+    " S ",
+    " G "
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:graviton_bouncepad"
+  }
+}
