@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -51,6 +52,7 @@ public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandl
     }
 
     protected int radius = 16;
+    protected final ResourceLocation fieldId;
     protected EssenceType storedType = null;
     protected int storedAmount = 0;
     protected int consumptionTicker = 0;
@@ -68,6 +70,7 @@ public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandl
 
     public GravityCenterBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.GRAVITY_CENTER_BE.get(), pos, state);
+        this.fieldId = ResourceLocation.fromNamespaceAndPath("entropica", "gravity_center_" + pos.getX() + "_" + pos.getY() + "_" + pos.getZ());
         if (state.hasProperty(GravityCenterBlock.RADIUS_LEVEL)) {
             this.radius = GravityCenterBlock.getRadiusForLevel(state.getValue(GravityCenterBlock.RADIUS_LEVEL));
         }
@@ -75,6 +78,7 @@ public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandl
 
     public GravityCenterBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+        this.fieldId = ResourceLocation.fromNamespaceAndPath("entropica", "gravity_center_" + pos.getX() + "_" + pos.getY() + "_" + pos.getZ());
         if (state.hasProperty(GravityCenterBlock.RADIUS_LEVEL)) {
             this.radius = GravityCenterBlock.getRadiusForLevel(state.getValue(GravityCenterBlock.RADIUS_LEVEL));
         }
@@ -175,29 +179,44 @@ public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandl
                 Vec3 toCenter = center.subtract(entityCenter);
                 double dist = toCenter.length();
 
-                if (dist > 0.35 && dist <= radius) {
+                if (dist > 0.2 && dist <= radius) {
+                    // 1. Override natural downward gravity to 0.0 inside the field
+                    GravityApi.setGravity(entity, this.fieldId, GravityApi.ZERO_GRAVITY);
+
+                    // 2. Apply pure radial gravity towards the core (calibrated so jump is natural)
                     Vec3 pullDir = toCenter.normalize();
                     double accel = 0.065;
                     Vec3 pull = pullDir.scale(accel);
 
                     entity.setDeltaMovement(entity.getDeltaMovement().add(pull));
                     entity.resetFallDistance();
-                    entity.hurtMarked = true;
+                    entity.hasImpulse = true;
 
-                    // Southern hemisphere / underside 180° inversion for players walking around the core
-                    if (entity instanceof Player player) {
-                        if (player.getY() < center.y - 0.45) {
-                            if (!GravityApi.SOLES_INVERTED_ENTITIES.contains(player.getUUID())) {
-                                GravityApi.SOLES_INVERTED_ENTITIES.add(player.getUUID());
-                                GravityApi.setGravity(player, GravityApi.INVERTED_GRAVITY);
-                            }
-                        } else if (player.getY() > center.y + 0.45) {
-                            if (GravityApi.SOLES_INVERTED_ENTITIES.contains(player.getUUID()) && !GravityApi.hasGravitonSoles(player)) {
-                                GravityApi.SOLES_INVERTED_ENTITIES.remove(player.getUUID());
-                                GravityApi.resetGravity(player);
-                            }
+                    // 3. Stable Orientation Inversion with hysteresis & debounce
+                    if (entity instanceof Player player && !GravityApi.hasGravitonSoles(player)) {
+                        long gameTime = level.getGameTime();
+                        Long cd = GravityApi.SOLES_FLIP_COOLDOWN.get(player.getUUID());
+                        boolean offCooldown = (cd == null || gameTime >= cd);
+
+                        if (pullDir.y > 0.45 && !GravityApi.isInverted(player) && offCooldown) {
+                            GravityApi.SOLES_FLIP_COOLDOWN.put(player.getUUID(), gameTime + 15L);
+                            GravityApi.SOLES_INVERTED_ENTITIES.add(player.getUUID());
+                            GravityApi.setGravity(player, GravityApi.INVERTED_GRAVITY);
+                        } else if (pullDir.y < -0.20 && GravityApi.isInverted(player) && offCooldown) {
+                            GravityApi.SOLES_FLIP_COOLDOWN.put(player.getUUID(), gameTime + 15L);
+                            GravityApi.SOLES_INVERTED_ENTITIES.remove(player.getUUID());
+                            GravityApi.resetGravity(player);
                         }
                     }
+                }
+            }
+
+            // Cleanup: reset natural gravity for entities that moved beyond radius
+            AABB outerArea = new AABB(pos).inflate(radius + 6);
+            List<LivingEntity> outerEntities = level.getEntitiesOfClass(LivingEntity.class, outerArea);
+            for (LivingEntity entity : outerEntities) {
+                if (entity.position().distanceTo(center) > radius) {
+                    GravityApi.resetGravity(entity, this.fieldId);
                 }
             }
 
@@ -208,6 +227,7 @@ public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandl
                     if (getAffectingCenter(level, player.position()) == null) {
                         GravityApi.SOLES_INVERTED_ENTITIES.remove(uuid);
                         GravityApi.resetGravity(player);
+                        GravityApi.resetGravity(player, this.fieldId);
                     }
                 }
             }
@@ -349,6 +369,11 @@ public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandl
     public void setRemoved() {
         ACTIVE_CENTERS.remove(this);
         if (level != null && !level.isClientSide()) {
+            AABB fieldArea = new AABB(worldPosition).inflate(radius + 8);
+            List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, fieldArea);
+            for (LivingEntity entity : entities) {
+                GravityApi.resetGravity(entity, this.fieldId);
+            }
             for (java.util.UUID uuid : GravityApi.SOLES_INVERTED_ENTITIES) {
                 Player player = level.getPlayerByUUID(uuid);
                 if (player != null && !GravityApi.hasGravitonSoles(player)) {

@@ -50,7 +50,7 @@ public class AstralCrystalMesh {
     };
 
     public static RenderType getRenderType() {
-        return RenderType.entityCutout(CRYSTAL_TEXTURE);
+        return RenderType.entityCutoutNoCull(CRYSTAL_TEXTURE);
     }
 
     // ─────────────────── Cluster / Bud Rendering ───────────────────
@@ -154,47 +154,55 @@ public class AstralCrystalMesh {
                                                 int seed, int light, int overlay, double time) {
         int ringCount = ringY.length;
 
+        // Precompute ring vertices with periodic angular noise to guarantee watertight, zero-gap seams
+        float[][][] ringVerts = new float[ringCount][SIDES + 1][2]; // [ring][side][0=x, 1=z]
+        for (int ring = 0; ring < ringCount; ring++) {
+            float rad = ringRadius[ring];
+            float rotOff = ringRot[ring];
+            if (rad < 0.001f) {
+                for (int side = 0; side <= SIDES; side++) {
+                    ringVerts[ring][side][0] = 0.0f;
+                    ringVerts[ring][side][1] = 0.0f;
+                }
+            } else {
+                for (int side = 0; side <= SIDES; side++) {
+                    float angle = (float) (2.0 * Math.PI * (side % SIDES) / SIDES);
+                    float totalAngle = angle + (float) Math.toRadians(rotOff);
+                    float cosA = (float) Math.cos(totalAngle);
+                    float sinA = (float) Math.sin(totalAngle);
+                    // Circular periodic noise ensuring seamless continuous wrap around the prism
+                    float noise = simplexNoise2D(cosA * 1.5f + seed * 0.1f, sinA * 1.5f + ring * 0.8f + (float) (time * 0.003)) * 0.015f;
+                    float effectiveRad = Math.max(0.001f, rad + noise);
+                    ringVerts[ring][side][0] = cosA * effectiveRad;
+                    ringVerts[ring][side][1] = sinA * effectiveRad;
+                }
+            }
+        }
+
         for (int ring = 0; ring < ringCount - 1; ring++) {
             float y0 = ringY[ring];
             float y1 = ringY[ring + 1];
             float rad0 = ringRadius[ring];
             float rad1 = ringRadius[ring + 1];
-            float rotOff0 = ringRot[ring];
-            float rotOff1 = ringRot[ring + 1];
 
             // Height-based subtle brightness gradient for crystal depth
             float heightFactor = 0.85f + 0.15f * ((y0 - ringY[0]) / Math.max(0.001f, ringY[ringCount - 1] - ringY[0]));
 
             for (int side = 0; side < SIDES; side++) {
-                float angle0 = (float) (2.0 * Math.PI * side / SIDES);
-                float angle1 = (float) (2.0 * Math.PI * (side + 1) / SIDES);
+                int nextSide = side + 1;
 
-                float a0_bot = angle0 + (float) Math.toRadians(rotOff0);
-                float a1_bot = angle1 + (float) Math.toRadians(rotOff0);
-                float a0_top = angle0 + (float) Math.toRadians(rotOff1);
-                float a1_top = angle1 + (float) Math.toRadians(rotOff1);
+                // Shared watertight vertices
+                float x0 = ringVerts[ring][side][0];
+                float z0 = ringVerts[ring][side][1];
+                float x1 = ringVerts[ring][nextSide][0];
+                float z1 = ringVerts[ring][nextSide][1];
+                float x2 = ringVerts[ring + 1][nextSide][0];
+                float z2 = ringVerts[ring + 1][nextSide][1];
+                float x3 = ringVerts[ring + 1][side][0];
+                float z3 = ringVerts[ring + 1][side][1];
 
-                // Per-vertex micro-displacement using simplex noise for natural jagged faceting
-                float noise0 = simplexNoise2D(side * 2.1f + ring * 0.9f + seed, (float) (time * 0.003)) * 0.018f;
-                float noise1 = simplexNoise2D((side + 1) * 2.1f + ring * 0.9f + seed, (float) (time * 0.003)) * 0.018f;
-                float noise2 = simplexNoise2D((side + 1) * 2.1f + (ring + 1) * 0.9f + seed, (float) (time * 0.003)) * 0.018f;
-                float noise3 = simplexNoise2D(side * 2.1f + (ring + 1) * 0.9f + seed, (float) (time * 0.003)) * 0.018f;
-
-                // Bottom-left
-                float x0 = (float) Math.cos(a0_bot) * (rad0 + noise0);
-                float z0 = (float) Math.sin(a0_bot) * (rad0 + noise0);
-                // Bottom-right
-                float x1 = (float) Math.cos(a1_bot) * (rad1 + noise1);
-                float z1 = (float) Math.sin(a1_bot) * (rad1 + noise1);
-                // Top-right
-                float x2 = (float) Math.cos(a1_top) * (rad1 + noise2);
-                float z2 = (float) Math.sin(a1_top) * (rad1 + noise2);
-                // Top-left
-                float x3 = (float) Math.cos(a0_top) * (rad1 + noise3);
-                float z3 = (float) Math.sin(a0_top) * (rad1 + noise3);
-
-                // Compute exact face normal
-                Vector3f normal = computeFaceNormal(x0, y0, z0, x1, y0, z1, x2, y1, z2);
+                // Compute exact outward face normal
+                Vector3f normal = computeFaceNormal(x0, y0, z0, x1, y0, z1, x3, y1, z3);
 
                 // Directional diffuse shading simulation + per-facet sparkle hash
                 float diffuse = Math.max(0.65f, Math.min(1.0f, normal.y() * 0.20f + 0.80f));
@@ -208,21 +216,21 @@ public class AstralCrystalMesh {
                 if (rad0 < 0.001f) {
                     // Bottom tip triangle fan
                     emitVertex(matrix, consumer, 0.0f, y0, 0.0f, 0.5f, 0.5f, shade, shade, shade, light, overlay, normal);
+                    emitVertex(matrix, consumer, x3, y1, z3, uvs[3][0], uvs[3][1], shade, shade, shade, light, overlay, normal);
                     emitVertex(matrix, consumer, x2, y1, z2, uvs[2][0], uvs[2][1], shade, shade, shade, light, overlay, normal);
-                    emitVertex(matrix, consumer, x3, y1, z3, uvs[3][0], uvs[3][1], shade, shade, shade, light, overlay, normal);
-                    emitVertex(matrix, consumer, x3, y1, z3, uvs[3][0], uvs[3][1], shade, shade, shade, light, overlay, normal);
+                    emitVertex(matrix, consumer, x2, y1, z2, uvs[2][0], uvs[2][1], shade, shade, shade, light, overlay, normal);
                 } else if (rad1 < 0.001f) {
                     // Top tip triangle fan
                     emitVertex(matrix, consumer, x0, y0, z0, uvs[0][0], uvs[0][1], shade, shade, shade, light, overlay, normal);
+                    emitVertex(matrix, consumer, 0.0f, y1, 0.0f, 0.5f, 0.5f, shade, shade, shade, light, overlay, normal);
                     emitVertex(matrix, consumer, x1, y0, z1, uvs[1][0], uvs[1][1], shade, shade, shade, light, overlay, normal);
-                    emitVertex(matrix, consumer, 0.0f, y1, 0.0f, 0.5f, 0.5f, shade, shade, shade, light, overlay, normal);
-                    emitVertex(matrix, consumer, 0.0f, y1, 0.0f, 0.5f, 0.5f, shade, shade, shade, light, overlay, normal);
+                    emitVertex(matrix, consumer, x1, y0, z1, uvs[1][0], uvs[1][1], shade, shade, shade, light, overlay, normal);
                 } else {
-                    // Regular quad facet
+                    // Regular quad facet: outward CCW order
                     emitVertex(matrix, consumer, x0, y0, z0, uvs[0][0], uvs[0][1], shade, shade, shade, light, overlay, normal);
-                    emitVertex(matrix, consumer, x1, y0, z1, uvs[1][0], uvs[1][1], shade, shade, shade, light, overlay, normal);
-                    emitVertex(matrix, consumer, x2, y1, z2, uvs[2][0], uvs[2][1], shade, shade, shade, light, overlay, normal);
                     emitVertex(matrix, consumer, x3, y1, z3, uvs[3][0], uvs[3][1], shade, shade, shade, light, overlay, normal);
+                    emitVertex(matrix, consumer, x2, y1, z2, uvs[2][0], uvs[2][1], shade, shade, shade, light, overlay, normal);
+                    emitVertex(matrix, consumer, x1, y0, z1, uvs[1][0], uvs[1][1], shade, shade, shade, light, overlay, normal);
                 }
             }
         }
@@ -244,15 +252,19 @@ public class AstralCrystalMesh {
 
     private static Vector3f computeFaceNormal(float x0, float y0, float z0,
                                              float x1, float y1, float z1,
-                                             float x2, float y2, float z2) {
-        float ux = x1 - x0, uy = y1 - y0, uz = z1 - z0;
-        float vx = x2 - x0, vy = y2 - y0, vz = z2 - z0;
+                                             float x3, float y3, float z3) {
+        float vx = x1 - x0, vy = 0.0f, vz = z1 - z0;
+        float ux = x3 - x0, uy = y3 - y0, uz = z3 - z0;
         Vector3f normal = new Vector3f(
                 uy * vz - uz * vy,
                 uz * vx - ux * vz,
                 ux * vy - uy * vx
         );
-        normal.normalize();
+        if (normal.lengthSquared() > 1e-6f) {
+            normal.normalize();
+        } else {
+            normal.set(0.0f, 1.0f, 0.0f);
+        }
         return normal;
     }
 

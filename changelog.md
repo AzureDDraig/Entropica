@@ -1,3 +1,25 @@
+## Build 000-1-26-253
+
+- **Gravity Center Core Improvements**:
+  - The Gravity Center now completely overrides standard downward gravity within its radius, so its center is the only direction of gravity.
+  - Calibrated the inward pull strength and fixed player jumping so you can jump at full, normal height even when right next to or on top of the core.
+  - Stabilized player orientation around the core with a smooth transition zone, preventing rapid back-and-forth gravity flipping and camera jitter.
+  - Automatically resets player gravity back to normal when stepping outside the active field or breaking the core.
+
+- **Graviton Soles Wall Walking & Smooth Rotation**:
+  - Removed downward sliding when running horizontally along walls with Graviton Soles equipped.
+  - The camera now smoothly tilts 90 degrees when you run along walls, aligning your view with the wall surface so it feels like a floor.
+  - In third-person view, your character model smoothly rotates 90 degrees against the wall face so your feet touch the wall.
+  - Looking and moving up or jumping lets you climb up, while looking down or moving backward lets you climb down smoothly.
+
+- **Illuminated Balustrade Diagonal Gap Fix**:
+  - Extended the bottom stone base rails down to floor level on diagonal stair handrails, completely eliminating the empty air gap under the railing on stairs.
+
+- **Astral Crystal Appearance & Hitbox Polish**:
+  - Fixed the crystal facet mesh so outer walls are completely solid, brilliant, and opaque from the outside instead of appearing see-through or inverted.
+  - Connected crystal rings with seamless, watertight corners to eliminate cracks and gaps along mesh seams.
+  - Added dynamic, custom hitboxes for all 4 crystal growth stages (Small Bud, Medium Bud, Large Bud, and Cluster) that match their actual spires and shapes across floors, walls, and ceilings.
+
 ## Build 000-1-26-252
 
 - **Gravity Center Core (Fueled & Creative Variants)**:

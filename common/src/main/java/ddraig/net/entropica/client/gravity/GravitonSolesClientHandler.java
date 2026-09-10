@@ -16,6 +16,23 @@ import net.minecraft.world.phys.Vec3;
 public class GravitonSolesClientHandler {
 
     private static long lastFlipGameTime = 0L;
+    private static net.minecraft.core.Direction currentWallDir = null;
+
+    public static net.minecraft.core.Direction getCurrentWallDir() {
+        return currentWallDir;
+    }
+
+    public static net.minecraft.core.Direction getWallDirection(net.minecraft.world.level.Level level, net.minecraft.world.entity.LivingEntity entity) {
+        if (level == null || entity == null) return null;
+        AABB box = entity.getBoundingBox();
+        for (net.minecraft.core.Direction dir : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+            AABB testBox = box.move(dir.getStepX() * 0.12, 0, dir.getStepZ() * 0.12);
+            if (!level.noCollision(entity, testBox)) {
+                return dir;
+            }
+        }
+        return null;
+    }
 
     public static void clientTick(Minecraft mc) {
         LocalPlayer player = mc.player;
@@ -40,14 +57,15 @@ public class GravitonSolesClientHandler {
         Vec3 motion = player.getDeltaMovement();
         AABB box = player.getBoundingBox();
 
-        // 2. Wall Contact, Sticking & Climbing
-        AABB wallBox = new AABB(box.minX - 0.1, box.minY + 0.1, box.minZ - 0.1, box.maxX + 0.1, box.maxY - 0.1, box.maxZ + 0.1);
-        boolean touchingWall = player.horizontalCollision || !mc.level.noCollision(player, wallBox);
+        // 2. Wall Contact, Sticking & Traversal
+        net.minecraft.core.Direction wallDir = getWallDirection(mc.level, player);
+        boolean touchingWall = (wallDir != null) || player.horizontalCollision;
+        currentWallDir = hasSoles && !GravityApi.isInverted(player) ? wallDir : null;
 
         net.minecraft.world.entity.player.Input kp = player.input != null ? player.input.keyPresses : net.minecraft.world.entity.player.Input.EMPTY;
         boolean isSneaking = kp.shift() || player.isCrouching();
-        boolean isMovingForward = kp.forward() || kp.jump();
-        boolean isMovingBackward = kp.backward();
+        boolean isClimbingUp = kp.jump() || (kp.forward() && player.getXRot() < -25.0f);
+        boolean isClimbingDown = kp.backward() || (kp.forward() && player.getXRot() > 25.0f);
 
         if (touchingWall) {
             if (hasSoles) {
@@ -56,14 +74,23 @@ public class GravitonSolesClientHandler {
                     player.setDeltaMovement(motion.x * 0.4, 0.0, motion.z * 0.4);
                     player.resetFallDistance();
                     player.hasImpulse = true;
-                } else if (isMovingForward) {
+                } else if (isClimbingUp) {
                     // Climb up
                     player.setDeltaMovement(motion.x, 0.26, motion.z);
                     player.resetFallDistance();
                     player.hasImpulse = true;
-                } else if (isMovingBackward) {
+                } else if (isClimbingDown) {
                     // Climb down
                     player.setDeltaMovement(motion.x, -0.22, motion.z);
+                    player.resetFallDistance();
+                    player.hasImpulse = true;
+                } else {
+                    // Horizontal wall walking / sticking: cancel downward gravity slide!
+                    double newY = motion.y < 0.0 ? 0.0 : motion.y;
+                    // Gentle inward adhesive pull towards the wall surface
+                    double pullX = (wallDir != null) ? wallDir.getStepX() * 0.02 : 0.0;
+                    double pullZ = (wallDir != null) ? wallDir.getStepZ() * 0.02 : 0.0;
+                    player.setDeltaMovement(motion.x + pullX, newY, motion.z + pullZ);
                     player.resetFallDistance();
                     player.hasImpulse = true;
                 }
@@ -85,9 +112,11 @@ public class GravitonSolesClientHandler {
         if (inGravityCenter && !hasSoles) {
             // Gravity Center directional down: down is strictly towards the core
             Vec3 corePos = activeCenter.getBlockPos().getCenter();
-            if (player.getY() < corePos.y - 0.35) {
-                // In southern hemisphere, down is upward (+Y towards core) -> Inverted
-                if (!inverted && (gameTime - lastFlipGameTime > 10L)) {
+            Vec3 toCenter = corePos.subtract(player.getEyePosition());
+            Vec3 pullDir = toCenter.normalize();
+            if (pullDir.y > 0.45) {
+                // Core is above player -> pull is upwards -> Inverted
+                if (!inverted && (gameTime - lastFlipGameTime > 15L)) {
                     lastFlipGameTime = gameTime;
                     GravityApi.SOLES_INVERTED_ENTITIES.add(player.getUUID());
                     GravityApi.setGravity(player, GravityApi.INVERTED_GRAVITY);
@@ -95,9 +124,9 @@ public class GravitonSolesClientHandler {
                     mc.level.playLocalSound(player.getX(), player.getY(), player.getZ(),
                             SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0f, 1.3f, false);
                 }
-            } else if (player.getY() > corePos.y + 0.35) {
-                // In northern hemisphere, down is downward (-Y towards core) -> Normal
-                if (inverted && (gameTime - lastFlipGameTime > 10L)) {
+            } else if (pullDir.y < -0.20) {
+                // Core is below player -> pull is downwards -> Normal
+                if (inverted && (gameTime - lastFlipGameTime > 15L)) {
                     lastFlipGameTime = gameTime;
                     GravityApi.SOLES_INVERTED_ENTITIES.remove(player.getUUID());
                     GravityApi.resetGravity(player);

@@ -20,10 +20,14 @@ public class GravityCameraHandler {
     private static float prevSingularityRoll = 0.0f;
     private static float currentSingularityRoll = 0.0f;
 
+    private static float prevWallRoll = 0.0f;
+    private static float currentWallRoll = 0.0f;
+
     public static void clientTick(Minecraft mc) {
         if (mc.player == null || mc.level == null) {
             prevRoll = currentRoll = rollProgress = 0.0f;
             prevSingularityRoll = currentSingularityRoll = 0.0f;
+            prevWallRoll = currentWallRoll = 0.0f;
             return;
         }
 
@@ -80,9 +84,27 @@ public class GravityCameraHandler {
         prevSingularityRoll = currentSingularityRoll;
         currentSingularityRoll = Mth.lerp(0.2f, currentSingularityRoll, targetSingularityRoll);
 
-        // Combine inversion 180° flip with singularity roll slant
+        // 3. Wall Running Roll Transition (Graviton Soles on Walls)
+        net.minecraft.core.Direction wallDir = ddraig.net.entropica.client.gravity.GravitonSolesClientHandler.getCurrentWallDir();
+        float targetWallRoll = 0.0f;
+        if (wallDir != null && !inverted) {
+            Vec3 look = mc.player.getViewVector(1.0f);
+            Vec3 viewRight = look.cross(new Vec3(0, 1, 0)).normalize();
+            if (viewRight.lengthSqr() < 1e-4) {
+                viewRight = new Vec3(1, 0, 0);
+            }
+            Vec3 toWall = new Vec3(wallDir.getStepX(), 0, wallDir.getStepZ());
+            double rightDot = toWall.dot(viewRight);
+            // If wall is on the player's right, roll -90°; if on left, roll +90°
+            targetWallRoll = (float) Mth.clamp(rightDot * -90.0, -90.0, 90.0);
+        }
+
+        prevWallRoll = currentWallRoll;
+        currentWallRoll = Mth.lerp(0.18f, currentWallRoll, targetWallRoll);
+
+        // Combine inversion 180° flip with singularity roll slant and wall roll
         prevRoll = currentRoll;
-        currentRoll = baseInversionRoll + currentSingularityRoll;
+        currentRoll = baseInversionRoll + currentSingularityRoll + currentWallRoll;
     }
 
     public static float getRoll(float partialTick) {

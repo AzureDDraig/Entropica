@@ -232,14 +232,23 @@ public class GravityApi {
                 entity.resetFallDistance();
                 entity.hasImpulse = true;
             } else {
-                // Climbing up: moving forward or jumping
-                if (entity.zza > 0.0F || entity.isJumping()) {
+                // Climbing up: jumping or looking up while moving forward
+                boolean climbUp = entity.isJumping() || (entity.zza > 0.0F && entity.getXRot() < -25.0F);
+                boolean climbDown = (entity.zza < 0.0F) || (entity.zza > 0.0F && entity.getXRot() > 25.0F);
+
+                if (climbUp) {
                     entity.setDeltaMovement(motion.x, 0.22, motion.z);
                     entity.resetFallDistance();
                     entity.hasImpulse = true;
-                } else if (entity.zza < 0.0F) {
-                    // Climbing down: moving backward
+                } else if (climbDown) {
                     entity.setDeltaMovement(motion.x, -0.22, motion.z);
+                    entity.resetFallDistance();
+                    entity.hasImpulse = true;
+                } else {
+                    // Horizontal wall walking / holding: cancel downward gravity pull!
+                    if (motion.y < 0.0) {
+                        entity.setDeltaMovement(motion.x, 0.0, motion.z);
+                    }
                     entity.resetFallDistance();
                     entity.hasImpulse = true;
                 }
