@@ -67,17 +67,32 @@ public class BarrierFieldManager {
 
         Level level = entity.level();
         double entityRadius = Math.max(0.15, entity.getBbWidth() * 0.5);
-        AABB sweptBox = new AABB(startPos, endPos).inflate(entityRadius + 1.5);
+        AABB entityBox = entity.getBoundingBox();
+        Vec3 moveDelta = endPos.subtract(startPos);
+        AABB sweptBox = entityBox.minmax(entityBox.move(moveDelta)).inflate(1.0);
 
-        Vec3 approachDir = endPos.subtract(startPos);
+        Vec3 approachDir = moveDelta;
         if (approachDir.lengthSqr() < 1e-6) {
             approachDir = entity.getDeltaMovement();
         }
 
+        double entityHeight = Math.max(0.1, (double) entity.getBbHeight());
+        Vec3[] sampleStarts = new Vec3[]{
+                startPos, // feet
+                startPos.add(0, entityHeight * 0.5, 0), // waist / center of mass
+                startPos.add(0, Math.max(0.1, entityHeight - 0.1), 0) // head / eyes
+        };
+
         List<BarrierHitCandidate> candidates = new ArrayList<>();
 
-        for (ForcefieldBarrierEntity barrier : ACTIVE_BARRIERS.values()) {
-            if (!barrier.isAlive() || barrier.level() != level || barrier == entity || !barrier.isActive()) {
+        Iterator<Map.Entry<UUID, ForcefieldBarrierEntity>> it = ACTIVE_BARRIERS.entrySet().iterator();
+        while (it.hasNext()) {
+            ForcefieldBarrierEntity barrier = it.next().getValue();
+            if (barrier == null || barrier.isRemoved() || !barrier.isAlive()) {
+                it.remove();
+                continue;
+            }
+            if (barrier.level() != level || barrier == entity || !barrier.isActive()) {
                 continue;
             }
 
@@ -86,39 +101,56 @@ public class BarrierFieldManager {
                 continue; // Permitted entity, passes freely
             }
 
-            if (barrier.getBoundingBox().intersects(sweptBox)) {
+            AABB bBox = barrier.getBoundingBox();
+            if (bBox.getXsize() <= 1.05 && bBox.getYsize() <= 1.05 && bBox.getZsize() <= 1.05) {
+                barrier.updateBoundingBox();
+                bBox = barrier.getBoundingBox();
+            }
+
+            if (bBox.intersects(sweptBox)) {
                 BarrierShapeHandler handler = BarrierShapeRegistry.get(barrier.getShape().ordinal());
-                BarrierRaycastHit hit;
-                if (handler != null) {
-                    hit = handler.intersect(
-                            barrier.position(), barrier.getYRot(), barrier.getXRot(),
-                            barrier.getWidth(), barrier.getHeight(), barrier.getRadius(),
-                            startPos, endPos, entityRadius, barrier
-                    );
-                } else {
-                    hit = BarrierGeometry.intersect(
-                            barrier.getShape(), barrier.position(), barrier.getYRot(), barrier.getXRot(),
-                            barrier.getWidth(), barrier.getHeight(), barrier.getRadius(),
-                            startPos, endPos, entityRadius
-                    );
+                BarrierRaycastHit bestHitForBarrier = null;
+
+                for (Vec3 sStart : sampleStarts) {
+                    Vec3 sEnd = sStart.add(moveDelta);
+                    BarrierRaycastHit hit;
+                    if (handler != null) {
+                        hit = handler.intersect(
+                                barrier.position(), barrier.getYRot(), barrier.getXRot(),
+                                barrier.getWidth(), barrier.getHeight(), barrier.getRadius(),
+                                sStart, sEnd, entityRadius, barrier
+                        );
+                    } else {
+                        hit = BarrierGeometry.intersect(
+                                barrier.getShape(), barrier.position(), barrier.getYRot(), barrier.getXRot(),
+                                barrier.getWidth(), barrier.getHeight(), barrier.getRadius(),
+                                sStart, sEnd, entityRadius
+                        );
+                    }
+
+                    if (hit.hit() && hit.t() >= 0.0 && hit.t() <= 1.0) {
+                        if (bestHitForBarrier == null || hit.t() < bestHitForBarrier.t()) {
+                            bestHitForBarrier = hit;
+                        }
+                    }
                 }
 
-                if (hit.hit() && hit.t() >= 0.0 && hit.t() <= 1.0) {
+                if (bestHitForBarrier != null) {
                     // One-Way Directional Valve Check:
                     // If one-way and forward approach (approachDir . surfaceNormal <= 0.0), entity passes through freely.
                     if (barrier.isOneWay()) {
                         if (approachDir.lengthSqr() < 1e-6) {
                             Vec3 posRel = startPos.subtract(barrier.position());
-                            if (posRel.dot(hit.surfaceNormal()) < 0.0) {
+                            if (posRel.dot(bestHitForBarrier.surfaceNormal()) < 0.0) {
                                 // Stationary entity on reverse side is blocked!
                             } else {
                                 continue;
                             }
-                        } else if (approachDir.dot(hit.surfaceNormal()) <= 0.0) {
+                        } else if (approachDir.dot(bestHitForBarrier.surfaceNormal()) <= 0.0) {
                             continue;
                         }
                     }
-                    candidates.add(new BarrierHitCandidate(barrier, hit));
+                    candidates.add(new BarrierHitCandidate(barrier, bestHitForBarrier));
                 }
             }
         }

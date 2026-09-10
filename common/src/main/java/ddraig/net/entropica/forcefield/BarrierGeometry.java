@@ -129,10 +129,9 @@ public class BarrierGeometry {
         }
 
         Vec3 impact = rayStart.add(d.scale(t));
-        double distSqr = impact.distanceToSqr(center);
         double effectiveRadius = radius + entityRadius;
 
-        if (distSqr <= (effectiveRadius * effectiveRadius)) {
+        if (impact.distanceToSqr(center) <= (effectiveRadius * effectiveRadius)) {
             boolean fromFront = denom < 0.0;
             return new BarrierRaycastHit(true, t, impact, normal, fromFront);
         }
@@ -177,6 +176,19 @@ public class BarrierGeometry {
         double t2 = (-b + sqrtDisc) / (2.0 * a);
 
         double minY = center.y - entityRadius;
+
+        // Overlap / Proximity check for entities currently touching or penetrating canopy surface
+        if (entityRadius > 0.0 && rayStart.y >= minY) {
+            double currentDist = oc.length();
+            if (Math.abs(currentDist - radius) <= entityRadius + 0.12) {
+                Vec3 normal = (currentDist > 1e-5) ? oc.normalize() : new Vec3(0, 1, 0);
+                if (d.dot(normal) <= 1e-4 || d.lengthSqr() < 1e-6) {
+                    Vec3 impact = center.add(normal.scale(radius));
+                    boolean fromFront = currentDist >= radius;
+                    return new BarrierRaycastHit(true, 0.0, impact, normal, fromFront);
+                }
+            }
+        }
 
         // Test earliest root t1 first
         if (t1 >= 0.0 && t1 <= 1.0) {
@@ -235,6 +247,19 @@ public class BarrierGeometry {
         double sqrtDisc = Math.sqrt(discriminant);
         double t1 = (-b - sqrtDisc) / (2.0 * a);
         double t2 = (-b + sqrtDisc) / (2.0 * a);
+
+        // Overlap / Proximity check for entities currently touching or penetrating sphere surface
+        if (entityRadius > 0.0) {
+            double currentDist = oc.length();
+            if (Math.abs(currentDist - radius) <= entityRadius + 0.12) {
+                Vec3 normal = (currentDist > 1e-5) ? oc.normalize() : new Vec3(0, 1, 0);
+                if (d.dot(normal) <= 1e-4 || d.lengthSqr() < 1e-6) {
+                    Vec3 impact = center.add(normal.scale(radius));
+                    boolean fromFront = currentDist >= radius;
+                    return new BarrierRaycastHit(true, 0.0, impact, normal, fromFront);
+                }
+            }
+        }
 
         double t = -1.0;
         if (t1 >= 0.0 && t1 <= 1.0) {
@@ -295,6 +320,19 @@ public class BarrierGeometry {
 
         double minY = center.y;
         double maxY = center.y + height;
+
+        // Overlap / Proximity check for entities currently on cylinder surface
+        if (entityRadius > 0.0 && rayStart.y >= minY && rayStart.y <= maxY) {
+            double currentDistXZ = Math.sqrt(ox * ox + oz * oz);
+            if (Math.abs(currentDistXZ - radius) <= entityRadius + 0.12) {
+                Vec3 normal = (currentDistXZ > 1e-5) ? new Vec3(ox / currentDistXZ, 0, oz / currentDistXZ) : new Vec3(1, 0, 0);
+                if (d.dot(normal) <= 1e-4 || d.lengthSqr() < 1e-6) {
+                    Vec3 impact = new Vec3(center.x + normal.x * radius, rayStart.y, center.z + normal.z * radius);
+                    boolean fromFront = currentDistXZ >= radius;
+                    return new BarrierRaycastHit(true, 0.0, impact, normal, fromFront);
+                }
+            }
+        }
 
         // Test earliest root t1 first
         if (t1 >= 0.0 && t1 <= 1.0) {

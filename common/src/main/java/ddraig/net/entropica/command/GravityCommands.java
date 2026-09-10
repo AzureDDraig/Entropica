@@ -4,12 +4,14 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import ddraig.net.entropica.block.entity.GravityCenterBlockEntity;
 import ddraig.net.entropica.gravity.GravityApi;
 import ddraig.net.entropica.gravity.GravityField;
 import ddraig.net.entropica.gravity.GravityFieldManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -18,10 +20,17 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
 
 public class GravityCommands {
+
+    private static final SuggestionProvider<CommandSourceStack> SUGGEST_MODES = (ctx, builder) ->
+            SharedSuggestionProvider.suggest(
+                    Arrays.stream(GravityField.Mode.values()).map(m -> m.name().toLowerCase(Locale.ROOT)),
+                    builder
+            );
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("entropica")
@@ -61,6 +70,7 @@ public class GravityCommands {
                         .then(Commands.literal("field")
                                 .then(Commands.literal("spawn")
                                         .then(Commands.argument("mode", StringArgumentType.word())
+                                                .suggests(SUGGEST_MODES)
                                                 .executes(ctx -> spawnField(ctx.getSource(), StringArgumentType.getString(ctx, "mode"), 12.0, 600))
                                                 .then(Commands.argument("radius", DoubleArgumentType.doubleArg(1.0, 64.0))
                                                         .executes(ctx -> spawnField(ctx.getSource(), StringArgumentType.getString(ctx, "mode"), DoubleArgumentType.getDouble(ctx, "radius"), 600))

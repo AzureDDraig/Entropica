@@ -101,6 +101,7 @@ public class ForcefieldBarrierEntity extends Entity {
         super(type, level);
         this.noPhysics = true;
         this.setNoGravity(true);
+        BarrierFieldManager.registerBarrier(this);
     }
 
     @Override
@@ -197,21 +198,35 @@ public class ForcefieldBarrierEntity extends Entity {
         BarrierFieldManager.unregisterBarrier(this);
     }
 
-    public void updateBoundingBox() {
-        BarrierShapeHandler handler = BarrierShapeRegistry.get(getShape().ordinal());
-        if (handler != null) {
-            this.setBoundingBox(handler.computeBoundingBox(
-                    this.position(), this.getYRot(), this.getXRot(),
-                    getWidth(), getHeight(), getRadius()
-            ));
-        } else {
-            double maxDim = Math.max(Math.max(getWidth(), getHeight()), getRadius()) + 2.0;
-            Vec3 pos = this.position();
-            this.setBoundingBox(new AABB(
-                    pos.x - maxDim, pos.y - maxDim, pos.z - maxDim,
-                    pos.x + maxDim, pos.y + maxDim, pos.z + maxDim
-            ));
+    @Override
+    public void setPos(double x, double y, double z) {
+        super.setPos(x, y, z);
+        updateBoundingBox();
+        BarrierFieldManager.registerBarrier(this);
+    }
+
+    @Override
+    protected AABB makeBoundingBox(Vec3 pos) {
+        if (this.entityData != null) {
+            BarrierShapeHandler handler = BarrierShapeRegistry.get(getShape().ordinal());
+            if (handler != null) {
+                return handler.computeBoundingBox(
+                        pos, this.getYRot(), this.getXRot(),
+                        getWidth(), getHeight(), getRadius()
+                );
+            }
         }
+        return super.makeBoundingBox(pos);
+    }
+
+    @Override
+    public net.minecraft.world.entity.EntityDimensions getDimensions(net.minecraft.world.entity.Pose pose) {
+        float maxDim = Math.max(Math.max(getWidth(), getHeight()), getRadius() * 2.0F);
+        return net.minecraft.world.entity.EntityDimensions.scalable(Math.max(1.0F, maxDim), Math.max(1.0F, maxDim));
+    }
+
+    public void updateBoundingBox() {
+        this.setBoundingBox(this.makeBoundingBox(this.position()));
     }
 
     /**
@@ -298,17 +313,25 @@ public class ForcefieldBarrierEntity extends Entity {
         Vec3 reflected = v.subtract(nEff.scale((1.0 + elasticity) * dot));
 
         // Ensure minimum bounce velocity along nEff so slow-walking entities rebound cleanly
-        double minImpulse = 0.35 * Math.max(1.0, elasticity);
+        double minImpulse = 0.45 * Math.max(1.0, elasticity);
         if (reflected.dot(nEff) < minImpulse) {
             reflected = reflected.add(nEff.scale(minImpulse - Math.max(0.0, reflected.dot(nEff))));
         }
 
         // Reposition entity safely outside the membrane on the side they approached from
-        Vec3 safePos = hit.impactPoint().add(nEff.scale(entityRadius + 0.08));
+        Vec3 safePos = hit.impactPoint().add(nEff.scale(entityRadius + 0.12));
+        if (Math.abs(nEff.y) < 0.2) {
+            safePos = new Vec3(safePos.x, entity.getY(), safePos.z);
+        }
         entity.setPos(safePos.x, safePos.y, safePos.z);
         entity.setDeltaMovement(reflected);
         entity.resetFallDistance();
         entity.hasImpulse = true;
+        entity.hurtMarked = true;
+
+        if (entity instanceof net.minecraft.world.entity.Mob mob) {
+            mob.getNavigation().stop();
+        }
 
         // If projectile, update flight heading and rotation
         if (entity instanceof Projectile projectile) {

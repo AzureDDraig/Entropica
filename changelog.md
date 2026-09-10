@@ -55,8 +55,10 @@
   - Added full in-game translations (`en_us.json`) for all barrier settings, telemetry HUD readouts, bouncepad tooltips, and codex entries.
 
 - **Gravity & Barrier Debug Commands**:
-  - Added `/entropica gravity` commands to view, set, reset, or invert personal gravity and spawn test fields.
-  - Added `/entropica barrier` commands to spawn barriers of any shape, erect boss arenas, view barrier stats, and test bounce velocities.
+  - Added `/entropica gravity` commands to view, set, reset, or invert personal gravity and spawn test fields, complete with full tab auto-completion for gravity modes (`zero_g`, `lunar`, `inversion`, `singularity`, `grav_lift`, `repulsor`, `tidal_pulse`).
+  - Added `/entropica barrier` commands to spawn barriers of any shape, erect boss arenas, view barrier stats, and test bounce velocities, complete with full tab auto-completion for shapes (`planar_quad`, `circular_disc`, `hemispherical_dome`, `spherical_bubble`, `cylinder`, `convex_polygon`), filters (`all_entities`, `mobs_only`, `players_only`, `hostile_mobs`, `projectiles`), and themes (`standard`, `star_eater`, `void_leviathan`, `entropic_chimera`, `defiler_of_symmetries`, `unmaker_of_forms`, `silencer_of_echoes`).
+  - Fixed barrier entity hitboxes and swept collision checks across all sizes so mobs and players cannot walk through or tunnel into barrier walls.
+  - Improved mob interaction with barriers: halted vanilla pathfinding navigation upon touching the barrier surface and cleanly synced bounce velocities to clients so mobs bounce back reliably without jittering.
 
 - **Gravity Center Core Improvements**:
   - The Gravity Center now completely overrides standard downward gravity within its radius, so its center is the only direction of gravity.

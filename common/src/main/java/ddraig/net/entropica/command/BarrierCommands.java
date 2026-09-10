@@ -12,16 +12,37 @@ import ddraig.net.entropica.forcefield.BarrierShape;
 import ddraig.net.entropica.registry.ModEntityTypes;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 public class BarrierCommands {
+
+    private static final SuggestionProvider<CommandSourceStack> SUGGEST_SHAPES = (ctx, builder) ->
+            SharedSuggestionProvider.suggest(
+                    Arrays.stream(BarrierShape.values()).map(s -> s.name().toLowerCase(Locale.ROOT)),
+                    builder
+            );
+
+    private static final SuggestionProvider<CommandSourceStack> SUGGEST_FILTERS = (ctx, builder) ->
+            SharedSuggestionProvider.suggest(
+                    Arrays.stream(BarrierFilterMode.values()).map(f -> f.name().toLowerCase(Locale.ROOT)),
+                    builder
+            );
+
+    private static final SuggestionProvider<CommandSourceStack> SUGGEST_THEMES = (ctx, builder) ->
+            SharedSuggestionProvider.suggest(
+                    Arrays.stream(ApexPredatorTheme.values()).map(t -> t.name().toLowerCase(Locale.ROOT)),
+                    builder
+            );
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("entropica")
@@ -30,12 +51,14 @@ public class BarrierCommands {
                         // --- /entropica barrier spawn <shape> [dim1] [dim2] [filter] ---
                         .then(Commands.literal("spawn")
                                 .then(Commands.argument("shape", StringArgumentType.word())
+                                        .suggests(SUGGEST_SHAPES)
                                         .executes(ctx -> spawnBarrier(ctx.getSource(), StringArgumentType.getString(ctx, "shape"), 4.0F, 3.5F, "ALL_ENTITIES"))
                                         .then(Commands.argument("dim1", FloatArgumentType.floatArg(0.5F, 128.0F))
                                                 .executes(ctx -> spawnBarrier(ctx.getSource(), StringArgumentType.getString(ctx, "shape"), FloatArgumentType.getFloat(ctx, "dim1"), 3.5F, "ALL_ENTITIES"))
                                                 .then(Commands.argument("dim2", FloatArgumentType.floatArg(0.5F, 128.0F))
                                                         .executes(ctx -> spawnBarrier(ctx.getSource(), StringArgumentType.getString(ctx, "shape"), FloatArgumentType.getFloat(ctx, "dim1"), FloatArgumentType.getFloat(ctx, "dim2"), "ALL_ENTITIES"))
                                                         .then(Commands.argument("filter", StringArgumentType.word())
+                                                                .suggests(SUGGEST_FILTERS)
                                                                 .executes(ctx -> spawnBarrier(ctx.getSource(), StringArgumentType.getString(ctx, "shape"), FloatArgumentType.getFloat(ctx, "dim1"), FloatArgumentType.getFloat(ctx, "dim2"), StringArgumentType.getString(ctx, "filter")))
                                                         )
                                                 )
@@ -45,6 +68,7 @@ public class BarrierCommands {
                         // --- /entropica barrier spawn_arena <theme> [radius] ---
                         .then(Commands.literal("spawn_arena")
                                 .then(Commands.argument("theme", StringArgumentType.word())
+                                        .suggests(SUGGEST_THEMES)
                                         .executes(ctx -> spawnArena(ctx.getSource(), StringArgumentType.getString(ctx, "theme"), 32.0F))
                                         .then(Commands.argument("radius", FloatArgumentType.floatArg(4.0F, 128.0F))
                                                 .executes(ctx -> spawnArena(ctx.getSource(), StringArgumentType.getString(ctx, "theme"), FloatArgumentType.getFloat(ctx, "radius")))

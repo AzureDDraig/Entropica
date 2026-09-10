@@ -68,23 +68,8 @@ public class ConvexPolygonShapeHandler implements BarrierShapeHandler {
 
         Vec3 rayDir = rayEnd.subtract(rayStart);
         double denom = rayDir.dot(normal);
+        double distToPlane = center.subtract(rayStart).dot(normal);
 
-        if (Math.abs(denom) < 1e-6) {
-            return BarrierRaycastHit.miss();
-        }
-
-        double t = center.subtract(rayStart).dot(normal) / denom;
-        if (t < 0.0 || t > 1.0) {
-            return BarrierRaycastHit.miss();
-        }
-
-        Vec3 impact = rayStart.add(rayDir.scale(t));
-        Vec3 delta = impact.subtract(center);
-
-        double uHit = delta.dot(tangent);
-        double vHit = delta.dot(bitangent);
-
-        // Convex polygon interior test for regular N-gon (hexagon)
         int n = DEFAULT_VERTEX_COUNT;
         float semiW = width * 0.5F;
         float semiH = height * 0.5F;
@@ -96,6 +81,21 @@ public class ConvexPolygonShapeHandler implements BarrierShapeHandler {
             uVerts[i] = semiW * Math.cos(angle);
             vVerts[i] = semiH * Math.sin(angle);
         }
+
+        if (Math.abs(denom) < 1e-6) {
+            return BarrierRaycastHit.miss();
+        }
+
+        double t = distToPlane / denom;
+        if (t < 0.0 || t > 1.0) {
+            return BarrierRaycastHit.miss();
+        }
+
+        Vec3 impact = rayStart.add(rayDir.scale(t));
+        Vec3 delta = impact.subtract(center);
+
+        double uHit = delta.dot(tangent);
+        double vHit = delta.dot(bitangent);
 
         for (int i = 0; i < n; i++) {
             int next = (i + 1) % n;
