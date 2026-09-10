@@ -58,7 +58,10 @@
   - Added `/entropica gravity` commands to view, set, reset, or invert personal gravity and spawn test fields, complete with full tab auto-completion for gravity modes (`zero_g`, `lunar`, `inversion`, `singularity`, `grav_lift`, `repulsor`, `tidal_pulse`).
   - Added `/entropica barrier` commands to spawn barriers of any shape, erect boss arenas, view barrier stats, and test bounce velocities, complete with full tab auto-completion for shapes (`planar_quad`, `circular_disc`, `hemispherical_dome`, `spherical_bubble`, `cylinder`, `convex_polygon`), filters (`all_entities`, `mobs_only`, `players_only`, `hostile_mobs`, `projectiles`), and themes (`standard`, `star_eater`, `void_leviathan`, `entropic_chimera`, `defiler_of_symmetries`, `unmaker_of_forms`, `silencer_of_echoes`).
   - Fixed barrier entity hitboxes and swept collision checks across all sizes so mobs and players cannot walk through or tunnel into barrier walls.
-  - Improved mob interaction with barriers: halted vanilla pathfinding navigation upon touching the barrier surface and cleanly synced bounce velocities to clients so mobs bounce back reliably without jittering.
+  - Implemented high-energy kinetic fling back: entities contacting a barrier are now powerfully launched backward with an upward arc instead of sticking to ground friction, sailing 4 to 6 blocks through the air.
+  - Creator passage rule: the barrier creator is now flung back like everyone else unless sneaking while holding the Firmament Weaver, allowing builders to test barriers and bounce off them naturally.
+  - Projectile deflection: incoming arrows, tridents, and fireballs are now cleanly deflected in mid-air and shot backward away from the shield without sticking into the barrier or vanishing.
+  - Server-side velocity synchronization: teleportation and motion packets are instantly broadcast to players and mobs upon collision, guaranteeing punchy, responsive rebounds on both server and client.
 
 - **Gravity Center Core Improvements**:
   - The Gravity Center now completely overrides standard downward gravity within its radius, so its center is the only direction of gravity.

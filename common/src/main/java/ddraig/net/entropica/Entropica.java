@@ -50,8 +50,17 @@ public class Entropica {
             ddraig.net.entropica.gravity.GravityFieldManager.cleanupExitedEntities(level);
         });
 
-        // --- Graviton Soles Player Tick & Fall Damage Immunity ---
-        dev.architectury.event.events.common.TickEvent.PLAYER_POST.register(player -> ddraig.net.entropica.gravity.GravityApi.tickGravitonSoles(player));
+        // --- Graviton Soles Player Tick, Fall Damage Immunity & Barrier CCD ---
+        dev.architectury.event.events.common.TickEvent.PLAYER_POST.register(player -> {
+            ddraig.net.entropica.gravity.GravityApi.tickGravitonSoles(player);
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                net.minecraft.world.phys.Vec3 prev = new net.minecraft.world.phys.Vec3(serverPlayer.xOld, serverPlayer.yOld, serverPlayer.zOld);
+                net.minecraft.world.phys.Vec3 curr = serverPlayer.position();
+                if (prev.distanceToSqr(curr) > 1e-6) {
+                    ddraig.net.entropica.forcefield.BarrierFieldManager.checkMovementCollisions(serverPlayer, prev, curr);
+                }
+            }
+        });
         dev.architectury.event.events.common.EntityEvent.LIVING_HURT.register((entity, source, amount) -> {
             if (source.is(net.minecraft.tags.DamageTypeTags.IS_FALL)) {
                 if (ddraig.net.entropica.gravity.GravityApi.hasGravitonSoles(entity)

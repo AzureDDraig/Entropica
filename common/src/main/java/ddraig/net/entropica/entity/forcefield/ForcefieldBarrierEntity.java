@@ -12,6 +12,7 @@ import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -312,19 +313,40 @@ public class ForcefieldBarrierEntity extends Entity {
         // Reflection formula: v' = v - (1 + e) * (v . n) * n
         Vec3 reflected = v.subtract(nEff.scale((1.0 + elasticity) * dot));
 
-        // Ensure minimum bounce velocity along nEff so slow-walking entities rebound cleanly
-        double minImpulse = 0.45 * Math.max(1.0, elasticity);
-        if (reflected.dot(nEff) < minImpulse) {
-            reflected = reflected.add(nEff.scale(minImpulse - Math.max(0.0, reflected.dot(nEff))));
+        // High-energy fling impulse away from the barrier along nEff
+        double baseFling = Math.max(0.85 * Math.max(0.8, elasticity), Math.abs(dot) * (1.0 + elasticity));
+        if (reflected.dot(nEff) < baseFling) {
+            reflected = reflected.add(nEff.scale(baseFling - Math.max(0.0, reflected.dot(nEff))));
+        }
+
+        // Upward pop for vertical barriers so entities lift off the ground into an arc rather than sticking to ground friction
+        boolean isVerticalBarrier = Math.abs(nEff.y) < 0.35;
+        if (isVerticalBarrier && entity instanceof LivingEntity) {
+            double upwardPop = 0.38 * Math.max(0.8, Math.min(1.6, elasticity));
+            reflected = new Vec3(reflected.x, Math.max(upwardPop, reflected.y), reflected.z);
+        } else if (nEff.y > 0.7) {
+            // Horizontal floor barrier launches upward like a trampoline
+            reflected = new Vec3(reflected.x, Math.max(0.95 * elasticity, reflected.y), reflected.z);
+        } else if (nEff.y < -0.7) {
+            // Ceiling barrier deflects downward
+            reflected = new Vec3(reflected.x, Math.min(-0.75 * elasticity, reflected.y), reflected.z);
         }
 
         // Reposition entity safely outside the membrane on the side they approached from
-        Vec3 safePos = hit.impactPoint().add(nEff.scale(entityRadius + 0.12));
-        if (Math.abs(nEff.y) < 0.2) {
-            safePos = new Vec3(safePos.x, entity.getY(), safePos.z);
+        Vec3 safePos = hit.impactPoint().add(nEff.scale(entityRadius + 0.18));
+        if (isVerticalBarrier) {
+            safePos = new Vec3(safePos.x, entity.getY() + 0.05, safePos.z);
         }
-        entity.setPos(safePos.x, safePos.y, safePos.z);
-        entity.setDeltaMovement(reflected);
+
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.teleport(safePos.x, safePos.y, safePos.z, serverPlayer.getYRot(), serverPlayer.getXRot());
+            serverPlayer.setDeltaMovement(reflected);
+            serverPlayer.connection.send(new ClientboundSetEntityMotionPacket(serverPlayer.getId(), reflected));
+        } else {
+            entity.setPos(safePos.x, safePos.y, safePos.z);
+            entity.setDeltaMovement(reflected);
+        }
+
         entity.resetFallDistance();
         entity.hasImpulse = true;
         entity.hurtMarked = true;
@@ -333,9 +355,15 @@ public class ForcefieldBarrierEntity extends Entity {
             mob.getNavigation().stop();
         }
 
-        // If projectile, update flight heading and rotation
+        // If projectile, update flight heading, velocity and rotation
         if (entity instanceof Projectile projectile) {
-            projectile.shoot(reflected.x, reflected.y, reflected.z, (float) reflected.length(), 0.0F);
+            double projSpeed = Math.max(reflected.length(), 1.0 * Math.max(0.8, elasticity));
+            Vec3 normReflected = (reflected.lengthSqr() > 1e-6) ? reflected.normalize() : nEff;
+            Vec3 projVel = normReflected.scale(projSpeed);
+            projectile.setDeltaMovement(projVel);
+            projectile.shoot(projVel.x, projVel.y, projVel.z, (float) projVel.length(), 0.0F);
+            projectile.hasImpulse = true;
+            projectile.hurtMarked = true;
         }
 
         // Trigger audio chime and visual ripple effects scaling with impact velocity
@@ -624,6 +652,11 @@ public class ForcefieldBarrierEntity extends Entity {
     @Override
     public boolean isPickable() {
         return true;
+    }
+
+    @Override
+    public boolean canBeHitByProjectile() {
+        return false;
     }
 
     // --- Getters and Setters ---

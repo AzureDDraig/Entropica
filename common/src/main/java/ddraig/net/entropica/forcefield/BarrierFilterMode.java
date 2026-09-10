@@ -1,5 +1,6 @@
 package ddraig.net.entropica.forcefield;
 
+import ddraig.net.entropica.item.FirmamentWeaverItem;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.monster.Enemy;
@@ -63,13 +64,15 @@ public enum BarrierFilterMode implements StringRepresentable {
             if (player.isSpectator()) {
                 return false;
             }
-            // Creator always has free passage
-            if (ownerUUID != null && player.getUUID().equals(ownerUUID)) {
-                return false;
-            }
             // Whitelisted players pass freely
             if (whitelist != null && whitelist.contains(player.getUUID())) {
                 return false;
+            }
+            // Creator has bypass ONLY if sneaking while holding the Firmament Weaver
+            if (ownerUUID != null && player.getUUID().equals(ownerUUID)) {
+                if (player.isShiftKeyDown() && player.getMainHandItem().getItem() instanceof FirmamentWeaverItem) {
+                    return false;
+                }
             }
             // Check filter applicability for players
             return this == ALL_ENTITIES || this == PLAYERS_ONLY;

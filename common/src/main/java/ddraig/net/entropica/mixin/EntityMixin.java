@@ -31,7 +31,7 @@ public abstract class EntityMixin {
         }
     }
 
-    @Inject(method = "tick", at = @At("HEAD"))
+    @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void entropica$onProjectileTick(CallbackInfo ci) {
         Entity entity = (Entity) (Object) this;
         if (entity instanceof Projectile projectile) {
@@ -40,7 +40,9 @@ public abstract class EntityMixin {
                 Vec3 startPos = projectile.position();
                 Vec3 endPos = startPos.add(deltaMovement);
 
-                BarrierFieldManager.checkMovementCollisions(projectile, startPos, endPos);
+                if (BarrierFieldManager.checkMovementCollisions(projectile, startPos, endPos)) {
+                    ci.cancel();
+                }
             }
         }
     }
