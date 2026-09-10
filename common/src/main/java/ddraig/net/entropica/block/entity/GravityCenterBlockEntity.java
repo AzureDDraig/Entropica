@@ -28,8 +28,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
+import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandler {
+
+    public static final Set<GravityCenterBlockEntity> ACTIVE_CENTERS = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    public static GravityCenterBlockEntity getAffectingCenter(Level level, Vec3 pos) {
+        if (level == null || pos == null) return null;
+        for (GravityCenterBlockEntity center : ACTIVE_CENTERS) {
+            if (center.isRemoved() || center.getLevel() != level) continue;
+            if (!center.isActive()) continue;
+            double distSqr = center.getBlockPos().getCenter().distanceToSqr(pos);
+            double r = center.getRadius();
+            if (distSqr <= r * r) {
+                return center;
+            }
+        }
+        return null;
+    }
 
     protected int radius = 16;
     protected EssenceType storedType = null;
@@ -75,6 +94,11 @@ public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandl
 
     public void tick(Level level, BlockPos pos, BlockState state) {
         boolean active = isActive();
+        if (active) {
+            ACTIVE_CENTERS.add(this);
+        } else {
+            ACTIVE_CENTERS.remove(this);
+        }
 
         if (level.isClientSide()) {
             prevRingX = ringRotationX;
@@ -173,6 +197,17 @@ public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandl
                                 GravityApi.resetGravity(player);
                             }
                         }
+                    }
+                }
+            }
+
+            // Field exit cleanup: restore normal gravity if an inverted player without soles leaves the gravity center radius
+            for (java.util.UUID uuid : GravityApi.SOLES_INVERTED_ENTITIES) {
+                Player player = level.getPlayerByUUID(uuid);
+                if (player != null && !GravityApi.hasGravitonSoles(player)) {
+                    if (getAffectingCenter(level, player.position()) == null) {
+                        GravityApi.SOLES_INVERTED_ENTITIES.remove(uuid);
+                        GravityApi.resetGravity(player);
                     }
                 }
             }
@@ -308,5 +343,22 @@ public class GravityCenterBlockEntity extends BlockEntity implements IVaporHandl
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public void setRemoved() {
+        ACTIVE_CENTERS.remove(this);
+        if (level != null && !level.isClientSide()) {
+            for (java.util.UUID uuid : GravityApi.SOLES_INVERTED_ENTITIES) {
+                Player player = level.getPlayerByUUID(uuid);
+                if (player != null && !GravityApi.hasGravitonSoles(player)) {
+                    if (getAffectingCenter(level, player.position()) == null) {
+                        GravityApi.SOLES_INVERTED_ENTITIES.remove(uuid);
+                        GravityApi.resetGravity(player);
+                    }
+                }
+            }
+        }
+        super.setRemoved();
     }
 }

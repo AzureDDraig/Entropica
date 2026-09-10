@@ -260,15 +260,17 @@ public class GravityApi {
         // 4. Ceiling traction & surface locking
         applySurfaceLocking(entity);
 
-        // 5. Sneak-Ledge Gravity Flipping
-        handleSneakLedgeFlip(entity);
+        // 5. 360° Edge-Wrapping around block faces (Walking & Sneaking)
+        handleEdgeWrap(entity);
     }
 
     /**
-     * Handles sneak-ledge gravity flipping around block faces and platforms.
+     * Handles 360° edge-wrapping around block faces and platforms (walking & sneaking).
      */
-    public static void handleSneakLedgeFlip(LivingEntity entity) {
-        if (!entity.isCrouching()) return;
+    public static void handleEdgeWrap(LivingEntity entity) {
+        boolean isMoving = entity.zza != 0.0F || entity.xxa != 0.0F;
+        if (!isMoving && !entity.isCrouching()) return;
+        if (entity.isJumping()) return;
 
         long gameTime = entity.level().getGameTime();
         Long cd = SOLES_FLIP_COOLDOWN.get(entity.getUUID());
@@ -312,7 +314,7 @@ public class GravityApi {
             }
 
             if (standingState.isSolid()) {
-                Vec3 stepCheck = pos.add(moveDir.scale(0.4));
+                Vec3 stepCheck = pos.add(moveDir.scale(0.35));
                 BlockPos aheadBelow = BlockPos.containing(stepCheck.x, pos.y - 0.5, stepCheck.z);
                 BlockState aheadState = entity.level().getBlockState(aheadBelow);
 
@@ -343,6 +345,12 @@ public class GravityApi {
                         if (entity.level() instanceof ServerLevel serverLevel) {
                             serverLevel.sendParticles(ModParticles.SPECTRUM_SPARKLE.get(), destX, destY + entity.getBbHeight() * 0.5, destZ, 16, 0.25, 0.25, 0.25, 0.05);
                         }
+                    } else {
+                        // Solid wall below: lock onto wall to prevent plunging into void
+                        Vec3 motion = entity.getDeltaMovement();
+                        entity.setDeltaMovement(motion.x * 0.2, 0.0, motion.z * 0.2);
+                        entity.resetFallDistance();
+                        entity.hasImpulse = true;
                     }
                 }
             }
@@ -357,7 +365,7 @@ public class GravityApi {
             }
 
             if (ceilingState.isSolid()) {
-                Vec3 stepCheck = pos.add(moveDir.scale(0.4));
+                Vec3 stepCheck = pos.add(moveDir.scale(0.35));
                 BlockPos aheadCeiling = BlockPos.containing(stepCheck.x, box.maxY + 0.2, stepCheck.z);
                 BlockState aheadCeilState = entity.level().getBlockState(aheadCeiling);
 
@@ -388,6 +396,12 @@ public class GravityApi {
                         if (entity.level() instanceof ServerLevel serverLevel) {
                             serverLevel.sendParticles(ModParticles.SPECTRUM_SPARKLE.get(), destX, destY + entity.getBbHeight() * 0.5, destZ, 16, 0.25, 0.25, 0.25, 0.05);
                         }
+                    } else {
+                        // Solid wall above: lock onto wall
+                        Vec3 motion = entity.getDeltaMovement();
+                        entity.setDeltaMovement(motion.x * 0.2, 0.0, motion.z * 0.2);
+                        entity.resetFallDistance();
+                        entity.hasImpulse = true;
                     }
                 }
             }

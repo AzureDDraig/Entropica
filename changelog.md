@@ -3,6 +3,7 @@
 - **Gravity Center Core (Fueled & Creative Variants)**:
   - Added an omnidirectional point-gravity block that acts like the center of gravity for mini-planets and asteroids.
   - Pulls players and creatures directly towards the block center from all 360-degree directions, allowing full spherical and cubical walking around floating structures.
+  - **Directional Down Adhesion**: Players and creatures within the core's active radius experience Graviton Sole-like surface lock, total fall damage negation, and edge-wrapping strictly in its "down" direction (towards the core center).
   - **Fueled Variant**: Encased in arcanite and brass, connects directly to Vapor Pneumatic Pipes on all six sides, and consumes 1 mB of Materia Fumus vapor every 2 seconds to sustain its gravitational field. Right-clicking cycles the active radius between 8, 16, 24, 32, and 48 blocks.
   - **Creative Mode Variant**: Infinite power version for world builders and mapmakers with configurable radius up to 64 blocks without needing any fuel.
   - **Planetary Underside Inversion**: When players walk or fall below the equator of the core, gravity smoothly inverts with a 180-degree camera roll so the bottom of the asteroid becomes the new floor.
@@ -33,7 +34,8 @@
   - **Client-Authoritative Physics Engine**: Movement inputs now execute immediately on the client side with network packet synchronization, delivering instantaneous response without server delay or missed keypresses.
   - **Wall Sticking & Climbing**: Crouching against any wall locks your vertical position with zero slipping or sliding. Moving forward (W) or jumping (Space) climbs up the wall face at 0.26 m/s, while moving backward (S) climbs down at 0.22 m/s.
   - **Ceiling Adhesion & Smooth Roll**: Touching or climbing into ceiling blocks automatically inverts your gravity (-0.08) with a smooth 180° camera roll, letting you walk on ceilings just like regular floors.
-  - **360° Block Edge Wrapping**: Crouching (Sneak) over the edge of any platform or block smoothly wraps your footing around the corner between floor and ceiling/wall, accompanied by musical celestial chimes and glittering starlight particles.
+  - **360° Block Edge Wrapping**: Walking or crouching over the edge of any platform or block smoothly wraps your footing around the corner between floor and ceiling, or grips vertical side walls to prevent falling off into the void. Transitions are accompanied by musical celestial chimes and glittering starlight particles.
+  - **Dynamic Camera & Look Controls Adaptation**: When rotated upside down on ceilings or tilted near singularities, mouse look controls automatically rotate with the camera so moving the mouse right turns right on screen and moving the mouse up tilts up on screen, keeping controls natural and intuitive.
   - **100% Fall Damage Negation**: Pressurized kinetic dampeners completely absorb all impact shock, setting fall damage to zero and protecting you from falls of any height.
 - **Inertial Anchor Amulet (Curios Charm)**:
   - Arcane amulet equippable in the Curios charm slot.

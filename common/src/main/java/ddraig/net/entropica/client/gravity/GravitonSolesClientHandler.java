@@ -1,5 +1,6 @@
 package ddraig.net.entropica.client.gravity;
 
+import ddraig.net.entropica.block.entity.GravityCenterBlockEntity;
 import ddraig.net.entropica.gravity.GravityApi;
 import ddraig.net.entropica.network.GravityFlipPayload;
 import dev.architectury.networking.NetworkManager;
@@ -21,8 +22,10 @@ public class GravitonSolesClientHandler {
         if (player == null || mc.level == null) return;
 
         boolean hasSoles = GravityApi.hasGravitonSoles(player);
+        GravityCenterBlockEntity activeCenter = GravityCenterBlockEntity.getAffectingCenter(mc.level, player.position());
+        boolean inGravityCenter = (activeCenter != null);
 
-        if (!hasSoles) {
+        if (!hasSoles && !inGravityCenter) {
             if (GravityApi.SOLES_INVERTED_ENTITIES.remove(player.getUUID())) {
                 GravityApi.resetGravity(player);
                 NetworkManager.sendToServer(new GravityFlipPayload(GravityApi.VANILLA_BASE_GRAVITY, false));
@@ -47,27 +50,63 @@ public class GravitonSolesClientHandler {
         boolean isMovingBackward = kp.backward();
 
         if (touchingWall) {
-            if (isSneaking) {
-                // Wall Lock: completely freeze vertical velocity, stick in place
-                player.setDeltaMovement(motion.x * 0.4, 0.0, motion.z * 0.4);
-                player.resetFallDistance();
-                player.hasImpulse = true;
-            } else if (isMovingForward) {
-                // Climb up
-                player.setDeltaMovement(motion.x, 0.26, motion.z);
-                player.resetFallDistance();
-                player.hasImpulse = true;
-            } else if (isMovingBackward) {
-                // Climb down
-                player.setDeltaMovement(motion.x, -0.22, motion.z);
-                player.resetFallDistance();
-                player.hasImpulse = true;
+            if (hasSoles) {
+                if (isSneaking) {
+                    // Wall Lock: completely freeze vertical velocity, stick in place
+                    player.setDeltaMovement(motion.x * 0.4, 0.0, motion.z * 0.4);
+                    player.resetFallDistance();
+                    player.hasImpulse = true;
+                } else if (isMovingForward) {
+                    // Climb up
+                    player.setDeltaMovement(motion.x, 0.26, motion.z);
+                    player.resetFallDistance();
+                    player.hasImpulse = true;
+                } else if (isMovingBackward) {
+                    // Climb down
+                    player.setDeltaMovement(motion.x, -0.22, motion.z);
+                    player.resetFallDistance();
+                    player.hasImpulse = true;
+                }
+            } else if (inGravityCenter) {
+                // Gravity Center adhesion: holds entity firmly against the surface towards center
+                Vec3 corePos = activeCenter.getBlockPos().getCenter();
+                Vec3 toCore = corePos.subtract(player.position());
+                if (toCore.lengthSqr() > 1e-4) {
+                    Vec3 pull = toCore.normalize().scale(0.04);
+                    player.setDeltaMovement(motion.x * 0.8 + pull.x, motion.y * 0.8 + pull.y, motion.z * 0.8 + pull.z);
+                    player.resetFallDistance();
+                    player.hasImpulse = true;
+                }
             }
         }
 
         // 3. Ceiling Adhesion & Auto-Inversion
         boolean inverted = GravityApi.isInverted(player);
-        if (!inverted) {
+        if (inGravityCenter && !hasSoles) {
+            // Gravity Center directional down: down is strictly towards the core
+            Vec3 corePos = activeCenter.getBlockPos().getCenter();
+            if (player.getY() < corePos.y - 0.35) {
+                // In southern hemisphere, down is upward (+Y towards core) -> Inverted
+                if (!inverted && (gameTime - lastFlipGameTime > 10L)) {
+                    lastFlipGameTime = gameTime;
+                    GravityApi.SOLES_INVERTED_ENTITIES.add(player.getUUID());
+                    GravityApi.setGravity(player, GravityApi.INVERTED_GRAVITY);
+                    NetworkManager.sendToServer(new GravityFlipPayload(GravityApi.INVERTED_GRAVITY, true));
+                    mc.level.playLocalSound(player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0f, 1.3f, false);
+                }
+            } else if (player.getY() > corePos.y + 0.35) {
+                // In northern hemisphere, down is downward (-Y towards core) -> Normal
+                if (inverted && (gameTime - lastFlipGameTime > 10L)) {
+                    lastFlipGameTime = gameTime;
+                    GravityApi.SOLES_INVERTED_ENTITIES.remove(player.getUUID());
+                    GravityApi.resetGravity(player);
+                    NetworkManager.sendToServer(new GravityFlipPayload(GravityApi.VANILLA_BASE_GRAVITY, false));
+                    mc.level.playLocalSound(player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0f, 1.3f, false);
+                }
+            }
+        } else if (hasSoles && !inverted) {
             BlockPos headPos = BlockPos.containing(player.getX(), box.maxY + 0.15, player.getZ());
             boolean ceilingAbove = mc.level.getBlockState(headPos).isSolid();
             boolean upwardHit = (player.verticalCollision && motion.y >= -0.05) || (ceilingAbove && motion.y >= 0.0);
@@ -100,8 +139,9 @@ public class GravitonSolesClientHandler {
             }
         }
 
-        // 5. Sneak-Ledge 360° Gravity Flipping around block faces
-        if (isSneaking && (gameTime - lastFlipGameTime > 12L)) {
+        // 5. 360° Edge-Wrapping around block faces (Walking and Sneaking)
+        boolean isMoving = kp.forward() || kp.backward() || kp.left() || kp.right();
+        if ((isMoving || isSneaking) && !kp.jump() && (gameTime - lastFlipGameTime > 10L)) {
             float forwardInput = kp.forward() ? 1.0f : (kp.backward() ? -1.0f : 0.0f);
             float strafeInput = kp.left() ? 1.0f : (kp.right() ? -1.0f : 0.0f);
 
@@ -128,7 +168,7 @@ public class GravitonSolesClientHandler {
                     }
 
                     if (standState.isSolid()) {
-                        BlockPos aheadBelow = BlockPos.containing(pPos.x + moveDir.x * 0.4, pPos.y - 0.5, pPos.z + moveDir.z * 0.4);
+                        BlockPos aheadBelow = BlockPos.containing(pPos.x + moveDir.x * 0.35, pPos.y - 0.5, pPos.z + moveDir.z * 0.35);
                         if (!mc.level.getBlockState(aheadBelow).isSolid()) {
                             BlockPos underside = standPos.below();
                             if (!mc.level.getBlockState(underside).isSolid()) {
@@ -146,6 +186,11 @@ public class GravitonSolesClientHandler {
 
                                 mc.level.playLocalSound(destX, destY, destZ,
                                         SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0f, 1.3f, false);
+                            } else {
+                                // Solid wall/cliff below: lock onto wall to prevent freefall
+                                player.setDeltaMovement(motion.x * 0.2, 0.0, motion.z * 0.2);
+                                player.resetFallDistance();
+                                player.hasImpulse = true;
                             }
                         }
                     }
@@ -159,7 +204,7 @@ public class GravitonSolesClientHandler {
                     }
 
                     if (ceilState.isSolid()) {
-                        BlockPos aheadCeil = BlockPos.containing(pPos.x + moveDir.x * 0.4, box.maxY + 0.2, pPos.z + moveDir.z * 0.4);
+                        BlockPos aheadCeil = BlockPos.containing(pPos.x + moveDir.x * 0.35, box.maxY + 0.2, pPos.z + moveDir.z * 0.35);
                         if (!mc.level.getBlockState(aheadCeil).isSolid()) {
                             BlockPos topFloor = ceilPos.above();
                             if (!mc.level.getBlockState(topFloor).isSolid()) {
@@ -177,6 +222,11 @@ public class GravitonSolesClientHandler {
 
                                 mc.level.playLocalSound(destX, destY, destZ,
                                         SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0f, 1.3f, false);
+                            } else {
+                                // Solid wall above: lock onto wall
+                                player.setDeltaMovement(motion.x * 0.2, 0.0, motion.z * 0.2);
+                                player.resetFallDistance();
+                                player.hasImpulse = true;
                             }
                         }
                     }
