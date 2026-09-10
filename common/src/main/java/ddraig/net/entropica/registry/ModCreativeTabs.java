@@ -173,6 +173,8 @@ public class ModCreativeTabs {
                 output.accept(ModItems.GRAVITON_SOLES.get());
                 output.accept(ModItems.INERTIAL_ANCHOR_AMULET.get());
                 output.accept(ModItems.SINGULARITY_GRENADE.get());
+                output.accept(ModItems.SOAP_FILM_WEAVER.get());
+                output.accept(ModBlocks.GRAVITON_BOUNCEPAD.get());
             }).build());
 
     public static final RegistrySupplier<CreativeModeTab> WEAPON_CRAFTING_TAB = CREATIVE_MODE_TABS.register("weapon_crafting_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 4)

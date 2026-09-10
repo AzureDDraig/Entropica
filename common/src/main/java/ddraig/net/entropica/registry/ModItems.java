@@ -366,6 +366,7 @@ public class ModItems {
     public static final RegistrySupplier<Item> INERTIAL_ANCHOR_AMULET = ITEMS.registerItem("inertial_anchor_amulet", properties -> new ddraig.net.entropica.item.InertialAnchorAmuletItem(properties));
     public static final RegistrySupplier<Item> GRAVITON_WAND = ITEMS.registerItem("graviton_wand", properties -> new ddraig.net.entropica.item.GravitonWandItem(properties));
     public static final RegistrySupplier<Item> SINGULARITY_GRENADE = ITEMS.registerItem("singularity_grenade", properties -> new ddraig.net.entropica.item.SingularityGrenadeItem(properties));
+    public static final RegistrySupplier<Item> SOAP_FILM_WEAVER = ITEMS.registerItem("soap_film_weaver", properties -> new ddraig.net.entropica.item.SoapFilmWeaverItem(properties));
 
     // --- Block Items ---
     public static final RegistrySupplier<BlockItem> GRAVITATIONAL_ANCHOR_ITEM = ITEMS.registerItem("gravitational_anchor", properties -> new BlockItem(ModBlocks.GRAVITATIONAL_ANCHOR.get(), properties));
@@ -373,6 +374,7 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> TIDAL_PULSE_RESONATOR_ITEM = ITEMS.registerItem("tidal_pulse_resonator", properties -> new BlockItem(ModBlocks.TIDAL_PULSE_RESONATOR.get(), properties));
     public static final RegistrySupplier<BlockItem> GRAVITY_CENTER_ITEM = ITEMS.registerItem("gravity_center", properties -> new BlockItem(ModBlocks.GRAVITY_CENTER.get(), properties));
     public static final RegistrySupplier<BlockItem> CREATIVE_GRAVITY_CENTER_ITEM = ITEMS.registerItem("creative_gravity_center", properties -> new BlockItem(ModBlocks.CREATIVE_GRAVITY_CENTER.get(), properties));
+    public static final RegistrySupplier<BlockItem> GRAVITON_BOUNCEPAD_ITEM = ITEMS.registerItem("graviton_bouncepad", properties -> new BlockItem(ModBlocks.GRAVITON_BOUNCEPAD.get(), properties));
     public static final RegistrySupplier<BlockItem> ENTROPIC_ORE_ITEM = ITEMS.registerItem("entropic_ore", properties -> new BlockItem(ModBlocks.ENTROPIC_ORE.get(), properties));
     public static final RegistrySupplier<BlockItem> MATERIA_BLESSING_ITEM = ITEMS.registerItem("materia_blessing", properties -> new BlockItem(ModBlocks.MATERIA_BLESSING.get(), properties));
     public static final RegistrySupplier<BlockItem> GREATER_MATERIA_BLESSING_ITEM = ITEMS.registerItem("greater_materia_blessing", properties -> new BlockItem(ModBlocks.GREATER_MATERIA_BLESSING.get(), properties));

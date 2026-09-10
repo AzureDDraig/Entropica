@@ -115,8 +115,10 @@ public class EntropicaClientFabric implements ClientModInitializer {
         BlockEntityRenderers.register(ModBlockEntities.TIDAL_PULSE_RESONATOR_BE.get(), ddraig.net.entropica.client.renderer.TidalPulseResonatorRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.GRAVITY_CENTER_BE.get(), ddraig.net.entropica.client.renderer.GravityCenterRenderer::new);
         BlockEntityRenderers.register(ModBlockEntities.CREATIVE_GRAVITY_CENTER_BE.get(), ddraig.net.entropica.client.renderer.GravityCenterRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.GRAVITON_BOUNCEPAD_BE.get(), ddraig.net.entropica.client.renderer.GravitonBouncepadRenderer::new);
 
         // --- 2. Entity Renderers ---
+        EntityRendererRegistry.register(ModEntityTypes.FORCEFIELD_BARRIER.get(), ddraig.net.entropica.client.renderer.forcefield.ForcefieldBarrierRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.SINGULARITY_GRENADE.get(), ddraig.net.entropica.client.renderer.SingularityGrenadeRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);

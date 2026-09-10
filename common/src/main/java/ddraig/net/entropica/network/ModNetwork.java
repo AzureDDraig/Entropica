@@ -114,6 +114,53 @@ public class ModNetwork {
                 GravityFlipPayload.STREAM_CODEC,
                 ModNetwork::handleGravityFlip
         );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.S2C,
+                BarrierImpactPayload.TYPE,
+                BarrierImpactPayload.STREAM_CODEC,
+                ModNetwork::handleBarrierImpact
+        );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                UpdateBarrierConfigPayload.TYPE,
+                UpdateBarrierConfigPayload.STREAM_CODEC,
+                ModNetwork::handleUpdateBarrierConfig
+        );
+    }
+
+    public static void handleBarrierImpact(final BarrierImpactPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null && player.level() != null) {
+                net.minecraft.world.entity.Entity entity = player.level().getEntity(data.entityId());
+                if (entity instanceof ddraig.net.entropica.entity.forcefield.ForcefieldBarrierEntity barrier) {
+                    barrier.addRipple(new net.minecraft.world.phys.Vec3(data.x(), data.y(), data.z()), data.intensity());
+                }
+            }
+        });
+    }
+
+    public static void handleUpdateBarrierConfig(final UpdateBarrierConfigPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player != null && player.level() != null) {
+                net.minecraft.world.entity.Entity entity = player.level().getEntity(data.entityId());
+                if (entity instanceof ddraig.net.entropica.entity.forcefield.ForcefieldBarrierEntity barrier) {
+                    boolean isOwner = barrier.getOwnerUUID().map(u -> u.equals(player.getUUID())).orElse(false);
+                    if (isOwner || player.isCreative()) {
+                        barrier.setShape(ddraig.net.entropica.forcefield.BarrierShape.fromOrdinal(data.shapeOrdinal()));
+                        barrier.setWidth(data.width());
+                        barrier.setHeight(data.height());
+                        barrier.setRadius(data.radius());
+                        barrier.setFilterMode(ddraig.net.entropica.forcefield.BarrierFilterMode.fromOrdinal(data.filterModeOrdinal()));
+                        barrier.setPredatorTheme(ddraig.net.entropica.forcefield.ApexPredatorTheme.fromOrdinal(data.themeOrdinal()));
+                        barrier.setBounceElasticity(data.elasticity());
+                    }
+                }
+            }
+        });
     }
 
     public static void handleGravityFlip(final GravityFlipPayload data, final NetworkManager.PacketContext context) {

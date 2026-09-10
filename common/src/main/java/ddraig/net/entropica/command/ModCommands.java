@@ -13,6 +13,8 @@ public class ModCommands {
             VeilFoxCommands.register(dispatcher);
             SupernovaCommand.register(dispatcher);
             ConstellationCommand.register(dispatcher);
+            GravityCommands.register(dispatcher);
+            BarrierCommands.register(dispatcher);
         });
     }
 }

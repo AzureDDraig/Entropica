@@ -2637,5 +2637,12 @@
   "tooltip.entropica.gravity_center": "Fueled celestial gravity well. Connects to Vapor Pneumatic Pipes to consume Materia Fumus and generates an omnidirectional point-gravity field.",
   "tooltip.entropica.creative_gravity_center": "Creative infinite gravity well. Generates a configurable omnidirectional point-gravity field without consuming fuel.",
   "block.entropica.tidal_pulse_resonator": "Tidal Pulse Resonator",
-  "tooltip.entropica.tidal_pulse_resonator": "Oscillates surrounding gravity in rhythmic 4-second tidal pulses: 3 seconds lunar float and 1 second heavy crush slam."
+  "tooltip.entropica.tidal_pulse_resonator": "Oscillates surrounding gravity in rhythmic 4-second tidal pulses: 3 seconds lunar float and 1 second heavy crush slam.",
+  "block.entropica.graviton_bouncepad": "Graviton Bouncepad",
+  "item.entropica.graviton_bouncepad": "Graviton Bouncepad",
+  "tooltip.entropica.graviton_bouncepad": "Celestial pneumatic bouncepad. Launches entities upwards based on their currently experienced downward gravity.",
+  "item.entropica.soap_film_weaver": "Soap-Film Weaver",
+  "entity.entropica.forcefield_barrier": "Forcefield Barrier",
+  "subtitles.entropica.forcefield_bounce": "Soap-film rebound",
+  "subtitles.entropica.bouncepad_launch": "Graviton bouncepad launch"
 }

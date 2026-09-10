@@ -301,4 +301,14 @@ public class ModEntityTypes {
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                      ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "storm_kite"))));
+
+    // --- FORCEFIELD BARRIER ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.forcefield.ForcefieldBarrierEntity>> FORCEFIELD_BARRIER =
+            ENTITY_TYPES.register("forcefield_barrier",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.forcefield.ForcefieldBarrierEntity>of(ddraig.net.entropica.entity.forcefield.ForcefieldBarrierEntity::new, MobCategory.MISC)
+                            .sized(1.0F, 1.0F)
+                            .clientTrackingRange(16)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "forcefield_barrier"))));
 }

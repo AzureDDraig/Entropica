@@ -1,5 +1,26 @@
 ## Build 000-1-26-253
 
+- **Soap-Film Forcefield Barriers**:
+  - Added paper-thin, iridescent forcefield barriers that float in mid-air without occupying block space (you can place and build blocks freely through them).
+  - Supports multiple customizable shapes: flat rectangular walls, circular discs, hemispherical domes, spherical bubbles, and cylinders.
+  - Fully impenetrable with continuous collision detection—running, jumping, or flying into them never clips through, and bounces entities backward based on the side they approached from.
+  - Visuals shimmer like real soap bubbles with rainbow light effects, edge glows, and expanding wave ripples whenever anything strikes the barrier.
+  - Supports permission filters to block everyone, only mobs, only players, hostile mobs, or flying projectiles.
+  - Integrates arena firmament domes for the 6 Apex Predators of Astral Materia from the Red Void, each featuring distinct colors, textures, and boundary runes.
+
+- **Soap-Film Weaver Tool**:
+  - Handheld wand to weave and dispel forcefields. Right-clicking creates a barrier; crouching and right-clicking cycles between shapes; clicking an existing barrier dispels it (creator or creative mode only) or updates permission filters.
+
+- **Graviton Bouncepad Block**:
+  - Added a celestial spring bouncepad that launches players and mobs upward relative to whatever downward gravity they currently feel.
+  - Works consistently whether you are on normal floors, upside down on ceilings, walking around curved asteroids with a Gravity Center, or wall-running.
+  - Powering the bouncepad with redstone boosts launch height from ~10 blocks up to ~25 blocks high.
+  - Features animated pneumatic piston recoil, metallic launch sounds, and glowing sparkle bursts.
+
+- **Gravity & Barrier Debug Commands**:
+  - Added `/entropica gravity` commands to view, set, reset, or invert personal gravity and spawn test fields.
+  - Added `/entropica barrier` commands to spawn barriers of any shape, erect boss arenas, view barrier stats, and test bounce velocities.
+
 - **Gravity Center Core Improvements**:
   - The Gravity Center now completely overrides standard downward gravity within its radius, so its center is the only direction of gravity.
   - Calibrated the inward pull strength and fixed player jumping so you can jump at full, normal height even when right next to or on top of the core.

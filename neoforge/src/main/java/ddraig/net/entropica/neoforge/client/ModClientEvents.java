@@ -238,7 +238,9 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.TIDAL_PULSE_RESONATOR_BE.get(), ddraig.net.entropica.client.renderer.TidalPulseResonatorRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.GRAVITY_CENTER_BE.get(), ddraig.net.entropica.client.renderer.GravityCenterRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_GRAVITY_CENTER_BE.get(), ddraig.net.entropica.client.renderer.GravityCenterRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.GRAVITON_BOUNCEPAD_BE.get(), ddraig.net.entropica.client.renderer.GravitonBouncepadRenderer::new);
 
+        event.registerEntityRenderer(ModEntityTypes.FORCEFIELD_BARRIER.get(), ddraig.net.entropica.client.renderer.forcefield.ForcefieldBarrierRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.SINGULARITY_GRENADE.get(), ddraig.net.entropica.client.renderer.SingularityGrenadeRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_ORB.get(), EssenceOrbRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.ESSENCE_NODE.get(), EssenceNodeRenderer::new);

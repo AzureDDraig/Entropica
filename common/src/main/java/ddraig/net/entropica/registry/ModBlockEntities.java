@@ -72,6 +72,10 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("creative_gravity_center", () ->
                     BlockEntityHelper.create(ddraig.net.entropica.block.entity.CreativeGravityCenterBlockEntity::new, ModBlocks.CREATIVE_GRAVITY_CENTER.get()));
 
+    public static final RegistrySupplier<BlockEntityType<ddraig.net.entropica.block.entity.GravitonBouncepadBlockEntity>> GRAVITON_BOUNCEPAD_BE =
+            BLOCK_ENTITIES.register("graviton_bouncepad", () ->
+                    BlockEntityHelper.create(ddraig.net.entropica.block.entity.GravitonBouncepadBlockEntity::new, ModBlocks.GRAVITON_BOUNCEPAD.get()));
+
     // --- Vapor Pneumatic Network ---
 
     public static final RegistrySupplier<BlockEntityType<VaporPneumaticValveBlockEntity>> VAPOR_PNEUMATIC_VALVE_BE =
