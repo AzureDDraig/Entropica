@@ -71,27 +71,55 @@ public class FirmamentHologramPreviewRenderer {
         SnapResult snap;
 
         if (hasAnchor && anchorPos != null) {
+            // If player has moved beyond maximum allowed span (32m), do not render preview
+            if (player.position().distanceTo(anchorPos) > 32.0) {
+                return;
+            }
+
+            // Only stretch the preview wireframe when actually aiming at a block surface
+            boolean aimingAtSurface = crosshairHit.getType() == HitResult.Type.BLOCK;
+            if (!aimingAtSurface) {
+                // Aiming into empty sky: render only the Point A beacon and a subtle guide line towards player
+                Vec3 camPos = camera.getPosition();
+                MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
+                VertexConsumer vc = bufferSource.getBuffer(RenderType.lines());
+
+                poseStack.pushPose();
+                poseStack.translate(-camPos.x, -camPos.y, -camPos.z);
+                PoseStack.Pose worldEntry = poseStack.last();
+
+                float bSize = 0.25F;
+                renderBoxOutline(worldEntry, vc,
+                        (float) (anchorPos.x - bSize), (float) (anchorPos.y - bSize), (float) (anchorPos.z - bSize),
+                        (float) (anchorPos.x + bSize), (float) (anchorPos.y + bSize), (float) (anchorPos.z + bSize),
+                        1.0F, 0.85F, 0.20F, 0.90F);
+
+                poseStack.popPose();
+                bufferSource.endBatch(RenderType.lines());
+                return;
+            }
+
             Vec3 span = targetPos.subtract(anchorPos);
             double horizDist = span.horizontalDistance();
             double vertDist = Math.abs(span.y);
             double totalDist = span.length();
 
-            if (totalDist < 1.0 || totalDist > 64.0) {
+            if (totalDist < 1.0 || totalDist > 32.0) {
                 obstructed = true;
             }
 
             if (horizDist > 0.05) {
                 center = anchorPos.add(span.scale(0.5));
                 yaw = (float) (Math.atan2(span.z, span.x) * 180.0 / Math.PI);
-                width = (float) Math.max(1.0, horizDist);
-                height = (float) Math.max(1.0, vertDist);
+                width = (float) Math.min(32.0, Math.max(1.0, horizDist));
+                height = (float) Math.min(32.0, Math.max(1.0, vertDist));
             } else {
                 center = anchorPos.add(0, span.y * 0.5, 0);
                 yaw = player.getYRot();
                 width = 4.0F;
-                height = (float) Math.max(1.0, vertDist);
+                height = (float) Math.min(32.0, Math.max(1.0, vertDist));
             }
-            radius = (float) Math.max(0.5, totalDist * 0.5);
+            radius = (float) Math.min(16.0, Math.max(0.5, totalDist * 0.5));
 
             snap = BarrierFieldManager.findSnapAlignment(mc.level, center, yaw, pitch, width, height, shape, 0.5);
             if (snap.isSnapped()) {
@@ -101,6 +129,11 @@ public class FirmamentHologramPreviewRenderer {
                 pitch = snap.snappedPitch();
             }
         } else {
+            // Free placement: only render if aiming at a block or crouching
+            if (crosshairHit.getType() != HitResult.Type.BLOCK && !player.isShiftKeyDown()) {
+                return;
+            }
+
             snap = BarrierFieldManager.findSnapAlignment(mc.level, targetPos, player.getYRot(), 0.0F, width, height, shape, 0.5);
             if (snap.isSnapped()) {
                 isSnapped = true;

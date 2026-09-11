@@ -29,7 +29,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -43,8 +47,11 @@ public class FirmamentWeaverItem extends Item {
     public static final String TAG_ANCHOR_X = "AnchorX";
     public static final String TAG_ANCHOR_Y = "AnchorY";
     public static final String TAG_ANCHOR_Z = "AnchorZ";
+    public static final String TAG_ANCHOR_DIM = "AnchorDim";
+    public static final String TAG_ANCHOR_TIME = "AnchorTime";
     public static final String TAG_ACTIVE_SHAPE = "ActiveShape";
     public static final double SNAP_TOLERANCE = 0.50;
+    public static final double MAX_SPAN_DISTANCE = 32.0;
 
     public FirmamentWeaverItem(Properties properties) {
         super(properties.stacksTo(1));
@@ -68,12 +75,20 @@ public class FirmamentWeaverItem extends Item {
     }
 
     public static void setAnchor(ItemStack stack, Vec3 pos) {
+        setAnchor(stack, pos, null);
+    }
+
+    public static void setAnchor(ItemStack stack, Vec3 pos, @Nullable Level level) {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = customData.copyTag();
         tag.putBoolean(TAG_HAS_ANCHOR, true);
         tag.putDouble(TAG_ANCHOR_X, pos.x);
         tag.putDouble(TAG_ANCHOR_Y, pos.y);
         tag.putDouble(TAG_ANCHOR_Z, pos.z);
+        if (level != null) {
+            tag.putString(TAG_ANCHOR_DIM, level.dimension().location().toString());
+            tag.putLong(TAG_ANCHOR_TIME, level.getGameTime());
+        }
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
@@ -84,7 +99,96 @@ public class FirmamentWeaverItem extends Item {
         tag.remove(TAG_ANCHOR_X);
         tag.remove(TAG_ANCHOR_Y);
         tag.remove(TAG_ANCHOR_Z);
+        tag.remove(TAG_ANCHOR_DIM);
+        tag.remove(TAG_ANCHOR_TIME);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, ServerLevel level, net.minecraft.world.entity.Entity entity, @Nullable net.minecraft.world.entity.EquipmentSlot slot) {
+        super.inventoryTick(stack, level, entity, slot);
+        tickAnchor(stack, level, entity);
+    }
+
+    public void inventoryTick(ItemStack stack, Level level, net.minecraft.world.entity.Entity entity, int slotId, boolean isSelected) {
+        tickAnchor(stack, level, entity);
+    }
+
+    private static void tickAnchor(ItemStack stack, Level level, net.minecraft.world.entity.Entity entity) {
+        if (!hasAnchor(stack)) return;
+
+        CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CompoundTag tag = customData.copyTag();
+
+        // Check dimension change
+        String anchorDim = tag.getString(TAG_ANCHOR_DIM).orElse("");
+        String currentDim = level.dimension().location().toString();
+        if (!anchorDim.isEmpty() && !anchorDim.equals(currentDim)) {
+            clearAnchor(stack);
+            if (entity instanceof Player player && !level.isClientSide()) {
+                player.displayClientMessage(Component.literal("§e[Firmament Weaver] §7Anchor Point A expired (dimension changed)."), true);
+            }
+            return;
+        }
+
+        // Check distance limit (>32m)
+        Optional<Vec3> optA = getAnchor(stack);
+        if (optA.isPresent()) {
+            Vec3 anchor = optA.get();
+            if (entity.position().distanceTo(anchor) > MAX_SPAN_DISTANCE) {
+                clearAnchor(stack);
+                if (entity instanceof Player player && !level.isClientSide()) {
+                    player.displayClientMessage(Component.literal("§e[Firmament Weaver] §7Anchor Point A expired (exceeded 32m maximum span)."), true);
+                }
+                return;
+            }
+        }
+
+        // Check 60s timeout (1200 ticks)
+        long anchorTime = tag.getLong(TAG_ANCHOR_TIME).orElse(0L);
+        if (anchorTime > 0L && (level.getGameTime() - anchorTime) > 1200L) {
+            clearAnchor(stack);
+            if (entity instanceof Player player && !level.isClientSide()) {
+                player.displayClientMessage(Component.literal("§e[Firmament Weaver] §7Anchor Point A expired (timeout)."), true);
+            }
+        }
+    }
+
+    /**
+     * Dispels the nearest barrier within 5 blocks owned by the player.
+     */
+    public static boolean dispelNearestBarrier(Player player) {
+        Level level = player.level();
+        Vec3 eyePos = player.getEyePosition();
+        net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(
+                eyePos.x - 5.0, eyePos.y - 5.0, eyePos.z - 5.0,
+                eyePos.x + 5.0, eyePos.y + 5.0, eyePos.z + 5.0
+        );
+        List<ForcefieldBarrierEntity> barriers = level.getEntitiesOfClass(
+                ForcefieldBarrierEntity.class, box,
+                b -> b.isAlive() && b.isActive()
+        );
+
+        ForcefieldBarrierEntity closest = null;
+        double closestDist = Double.MAX_VALUE;
+        for (ForcefieldBarrierEntity b : barriers) {
+            UUID owner = b.getOwnerUUID().orElse(null);
+            boolean isCreator = owner != null && owner.equals(player.getUUID());
+            if (isCreator || player.isCreative()) {
+                if (b.isBossEncounter() && !player.isCreative()) continue;
+                double dist = b.distanceToSqr(eyePos);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closest = b;
+                }
+            }
+        }
+
+        if (closest != null) {
+            closest.dispelByCreator(player);
+            return true;
+        }
+        return false;
     }
 
     public static BarrierShape getShape(ItemStack stack) {
@@ -133,7 +237,7 @@ public class FirmamentWeaverItem extends Item {
         if (!hasAnchor(stack)) {
             // First Click (Point A)
             if (!level.isClientSide()) {
-                setAnchor(stack, clickLoc);
+                setAnchor(stack, clickLoc, level);
                 if (level instanceof ServerLevel serverLevel) {
                     serverLevel.sendParticles(ParticleTypes.END_ROD, clickLoc.x, clickLoc.y, clickLoc.z, 15, 0.1, 0.1, 0.1, 0.05);
                 }
@@ -162,9 +266,11 @@ public class FirmamentWeaverItem extends Item {
                 return InteractionResult.SUCCESS;
             }
 
-            if (dist > 64.0) {
-                Vec3 dir = pointB.subtract(pointA).normalize();
-                pointB = pointA.add(dir.scale(64.0));
+            if (dist > MAX_SPAN_DISTANCE) {
+                if (!level.isClientSide() && player != null) {
+                    player.displayClientMessage(Component.literal("§c[Firmament Weaver] §7Points exceed maximum 32m span."), true);
+                }
+                return InteractionResult.SUCCESS;
             }
 
             double dx = pointB.x - pointA.x;
@@ -172,8 +278,8 @@ public class FirmamentWeaverItem extends Item {
             double dz = pointB.z - pointA.z;
 
             Vec3 center = pointA.add(pointB).scale(0.5);
-            float width = (float) Math.max(1.0, Math.sqrt(dx * dx + dz * dz));
-            float height = (float) Math.max(1.0, Math.abs(dy));
+            float width = (float) Math.min(32.0, Math.max(1.0, Math.sqrt(dx * dx + dz * dz)));
+            float height = (float) Math.min(32.0, Math.max(1.0, Math.abs(dy)));
 
             if (Math.abs(dy) < 0.5) {
                 height = 3.5F;
@@ -263,15 +369,29 @@ public class FirmamentWeaverItem extends Item {
         }
 
         if (hasAnchor(stack)) {
-            return InteractionResult.PASS;
+            // Cancel Point A on air click as well to prevent getting stuck
+            clearAnchor(stack);
+            if (!level.isClientSide()) {
+                level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 0.8F, 0.8F);
+                player.displayClientMessage(Component.literal("§e[Firmament Weaver] §7Cancelled anchor Point A."), true);
+            }
+            return InteractionResult.SUCCESS;
         }
 
-        // Raycast up to 6 blocks, or place 3.5 blocks in front of eyes
+        // Raycast up to 6 blocks
         Vec3 eyePos = player.getEyePosition();
         Vec3 lookVec = player.getViewVector(1.0F);
         Vec3 targetPos = eyePos.add(lookVec.scale(6.0));
 
         BlockHitResult blockHit = level.clip(new ClipContext(eyePos, targetPos, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+        if (blockHit.getType() == HitResult.Type.MISS && !player.isCreative()) {
+            // Looking at empty sky/air: do not accidentally spawn a barrier in front of player's face
+            if (!level.isClientSide()) {
+                player.displayClientMessage(Component.literal("§d[Firmament Weaver] §7Click a block to anchor Point A, or Crouch + Right-Click to cycle shapes."), true);
+            }
+            return InteractionResult.PASS;
+        }
+
         Vec3 spawnPos = (blockHit.getType() != HitResult.Type.MISS) ? blockHit.getLocation() : eyePos.add(lookVec.scale(3.5));
 
         if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
@@ -335,10 +455,11 @@ public class FirmamentWeaverItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, display, tooltipComponents, tooltipFlag);
         tooltipComponents.accept(Component.literal("§7Weaves paper-thin forcefield barriers in mid-air."));
-        tooltipComponents.accept(Component.literal("§eRight-Click Block§7: Set Point A, then Point B to span barrier"));
-        tooltipComponents.accept(Component.literal("§eRight-Click Air§7: Cast barrier ahead"));
-        tooltipComponents.accept(Component.literal("§eShift + Scroll / Right-Click§7: Cycle shape (or cancel Point A)"));
+        tooltipComponents.accept(Component.literal("§eRight-Click Block§7: Set Point A, then Point B to span barrier (max 32m)"));
+        tooltipComponents.accept(Component.literal("§eRight-Click Air§7: Cancel Point A / Prompt"));
+        tooltipComponents.accept(Component.literal("§eShift + Scroll / Right-Click Air§7: Cycle barrier shape"));
         tooltipComponents.accept(Component.literal("§cLeft-Click Barrier§7: Dispel (creator only)"));
+        tooltipComponents.accept(Component.literal("§cShift + Left-Click§7: Proximity dispel nearest barrier (5m)"));
         tooltipComponents.accept(Component.literal("§8Does not occupy block space. Bounces entities on arrival."));
     }
 }

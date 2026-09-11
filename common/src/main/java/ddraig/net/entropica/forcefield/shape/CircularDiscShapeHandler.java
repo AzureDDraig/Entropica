@@ -137,6 +137,31 @@ public class CircularDiscShapeHandler implements BarrierShapeHandler {
                 ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, x0, y0, 0, c0, normal.scale(-1));
             }
         }
+
+        // --- Luminous Circumference Rim (Eliminates edge-on 1-pixel disappearance) ---
+        float rimZ = 0.03F;
+        ForcefieldShaderHelper.ColorResult rimColor = ForcefieldShaderHelper.evaluateColor(
+                0.9F, 0.9F, normal, viewDir, state.ageTicks, state.theme, 0.4F, state.colorTint, !state.isActive
+        );
+        rimColor = new ForcefieldShaderHelper.ColorResult(rimColor.r(), rimColor.g(), rimColor.b(), Math.max(0.75F, rimColor.a()));
+
+        for (int s = 0; s < radialSegs; s++) {
+            float angle0 = 2.0F * (float) Math.PI * s / radialSegs;
+            float angle1 = 2.0F * (float) Math.PI * (s + 1) / radialSegs;
+
+            float rx0 = radius * Mth.cos(angle0);
+            float ry0 = radius * Mth.sin(angle0);
+            float rx1 = radius * Mth.cos(angle1);
+            float ry1 = radius * Mth.sin(angle1);
+
+            Vec3 rimN = new Vec3(rx0, ry0, 0).normalize();
+
+            ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, rx0, ry0, -rimZ, rimColor, rimN);
+            ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, rx1, ry1, -rimZ, rimColor, rimN);
+            ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, rx1, ry1,  rimZ, rimColor, rimN);
+            ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, rx0, ry0,  rimZ, rimColor, rimN);
+        }
+
         poseStack.popPose();
     }
 

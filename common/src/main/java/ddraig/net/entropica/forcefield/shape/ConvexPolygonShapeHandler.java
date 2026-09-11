@@ -212,6 +212,33 @@ public class ConvexPolygonShapeHandler implements BarrierShapeHandler {
                 ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, x0, y0, 0, c0, normal.scale(-1));
             }
         }
+
+        // --- Luminous Polygon Perimeter Rim (Eliminates edge-on 1-pixel disappearance) ---
+        float rimZ = 0.03F;
+        ForcefieldShaderHelper.ColorResult rimColor = ForcefieldShaderHelper.evaluateColor(
+                0.9F, 0.9F, normal, viewDir, state.ageTicks, state.theme, 0.4F, state.colorTint, !state.isActive
+        );
+        rimColor = new ForcefieldShaderHelper.ColorResult(rimColor.r(), rimColor.g(), rimColor.b(), Math.max(0.75F, rimColor.a()));
+
+        for (int i = 0; i < n; i++) {
+            int next = (i + 1) % n;
+            double a0 = 2.0 * Math.PI * i / n;
+            double a1 = 2.0 * Math.PI * next / n;
+
+            float px0 = semiW * (float) Math.cos(a0);
+            float py0 = semiH * (float) Math.sin(a0);
+            float px1 = semiW * (float) Math.cos(a1);
+            float py1 = semiH * (float) Math.sin(a1);
+
+            Vec3 edgeDir = new Vec3(px1 - px0, py1 - py0, 0);
+            Vec3 rimN = edgeDir.cross(normal).normalize();
+
+            ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, px0, py0, -rimZ, rimColor, rimN);
+            ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, px1, py1, -rimZ, rimColor, rimN);
+            ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, px1, py1,  rimZ, rimColor, rimN);
+            ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, px0, py0,  rimZ, rimColor, rimN);
+        }
+
         poseStack.popPose();
     }
 

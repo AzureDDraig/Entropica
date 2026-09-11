@@ -80,6 +80,16 @@ public class Entropica {
             return dev.architectury.event.EventResult.pass();
         });
 
+        // --- Firmament Weaver Proximity Dispel on Shift + Left Click Block ---
+        dev.architectury.event.events.common.InteractionEvent.LEFT_CLICK_BLOCK.register((player, hand, pos, direction) -> {
+            if (player.isShiftKeyDown() && player.getItemInHand(hand).getItem() instanceof ddraig.net.entropica.item.FirmamentWeaverItem) {
+                if (ddraig.net.entropica.item.FirmamentWeaverItem.dispelNearestBarrier(player)) {
+                    return dev.architectury.event.EventResult.interruptTrue();
+                }
+            }
+            return dev.architectury.event.EventResult.pass();
+        });
+
         LOGGER.info("Entropica: Common Initialization completed.");
     }
 }

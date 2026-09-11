@@ -152,6 +152,43 @@ public class PlanarQuadShapeHandler implements BarrierShapeHandler {
                 ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, x0, y0, r0, c0, normal.scale(-1));
             }
         }
+
+        // --- Luminous Perimeter Edge Rim (Eliminates edge-on 1-pixel disappearance) ---
+        float rimZ = 0.03F; // 0.06m total bevel depth along normal
+        ForcefieldShaderHelper.ColorResult rimColor = ForcefieldShaderHelper.evaluateColor(
+                0.9F, 0.9F, normal, viewDir, state.ageTicks, state.theme, 0.4F, state.colorTint, !state.isActive
+        );
+        rimColor = new ForcefieldShaderHelper.ColorResult(rimColor.r(), rimColor.g(), rimColor.b(), Math.max(0.75F, rimColor.a()));
+
+        Vec3 topN = new Vec3(0, 1, 0);
+        Vec3 botN = new Vec3(0, -1, 0);
+        Vec3 leftN = new Vec3(-1, 0, 0);
+        Vec3 rightN = new Vec3(1, 0, 0);
+
+        // Top Edge Rim
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, -halfW, halfH, -rimZ, rimColor, topN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix,  halfW, halfH, -rimZ, rimColor, topN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix,  halfW, halfH,  rimZ, rimColor, topN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, -halfW, halfH,  rimZ, rimColor, topN);
+
+        // Bottom Edge Rim
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, -halfW, -halfH,  rimZ, rimColor, botN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix,  halfW, -halfH,  rimZ, rimColor, botN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix,  halfW, -halfH, -rimZ, rimColor, botN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, -halfW, -halfH, -rimZ, rimColor, botN);
+
+        // Left Edge Rim
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, -halfW, -halfH, -rimZ, rimColor, leftN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, -halfW,  halfH, -rimZ, rimColor, leftN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, -halfW,  halfH,  rimZ, rimColor, leftN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, -halfW, -halfH,  rimZ, rimColor, leftN);
+
+        // Right Edge Rim
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, halfW, -halfH,  rimZ, rimColor, rightN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, halfW,  halfH,  rimZ, rimColor, rightN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, halfW,  halfH, -rimZ, rimColor, rightN);
+        ForcefieldBarrierRenderer.addVertex(consumer, rotMatrix, halfW, -halfH, -rimZ, rimColor, rightN);
+
         poseStack.popPose();
     }
 
