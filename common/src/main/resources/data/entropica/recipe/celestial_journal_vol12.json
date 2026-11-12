@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    [
+      "entropica:scribing_ink",
+      "minecraft:ink_sac"
+    ],
+    "minecraft:magma_cream",
+    "minecraft:redstone"
+  ],
+  "result": {
+    "id": "entropica:celestial_journal_vol12",
+    "count": 1
+  }
+}

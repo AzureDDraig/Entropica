@@ -1,0 +1,430 @@
+{
+  "volume": 13,
+  "roman": "XIII",
+  "id": "celestial_journal_vol13",
+  "title": "Volume XIII: The Starlight Covenant & The Ancient Tongue",
+  "shortTitle": "The Starlight Covenant & Ancient Tongue",
+  "subtitle": "Personal Memoirs of the Mended Sky, Ancient Glyphs & Trans-Dimensional Relics",
+  "author": "From the Journals of Lady Vespera & High Astrologer Vaelin of the Grand Observatorium",
+  "epigraph": [
+    "*\"When the battle is done, the sky does not merely heal—it speaks. In runes of starlight and gold, the Sovereigns whisper their gratitude across the mended glass, reminding mortal weavers that we are the guardians of the inner light.\"*",
+    "— **Lady Vespera**, *Treatise on the Celestial Covenant*"
+  ],
+  "guiCoverColor": 4280170072,
+  "guiTrimColor": 4294960254,
+  "guiAccentColor": 4288213247,
+  "entries": [
+    {
+      "title": "Chapter I: The Moment of Silence",
+      "part": "Part I: The Mending of the Sky",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Personal Diary of High Astrologer Vaelin — Dawn of the Mended Sky*"
+        },
+        {
+          "type": "paragraph",
+          "text": "When the final screech of the Silencer of Echoes faded into the morning air and the last tendril of scarlet mist was sucked back through the breach, a silence fell across Mount Aetheria so profound it made my ears ring."
+        },
+        {
+          "type": "paragraph",
+          "text": "The alarms had died. The wind held its breath. Our thirty surviving vanguard fighters stood leaning against the cracked, smoking flagstones of the altar, their faces blackened with soot, their breath coming in ragged, white plumes against the freezing air. Nobody cheered. Nobody spoke. We were too battered to celebrate, our eyes fixed upon the horrific forty-degree tear still gaping in the celestial dome."
+        },
+        {
+          "type": "paragraph",
+          "text": "Through that raw wound, the cold, dead vacuum of the outer void peeked down upon our mortal world. We gripped our dented shields and loaded our crossbows, waiting for another nightmare to descend."
+        }
+      ]
+    },
+    {
+      "title": "Chapter II: The Descent of the Avatar",
+      "part": "Part I: The Mending of the Sky",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Journal of Lady Vespera*"
+        },
+        {
+          "type": "paragraph",
+          "text": "Then, the ragged edges of the sky began to burn with a soft, miraculous luminescence."
+        },
+        {
+          "type": "paragraph",
+          "text": "Through the bleeding tear appeared two colossal, divine silhouettes: **The Solar Monarch**, draped in blinding robes of liquid dawn gold, and **The Lunar Matron**, veiled in a serene mantle of midnight indigo. They did not attempt to force their physical bodies through the gap, for they knew their infinite mass would crush our mortal mountains into gravel."
+        },
+        {
+          "type": "paragraph",
+          "text": "Instead, they hovered gently at the threshold of the breach. For a long, breathless minute, the two Sovereigns gazed down upon our bloodied vanguard. In their starlight eyes, there was no haughty pride, no divine arrogance—only the profound, weary gratitude of two sentinels acknowledging thirty mortals who had held the line while they were away."
+        }
+      ]
+    },
+    {
+      "title": "Chapter III: The Starlight Weave",
+      "part": "Part I: The Mending of the Sky",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Observations of High Astrologer Vaelin*"
+        },
+        {
+          "type": "paragraph",
+          "text": "What followed was the most wondrous spectacle mortal eyes have ever witnessed."
+        },
+        {
+          "type": "paragraph",
+          "text": "The Solar Monarch and Lunar Matron raised their hands. From their starlight fingertips shot tens of thousands of golden and silver filaments—lines of pure, compressed celestial light that crossed and re-crossed the void like cosmic needle and thread. With mathematical perfection that brought tears to my eyes, they wove the ragged edges of reality back together."
+        },
+        {
+          "type": "paragraph",
+          "text": "Every time a golden thread crossed a silver filament, a new star ignited to anchor the seam. Slowly, seamlessly, the bleeding crimson scar vanished, replaced once more by the deep, crystalline velvet of the night sky. The Firmament was whole."
+        }
+      ]
+    },
+    {
+      "title": "Chapter IV: The Mending Wave",
+      "part": "Part I: The Mending of the Sky",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Journal of Lady Vespera*"
+        },
+        {
+          "type": "paragraph",
+          "text": "As the final golden thread was knotted into the northern meridian, a radiant, warm shockwave pulsed downward from the heavens."
+        },
+        {
+          "type": "paragraph",
+          "text": "It washed across the 64-block battlefield bubble like the breath of summer. Where the granite had been cratered and cracked by the monster's claws, the stone smoothly re-knitted itself before our eyes. The scorched black flagstones turned clean and white as fresh snow. In the cracks between the paving stones, tiny auroral flowers sprouted and bloomed with luminescent petals."
+        },
+        {
+          "type": "paragraph",
+          "text": "The translucent containment barrier dissolved into a shower of sparkling stardust, leaving behind not a single scar upon the mountain earth."
+        }
+      ]
+    },
+    {
+      "title": "Chapter V: The First Glyphs",
+      "part": "Part II: The Ancient Celestial Script",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Laboratory Notes of Lady Vespera*"
+        },
+        {
+          "type": "paragraph",
+          "text": "When the stardust settled, we found an inscribed tablet of pure white starlight glass hovering three feet above the central altar."
+        },
+        {
+          "type": "paragraph",
+          "text": "Upon its surface burned lines of shimmering, non-Euclidean runes. The symbols did not follow the grammar or alphabet of any mortal tongue I had ever cataloged. They rotated slowly in place, their luminous strokes shifting between two and three dimensions depending on the angle from which they were viewed."
+        },
+        {
+          "type": "paragraph",
+          "text": "Young apprentice Ronald stared at the runes for less than a minute before clutching his temples in agony, overcome by temporal nausea. The language of the Sovereigns was never meant for unshielded mortal retinas."
+        }
+      ]
+    },
+    {
+      "title": "Chapter VI: The Blindness of the Uninitiated",
+      "part": "Part II: The Ancient Celestial Script",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Ephemeris Diary of High Astrologer Vaelin*"
+        },
+        {
+          "type": "paragraph",
+          "text": "For three weeks, the scholars of the academy gathered around the glass tablet, attempting to decipher the runes through brute-force linguistic comparison. We failed completely."
+        },
+        {
+          "type": "paragraph",
+          "text": "The celestial script is not an alphabet of letters that represent spoken sounds; it is a language of harmonic resonance. To read the words of the Sovereigns, one’s own physical eyesight must be tuned to the exact vibrational frequency of the distant stars. To the uninitiated mortal, the tablet is nothing more than beautiful, blinding geometry."
+        }
+      ]
+    },
+    {
+      "title": "Chapter VII: The Arkanist Monocle",
+      "part": "Part II: The Ancient Celestial Script",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Artificer Log of Lady Vespera*"
+        },
+        {
+          "type": "paragraph",
+          "text": "The breakthrough came at midnight in my optics workshop."
+        },
+        {
+          "type": "paragraph",
+          "text": "I ground a precision teardrop lens from a flawless chunk of **Astral Quartz**, polished it with diamond dust, and mounted it in a frame of engraved Viscanite brass infused with a drop of distilled starlight dew."
+        },
+        {
+          "type": "paragraph",
+          "text": "I slipped the monocle over my left eye and looked upon the tablet."
+        },
+        {
+          "type": "paragraph",
+          "text": "My breath caught in my throat. Through the lens, the chaotic spinning runes resolved into steady, golden geometric glyphs, and beneath each rune, glowing English subtitles floated in the air like lines of liquid amber. The monocle acted as a harmonic bridge, translating the thoughts of the gods into mortal words in real time."
+        }
+      ]
+    },
+    {
+      "title": "Chapter VIII: The Celestial Lexicon",
+      "part": "Part II: The Ancient Celestial Script",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Research Memoirs of High Astrologer Vaelin*"
+        },
+        {
+          "type": "paragraph",
+          "text": "Using the Arkanist Monocle, Lady Vespera and I spent three months compiling the **Celestial Lexicon** within the Entropic Codex."
+        },
+        {
+          "type": "paragraph",
+          "text": "We discovered that once an arkanist’s mind comprehends the fundamental grammar of the stars—the eighteen cardinal glyphs of form, mass, light, and void—the brain physically adapts. A scholar who masters the Lexicon node in the Codex no longer requires the monocle; the ancient runes etched upon distant stelae and falling stars resolve instantly into clear, poetic understanding in the scholar’s thoughts."
+        }
+      ]
+    },
+    {
+      "title": "Chapter IX: The Message of Gratitude",
+      "part": "Part II: The Ancient Celestial Script",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Personal Diary of High Astrologer Vaelin*"
+        },
+        {
+          "type": "paragraph",
+          "text": "When we finally translated the tablet left behind on Mount Aetheria, this was the message inscribed by the Solar Monarch:"
+        },
+        {
+          "type": "quote",
+          "text": "*\"Mortal Weaver, our thanks for repelling the Red Void from this threshold. The Firmament mends; we shall repair what was broken on our end. Guard the inner light, for the stars remember your courage.\"*"
+        },
+        {
+          "type": "paragraph",
+          "text": "Oron wept when I read it aloud to the vanguard. It was not a command from a master to a thrall; it was a message of brotherhood between comrades standing on opposite sides of a fortress wall."
+        }
+      ]
+    },
+    {
+      "title": "Chapter X: The Glass that Casts No Shadow",
+      "part": "Part III: Trans-Dimensional Relics & Rewards",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Laboratory Journal of Lady Vespera — Testing the Firmament Shards*"
+        },
+        {
+          "type": "paragraph",
+          "text": "I am writing this by the glow of a single **Firmament Shard** resting upon a velvet cloth on my workbench."
+        },
+        {
+          "type": "paragraph",
+          "text": "It is the strangest material I have ever held. It looks like a fragment of broken window glass, perhaps three inches across, but when I place it in the path of a roaring oil lamp, it casts absolute zero shadow upon the wall behind it. Light passes through it with zero refraction, zero reflection, and zero absorption. It feels weightless, like holding a pocket of empty air, yet it is colder to the touch than blue glacier ice."
+        },
+        {
+          "type": "paragraph",
+          "text": "Earlier today, Brother Cadmus came into the workshop carrying a sixteen-pound steel sledgehammer. He was convinced the shard was fragile."
+        },
+        {
+          "type": "paragraph",
+          "text": "\"Let me tap it, Vespera,\" he insisted with that catastrophic grin of his. \"Just a light tap to test its cleavage plane.\""
+        },
+        {
+          "type": "paragraph",
+          "text": "Before I could grab his arm, Cadmus brought the hammer down with all his might upon the shard."
+        },
+        {
+          "type": "paragraph",
+          "text": "There was a deafening *CLANG* that rattled every alembic on the shelves. The forged steel face of Cadmus’s hammer cracked in half, sending a chunk of iron flying into the ceiling plaster. The Firmament Shard did not shatter. It did not crack. It did not even move an eighth of an inch across the velvet cloth."
+        },
+        {
+          "type": "paragraph",
+          "text": "When we crafted this shard into the casing of an **Orbis Cell**, the cell held over ten times the Materia capacity of our best crystal vessels without showing the slightest strain of pressure. It is not glass; it is a fragment of the wall that holds back infinity."
+        }
+      ]
+    },
+    {
+      "title": "Chapter XI: The Eye in the Brine",
+      "part": "Part III: Trans-Dimensional Relics & Rewards",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Personal Diary of High Astrologer Vaelin — Vault Treasury Log*"
+        },
+        {
+          "type": "paragraph",
+          "text": "Down in the deepest secure vault beneath the library sits an airtight crystal jar filled with alchemical brine. Inside that jar floats the **Eye of the Star Eater**, harvested from the courtyard flagstones after the beast collapsed."
+        },
+        {
+          "type": "paragraph",
+          "text": "Even detached from its colossal body and pickled in preservative fluids, the eye is terrifyingly alive. It is a sphere of pure, polished obsidian the size of a cannonball. When I walk across the vault floor, the dark pupil slowly, silently rotates inside the glass to track my movement. If I extinguish my lantern, the eye emits a faint, eerie violet halo that bends the shadows around it."
+        },
+        {
+          "type": "paragraph",
+          "text": "Yesterday, Master Artificer Kaelen mounted a micro-fragment of the eye's crystalline lens into the housing of an experimental **Aetheric Focus Staff**."
+        },
+        {
+          "type": "paragraph",
+          "text": "When Cadmus test-fired the staff at our outdoor firing range, the projectile did not explode on impact like a standard fire spell. It opened a miniature gravitational singularity three paces wide, pulling five wooden target dummies and twelve stone cobblestones into its crushing center before snapping out of existence with a muffled *whump*."
+        },
+        {
+          "type": "paragraph",
+          "text": "\"We are no longer merely using magic,\" Kaelen whispered, staring at the crater with wide eyes. \"We are wielding the physics of the outer dark.\""
+        }
+      ]
+    },
+    {
+      "title": "Chapter XII: The Forbidden Ledger",
+      "part": "Part III: Trans-Dimensional Relics & Rewards",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Council Minutes — Recorded by High Astrologer Vaelin*"
+        },
+        {
+          "type": "paragraph",
+          "text": "The debate in the High Council chamber lasted until four in the morning."
+        },
+        {
+          "type": "paragraph",
+          "text": "On the table lay the translated notes from the Fallen Architects—the forbidden **Outer Void Research**. The blueprints detailed zero-point Materia generators that draw limitless ambient power directly from the outer vacuum, and spatial anchors that permanently stabilize chunks against decay."
+        },
+        {
+          "type": "paragraph",
+          "text": "Master Oron stood with his arms crossed over his chest, scowling at the parchment."
+        },
+        {
+          "type": "paragraph",
+          "text": "\"We just finished burying nine men who were killed by the things that live in that vacuum,\" Oron growled, his voice thick with anger. \"And now you want to tap a pipe directly into their backyard? Have you lost your minds?\""
+        },
+        {
+          "type": "paragraph",
+          "text": "\"Oron, listen to reason,\" Lady Vespera answered softly, placing her hand on the old soldier's scarred arm. \"The Red Void did not create zero-point energy; they merely corrupted it. These blueprints are the tools the Sovereigns used to build the world. If we understand the physics of the outer dark, we can build wards that will ensure an incursion never breaches our valleys again.\""
+        },
+        {
+          "type": "paragraph",
+          "text": "In the end, the council voted to seal the research inside the Entropic Codex under the strictest mastery locks. Only scholars who have proven their courage by banishing an apex predator with their own hands are permitted to unlock the Outer Void node."
+        }
+      ]
+    },
+    {
+      "title": "Chapter XIII: The Night the Village Saw the Auroras",
+      "part": "Part III: Trans-Dimensional Relics & Rewards",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Personal Diary of Lady Vespera*"
+        },
+        {
+          "type": "paragraph",
+          "text": "Tonight was the ceremony atop the Grand Observatorium."
+        },
+        {
+          "type": "paragraph",
+          "text": "With the entire academy and hundreds of villagers gathered in the courtyard below, Master Kaelen and I carried the first completed **Celestial Skybox Trophy** to the apex of the copper dome. It was a magnificent beacon forged from Viscanite brass, set with four Firmament Shards and crowned with a pulsing core of condensed starlight."
+        },
+        {
+          "type": "paragraph",
+          "text": "As the sun sank below the horizon, I inserted the activation key and turned the mechanism."
+        },
+        {
+          "type": "paragraph",
+          "text": "A pillar of pure, radiant amber starlight shot straight into the zenith. A second later, the night sky across twenty square leagues blossomed with the most breathtaking auroras I have ever seen. Curtains of golden and violet light rippled across the clouds, weaving and dancing in harmony with the distant stars."
+        },
+        {
+          "type": "paragraph",
+          "text": "Below in the courtyard, I heard children laughing and townspeople cheering. Old farmers who had lived in terror of nocturnal monster raids fell to their knees in relief. Within the aura of the beacon, the air felt crisp, clean, and safe. The leylines settled into a peaceful rhythm, and not a single corrupted creature dared approach the village walls."
+        }
+      ]
+    },
+    {
+      "title": "Chapter XIV: The Ring of Golden Beacons",
+      "part": "Part III: Trans-Dimensional Relics & Rewards",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Field Journal of High Astrologer Vaelin*"
+        },
+        {
+          "type": "paragraph",
+          "text": "For two weeks, young Elian and I rode horseback across the mountain valleys, accompanied by a wagon loaded with twelve **Outer Void Repulsion Beacons** forged from the remnants of the Silencer’s pylons."
+        },
+        {
+          "type": "paragraph",
+          "text": "We planted the beacons along the high ridges that circle the settled province, anchoring their brass footings deep into the granite bedrock."
+        },
+        {
+          "type": "paragraph",
+          "text": "Every time a beacon was locked into place, the toxic fog that had lingered in the high passes since the first incursion cleared away like smoke before a gale. The ambient Materia in the soil purified overnight; withered crops stood tall with green leaves, and the subterranean crystal caves began to sprout clusters of flawless Resonite."
+        },
+        {
+          "type": "paragraph",
+          "text": "We have built a ring of light around our home. The Red Void may howl in the outer darkness, but as long as these beacons stand, its shadow will never touch our hearths."
+        }
+      ]
+    },
+    {
+      "title": "Chapter XV: The Apprentices on the Roof",
+      "part": "Part III: Trans-Dimensional Relics & Rewards",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Personal Diary of High Astrologer Vaelin*"
+        },
+        {
+          "type": "paragraph",
+          "text": "I walked up to the roof of the Zenith Spire tonight to check the alignment of the transit telescope."
+        },
+        {
+          "type": "paragraph",
+          "text": "A light snow was falling, dusting the copper dome in white powder. Sitting on wooden crates near the balustrade were young Elian, apprentice Ronald, and three new initiates who arrived from the lowlands last week. They were sharing a wool blanket, their breath rising in synchronized plumes as they took turns peering through the brass eyepiece."
+        },
+        {
+          "type": "paragraph",
+          "text": "\"Look at the third star in the Crown,\" Elian was telling them, his voice filled with that same quiet wonder I felt forty years ago. \"Watch how it pulses every twenty-one seconds. That isn't just light—that's Materia breathing.\""
+        },
+        {
+          "type": "paragraph",
+          "text": "I stood in the shadow of the doorway, watching them sketch the constellation lines into their fresh, leather-bound notebooks. They do not fear the night sky. They know the horrors that lurk beyond it, but they also know the gods who stand guard at the gate, and the strength of the steel in their own hands."
+        },
+        {
+          "type": "paragraph",
+          "text": "The book is passing to new hands, and the future is bright."
+        }
+      ]
+    },
+    {
+      "title": "Chapter XVI: The Covenant Unbroken",
+      "part": "Part III: Trans-Dimensional Relics & Rewards",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "*From the Closing Entry of Lady Vespera's Celestial Memoirs*"
+        },
+        {
+          "type": "paragraph",
+          "text": "The hour is late."
+        },
+        {
+          "type": "paragraph",
+          "text": "The academy is asleep, save for the quiet ticking of the sidereal clock in the hall and the soft crackle of the peat fire in my stove. I wrap my thick wool cloak tight against the dawn chill and step out onto the balcony with a steaming mug of spiced tea."
+        },
+        {
+          "type": "paragraph",
+          "text": "To the east, the first grey light of morning is touching the jagged peaks of Mount Aetheria. And there, hovering for just a fleeting moment above the mist of the horizon, is the faint golden silhouette of the Solar Monarch, His six radial wings catching the first light of dawn."
+        },
+        {
+          "type": "paragraph",
+          "text": "I raise my mug toward the horizon with a tired, grateful smile."
+        },
+        {
+          "type": "paragraph",
+          "text": "The sky is whole. The watchmen are at their posts. The Covenant is unbroken."
+        }
+      ]
+    }
+  ]
+}

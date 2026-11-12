@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    [
+      "entropica:scribing_ink",
+      "minecraft:ink_sac"
+    ],
+    "minecraft:blaze_powder",
+    "entropica:starlight_flakes"
+  ],
+  "result": {
+    "id": "entropica:celestial_journal_vol8",
+    "count": 1
+  }
+}

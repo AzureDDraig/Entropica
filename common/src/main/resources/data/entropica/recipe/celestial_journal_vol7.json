@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    [
+      "entropica:scribing_ink",
+      "minecraft:ink_sac"
+    ],
+    "minecraft:ender_pearl",
+    "minecraft:emerald"
+  ],
+  "result": {
+    "id": "entropica:celestial_journal_vol7",
+    "count": 1
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    [
+      "entropica:scribing_ink",
+      "minecraft:ink_sac"
+    ],
+    "minecraft:amethyst_shard",
+    "minecraft:quartz"
+  ],
+  "result": {
+    "id": "entropica:celestial_journal_vol1",
+    "count": 1
+  }
+}

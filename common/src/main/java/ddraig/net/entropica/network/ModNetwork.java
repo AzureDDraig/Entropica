@@ -151,6 +151,13 @@ public class ModNetwork {
         );
 
         NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                JournalBookmarkPayload.TYPE,
+                JournalBookmarkPayload.STREAM_CODEC,
+                ModNetwork::handleJournalBookmark
+        );
+
+        NetworkManager.registerReceiver(
                 NetworkManager.Side.S2C,
                 SpellVfxEventPayload.TYPE,
                 SpellVfxEventPayload.STREAM_CODEC,
@@ -591,5 +598,22 @@ public class ModNetwork {
 
     public static void handleSyncArcaneWings(final SyncArcaneWingsPayload data, final NetworkManager.PacketContext context) {
         context.queue(() -> ddraig.net.entropica.spell.vfx.ArcaneWingsClientManager.handleSync(data));
+    }
+
+    public static void handleJournalBookmark(final JournalBookmarkPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player == null) return;
+            int idx = Math.max(0, Math.min(256, data.entryIndex()));
+            ItemStack main = player.getMainHandItem();
+            if (main.getItem() instanceof ddraig.net.entropica.item.CelestialJournalItem) {
+                ddraig.net.entropica.item.CelestialJournalItem.updateClientBookmark(main, idx);
+                return;
+            }
+            ItemStack off = player.getOffhandItem();
+            if (off.getItem() instanceof ddraig.net.entropica.item.CelestialJournalItem) {
+                ddraig.net.entropica.item.CelestialJournalItem.updateClientBookmark(off, idx);
+            }
+        });
     }
 }
