@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/abyssal_weeproot"
+  },
+  "render_type": "minecraft:cutout"
+}

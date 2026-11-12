@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    {
+      "item": "entropica:arcane_plate"
+    },
+    {
+      "item": "entropica:arcane_plate"
+    },
+    {
+      "tag": "minecraft:stone_crafting_materials"
+    },
+    {
+      "tag": "minecraft:stone_crafting_materials"
+    }
+  ],
+  "result": {
+    "id": "entropica:arcane_plating",
+    "count": 1
+  }
+}

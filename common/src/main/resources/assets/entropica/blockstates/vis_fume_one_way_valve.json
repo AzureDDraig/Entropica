@@ -1,0 +1,24 @@
+{
+  "multipart": [
+    { "when": { "open": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_open_core" } },
+    { "when": { "open": "false" }, "apply": { "model": "entropica:block/vis_fume_valve_closed_core" } },
+
+    { "when": { "open": "true", "down": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_open_arm" } },
+    { "when": { "open": "false", "down": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_closed_arm" } },
+
+    { "when": { "open": "true", "up": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_open_arm", "x": 180 } },
+    { "when": { "open": "false", "up": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_closed_arm", "x": 180 } },
+
+    { "when": { "open": "true", "north": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_open_arm", "x": 270 } },
+    { "when": { "open": "false", "north": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_closed_arm", "x": 270 } },
+
+    { "when": { "open": "true", "south": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_open_arm", "x": 90 } },
+    { "when": { "open": "false", "south": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_closed_arm", "x": 90 } },
+
+    { "when": { "open": "true", "west": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_open_arm", "x": 90, "y": 90 } },
+    { "when": { "open": "false", "west": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_closed_arm", "x": 90, "y": 90 } },
+
+    { "when": { "open": "true", "east": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_open_arm", "x": 90, "y": 270 } },
+    { "when": { "open": "false", "east": "true" }, "apply": { "model": "entropica:block/vis_fume_valve_closed_arm", "x": 90, "y": 270 } }
+  ]
+}

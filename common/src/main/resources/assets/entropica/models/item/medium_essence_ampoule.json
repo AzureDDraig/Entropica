@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:item/medium_ampoule",
+    "layer1": "entropica:item/medium_ampoule_essence"
+  }
+}

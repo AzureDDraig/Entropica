@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "G",
+    "S",
+    "G"
+  ],
+  "key": {
+    "G": "minecraft:glowstone_dust",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "entropica:glowpeg",
+    "count": 1
+  }
+}

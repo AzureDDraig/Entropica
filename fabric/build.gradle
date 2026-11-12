@@ -1,0 +1,99 @@
+plugins {
+    id "dev.architectury.loom"
+    id "architectury-plugin"
+    id "com.gradleup.shadow"
+}
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+base {
+    archivesName = "Entropica-fabric"
+}
+
+configurations {
+    common
+    shadowCommon
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    modImplementation "dev.architectury:architectury-fabric:${architectury_version}"
+
+    common project(path: ":common", configuration: "namedElements")
+    shadowCommon project(path: ":common", configuration: "transformProductionFabric")
+
+    modApi "me.shedaniel.cloth:cloth-config-fabric:${cloth_config_version}"
+
+    // JEI for Fabric
+    modCompileOnly "mezz.jei:jei-1.21.10-fabric-api:${jei_version}"
+    modLocalRuntime "mezz.jei:jei-1.21.10-fabric:${jei_version}"
+
+    // Accessories for Fabric
+    compileOnly "io.wispforest:accessories-fabric:${accessories_version}"
+    runtimeOnly "io.wispforest:accessories-fabric:${accessories_version}"
+}
+
+tasks.register('deploy', Copy) {
+    dependsOn remapJar
+    doFirst {
+        file("C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods").listFiles()?.each { f ->
+            if (f.name.startsWith("Entropica-fabric-") && f.name.endsWith(".jar")) {
+                f.delete()
+            }
+        }
+    }
+    from remapJar.archiveFile
+    into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods"
+}
+
+tasks.register('deploytoDev', Copy) {
+    dependsOn remapJar
+    outputs.upToDateWhen { false }
+    doFirst {
+        file("C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods").listFiles()?.each { f ->
+            if (f.name.startsWith("Entropica-fabric-") && f.name.endsWith(".jar")) {
+                f.delete()
+            }
+        }
+    }
+    from remapJar.archiveFile
+    into "C:/Users/Ddraig__/curseforge/minecraft/Instances/entropicadevFAB/mods"
+}
+
+tasks.register('deployToDev') {
+    dependsOn tasks.named('deploytoDev')
+}
+
+
+processResources {
+    var replaceProperties = [
+        version: "${mod_version_major}-build-${mod_version_build}-${mod_version_designation}"
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching("fabric.mod.json") {
+        expand replaceProperties
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier = "dev-shadow"
+    dependsOn project(":common").tasks.matching { it.name == "transformProductionFabric" }
+}
+
+remapJar {
+    inputFile.set(shadowJar.archiveFile)
+    archiveFileName = "Entropica-fabric-${project.version}${rootProject.ext.jarSuffix}.jar"
+    dependsOn shadowJar
+}

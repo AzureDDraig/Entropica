@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "entropica:block/tall_necrotic_rose_of_jericho_bottom"
+    },
+    "half=upper": {
+      "model": "entropica:block/tall_necrotic_rose_of_jericho_top"
+    }
+  }
+}

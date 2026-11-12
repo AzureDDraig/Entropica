@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "entropica:block/beam_splitter_prism"
+    },
+    "facing=south": {
+      "model": "entropica:block/beam_splitter_prism",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "entropica:block/beam_splitter_prism",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "entropica:block/beam_splitter_prism",
+      "y": 90
+    }
+  }
+}

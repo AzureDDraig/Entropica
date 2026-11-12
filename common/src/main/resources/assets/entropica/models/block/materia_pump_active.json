@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "entropica:block/materia_vessel_controller_top",
+    "bottom": "entropica:block/materia_vessel_controller_bottom",
+    "side": "entropica:block/materia_vessel_controller_side",
+    "front": "entropica:block/materia_vessel_port_export"
+  }
+}

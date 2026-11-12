@@ -1,0 +1,2210 @@
+package ddraig.net.entropica.codex;
+
+import ddraig.net.entropica.registry.ModBlocks;
+import ddraig.net.entropica.registry.ModItems;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class CodexCategoryRegistry {
+
+    public static class CodexNode {
+        public final String id;
+        public final String title;
+        public final String category;
+        public final String summary;
+        public final String content;
+        public final String prerequisiteId;
+        public final int requiredTier;
+        public final ItemStack icon;
+        public final float orbitRadius;
+        public final float orbitSpeed;
+        public float currentAngle;
+        public final boolean isParentHub;
+
+        public CodexNode(String id, String title, String category, String summary, String content,
+                         String prerequisiteId, int requiredTier, ItemStack icon,
+                         float orbitRadius, float orbitSpeed, float initialAngle, boolean isParentHub) {
+            this.id = id;
+            this.title = title;
+            this.category = category;
+            this.summary = summary;
+            this.content = content;
+            this.prerequisiteId = prerequisiteId;
+            this.requiredTier = requiredTier;
+            this.icon = icon;
+            this.orbitRadius = orbitRadius;
+            this.orbitSpeed = orbitSpeed;
+            this.currentAngle = initialAngle;
+            this.isParentHub = isParentHub;
+        }
+    }
+
+    public static final List<CodexNode> ALL_NODES = new ArrayList<>();
+
+    static {
+        // --- 7 PARENT CATEGORY HUBS arranged in a 360-degree circle (R = 180) ---
+        // Hub 1: GETTING STARTED (Top, -90 deg = 4.712 rad)
+        float a_start = (float) (-Math.PI / 2.0);
+        // Hub 2: ENVIRONMENT & NATURE (Top-Right, ~-25 deg = 5.85 rad)
+        float a_env = (float) (-Math.PI * 0.15);
+        // Hub 3: MAGIC (Bottom-Right, ~25 deg = 0.44 rad)
+        float a_magic = (float) (Math.PI * 0.15);
+        // Hub 4: MULTIBLOCKS (Bottom-Right/Center, ~75 deg = 1.31 rad)
+        float a_multi = (float) (Math.PI * 0.42);
+        // Hub 5: MACHINERY (Bottom-Left/Center, ~125 deg = 2.18 rad)
+        float a_mach = (float) (Math.PI * 0.70);
+        // Hub 6: MATERIA (Bottom-Left, ~165 deg = 2.88 rad)
+        float a_mat = (float) (Math.PI * 0.92);
+        // Hub 7: MATERIALS (Left, 180 deg = PI rad)
+        float a_ing = (float) (Math.PI * 1.15);
+
+        // ==========================================
+        // 1. GETTING STARTED (Green Ring)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "hub_getting_started", "GETTING STARTED", "GETTING STARTED",
+                "Introduction to the principles of Entropica, Materia extraction, and Runic Scribing.",
+                "Overview & Description:\n" +
+                "Welcome to Entropica. The world is alive with latent elemental Essences and pressure-driven Materia currents.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Craft your first Arkanist Monocle using Glass Panes and a Rune of Ansuz, or assemble a Crucible to extract raw elemental essences.\n\n" +
+                "Crafting Uses:\n" +
+                "Unlocks early Crucible extractions, alloy metallurgy, and Runic Scribing engines.\n\n" +
+                "Special Properties:\n" +
+                "Observing the environment with an Arkanist Monocle reveals active Essence Nodes and atmospheric pressure lines.",
+                null, 0, new ItemStack(Items.COMPASS),
+                180f, 0.0f, a_start, true
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "getting_started_primer", "Technomantic Primer", "GETTING STARTED",
+                "Basic principles of Entropica.",
+                "Overview & Description:\n" +
+                "Technomantics merges physical thermodynamics with ancient Elder Futhark runic symbolism.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted using a standard Book and refined Viscanite dust at a crafting table.\n\n" +
+                "Crafting Uses:\n" +
+                "Serves as the foundational reference manual for all elemental transmutations.\n\n" +
+                "Special Properties:\n" +
+                "Resonates in the presence of latent elemental Essences, displaying ambient aura densities.",
+                "hub_getting_started", 0, new ItemStack(Items.BOOK),
+                260f, 0.0f, a_start, false
+        ));
+
+        // ==========================================
+        // 2. MATERIALS (Orange Ring)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "hub_materials", "MATERIALS", "MATERIALS",
+                "Ores, crystals, and fauna materials of Entropica.",
+                "Overview & Description:\n" +
+                "An overview of the rich mineral wealth, biological pelts, and crystal formations of Entropica.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Extracted from mountain strata, geothermal crystal geodes, and indigenous fauna.\n\n" +
+                "Crafting Uses:\n" +
+                "Form the core components for Arcanite alloys, Viscanite conduits, and Grot insulation.",
+                null, 0, new ItemStack(Items.IRON_PICKAXE),
+                180f, 0.0f, a_ing, true
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "materials_ores", "Ores & Metallurgy", "MATERIALS",
+                "Arcanite, Resonite, and Viscanite ore metallurgy.",
+                "Overview & Description:\n" +
+                "Elemental ores embedded within subterranean stone strata, glowing faintly with latent energetic veins.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Mined deep underground in mountain biomes and deepslate layers using any pickaxe.\n\n" +
+                "Crafting & Synthesis:\n" +
+                "Smelt raw Arcanite ore in a furnace, or combine Iron with Viscanite dust in a Crucible.\n\n" +
+                "Crafting Uses:\n" +
+                "Forged into Arcanite Plating, Vapor-Pneumatic Pipes, and heavy machine frames.\n\n" +
+                "Special Properties:\n" +
+                "High thermal resistance and exceptional Materia pressure flow conductivity.",
+                "hub_materials", 0, new ItemStack(Items.RAW_IRON),
+                280f, 0.0f, a_ing - 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "materials_crystals", "Crystals & Geodes", "MATERIALS",
+                "Aeterium, Ignisite, Mortisite, and Viscanite crystal structures.",
+                "Overview & Description:\n" +
+                "Vibrant crystalline formations growing in geothermal veins. Viscanite shimmers with electric blue light, while Resonite vibrates with kinetic warmth.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Found growing on Budding Crystal blocks inside deep geodes, or harvested from mineral clusters.\n\n" +
+                "Crafting Uses:\n" +
+                "Used to craft liquid conduits, Resonite Stators, Voltaic Conduits, and Shimmering Foci.\n\n" +
+                "Special Properties:\n" +
+                "Viscanite conducts liquid Materia without thermal decay; Resonite stabilizes high-torque machinery.",
+                "hub_materials", 0, new ItemStack(Items.EMERALD),
+                290f, 0.0f, a_ing, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "materials_blessing_shard", "Materia Blessing Shard", "MATERIALS",
+                "Resonant crystal fragments harvested from Materia Blessings.",
+                "Overview & Description:\n" +
+                "Radiant gem fragments chipped from larger Materia Blessing formations. They pulse with vibrant color depending on nearby energy sources.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Obtained by shattering natural floating Materia Blessing crystals (yields 4-12 shards).\n\n" +
+                "Crafting Uses:\n" +
+                "Essential catalyst component used in Tier 2 Magic Circle rituals to synthesize Materia Blessing crystals.\n\n" +
+                "Special Properties:\n" +
+                "Dynamically shifts color to match the dominant EssenceType of nearby Essence Nodes, Entropic Cores, or chunk biomes.",
+                "materials_crystals", 1, new ItemStack(ModItems.MATERIA_BLESSING_SHARD.get()),
+                370f, 0.0f, a_ing + 0.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "materials_fauna", "Fauna Materials", "MATERIALS",
+                "Grot hides, Veil pelts, and Ovis wool.",
+                "Overview & Description:\n" +
+                "Tough pelts, dense hides, and wool harvested from indigenous fauna.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Harvested from Grots, Veil Foxes, and Ovis wandering regional biomes.\n\n" +
+                "Crafting Uses:\n" +
+                "Provides essential thermal and pressure insulation for high-pressure conduits and armors.\n\n" +
+                "Special Properties:\n" +
+                "Resistant to high-pressure Materia gas leaks.",
+                "hub_materials", 0, new ItemStack(Items.LEATHER),
+                280f, 0.0f, a_ing + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "materials_amber_chunk", "Amber Chunk", "MATERIALS",
+                "Raw resin crystals harvested by stripping bark from Amber Logs or Amber Wood.",
+                "Overview & Description:\n" +
+                "Raw crystalline amber resin harvested from Amber-Wood trees.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Drops in-world when stripping the bark off Amber Logs or Amber Wood using an Axe.\n\n" +
+                "Crafting Uses:\n" +
+                "Used in alchemical distils, wand foci, arcana book binding, and crystal alchemy.\n\n" +
+                "Special Properties:\n" +
+                "Contains concentrated golden resin essence.",
+                "hub_materials", 0, new ItemStack(ModItems.AMBER_CHUNK.get()),
+                300f, 0.0f, a_ing + 0.20f, false
+        ));
+
+
+        ALL_NODES.add(new CodexNode(
+                "materials_glassworking", "Aesthetic Glassworking & Tinting", "MATERIALS",
+                "32x32 pre-existing texture tinting, 10 shape variants, dynamic RGB color shifting, and cauldron cleansing.",
+                "Overview & Description:\n" +
+                "Intricately crafted architectural glass featuring crystal-clear centers with decorative frame bevels, grid lines, and glare highlights.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Fabricated at a crafting table using Clear Base Glass and elemental dyes, or tinted using diluted Materia pools.\n\n" +
+                "Crafting Uses:\n" +
+                "Available in 10 shape variants including Full Blocks, Slabs, Vertical Slabs, Quarter Slabs, Stairs, Walls, Panes, Trapdoors, and Doors.\n\n" +
+                "Special Properties:\n" +
+                "100% transparent centers; can be washed back to Clear Base Glass by right-clicking onto Water Cauldrons.",
+                "hub_materials", 0, new ItemStack(Items.GLASS),
+                300f, 0.0f, a_ing - 0.35f, false
+        ));
+
+        // ==========================================
+        // 3. MATERIA (Cyan Ring)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "hub_materia", "MATERIA", "MATERIA",
+                "Essence Tiers T1-T6, logistics, and pressure conduits.",
+                "Overview & Description:\n" +
+                "Materia is the fundamental energetic fluid of Entropica, existing in liquid (Liquida) and gas (Fumus) states.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Extracted via Crucibles, Materia Pumps, or distilled in Alchemical Stills.\n\n" +
+                "Crafting Uses:\n" +
+                "Powers technomantic machinery, magic circle rituals, and spellcrafting foci.",
+                null, 0, new ItemStack(Items.BEACON),
+                180f, 0.0f, a_mat, true
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "materia_essences", "Essence Tiers & Ampoules", "MATERIA",
+                "Categorization of T1-T6 Essences.",
+                "Overview & Description:\n" +
+                "Essences are categorized into 6 primary elemental tiers:\n" +
+                "- T1: Vitae & Blood\n" +
+                "- T2: Ignis, Aqua, Aer, Terra\n" +
+                "- T3: Umbral & Void\n\n" +
+                "Origin & Obtaining:\n" +
+                "Distilled from flora, ores, and mob drops into glass Ampoules.\n\n" +
+                "Crafting Uses:\n" +
+                "Fed into Granite Ritual Bowls, Catalyst Receptacles, and spell wands.",
+                "hub_materia", 1, new ItemStack(Items.BREWING_STAND),
+                280f, 0.0f, a_mat - 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "materia_logistics", "Materia Logistics & Pressure", "MATERIA",
+                "Pneumatic pipe dynamics and diverters.",
+                "Overview & Description:\n" +
+                "Conduits and valves for routing Materia Liquida and Fumus throughout factory networks.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted using Arcanite, Viscanite, Copper, and Iron ingots.\n\n" +
+                "Crafting Uses:\n" +
+                "Connects Materia Pumps, Furnaces, and Synthesizers into automated networks.\n\n" +
+                "Special Properties:\n" +
+                "Features pressure relief valves, one-way diverters, and pneumatic gates.",
+                "hub_materia", 1, new ItemStack(Items.COPPER_INGOT),
+                280f, 0.0f, a_mat + 0.15f, false
+        ));
+
+        // ==========================================
+        // 4. MACHINERY (Red Ring)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "hub_machinery", "MACHINERY", "MACHINERY",
+                "Lathe, Crucible, Scribing Controllers, and Vehicles.",
+                "Overview & Description:\n" +
+                "Industrial machinery designed to shape alloys, extract essences, and power technomantic devices.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled using Arcanite frames, gears, pistons, and stators.\n\n" +
+                "Crafting Uses:\n" +
+                "Produces precision components for advanced magic circles and multiblocks.",
+                null, 0, new ItemStack(Items.ANVIL),
+                180f, 0.0f, a_mach, true
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "workstations_lathe", "Eidolic Lathe & Crucible", "MACHINERY",
+                "Precision machinery for turning raw metals.",
+                "Overview & Description:\n" +
+                "The Eidolic Lathe precision-shapes Arcanite ingots into gears, stators, and fine filaments.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted using Anvils, Viscanite Gears, and Arcanite Plating.\n\n" +
+                "Crafting Uses:\n" +
+                "Turns raw metal ingots into precision technomantic components.",
+                "hub_machinery", 1, new ItemStack(Items.ANVIL),
+                280f, 0.0f, a_mach, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "machinery_custom_wood_chests", "Elemental Wood Chests", "MACHINERY",
+                "Color-coded wooden storage containers crafted from native Entropica wood species.",
+                "Overview & Description:\n" +
+                "Specially crafted wooden storage chests matching the distinct timber grain and color palette of Entropica's 10 native wood species.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted in a 3x3 crafting grid using 8 matching Planks of any specific wood type (Pyre-Ash Cedar, Abyssal Spore-Cypress, Starlight Aether-Birch, Blood-Root Iron-Oak, Astral-Veil Willow, Void-Blight Mangrove, Amber, Rubber, Silver Pine, or Materia-Echo).\n\n" +
+                "Crafting Uses:\n" +
+                "Provides 27 slots of item storage per single chest, and 54 slots when two matching chests are placed adjacent to form a Double Chest.\n\n" +
+                "Special Properties:\n" +
+                "Features unique colored iron latches and wood-grain staining matching each tree family.",
+                "hub_machinery", 0, new ItemStack(ModBlocks.PYRE_ASH_CEDAR_CHEST.get()),
+                310f, 0.0f, a_mach + 0.20f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "machinery_custom_wood_barrels", "Elemental Wood Barrels", "MACHINERY",
+                "Compact storage barrels crafted from native Entropica wood species with distinct open/closed states.",
+                "Overview & Description:\n" +
+                "Sturdy wooden storage barrels crafted to match the unique timber grain, reinforcement hoops, and coloration of Entropica's 10 native wood species.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted in a crafting table using 6 Planks and 2 Slabs of any specific wood species (Pyre-Ash Cedar, Abyssal Spore-Cypress, Starlight Aether-Birch, Blood-Root Iron-Oak, Astral-Veil Willow, Void-Blight Mangrove, Amber, Rubber, Silver Pine, or Materia-Echo).\n\n" +
+                "Crafting Uses:\n" +
+                "Provides 27 slots of compact item storage that can be opened even when solid blocks are placed directly above it.\n\n" +
+                "Special Properties:\n" +
+                "Features directional placement in all 6 orientations and dynamic open/closed top textures with custom wood-grain banding.",
+                "hub_machinery", 0, new ItemStack(ModBlocks.PYRE_ASH_CEDAR_BARREL.get()),
+                310f, 0.0f, a_mach + 0.35f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "machinery_gravitational_anchor", "Gravitational Anchor", "MACHINERY",
+                "Spatial field projector supporting Zero-G, Lunar, Inversion, Singularity, Repulsor, and Tidal modes.",
+                "Overview & Description:\n" +
+                "The Gravitational Anchor is a celestial field emitter encased in heavy brass plating. It manipulates local spacetime to establish customizable gravitational perimeters for research chambers and orbital habitats.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled using Arcanite Plating, Brass Ingots, and resonant Astral Crystals.\n\n" +
+                "Operational Modes:\n" +
+                "Right-clicking cycles between 6 distinct operational modes: Zero-G Chamber, Lunar Pavilion, Graviton Inversion, Singularity Well, Repulsor Dome, and Tidal Pulse.\n\n" +
+                "Special Properties:\n" +
+                "Displays floating holographic telemetry and can be toggled or locked using redstone signals.",
+                "hub_machinery", 0, new ItemStack(ModItems.GRAVITATIONAL_ANCHOR_ITEM.get()),
+                360f, 0.0f, a_mach - 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "machinery_gravity_center", "Gravity Center Core", "MACHINERY",
+                "Omnidirectional point-gravity well powered by Materia Fumus via Vapor Pneumatic Pipes.",
+                "Overview & Description:\n" +
+                "An advanced celestial gravity core that exerts a true spherical point-gravity field. Entities in its orbit are drawn toward the center, allowing 360-degree walking around floating planetoids and asteroid habitats.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted by infusing a Gravitational Anchor with Astral Crystals and Arcanite Plating.\n\n" +
+                "Fuel & Connections:\n" +
+                "Connects directly to Vapor Pneumatic Pipes on all six faces, consuming 1 mB of Materia Fumus vapor every 40 ticks.\n\n" +
+                "Planetary Inversion:\n" +
+                "When travelers cross below the core's equator, their orientation smoothly inverts by 180 degrees, allowing seamless walking on the underside of celestial bodies.",
+                "machinery_gravitational_anchor", 0, new ItemStack(ModItems.GRAVITY_CENTER_ITEM.get()),
+                440f, 0.0f, a_mach - 0.22f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "machinery_tidal_pulse_resonator", "Tidal Pulse Resonator", "MACHINERY",
+                "Cyclic celestial resonator pulsing rhythmic gravity tides.",
+                "Overview & Description:\n" +
+                "A standalone tuning resonator equipped with 4 vibrating brass prongs that project rhythmic gravitational waves across an area.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted with Brass Ingots, Astral Crystals, Arcanite Plating, and a Gravitational Anchor.\n\n" +
+                "Respiration Cycle:\n" +
+                "Operates on a continuous 4-second cycle: 3 seconds of gentle lunar float followed by a 1-second heavy downward gravity slam.\n\n" +
+                "Redstone Control:\n" +
+                "Can be toggled by hand or locked into pause using redstone wire signals.",
+                "machinery_gravitational_anchor", 0, new ItemStack(ModItems.TIDAL_PULSE_RESONATOR_ITEM.get()),
+                440f, 0.0f, a_mach - 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "machinery_graviton_soles", "Graviton Soles & Gear", "MACHINERY",
+                "Pneumatic boots and Curios gear for 360-degree surface walking, wall climbing, and fall negation.",
+                "Overview & Description:\n" +
+                "Engineered footwear equipped with micro-graviton magnets that interface with block surfaces.\n\n" +
+                "Wall Traversal:\n" +
+                "Walking forward into a wall climbs up at 0.26 m/s, moving backward descends at 0.22 m/s, and crouching locks you in place with zero slipping.\n\n" +
+                "Ceiling & Corner Wrapping:\n" +
+                "Touching a ceiling inverts gravity with a smooth 180-degree camera roll. Crouching off block ledges smoothly wraps your footing around corners.\n\n" +
+                "Curios Support:\n" +
+                "Fits seamlessly in the Curios feet accessory slot, completely negating all kinetic fall damage.",
+                "hub_machinery", 0, new ItemStack(ModItems.GRAVITON_SOLES.get()),
+                360f, 0.0f, a_mach + 0.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "graviton_bouncepad", "Graviton Bouncepad", "MACHINERY",
+                "Omnidirectional kinetic launch pad utilizing localized anti-gravity impulses with fall-damage immunity and redstone scaling.",
+                "Overview & Description:\n" +
+                "The Graviton Bouncepad is a compact technomantic kinetic propulsion machine encased in heavy Arcanite plating. When stepped upon by players, mobs, or propelled objects, it instantly neutralizes incoming kinetic energy and discharges an upward anti-gravitational shockwave.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled in a crafting table using a Heavy Weighted Pressure Plate, Slime Block, and Arcanite Ingots.\n\n" +
+                "Kinetic Mechanics & Parity:\n" +
+                "▪ Omnidirectional Mounting: Can be placed flush against floors, vertical walls, or suspended overhead from ceilings, adapting its launch orientation accordingly.\n" +
+                "▪ Gravity-Relative Upward Launch: Evaluates the entity's current local gravity vector (accounting for inverted, lunar, or planetary gravity wells) and launches in the entity's relative upward direction (-g).\n" +
+                "▪ Analogue Redstone Scaling: Connecting redstone dust scales the kinetic launch impulse dynamically from level 0 (base impulse) up to level 15 (extreme high-velocity ejection).\n\n" +
+                "Special Properties:\n" +
+                "Grants complete kinetic fall damage immunity on landing, preventing injury regardless of launch velocity or fall height. Synergizes with Graviton Soles and Forcefield Barriers for advanced traversal courses.",
+                "hub_machinery", 0, new ItemStack(ModBlocks.GRAVITON_BOUNCEPAD.get()),
+                280f, 0.0f, a_mach - 0.20f, false
+        ));
+
+
+
+        // ==========================================
+        // 5. MULTIBLOCKS (Yellow Ring)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "hub_multiblocks", "MULTIBLOCKS", "MULTIBLOCKS",
+                "Runic Scribing Engine 3x3x3, Focal Pedestal, and Fission Reactor.",
+                "Overview & Description:\n" +
+                "Large modular structures built in-world to handle high-tier transmutations.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled block-by-block using core blocks, plating, and structural bricks.",
+                null, 0, new ItemStack(Items.CRAFTING_TABLE),
+                180f, 0.0f, a_multi, true
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "multiblock_scribing_engine", "Runic Scribing Engine (3x3x3)", "MULTIBLOCKS",
+                "3x3x3 multiblock for stamping arcane runes.",
+                "Overview & Description:\n" +
+                "A heavy 3x3x3 multiblock anvil machine featuring a central stamping piston and runic conduits.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed in-world using a Viscanite Synthesizer base, Arcanite Plating, and Arcane Bricks.\n\n" +
+                "Crafting Uses:\n" +
+                "Stamps raw slate into Elder Futhark active runes (Fehu, Uruz, Gebo, Eihwaz, etc.).\n\n" +
+                "Special Properties:\n" +
+                "Requires pressure-driven Materia Fumus to actuate the stamping piston.",
+                "hub_multiblocks", 2, new ItemStack(Items.CRAFTING_TABLE),
+                280f, 0.0f, a_multi - 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "multiblock_fission_reactor", "Materia Fission Reactor", "MULTIBLOCKS",
+                "High-tier reactor splitting compound Materia.",
+                "Overview & Description:\n" +
+                "An advanced containment reactor designed to split complex compound Essences back into base elements.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed using Orbis Cells, Arcanite Plating, and Heavy Valves.\n\n" +
+                "Special Properties:\n" +
+                "Generates high kinetic output while processing compound Materia.",
+                "hub_multiblocks", 3, new ItemStack(Items.NETHER_STAR),
+                280f, 0.0f, a_multi + 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "multiblock_grand_observatory", "Grand Circular Astral Observatory (7x7x6)", "MULTIBLOCKS",
+                "Monumental astronomical dome with 5x5 mirror pool and 32x cosmic magnification.",
+                "Overview & Description:\n" +
+                "A monumental 7x7x6 architectural complex designed for deep-sky cosmic observation, singularity tracking, and large-scale starlight collection.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed from 25 Astral Mirror Blocks (5x5 pool), 20 Engraved Astral Slate, 16 Astral Marble Bricks, 8 Starlight Pillars, 8 Astral Marble Walls, 4 cardinal Refractive Astral Lenses, and 1 Celestial Armillary Controller.\n\n" +
+                "Crafting Uses:\n" +
+                "Unlocks the Celestial Armillary Controller (32x cosmic magnification) and feeds multiple high-tier optical conduits.\n\n" +
+                "Special Properties:\n" +
+                "Can be projected as a 3D translucent in-world ghost template using the Astrolabe.",
+                "hub_multiblocks", 3, new ItemStack(ModBlocks.CELESTIAL_ARMILLARY_CONTROLLER.get()),
+                360f, 0.0f, a_multi - 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "multiblock_modular_astral_altar", "Modular Astral Altar (7x7x7)", "MULTIBLOCKS",
+                "Harmonic resonance ritual crafting grid for starlight transmutation.",
+                "Overview & Description:\n" +
+                "A 7x7x7 modular ritual platform designed for high-tier starlight item synthesis and constellation infusions.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed with 33 Astral Marble Bricks, 20 Engraved Astral Slate, 16 Resonance Pylons, 8 Attunement Pedestals, 1 Focal Lens Mount, and 1 central Astral Altar Core.\n\n" +
+                "Crafting Uses:\n" +
+                "Infuses Resplendent Prisms, Mantles of the Stars, and high-purity Astral Crystal Tools.\n\n" +
+                "Special Properties:\n" +
+                "Maintains persistent starlight focus during daylight hours if initialized under a clear night sky.",
+                "hub_multiblocks", 2, new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
+                360f, 0.0f, a_multi + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "multiblock_astral_collection_altar", "Astral Collection Altar (5x5x3)", "MULTIBLOCKS",
+                "Starlight Collector Plinth with socketed Astral Crystal and beam forwarding.",
+                "Overview & Description:\n" +
+                "A 5x5x3 celestial gathering plinth designed to capture cosmic starlight through an inscribed Astral Crystal and beam collimated energy into Altars or Lenses.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Built from 8 Chiseled Astral Marble cornerstones, 8 Engraved Astral Slate border slabs, 9 Astral Mirror Blocks (3x3 pool), 1 central Starlight Pillar, and 1 Astral Collector on top.\n\n" +
+                "Collector Cannibalization & Chaining:\n" +
+                "Collection Altars can be linked directly into other Collection Altars. When chained, the downstream collector cannibalizes the upstream flux, compounding the starlight stream.\n\n" +
+                "Special Properties:\n" +
+                "Right-click with an Astral Crystal to socket. Use the Astral Linking Wand to configure target coordinates.",
+                "multiblock_modular_astral_altar", 2, new ItemStack(ModBlocks.ASTRAL_COLLECTOR.get()),
+                440f, 0.0f, a_multi + 0.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "multiblock_master_astral_altar", "Master Astral Altar Network (11x11x7)", "MULTIBLOCKS",
+                "Monumental 11x11x7 ritual matrix with 12 pedestals, corner lens receivers, and multi-spectral cascade.",
+                "Overview & Description:\n" +
+                "The pinnacle of celestial architecture, the 11x11x7 Master Astral Altar integrates 4 tall corner collector towers with an overhead concave lens ring and focal apex.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed from 65 Astral Marble Bricks, 36 Engraved Astral Slate, 24 Starlight Pillars, 12 Attunement Pedestals, 4 Refractive Astral Lenses, 1 Focal Lens Mount, and 1 central Astral Altar Core.\n\n" +
+                "Multi-Beam Spectral Cascade:\n" +
+                "Receives multiple incoming starlight beams from surrounding Astral Collection Altars. Overhead apex focuses a prismatic spectrum of colored starlight rays onto the central crystal and pedestals.\n\n" +
+                "Special Properties:\n" +
+                "Accelerates crystal growth up to 10x and unlocks Master tier celestial transmutations.",
+                "multiblock_modular_astral_altar", 3, new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
+                440f, 0.0f, a_multi - 0.10f, false
+        ));
+
+        // ==========================================
+        // 6. ENVIRONMENT & NATURE (Lime Green Ring)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "hub_environment", "ENVIRONMENT & NATURE", "ENVIRONMENT & NATURE",
+                "Biomes, Flora, and Fauna of Entropica.",
+                "Overview & Description:\n" +
+                "Explore the natural ecosystems of Entropica, including floating crystal blessings, unique flora, and mob mutations.",
+                null, 0, new ItemStack(Items.OAK_SAPLING),
+                180f, 0.0f, a_env, true
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biomes", "Biomes & Environments", "ENVIRONMENT & NATURE",
+                "Tundra, Spore Forests, and Void Rifts.",
+                "Overview & Description:\n" +
+                "Regional biomes saturated with unique ambient elemental energies.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Explored throughout the world (Tundra, Spore Forests, Deserts, Void Rifts).",
+                "hub_environment", 0, new ItemStack(Items.GRASS_BLOCK),
+                280f, 0.0f, a_env - 0.20f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_materia_blessing", "Materia Blessing Crystal", "ENVIRONMENT & NATURE",
+                "Natural 2x2x3 floating crystal attunement phenomenon.",
+                "Overview & Description:\n" +
+                "A monolithic floating faceted crystal (2x2x3 structure) that hovers softly and bobs in mid-air, radiating soothing ambient light.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Found naturally floating in ancient biomes, or synthesized via a Tier 2 Magic Circle.\n\n" +
+                "Crafting & Synthesis:\n" +
+                "▪ Standard (Eihwaz): 4x Materia Blessing Shards, Rune of Unity (Eihwaz), 200 Materia.\n" +
+                "▪ Harmonic Discount (Gebo): 4x Materia Blessing Shards, Rune of Gift (Gebo), 180 Materia (10% off).\n\n" +
+                "Crafting Uses:\n" +
+                "Shatters into 3-5 Materia Blessing Shards when broken.\n\n" +
+                "Special Properties:\n" +
+                "▪ Attunes directly to the nearest Essence Node or Entropic Core within 64 blocks, reflecting its colors.\n" +
+                "▪ Grants Night Vision & passive healing (+1 HP / 40t) to players within 16 blocks.\n" +
+                "▪ Automatically feeds nearby Granite Ritual Bowls with Weak Essence every 100 ticks (8-block range).",
+                "env_biomes", 1, new ItemStack(ModBlocks.MATERIA_BLESSING.get()),
+                360f, 0.0f, a_env - 0.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_greater_materia_blessing", "Greater Materia Blessing", "ENVIRONMENT & NATURE",
+                "Grand 3x3x4 branching crystal cluster formation.",
+                "Overview & Description:\n" +
+                "A grand 3x3x4 crystal cluster featuring a towering central gem surrounded by branching satellite crystal spires.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Rare natural formation in high-energy biomes, or synthesized via a Tier 2 Magic Circle.\n\n" +
+                "Crafting & Synthesis:\n" +
+                "▪ Standard (Eihwaz): 7x Materia Blessing Shards, Rune of Unity (Eihwaz), 400 Materia.\n" +
+                "▪ Harmonic Discount (Gebo): 7x Materia Blessing Shards, Rune of Gift (Gebo), 360 Materia (10% off).\n\n" +
+                "Crafting Uses:\n" +
+                "Shatters into 6-8 Materia Blessing Shards when broken.\n\n" +
+                "Special Properties:\n" +
+                "▪ Grants Regeneration I & passive healing (+2 HP / 40t) within 24 blocks.\n" +
+                "▪ Rapidly feeds nearby Granite Ritual Bowls with Weak Essence every 60 ticks (12-block range).\n" +
+                "▪ Emits Light Level 12.",
+                "env_materia_blessing", 2, new ItemStack(ModBlocks.GREATER_MATERIA_BLESSING.get()),
+                440f, 0.0f, a_env - 0.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_spore_cannon", "Spore-Cannon Puffball", "ENVIRONMENT & NATURE",
+                "Turret puffball launching toxic spore projectiles.",
+                "Overview & Description:\n" +
+                "A crimson-purple puffball stalk with a glowing crater orifice that targets non-Nether entities.\n\n" +
+                "Special Properties:\n" +
+                "Scans an 8-block radius and launches Toxic Spore Projectiles dealing 2.0 HP damage, Poison II, and Nausea.",
+                "env_flora", 1, new ItemStack(ModBlocks.SPORE_CANNON_PUFFBALL.get()),
+                370f, 0.0f, a_env + 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_pyre_thorn_launcher", "Pyre-Thorn Launcher", "ENVIRONMENT & NATURE",
+                "Prickly magma stalk firing rapid ignited thorns.",
+                "Overview & Description:\n" +
+                "A lava-veined stalk topped with a magma pod that fires 3-round burst volleys of Ignited Magma Thorns.\n\n" +
+                "Special Properties:\n" +
+                "Scans a 10-block radius, dealing 1.5 HP piercing damage per thorn and setting targets on fire for 3s.",
+                "env_flora", 1, new ItemStack(ModBlocks.PYRE_THORN_LAUNCHER.get()),
+                370f, 0.0f, a_env + 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_spore_pitcher_plump", "Spore-Bearing Pitcher-Plump", "ENVIRONMENT & NATURE",
+                "Lime-green pitcher plant producing acidic spore nectar.",
+                "Overview & Description:\n" +
+                "Bulbous acidic pitcher plant that squirts acid fluid on contact, damaging armor durability and inflicting Poison II & Nausea.\n\n" +
+                "Crafting & Harvesting:\n" +
+                "Right-click with a Glass Bottle to harvest Acidic Spore Nectar.",
+                "env_flora", 1, new ItemStack(ModBlocks.SPORE_BEARING_PITCHER_PLUMP.get()),
+                370f, 0.0f, a_env + 0.35f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_blood_tendril_bramble", "Blood-Tendril Bramble", "ENVIRONMENT & NATURE",
+                "Sinister thorn vine cluster inflicting Sanguine Bleeding.",
+                "Overview & Description:\n" +
+                "Crimson-black thorn vine cluster that ensnares entities with Slowness III, deals 1.0 HP prick damage, and inflicts Sanguine Bleeding.",
+                "env_flora", 1, new ItemStack(ModBlocks.BLOOD_TENDRIL_BRAMBLE.get()),
+                370f, 0.0f, a_env + 0.45f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_soot_veil_blight_cap", "Soot-Veil Blight-Cap", "ENVIRONMENT & NATURE",
+                "Volatile ash mushroom erupting in soot clouds.",
+                "Overview & Description:\n" +
+                "Glowing violet-purple ash mushroom that explodes into a 3-block soot spore cloud when touched or broken without Shears.",
+                "env_flora", 1, new ItemStack(ModBlocks.SOOT_VEIL_BLIGHT_CAP.get()),
+                370f, 0.0f, a_env - 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_magma_grip_tendrils", "Magma-Grip Tendrils", "ENVIRONMENT & NATURE",
+                "Fiery-orange magma lichen trapping feet.",
+                "Overview & Description:\n" +
+                "Fiery magma lichen vines that trap feet with Slowness IV, ignite entities for 5s, and deal thermal fire damage.",
+                "env_flora", 1, new ItemStack(ModBlocks.MAGMA_GRIP_TENDRILS.get()),
+                370f, 0.0f, a_env - 0.35f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_rubber_tree", "Rubber Tree & Latex Taps", "ENVIRONMENT & NATURE",
+                "Hevea Entropica trees and raw latex extractions.",
+                "Overview & Description:\n" +
+                "A dense hardwood tree featuring dark bark laced with vertical amber resin veins. Tapping the bark extracts milky Raw Rubber.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in forest and jungle biomes, or grown from Rubber Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Raw Rubber is processed into thermal and pressure insulation for high-tier Materia conduits, pneumatic pipes, and gaskets.\n\n" +
+                "Special Properties:\n" +
+                "Rubber leaves feature a small chance to drop Rubber Saplings and Raw Rubber blobs when harvested.",
+                "env_flora", 0, new ItemStack(ModBlocks.RUBBER_LOG.get()),
+                370f, 0.0f, a_env - 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_shimmerpetal", "Shimmerpetal", "ENVIRONMENT & NATURE",
+                "Bioluminescent crystalline flowers emitting ambient Materia light and dynamic essence tinting.",
+                "Overview & Description:\n" +
+                "A radiant 2-part crystalline lotus flower featuring a natural green stem and a glowing blossom head attuned to ambient Materia streams.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Grows naturally near geothermal crystal geodes and lush forest glades, or harvested with shears.\n\n" +
+                "Crafting Uses:\n" +
+                "Extracted in Crucibles to produce Weak Viscanite Essence, or used in dye transmutations.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 10 and dynamically tints its blossom head according to the ambient Materia / essence stream of the surrounding biome (Nether, Void, Frozen, Water, Arid, Undead, Air, or dynamic spectrum shimmer).",
+                "env_flora", 0, new ItemStack(ModBlocks.SHIMMERPETAL.get()),
+                370f, 0.0f, a_env + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_silver_pine", "Silver Pine Wood Set", "ENVIRONMENT & NATURE",
+                "Cold alpine trees with pale silver bark and frosted pine needles.",
+                "Overview & Description:\n" +
+                "An evergreen alpine tree featuring pale silver-blue bark and frosted teal-emerald needles.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Silver-Pine Taiga and cold mountain slopes, or grown from Silver Pine Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Crafted into pale ash floorboard planks, timber frames, and cold-weather architectural decorations.\n\n" +
+                "Special Properties:\n" +
+                "Stripping its bark reveals smooth silver wood grain with subtle cyan heartwood rings.",
+                "env_flora", 0, new ItemStack(ModBlocks.SILVER_PINE_LOG.get()),
+                380f, 0.0f, a_env - 0.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_amber_wood", "Amber-Wood Wood Set", "ENVIRONMENT & NATURE",
+                "Resinous trees with glowing amber resin seams and honeyed orange planks.",
+                "Overview & Description:\n" +
+                "A warm arboreal species featuring dark chestnut bark coated in glowing golden amber resin seams.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Amber Glades and Amber Pine-Vales, or grown from Amber Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Crafted into sticky golden amber planks, log posts, stripped timber frames, and redstone adhesive recipes.\n\n" +
+                "Special Properties:\n" +
+                "Logs emit glowing golden resin seams (`#F59E0B`, `#FDE047`) and concentric honey rings.",
+                "env_flora", 0, new ItemStack(ModBlocks.AMBER_LOG.get()),
+                380f, 0.0f, a_env - 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_pyre_ash_cedar", "Pyre-Ash Cedar Wood Set", "ENVIRONMENT & NATURE",
+                "Volcanic tree species with charred dark spruce bark and glowing cinder-orange interior wood.",
+                "Overview & Description:\n" +
+                "A volcanic tree species native to basalt deltas and pyre slopes in Entropica. Its charred bark shelters a blazing cinder-orange interior that resists extreme heat.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in basalt deltas and volcanic pyre slopes, or grown from Pyre-Ash Cedar Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields charred timber frames, volcanic planks, stairs, slabs, vertical slabs, and fences.",
+                "env_flora", 0, new ItemStack(ModBlocks.PYRE_ASH_CEDAR_LOG.get()),
+                390f, 0.0f, a_env - 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_abyssal_spore_cypress", "Abyssal Spore-Cypress Wood Set", "ENVIRONMENT & NATURE",
+                "Subterranean fungal-tree species with dark indigo bark lined with bioluminescent cyan spore nodes.",
+                "Overview & Description:\n" +
+                "A subterranean fungal-tree species thriving in deep abyssal mycelial caverns. Its dark indigo bark is lined with bioluminescent cyan spore gills.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in abyssal mycelial caverns, or grown from Abyssal Spore-Cypress Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields bioluminescent cyan spore planks, timber frames, stairs, slabs, vertical slabs, and fences.",
+                "env_flora", 0, new ItemStack(ModBlocks.ABYSSAL_SPORE_CYPRESS_LOG.get()),
+                390f, 0.0f, a_env - 0.20f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_starlight_aether_birch", "Starlight Aether-Birch Wood Set", "ENVIRONMENT & NATURE",
+                "Ethereal celestial birch species with shimmering white-gold bark and dark golden-amber growth rings.",
+                "Overview & Description:\n" +
+                "An ethereal celestial birch species indigenous to high-altitude Veil glades. Its shimmering white-gold bark conducts ambient Materia streams.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Veil glades and starlight ridges, or grown from Starlight Aether-Birch Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields white-gold celestial planks, amber ring timber frames, stairs, slabs, vertical slabs, and fences.",
+                "env_flora", 0, new ItemStack(ModBlocks.STARLIGHT_AETHER_BIRCH_LOG.get()),
+                390f, 0.0f, a_env - 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_blood_root_iron_oak", "Blood-Root Iron-Oak Wood Set", "ENVIRONMENT & NATURE",
+                "Sinister iron-hard tree species growing in deadlands with crimson-black bark and ironwood heartwood.",
+                "Overview & Description:\n" +
+                "A sinister, iron-hard tree species growing in deadlands and blood-soaked soils. Its twisted crimson-black bark bleeds thick vital sap and forms ironwood timber frames.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in deadlands and blood-soaked soils, or grown from Blood-Root Iron-Oak Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields heavy ironwood planks, blood-root timber frames, stairs, slabs, vertical slabs, and fences.",
+                "env_flora", 0, new ItemStack(ModBlocks.BLOOD_ROOT_IRON_OAK_LOG.get()),
+                390f, 0.0f, a_env - 0.30f, false
+        ));
+
+
+        ALL_NODES.add(new CodexNode(
+                "env_rimebloom", "Frostbite Blossom (Rimebloom)", "ENVIRONMENT & NATURE",
+                "Crystalline 3-petaled ice tulip flowers pulsing ambient cold luminescence.",
+                "Overview & Description:\n" +
+                "A rare glacial wildflower forming a 3-petaled ice tulip cup with a glowing central crystal core.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Found growing on Blue-Glacier Shelves and Crystalline Pack-Ice, or harvested with shears.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields Rimebloom Petals and Glacial Essence when extracted in Crucibles.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 3 and ambient frost mist particles, chilling surrounding air pools.",
+                "env_flora", 0, new ItemStack(ModBlocks.RIMEBLOOM.get()),
+                380f, 0.0f, a_env + 0.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_soul_flame_orchid", "Soul-Flame Orchid", "ENVIRONMENT & NATURE",
+                "Bone-white stem with flickering soulfire-blue petals emitting floating soul particles.",
+                "Overview & Description:\n" +
+                "A rare bioluminescent orchid with a pale bone-white stem and flickering soulfire-blue petals radiating ethereal heat.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Soulfire Basalt-Fjords and Grave-Stone Spires biomes.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Soul-Flame Petals and Soulfire Nectar to craft Soulfire Torches, spectral dyes, and fire/soul resistance potions.\n\n" +
+                "Special Properties:\n" +
+                "Emits ambient Light Level 9 and continuously spawns floating soulfire flame and soul particles.",
+                "env_flora", 0, new ItemStack(ModBlocks.SOUL_FLAME_ORCHID.get()),
+                380f, 0.0f, a_env + 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_auroral_buttercup", "Auroral Buttercup", "ENVIRONMENT & NATURE",
+                "Color-shifting pastel violet/pink cup petals with a glowing radiant gold stamen.",
+                "Overview & Description:\n" +
+                "A rare tundra wildflower with color-shifting pastel violet and pink cup petals radiating gentle auroral luminescence.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Auroral Tundra, Shimmering Taiga, and Glacial Peaks biomes.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Auroral Petals and Auroral Pollen to craft Auroral Spectral Dye, levitation potions, and technomantic optics.\n\n" +
+                "Special Properties:\n" +
+                "Emits ambient Light Level 7 and spawns floating color-shifting pastel spectrum sparkles.",
+                "env_flora", 0, new ItemStack(ModBlocks.AURORAL_BUTTERCUP.get()),
+                380f, 0.0f, a_env + 0.20f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_stardust_bell", "Stardust Bell", "ENVIRONMENT & NATURE",
+                "2-tall celestial luminescent wildflower with drooping star-shaped indigo petals emitting sparkling stardust.",
+                "Overview & Description:\n" +
+                "A rare 2-tall celestial wildflower with arched branches bearing drooping star-shaped indigo and cobalt bell petals surrounding glowing stardust gold cores.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Astral Ridges, Starfall Valleys, and Luminescent Highlands biomes.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Stardust Bell Petals and Stardust Nectar to craft Shimmering Spectral Dye, levitation potions, and high-tier Materia capacitors.\n\n" +
+                "Special Properties:\n" +
+                "Emits ambient Light Level 10 and continuously radiates floating celestial blue, gold, and white stardust sparkles from its upper bloom.",
+                "env_flora", 0, new ItemStack(ModBlocks.STARDUST_BELL.get()),
+                380f, 0.0f, a_env + 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_fulgurite_swamp_bloom", "Fulgurite Swamp-Bloom", "ENVIRONMENT & NATURE",
+                "Electric underwater swamp flower planted strictly on mud, emitting cyan and gold sparks.",
+                "Overview & Description:\n" +
+                "A rare electric swamp bloom with starburst electric cyan petals surrounding a galvanic fulgurite stamen core.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns submerged underwater on Mud, Clay, or Mangrove Mud in Charge-Mire Swamps and Fulgurite Fens.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Fulgurite Petals and Fulgurite Stigmas to craft Glacial/Cyan Spectral Dyes, lightning resistance potions, and Materia galvanic conductors.\n\n" +
+                "Special Properties:\n" +
+                "Emits ambient Light Level 8 underwater and continuously radiates crackling electric cyan and gold sparks.",
+                "env_flora", 0, new ItemStack(ModBlocks.FULGURITE_SWAMP_BLOOM.get()),
+                380f, 0.0f, a_env + 0.30f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_gale_bloom_dandelion", "Gale-Bloom Dandelion", "ENVIRONMENT & NATURE",
+                "Wind-infused fluffy dandelion emitting floating white spore puffballs and wind bursts on interaction.",
+                "Overview & Description:\n" +
+                "A wind-infused fluffy dandelion with serrated basal leaves and a radial white spore puffball head that sways with zephyr currents.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally on dirt, grass, clay, and mud in Gale-Windswept Crags and Zephyr Plains.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Gale Spore Puffs and Gale Popped Spores to craft levitation potions, zephyr catalysts, and wind-infused optics.\n\n" +
+
+                "Special Properties:\n" +
+                "Emits ambient Light Level 4 and continually releases floating white wind spores. Right-clicking triggers a wind burst sound and spore dispersal.",
+                "env_flora", 0, new ItemStack(ModBlocks.GALE_BLOOM_DANDELION.get()),
+                380f, 0.0f, a_env + 0.35f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_cryo_static_shrub", "Cryo-Static Shrub", "ENVIRONMENT & NATURE",
+                "Glacial frost shrub with a dark wood trunk base and dense electric cyan static leaf canopy.",
+                "Overview & Description:\n" +
+                "An alpine frost shrub structured with several distinct woody stems reaching up into a dense full-width cyan static leaf canopy.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally on dirt, grass, clay, mud, snow, and packed ice in Glacial Peaks and Frozen Fjords.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Cryo-Static Twigs, Cryo-Static Leaves, and living Cryo-Static Rootlings to craft Glacial Spectral Dye, frost resistance potions, and cryo catalysts.\n\n" +
+
+                "Special Properties:\n" +
+                "Emits Light Level 5 and radiates dual Glacial Cyan & Plasma Violet static sparkles. Entities stepping inside receive freezing ticks and static Slowness I stun. Right-clicking triggers an electric static discharge.",
+
+                "env_flora", 0, new ItemStack(ModBlocks.CRYO_STATIC_SHRUB.get()),
+                380f, 0.0f, a_env + 0.40f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_vitreous_cactus", "Vitreous Cactus", "ENVIRONMENT & NATURE",
+                "A crystal-glass desert cactus with large cyan glass needles and puncture bleeding mechanics.",
+                "Overview & Description:\n" +
+                "A specialized desert succulent featuring a deep green ribbed body armed with prominent light cyan glass needles.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally on sand, red sand, terracotta, and desert gravel in Glass-Dune Wastes.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Vitreous Needles and Vitreous Cactus Flesh to craft Vitreous Spectral Dye, glass optic lenses, and Bleeding potion brews.\n\n" +
+                "Special Properties:\n" +
+                "Slimmer 12x16x12 cuboid model. Emits Light Level 6 and electric light cyan glass sparkles. Grows up to 5 blocks tall via random ticking without adjacent solid blocks. Entities colliding with it suffer puncture damage and 4 seconds of custom Bleeding.",
+
+
+                "env_flora", 0, new ItemStack(ModBlocks.VITREOUS_CACTUS.get()),
+                420f, 0.0f, a_env + 0.44f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_barrow_moss", "Barrow Moss", "ENVIRONMENT & NATURE",
+                "Ancient glowing tomb moss carpet with Bone Meal spreading and Necrotic Immunity debuff cleansing.",
+                "Overview & Description:\n" +
+                "An ancient glowing rune moss block and carpet layer that thrives in dark barrows, catacombs, and ancient stone vaults.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally on stone, deepslate, cobblestone, and barrow rune-stones in Barrow Mounds.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Barrow Moss Fiber to craft Barrow Spectral Dye, Barrow Moss Carpets, and Necrotic Cleansing brews.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 7 and tomb emerald spores. Grants undead mobs Strength I & Speed I for 6s. Cleanses Wither, Poison, Weakness on living entities (1 damage trade-off) + 15s regen cooldown.",
+
+
+                "env_flora", 0, new ItemStack(ModBlocks.BARROW_MOSS.get()),
+                460f, 0.0f, a_env + 0.48f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_abyssal_weeproot", "Abyssal Weeproot", "ENVIRONMENT & NATURE",
+                "Deep void hanging vine & climbable ladder with downward random ticking growth, Slow Falling void tether, and right-click harvesting.",
+                "Overview & Description:\n" +
+                "A deep void hanging root vine that grows downward from ceiling stone in subterranean chasms and void trenches.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally hanging from ceiling stone in Abyssal Trench biomes and deep void caverns.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Abyssal Tendrils to craft Abyssal Spectral Dye, Void Tether ropes, and Slow Falling brews.\n\n" +
+                "Special Properties:\n" +
+                "Functions as a vertical climbable ladder (#minecraft:climbable). Emits Light Level 5 and dark cyan droplet particles. Grants Slow Falling void tether to entities climbing or falling through it and grows downward up to 26 blocks.",
+                "env_flora", 0, new ItemStack(ModBlocks.ABYSSAL_WEEPROOT.get()),
+                500f, 0.0f, a_env + 0.52f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_blood_root_succulent", "Blood-Root Succulent", "ENVIRONMENT & NATURE",
+                "Crimson desert succulent with red sand/terracotta placement, life-drain damage, undead regeneration, and pulp harvesting.",
+                "Overview & Description:\n" +
+                "A deep crimson desert succulent that thrives on arid red sand, terracotta, and crimson nylium in Sanguine Canyons.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Sanguine Canyons, Red Deserts, and Nether Crimson Forests.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Blood-Root Pulp to craft Sanguine Spectral Dye, Vampiric Elixirs, and Life-Drain catalysts.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6 and bioluminescent crimson life sparkles. Inflicts 1 life-drain damage on living non-undead entities while nourishing undead mobs with Regeneration.",
+                "env_flora", 0, new ItemStack(ModBlocks.BLOOD_ROOT_SUCCULENT.get()),
+                540f, 0.0f, a_env + 0.56f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_vitae_orchid", "Vitae Orchid", "ENVIRONMENT & NATURE",
+                "Tall, 2-block gold-veined white orchid providing Health Regeneration aura.",
+                "Overview & Description:\n" +
+                "A majestic 2-tall flower featuring a silky white blossom head with royal purple lips and radiant gold veining.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Vitality Meadows and Sunlit Glades.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Vitae Petals, Vitae Nectar, and Golden Vitae Amber Spectral Dye.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 8 and golden vitality sparkles. Grants Regeneration I to living non-undead entities.",
+                "env_flora", 0, new ItemStack(ModBlocks.VITAE_ORCHID.get()),
+                580f, 0.0f, a_env + 0.60f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_spore_burst_puffball", "Spore-Burst Puffball", "ENVIRONMENT & NATURE",
+                "Bulbous warty yellow-green fungus releasing Nausea I & Poison I spore clouds.",
+                "Overview & Description:\n" +
+                "A round cream puffball mushroom sitting on soil, covered in bioluminescent green cracks and a top spore pore.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Swamps, Mycelium Fields, and Peat Bogs.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Spore Puffs to craft toxic brewing reagents and spore catalysts.\n\n" +
+                "Special Properties:\n" +
+                "Explodes on step, right-click, or break, releasing a 6-second Nausea I & Poison I spore cloud.",
+                "env_flora", 0, new ItemStack(ModBlocks.SPORE_BURST_PUFFBALL.get()),
+                620f, 0.0f, a_env + 0.64f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_fulgurite_reed", "Fulgurite Reed", "ENVIRONMENT & NATURE",
+                "Glassy copper-banded 16x16 straight reed crackling with atmospheric electricity and Speed I aura.",
+                "Overview & Description:\n" +
+                "A straight vertical glassy reed banded in metallic copper rings, conducting electric currents along riverbanks.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Grows naturally on riverbanks, glass sand, and mud in Fulgurite Swamps.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Fulgurite Stalks to craft electric catalysts and Speed potion brews.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6 and electric cyan lightning sparks. Contact grants Speed I. Bonemealing at max height (3 blocks) overcharges the reed, shocking all entities within 4 blocks with 3s Paralyzed.",
+                "env_flora", 0, new ItemStack(ModBlocks.FULGURITE_REED.get()),
+                660f, 0.0f, a_env + 0.68f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_gale_thistle", "Gale-Thistle Bush", "ENVIRONMENT & NATURE",
+                "Dense metallic silver spiky bush inflicting prick damage and emitting swirling wind particles.",
+                "Overview & Description:\n" +
+                "A spiky metallic silver bush with central golden seed heads that sways violently in high winds.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally on rocky cliffs and windswept plateaus.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Gale Seeds to craft wind catalysts and seed projectiles.\n\n" +
+                "Special Properties:\n" +
+                "Emits swirling wind particles and inflicts prick damage on collision.",
+                "env_flora", 0, new ItemStack(ModBlocks.GALE_THISTLE.get()),
+                700f, 0.0f, a_env + 0.72f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_mist_veil_marshmallow", "Mist-Veil Marshmallow", "ENVIRONMENT & NATURE",
+                "Soft bouncy marshmallow pods on water-floating teal leaves cleansing debuffs and restoring hunger.",
+                "Overview & Description:\n" +
+                "Fluffy white marshmallow pods growing on wide teal leaves that float on water, mud, and clay.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally floating on water, mud, and clay in Mist-Veil Marshes.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Mist-Veil Marshmallow Pods which restore hunger and cleanse status debuffs.\n\n" +
+                "Special Properties:\n" +
+                "Acts as a soft bouncy pad resetting fall distance.",
+                "env_flora", 0, new ItemStack(ModBlocks.MIST_VEIL_MARSHMALLOW.get()),
+                740f, 0.0f, a_env + 0.76f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aegis_spire_orchid", "Aegis-Spire Orchid", "ENVIRONMENT & NATURE",
+                "2-tall crystalline orchid with azure-blue layered petal spires granting Resistance I aura.",
+                "Overview & Description:\n" +
+                "A tall 2-block crystalline orchid featuring layered azure petals with metallic silver rims.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Crystal Crags and Metallic Mountain Peaks.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Aegis-Spire Petals used in Resistance II brewing and protective warding.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 7 and grants Resistance I aura to non-hostile entities within 4 blocks.",
+                "env_flora", 0, new ItemStack(ModBlocks.AEGIS_SPIRE_ORCHID.get()),
+                780f, 0.0f, a_env + 0.80f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_pyre_sprout", "Pyre-Sprout", "ENVIRONMENT & NATURE",
+                "Glowing ember sprout with flickering fire petals; yields Pyre Nectar (Fire Resistance I).",
+                "Overview & Description:\n" +
+                "A fiery sprout growing on charred volcanic soil, basalt, and ash, flickering with orange sparks.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Basalt Deltas, Volcanic Ash, and Nether Rack.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Pyre Sprout Seeds & Ember Pulp; right-clicking with a Glass Bottle yields Pyre Nectar Potion.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 10 and fire sparks.",
+                "env_flora", 0, new ItemStack(ModBlocks.PYRE_SPROUT.get()),
+                820f, 0.0f, a_env + 0.84f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aura_drift_sedge", "Aura-Drift Sedge", "ENVIRONMENT & NATURE",
+                "Luminescent pink-gold grass blades granting Jump Boost I & Speed I on contact.",
+                "Overview & Description:\n" +
+                "Tall glowing grass blades shimmering with pink and gold aura drift particles.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Radiant High Meadows and Ether Cliffs.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Aura-Drift Fiber used in Materia weaving and speed charms.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 8; entity contact grants Jump Boost I & Speed I.",
+                "env_flora", 0, new ItemStack(ModBlocks.AURA_DRIFT_SEDGE.get()),
+                860f, 0.0f, a_env + 0.88f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_spectral_lantern_flower", "Spectral Lantern-Flower", "ENVIRONMENT & NATURE",
+                "Bell-shaped cyan soulfire lantern flower emitting Light Level 12 and repelling undead entities.",
+                "Overview & Description:\n" +
+                "A translucent bell-shaped lantern flower glowing with cyan soulfire inside.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Soul Sand Valleys and Whispering Ruins.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Spectral Lantern Pods used in soul protection brews.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 12; inflicts Slowness & Weakness on undead entities within 6 blocks.",
+                "env_flora", 0, new ItemStack(ModBlocks.SPECTRAL_LANTERN_FLOWER.get()),
+                900f, 0.0f, a_env + 0.92f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_cinder_spore_mushroom", "Cinder-Spore Mushroom", "ENVIRONMENT & NATURE",
+                "Log/wall-attached emerald fungal bracket releasing protective ash-spore clouds.",
+                "Overview & Description:\n" +
+                "A layered emerald fungal bracket mushroom with bioluminescent spore gills underneath.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally attached to log sides in Nether Warped Forests.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Cinder-Spore Caps used in fire-retardant brewing.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6 and green spore particles.",
+                "env_flora", 0, new ItemStack(ModBlocks.CINDER_SPORE_MUSHROOM.get()),
+                940f, 0.0f, a_env + 0.96f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_cinder_grip_lichen", "Cinder-Grip Lichen", "ENVIRONMENT & NATURE",
+                "Volcanic ember-veined crust lichen providing speed boosts and thermal embers.",
+                "Overview & Description:\n" +
+                "A multi-directional crust lichen pulsing with volcanic orange ember veins.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally across basalt deltas, netherrack, and blackstone.\n\n" +
+                "Crafting Uses:\n" +
+                "Sheared for Cinder Lichen Flakes used in speed & fire resistance brews.\n\n" +
+                "Special Properties:\n" +
+                "Grants Speed I for 3s; burns bare feet for 0.5 fire damage.",
+                "env_flora", 0, new ItemStack(ModItems.CINDER_GRIP_LICHEN_ITEM.get()),
+                980f, 0.0f, a_env + 1.00f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_soot_shroud_fungi", "Soot-Shroud Fungi", "ENVIRONMENT & NATURE",
+                "Jet-black parasol mushroom with glowing sulfur spots and ash cloud spores.",
+                "Overview & Description:\n" +
+                "A dark violet-grey parasol mushroom with glowing sulfur-yellow spots and ember gills.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally on netherrack, soul soil, and basalt.\n\n" +
+                "Crafting Uses:\n" +
+                "Sheared for Soot-Shroud Caps used as gunpowder substitute and brewing.\n\n" +
+                "Special Properties:\n" +
+                "Releases sulfuric ash clouds inflicting Nausea I and Blindness I.",
+                "env_flora", 0, new ItemStack(ModBlocks.SOOT_SHROUD_FUNGI.get()),
+                1020f, 0.0f, a_env + 1.04f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_pyrocyst_algae", "Pyrocyst Algae", "ENVIRONMENT & NATURE",
+                "Fire-proof thermal carpet algae filled with bioluminescent fluid vesicles.",
+                "Overview & Description:\n" +
+                "A bioluminescent crimson thermal algae carpet studded with glowing fluid bladders.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns on magma blocks and nether stone near lava lakes.\n\n" +
+                "Crafting Uses:\n" +
+                "Right-click harvested for Pyrocyst Vesicles (5-min regrowth cooldown).\n\n" +
+                "Special Properties:\n" +
+                "100% fire-proof; extinguishes burning players & grants Fire Resistance I for 10s.",
+                "env_flora", 0, new ItemStack(ModBlocks.PYROCYST_ALGAE.get()),
+                1060f, 0.0f, a_env + 1.08f, false
+        ));
+
+        // 9 Fungal Shelf-Caps Nodes
+        ALL_NODES.add(new CodexNode(
+                "env_barrow_fungal_shelf_cap", "Barrow Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Tomb Emerald bracket mushroom extending from wall faces. Grants Resistance I on contact.",
+                "Overview:\nTomb Emerald bracket shelf mushroom attached to wall faces.\n\nProperties:\nGrants Resistance I for 4s on contact. Sheared for Barrow Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.BARROW_FUNGAL_SHELF_CAP.get()), 1080f, 0.0f, a_env + 1.12f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_spore_fungal_shelf_cap", "Spore Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Overgrowth spore-green shelf cap sprinkled with gold spore dust. Grants Regeneration I on contact.",
+                "Overview:\nLush overgrowth spore-green bracket shelf mushroom.\n\nProperties:\nGrants Regeneration I for 4s on contact. Sheared for Spore Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.SPORE_FUNGAL_SHELF_CAP.get()), 1100f, 0.0f, a_env + 1.16f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_blight_fungal_shelf_cap", "Blight Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Necrotic grey-green shelf cap with toxic green vein networks. Inflicts Nausea & Poison on contact.",
+                "Overview:\nNecrotic grey-green bracket mushroom laced with toxic green veins.\n\nProperties:\nInflicts Nausea & Poison on contact. Sheared for Blight Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.BLIGHT_FUNGAL_SHELF_CAP.get()), 1120f, 0.0f, a_env + 1.20f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_frost_fungal_shelf_cap", "Frost Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Glacial ice-blue bracket shelf emitting frost mist. Inflicts Slowness I on contact.",
+                "Overview:\nGlacial ice-blue bracket shelf mushroom.\n\nProperties:\nInflicts Slowness I for 4s on contact. Sheared for Frost Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.FROST_FUNGAL_SHELF_CAP.get()), 1140f, 0.0f, a_env + 1.24f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_cinder_fungal_shelf_cap", "Cinder Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Volcanic ember-orange bracket shelf. Extinguishes fire and grants Fire Resistance I on contact.",
+                "Overview:\nVolcanic ember-orange bracket shelf mushroom.\n\nProperties:\nExtinguishes fire & grants Fire Resistance I for 6s. Sheared for Cinder Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.CINDER_FUNGAL_SHELF_CAP.get()), 1160f, 0.0f, a_env + 1.28f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_astral_fungal_shelf_cap", "Astral Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Stardust indigo bracket shelf. Grants Jump Boost II on contact.",
+                "Overview:\nStardust indigo-violet bracket shelf mushroom.\n\nProperties:\nGrants Jump Boost II for 4s on contact. Sheared for Astral Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.ASTRAL_FUNGAL_SHELF_CAP.get()), 1180f, 0.0f, a_env + 1.32f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_dawn_fungal_shelf_cap", "Dawn Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Sunburst gold bracket shelf emitting Light Level 12. Cleanses debuffs on contact.",
+                "Overview:\nSunburst gold bracket shelf mushroom emitting Light Level 12.\n\nProperties:\nCleanses debuffs & grants Glowing for 6s on contact. Sheared for Dawn Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.DAWN_FUNGAL_SHELF_CAP.get()), 1200f, 0.0f, a_env + 1.36f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_sanguine_fungal_shelf_cap", "Sanguine Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Crimson blood bracket shelf. Drains 0.5 heart on contact but grants Strength I.",
+                "Overview:\nDeep crimson red velvety bracket shelf mushroom.\n\nProperties:\nDrains 0.5 heart on contact but grants Strength I for 4s. Sheared for Sanguine Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.SANGUINE_FUNGAL_SHELF_CAP.get()), 1220f, 0.0f, a_env + 1.40f, false
+        ));
+        ALL_NODES.add(new CodexNode(
+                "env_static_fungal_shelf_cap", "Static Fungal Shelf-Cap", "ENVIRONMENT & NATURE",
+                "Electric cyan bracket shelf emitting sparks. Delivers a 0.5 lightning zap and grants Speed II.",
+                "Overview:\nElectric cyan bracket shelf mushroom emitting sparks.\n\nProperties:\nDelivers a 0.5 lightning zap & grants Speed II for 3s. Sheared for Static Fungal Caps.",
+                "env_flora", 0, new ItemStack(ModBlocks.STATIC_FUNGAL_SHELF_CAP.get()), 1240f, 0.0f, a_env + 1.44f, false
+        ));
+
+
+
+        
+        ALL_NODES.add(new CodexNode(
+                "env_materia_echo_tree", "Materia-Echo Tree & Echo Fruit", "ENVIRONMENT & NATURE",
+                "Ghostly ash-wood tree bearing climate-attuned Echo Fruits hanging beneath leaves.",
+                "Overview & Description:\n" +
+                "The Materia-Echo Tree is an ethereal pale ash-wood species that bears hanging Echo Fruits beneath its leaves.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Grown from Materia-Echo Saplings or harvested in essence-rich biomes.\n\n" +
+                "Special Properties:\n" +
+                "Hanging Echo Fruits attune to local biome EssenceTypes. Consuming 2+ Echo Fruits within 60s causes Materia Toxicity.",
+                "hub_environment", 2, new ItemStack(ModBlocks.MATERIA_ECHO_LOG.get()),
+                300f, 0.0f, a_env - 0.55f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_astral_veil_willow", "Astral-Veil Willow Tree", "ENVIRONMENT & NATURE",
+                "Mystical Netherin wood species with starlight bark furrows, indigo foliage, and 16x16 weeping tendril vines.",
+                "Overview & Description:\n" +
+                "The Astral-Veil Willow is a majestic Nether tree whose bark glows softly with Light Level 3 ambient Materia energy.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Found in celestial Nether groves or cultivated from Astral-Veil Willow Saplings using Bone Meal.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields Astral-Veil Willow Logs, Stripped Logs, 1:1 Oak-style Planks, Slabs, Stairs, Fences, and weeping Vines.",
+                "hub_environment", 2, new ItemStack(ModBlocks.ASTRAL_VEIL_WILLOW_LOG.get()),
+                300f, 0.0f, a_env - 0.45f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_void_blight_mangrove", "Void-Blight Mangrove Tree", "ENVIRONMENT & NATURE",
+                "Abyssal Nether stilt wood species with void-magenta bark, stilt roots, and bioluminescent fruit pods.",
+                "Overview & Description:\n" +
+                "The Void-Blight Mangrove grows in deep Nether chasms, supported by stilt roots and producing hanging Void-Blight Pods.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Harvested in abyssal Nether chasms or grown from Void-Blight Mangrove Saplings.\n\n" +
+                "Crafting Uses:\n" +
+                "Yields Void-Blight Mangrove Logs, Stripped Logs, 1:1 Oak-style Planks, Roots, and consumable Void-Blight Pods.",
+                "hub_environment", 2, new ItemStack(ModBlocks.VOID_BLIGHT_MANGROVE_LOG.get()),
+                300f, 0.0f, a_env - 0.50f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_necrotic_rose_of_jericho", "Necrotic Rose-of-Jericho", "ENVIRONMENT & NATURE",
+                "Two-state dry root ball that unfurls into a decay-inflicting rose (Wither I).",
+                "Overview & Description:\n" +
+                "A two-state desert flower that remains a closed gray root ball until walked over, unfurling into a dark decay rose.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Tomb Dunes, Blighted Dunes, and Frost-Tomb Barrows.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Necrotic Rose Petals used in Decay Potion brewing.\n\n" +
+                "Special Properties:\n" +
+                "Unfurls on entity contact and inflicts Wither I.",
+                "env_flora", 0, new ItemStack(ModBlocks.NECROTIC_ROSE_OF_JERICHO.get()),
+                980f, 0.0f, a_env + 1.00f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_void_stalker_orchid", "Void-Stalker Orchid", "ENVIRONMENT & NATURE",
+                "Black petals framing a rotating purple void orb with short-range entity teleportation.",
+                "Overview & Description:\n" +
+                "An alien orchid with three black petals surrounding a hovering purple void orb.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Void-Fringe Mangroves and Void Rift Caverns.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Void-Stalker Petals used in teleportation catalysts.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6 and portal particles; entity contact teleports entities.",
+                "env_flora", 0, new ItemStack(ModBlocks.VOID_STALKER_ORCHID.get()),
+                1020f, 0.0f, a_env + 1.04f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_stardust_aloe", "Stardust Aloe", "ENVIRONMENT & NATURE",
+                "Succulent rosette with glowing teal ridges emitting celestial stardust sparkles.",
+                "Overview & Description:\n" +
+                "A fleshy desert succulent featuring indigo leaves laced with glowing teal stardust ridges.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Astral Dunes and Red-Sand Arches.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Stardust Aloe Leaves used in Stardust Gel extractions.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 6 and stardust sparkles.",
+                "env_flora", 0, new ItemStack(ModBlocks.STARDUST_ALOE.get()),
+                1060f, 0.0f, a_env + 1.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_sanguine_lily", "Sanguine Lily", "ENVIRONMENT & NATURE",
+                "Crimson star water lily pad providing Regeneration I aura to injured entities.",
+                "Overview & Description:\n" +
+                "A large crimson star water lily floating on water with a bubbling pool of blood liquid.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns naturally in Crimson Orchards and Blood-Mire Swamps.\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Sanguine Lily Pads used in health restoration filters.\n\n" +
+                "Special Properties:\n" +
+                "Emits Light Level 5 and grants Regeneration I to injured entities.",
+                "env_flora", 0, new ItemStack(ModBlocks.SANGUINE_LILY.get()),
+                1100f, 0.0f, a_env + 1.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_fauna", "Fauna & Mobs", "ENVIRONMENT & NATURE",
+                "Grots, Veil Foxes, Aurorafowl, Cryo-Stalkers, and Ovis species.",
+                "Overview & Description:\n" +
+                "Indigenous creatures adapted to elemental atmospheric pressures and regional Materia currents.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Found roaming native biomes or spawned using Fauna Spawn Eggs.",
+                "hub_environment", 0, new ItemStack(Items.BONE),
+                280f, 0.0f, a_env + 0.20f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aurorafowl", "Aurorafowl", "ENVIRONMENT & NATURE",
+                "Ethereal sky-skimming avian with a 7-block biplane delta wingspan gliding along atmospheric Materia currents.",
+                "Overview & Description:\n" +
+                "The Aurorafowl is an ethereal wading avian native to Arctic peaks and Aurora Skies. Features biplane delta wings with radiant cyan-magenta membranes.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Effortlessly catches thermal updrafts, glides across fjords, and performs bipedal crane steps on ground. Can be sheared for Celestial Plumage.\n\n" +
+                "Harvest & Drops:\n" +
+                "Drops Aurorafowl Feathers and Raw Aurorafowl meat.",
+                "env_fauna", 1, new ItemStack(ModItems.AURORAFOWL_FEATHER.get()),
+                360f, 0.0f, a_env + 0.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_geyser_wiggle_worm", "Geyser Wiggle-Worm", "ENVIRONMENT & NATURE",
+                "10-segment geothermal serpentine leviathan residing in magma pools and steaming basalt crevices.",
+                "Overview & Description:\n" +
+                "A massive volcanic worm with an incandescent 16-cube magma collar ring and articulated lower jaw.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Swims through molten lava and vents pressurized high-temperature steam plumes that generate powerful physical updrafts.\n\n" +
+                "Harvest & Drops:\n" +
+                "Shearing or harvesting during venting yields Vapor Vent Membranes; drops Sulfur Clods upon defeat.",
+                "env_fauna", 1, new ItemStack(ModItems.VAPOR_VENT_MEMBRANE.get()),
+                380f, 0.0f, a_env + 0.18f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_cryo_stalker", "Cryo-Stalker", "ENVIRONMENT & NATURE",
+                "Glacial apex predator that camouflages in snow and leaps from 8 blocks away to inflict freezing hypothermia.",
+                "Overview & Description:\n" +
+                "A digitigrade quadrupedal hunter sculpted with glassy black ice textures and glowing cyan blue veins.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Prowls snowy taigas and pack-ice floes, cloaking into snow before launching explosive pounces that slow and freeze prey.\n\n" +
+                "Harvest & Drops:\n" +
+                "Yields Cryo-Crystalline Fangs for frost weapons and Frost-Veined Hide for cold-insulated armor.",
+                "env_fauna", 1, new ItemStack(ModItems.CRYO_CRYSTALLINE_FANG.get()),
+                400f, 0.0f, a_env + 0.24f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_ovis_species", "Ovis Species & Aegis Plates", "ENVIRONMENT & NATURE",
+                "Mountain-climbing horned quadrupeds with frontal aegis bracing and ramming charges.",
+                "Overview & Description:\n" +
+                "Heavy alpine grazers featuring 14-segment spiral horns. Encompasses Rime-Back Ovis, Overgrowth Ovis, and Patina Galvanic Ovis variants.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Climbs sheer scree cliffs, braces defensively against frontal damage (-80%), and sheds Aegis Plates when charging into stone walls.\n\n" +
+                "Harvest & Drops:\n" +
+                "Yields Glacial, Mossy, or Patina Aegis Plates used in reinforced plate armors and runic metallurgy.",
+                "env_fauna", 1, new ItemStack(ModItems.GLACIAL_AEGIS_PLATE.get()),
+                420f, 0.0f, a_env + 0.30f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_void_sea_serpent", "Void Sea Serpent", "ENVIRONMENT & NATURE",
+                "16-segment abyssal leviathan with a grand dorsal sail, pectoral fins, and sonic shockwave roars.",
+                "Overview & Description:\n" +
+                "An enormous 16-segment articulated sea serpent swimming through deep abyssal oceanic trenches and void-permeated depths.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Uses an undulating 16-segment Catmull-Rom swimming animation, executes biting lunges that inflict Blindness and Slowness, and unleashes sonic void shockwaves that fling attackers away.\n\n" +
+                "Harvest & Drops:\n" +
+                "Drops Serpent Void Scales, utilized in crafting Void-attuned maritime armor and abyssal diving gear.",
+                "env_fauna", 1, new ItemStack(ModItems.SERPENT_VOID_SCALE.get()),
+                440f, 0.0f, a_env + 0.36f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_glacial_hydra", "Glacial Hydra", "ENVIRONMENT & NATURE",
+                "Multi-tined cryo-beast that breathes sub-zero frost and regenerates rapidly atop ice floes.",
+                "Overview & Description:\n" +
+                "A massive glacial beast possessing layered crystalline antlers, throat fluff, and frost-encrusted armor.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Roams frozen oceans and glacial taigas. Channels intense Cryo breath that deals freezing damage and slows targets, while rapidly healing whenever standing upon ice, packed ice, blue ice, or snow.\n\n" +
+                "Harvest & Drops:\n" +
+                "Drops Hydra Glacial Horns, essential for forging Cryo-infusion matrices and absolute-zero weaponry.",
+                "env_fauna", 1, new ItemStack(ModItems.HYDRA_GLACIAL_HORN.get()),
+                460f, 0.0f, a_env + 0.42f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_luminoth", "Luminoth", "ENVIRONMENT & NATURE",
+                "Bioluminescent moth drawn to light sources, shedding shimmering solar dust and granting night vision.",
+                "Overview & Description:\n" +
+                "A gentle, winged moth with glowing luminescent wings that flutters gracefully through dusk forests and subterranean caverns.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Attracted to torches, lanterns, and Materia nodes. Emits soft floating motes and confers ambient Night Vision to nearby travelers.\n\n" +
+                "Harvest & Drops:\n" +
+                "Yields Luminoth Dust, used in illuminating alchemical tinctures, glow wands, and spectral pigments.",
+                "env_fauna", 1, new ItemStack(ModItems.LUMINOTH_DUST.get()),
+                480f, 0.0f, a_env + 0.48f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_amber_weeping_stag", "Amber Weeping Stag", "ENVIRONMENT & NATURE",
+                "Majestic cervid with weeping crystalline antlers, existing in 3 regional variants (Amber, Frost, Solar).",
+                "Overview & Description:\n" +
+                "An ancient horned stag with elaborate multi-tined crystal antlers that weep elemental essence dew.\n\n" +
+                "Variants & Behavior:\n" +
+                "▪ Amber: Native to temperate groves, weeps Vitae nectar.\n" +
+                "▪ Frost: Native to sub-zero tundras, immune to freezing, weeps Cryo snow crystals.\n" +
+                "▪ Solar: Native to hot savannas and sunlit peaks, weeps Radiant sparks.\n\n" +
+                "Harvest & Drops:\n" +
+                "Yields Weeping Amber Tears, prized for high-purity alchemical elixirs and crystalline catalyst cores.",
+                "env_fauna", 1, new ItemStack(ModItems.WEEPING_AMBER_TEAR.get()),
+                500f, 0.0f, a_env + 0.54f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_storm_kite", "Storm Kite", "ENVIRONMENT & NATURE",
+                "Wide-winged aerial predator that rides thunderhead thermals and swoops down with static shock strikes.",
+                "Overview & Description:\n" +
+                "A majestic ray-like atmospheric predator possessing 6 segmented wing joints, cephalic fins, and an electric glowing underbelly.\n\n" +
+                "Behavior & Mechanics:\n" +
+                "Soars at high altitudes. Upon spotting prey, executes dramatic high-speed dive attacks. During thunderstorms, its attacks channel direct lightning discharges.\n\n" +
+                "Harvest & Drops:\n" +
+                "Drops Storm Kite Membranes, utilized in crafting Aer-attuned gliding wings and galvanic capacitors.",
+                "env_fauna", 1, new ItemStack(ModItems.STORM_KITE_MEMBRANE.get()),
+                520f, 0.0f, a_env + 0.60f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aegis_rose", "Aegis Rose", "ENVIRONMENT & NATURE",
+                "A crystalline blue sapphire rose with metallic silver thorns.",
+                "Overview & Description:\n" +
+                "A radiant rose with crystalline blue sapphire petals and sharp metallic silver thorns growing along its stem.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns in Aegis Meadows and Aegis Orchards. Emits a soft ambient luminescence (Light Level 6).\n\n" +
+                "Crafting Uses:\n" +
+                "Drops Aegis Rose Petals, used in crafting Aegis-Reinforced Plating, Iron Skin Potions, and protective wards.\n\n" +
+                "Special Properties:\n" +
+                "Protects nearby soil from corruption and radiates defensive Materia currents.",
+                "hub_environment", 1, new ItemStack(ModItems.AEGIS_ROSE_PETALS.get()),
+                320f, 0.0f, a_env - 0.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_amber_nectar_blossom", "Amber Nectar Blossom", "ENVIRONMENT & NATURE",
+                "A warm golden cup flower seeping glowing amber nectar.",
+                "Overview & Description:\n" +
+                "An exotic chalice-shaped flower with warm sienna-amber petals that continuously pools and seeps glowing nectar.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Spawns in Amber Groves and Golden Savannas. Emits ambient golden luminescence (Light Level 5).\n\n" +
+                "Crafting Uses:\n" +
+                "Harvested for Amber Nectar Cups and viscous Amber Nectar Dewdrops, used in crafting Amber Adhesive sticky seals and alchemical nourishment.\n\n" +
+                "Special Properties:\n" +
+                "Slowly regenerates glowing nectar dew drops over time.",
+                "hub_environment", 1, new ItemStack(ModItems.AMBER_NECTAR_CUP.get()),
+                320f, 0.0f, a_env + 0.10f, false
+        ));
+
+        // ==========================================
+        // 7. MAGIC (Purple Ring)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "hub_magic", "MAGIC", "MAGIC",
+                "Magic Circles, Magic Circuits, Spellcrafting, and Astral Signs.",
+                "Overview & Description:\n" +
+                "Master runic symbolism, chalk footprints, magic circle rituals, and active spellcrafting.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Unlocked through Runic Scribing and Shimmering Focus crafting.",
+                null, 0, new ItemStack(Items.ENCHANTED_BOOK),
+                180f, 0.0f, a_magic, true
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "magic_rituals", "Runic Rituals & Chalk", "MAGIC",
+                "Chalk tiers and Elder Futhark runes.",
+                "Overview & Description:\n" +
+                "Magic Circles drawn on the ground using 4 Chalk Tiers combined with Elder Futhark active runes.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Scribed on stone surfaces using Scribed Chalk and Rune Stones.\n\n" +
+                "Crafting Uses:\n" +
+                "Used for high-tier transmutations, Materia Blessing synthesis, and focus inscription.",
+                "hub_magic", 1, new ItemStack(Items.REDSTONE),
+                280f, 0.0f, a_magic - 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "magic_spellcrafting", "Spellcrafting", "MAGIC",
+                "Wands, foci, and active spellcasting.",
+                "Overview & Description:\n" +
+                "Channel elemental Materia into active spells using Shimmering Foci.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted using Arcanite Rods, Viscanite Cores, and active Essences.",
+                "hub_magic", 1, new ItemStack(Items.BLAZE_ROD),
+                280f, 0.0f, a_magic - 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_third_hand", "Arkanist's Third Hand", "MAGIC",
+                "Utility summon gathering dropped items.",
+                "Overview & Description:\n" +
+                "A hovering spectral phantom hand that floats alongside the spellcaster.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Inscribed into a Shimmering Focus using a Tier 2 Magic Circle.\n\n" +
+                "Special Properties:\n" +
+                "Autonomously gathers dropped items within 16 blocks, prioritizing items matching your hotbar.",
+                "magic_spellcrafting", 2, new ItemStack(Items.SPECTRAL_ARROW),
+                380f, 0.0f, a_magic - 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_lucky_day", "Arkanist's Lucky Day", "MAGIC",
+                "Temporary offhand Looting/Fortune enchant.",
+                "Overview & Description:\n" +
+                "Enchants held offhand weapons and tools with temporary Fortune and Looting.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Inscribed into a Shimmering Focus using a Tier 2 Magic Circle.\n\n" +
+                "Special Properties:\n" +
+                "Provides Looting III and Fortune III for 30 uses before safely dissipating.",
+                "magic_spellcrafting", 2, new ItemStack(Items.GOLDEN_PICKAXE),
+                380f, 0.0f, a_magic, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_dagger", "Arkanist's Dagger", "MAGIC",
+                "Autonomous spectral blade seeking mobs.",
+                "Overview & Description:\n" +
+                "A glowing ether blade that orbits the caster before darting toward hostiles.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Inscribed into a Shimmering Focus using a Tier 2 Magic Circle.\n\n" +
+                "Special Properties:\n" +
+                "Autonomously targets hostile mobs within 16 blocks, dealing elemental damage based on current EssenceType.",
+                "magic_spellcrafting", 2, new ItemStack(Items.DIAMOND_SWORD),
+                380f, 0.0f, a_magic + 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_modular_architecture", "Modular Spell Assembly", "MAGIC",
+                "Prefixes, Flow Modifiers, Delivery Forms, and Dual-Verb Core Effects.",
+                "Overview & Description:\n" +
+                "Every custom incantation in Entropica is built from modular parts: an overarching Intent Prefix (Combat, Utility, or Misc), a Flow Modifier (20% of cast fuel), and up to 8 Sub-Spell Slots each containing a Delivery Form (40% of cast fuel), a Primary Core Effect (40% of cast fuel), and an optional Dual-Verb Secondary Core Effect (+100% cast fuel).\n\n" +
+                "Special Properties:\n" +
+                "Dynamic Flow Modifiers such as Delayed Detonation, Contingency, and Echo pay 25% of their Materia fuel upfront and the remaining 75% only when triggered.",
+                "magic_spellcrafting", 1, new ItemStack(ModItems.SPELL_PARCHMENT.get()),
+                460f, 0.0f, a_magic - 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_multi_materia_mutations", "Multi-Materia & Signature Mutations", "MAGIC",
+                "Per-part Materia assignment and independent Signature Mutation switches.",
+                "Overview & Description:\n" +
+                "Every individual part of a spell—Flow, Form, Primary Effect, and Secondary Effect—can be bound to its own Materia type and has an independent Mutation ON/OFF switch.\n\n" +
+                "Crafting & Casting:\n" +
+                "▪ Mutation ON: Activates that Materia type's unique Signature Mutation on that specific part.\n" +
+                "▪ Mutation OFF: Keeps clean baseline behavior while still using that Materia type for visual color, combat advantage, and fuel cost.\n" +
+                "▪ Materia-Specific Lock: Binding specific Materia types grants a 15% fuel efficiency discount across the spell.",
+                "spell_modular_architecture", 2, new ItemStack(ModItems.SPELL_GEM.get()),
+                550f, 0.0f, a_magic - 0.06f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_primordial_base_mutations", "Primordial Base Spell Mutations", "MAGIC",
+                "Signature Flow, Form, and Core Effect mutations for all 12 Primordial Base Materia types.",
+                "Overview & Description:\n" +
+                "Enabling a part's Mutation switch while bound to any of the 12 Primordial Base Materia types transforms how that specific spell part behaves without overriding other parts of the spell.\n\n" +
+                "Primordial Twelve Lineup:\n" +
+                "▪ Air, Water, Nature & Earth: Arrow-deflecting spirals & tornado vortices; soaking hydro-cutters & whirlpool geysers; root snares & tree-stepping; stone ramparts, tectonic spikes & ore compaction.\n" +
+                "▪ Frozen, Nether, Radiant & Umbral: Permafrost stasis & silk-touch shearing; auto-smelting hellfire & magma traps; undead-homing dawn stars, curse-stripping & villager purification; shadow-chained damage echoes & stealth shrouds.\n" +
+                "▪ Undead, Void, Arid & Lightning: Life-draining bone shards & grave-phasing; wall-phasing singularity orbs, two-way wormholes & gravity wells; sandblasting bark-strippers & mummification hexes; wet-forking plasma arcs, electrified pools & magnetic railguns.",
+                "spell_multi_materia_mutations", 3, new ItemStack(ModItems.SPELL_GRIMOIRE.get()),
+                640f, 0.0f, a_magic - 0.04f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_elemental_fusion_mutations", "Elemental Fusion Spell Mutations", "MAGIC",
+                "Signature Flow, Form, and Core Effect mutations for Magma, Storm, Glacial, Overgrowth, Dust, Spore, Taiga, and Oasis.",
+                "Overview & Description:\n" +
+                "Tier 1 Elemental Fusion Materia types (#13-#20) blend two primordial streams into compound spell mutations when a part's Mutation switch is toggled ON.\n\n" +
+                "Elemental Fusion Lineup:\n" +
+                "▪ Magma, Storm, Glacial & Overgrowth: Contained-lava caldera novas & auto-smelting lavastream drills; rain-doubled glider shrouds & 3s downburst pins; powder-snow-immune cryo shrouds, blue-ice monoliths & 100% damage-immune ice cocoons; mossy stone spire ramparts, physical briar cages & 24m+ tree-stepping.\n" +
+                "▪ Dust, Spore, Taiga & Oasis: Copper-scraping/stone-polishing sandblasters & Armor Erosion (-5% armor/toughness per level up to -100%); spiraling/flinging spore satellites, huge-mushroom streams & 24m+ underground mycelium blinks; second-target pinning resin spikes, +25% attack-speed spires & timber/icicle barrages; tier-scaled lifesteal bloom seeds & pacifying desert mists.",
+                "spell_primordial_base_mutations", 4, new ItemStack(ModItems.WEEPING_AMBER_TEAR.get()),
+                730f, 0.0f, a_magic - 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_vital_fusion_mutations", "Vital Fusion Spell Mutations", "MAGIC",
+                "Signature Flow, Form, and Core Effect mutations for Vitae, Blood, Aura, and Amber Materia.",
+                "Overview & Description:\n" +
+                "Vital Fusion Materia types (#21-#24) channel living essence, hemomancy, spiritual breath, and prehistoric resin into specialized combat and support spell parts.\n\n" +
+                "Vital Fusion Lineup:\n" +
+                "▪ Vitae & Blood: Buff-stealing helices, collectible healing-orb blooms, 35% miss-chance sprays & villager curing; 15%-40% tier-scaled lifesteal, movement/attack hemorrhage bleeds & twin-tether health pylons.\n" +
+                "▪ Aura & Amber: 15%-30% Materia-fuel siphons, full mob/player ability silences & -20% fuel shrouds; +50% lingering resin zones, 10-HP decoy chrysalis shells, Silk Touch harvesting, fireproof item vaults & shattering vs. monument amber statues.",
+                "spell_elemental_fusion_mutations", 5, new ItemStack(ModItems.AMBER_NECTAR_CUP.get()),
+                820f, 0.0f, a_magic - 0.01f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_ethereal_paradox_mutations", "Ethereal & Paradox Spell Mutations", "MAGIC",
+                "Signature Flow, Form, and Core Effect mutations for Eclipse through Barrow (#25-#38).",
+                "Overview & Description:\n" +
+                "Ethereal & Paradox Fusion Materia types (#25-#38) combine opposing or celestial Materia streams into reality-bending spell parts whenever a part's Mutation switch is toggled ON.\n\n" +
+                "Ethereal & Paradox Lineup:\n" +
+                "▪ Eclipse, Blight, Astral & Soulfire: Cover-curving crescents, buff-siphoning palms & darkness bonus smelting; contagious necro-briars & undead neutrality shrouds; wall-phasing branching plasma arcs, redstone-powering pulsars & meteor-lure hexes; underwater-burning cyan soulflames & Nether-mob pacification.\n" +
+                "▪ Vapor, Null_R, Null_U & Dawn: Rain/water invisibility shrouds & 10m steam geysers; projectile-erasing white-hole orbits & buff-purging antimatter flashes; zero-vibration stealth veils & mushroom-stew-cleansed blackout hexes; 3-pierce sunrise javelins, fuel-siphoning solar lances & zombie-villager awakening.\n" +
+                "▪ Abyss, Aegis, Aurora, Mirage, Wraith & Barrow: Land-drowning trench pressure; +10 Armor golden granite bastions & 15-HP tower-shield blink decoys; 3-pierce polar light ribbons & cryo mirrors; 50% damage-redirecting tethers & illusory clones; wall-phasing ectoplasm skulls & melee-intangible blinks; +8 Armor grave cairns, bone-barrier orbits & tomb-tunneling.",
+                "spell_vital_fusion_mutations", 6, new ItemStack(Items.END_CRYSTAL),
+                910f, 0.0f, a_magic + 0.00f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_trinity_and_catalyst_mutations", "Trinity & Catalyst Spell Mutations", "MAGIC",
+                "Signature Flow, Form, and Core Effect mutations for Pyre through Oblivion (#39-#47) and Chimera.",
+                "Overview & Description:\n" +
+                "Tier 3 Trinity Fusions (#39-#47) and the failed-fusion Chimera Catalyst unleash high-tier sustained beams (5.0s detonation thresholds), 18-second cataclysmic Skyfall storms, and 45-second refreshing Eidolon constructs.\n\n" +
+                "Trinity & Catalyst Lineup:\n" +
+                "▪ Pyre, Penumbra, Rime & Spring: Charcoal-smelting wildfire beams & hearthstone shrouds; corona-twilight mantles & 16m horizon-phase steps; 3-pierce shattering rime javelins & cryo-crystallization; undead-stealth fountainhead mantles, aquifer purification wells & miracle downpours.\n" +
+                "▪ Static, Sylvan, Miasma, Genesis, Oblivion & Chimera: Creeper-disabling EMP shockwaves & Faraday shrouds; 12-hit fuel-converting photosynthetic aegises & 16m canopy solar-glide steps; fence-phasing swamp-gas blinks & sinkhole beams; 3-target Dawn-Glory spires & zombie-villager rebirth; underwater-burning extinction fire & Oblivion colossi; dynamic Air/Earth/Water/Nether roulette spells & Chimera juggernauts.",
+                "spell_ethereal_paradox_mutations", 7, new ItemStack(Items.NETHER_STAR),
+                1000f, 0.0f, a_magic + 0.01f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_apex_and_prismatic_mutations", "Apex & Prismatic Spell Mutations", "MAGIC",
+                "Signature Flow, Form, and Core Effect mutations for Aether, Entropic, Celestial, and Prismatic (#48-#51).",
+                "Overview & Description:\n" +
+                "Tier 4 Apex Fusions (#48-#50) and the refined Prismatic Catalyst (#51) unlock 50% armor-bypassing strikes, 20-second cataclysmic Skyfalls, 5.0-second channeled area Transmutations, and 45-second refreshing 90-100 HP Eidolon Triads.\n\n" +
+                "Apex & Prismatic Lineup:\n" +
+                "▪ Aether & Entropic (#48-#49): Zero-G firmament meteorites scattering 4 homing spikes, 3D arcane levitation shrouds, curse-purging crystalline genesis & hyper-gravity hexes; 5-target wall-phasing blood-void chains, 6-pierce singularity skull-orbs, +35% gear scrap transmutation & -30% max-HP decay hexes.\n" +
+                "▪ Celestial & Prismatic (#50-#51): 3.5x undead-smiting white-hole darts, Celestial Lily supernova beams & max-discount zombie-villager consecration; 6-bounce ricocheting light-discs (healing allies 5 hearts on final bounce), 3-way splitting rainbow lasers, 100% projectile-reflecting mirror monoliths & fuel-free ore smelting (10% chance to shift into a random ore up to Diamond).",
+                "spell_trinity_and_catalyst_mutations", 8, new ItemStack(Items.AMETHYST_CLUSTER),
+                1090f, 0.0f, a_magic + 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_eschaton_and_singularity_mutations", "Eschaton & Singularity Spells", "MAGIC",
+                "Tier 5 Eschaton (#52-#54), Tier 6 Singularity (#55-#57), bottled Transmute Elixirs, and +5 enchantment elevation.",
+                "Overview & Description:\n" +
+                "The pinnacle of Spellcrafting across Empyrean, Cataclysm, and Terminus (Tier 5 Eschaton: 60% armor bypass, 24s Skyfalls, 60s / 110-120 HP Eidolons) and Eschaton, Apotheosis, and Entropica (Tier 6 Singularity: 75% armor bypass, 30s Skyfalls, 90s / 140-150 HP Eidolons).\n\n" +
+                "Eschaton, Singularity & Bottled Elixirs:\n" +
+                "▪ Empyrean, Cataclysm & Terminus (#52-#54): Party-shielding World-Tree root webs & bottled Dew of the World-Tree; 10-pierce volcanic railgun slugs & +35% ore vitrification; 8-pierce absolute-zero permafrost lances & bottled Glacial Frost Elixirs.\n" +
+                "▪ Eschaton, Apotheosis & Entropica (#55-#57): Block-to-fuel Omega event horizons, 24m enemy-swapping Spacetime Fold Slips & 50/50 bottled Gravitational Stasis Elixirs or Essence of the Omega Horizon; 10-bounce Seeking Crowns of Dawn, Level-15 Alpha Genesis mantles & bottled Nectar of the Alpha Genesis; universal +1 Grand Cosmic Equilibrium lances, dual Spawn-Lure + Monster-Empowerment Paradox Hexes, and 5.0s Grand Cosmic Equilibrium Transmutation (+5 permanent tiers to all worn enchantments).",
+                "spell_apex_and_prismatic_mutations", 9, new ItemStack(Items.DRAGON_BREATH),
+                1180f, 0.0f, a_magic + 0.03f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_eidolon_summon_triad", "Eidolon Summon Forms", "MAGIC",
+                "Three separate Summon creation forms (Autonomous Agent, Anchored Sentry, Phantom Decoy — choose one per spell) across all 58 Materia suites.",
+                "Overview & Description:\n" +
+                "During spell creation, Autonomous Agent (summon_agent), Anchored Sentry (summon_sentry), and Phantom Decoy (summon_decoy) are three separate Delivery Form choices—you pick one summon type per spell to manifest across all 58 canonical Materia suites: Autonomous Agents (mobile companions up to 140 HP Avatar of Entropica, Event-Horizon Leviathan, Celestial Seraph-Titan, and flying Prismatic Valkyries), Anchored Sentries (stationary turrets & field spires up to 150 HP, including 16-block Umbral/Eclipse/Null_U/Penumbra dark-spawn blocking, Overgrowth/Spore/Oasis/Spring/Sylvan crop growth, Vitae heartbeat cleansing, Aura -20% spell fuel spires, Prismatic 12-block 100% projectile/magic reflect domes, and 20-block Singularity fields), or Phantom Decoys (taunt effigies with 4m-20m death bursts, including Prismatic's 15s party invulnerability burst). Tier 3-6 & Catalyst constructs run automated 45s / 60s / 90s Lifecycle Refresh Engines.\n\n" +
+                "Field Controls:\n" +
+                "▪ Orbis Cell Healing: Sneak + Right-Click an owned Eidolon with a matching Orbis Cell to repair its health directly.\n" +
+                "▪ Zero-Cost Safe Dismissal: Hold Sneak while casting a Summon spell to safely dismiss active Eidolons matching that spell's chosen summon type at 0 Materia cost.",
+                "spell_primordial_base_mutations", 3, new ItemStack(Items.TOTEM_OF_UNDYING),
+                730f, 0.0f, a_magic - 0.07f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_wards_hexes_and_verbs", "Wards, Hexes & Core Verbs", "MAGIC",
+                "Shield gates, Level I-III persistent hexes, kinetic modes, and conjured bridges.",
+                "Overview & Description:\n" +
+                "All 19 Core Effect verbs scale across Tiers 1-10 across Combat, Utility, and Miscellaneous disciplines.\n\n" +
+                "Key Mechanics:\n" +
+                "▪ Arcane Ward (1.5x Base Damage): Intercepts combat hits only, blocks all overflow damage on the hit that breaks the shield, and converts 25% of matching-element hits back into Materia fuel.\n" +
+                "▪ Persistent Hexes: Last indefinitely on non-boss foes (stacking Levels I-III), lock natural health regeneration on burning/blight curses, dispel if the caster dies, and can be cleansed by opposing Materia.\n" +
+                "▪ Harm, Kinetic, Grapple, Blink, Restoration & Conjure: Tier 4+ Harm pierces physical armor and ruptures overkill targets into Raw Essence; Kinetic supports Push, Pull, Launch, Slam, and rocket-jumps; Grapple reels foes or zip-lines the caster to walls and ledges; Blink converts freefall into forward speed; Restoration heals allies/Eidolons or harms Undead; Conjure dials light (7-15) or forms 8s stepping bridges.",
+                "spell_modular_architecture", 2, new ItemStack(Items.SHIELD),
+                550f, 0.0f, a_magic - 0.01f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_arcane_flight_and_utility_verbs", "Arcane Flight, Materia Wings & Field Utility", "MAGIC",
+                "Timed 3D flight with Materia-colored Arcane Wings, plus Harvest, Transmute, Logistics, Sonar, Atmosphere, Acoustic, Diagnostic, and Gravity.",
+                "Overview & Description:\n" +
+                "Utility and Miscellaneous Core Effects empower exploration, farming, weather control, sensory scanning, and true 3D aerial flight.\n\n" +
+                "Arcane Flight & 3D Materia Wings:\n" +
+                "▪ Casting Arcane Flight (in any Delivery Form or Flow) grants timed 3D flight (15s at Tier 1 up to 60s+ at Tier 10), an immediate upward wing-stroke launch, and a gentle Slow Falling cushion when flight ends.\n" +
+                "▪ Articulated 3D glowing Arcane Wings unfurl from the caster's back, dynamically colored by whichever of the 58 Materia types powers the spell—including two-tone feather tips on dual-Materia spells and live shifting spectrums for Prismatic, Chimera, Aurora, and Entropica!\n\n" +
+                "Field Utility & Sensory Verbs:\n" +
+                "▪ Break, Harvest & Construct: Excavate stone/ores (never breaking chests/machines), harvest & replant crops/berries/wart/cane/melons, or place offhand/conjured blocks.\n" +
+                "▪ Transmute & Logistics: Transform blocks or dropped item stacks (with 30% bulk fuel refunds), vacuum nearby items & XP orbs, or route items between linked chests on Autocast Pedestals.\n" +
+                "▪ Sonar, Diagnostic, Atmosphere, Acoustic & Gravity: Highlight nearby creatures & ping valuable ore veins, inspect exact entity HP/Wards or block crop/honey/redstone states, shift weather between Clear Skies, Rain, and Thunderstorms, emit sonic shockwaves or stealth hush veils, and deploy Lunar, Zero-G, Grav-Lift, Repulsor, or Singularity gravity domes.",
+                "spell_wards_hexes_and_verbs", 3, new ItemStack(Items.ELYTRA),
+                640f, 0.0f, a_magic - 0.005f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_gems_and_ritual_infusion", "Spellgems & Ritual Infusion", "MAGIC",
+                "Reusable Spell Parchments, Tier 1-10 binding, and flawed ritual risks.",
+                "Overview & Description:\n" +
+                "Designs scribed onto a Spell Parchment act as reusable blueprints that are never consumed. Hold a Blank Spellgem in your off-hand and use the Parchment on a Scribing Controller, Arcane Anvil, or Ritual Bowl to infuse an Inscribed Spellgem at Potency Tiers 1 through 10.\n\n" +
+                "Special Properties:\n" +
+                "Ritual infusion draws 10x a single cast's Materia cost from placed Orbis Cells within 8 blocks. Under-supplying the circle still completes the gem, but permanently inflicts Unstable Casting (37.5%), a Crippled Spell Part (37.5%), or both flaws (25%).",
+                "spell_modular_architecture", 2, new ItemStack(ModItems.BLANK_SPELLGEM.get()),
+                550f, 0.0f, a_magic - 0.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_casting_apparatuses", "Casting Apparatuses & Socketing", "MAGIC",
+                "Arcanum Focus, Wand, Staff, Grimoire, and safe vs. field gem swaps.",
+                "Overview & Description:\n" +
+                "Raw Spellgems cannot be cast bare-handed. Socket them into an Engraved Weapon (1 slot), Arcanum Focus (1 slot), Arcanist Wand (2 slots, off-hand capable), Arcanist Staff (4 slots, -20% channeled drain), or Spellweaver Grimoire (9 slots). Hold Sneak + Scroll Wheel to cycle active slots instantly.\n\n" +
+                "Workstation vs. Field Socketing:\n" +
+                "▪ Safe Workstation Swap (Sneak + Right-Click Arcane Anvil or Drafting Table): 0s lockout and 0% backfire.\n" +
+                "▪ Emergency Field Swap (Right-Click in inventory): Triggers a 60s lockout and a 45% backfire risk on the first cast.",
+                "magic_spellcrafting", 1, new ItemStack(ModItems.ARCANUM_FOCUS.get()),
+                460f, 0.0f, a_magic - 0.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "spell_ten_stage_fuel_economy", "10-Stage Materia Spell Fueling", "MAGIC",
+                "Multi-Materia Orbis Cell billing, fractional credits, and cross-tier rules.",
+                "Overview & Description:\n" +
+                "Spells draw exact per-part Materia costs from Orbis Cells, Ampoules, and Raw Essences in your inventory across all 10 Materia refinement stages (Raw Essence through Liminalia), storing leftover sub-unit fractions losslessly.\n\n" +
+                "Cross-Tier Fueling:\n" +
+                "▪ Higher-tier fuel powering a lower-tier spell: 0% penalty (exact conversion).\n" +
+                "▪ Lower-tier fuel powering a higher-tier spell: +25% cost markup per tier jumped.",
+                "spell_casting_apparatuses", 2, new ItemStack(ModBlocks.ORBIS_CELL.get()),
+                550f, 0.0f, a_magic - 0.18f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "magic_astral", "Astral Signs", "MAGIC",
+                "Constellation alignments and celestial power.",
+                "Overview & Description:\n" +
+                "Aligning scribing engines with active celestial constellations.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Observed through the Arkanist Monocle during clear night skies.",
+                "hub_magic", 1, new ItemStack(Items.AMETHYST_SHARD),
+                290f, 0.0f, a_magic + 0.08f, false
+        ));
+
+        
+        // ==========================================
+        // ASTRAL MATERIA SUB-BRANCH (Expanding magic_astral)
+        // ==========================================
+        ALL_NODES.add(new CodexNode(
+                "astral_instruments_and_charts", "Looking Glass & Celestial Instruments", "MAGIC",
+                "Celestial observation, constellation charting, and vertex alignment.",
+                "Overview & Description:\n" +
+                "The night sky is not empty void—it is a cosmic vault leaking pure Materia through ancient stellar tears. Using a Looking Glass and Blank Star Chart, arkanists map constellations across the 8 lunar phases.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Craft a Looking Glass with Starlight Birch timber and Quartz Lenses. Hold a Blank Star Chart at night while looking at the stars to trace vertices.\n\n" +
+                "Crafting Uses:\n" +
+                "Completed Star Charts are placed into the Astral Altar Core and Celestial Armillary to focus constellation powers.\n\n" +
+                "Special Properties:\n" +
+                "Constellation vertices have a 12px magnetic snap zone when tracing.",
+                "magic_astral", 1, new ItemStack(ModItems.LOOKING_GLASS.get()),
+                390f, 0.0f, a_magic + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_astrolabe_and_holograms", "Astrolabe & Holographic Projections", "MAGIC",
+                "Precision astronomical navigation, 3-slot memory bank, and 3D in-world ghost blueprint projection.",
+                "Overview & Description:\n" +
+                "The Astrolabe is a precision handheld coordinate dial providing up to 8x magnification and fine 15° vernier degree markings for celestial tracking.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Forged with Brass Ingots, Quartz Lenses, and a Resonite gear mechanism.\n\n" +
+                "Multi-Slot Memory Bank & Horizon Waypoints:\n" +
+                "▪ Shift + Right-Click in air: Cycles through 3 independent memory slots ([Slot 1..3]) with distance readouts in meters.\n" +
+                "▪ Right-Click on ground: Anchors or clears the holographic blueprint at the target location.\n" +
+                "▪ Right-Click in air: Opens the sky looking glass or cycles blueprint layer slices.\n" +
+                "▪ Waypoint Beacon: Anchored blueprints project a 32m vertical starlight beacon pillar visible from afar across the horizon.\n\n" +
+                "Special Properties:\n" +
+                "Translucent ghost templates provide live color-coded validation (cyan = missing, green = correct, red = invalid).",
+                "astral_instruments_and_charts", 1, new ItemStack(ModItems.ASTROLABE.get()),
+                470f, 0.0f, a_magic + 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_celestial_atlas", "Celestial Atlas & Compendium", "MAGIC",
+                "Grand astronomical compendium storing up to 24 discovered Star Charts with live sky monitoring.",
+                "Overview & Description:\n" +
+                "The Celestial Atlas is an illustrated astronomical tome that binds and stores completed Star Charts into a unified celestial compendium.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted by binding an Astrolabe with a Book and Gold Ingots.\n\n" +
+                "Crafting & Utility:\n" +
+                "▪ Shift + Right-Click: Automatically scans your inventory and absorbs all completed Star Charts into the atlas.\n" +
+                "▪ Right-Click: Opens the dual-page interactive compendium browser showing all 24 constellations categorized across 4 Tiers.\n\n" +
+                "Special Properties:\n" +
+                "Displays full astrological lore, lunar phase visibility, base flux rates, and real-time horizon status (zenith altitude vs. minutes until rising).",
+                "astral_instruments_and_charts", 2, new ItemStack(ModItems.CELESTIAL_ATLAS.get()),
+                470f, 0.0f, a_magic + 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_pantheon_constellations", "The 50 Constellations of Entropica", "MAGIC",
+                "Five tiers of celestial stars, spectral classes, calibrated inverse flux rates, and coordinate conflicts.",
+                "Overview & Description:\n" +
+                "Entropica's cosmos is organized into 50 distinct constellations across 5 celestial tiers (Fundamental, Advanced, Master, Mythic, Transcendent):\n" +
+                "▪ Fundamental (T1 - 16 Stars): Vespa Aculeus (Air), Lucerna Radialis (Radiant), Serpens Veneni (Umbral), Arbor Vitae (Vitae), Scutum Aegis (Aegis), Athanor Ignis (Magma), Gladius Ignis (Pyre), Penna Aetheris (Aether), Falx Aetheria (Sky Scythe), Cervus Vitae (Sylvan Hart), Noctua Lucis (Luminous Owl), Aranea Tenebrae (Web of Night), Calcar Vulcanis (Forge Hearth), Arcus Sidereus (Starlight Bow), Taurus Petrae (Stone Bull), Iris Spectralis (Prismatic Veil).\n" +
+                "▪ Advanced (T2 - 16 Stars): Mineralis Geodae (Earth), Glacies Crystalline (Glacial), Ulteria Viatoris (Aurora), Resina Succini (Amber), Sanguis Chalybis (Blood), Fulgur Tonitrus (Lightning), Horologium Chroni (Astral), Bootes Pastoralis (Sylvan), Felis Succina (Amber Lynx), Draco Pyrotis (Pyre Drake), Ceraunius Sagitta (Thunder Arrow), Serpens Glacialis (Rime Viper), Speculum Abyssi (Abyssal Mirror), Pallium Tenebrae (Shroud of Dusk), Anulus Aeternus (Gyroscopic Ring), Sol Invictus (Unconquered Sun).\n" +
+                "▪ Master (T3 - 8 Stars): Vorago Blighti (Blight), Velum Umbraticum (Penumbra), Echo Primordialis (Entropic), Corona Solaris (Celestial), Charybdis Profunda (Abyssal Maelstrom), Terranox Primus (World Impactite), Vorator Stellarum (Star Devourer), Aetherion Aeternus (Celestial Weave).\n" +
+                "▪ Mythic (T4 - 4 Stars): Leviathan (Abyss), Yggdrasil (Genesis), Ouroboros (Aether), Azathoth (Oblivion).\n" +
+                "▪ Transcendent (T5 - 6 Stars): Astrape Primordialis, Aegis Ecliptica, Ignis Eschaton, Aether Aeternitas, Umbra Genesis, Nihil Coronatum.\n\n" +
+                "Stargazing Pinning & Coordinate Conflicts:\n" +
+                "Right-clicking a Completed Star Chart pins that constellation to the night sky for 10 minutes, enhancing star size (+80%) and radiant beam lines. Simultaneously attuning conflicting shared-coordinate constellations causes destructive harmonic rejection.",
+                "magic_astral", 1, new ItemStack(ModItems.STAR_CHART_COMPLETED.get()),
+                390f, 0.0f, a_magic + 0.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_materia_flux_distributor", "Materia-Flux Distributor & Wireless Charging", "MAGIC",
+                "Subterranean pneumatic siphoning and wireless Materia-Flux distribution to Inscribed Crystals.",
+                "Overview & Description:\n" +
+                "The Materia-Flux Distributor wirelessly channels stored Materia Fumus into Inscribed Astral Crystals within a large spherical radius.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled using Astral Brass plates, an Attuned Quartz disc, and a pneumatic manifold port. Connects directly to Materia Fumus pipes.\n\n" +
+                "Vertical Siphoning Physics:\n" +
+                "When placed directly underneath an Astral Collector, the distributor automatically draws stored Materia downward into its internal buffer.\n\n" +
+                "Tier Upgrades & Distribution Range:\n" +
+                "▪ Tier 1: 32-block radius | 4,000 mb buffer | 10 Materia/s charging\n" +
+                "▪ Tier 2: 64-block radius | 8,000 mb buffer | 25 Materia/s charging\n" +
+                "▪ Tier 3: 96-block radius | 16,000 mb buffer | 60 Materia/s charging\n\n" +
+                "Right-clicking the block with Astral Crystals or upgrade plates upgrades the tier up to Tier 3.",
+                "astral_collector_materia_reservoir", 2, new ItemStack(ModBlocks.MATERIA_FLUX_DISTRIBUTOR.get()),
+                720f, 0.0f, a_magic + 0.06f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_altar_and_observatory", "Astral Altar & Observatory Structure", "MAGIC",
+                "Multiblock structures for channeling starlight into transmutations and advanced crafting.",
+                "Overview & Description:\n" +
+                "The Astral Observatory and Astral Altar are multiblock ritual structures designed to capture and focus cosmic energy.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Constructed using Astral Marble, Chiseled Astral Marble, Sooty Marble, and an Altar Core.\n\n" +
+                "Crafting Uses:\n" +
+                "Enables high-tier essence infusions, celestial weapon crafting, and cosmic ritual channeling.\n\n" +
+                "Special Properties:\n" +
+                "Requires direct line-of-sight to the night sky; enhanced during full moons and solar alignments.",
+                "astral_instruments_and_charts", 2, new ItemStack(ModBlocks.ASTRAL_ALTAR_CORE.get()),
+                480f, 0.0f, a_magic + 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_mirror_reflection", "Astral Mirror & 6-Way Reflections", "MAGIC",
+                "Connected multi-directional mercury mirrors with real-time celestial sky and constellation rendering.",
+                "Overview & Description:\n" +
+                "The Astral Mirror Block is a specialized planar reflective surface that mirrors the real-time diurnal firmament, nebulae, stars, and charted constellations.\n\n" +
+                "6-Way Multi-Directional CTM:\n" +
+                "Features complete 6-way connected texturing (UP, DOWN, NORTH, EAST, SOUTH, WEST). Interior brass borders disappear seamlessly when adjacent mirror blocks are connected horizontally or vertically.\n\n" +
+                "Multi-Surface Sky Reflection:\n" +
+                "Renders celestial starlight reflections across any exposed surface: horizontal floor pools, vertical mirror walls, ceilings, and concave parabolic observation dishes.\n\n" +
+                "Interaction & Observatories:\n" +
+                "Forms the central 5x5 starlight reflective basin for the Grand Astral Observatory. Right-clicking an active mirror pool beneath a valid Celestial Armillary opens the Sky Looking Glass directly.",
+                "astral_altar_and_observatory", 2, new ItemStack(ModBlocks.ASTRAL_MIRROR_BLOCK.get()),
+                560f, 0.0f, a_magic - 0.06f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_optics_and_logistics", "Pure Optic Conduits & Diagnostic Ping", "MAGIC",
+                "Lossless optical transmission, 8-block quick-dyeing, sponge cleanse, and wand diagnostic ping.",
+                "Overview & Description:\n" +
+                "Pure Optic Fiber cables transmit concentrated starlight flux underground and through solid blocks with only 1% attenuation per 16 blocks.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Drawn from high-purity fused quartz encased in a solid vulcanized matte black rubber jacket (zero brass) with 2x2 transparent end apertures.\n\n" +
+                "Quick-Dyeing, Cleansing & Diagnostic Tracing:\n" +
+                "▪ Sneak + Right-Click with Dye: Propagates color across up to 8 contiguous connected fibers in 1 click.\n" +
+                "▪ Sponge / Water Cleanse: De-colors fibers back to universal white (up to 8 contiguous if sneaking).\n" +
+                "▪ Linking Wand Ping: Right-clicking with the Astral Linking Wand runs a BFS cable trace, pulsing end-rod particles and displaying fiber, amplifier, and receiver counts in the actionbar.\n\n" +
+                "Special Properties:\n" +
+                "Adjacent fibers of different colors never cross-connect, allowing dense parallel cable bundles.",
+                "astral_altar_and_observatory", 2, new ItemStack(ModBlocks.PURE_OPTIC_FIBER.get()),
+                560f, 0.0f, a_magic + 0.04f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_optic_receiver_and_transmitter", "Wireless Optic Receiver & Transmitter", "MAGIC",
+                "Straight-line wireless optical interfaces connecting open air starlight beams to pure optic fiber cable runs.",
+                "Overview & Description:\n" +
+                "The Optic Receiver and Optic Transmitter are modular silver pipe components that bridge aerial optical beams and physical optic fiber networks.\n\n" +
+                "Optic Receiver:\n" +
+                "Equipped with a directional quartz sensor aperture on its facing side, the Optic Receiver captures straight-line beams from Refractive Lenses, Secondary Lenses, or Transmitters, and injects the starlight stream into all connected Pure Optic Fiber cables.\n\n" +
+                "Optic Transmitter:\n" +
+                "Draws starlight from connected fiber runs and collimates it into a straight-line laser firing out of its nozzle up to 32 blocks forward. The beam hits pedestals, collectors, prisms, or receivers, while inflicting Materia toxicity on any entities in its path.\n\n" +
+                "Pipe Geometry:\n" +
+                "Both units utilize Entropica's modular pipe model with an all-around silver finish, seamlessly connecting to optic fiber cables.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.OPTIC_TRANSMITTER.get()),
+                600f, 0.0f, a_magic + 0.03f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "caged_optic_bulb", "Caged Optic Bulb", "MAGIC",
+                "Directional filament lamp illuminated and tinted dynamically by active Materia flux through optic fibers.",
+                "Overview & Description:\n" +
+                "The Caged Optic Bulb is a compact, industrial caged lamp that connects directly to Pure Optic Fiber cable networks.\n\n" +
+                "Dynamic Chromatic Illumination:\n" +
+                "Whenever pulses of starlight or Materia flow through the fiber line, the caged bulb illuminates at maximum light level (15) and dynamically tints its inner filament and glowing envelope to the exact hue of the active Materia type.\n\n" +
+                "Omnidirectional Mounting:\n" +
+                "Can be attached to floors, ceilings, walls, or directly onto optic fiber cable runs to serve as an instant visual network activity monitor and decorative atmospheric lighting.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.CAGED_OPTIC_BULB.get()),
+                640f, 0.0f, a_magic + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "glowpeg", "Glowpeg", "MAGIC",
+                "Architectural fence-sized glowing rod providing pure, warm glowstone luminescence across floors, walls, and ceilings.",
+                "Overview & Description:\n" +
+                "The Glowpeg is an architectural light rod sized to match a fence post, capped with polished brass plates and filled with radiant, concentrated glowstone.\n\n" +
+                "Crafting:\n" +
+                "Fashioned from a central wooden stick flanked by 2 pinches of glowstone dust, yielding 1 Glowpeg.\n\n" +
+                "Architectural Mounting:\n" +
+                "Designed to stay strictly vertical across all placements for an authentic classical aesthetic:\n" +
+                "▪ Floor: Stands upright atop blocks, pillars, and pedestals.\n" +
+                "▪ Wall & Pillar: Mounts vertically against vertical surfaces with brass standoff brackets.\n" +
+                "▪ Ceiling & Chains: Suspends vertically from ceilings, aligning seamlessly with hanging chains.\n\n" +
+                "Luminescence:\n" +
+                "Maintains a constant, rich warm-yellow glowstone illumination at Light Level 15, fully waterloggable.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.GLOWPEG.get()),
+                640f, 0.0f, a_magic + 0.055f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "soul_glowpeg", "Soul Glowpeg", "MAGIC",
+                "Ethereal light blue soul fire variant of the architectural Glowpeg, casting calm azure light.",
+                "Overview & Description:\n" +
+                "The Soul Glowpeg combines the fence-sized architectural rod design of the Glowpeg with the supernatural radiance of soul fire.\n\n" +
+                "Crafting & Transmutation:\n" +
+                "▪ Crafted using Glowstone Dust, a wooden Stick, and Soul Sand or Soul Soil.\n" +
+                "▪ Alternatively, any standard Glowpeg can be transmuted with a block of Soul Sand or Soul Soil in a crafting grid.\n\n" +
+                "Supernatural Properties:\n" +
+                "▪ Radiates a gentle, eerie cyan illumination at Light Level 10, preventing Piglin agitation.\n" +
+                "▪ Emits soft soul flame particles when active.\n" +
+                "▪ Retains strictly vertical alignment across floor, wall, and ceiling mounts.",
+                "glowpeg", 2, new ItemStack(ModBlocks.SOUL_GLOWPEG.get()),
+                660f, 0.0f, a_magic + 0.06f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_lamp_posts", "Lamp Posts & Street Illumination", "MAGIC",
+                "Modular 1-to-3 block tall tapered lamp posts conducting starlight flux to cardinal arm bulbs.",
+                "Overview & Description:\n" +
+                "Lamp Posts provide elegant, architectural vertical starlight transmission and municipal illumination across 4 distinct material variants: Iron, Brass, Steel, and Essence Glass.\n\n" +
+                "Zero-Gap Baseplate:\n" +
+                "Each lamp post base features a full 16x16x1 bottom plate that perfectly covers and conceals underlying optic fiber conduits with zero exposed gaps.\n\n" +
+                "Dynamic Vertical Tapering:\n" +
+                "Lamp posts seamlessly adapt their model across 1, 2, or 3 blocks tall (enforcing a hard cap at 3 high), gracefully tapering from a broad 10-pixel pedestal up to a slender 4-pixel neck and crown.\n\n" +
+                "Interactive Cardinal Arms & Bulbs:\n" +
+                "▪ Right-click with an empty hand to toggle ornamental support arms extending North, East, South, or West.\n" +
+                "▪ Right-click an arm with a Caged Optic Bulb to snap and hang the bulb directly from the arm bracket.\n" +
+                "▪ Sneak right-click to safely detach bulbs or remove arms.\n\n" +
+                "Integrated Flux Conduction:\n" +
+                "Lamp posts conduct starlight flux from underground optic fiber cables straight up into all attached arm bulbs, brightly illuminating at light level 15 and dynamically tinting to the flowing Materia color.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.IRON_LAMP_POST.get()),
+                680f, 0.0f, a_magic + 0.07f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_flux_cosmetics", "Celestial Architecture & Wireless Flux Fixtures", "MAGIC",
+                "Decorative and functional fixtures powered wirelessly by the Materia-Flux Distributor or directly via pure optic fiber.",
+                "Overview & Description:\n" +
+                "Beyond utilitarian conduits and municipal street lamps, celestial architects can craft ornate architectural fixtures that harness ambient Materia Flux wirelessly or via direct cable routing.\n\n" +
+                "Resonance Starlight Fountain & Birdbath:\n" +
+                "▪ Carved from Astral Marble with an internal Essence Glass basin.\n" +
+                "▪ When powered, erupts with a bubbling starlight geyser and animated starlight pool surface.\n" +
+                "▪ Emits a soothing celestial aura within 8 blocks that clears harmful status effects (Poison, Wither, Slowness, Weakness) and bestows gentle health regeneration.\n\n" +
+                "Luminous Garden Arbor & Trellis Archways:\n" +
+                "▪ Fine brass lattice work wrapped in star-blossomed wisteria vines.\n" +
+                "▪ When powered, glows softly and bathes nearby crops, saplings, and herbs in astral photosynthetic light, accelerating their growth cycles.\n\n" +
+                "Attuned Display Vitrine & Bell Jar:\n" +
+                "▪ A velvet-cushioned brass plinth protected beneath a crystal glass dome.\n" +
+                "▪ Right-click with any item to display it inside.\n" +
+                "▪ When powered, projects a collimated vertical starlight spotlight beam that suspends the item mid-air in continuous, graceful rotation.\n\n" +
+                "Celestial Grandfather Chronometer:\n" +
+                "▪ Tall, ornate astronomical timepiece with swinging brass pendulum and dual celestial dials.\n" +
+                "▪ The upper dial tracks diurnal solar and nocturnal stellar movements, while the lower dial tracks real-time lunar phases.\n" +
+                "▪ When flux-powered, celestial constellations glow and a deep, resonant celestial bell chimes across the estate at the turn of every in-game hour.\n\n" +
+                "Illuminated Balustrades & Glass Railings:\n" +
+                "▪ Frosted starlight glass panes framed in polished metal balusters.\n" +
+                "▪ Connects seamlessly into straight railings, corner posts, and junctions.\n" +
+                "▪ Edge-lit with vibrant starlight tinting to the frequency of flowing Materia.\n\n" +
+                "Wireless Flux Distribution:\n" +
+                "All 5 fixtures possess internal resonant starlight receivers. They require no cables when placed within range (up to 16 blocks) of an active Materia-Flux Distributor, or they can be placed directly on Pure Optic Fiber cables.",
+                "astral_lamp_posts", 2, new ItemStack(ModBlocks.RESONANCE_STARLIGHT_FOUNTAIN.get()),
+                720f, 0.0f, a_magic + 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "starlight_cloth_and_carpets", "Starlight Cloth & Celestial Carpets", "MAGIC",
+                "Frictionless celestial silk woven from starlight threads, enabling high-speed gliding transit runners.",
+                "Overview & Description:\n" +
+                "By weaving delicate Starlight Silk with reinforced Astral Crystal Thread, celestial artificers produce Starlight Cloth—a fabric imbued with the low-friction properties of deep astral space.\n\n" +
+                "Starlight Cloth:\n" +
+                "▪ A shimmering textile used in astral apparel, ritual sails, and celestial apparatus.\n" +
+                "▪ Woven from Starlight Silk and Astral Crystal Thread.\n\n" +
+                "Starlight Carpet:\n" +
+                "▪ Crafted from 2 Starlight Cloth bolts, producing 3 decorative carpet tiles patterned with midnight constellations.\n" +
+                "▪ Frictionless Glide: Features ultra-low surface friction (comparable to Blue Ice), allowing players and mobs to slide effortlessly across vast distances.\n" +
+                "▪ Kinetic Acceleration: Walking or running along the carpet imparts a passive +35% movement speed boost, turning corridors into high-speed transit runways.\n" +
+                "▪ Emits soft ambient starlight (Light Level 8) and leaves sparkling starlight footprints when traversed.\n\n" +
+                "Reversible Weaving:\n" +
+                "3 Starlight Carpets can be unraveled back into 2 Starlight Cloth bolts at a crafting table.",
+                "astral_flux_cosmetics", 2, new ItemStack(ModBlocks.STARLIGHT_CARPET.get()),
+                750f, 0.0f, a_magic + 0.085f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_optical_relays_and_hazards", "Optical Relays & Radiation Hazards", "MAGIC",
+                "Gimbaled refractive lenses, 4-way beam splitters, comparator automation, and occlusion hazards.",
+                "Overview & Description:\n" +
+                "Refractive Astral Lenses, Secondary Astral Lenses, and Beam Splitter Prisms direct, split, and relay collimated starlight beams across open air.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Assembled using polished Starlight Quartz discs, brass friction gimbals, and Astral Marble plinths.\n\n" +
+                "Automation & Occlusion Alerts:\n" +
+                "▪ Redstone Comparators: Output signal strength 15 when actively focusing or splitting starlight (receiver ports output 0..15 scaled to signal quality).\n" +
+                "▪ Occlusion Sizzle & Sparks: Entities stepping into active starlight beams trigger high-pitched audio sizzles and electric spark particles while incurring Materia Toxicity.\n\n" +
+                "Special Properties:\n" +
+                "Lenses feature full 3D friction gimbals with first-person alignment and wand auto-calibration.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()),
+                640f, 0.0f, a_magic + 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_beam_interconnection", "Starlight Beam Routing & Multiblock Networks", "MAGIC",
+                "Inter-connecting multiblocks via collimated starlight beams, altar amplification, and collector cannibalization.",
+                "Overview & Description:\n" +
+                "Entropica's celestial architecture allows large-scale multiblock installations to connect wirelessly across space via focused starlight beams.\n\n" +
+                "Multiblock-to-Multiblock Inter-Connection:\n" +
+                "Astral Collection Altars automatically seek out or can be manually linked using the Astral Linking Wand to beam concentrated cosmic flux directly into Master Astral Altar corner receiver lenses.\n\n" +
+                "Collector Cannibalization & Cascading:\n" +
+                "Collection Altars can also target adjacent Collection Altars. When linked in sequence, the downstream altar cannibalizes the incoming starlight stream, compounding its power before beaming it forward.\n\n" +
+                "Cycle Safety:\n" +
+                "The optical network includes cycle detection algorithms that prevent closed loops or harmonic infinite feedback.",
+                "astral_optical_relays_and_hazards", 2, new ItemStack(ModItems.ASTRAL_LINKING_WAND.get()),
+                720f, 0.0f, a_magic + 0.04f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_secondary_lens", "Secondary Astral Lens & Gimbal Aiming", "MAGIC",
+                "Terrestrial starlight beam redirection and real-time first-person in-world aiming calibration.",
+                "Overview & Description:\n" +
+                "The Secondary Astral Lens is a freestanding optical workstation designed for complex horizontal and vertical beam routing around obstacles and between base facilities.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted using Astral Brass ingots, an Astral Marble plinth, and a polished Starlight Quartz disc.\n\n" +
+                "Aiming & Calibration:\n" +
+                "Right-clicking the lens temporarily shifts player camera perspective directly to the lens gimbal head in first-person mode. Moving the mouse smoothly pans Azimuth (0°-360°) and tilts Pitch (-85° to +85°) with live distance and target HUD readouts.\n\n" +
+                "Astral Linking Wand Auto-Alignment:\n" +
+                "Shift-clicking a Secondary Lens with an Astral Linking Wand then clicking any target block automatically calculates the exact azimuth and pitch angles to lock the beam onto the destination.\n\n" +
+                "Center-Terminating Beam Physics:\n" +
+                "Primary and upstream lenses detect the Secondary Lens and terminate incoming beams cleanly at the central quartz disc, eliminating beam overshoot.",
+                "astral_optical_relays_and_hazards", 3, new ItemStack(ModBlocks.SECONDARY_ASTRAL_LENS.get()),
+                720f, 0.0f, a_magic + 0.01f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_calcite_transmutation", "Calcite Starlight Transmutation", "MAGIC",
+                "Transmuting Calcite into Medium Essence Orbs via concentrated optical starlight beams.",
+                "Overview & Description:\n" +
+                "Direct continuous irradiation of Calcite using a focused starlight beam from a Refractive Astral Lens or Secondary Astral Lens triggers deep mineral transmutation.\n\n" +
+                "In-World Transmutation Process:\n" +
+                "Exposing a placed Calcite block or dropped Calcite item entity directly to a starlight beam for 5.0 seconds (100 ticks) transfigures the calcite matrix into a Medium Essence Orb.\n\n" +
+                "Essence Attribution:\n" +
+                "The resulting Medium Essence Orb inherits the exact elemental Materia essence of the locked celestial star, planet, comet, or supernova remnant (e.g. Vitae from Sylva, Singularity from Stellar Black Holes, Lightning from Pulsars).\n\n" +
+                "Audio & Visual Resonance:\n" +
+                "During charging, the calcite emanates enchanting starlight glyphs, erupting into a resonant amethyst chime and totem particle flash upon successful transfiguration.",
+                "astral_optical_relays_and_hazards", 2, new ItemStack(Items.CALCITE),
+                720f, 0.0f, a_magic + 0.05f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_beam_splitter_prism", "Beam Splitter Prism & Orthogonal Splitting", "MAGIC",
+                "Incident-angle 90° dual orthogonal starlight splitting turntable.",
+                "Overview & Description:\n" +
+                "The Beam Splitter Prism divides an incoming collimated starlight beam into two orthogonal streams.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted from 1 Astral Crystal Block, 4 Astral Brass Ingots, and 4 Refractive Astral Lenses.\n\n" +
+                "Splitting Physics:\n" +
+                "Dynamically calculates the incoming beam incident angle from the source position. Projects two distinct output beams at exactly 90° left and 90° right relative to the incoming trajectory.\n\n" +
+                "Special Properties:\n" +
+                "Each split beam carries full starlight potency to downstream receivers, with independent entity collision and Materia Toxicity raycasting.",
+                "astral_optical_relays_and_hazards", 3, new ItemStack(ModBlocks.BEAM_SPLITTER_PRISM.get()),
+                720f, 0.0f, a_magic + 0.03f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_infusion_pedestal", "Astral Infusion Pedestal & Automation", "MAGIC",
+                "Dry starlight transmutations, elemental flora swapping, hopper input, and downward auto-ejection.",
+                "Overview & Description:\n" +
+                "A solid marble plinth that focuses overhead starlight beams onto held items for dry transmutation rituals without liquid pools.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted from an Astral Pedestal, 1 Astral Crystal Block, and Gold Ingots.\n\n" +
+                "Automated Factory Integration:\n" +
+                "▪ Hopper & Pipe Input: Accepts input items via hoppers or pneumatic pipes into its 1-item container when empty and idle.\n" +
+                "▪ Downward Auto-Ejection: Automatically pushes finished transmutation products into containers or hoppers directly beneath it.\n\n" +
+                "Elemental Flora Swapping:\n" +
+                "Irradiating standard vanilla flowers converts them into elemental variants based on the focused constellation:\n" +
+                "▪ Ignis / Pyre / Athanor → Soul-Flame Orchid\n" +
+                "▪ Vitae / Arbor / Sylvan → Vitae Orchid\n" +
+                "▪ Scutum / Aegis → Aegis-Spire Orchid\n" +
+                "▪ Serpens / Vorago / Abyss → Void-Stalker Orchid\n\n" +
+                "Substrate Metamorphism:\n" +
+                "Continuous irradiation transmutes the soil directly beneath into Sooty Marble, Engraved Astral Slate, or Astral Marble.",
+                "astral_altar_and_observatory", 2, new ItemStack(ModBlocks.ASTRAL_INFUSION_PEDESTAL.get()),
+                640f, 0.0f, a_magic - 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_collector_materia_reservoir", "Astral Collector & Condensation", "MAGIC",
+                "Starlight condensation basin and single-essence Materia storage reservoir.",
+                "Overview & Description:\n" +
+                "The Astral Collector condenses concentrated starlight beam radiation into pure liquid Materia, holding up to 2,000 units of single-essence Materia in its internal reservoir.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Sculpted from Astral Marble Bricks, Brass Trim, and an attuned Starlight Crystal receptor node.\n\n" +
+                "Crafting Uses:\n" +
+                "Accumulates Materia at 8 Materia/s (configurable) under concentrated optical starlight irradiation.\n\n" +
+                "Special Properties:\n" +
+                "Automatically purges previously stored Materia if an incompatible essence type is focused into the collector.",
+                "astral_optics_and_logistics", 2, new ItemStack(ModBlocks.ASTRAL_COLLECTOR.get()),
+                640f, 0.0f, a_magic + 0.06f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_crystals_and_impactite", "Astral Crystals & Impactite", "MAGIC",
+                "Dual-stat growing crystals, self-repairing tools, and extraterrestrial impactites.",
+                "Overview & Description:\n" +
+                "Astral Crystals possess unique dual statistics: Size (1 to 5) and Purity (10% to 100%). Mined from rare deep-slate Celestial Geodes formed of shock-vitrified Astral Impactite.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Budding Astral Impactite sprouts crystal clusters over time. Mined clusters drop raw Astral Crystals.\n\n" +
+                "Crafting Uses:\n" +
+                "Forges self-repairing Crystal Swords, Pickaxes, Axes, and Shovels that mend under the night sky.\n\n" +
+                "Special Properties:\n" +
+                "When broken, size-5 crystal tools enter a drained dormant state rather than vanishing, regaining full durability when bathed in starlight.",
+                "astral_altar_and_observatory", 2, new ItemStack(ModItems.ASTRAL_CRYSTAL.get()),
+                560f, 0.0f, a_magic + 0.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_celestial_beacons", "Celestial Beacons & Singularity Wards", "MAGIC",
+                "Radial passive constellation fields, mob suppression, and forcefield domes.",
+                "Overview & Description:\n" +
+                "A 3x3x3 multiblock beacon topped with an attuned Astral Crystal projecting planetary-scale astrological fields.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Built using Astral Marble, corner Resonance Pylons, a Celestial Beacon Controller, and tuned crystal apex.\n\n" +
+                "Crafting Uses:\n" +
+                "Projects Lucerna mob suppression (up to 128 blocks), Mineralis automatic stone transmutation, and Scutum forcefield domes.\n\n" +
+                "Special Properties:\n" +
+                "Beacon radius scales dynamically based on crystal Size: Radius = 32 + (Size - 1) * 24 blocks.",
+                "astral_crystals_and_impactite", 3, new ItemStack(ModBlocks.CELESTIAL_BEACON_CONTROLLER.get()),
+                640f, 0.0f, a_magic + 0.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_supernovae_and_remnants", "Stellar Supernovae & Metamorphosis", "MAGIC",
+                "Core-collapse supernovae, Figure-8 bipolar nebulae, and exotic stellar remnants.",
+                "Overview & Description:\n" +
+                "Isolated stars outside the sacred constellation lattice occasionally undergo thermal instability and cataclysmic core collapse. The resulting detonation produces an expanding Figure-8 Bipolar Hourglass Nebula of ionized gas.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Observed across the nocturnal firmament via the Looking Glass or Telescope. Over thousands of ticks, the precursor instability ignites into a blinding flash before settling into a persistent remnant.\n\n" +
+                "Crafting Uses:\n" +
+                "Aiming a Refractive Astral Lens at a supernova remnant channels mutated high-order essences: STATIC, LIGHTNING, PHOTON, DENSITY, ENTROPICA, and PYRE.\n\n" +
+                "Special Properties:\n" +
+                "Collapsed cores evolve into Pulsars, Magnetars, White Dwarfs, Strange Quark Stars, or Collapsars.",
+                "astral_instruments_and_charts", 2, new ItemStack(ModItems.LOOKING_GLASS.get()),
+                580f, 0.0f, a_magic - 0.18f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_black_holes_and_singularities", "Stellar Black Holes & Singularities", "MAGIC",
+                "Gravitational singularities, swirling accretion disks, and void essence transmutation.",
+                "Overview & Description:\n" +
+                "When high-mass stars undergo complete gravitational collapse, they form Stellar Black Holes: infinite density singularities enveloped in luminous spinning accretion discs and relativistic jets.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Born from Class V stellar collapse events. Located by optical coordinate telemetry in the Looking Glass.\n\n" +
+                "Crafting Uses:\n" +
+                "Calibrating Astral Lenses to a Black Hole channels pure SINGULARITY, VOID, ESCHATON, NULL, ABYSS, OBLIVION, and CHRONOS essences into downstream machinery.\n\n" +
+                "Special Properties:\n" +
+                "Channels highest-tier Materia toxicity and extreme transmutation pressure into connected infusers and generators.",
+                "astral_supernovae_and_remnants", 3, new ItemStack(ModBlocks.REFRACTIVE_ASTRAL_LENS.get()),
+                660f, 0.0f, a_magic - 0.22f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "magic_alchemy", "Alchemy & Transmutation", "MAGIC",
+                "Transmutation, catalysts, and brewing.",
+                "Overview & Description:\n" +
+                "Transmuting raw elements into rare alloys using catalyst receptacles.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Performed at Alchemical Stills and Catalyst Receptacles.",
+                "hub_magic", 1, new ItemStack(Items.POTION),
+                280f, 0.0f, a_magic + 0.25f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "caprine_duality_arcana", "Caprine Duality Arcana", "MAGIC",
+                "Esoteric secrets of Radiant Fire and Umbral Waters mastered by the Gemini Goat Mage.",
+                "Overview & Description:\n" +
+                "The Caprine Sages discovered that opposing elemental extremes—blinding Radiant Fire and deep Umbral Waters—do not annihilate when harmonized through an Equinox focal matrix. Instead, they unlock phase-inversion alchemy and steam-cavitation shockwaves.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Unlocked by presenting an Entropic Codex or astronomical instrument to an elusive Gemini Goat Mage wandering the alpine summits.\n\n" +
+                "Crafting & Transmutation:\n" +
+                "Unlocks the Gemini Scepter of Equinox, Equinox Velvet Cloth, Equinox Robes & Floppy Wizard Hat, and lossless Radiant-Fire <-> Umbral-Water alchemy.\n\n" +
+                "Special Properties:\n" +
+                "The Floppy Caprine Wizard Hat provides a +20% bonus in the Materia Advantage damage calculation.",
+                "hub_magic", 2, new ItemStack(ModItems.GEMINI_FOCUS_HORN.get()),
+                340f, 0.0f, a_magic + 0.35f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "firmament_weaver", "Firmament Weaver & Forcefield Barriers", "MAGIC",
+                "Celestial tool for weaving customizable iridescent forcefield barriers, elastic deflectors, and directional one-way valves.",
+                "Overview & Description:\n" +
+                "The Firmament Weaver is an advanced celestial focus wand used to manipulate localized spacetime fabrics into paper-thin, non-block forcefield barriers. Rather than occupying bulky block voxels, firmament membranes coexist freely in world-space, allowing blocks and machinery to pass through them while presenting an impenetrable barrier to unauthorized entities and high-velocity projectiles.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Crafted at a crafting table using an Astral Crystal, Materia Crystals, and Astral Silver Rods.\n\n" +
+                "Weaving & Barrier Operations:\n" +
+                "▪ Two-Point Drag & Snap: Right-click Point A to set an anchor beacon, then right-click Point B across an opening to automatically calculate dimensions and span a planar barrier flush with the frame.\n" +
+                "▪ 0.5m Edge-Fusing: Placing adjacent barriers within 0.5 blocks automatically snaps border vertices together seamlessly, eliminating visual seams and z-fighting.\n" +
+                "▪ Configuration GUI: Sneak + Right-Click an existing barrier while holding the Weaver to open the Celestial Configuration Screen, modifying shape, filter modes, dimensions, elasticity, redstone response, and whitelist access.\n" +
+                "▪ Holographic Preview: Holding the Weaver projects a real-time, shimmering wireframe outline showing exact in-world placement before commitment.\n" +
+                "▪ Quick Dispel: Left-click a placed barrier as creator to instantly dissipate it into sparkling starlight bubbles.\n\n" +
+                "Special Properties & Physics:\n" +
+                "Features Continuous Swept Collision Detection (CCD) preventing projectile tunneling, side-of-approach elastic reflection, drifting starlight arrow directional valves, redstone & Materia switchability, dye/crystal color tinting, and Apex Predator boss arena protection.",
+                "hub_magic", 1, new ItemStack(ModItems.FIRMAMENT_WEAVER.get()),
+                280f, 0.0f, a_magic + 0.16f, false));
+
+        ALL_NODES.add(new CodexNode(
+                "spellcrafting_workstations", "Spellcrafting Workstations & Apparatuses", "MAGIC",
+                "Arcane Scribing Table, Runic Anvil, Research Bench study, and 4 Casting Apparatuses.",
+                "Overview & Description:\n" +
+                "Physical spellcrafting revolves around dedicated arcane workstations and multi-socketed Casting Apparatuses.\n\n" +
+                "Workstations & Tools:\n" +
+                "▪ Arcane Scribing Table: 2-block drafting desk with pull-out side drawers and concentric rotating parchment rune rings. Drag out the Left Drawer to pick Combat/Utility/Misc wax seals, Sub-Spell tabs (I-VIII), colored Materia vials, and the Mutation lever; spin the Flow, Form, Effect, and Dual-Verb rings under the golden 12 o'clock needle while reading Spell Decision Tooltips; and slide open the Right Supply Drawer to load Blank Parchment and Arcane Scribing Ink, press the golden SCRIBE wax seal, copy blueprints, scrub Spellgems, or safely swap sockets.\n" +
+                "▪ Runic Anvil: 2-block metallurgic anvil for 100% safe, zero-lockout Spellgem socketing/extraction, weapon & tool spell socket engraving, and Alloy Efficiency Tempering (+5% to +30% fuel discount). Load the two parts onto the anvil to conjure a 3D Magic Circle between them and smash them together with an Ethereal Hammer, leaving the finished item floating above the anvil until picked up.\n" +
+                "▪ Research Bench: Finalizes Observed spell nodes and Signature Mutations over 5 seconds using Scribing Ink, Blank Parchment, and a matching Materia sample.\n" +
+                "▪ Casting Apparatuses: Arcanum Focus (1 gem), Arcanist Wand (2 gems), Arcanist Staff (4 gems), and Spellweaver Grimoire (9 gems), each displaying live Materia-tinted crystal gems in 3D.",
+                "spell_modular_architecture", 2, new ItemStack(ModItems.ARCANE_SCRIBING_TABLE_ITEM.get()),
+                550f, 0.0f, a_magic - 0.14f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "autocast_pedestals", "Autocast Pedestals & Blank Spellgems", "MAGIC",
+                "Starlight-condensed & water-grown Blank Spellgems, plus automated Stone, Marble, Quartz, and Astral Slate spell turrets.",
+                "Overview & Description:\n" +
+                "Blank Spellgems serve as the crystalline vessel for every bound spell, while Autocast Pedestals automate continuous utility and defensive spellcasting.\n\n" +
+                "Obtaining Blank Spellgems:\n" +
+                "▪ Pathway A (Starlight Condensation): Focus Starlight onto Glass or Glass Panes at an Astral Collector, Astral Infusion Pedestal, or Resonance Starlight Fountain.\n" +
+                "▪ Pathway B (Crystal Seed Growth): Craft a Spellgem Crystal Seed (Amethyst Shard + 4 Redstone + 4 Quartz) and submerge the dropped seed in water for 10 minutes.\n\n" +
+                "Autocast Pedestals:\n" +
+                "Available in Stone, Marble, Quartz, and Astral Slate. Mount an Inscribed Spellgem or Apparatus, supply an Orbis Cell (internally or placed adjacent), and configure the 1.0s–60.0s Cast Timer, -90°..+90° Aim Pitch, and Redstone mode. Sneak-right-click a chest with any Casting Apparatus and then sneak-right-click the pedestal to link harvested item routing!",
+                "spellcrafting_workstations", 3, new ItemStack(ModItems.AUTOCAST_PEDESTAL_ASTRAL_SLATE_ITEM.get()),
+                640f, 0.0f, a_magic - 0.16f, false
+        
+        ));
+    }
+
+
+    public static CodexNode getNodeById(String id) {
+        for (CodexNode node : ALL_NODES) {
+            if (node.id.equals(id)) {
+                return node;
+            }
+        }
+        return null;
+    }
+}

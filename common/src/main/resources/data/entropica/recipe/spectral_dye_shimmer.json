@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:glass_bottle"
+    },
+    {
+      "item": "entropica:stardust_bell_petal"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:spectral_dye_shimmer"
+  }
+}

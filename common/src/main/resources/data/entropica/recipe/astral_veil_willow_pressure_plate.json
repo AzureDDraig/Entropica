@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PP"
+  ],
+  "key": {
+    "P": {
+      "item": "entropica:astral_veil_willow_planks"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "entropica:astral_veil_willow_pressure_plate"
+  }
+}

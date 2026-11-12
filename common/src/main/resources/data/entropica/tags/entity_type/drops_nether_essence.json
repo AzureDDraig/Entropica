@@ -1,0 +1,77 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "alexsmobs:bone_serpent",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:crimson_mosquito",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:dropbear",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:soul_vulture",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:straddler",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:warped_mosco",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:warped_toad",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:laviathan",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:ignis",
+      "required": false
+    },
+    {
+      "id": "twilightforest:fire_beetle",
+      "required": false
+    },
+    {
+      "id": "twilightforest:ur_ghast",
+      "required": false
+    },
+    {
+      "id": "twilightforest:towerwood_borer",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:wildfire",
+      "required": false
+    },
+    {
+      "id": "eternalnether:piglin_hunter",
+      "required": false
+    },
+    {
+      "id": "eternalnether:piglin_prisoner",
+      "required": false
+    },
+    {
+      "id": "eternalnether:warped_enderman",
+      "required": false
+    },
+    {
+      "id": "enderzoology:wither_witch",
+      "required": false
+    },
+    {
+      "id": "enderzoology:wither_cat",
+      "required": false
+    }
+  ]
+}

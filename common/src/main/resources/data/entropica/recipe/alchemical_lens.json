@@ -1,0 +1,22 @@
+{
+  "type": "entropica:magic_circle",
+  "inputs": [
+    {
+      "item": "minecraft:glass_pane"
+    }
+  ],
+  "runes": [
+    {
+      "item": "entropica:rune_jera"
+    }
+  ],
+  "essences": {
+    "regular": 30,
+    "kinetic": 10
+  },
+  "tier": 1,
+  "result": {
+    "id": "entropica:alchemical_lens",
+    "count": 1
+  }
+}

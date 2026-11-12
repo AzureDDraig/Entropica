@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    "MGM",
+    "MMM"
+  ],
+  "key": {
+    "C": "minecraft:clock",
+    "M": "entropica:astral_marble",
+    "G": "minecraft:glass"
+  },
+  "result": {
+    "id": "entropica:celestial_grandfather_clock",
+    "count": 1
+  }
+}

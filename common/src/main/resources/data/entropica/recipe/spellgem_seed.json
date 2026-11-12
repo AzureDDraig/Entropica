@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:amethyst_shard",
+    "R": "minecraft:redstone",
+    "Q": "minecraft:quartz"
+  },
+  "pattern": [
+    "QRQ",
+    "RAR",
+    "QRQ"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:spellgem_seed"
+  }
+}

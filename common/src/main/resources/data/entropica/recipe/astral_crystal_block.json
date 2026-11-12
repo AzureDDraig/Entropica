@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "entropica:astral_crystal"
+    }
+  },
+  "result": {
+    "id": "entropica:astral_crystal_block",
+    "count": 1
+  }
+}

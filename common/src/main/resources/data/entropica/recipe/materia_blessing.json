@@ -1,0 +1,30 @@
+{
+  "type": "entropica:magic_circle",
+  "inputs": [
+    {
+      "item": "entropica:materia_blessing_shard"
+    },
+    {
+      "item": "entropica:materia_blessing_shard"
+    },
+    {
+      "item": "entropica:materia_blessing_shard"
+    },
+    {
+      "item": "entropica:materia_blessing_shard"
+    }
+  ],
+  "runes": [
+    {
+      "item": "entropica:rune_eihwaz"
+    }
+  ],
+  "essences": {
+    "regular": 200
+  },
+  "tier": 2,
+  "result": {
+    "id": "entropica:materia_blessing",
+    "count": 1
+  }
+}

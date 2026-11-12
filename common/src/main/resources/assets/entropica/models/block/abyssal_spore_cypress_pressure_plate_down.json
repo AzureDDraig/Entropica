@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/pressure_plate_down",
+  "textures": {
+    "texture": "entropica:block/abyssal_spore_cypress_planks"
+  }
+}

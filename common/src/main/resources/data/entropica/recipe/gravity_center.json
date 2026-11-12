@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " P ",
+    "PCP",
+    "PAP"
+  ],
+  "key": {
+    "P": "entropica:arcanite_plating",
+    "C": "entropica:astral_crystal",
+    "A": "entropica:gravitational_anchor"
+  },
+  "result": {
+    "id": "entropica:gravity_center",
+    "count": 1
+  }
+}

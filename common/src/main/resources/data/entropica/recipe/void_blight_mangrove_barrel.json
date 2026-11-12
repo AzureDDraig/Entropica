@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "entropica:void_blight_mangrove_planks"
+    },
+    "S": {
+      "item": "entropica:void_blight_mangrove_slab"
+    }
+  },
+  "pattern": [
+    "PSP",
+    "P P",
+    "PSP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:void_blight_mangrove_barrel"
+  }
+}

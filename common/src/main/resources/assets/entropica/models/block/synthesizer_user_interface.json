@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "entropica:block/synthesizer_user_interface_face",
+    "side": "entropica:block/synthesizer_user_interface_side",
+    "top": "entropica:block/synthesizer_user_interface_side"
+  }
+}

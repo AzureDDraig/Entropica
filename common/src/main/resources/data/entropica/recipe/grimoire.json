@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "L": "minecraft:leather",
+    "R": "entropica:resonite_ingot",
+    "K": "minecraft:book",
+    "P": "entropica:blank_parchment",
+    "B": "entropica:blank_spellgem"
+  },
+  "pattern": [
+    "LRB",
+    "PKP",
+    "LRB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:grimoire"
+  }
+}

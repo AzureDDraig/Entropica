@@ -1,0 +1,25 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:astral_veil_willow_wood",
+    "entropica:stripped_astral_veil_willow_wood",
+    "entropica:void_blight_mangrove_wood",
+    "entropica:stripped_void_blight_mangrove_wood",
+    "entropica:pyre_ash_cedar_log",
+    "entropica:stripped_pyre_ash_cedar_log",
+    "entropica:pyre_ash_cedar_wood",
+    "entropica:stripped_pyre_ash_cedar_wood",
+    "entropica:abyssal_spore_cypress_log",
+    "entropica:stripped_abyssal_spore_cypress_log",
+    "entropica:abyssal_spore_cypress_wood",
+    "entropica:stripped_abyssal_spore_cypress_wood",
+    "entropica:starlight_aether_birch_log",
+    "entropica:stripped_starlight_aether_birch_log",
+    "entropica:starlight_aether_birch_wood",
+    "entropica:stripped_starlight_aether_birch_wood",
+    "entropica:blood_root_iron_oak_log",
+    "entropica:stripped_blood_root_iron_oak_log",
+    "entropica:blood_root_iron_oak_wood",
+    "entropica:stripped_blood_root_iron_oak_wood"
+  ]
+}

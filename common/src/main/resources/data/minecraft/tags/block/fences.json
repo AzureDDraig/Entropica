@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:astral_veil_willow_fence",
+    "entropica:void_blight_mangrove_fence",
+    "entropica:rubber_fence",
+    "entropica:silver_pine_fence",
+    "entropica:amber_fence",
+    "entropica:pyre_ash_cedar_fence",
+    "entropica:abyssal_spore_cypress_fence",
+    "entropica:starlight_aether_birch_fence",
+    "entropica:blood_root_iron_oak_fence"
+  ]
+}

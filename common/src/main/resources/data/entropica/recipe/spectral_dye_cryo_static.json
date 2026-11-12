@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:glass_bottle"
+    },
+    {
+      "item": "entropica:cryo_static_leaf"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:spectral_dye_cryo_static"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "entropica:block/stardust_bell_bottom"
+    },
+    "half=upper": {
+      "model": "entropica:block/stardust_bell_top"
+    }
+  }
+}

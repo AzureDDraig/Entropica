@@ -1,0 +1,29 @@
+{
+  "variants": {
+    "type=north": {
+      "model": "entropica:block/astral_veil_willow_vertical_slab"
+    },
+    "type=south": {
+      "model": "entropica:block/astral_veil_willow_vertical_slab",
+      "y": 180,
+      "uvlock": true
+    },
+    "type=west": {
+      "model": "entropica:block/astral_veil_willow_vertical_slab",
+      "y": 270,
+      "uvlock": true
+    },
+    "type=east": {
+      "model": "entropica:block/astral_veil_willow_vertical_slab",
+      "y": 90,
+      "uvlock": true
+    },
+    "type=double_ns": {
+      "model": "entropica:block/astral_veil_willow_planks"
+    },
+    "type=double_ew": {
+      "model": "entropica:block/astral_veil_willow_planks",
+      "y": 90
+    }
+  }
+}

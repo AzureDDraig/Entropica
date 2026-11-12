@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=south,in_wall=false,open=false": {
+      "model": "entropica:block/materia_echo_fence_gate"
+    },
+    "facing=west,in_wall=false,open=false": {
+      "model": "entropica:block/materia_echo_fence_gate",
+      "y": 90
+    },
+    "facing=north,in_wall=false,open=false": {
+      "model": "entropica:block/materia_echo_fence_gate",
+      "y": 180
+    },
+    "facing=east,in_wall=false,open=false": {
+      "model": "entropica:block/materia_echo_fence_gate",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ddraig.net.entropica.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "FabricEntityMixin",
+    "LivingEntityMixin"
+  ],
+  "client": [
+    "CameraMixin",
+    "FabricMouseScrollMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

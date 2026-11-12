@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "#",
+    "#"
+  ],
+  "key": {
+    "#": {
+      "item": "entropica:astral_marble_slab"
+    }
+  },
+  "result": {
+    "id": "entropica:chiseled_astral_marble",
+    "count": 1
+  }
+}

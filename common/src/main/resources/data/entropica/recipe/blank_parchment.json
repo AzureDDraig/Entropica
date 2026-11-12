@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "minecraft:paper",
+    "L": "minecraft:leather"
+  },
+  "pattern": [
+    "PP",
+    "PL"
+  ],
+  "result": {
+    "count": 4,
+    "id": "entropica:blank_parchment"
+  }
+}

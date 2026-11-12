@@ -1,0 +1,58 @@
+# Eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# IntelliJ IDEA & VS Code
+out
+*.ipr
+*.iws
+*.iml
+.idea
+.vscode/
+
+# Gradle & Architectury
+build
+build/
+.gradle
+.gradle/
+.architectury-transformer/
+
+# Minecraft Run Directories
+eclipse
+run
+runs
+run-data
+repo
+
+# Logs & Scratch
+logs/
+common/logs/
+*.log
+scratch/
+scratch_12110/
+entries.txt
+
+# Local Scripts, Previews & Docs
+*.py
+__pycache__/
+/*.png
+/*.html
+Wiki/
+Docu/
+texture_pack_showcase/
+
+# Excluded Local Metadata
+.agents/
+.claude/
+.cursor/
+.gemini/
+AGENTS.md
+CLAUDE.md
+PROJECT.md
+ORIGINAL_REQUEST.md
+TEST_INFRA.md
+TEST_READY.md

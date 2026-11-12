@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/stairs",
+  "textures": {
+    "bottom": "entropica:block/void_blight_mangrove_planks",
+    "top": "entropica:block/void_blight_mangrove_planks",
+    "side": "entropica:block/void_blight_mangrove_planks"
+  }
+}

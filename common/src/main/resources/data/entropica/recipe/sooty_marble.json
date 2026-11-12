@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "entropica:astral_marble",
+    "minecraft:coal"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:sooty_marble"
+  }
+}

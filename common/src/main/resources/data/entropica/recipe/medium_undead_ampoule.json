@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "entropica:average_undead_essence"
+    },
+    {
+      "item": "entropica:medium_ampoule"
+    }
+  ],
+  "result": {
+    "id": "entropica:medium_undead_ampoule",
+    "count": 1
+  }
+}

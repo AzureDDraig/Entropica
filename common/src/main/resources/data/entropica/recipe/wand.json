@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": "entropica:arcanite_ingot",
+    "S": "minecraft:stick",
+    "B": "entropica:blank_spellgem"
+  },
+  "pattern": [
+    "  B",
+    " AS",
+    "B  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:wand"
+  }
+}

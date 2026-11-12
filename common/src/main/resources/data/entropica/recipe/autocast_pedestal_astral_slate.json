@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": "entropica:blank_spellgem",
+    "A": "entropica:arcanite_ingot",
+    "S": "entropica:engraved_astral_slate",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "ABA",
+    " S ",
+    "SRS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:autocast_pedestal_astral_slate"
+  }
+}

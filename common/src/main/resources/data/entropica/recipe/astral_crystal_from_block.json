@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "entropica:astral_crystal_block"
+    }
+  ],
+  "result": {
+    "id": "entropica:astral_crystal",
+    "count": 4
+  }
+}

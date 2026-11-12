@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "M": "entropica:astral_marble",
+    "L": "entropica:starlight_aether_birch_log"
+  },
+  "pattern": [
+    "M",
+    "L",
+    "M"
+  ],
+  "result": {
+    "count": 2,
+    "id": "entropica:starlight_pillar"
+  }
+}

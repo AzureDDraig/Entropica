@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "entropica:block/vapor_pneumatic_input_port"
+    }
+  }
+}

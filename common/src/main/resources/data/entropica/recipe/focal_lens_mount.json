@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "entropica:brass_ingot",
+    "L": "entropica:refractive_astral_lens"
+  },
+  "pattern": [
+    " B ",
+    "BLB",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:focal_lens_mount"
+  }
+}

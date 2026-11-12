@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:astral_veil_willow_button",
+    "entropica:void_blight_mangrove_button",
+    "entropica:rubber_button",
+    "entropica:silver_pine_button",
+    "entropica:amber_button",
+    "entropica:pyre_ash_cedar_button",
+    "entropica:abyssal_spore_cypress_button",
+    "entropica:starlight_aether_birch_button",
+    "entropica:blood_root_iron_oak_button"
+  ]
+}

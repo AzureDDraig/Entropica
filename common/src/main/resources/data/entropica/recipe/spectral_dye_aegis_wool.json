@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    {
+      "item": "minecraft:white_wool"
+    },
+    {
+      "item": "entropica:spectral_dye_aegis"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:blue_wool"
+  }
+}

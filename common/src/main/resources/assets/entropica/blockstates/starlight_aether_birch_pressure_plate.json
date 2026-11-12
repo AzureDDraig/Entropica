@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "entropica:block/starlight_aether_birch_pressure_plate"
+    },
+    "powered=true": {
+      "model": "entropica:block/starlight_aether_birch_pressure_plate_down"
+    }
+  }
+}

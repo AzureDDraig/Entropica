@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "F": "minecraft:flint",
+    "S": "minecraft:granite"
+  },
+  "pattern": [
+    "  F",
+    "S S",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:mortar_and_pestle"
+  }
+}

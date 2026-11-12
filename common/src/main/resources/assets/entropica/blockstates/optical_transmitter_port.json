@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "entropica:block/optical_transmitter_port"
+    }
+  }
+}

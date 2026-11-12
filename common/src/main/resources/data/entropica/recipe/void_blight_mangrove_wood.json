@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BB",
+    "BB"
+  ],
+  "key": {
+    "B": {
+      "item": "entropica:void_blight_mangrove_log"
+    }
+  },
+  "result": {
+    "count": 3,
+    "id": "entropica:void_blight_mangrove_wood"
+  }
+}

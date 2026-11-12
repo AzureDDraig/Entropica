@@ -1,0 +1,17 @@
+{
+  "variants": {
+    "facing=down,powered=false": { "model": "entropica:block/materia_pump", "x": 180 },
+    "facing=up,powered=false": { "model": "entropica:block/materia_pump" },
+    "facing=north,powered=false": { "model": "entropica:block/materia_pump", "x": 90 },
+    "facing=south,powered=false": { "model": "entropica:block/materia_pump", "x": 90, "y": 180 },
+    "facing=west,powered=false": { "model": "entropica:block/materia_pump", "x": 90, "y": 270 },
+    "facing=east,powered=false": { "model": "entropica:block/materia_pump", "x": 90, "y": 90 },
+
+    "facing=down,powered=true": { "model": "entropica:block/materia_pump_active", "x": 180 },
+    "facing=up,powered=true": { "model": "entropica:block/materia_pump_active" },
+    "facing=north,powered=true": { "model": "entropica:block/materia_pump_active", "x": 90 },
+    "facing=south,powered=true": { "model": "entropica:block/materia_pump_active", "x": 90, "y": 180 },
+    "facing=west,powered=true": { "model": "entropica:block/materia_pump_active", "x": 90, "y": 270 },
+    "facing=east,powered=true": { "model": "entropica:block/materia_pump_active", "x": 90, "y": 90 }
+  }
+}
