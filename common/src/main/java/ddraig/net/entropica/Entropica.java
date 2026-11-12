@@ -43,6 +43,7 @@ public class Entropica {
         ddraig.net.entropica.event.CodexJoinHandler.register();
         ddraig.net.entropica.event.MobObservationHandler.register();
         ddraig.net.entropica.event.CodexCraftingLockHandler.register();
+        ddraig.net.entropica.event.CelestialJournalLootHandler.register();
 
         // --- Gravity Field Tick Loop ---
         dev.architectury.event.events.common.TickEvent.SERVER_LEVEL_POST.register(level -> {

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    [
+      "entropica:scribing_ink",
+      "minecraft:ink_sac"
+    ],
+    "minecraft:gold_ingot",
+    "minecraft:iron_ingot"
+  ],
+  "result": {
+    "id": "entropica:celestial_journal_vol5",
+    "count": 1
+  }
+}

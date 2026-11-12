@@ -2194,6 +2194,20 @@ public class CodexCategoryRegistry {
                 "Available in Stone, Marble, Quartz, and Astral Slate. Mount an Inscribed Spellgem or Apparatus, supply an Orbis Cell (internally or placed adjacent), and configure the 1.0s–60.0s Cast Timer, -90°..+90° Aim Pitch, and Redstone mode. Sneak-right-click a chest with any Casting Apparatus and then sneak-right-click the pedestal to link harvested item routing!",
                 "spellcrafting_workstations", 3, new ItemStack(ModItems.AUTOCAST_PEDESTAL_ASTRAL_SLATE_ITEM.get()),
                 640f, 0.0f, a_magic - 0.16f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "astral_scholar_journals", "Scholar's Journals (Volumes I–XIII)", "MAGIC",
+                "All 13 personal field journals, memoirs, and chronicles of the Astral Spire scholars with 233 readable entries.",
+                "Overview & Description:\n" +
+                "Across thirteen leather-bound volumes and 233 chapters, the great scholars of Mount Aetheria and the Grand Observatorium—Archon Valerius, Master Oron, Lady Vespera, Ronald of Oakhaven, Master Artificer Kaelen, High Alchemist Justinian, Brother Cadmus, Archon Aurelius, High Astrologer Gerald, and High Astrologer Vaelin—recorded their discoveries of stellar Materia fountains, all 50 constellations, optical engineering, supernovae, the Red Void wars, and the Starlight Covenant.\n\n" +
+                "Origin & Obtaining:\n" +
+                "▪ Survival Crafting: Bind a Book with Scribing Ink (or an Ink Sac) and two thematic reagents matching each volume.\n" +
+                "▪ Exploration & Combat: Found in Stronghold Libraries, Ancient Cities, Woodland Mansions, Temples, Dungeons, Bastions, End Cities, and Trial Vaults, or dropped by Gemini Goat Mages, Evokers, Witches, Cosmic Denizens, and major Bosses.\n\n" +
+                "Reading & Shelving:\n" +
+                "Right-click any volume to open the dual-page Scholar's Journal reader with an interactive chapter directory, persistent ribbon bookmarks, read-entry tracking, and Chiseled Bookshelf storage support.",
+                "astral_celestial_atlas", 2, new ItemStack(ModItems.CELESTIAL_JOURNAL_VOL1.get()),
+                560f, 0.0f, a_magic + 0.13f, false
         
         ));
     }

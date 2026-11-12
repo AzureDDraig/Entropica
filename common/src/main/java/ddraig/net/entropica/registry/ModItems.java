@@ -1246,4 +1246,37 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<BlockItem> AUTOCAST_PEDESTAL_QUARTZ_ITEM = ITEMS.registerItem("autocast_pedestal_quartz", properties -> new BlockItem(ModBlocks.AUTOCAST_PEDESTAL_QUARTZ.get(), properties));
     public static final RegistrySupplier<BlockItem> AUTOCAST_PEDESTAL_ASTRAL_SLATE_ITEM = ITEMS.registerItem("autocast_pedestal_astral_slate", properties -> new BlockItem(ModBlocks.AUTOCAST_PEDESTAL_ASTRAL_SLATE.get(), properties));
 
+    // Scholar's Journals (Celestial Lore Books Volumes I - XIII)
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL1 = ITEMS.registerItem("celestial_journal_vol1", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 1));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL2 = ITEMS.registerItem("celestial_journal_vol2", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 2));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL3 = ITEMS.registerItem("celestial_journal_vol3", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 3));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL4 = ITEMS.registerItem("celestial_journal_vol4", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 4));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL5 = ITEMS.registerItem("celestial_journal_vol5", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 5));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL6 = ITEMS.registerItem("celestial_journal_vol6", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 6));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL7 = ITEMS.registerItem("celestial_journal_vol7", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 7));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL8 = ITEMS.registerItem("celestial_journal_vol8", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 8));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL9 = ITEMS.registerItem("celestial_journal_vol9", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 9));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL10 = ITEMS.registerItem("celestial_journal_vol10", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 10));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL11 = ITEMS.registerItem("celestial_journal_vol11", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 11));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL12 = ITEMS.registerItem("celestial_journal_vol12", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 12));
+    public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL13 = ITEMS.registerItem("celestial_journal_vol13", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 13));
+
+    public static RegistrySupplier<Item> getCelestialJournal(int volume) {
+        return switch (volume) {
+            case 1 -> CELESTIAL_JOURNAL_VOL1;
+            case 2 -> CELESTIAL_JOURNAL_VOL2;
+            case 3 -> CELESTIAL_JOURNAL_VOL3;
+            case 4 -> CELESTIAL_JOURNAL_VOL4;
+            case 5 -> CELESTIAL_JOURNAL_VOL5;
+            case 6 -> CELESTIAL_JOURNAL_VOL6;
+            case 7 -> CELESTIAL_JOURNAL_VOL7;
+            case 8 -> CELESTIAL_JOURNAL_VOL8;
+            case 9 -> CELESTIAL_JOURNAL_VOL9;
+            case 10 -> CELESTIAL_JOURNAL_VOL10;
+            case 11 -> CELESTIAL_JOURNAL_VOL11;
+            case 12 -> CELESTIAL_JOURNAL_VOL12;
+            default -> CELESTIAL_JOURNAL_VOL13;
+        };
+    }
+
 }
