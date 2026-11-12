@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "entropica:block/synthesizer_user_interface"
+    }
+  }
+}

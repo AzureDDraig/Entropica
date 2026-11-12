@@ -1,0 +1,37 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "twilightforest:adherent",
+      "required": false
+    },
+    {
+      "id": "aether:sun_spirit",
+      "required": false
+    },
+    {
+      "id": "aether:valkyrie",
+      "required": false
+    },
+    {
+      "id": "aether:valkyrie_queen",
+      "required": false
+    },
+    {
+      "id": "aether:angel",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:glare",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:barako",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:grottol",
+      "required": false
+    }
+  ]
+}

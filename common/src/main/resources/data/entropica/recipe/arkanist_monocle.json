@@ -1,0 +1,25 @@
+{
+  "type": "entropica:magic_circle",
+  "inputs": [
+    {
+      "item": "minecraft:copper_ingot"
+    },
+    {
+      "item": "minecraft:chain"
+    }
+  ],
+  "runes": [
+    {
+      "item": "entropica:rune_ansuz"
+    }
+  ],
+  "essences": {
+    "regular": 50,
+    "axiom": 15
+  },
+  "tier": 2,
+  "result": {
+    "id": "entropica:arkanist_monocle",
+    "count": 1
+  }
+}

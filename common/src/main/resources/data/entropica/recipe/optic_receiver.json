@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " I ",
+    "IFI",
+    " L "
+  ],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "F": { "item": "entropica:pure_optic_fiber" },
+    "L": { "item": "entropica:alchemical_lens" }
+  },
+  "result": {
+    "id": "entropica:optic_receiver",
+    "count": 1
+  }
+}

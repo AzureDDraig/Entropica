@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "entropica:pyre_ash_cedar_planks"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "entropica:pyre_ash_cedar_pressure_plate"
+  }
+}

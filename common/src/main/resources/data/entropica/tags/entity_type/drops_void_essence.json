@@ -1,0 +1,49 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "alexsmobs:cosmaw",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:cosmic_cod",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:endergrade",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:enderiophage",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:farseer",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:mimic_octopus",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:spectre",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:void_worm",
+      "required": false
+    },
+    {
+      "id": "tconstruct:ender_slime",
+      "required": false
+    },
+    {
+      "id": "enderzoology:concussion_creeper",
+      "required": false
+    },
+    {
+      "id": "enderzoology:enderminy",
+      "required": false
+    }
+  ]
+}

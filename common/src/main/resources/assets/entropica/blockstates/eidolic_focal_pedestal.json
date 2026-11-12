@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "entropica:block/eidolic_focal_pedestal" },
+    "facing=east": { "model": "entropica:block/eidolic_focal_pedestal", "y": 90 },
+    "facing=south": { "model": "entropica:block/eidolic_focal_pedestal", "y": 180 },
+    "facing=west": { "model": "entropica:block/eidolic_focal_pedestal", "y": 270 }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "entropica:block/materia_exhaust"
+    },
+    "active=true": {
+      "model": "entropica:block/materia_exhaust"
+    }
+  }
+}

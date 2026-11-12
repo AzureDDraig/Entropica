@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/tall_aegis_spire_orchid_bottom"
+  },
+  "render_type": "minecraft:cutout"
+}

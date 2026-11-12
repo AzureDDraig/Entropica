@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": "entropica:blank_spellgem",
+    "A": "entropica:arcanite_ingot",
+    "S": "minecraft:quartz_block",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "ABA",
+    " S ",
+    "SRS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:autocast_pedestal_quartz"
+  }
+}

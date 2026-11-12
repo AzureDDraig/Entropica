@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/fence_inventory",
+  "textures": {
+    "texture": "entropica:block/blood_root_iron_oak_planks"
+  }
+}

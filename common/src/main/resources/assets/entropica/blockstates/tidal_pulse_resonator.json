@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "entropica:block/tidal_pulse_resonator" },
+    "facing=south": { "model": "entropica:block/tidal_pulse_resonator", "y": 180 },
+    "facing=west":  { "model": "entropica:block/tidal_pulse_resonator", "y": 270 },
+    "facing=east":  { "model": "entropica:block/tidal_pulse_resonator", "y": 90 }
+  }
+}

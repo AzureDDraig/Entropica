@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/pyre_sprout"
+  },
+  "render_type": "minecraft:cutout"
+}

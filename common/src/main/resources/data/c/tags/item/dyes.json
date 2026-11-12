@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:spectral_dye_soulfire",
+    "entropica:spectral_dye_aegis",
+    "entropica:spectral_dye_amber",
+    "entropica:spectral_dye_shimmer",
+    "entropica:spectral_dye_frost",
+    "entropica:spectral_dye_auroral"
+  ]
+}

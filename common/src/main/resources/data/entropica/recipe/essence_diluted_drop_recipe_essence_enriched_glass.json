@@ -1,0 +1,12 @@
+{
+  "type": "entropica:diluted_essence",
+  "inputs": [
+    "#c:glass_blocks"
+  ],
+  "output": {
+    "id": "entropica:essence_enriched_glass",
+    "count": 1
+  },
+  "processingTime": 100,
+  "chargeCost": 2
+}

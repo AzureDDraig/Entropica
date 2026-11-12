@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "P",
+    "P",
+    "P"
+  ],
+  "key": {
+    "P": {
+      "item": "entropica:void_blight_mangrove_planks"
+    }
+  },
+  "result": {
+    "count": 6,
+    "id": "entropica:void_blight_mangrove_vertical_slab"
+  }
+}

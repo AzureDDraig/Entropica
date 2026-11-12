@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": { "model": "entropica:block/furnace_hatch" },
+    "facing=east":  { "model": "entropica:block/furnace_hatch", "y": 90 },
+    "facing=south": { "model": "entropica:block/furnace_hatch", "y": 180 },
+    "facing=west":  { "model": "entropica:block/furnace_hatch", "y": 270 },
+    "facing=up":    { "model": "entropica:block/furnace_hatch", "x": -90 },
+    "facing=down":  { "model": "entropica:block/furnace_hatch", "x": 90 }
+  }
+}

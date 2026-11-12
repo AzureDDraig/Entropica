@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "entropica:astral_marble"
+  },
+  "result": {
+    "id": "entropica:chiseled_astral_marble",
+    "count": 1
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "entropica:block/silver_pine_slab"
+    },
+    "type=top": {
+      "model": "entropica:block/silver_pine_slab_top"
+    },
+    "type=double": {
+      "model": "entropica:block/silver_pine_planks"
+    }
+  }
+}

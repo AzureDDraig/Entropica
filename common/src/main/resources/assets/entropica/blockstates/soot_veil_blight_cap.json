@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "entropica:block/soot_veil_blight_cap"
+    },
+    "facing=down": {
+      "model": "entropica:block/soot_veil_blight_cap",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "entropica:block/soot_veil_blight_cap",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "entropica:block/soot_veil_blight_cap",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "entropica:block/soot_veil_blight_cap",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "entropica:block/soot_veil_blight_cap",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

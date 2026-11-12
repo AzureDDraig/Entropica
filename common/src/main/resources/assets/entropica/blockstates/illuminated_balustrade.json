@@ -1,0 +1,114 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_post"
+      }
+    },
+    {
+      "when": {
+        "north": "flat"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_side"
+      }
+    },
+    {
+      "when": {
+        "north": "up"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_slant_up"
+      }
+    },
+    {
+      "when": {
+        "north": "down"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_slant_down"
+      }
+    },
+    {
+      "when": {
+        "east": "flat"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_side",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "up"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_slant_up",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "down"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_slant_down",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "flat"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_side",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "up"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_slant_up",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "down"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_slant_down",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "flat"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_side",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "up"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_slant_up",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "down"
+      },
+      "apply": {
+        "model": "entropica:block/illuminated_balustrade_slant_down",
+        "y": 270
+      }
+    }
+  ]
+}

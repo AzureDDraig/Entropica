@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/button",
+  "textures": {
+    "texture": "entropica:block/blood_root_iron_oak_planks"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "entropica:block/tall_soul_flame_orchid_top"
+  },
+  "render_type": "minecraft:cutout"
+}

@@ -1,0 +1,32 @@
+# Eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# IntelliJ IDEA & VS Code
+out
+*.ipr
+*.iws
+*.iml
+.idea
+.vscode/
+
+# Gradle & Architectury
+build
+build/
+.gradle
+.gradle/
+.architectury-transformer/
+
+# Minecraft Run & Log Directories
+eclipse
+run
+runs
+run-data
+repo
+logs/
+common/logs/
+*.log

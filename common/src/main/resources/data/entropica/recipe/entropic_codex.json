@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    " B ",
+    "   "
+  ],
+  "key": {
+    "A": {
+      "item": "entropica:arcanite_ingot"
+    },
+    "B": {
+      "item": "minecraft:book"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "entropica:entropic_codex"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " G ",
+    " G ",
+    " F "
+  ],
+  "key": {
+    "G": { "item": "entropica:glass_essence_enriched" },
+    "F": { "item": "entropica:pure_optic_fiber" }
+  },
+  "result": {
+    "id": "entropica:glass_lamp_post",
+    "count": 3
+  }
+}

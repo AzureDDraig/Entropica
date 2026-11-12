@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/fence_inventory",
+  "textures": {
+    "texture": "entropica:block/astral_veil_willow_planks"
+  }
+}

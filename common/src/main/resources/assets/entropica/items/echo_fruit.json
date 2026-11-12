@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/echo_fruit",
+    "tints": [
+      {
+        "type": "entropica:echo_fruit_tint"
+      }
+    ]
+  }
+}

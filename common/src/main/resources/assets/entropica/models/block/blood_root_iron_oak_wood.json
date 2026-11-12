@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "entropica:block/blood_root_iron_oak_log",
+    "side": "entropica:block/blood_root_iron_oak_log"
+  }
+}

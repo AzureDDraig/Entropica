@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "facing=south,in_wall=false,open=false": {
+      "model": "entropica:block/starlight_aether_birch_fence_gate"
+    },
+    "facing=west,in_wall=false,open=false": {
+      "model": "entropica:block/starlight_aether_birch_fence_gate",
+      "y": 90,
+      "uvlock": true
+    },
+    "facing=north,in_wall=false,open=false": {
+      "model": "entropica:block/starlight_aether_birch_fence_gate",
+      "y": 180,
+      "uvlock": true
+    },
+    "facing=east,in_wall=false,open=false": {
+      "model": "entropica:block/starlight_aether_birch_fence_gate",
+      "y": 270,
+      "uvlock": true
+    },
+    "facing=south,in_wall=false,open=true": {
+      "model": "entropica:block/starlight_aether_birch_fence_gate_open"
+    },
+    "facing=west,in_wall=false,open=true": {
+      "model": "entropica:block/starlight_aether_birch_fence_gate_open",
+      "y": 90,
+      "uvlock": true
+    },
+    "facing=north,in_wall=false,open=true": {
+      "model": "entropica:block/starlight_aether_birch_fence_gate_open",
+      "y": 180,
+      "uvlock": true
+    },
+    "facing=east,in_wall=false,open=true": {
+      "model": "entropica:block/starlight_aether_birch_fence_gate_open",
+      "y": 270,
+      "uvlock": true
+    }
+  }
+}

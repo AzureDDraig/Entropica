@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#",
+    "#"
+  ],
+  "key": {
+    "#": {
+      "item": "entropica:pyre_ash_cedar_slab"
+    }
+  },
+  "result": {
+    "count": 2,
+    "id": "entropica:pyre_ash_cedar_vertical_slab"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "entropica:diluted_essence",
+  "inputs": [
+    "minecraft:clay"
+  ],
+  "output": {
+    "id": "entropica:arcane_clay_block",
+    "count": 1
+  },
+  "processingTime": 240,
+  "chargeCost": 4
+}

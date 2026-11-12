@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "entropica:block/blood_root_iron_oak_barrel_bottom",
+    "side": "entropica:block/blood_root_iron_oak_barrel_side",
+    "top": "entropica:block/blood_root_iron_oak_barrel_top_open"
+  }
+}

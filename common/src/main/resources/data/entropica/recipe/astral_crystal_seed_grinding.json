@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:astral_crystal",
+    "entropica:mortar_and_pestle"
+  ],
+  "result": {
+    "count": 4,
+    "id": "entropica:astral_crystal_seed"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "entropica:blood_root_iron_oak_planks"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "entropica:blood_root_iron_oak_pressure_plate"
+  }
+}

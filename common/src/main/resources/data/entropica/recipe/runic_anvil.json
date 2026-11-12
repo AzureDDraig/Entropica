@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "V": "entropica:viscanite_ingot",
+    "R": "entropica:resonite_ingot",
+    "A": "minecraft:anvil",
+    "S": "entropica:arcanite_ingot"
+  },
+  "pattern": [
+    "VRV",
+    " A ",
+    "SSS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:runic_anvil"
+  }
+}

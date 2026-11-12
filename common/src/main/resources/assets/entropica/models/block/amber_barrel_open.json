@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "entropica:block/amber_barrel_bottom",
+    "side": "entropica:block/amber_barrel_side",
+    "top": "entropica:block/amber_barrel_top_open"
+  }
+}

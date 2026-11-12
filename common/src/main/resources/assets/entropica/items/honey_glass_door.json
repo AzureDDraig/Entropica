@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/honey_glass_door",
+    "tints": [
+      {
+        "type": "entropica:aesthetic_glass_tint"
+      }
+    ]
+  }
+}

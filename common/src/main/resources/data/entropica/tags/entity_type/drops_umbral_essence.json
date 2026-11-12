@@ -1,0 +1,49 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "twilightforest:kobold",
+      "required": false
+    },
+    {
+      "id": "twilightforest:redcap",
+      "required": false
+    },
+    {
+      "id": "twilightforest:redcap_sapper",
+      "required": false
+    },
+    {
+      "id": "twilightforest:block_and_chain_goblin",
+      "required": false
+    },
+    {
+      "id": "twilightforest:knight_phantom",
+      "required": false
+    },
+    {
+      "id": "twilightforest:darkwood_borer",
+      "required": false
+    },
+    {
+      "id": "friendsandfoes:illusioner",
+      "required": false
+    },
+    {
+      "id": "mowziesmobs:ferrous_wroughtnaut",
+      "required": false
+    },
+    {
+      "id": "enderzoology:fallen_knight",
+      "required": false
+    },
+    {
+      "id": "enderzoology:fallen_mount",
+      "required": false
+    },
+    {
+      "id": "enderzoology:dire_wolf",
+      "required": false
+    }
+  ]
+}

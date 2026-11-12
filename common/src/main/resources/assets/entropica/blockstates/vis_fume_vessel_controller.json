@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "facing=north,is_export=false": { "model": "entropica:block/vis_fume_vessel_controller_import" },
+    "facing=north,is_export=true": { "model": "entropica:block/vis_fume_vessel_controller_export" },
+    
+    "facing=east,is_export=false": { "model": "entropica:block/vis_fume_vessel_controller_import", "y": 90 },
+    "facing=east,is_export=true": { "model": "entropica:block/vis_fume_vessel_controller_export", "y": 90 },
+    
+    "facing=south,is_export=false": { "model": "entropica:block/vis_fume_vessel_controller_import", "y": 180 },
+    "facing=south,is_export=true": { "model": "entropica:block/vis_fume_vessel_controller_export", "y": 180 },
+    
+    "facing=west,is_export=false": { "model": "entropica:block/vis_fume_vessel_controller_import", "y": 270 },
+    "facing=west,is_export=true": { "model": "entropica:block/vis_fume_vessel_controller_export", "y": 270 }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "multipart": [
+    { "apply": { "model": "entropica:block/optic_pipe_core" } },
+    { "when": { "facing": "down" }, "apply": { "model": "entropica:block/optic_transmitter_nozzle" } },
+    { "when": { "facing": "up" }, "apply": { "model": "entropica:block/optic_transmitter_nozzle", "x": 180 } },
+    { "when": { "facing": "north" }, "apply": { "model": "entropica:block/optic_transmitter_nozzle", "x": 270 } },
+    { "when": { "facing": "south" }, "apply": { "model": "entropica:block/optic_transmitter_nozzle", "x": 90 } },
+    { "when": { "facing": "west" }, "apply": { "model": "entropica:block/optic_transmitter_nozzle", "x": 90, "y": 90 } },
+    { "when": { "facing": "east" }, "apply": { "model": "entropica:block/optic_transmitter_nozzle", "x": 90, "y": 270 } },
+    { "when": { "down": "true" }, "apply": { "model": "entropica:block/optic_pipe_arm" } },
+    { "when": { "up": "true" }, "apply": { "model": "entropica:block/optic_pipe_arm", "x": 180 } },
+    { "when": { "north": "true" }, "apply": { "model": "entropica:block/optic_pipe_arm", "x": 270 } },
+    { "when": { "south": "true" }, "apply": { "model": "entropica:block/optic_pipe_arm", "x": 90 } },
+    { "when": { "west": "true" }, "apply": { "model": "entropica:block/optic_pipe_arm", "x": 90, "y": 90 } },
+    { "when": { "east": "true" }, "apply": { "model": "entropica:block/optic_pipe_arm", "x": 90, "y": 270 } }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "entropica:abyssal_spore_cypress_log"
+    }
+  },
+  "result": {
+    "count": 3,
+    "id": "entropica:abyssal_spore_cypress_wood"
+  }
+}

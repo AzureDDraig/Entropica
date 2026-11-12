@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "R": "entropica:resonite_ingot",
+    "A": "entropica:arcanite_ingot",
+    "S": "minecraft:blaze_rod",
+    "B": "entropica:blank_spellgem"
+  },
+  "pattern": [
+    "BRB",
+    " A ",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:staff"
+  }
+}

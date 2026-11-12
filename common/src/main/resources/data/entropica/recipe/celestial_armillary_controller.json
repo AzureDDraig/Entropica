@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "entropica:astrolabe",
+    "C": "entropica:astral_altar_core",
+    "B": "entropica:brass_ingot",
+    "K": "entropica:astral_crystal"
+  },
+  "pattern": [
+    "BAB",
+    "KCK",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:celestial_armillary_controller"
+  }
+}

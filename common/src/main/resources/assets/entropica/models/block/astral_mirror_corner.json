@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "entropica:block/astral_mirror_center",
+    "down": "entropica:block/astral_mirror_center",
+    "up": "entropica:block/astral_mirror_corner",
+    "north": "entropica:block/astral_mirror_center",
+    "south": "entropica:block/astral_mirror_side_wall",
+    "east": "entropica:block/astral_mirror_side_wall",
+    "west": "entropica:block/astral_mirror_center"
+  }
+}

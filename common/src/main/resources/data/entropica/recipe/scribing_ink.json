@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:ink_sac",
+    "G": "minecraft:glow_ink_sac",
+    "A": "minecraft:amethyst_shard",
+    "B": "minecraft:glass_bottle"
+  },
+  "pattern": [
+    " A ",
+    "IGB"
+  ],
+  "result": {
+    "count": 2,
+    "id": "entropica:scribing_ink"
+  }
+}

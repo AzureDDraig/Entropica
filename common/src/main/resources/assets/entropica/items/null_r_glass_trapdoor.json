@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "entropica:item/null_r_glass_trapdoor",
+    "tints": [
+      {
+        "type": "entropica:aesthetic_glass_tint"
+      }
+    ]
+  }
+}

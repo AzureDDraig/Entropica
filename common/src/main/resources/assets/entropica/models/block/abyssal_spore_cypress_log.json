@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "entropica:block/abyssal_spore_cypress_log_top",
+    "side": "entropica:block/abyssal_spore_cypress_log"
+  }
+}

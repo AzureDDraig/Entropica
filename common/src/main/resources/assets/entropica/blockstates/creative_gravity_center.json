@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "powered=false,radius_level=1": { "model": "entropica:block/creative_gravity_center" },
+    "powered=false,radius_level=2": { "model": "entropica:block/creative_gravity_center" },
+    "powered=false,radius_level=3": { "model": "entropica:block/creative_gravity_center" },
+    "powered=false,radius_level=4": { "model": "entropica:block/creative_gravity_center" },
+    "powered=false,radius_level=5": { "model": "entropica:block/creative_gravity_center" },
+    "powered=false,radius_level=6": { "model": "entropica:block/creative_gravity_center" },
+    "powered=true,radius_level=1": { "model": "entropica:block/creative_gravity_center" },
+    "powered=true,radius_level=2": { "model": "entropica:block/creative_gravity_center" },
+    "powered=true,radius_level=3": { "model": "entropica:block/creative_gravity_center" },
+    "powered=true,radius_level=4": { "model": "entropica:block/creative_gravity_center" },
+    "powered=true,radius_level=5": { "model": "entropica:block/creative_gravity_center" },
+    "powered=true,radius_level=6": { "model": "entropica:block/creative_gravity_center" }
+  }
+}

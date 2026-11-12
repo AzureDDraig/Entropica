@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "G": "minecraft:gold_nugget",
+    "W": "entropica:arcanite_wire",
+    "B": "entropica:blank_spellgem"
+  },
+  "pattern": [
+    "GW ",
+    "WBW",
+    " WG"
+  ],
+  "result": {
+    "count": 1,
+    "id": "entropica:arcanum_focus"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "C": "entropica:astral_crystal",
+    "M": "entropica:astral_marble"
+  },
+  "pattern": [
+    " M ",
+    "MCM",
+    " M "
+  ],
+  "result": {
+    "count": 4,
+    "id": "entropica:runed_astral_marble"
+  }
+}

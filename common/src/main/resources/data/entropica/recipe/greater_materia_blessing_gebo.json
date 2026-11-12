@@ -1,0 +1,39 @@
+{
+  "type": "entropica:magic_circle",
+  "inputs": [
+    {
+      "item": "entropica:materia_blessing_shard"
+    },
+    {
+      "item": "entropica:materia_blessing_shard"
+    },
+    {
+      "item": "entropica:materia_blessing_shard"
+    },
+    {
+      "item": "entropica:materia_blessing_shard"
+    },
+    {
+      "item": "entropica:materia_blessing_shard"
+    },
+    {
+      "item": "entropica:materia_blessing_shard"
+    },
+    {
+      "item": "entropica:materia_blessing_shard"
+    }
+  ],
+  "runes": [
+    {
+      "item": "entropica:rune_gebo"
+    }
+  ],
+  "essences": {
+    "regular": 360
+  },
+  "tier": 2,
+  "result": {
+    "id": "entropica:greater_materia_blessing",
+    "count": 1
+  }
+}

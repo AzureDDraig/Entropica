@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "entropica:block/optical_booster_amplifier_front",
+    "north": "entropica:block/optical_booster_amplifier_front",
+    "south": "entropica:block/optical_booster_amplifier_back",
+    "east": "entropica:block/optical_booster_amplifier_side",
+    "west": "entropica:block/optical_booster_amplifier_side",
+    "up": "entropica:block/optical_booster_amplifier_side",
+    "down": "entropica:block/optical_booster_amplifier_side"
+  }
+}

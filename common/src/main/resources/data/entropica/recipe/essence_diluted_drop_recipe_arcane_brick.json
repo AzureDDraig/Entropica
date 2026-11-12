@@ -1,0 +1,12 @@
+{
+  "type": "entropica:diluted_essence",
+  "inputs": [
+    "minecraft:bricks"
+  ],
+  "output": {
+    "id": "entropica:arcane_brick",
+    "count": 1
+  },
+  "processingTime": 200,
+  "chargeCost": 4
+}
