@@ -66,7 +66,7 @@ public final class VitaeSpellMutationHandler implements MateriaPartMutationHandl
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
         return switch (flow) {
-            case DOUBLE_BIFURCATE, TRIPLE_TRIFURCATE, DELAYED_BLOOM -> "Cellular Mitosis Split Flow";
+            case DOUBLE_BIFURCATE, TRIPLE_TRIFURCATE, OCTUPLE_DOME -> "Cellular Mitosis Split Flow";
             default -> "Cellular Vitality " + flow.getDisplayName();
         };
     }

@@ -106,24 +106,32 @@ public final class SpellEngineVerificationSuite {
                         && discountedCost.totalMfumByType().getOrDefault(EssenceType.NETHER, -1L) == 85L
                         && discountedCost.getTotalMfumAcrossAllTypes() == 170L);
 
-        // Dynamic trigger 25% / 75% split
+        // Dynamic trigger 25% / 75% split + Void-Warp travel mutation heritage check
         SpellAssembly delayedSpell = new SpellAssembly(
                 "Delayed Trap",
                 List.of(),
                 false,
                 SpellPrefix.COMBAT,
                 2,
-                new FlowPartBinding(SpellFlowModifier.DELAYED_BLOOM, EssenceType.LIGHTNING, true, 1, 0.0F),
+                new FlowPartBinding(SpellFlowModifier.SINGLE, ddraig.net.entropica.spell.SpellTriggerType.ON_TIMER, EssenceType.LIGHTNING, true, 1, 1.5F),
                 List.of(SubSpellSlot.of(formUnmutated, primMutated)),
                 SpellFlawProfile.PERFECT,
                 0
         );
         SpellCostBreakdown dynCost = SpellFuelCalculator.calculateCastCost(delayedSpell, null, 0.0F, EssenceType.REGULAR);
         check(counts, lines, "Dynamic Trigger Flow 25% Upfront / 75% Detonation Per-Materia Split",
-                dynCost.upfrontMfumByType().getOrDefault(EssenceType.LIGHTNING, -1L) == 5L
-                        && dynCost.dynamicTriggerMfumByType().getOrDefault(EssenceType.LIGHTNING, -1L) == 15L
-                        && dynCost.upfrontMfumByType().getOrDefault(EssenceType.VOID, -1L) == 10L
-                        && dynCost.dynamicTriggerMfumByType().getOrDefault(EssenceType.VOID, -1L) == 30L);
+                dynCost.upfrontMfumByType().getOrDefault(EssenceType.LIGHTNING, -1L) == 6L
+                        && dynCost.dynamicTriggerMfumByType().getOrDefault(EssenceType.LIGHTNING, -1L) == 18L
+                        && dynCost.upfrontMfumByType().getOrDefault(EssenceType.VOID, -1L) == 12L
+                        && dynCost.dynamicTriggerMfumByType().getOrDefault(EssenceType.VOID, -1L) == 36L);
+
+        FlowPartBinding unauthorizedWarp = new FlowPartBinding(SpellFlowModifier.VOID_WARP, ddraig.net.entropica.spell.SpellTriggerType.ON_ENTITY_HIT, EssenceType.AIR, true, 1, 0.0F);
+        FlowPartBinding unmutatedVoidWarp = new FlowPartBinding(SpellFlowModifier.VOID_WARP, ddraig.net.entropica.spell.SpellTriggerType.ON_ENTITY_HIT, EssenceType.VOID, false, 1, 0.0F);
+        FlowPartBinding authorizedAstralWarp = new FlowPartBinding(SpellFlowModifier.VOID_WARP, ddraig.net.entropica.spell.SpellTriggerType.ON_ENTITY_HIT, EssenceType.ASTRAL, true, 1, 0.0F);
+        check(counts, lines, "Void-Warp Travel Mutation Gate (Requires Void or Void-Created Materia + Mutation ACTIVE)",
+                !unauthorizedWarp.isVoidWarpAuthorized(true, EssenceType.REGULAR)
+                        && !unmutatedVoidWarp.isVoidWarpAuthorized(true, EssenceType.REGULAR)
+                        && authorizedAstralWarp.isVoidWarpAuthorized(true, EssenceType.REGULAR));
 
         // 3. 10-Tier Stage Table & Cross-Tier Markup
         check(counts, lines, "10-Tier Stage Table Ratios (T1=8, T2=1, T3=360, T6=69120, T10=34560000 Mfum)",

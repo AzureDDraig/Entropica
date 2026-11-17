@@ -127,6 +127,7 @@ public final class SpellMutationRegistry {
 
         MateriaPartMutationHandler handler = SpellMutationHandlerRegistry.resolveActive(materiaType, true);
         String customTitle = handler != null ? handler.resolveFlowTitle(flow) : null;
+        String customDesc = handler != null ? handler.resolveFlowDescription(flow) : null;
         String title = (customTitle != null && !customTitle.isBlank())
                 ? customTitle
                 : (getEpithet(materiaType) + " " + flow.getDisplayName());
@@ -136,6 +137,7 @@ public final class SpellMutationRegistry {
                 materiaType,
                 true,
                 title,
+                customDesc,
                 wallPhase,
                 0.0F,
                 0,
@@ -160,7 +162,10 @@ public final class SpellMutationRegistry {
         }
 
         MateriaFamilyTier family = MateriaFamilyTier.of(materiaType);
-        boolean wallPhase = MateriaFamilyTier.isVoidPhasingLineage(materiaType)
+        // Section 6.11 Singularity Rift Orb phases through thin obstacles while collapsing on entities or thick terrain,
+        // whereas Gravitational Tractor Beam (Section 4.2) & Void-Warp Phasing Flow pierce solid stone walls!
+        boolean wallPhase = (MateriaFamilyTier.isVoidPhasingLineage(materiaType)
+                && !(materiaType == EssenceType.VOID && form == SpellDeliveryForm.PROJECTILE))
                 || (materiaType == EssenceType.PRISMATIC && (form == SpellDeliveryForm.BEAM || form == SpellDeliveryForm.CONE));
         float rangeMult = MateriaFamilyTier.isEarthLineage(materiaType) ? 1.25F
                 : (family.getFusionTier() >= 5 ? 1.35F : 1.0F);
@@ -176,6 +181,7 @@ public final class SpellMutationRegistry {
             case PRISMATIC -> (form == SpellDeliveryForm.PROJECTILE ? 1.30F : 1.0F);
             case LIGHTNING, AIR, ASTRAL, DAWN -> 1.25F;
             case ECLIPSE, MIRAGE, AURORA -> 1.15F;
+            case EARTH -> (form == SpellDeliveryForm.PROJECTILE ? 0.80F : 1.0F);
             case NULL_R, NULL_U -> (form == SpellDeliveryForm.PROJECTILE ? 0.65F : 1.0F);
             default -> 1.0F;
         };
@@ -191,8 +197,10 @@ public final class SpellMutationRegistry {
                 case ESCHATON_FUSION -> 6;
                 case APEX_FUSION -> 4;
                 default -> switch (materiaType) {
+                    case WATER -> (form == SpellDeliveryForm.BEAM ? 8 : 0);
+                    case VOID -> (form == SpellDeliveryForm.BEAM ? 4 : 0);
                     case DAWN, AURORA, RIME -> 3;
-                    case GLACIAL, TAIGA, BLOOD, AURA, RADIANT, VOID, ASTRAL, WRAITH -> 2;
+                    case GLACIAL, TAIGA, BLOOD, AURA, RADIANT, ASTRAL, WRAITH -> 2;
                     case ECLIPSE, NULL_R, NULL_U -> 1;
                     default -> 0;
                 };
@@ -206,6 +214,8 @@ public final class SpellMutationRegistry {
             formArmorBypass = Math.max(formArmorBypass, 0.50F);
         } else if (form == SpellDeliveryForm.TOUCH_STRIKE && materiaType == EssenceType.VAPOR) {
             formArmorBypass = Math.max(formArmorBypass, 0.40F);
+        } else if (form == SpellDeliveryForm.TOUCH_STRIKE && (materiaType == EssenceType.EARTH || materiaType == EssenceType.VOID)) {
+            formArmorBypass = Math.max(formArmorBypass, 0.35F);
         } else if (form == SpellDeliveryForm.TOUCH_STRIKE && materiaType == EssenceType.PENUMBRA) {
             formArmorBypass = Math.max(formArmorBypass, 0.25F);
         } else if (form == SpellDeliveryForm.BEAM && materiaType == EssenceType.SOULFIRE) {
@@ -228,6 +238,7 @@ public final class SpellMutationRegistry {
         };
         MateriaPartMutationHandler handler = SpellMutationHandlerRegistry.resolveActive(materiaType, true);
         String customTitle = handler != null ? handler.resolveFormTitle(form) : null;
+        String customDesc = handler != null ? handler.resolveFormDescription(form) : null;
         String title = (customTitle != null && !customTitle.isBlank())
                 ? customTitle
                 : (getEpithet(materiaType) + " " + formNoun);
@@ -238,6 +249,7 @@ public final class SpellMutationRegistry {
                 materiaType,
                 true,
                 title,
+                customDesc,
                 wallPhase,
                 formArmorBypass,
                 formArmorShred,
@@ -256,6 +268,13 @@ public final class SpellMutationRegistry {
     }
 
     private static int resolveFormArmorShred(SpellDeliveryForm form, EssenceType materiaType, MateriaFamilyTier family) {
+        if (materiaType == EssenceType.EARTH) {
+            return switch (form) {
+                case TOUCH_STRIKE, GLYPH -> 4;
+                case PROJECTILE -> 2;
+                default -> family.getBaseArmorShred();
+            };
+        }
         if (materiaType == EssenceType.PRISMATIC) {
             return switch (form) {
                 case BEAM -> 2;
@@ -326,6 +345,7 @@ public final class SpellMutationRegistry {
         };
         MateriaPartMutationHandler handler = SpellMutationHandlerRegistry.resolveActive(materiaType, true);
         String customTitle = handler != null ? handler.resolveEffectTitle(effect) : null;
+        String customDesc = handler != null ? handler.resolveEffectDescription(effect) : null;
         String title = (customTitle != null && !customTitle.isBlank())
                 ? customTitle
                 : (getEpithet(materiaType) + " " + verbSuffix);
@@ -336,6 +356,7 @@ public final class SpellMutationRegistry {
                 materiaType,
                 true,
                 title,
+                customDesc,
                 wallPhase,
                 family.getBaseArmorBypass(),
                 family.getBaseArmorShred(),

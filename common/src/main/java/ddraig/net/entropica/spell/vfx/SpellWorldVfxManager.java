@@ -19,8 +19,8 @@ import java.util.List;
  */
 public final class SpellWorldVfxManager {
 
-    private static final int MAX_CLIENT_VFX_EVENTS = 256;
-    private static final double BROADCAST_RANGE_SQ = 96.0D * 96.0D;
+    private static final int MAX_CLIENT_VFX_EVENTS = 512;
+    private static final double BROADCAST_RANGE_SQ = 160.0D * 160.0D;
 
     public static final class ActiveVfxInstance {
         public final byte vfxType;
@@ -68,6 +68,7 @@ public final class SpellWorldVfxManager {
     }
 
     public static synchronized void tickClient(boolean hasActiveLevel) {
+        SpellWardClientManager.tickClient(hasActiveLevel);
         if (!hasActiveLevel) {
             CLIENT_EVENTS.clear();
             return;
@@ -121,8 +122,12 @@ public final class SpellWorldVfxManager {
                 tier
         );
 
+        boolean endIsWorldPos = vfxType == SpellVfxEventPayload.VFX_BEAM
+                || vfxType == SpellVfxEventPayload.VFX_CHAIN_ARC
+                || vfxType == SpellVfxEventPayload.VFX_BLINK_RIFT;
         for (ServerPlayer player : level.players()) {
-            if (player.distanceToSqr(start) <= BROADCAST_RANGE_SQ) {
+            if (player.distanceToSqr(start) <= BROADCAST_RANGE_SQ
+                    || (endIsWorldPos && player.distanceToSqr(endOrDir) <= BROADCAST_RANGE_SQ)) {
                 NetworkManager.sendToPlayer(player, payload);
             }
         }
@@ -137,7 +142,20 @@ public final class SpellWorldVfxManager {
             int tier
     ) {
         float beamRadius = 0.09F + Math.clamp(tier, 1, 10) * 0.015F;
-        broadcast(level, SpellVfxEventPayload.VFX_BEAM, start, end, primary, secondary, beamRadius, 12, tier);
+        broadcast(level, SpellVfxEventPayload.VFX_BEAM, start, end, primary, secondary, beamRadius, 36, tier);
+    }
+
+    public static void broadcastChanneledBeamSlice(
+            ServerLevel level,
+            Vec3 start,
+            Vec3 end,
+            @Nullable EssenceType primary,
+            @Nullable EssenceType secondary,
+            int tier,
+            int durationTicks
+    ) {
+        float beamRadius = 0.09F + Math.clamp(tier, 1, 10) * 0.015F;
+        broadcast(level, SpellVfxEventPayload.VFX_BEAM, start, end, primary, secondary, beamRadius, Math.max(2, durationTicks), tier);
     }
 
     public static void broadcastChainArc(
@@ -148,7 +166,7 @@ public final class SpellWorldVfxManager {
             @Nullable EssenceType secondary,
             int tier
     ) {
-        broadcast(level, SpellVfxEventPayload.VFX_CHAIN_ARC, anchorCenter, targetCenter, primary, secondary, 0.14F, 11, tier);
+        broadcast(level, SpellVfxEventPayload.VFX_CHAIN_ARC, anchorCenter, targetCenter, primary, secondary, 0.14F, 38, tier);
     }
 
     public static void broadcastRadialNova(
@@ -160,7 +178,7 @@ public final class SpellWorldVfxManager {
             int tier
     ) {
         broadcast(level, SpellVfxEventPayload.VFX_RADIAL_NOVA, center, new Vec3(0.0D, 1.0D, 0.0D),
-                primary, secondary, (float) Math.max(1.2D, radius), 16, tier);
+                primary, secondary, (float) Math.max(1.2D, radius), 52, tier);
     }
 
     public static void broadcastProjectileImpact(
@@ -174,7 +192,7 @@ public final class SpellWorldVfxManager {
     ) {
         Vec3 n = normalOrDir.lengthSqr() > 1.0E-4D ? normalOrDir.normalize() : new Vec3(0.0D, 1.0D, 0.0D);
         broadcast(level, SpellVfxEventPayload.VFX_PROJECTILE_IMPACT, impactPos, n,
-                primary, secondary, Math.max(0.65F, scale), 12, tier);
+                primary, secondary, Math.max(0.65F, scale), 38, tier);
     }
 
     public static void broadcastArcaneSeal(
@@ -187,7 +205,7 @@ public final class SpellWorldVfxManager {
             int tier
     ) {
         broadcast(level, SpellVfxEventPayload.VFX_ARCANE_SEAL, center, new Vec3(0.0D, 1.0D, 0.0D),
-                primary, secondary, (float) Math.max(1.0D, radius), Math.clamp(durationTicks, 18, 220), tier);
+                primary, secondary, (float) Math.max(1.0D, radius), Math.clamp(durationTicks, 44, 1200), tier);
     }
 
     public static void broadcastCrescentSlash(
@@ -201,7 +219,7 @@ public final class SpellWorldVfxManager {
     ) {
         Vec3 dir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : new Vec3(0.0D, 0.0D, 1.0D);
         broadcast(level, SpellVfxEventPayload.VFX_CRESCENT_SLASH, origin, dir,
-                primary, secondary, (float) Math.max(1.6D, reach * 0.72D), 10, tier);
+                primary, secondary, (float) Math.max(1.6D, reach * 0.72D), 32, tier);
     }
 
     public static void broadcastVortexCone(
@@ -215,7 +233,7 @@ public final class SpellWorldVfxManager {
     ) {
         Vec3 dir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : new Vec3(0.0D, 0.0D, 1.0D);
         broadcast(level, SpellVfxEventPayload.VFX_VORTEX_CONE, origin, dir,
-                primary, secondary, (float) Math.max(2.0D, range), 15, tier);
+                primary, secondary, (float) Math.max(2.0D, range), 50, tier);
     }
 
     public static void broadcastSkyfallPillar(
@@ -226,9 +244,21 @@ public final class SpellWorldVfxManager {
             @Nullable EssenceType secondary,
             int tier
     ) {
+        broadcastSkyfallPillar(level, impactGround, radius, primary, secondary, 80, tier);
+    }
+
+    public static void broadcastSkyfallPillar(
+            ServerLevel level,
+            Vec3 impactGround,
+            double radius,
+            @Nullable EssenceType primary,
+            @Nullable EssenceType secondary,
+            int durationTicks,
+            int tier
+    ) {
         Vec3 skyTop = impactGround.add(0.0D, 18.0D, 0.0D);
         broadcast(level, SpellVfxEventPayload.VFX_SKYFALL_PILLAR, impactGround, skyTop,
-                primary, secondary, (float) Math.max(1.2D, radius), 22, tier);
+                primary, secondary, (float) Math.max(1.2D, radius), Math.clamp(durationTicks, 40, 800), tier);
     }
 
     public static void broadcastBlinkRift(
@@ -239,7 +269,7 @@ public final class SpellWorldVfxManager {
             int tier
     ) {
         broadcast(level, SpellVfxEventPayload.VFX_BLINK_RIFT, departurePos, arrivalPos,
-                primary, null, 1.05F, 16, tier);
+                primary, null, 1.05F, 46, tier);
     }
 
     public static void broadcastWardShell(
@@ -250,8 +280,20 @@ public final class SpellWorldVfxManager {
             @Nullable EssenceType secondary,
             int tier
     ) {
+        broadcastWardShell(level, center, radius, primary, secondary, 58, tier);
+    }
+
+    public static void broadcastWardShell(
+            ServerLevel level,
+            Vec3 center,
+            double radius,
+            @Nullable EssenceType primary,
+            @Nullable EssenceType secondary,
+            int durationTicks,
+            int tier
+    ) {
         broadcast(level, SpellVfxEventPayload.VFX_WARD_SHELL, center, new Vec3(0.0D, 1.0D, 0.0D),
-                primary, secondary, (float) Math.max(1.1D, radius), 22, tier);
+                primary, secondary, (float) Math.max(1.1D, radius), Math.clamp(durationTicks, 40, 800), tier);
     }
 
     public static void broadcastSummonPillar(
@@ -263,6 +305,61 @@ public final class SpellWorldVfxManager {
             int tier
     ) {
         broadcast(level, SpellVfxEventPayload.VFX_SUMMON_PILLAR, spawnPos, spawnPos.add(0.0D, 4.5D, 0.0D),
-                primary, secondary, (float) Math.max(1.35D, radius), 26, tier);
+                primary, secondary, (float) Math.max(1.35D, radius), 64, tier);
+    }
+
+    /**
+     * Broadcasts a multi-second 3D swirling funnel tornado (e.g. Air #1 Tornado Vortex, Storm Tempest).
+     */
+    public static void broadcastTornadoVortex(
+            ServerLevel level,
+            Vec3 baseCenter,
+            double radius,
+            double height,
+            @Nullable EssenceType primary,
+            @Nullable EssenceType secondary,
+            int durationTicks,
+            int tier
+    ) {
+        Vec3 crown = baseCenter.add(0.0D, Math.max(4.5D, height), 0.0D);
+        broadcast(level, SpellVfxEventPayload.VFX_TORNADO_VORTEX, baseCenter, crown,
+                primary, secondary, (float) Math.max(1.8D, radius), Math.clamp(durationTicks, 60, 800), tier);
+    }
+
+    /**
+     * Broadcasts an explosive vertical 3D geyser column (e.g. Air #1 14-block Geyser Mine & Concussive Uppercut).
+     */
+    public static void broadcastGeyserPlume(
+            ServerLevel level,
+            Vec3 baseCenter,
+            double radius,
+            double height,
+            @Nullable EssenceType primary,
+            @Nullable EssenceType secondary,
+            int durationTicks,
+            int tier
+    ) {
+        Vec3 top = baseCenter.add(0.0D, Math.max(2.5D, height), 0.0D);
+        broadcast(level, SpellVfxEventPayload.VFX_GEYSER_PLUME, baseCenter, top,
+                primary, secondary, (float) Math.max(0.8D, radius), Math.clamp(durationTicks, 40, 240), tier);
+    }
+
+    /**
+     * Broadcasts a 3D spherical wind-wall or vacuum implosion shell ({@code inwardImplosion == true} collapses inward;
+     * {@code false} expands outward as a protective spherical Gust Shield).
+     */
+    public static void broadcastVacuumSphere(
+            ServerLevel level,
+            Vec3 center,
+            double radius,
+            boolean inwardImplosion,
+            @Nullable EssenceType primary,
+            @Nullable EssenceType secondary,
+            int durationTicks,
+            int tier
+    ) {
+        Vec3 modeVec = new Vec3(inwardImplosion ? -1.0D : 1.0D, 0.0D, 0.0D);
+        broadcast(level, SpellVfxEventPayload.VFX_VACUUM_SPHERE, center, modeVec,
+                primary, secondary, (float) Math.max(1.2D, radius), Math.clamp(durationTicks, 36, 240), tier);
     }
 }

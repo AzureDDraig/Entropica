@@ -2,6 +2,7 @@ package ddraig.net.entropica.spell.mutation;
 
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.spell.SpellPartSlotType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Resolved mutation traits for a single modular Spell Part ({@code Flow}, {@code Form},
@@ -18,6 +19,7 @@ public record SpellMutationProfile(
         EssenceType materiaType,
         boolean mutated,
         String signatureTitle,
+        @Nullable String mutationDescription,
         boolean wallPhasing,
         float armorBypassFraction,
         int armorShredPoints,
@@ -33,6 +35,51 @@ public record SpellMutationProfile(
         boolean spawnLureHex,
         boolean monsterEmpowermentHex
 ) {
+
+    public SpellMutationProfile(
+            SpellPartSlotType slotType,
+            String nodeId,
+            EssenceType materiaType,
+            boolean mutated,
+            String signatureTitle,
+            boolean wallPhasing,
+            float armorBypassFraction,
+            int armorShredPoints,
+            float rangeMultiplier,
+            float radiusMultiplier,
+            float velocityMultiplier,
+            float potencyMultiplier,
+            float lifestealFraction,
+            int bonusPierceTargets,
+            boolean silkTouchInherited,
+            boolean autoSmeltInherited,
+            boolean persistentHex,
+            boolean spawnLureHex,
+            boolean monsterEmpowermentHex
+    ) {
+        this(
+                slotType,
+                nodeId,
+                materiaType,
+                mutated,
+                signatureTitle,
+                null,
+                wallPhasing,
+                armorBypassFraction,
+                armorShredPoints,
+                rangeMultiplier,
+                radiusMultiplier,
+                velocityMultiplier,
+                potencyMultiplier,
+                lifestealFraction,
+                bonusPierceTargets,
+                silkTouchInherited,
+                autoSmeltInherited,
+                persistentHex,
+                spawnLureHex,
+                monsterEmpowermentHex
+        );
+    }
 
     public boolean isUnmutated() {
         return !this.mutated;

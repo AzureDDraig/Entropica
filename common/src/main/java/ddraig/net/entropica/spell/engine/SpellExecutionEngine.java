@@ -76,7 +76,1335 @@ import java.util.stream.Collectors;
  */
 public final class SpellExecutionEngine {
 
+    private record PrimedTouchStrike(
+            SpellAssembly spell,
+            List<SubSpellSlot> touchSlots,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange,
+            long primedAtTick,
+            Map<EssenceType, Long> trickleCostPerSec
+    ) {
+    }
+
+    private record ActiveCorpseBloom(
+            @Nullable UUID casterUuid,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange,
+            long expiresAtTick
+    ) {
+    }
+
+    private static final Map<UUID, PrimedTouchStrike> PRIMED_TOUCH_STRIKES = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final Map<UUID, ActiveCorpseBloom> ACTIVE_CORPSE_BLOOMS = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final ThreadLocal<Boolean> BLINK_CANCELLED_REFUND_FLAG = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<String> BLINK_CANCELLED_REASON = new ThreadLocal<>();
+
     private SpellExecutionEngine() {
+    }
+
+    /**
+     * Marks a struck entity with a 3.0-second (60-tick) {@link SpellTriggerType#ON_DEATH} Corpse Bloom seed (Guide Section 3.5).
+     * If the entity dies while marked, {@link #tryTriggerCorpseBloomOnDeath} detonates all Multi-Cast sub-spells from its corpse!
+     */
+    public static void markEntityForCorpseBloom(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange
+    ) {
+        ACTIVE_CORPSE_BLOOMS.put(
+                target.getUUID(),
+                new ActiveCorpseBloom(
+                        caster != null ? caster.getUUID() : null,
+                        spell,
+                        fallbackMateria,
+                        apparatusPotency,
+                        apparatusRange,
+                        level.getGameTime() + 60L
+                )
+        );
+        level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, target.getX(), target.getY(0.65D), target.getZ(),
+                12, 0.3D, 0.4D, 0.3D, 0.04D);
+        level.playSound(null, target.blockPosition(), SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.PLAYERS, 0.85F, 1.2F);
+    }
+
+    /**
+     * Detonates an active {@link SpellTriggerType#ON_DEATH} Corpse Bloom seed when the marked entity dies within its 3.0s window!
+     */
+    public static void tryTriggerCorpseBloomOnDeath(ServerLevel level, LivingEntity deceased) {
+        ActiveCorpseBloom bloom = ACTIVE_CORPSE_BLOOMS.remove(deceased.getUUID());
+        if (bloom == null || level.getGameTime() > bloom.expiresAtTick()) {
+            return;
+        }
+        LivingEntity caster = bloom.casterUuid() != null && level.getEntity(bloom.casterUuid()) instanceof LivingEntity l ? l : null;
+        Vec3 corpseCenter = deceased.position().add(0.0D, 0.4D, 0.0D);
+
+        EssenceType pMat = bloom.spell().subSpells().isEmpty()
+                ? EssenceType.UNDEAD
+                : bloom.spell().subSpells().getFirst().primaryEffect().resolveEffectiveMateria(bloom.spell().materiaSpecific(), bloom.fallbackMateria());
+        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                level, corpseCenter, 2.8D, pMat, EssenceType.UNDEAD, bloom.spell().getEffectiveTier()
+        );
+        level.sendParticles(ParticleTypes.SOUL, corpseCenter.x, corpseCenter.y + 0.3D, corpseCenter.z,
+                22, 0.55D, 0.45D, 0.55D, 0.06D);
+        level.playSound(null, deceased.blockPosition(), SoundEvents.RESPAWN_ANCHOR_DEPLETE.value(), SoundSource.PLAYERS, 1.0F, 1.15F);
+
+        executeContactMultiCast(
+                level,
+                caster,
+                null,
+                corpseCenter,
+                null,
+                deceased.blockPosition(),
+                Direction.UP,
+                new Vec3(0.0D, 1.0D, 0.0D),
+                bloom.spell(),
+                bloom.fallbackMateria(),
+                bloom.apparatusPotency(),
+                bloom.apparatusRange()
+        );
+        if (bloom.spell().flowPart().flow() == SpellFlowModifier.CHAIN_LEAP && caster != null) {
+            chainLeapMultiCastFrom(
+                    level,
+                    caster,
+                    deceased,
+                    bloom.spell(),
+                    bloom.fallbackMateria(),
+                    bloom.apparatusPotency(),
+                    bloom.apparatusRange()
+            );
+        }
+    }
+
+    /**
+     * Consumes the remaining 75% dynamic trigger Materia fee when a triggered/relay payload actually contacts or activates
+     * (Guide Section 3.6 Dynamic Trigger Billing).
+     */
+    public static boolean consumeDynamicTriggerFeeForPayload(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria
+    ) {
+        if (!spell.flowPart().usesDynamicTriggerBilling(spell.materiaSpecific(), fallbackMateria) || !(caster instanceof Player player)) {
+            return true;
+        }
+        CastingApparatusState held = resolveHeldApparatusState(player);
+        ApparatusType appType = held != null ? held.apparatusType() : ApparatusType.ARCANUM_FOCUS;
+        float effBonus = held != null ? held.materialEfficiencyBonus() : 0.0F;
+        SpellCostBreakdown cost = SpellFuelCalculator.calculateCastCost(spell, appType, effBonus, fallbackMateria);
+        if (cost.dynamicTriggerMfumByType().isEmpty()) {
+            return true;
+        }
+
+        int payloadDivisor = Math.max(1, spell.flowPart().flow().getCarrierPayloadCount());
+        boolean auraDiscount = level.getGameTime() <= EntityHelper.getPersistentData(player).getLong(SpellLingeringZoneManager.TAG_AURA_SHROUD_UNTIL).orElse(0L);
+        Map<EssenceType, Long> perPayloadTriggerCost = new EnumMap<>(EssenceType.class);
+        for (Map.Entry<EssenceType, Long> entry : cost.dynamicTriggerMfumByType().entrySet()) {
+            long share = Math.max(1L, Math.round((double) entry.getValue() / payloadDivisor));
+            if (auraDiscount) {
+                share = Math.max(1L, Math.round(share * 0.80D));
+            }
+            perPayloadTriggerCost.put(entry.getKey(), share);
+        }
+
+        SpellFuelService.FuelCheckResult check = SpellFuelService.consumePlayerSpellFuel(
+                player, spell.getEffectiveTier(), perPayloadTriggerCost, false
+        );
+        if (!check.success()) {
+            player.displayClientMessage(Component.literal("§cInsufficient Materia Fuel to trigger spell payload!"), true);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Guide Section 3.6 Delayed Miss Fuel Refund: refunds the 25% upfront activation deposit 5.0 seconds (100 ticks)
+     * after a dynamic-billing carrier expires in thin air without finding a target!
+     */
+    public static void scheduleMissFuelRefund(
+            ServerLevel level,
+            Player player,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria
+    ) {
+        if (player.isCreative()) {
+            return;
+        }
+        CastingApparatusState held = resolveHeldApparatusState(player);
+        ApparatusType appType = held != null ? held.apparatusType() : ApparatusType.ARCANUM_FOCUS;
+        float effBonus = held != null ? held.materialEfficiencyBonus() : 0.0F;
+        SpellCostBreakdown cost = SpellFuelCalculator.calculateCastCost(spell, appType, effBonus, fallbackMateria);
+        if (cost.upfrontMfumByType().isEmpty()) {
+            return;
+        }
+        int payloadDivisor = Math.max(1, spell.flowPart().flow().getCarrierPayloadCount());
+        Map<EssenceType, Long> refundByType = new EnumMap<>(EssenceType.class);
+        for (Map.Entry<EssenceType, Long> entry : cost.upfrontMfumByType().entrySet()) {
+            refundByType.put(entry.getKey(), Math.max(1L, Math.round((double) entry.getValue() / payloadDivisor)));
+        }
+
+        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                player,
+                player.position(),
+                0.5D,
+                100,
+                level.getGameTime(),
+                null,
+                null,
+                EssenceType.REGULAR,
+                1.0F,
+                (srv, zone, elapsed) -> {
+                    if (elapsed < zone.maxDurationTicks) {
+                        return true;
+                    }
+                    LivingEntity owner = zone.resolveCaster(srv);
+                    if (owner instanceof Player ownerPlayer && ownerPlayer.isAlive()) {
+                        long totalRestored = 0L;
+                        for (Map.Entry<EssenceType, Long> entry : refundByType.entrySet()) {
+                            totalRestored += SpellFuelService.restorePlayerMateriaFuel(ownerPlayer, entry.getKey(), entry.getValue());
+                        }
+                        if (totalRestored > 0L) {
+                            srv.playSound(null, ownerPlayer.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.35F, 1.6F);
+                            ownerPlayer.displayClientMessage(
+                                    Component.literal("§b✦ Unspent Flow Reclaimed §7— Upfront Materia fuel refunded after miss."),
+                                    true
+                            );
+                        }
+                    }
+                    return false;
+                }
+        ));
+    }
+
+    public static boolean hasAnyOpenAirVerb(SpellAssembly spell) {
+        for (SubSpellSlot slot : spell.subSpells()) {
+            if (hasOpenAirBlockVerb(slot) && slot.primaryEffect().effect() != SpellCoreEffect.FLIGHT) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} when a carrier payload reaching its configured Outer Rim Travel Distance stop
+     * ({@code 8m .. 128m}) in open air should detonate its slotted form(s) in mid-air rather than fizzling.
+     */
+    public static boolean shouldDetonateCarrierAtMaxDistance(SpellAssembly spell) {
+        if (hasAnyOpenAirVerb(spell)) {
+            return true;
+        }
+        for (SubSpellSlot slot : spell.subSpells()) {
+            SpellDeliveryForm form = slot.formPart().form();
+            if (form == SpellDeliveryForm.RADIAL_BURST
+                    || form == SpellDeliveryForm.AURA
+                    || form == SpellDeliveryForm.CONE
+                    || form == SpellDeliveryForm.SKYFALL
+                    || form == SpellDeliveryForm.GLYPH
+                    || form.isSummonForm()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Nullable
+    private static CastingApparatusState resolveHeldApparatusState(Player player) {
+        CastingApparatusState main = player.getMainHandItem().get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+        if (main != null) return main;
+        return player.getOffhandItem().get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+    }
+
+    /**
+     * Primes the caster's weapon/hand with one or more {@link SpellDeliveryForm#TOUCH_STRIKE} sub-spells
+     * (Spellcrafting Guide Section 4.4: 30s base prime window, post-30s Materia fuel drinking, discharged on next melee hit!).
+     */
+    public static void primeCasterTouchStrike(
+            ServerLevel level,
+            Player player,
+            SpellAssembly spell,
+            List<SubSpellSlot> touchSlots,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange,
+            @Nullable SpellCostBreakdown costBreakdown
+    ) {
+        if (touchSlots.isEmpty()) {
+            return;
+        }
+        Map<EssenceType, Long> tricklePerSec = new EnumMap<>(EssenceType.class);
+        if (costBreakdown != null) {
+            for (Map.Entry<EssenceType, Long> e : costBreakdown.totalMfumByType().entrySet()) {
+                tricklePerSec.put(e.getKey(), Math.max(1L, Math.round(e.getValue() * 0.10D)));
+            }
+        }
+
+        float primedPotency = apparatusPotency == 1.0F ? apparatusPotency * 1.15F : apparatusPotency;
+        PRIMED_TOUCH_STRIKES.put(
+                player.getUUID(),
+                new PrimedTouchStrike(
+                        spell,
+                        List.copyOf(touchSlots),
+                        fallbackMateria,
+                        primedPotency,
+                        apparatusRange,
+                        level.getGameTime(),
+                        tricklePerSec
+                )
+        );
+
+        SubSpellSlot first = touchSlots.getFirst();
+        EssenceType formMat = first.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        EssenceType effMat = first.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        EssenceType vPrimary = formMat != EssenceType.REGULAR ? formMat : effMat;
+        EssenceType vSecondary = first.secondaryEffect()
+                .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
+                .orElse(effMat != vPrimary ? effMat : null);
+
+        Vec3 handPos = computeCasterMuzzleOrigin(player, InteractionHand.MAIN_HAND);
+        if (!isSilentStealthSpell(spell, fallbackMateria)) {
+            ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnCastMuzzleBurst(
+                    level, handPos, player.getLookAngle(), vPrimary, vSecondary, spell.getEffectiveTier()
+            );
+            level.playSound(null, player.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 0.80F, 1.35F);
+            level.playSound(null, player.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.70F, 1.45F);
+        } else {
+            level.sendParticles(ParticleTypes.SMOKE, handPos.x, handPos.y, handPos.z, 6, 0.14D, 0.14D, 0.14D, 0.01D);
+        }
+
+        String countLabel = touchSlots.size() > 1 ? " (" + SpellFlowModifier.getCastCountTitle(touchSlots.size()) + ")" : "";
+        player.displayClientMessage(
+                Component.literal("§b✦ Touch / Strike Primed (30s) §7— Next hit unleashes §f"
+                        + spell.customName() + countLabel + "§7!"),
+                true
+        );
+    }
+
+    /**
+     * Ticks active primed Touch / Melee Strike weapon infusions once per server tick:
+     * renders subtle Materia sparks on the primed hand and drinks 10% cast fuel/sec if held past 30s (Guide Sec 4.4).
+     */
+    public static void tickPrimedTouchStrikes(ServerLevel level) {
+        if (PRIMED_TOUCH_STRIKES.isEmpty()) {
+            return;
+        }
+        long now = level.getGameTime();
+        Iterator<Map.Entry<UUID, PrimedTouchStrike>> it = PRIMED_TOUCH_STRIKES.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, PrimedTouchStrike> entry = it.next();
+            Player player = level.getPlayerByUUID(entry.getKey());
+            if (player == null) {
+                continue;
+            }
+            if (!player.isAlive()) {
+                it.remove();
+                continue;
+            }
+            PrimedTouchStrike primed = entry.getValue();
+            long elapsed = now - primed.primedAtTick();
+            if (elapsed > 3600L) {
+                it.remove();
+                continue;
+            }
+
+            // Subtle primed hand/weapon shimmer every 6 ticks
+            if (elapsed > 0L && elapsed % 6L == 0L && !primed.touchSlots().isEmpty()) {
+                SubSpellSlot first = primed.touchSlots().getFirst();
+                EssenceType formMat = first.formPart().resolveEffectiveMateria(primed.spell().materiaSpecific(), primed.fallbackMateria());
+                EssenceType effMat = first.primaryEffect().resolveEffectiveMateria(primed.spell().materiaSpecific(), primed.fallbackMateria());
+                EssenceType vPrimary = formMat != EssenceType.REGULAR ? formMat : effMat;
+                Vec3 handPos = computeCasterMuzzleOrigin(player, InteractionHand.MAIN_HAND);
+                ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                        level, handPos, vPrimary, null, 0.28D, 1
+                );
+            }
+
+            // Guide Section 4.4 Fuel Drinking: after 30s (600 ticks) without striking, slowly drinks Materia fuel every second!
+            if (elapsed > 600L && (elapsed - 600L) % 20L == 0L && !primed.trickleCostPerSec().isEmpty()) {
+                SpellFuelService.FuelCheckResult check = SpellFuelService.consumePlayerSpellFuel(
+                        player,
+                        primed.spell().getEffectiveTier(),
+                        primed.trickleCostPerSec(),
+                        false
+                );
+                if (!check.success()) {
+                    it.remove();
+                    player.displayClientMessage(
+                            Component.literal("§7✦ Primed Touch spell dissipated (Materia fuel exhausted)."),
+                            true
+                    );
+                    level.playSound(null, player.blockPosition(), SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.45F, 1.5F);
+                } else if (elapsed == 620L) {
+                    player.displayClientMessage(
+                            Component.literal("§e✦ Touch Prime Over-Held (>30s) §7— Weapon is drinking trickle Materia until swung!"),
+                            true
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Earth {@code TOUCH_STRIKE}
+     * (Section 6.5 <i>Seismic Impact</i>), so the physical melee swing itself converts into pure Earth Materia damage.
+     */
+    public static boolean hasPrimedEarthSeismicStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.EARTH) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Frozen {@code TOUCH_STRIKE}
+     * (Section 6.6 <i>Flash-Freeze Stasis</i>), so the physical melee swing converts into pure Frozen Materia damage.
+     */
+    public static boolean hasPrimedFrozenFlashFreezeStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.FROZEN) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker's primed Frozen {@code TOUCH_STRIKE} also carries mutated Frozen
+     * {@code SLOW_HEAVY} Flow (Section 6.6 <i>Permafrost Creep</i>, +0.4 Materia Advantage vs Water targets).
+     */
+    public static boolean hasPrimedFrozenPermafrostCreep(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        return spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY
+                && spell.flowPart().mutationEnabled()
+                && spell.flowPart().resolveEffectiveMateria(spell.materiaSpecific(), primed.fallbackMateria()) == EssenceType.FROZEN;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Nether {@code TOUCH_STRIKE}
+     * (Section 6.7 <i>Cauterizing Cleave &amp; Auto-Smelt</i>), so the physical melee swing converts into pure Nether Materia damage.
+     */
+    public static boolean hasPrimedNetherCauterizingStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.NETHER) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Radiant {@code TOUCH_STRIKE}
+     * (Section 6.8 <i>Holy Smite &amp; Daylight Ignition</i>), so the physical melee swing converts into pure Radiant Materia damage.
+     */
+    public static boolean hasPrimedRadiantHolySmiteStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.RADIANT) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Umbral {@code TOUCH_STRIKE}
+     * (Section 6.9 <i>Umbral Shroud Cloaking</i>), so the physical melee swing converts into pure Umbral Materia damage.
+     */
+    public static boolean hasPrimedUmbralCloakingStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.UMBRAL) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Undead {@code TOUCH_STRIKE}
+     * (Section 6.10 <i>Vampiric Touch</i>), so the physical melee swing converts into pure Undead Materia damage
+     * and siphons 30% of the damage dealt directly into the caster's health pool.
+     */
+    public static boolean hasPrimedUndeadVampiricStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.UNDEAD) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Void {@code TOUCH_STRIKE}
+     * (Section 6.11 <i>Spatial Destabilization Strike</i>), so the physical melee swing converts into
+     * armor-piercing Void Materia damage (+1 vs Air, -1 vs Earth).
+     */
+    public static boolean hasPrimedVoidDestabilizationStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.VOID) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Arid {@code TOUCH_STRIKE}
+     * (Section 6.12 <i>Desiccating Mummification Strike</i>), so the physical melee swing converts into
+     * pure Arid Materia damage and desiccates slain raw drops into dried cured meat and sand.
+     */
+    public static boolean hasPrimedAridMummificationStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.ARID) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Lightning {@code TOUCH_STRIKE}
+     * (Section 6.13 <i>Overcharge Discharge Strike</i>), so the physical melee swing converts into
+     * pure Lightning Materia damage (+1 vs Earth &amp; Water, -1 vs Void, +100% vs wet).
+     */
+    public static boolean hasPrimedLightningOverchargeStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.LIGHTNING) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Magma {@code TOUCH_STRIKE}
+     * (Section 6.14 <i>Volcanic Slag Cleave</i>), so the physical melee swing converts into pure Magma Materia
+     * damage (+1 vs Frozen &amp; Nature, -1 vs Air &amp; Water) and auto-smelts drops on lethal blows.
+     */
+    public static boolean hasPrimedMagmaVolcanicCleaveStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.MAGMA) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Storm {@code TOUCH_STRIKE}
+     * (Section 6.15 <i>Squall Cleave</i>), so the physical melee swing converts into pure Storm Materia
+     * damage (+1 vs Earth &amp; Glacial, -1 vs Nature).
+     */
+    public static boolean hasPrimedStormSquallCleaveStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.STORM) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Glacial {@code TOUCH_STRIKE}
+     * (Section 6.16 <i>Brittle Frost Strike</i>), so the physical melee swing converts into pure Glacial Materia damage.
+     */
+    public static boolean hasPrimedGlacialBrittleFrostStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.GLACIAL) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker's primed Glacial {@code TOUCH_STRIKE} also carries mutated Glacial
+     * {@code SLOW_HEAVY} Flow (Section 6.16 <i>Permafrost Creep</i>, +0.4 Materia Advantage score).
+     */
+    public static boolean hasPrimedGlacialPermafrostCreep(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        return spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY
+                && spell.flowPart().mutationEnabled()
+                && spell.flowPart().resolveEffectiveMateria(spell.materiaSpecific(), primed.fallbackMateria()) == EssenceType.GLACIAL;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Overgrowth {@code TOUCH_STRIKE}
+     * (Section 6.17 <i>Botanical Ground Slam</i>), so the physical melee swing converts into pure Overgrowth Materia damage.
+     */
+    public static boolean hasPrimedOvergrowthBotanicalSlamStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.OVERGROWTH) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Dust {@code TOUCH_STRIKE}
+     * (Section 6.18 <i>Choking Smother Strike</i>), so the physical melee swing converts into pure Dust Materia damage.
+     */
+    public static boolean hasPrimedDustSmotherStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.DUST) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Spore {@code TOUCH_STRIKE}
+     * (Section 6.19 <i>Mycelial Infestation Strike</i>), so the physical melee swing converts into pure Spore Materia damage
+     * and stamps infectious death-pop metadata even on one-shot kills.
+     */
+    public static boolean hasPrimedSporeInfestationStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.SPORE) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Discharges an active primed Touch / Melee Strike spell when the caster lands their next physical melee hit
+     * (Spellcrafting System Guide Section 4.4: 100% primary target + 50% cleave splash + weapon Materia Advantage stacking!).
+     */
+    public static void tryDischargePrimedTouchStrike(
+            ServerLevel level,
+            LivingEntity attacker,
+            LivingEntity primaryTarget
+    ) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) {
+            return;
+        }
+        if (primaryTarget == attacker || !primaryTarget.isAlive()) {
+            return;
+        }
+
+        SpellAssembly spell = primed.spell();
+        boolean anyBeneficial = false;
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (isCasterBeneficialVerb(s.primaryEffect().effect())) {
+                anyBeneficial = true;
+                break;
+            }
+        }
+        if (!anyBeneficial && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                primaryTarget, attacker, spell.hasWardFriendlyFireSafeguard())) {
+            return;
+        }
+        PRIMED_TOUCH_STRIKES.remove(attacker.getUUID());
+
+        EssenceType fallbackMateria = primed.fallbackMateria();
+        SpellFlowModifier flow = spell.flowPart().flow();
+        float flowPotencyMult = switch (flow) {
+            case DOUBLE_BIFURCATE -> 1.50F;
+            case TRIPLE_TRIFURCATE -> 2.00F;
+            case OCTUPLE_DOME -> 2.25F;
+            default -> 1.0F;
+        };
+        float potency = primed.apparatusPotency() * flowPotencyMult;
+        int tier = spell.getEffectiveTier();
+        float flawRangeMult = spell.flawProfile().getRangeAndRadiusMultiplier();
+
+        Vec3 delta = primaryTarget.getEyePosition().subtract(attacker.getEyePosition());
+        Vec3 direction = delta.lengthSqr() > 1.0E-4D ? delta.normalize() : attacker.getLookAngle().normalize();
+
+        EssenceType rayFlowMat = spell.flowPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        boolean miasmaOrOblivionStrikeChain = spell.flowPart().mutationEnabled()
+                && (rayFlowMat == EssenceType.MIASMA || rayFlowMat == EssenceType.OBLIVION);
+
+        for (SubSpellSlot slot : primed.touchSlots()) {
+            EssenceType formMat = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            SpellMutationProfile formMut = slot.formPart().resolveMutation(spell.materiaSpecific(), fallbackMateria);
+            double cleaveRad = Math.max(2.5D, 2.5D * (formMut.mutated() ? formMut.radiusMultiplier() : 1.0F) * primed.apparatusRange() * flawRangeMult);
+
+            EssenceType effMat = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            EssenceType vPrimary = formMat != EssenceType.REGULAR ? formMat : effMat;
+            EssenceType vSecondary = slot.secondaryEffect()
+                    .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
+                    .orElse(effMat != vPrimary ? effMat : null);
+
+            if (!isSilentStealthSpell(spell, fallbackMateria)) {
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, attacker.getEyePosition().subtract(0.0D, 0.28D, 0.0D), direction, 3.6D, vPrimary, vSecondary, tier
+                );
+                if (flow == SpellFlowModifier.DOUBLE_BIFURCATE || flow == SpellFlowModifier.TRIPLE_TRIFURCATE || flow == SpellFlowModifier.OCTUPLE_DOME) {
+                    Vec3 crossDir = Vec3.directionFromRotation(attacker.getXRot(), attacker.getYRot() + 22.0F);
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                            level, attacker.getEyePosition().subtract(0.0D, 0.22D, 0.0D), crossDir, 3.6D, vSecondary != null ? vSecondary : vPrimary, vPrimary, tier
+                    );
+                }
+                ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                        level, primaryTarget.position().add(0.0D, primaryTarget.getBbHeight() * 0.55D, 0.0D), vPrimary, vSecondary, 1.30D, tier
+                );
+            }
+
+            boolean radiantPurifyDrops = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && slot.formPart().mutationEnabled()
+                    && formMat == EssenceType.RADIANT;
+            boolean netherAutoSmeltDrops = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && slot.formPart().mutationEnabled()
+                    && (formMat == EssenceType.NETHER || formMat == EssenceType.MAGMA);
+            boolean aridMummifyDrops = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && slot.formPart().mutationEnabled()
+                    && formMat == EssenceType.ARID;
+            long radiantPurifyUntil = level.getGameTime() + 40L;
+            long netherAutoSmeltUntil = level.getGameTime() + 130L;
+            long aridMummifyUntil = level.getGameTime() + 60L;
+            if (radiantPurifyDrops) {
+                EntityHelper.getPersistentData(primaryTarget).putLong(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL, radiantPurifyUntil);
+            }
+            if (netherAutoSmeltDrops) {
+                EntityHelper.getPersistentData(primaryTarget).putLong(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL, netherAutoSmeltUntil);
+            }
+            if (aridMummifyDrops) {
+                EntityHelper.getPersistentData(primaryTarget).putLong(SpellLingeringZoneManager.TAG_ARID_MUMMIFY_DROPS_UNTIL, aridMummifyUntil);
+            }
+
+            deliverSubSpellOnEntity(level, attacker, primaryTarget, direction, spell, slot, fallbackMateria, potency);
+            if (flow == SpellFlowModifier.CHAIN_LEAP || miasmaOrOblivionStrikeChain) {
+                chainLeapFrom(level, attacker, primaryTarget, spell, slot, fallbackMateria, potency);
+            }
+
+            List<LivingEntity> allTouchStruck = new ArrayList<>();
+            allTouchStruck.add(primaryTarget);
+
+            // Section 4.4 Cleave Splash: cleaves adjacent enemies within sweeping arc radius at 50% splash potency!
+            for (LivingEntity cleaveTarget : level.getEntitiesOfClass(
+                    LivingEntity.class, primaryTarget.getBoundingBox().inflate(cleaveRad), LivingEntity::isAlive)) {
+                if (cleaveTarget == attacker || cleaveTarget == primaryTarget) continue;
+                if (!isCasterBeneficialVerb(slot.primaryEffect().effect())
+                        && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                        cleaveTarget, attacker, spell.hasWardFriendlyFireSafeguard())) {
+                    continue;
+                }
+                if (radiantPurifyDrops) {
+                    EntityHelper.getPersistentData(cleaveTarget).putLong(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL, radiantPurifyUntil);
+                }
+                if (netherAutoSmeltDrops) {
+                    EntityHelper.getPersistentData(cleaveTarget).putLong(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL, level.getGameTime() + 70L);
+                }
+                if (aridMummifyDrops) {
+                    EntityHelper.getPersistentData(cleaveTarget).putLong(SpellLingeringZoneManager.TAG_ARID_MUMMIFY_DROPS_UNTIL, aridMummifyUntil);
+                }
+                allTouchStruck.add(cleaveTarget);
+                if (slot.primaryEffect().effect() == SpellCoreEffect.BLINK) {
+                    slot.secondaryEffect().ifPresent(sec -> {
+                        if (sec.effect() != SpellCoreEffect.BLINK) {
+                            executeSingleEffectOnEntity(level, attacker, cleaveTarget, direction, spell, slot, sec,
+                                    SpellPartSlotType.SECONDARY_EFFECT, fallbackMateria, potency * 0.50F);
+                        }
+                    });
+                    continue;
+                }
+                deliverSubSpellOnEntity(level, attacker, cleaveTarget, direction, spell, slot, fallbackMateria, potency * 0.50F);
+            }
+
+            MateriaPartMutationHandler formHandler = SpellMutationHandlerRegistry.resolveActive(formMat, slot.formPart().mutationEnabled());
+            if (formHandler != null) {
+                formHandler.onTouchStrikeFormCast(level, attacker, direction, allTouchStruck, spell, slot, fallbackMateria, potency);
+            }
+        }
+        if (!isSilentStealthSpell(spell, fallbackMateria)) {
+            level.playSound(null, primaryTarget.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 0.95F, 1.15F);
+        }
+    }
+
+    /**
+     * Discharges a primed Utility / Block-targeting Touch Strike spell when the player punches a block!
+     * Combat Harm/Affliction primes are preserved so brushing grass or stone never wastes a Combat melee infusion.
+     */
+    public static boolean tryDischargePrimedTouchStrikeOnBlock(
+            ServerLevel level,
+            Player player,
+            BlockPos pos,
+            Direction face
+    ) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(player.getUUID());
+        if (primed == null) {
+            return false;
+        }
+        SpellAssembly spell = primed.spell();
+        boolean blockOriented = spell.prefix() != SpellPrefix.COMBAT;
+        if (!blockOriented) {
+            for (SubSpellSlot s : primed.touchSlots()) {
+                SpellCoreEffect p = s.primaryEffect().effect();
+                if (p == SpellCoreEffect.BREAK || p == SpellCoreEffect.TRANSMUTE || p == SpellCoreEffect.CONSTRUCT
+                        || p == SpellCoreEffect.CONJURE || p == SpellCoreEffect.GRAVITY || p == SpellCoreEffect.DIAGNOSTIC) {
+                    blockOriented = true;
+                    break;
+                }
+            }
+        }
+        if (!blockOriented) {
+            return false;
+        }
+
+        PRIMED_TOUCH_STRIKES.remove(player.getUUID());
+        EssenceType fallbackMateria = primed.fallbackMateria();
+        int tier = spell.getEffectiveTier();
+        Vec3 hitCenter = Vec3.atCenterOf(pos);
+        Vec3 dir = player.getLookAngle().normalize();
+
+        for (SubSpellSlot slot : primed.touchSlots()) {
+            EssenceType formMat = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            EssenceType effMat = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            EssenceType vPrimary = formMat != EssenceType.REGULAR ? formMat : effMat;
+            EssenceType vSecondary = slot.secondaryEffect()
+                    .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
+                    .orElse(effMat != vPrimary ? effMat : null);
+
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                    level, player.getEyePosition().subtract(0.0D, 0.28D, 0.0D), dir, 3.2D, vPrimary, vSecondary, tier
+            );
+            ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, hitCenter, vPrimary, vSecondary, 1.05D, tier);
+            deliverSubSpellOnBlock(level, player, pos, face, spell, slot, fallbackMateria, primed.apparatusPotency());
+        }
+        return true;
+    }
+
+    private static Vec3 computeCasterMuzzleOrigin(LivingEntity caster, InteractionHand hand) {
+        Vec3 eye = caster.getEyePosition();
+        Vec3 look = caster.getLookAngle().normalize();
+        Vec3 worldUp = Math.abs(look.y) > 0.94D ? new Vec3(1.0D, 0.0D, 0.0D) : new Vec3(0.0D, 1.0D, 0.0D);
+        Vec3 right = look.cross(worldUp).normalize();
+        double handSide = (hand == InteractionHand.OFF_HAND) ? -0.26D : 0.26D;
+        return eye.add(right.scale(handSide)).subtract(0.0D, 0.16D, 0.0D).add(look.scale(0.42D));
+    }
+
+    /**
+     * Begins a continuous Right-Click Channeled Beam from the caster (Guide Section 4.2),
+     * performing activation checks and immediately firing & billing tick 0.
+     */
+    public static boolean tryBeginChanneledBeam(
+            ServerLevel level,
+            Player player,
+            InteractionHand hand,
+            ItemStack apparatusStack
+    ) {
+        CastingApparatusState state = apparatusStack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+        if (state == null) {
+            return false;
+        }
+        if (hand == InteractionHand.OFF_HAND && !state.apparatusType().allowsOffhandCast()) {
+            player.displayClientMessage(
+                    Component.literal("§c[" + state.apparatusType().getDisplayName() + "] Requires Main-Hand casting!"),
+                    true
+            );
+            return false;
+        }
+        if (player.getCooldowns().isOnCooldown(apparatusStack)) {
+            return false;
+        }
+
+        long now = level.getGameTime();
+        long silencedUntil = EntityHelper.getPersistentData(player).getLong("SpellSilencedUntil").orElse(0L);
+        if (now < silencedUntil) {
+            long remSec = (silencedUntil - now + 19L) / 20L;
+            player.displayClientMessage(
+                    Component.literal("§5[Arcane Silence] §7Vocal & somatic channels silenced (§d" + remSec + "s§7)!"),
+                    true
+            );
+            level.playSound(null, player.blockPosition(), SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 0.7F, 0.55F);
+            return false;
+        }
+
+        SocketedSpellgem activeSocket = state.getActiveSocket();
+        if (activeSocket.isEmpty() || activeSocket.spell().isEmpty()) {
+            player.displayClientMessage(
+                    Component.literal("§7[" + state.apparatusType().getDisplayName() + "] No Spellgem socketed in Slot ["
+                            + (state.activeSlotIndex() + 1) + "/" + state.apparatusType().getGemCapacity() + "]."),
+                    true
+            );
+            return false;
+        }
+        if (activeSocket.isLockedOut(now)) {
+            long remSec = (activeSocket.getRemainingLockoutTicks(now) + 19L) / 20L;
+            player.displayClientMessage(
+                    Component.literal("§c[Field-Swap Lockout] §7Socket stabilizing (§e" + remSec
+                            + "s§7). Swap at a Scribing Table or Runic Anvil for 0s lockout!"),
+                    true
+            );
+            level.playSound(null, player.blockPosition(), SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 0.7F, 0.6F);
+            return false;
+        }
+
+        SpellAssembly spell = activeSocket.spell().get();
+        if (!spell.isBoundToTier()) {
+            player.displayClientMessage(
+                    Component.literal("§cSpell blueprint is not bound to a Potency Tier yet!"),
+                    true
+            );
+            return false;
+        }
+
+        EssenceType fallbackMateria = spell.materiaSpecific()
+                ? EssenceType.REGULAR
+                : Optional.ofNullable(SpellFuelService.detectPrimaryAvailableMateria(player)).orElse(EssenceType.REGULAR);
+
+        // First-Cast Field-Swap 45% Backfire Check
+        if (activeSocket.pendingFieldBackfireRoll()) {
+            CastingApparatusState cleared = state.withSocket(state.activeSlotIndex(), activeSocket.clearPendingBackfire());
+            apparatusStack.set(ModDataComponents.CASTING_APPARATUS_STATE.get(), cleared);
+            if (level.random.nextFloat() < SocketedSpellgem.FIELD_SWAP_FIRST_CAST_BACKFIRE_CHANCE) {
+                triggerArcaneBackfire(level, player, 3.0F, "§c[Arcane Backfire!] §7Unaligned field-swapped Spellgem discharged on first cast!");
+                player.getCooldowns().addCooldown(apparatusStack, 14);
+                return false;
+            }
+        }
+
+        // Flawed Infusion Unstable Casting (25% fizzle roll on beam ignition)
+        if (spell.flawProfile().unstableCasting()
+                && level.random.nextFloat() < SpellFlawProfile.UNSTABLE_BACKFIRE_CHANCE) {
+            triggerArcaneBackfire(level, player, 2.0F, "§c[Unstable Spellgem!] §7Flawed ritual infusion caused the beam to fizzle!");
+            player.getCooldowns().addCooldown(apparatusStack, 12);
+            return false;
+        }
+
+        if (SpellCombatReactionEngine.hasActiveMutatedHexPublic(player, EssenceType.APOTHEOSIS)
+                && isDarkOrVoidSpellAssembly(spell, fallbackMateria)) {
+            triggerArcaneBackfire(level, player, 4.0F + spell.getEffectiveTier(),
+                    "§e[Divine Genesis Brand!] §7Attempting dark or void magic under Apotheosis judgment seared your soul!");
+            player.getCooldowns().addCooldown(apparatusStack, 14);
+            return false;
+        }
+
+        if (!tickChanneledBeam(level, player, hand, apparatusStack, 0)) {
+            return false;
+        }
+
+        SpellResearchManager.onSpellCast(player, spell, fallbackMateria);
+        if (!isSilentStealthSpell(spell, fallbackMateria)) {
+            level.playSound(null, player.blockPosition(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.55F, 1.55F);
+        }
+        return true;
+    }
+
+    private record BeamRaySpec(Vec3 origin, Vec3 direction, float potencyScale) {
+    }
+
+    private static List<BeamRaySpec> resolveChanneledBeamRays(
+            ServerLevel level,
+            Player caster,
+            InteractionHand hand,
+            SpellAssembly spell,
+            float apparatusRange,
+            int heldTicks
+    ) {
+        Vec3 baseMuzzle = computeCasterMuzzleOrigin(caster, hand);
+        Vec3 look = caster.getLookAngle().normalize();
+        float yaw = caster.getYRot();
+        float pitch = caster.getXRot();
+        SpellFlowModifier flow = spell.flowPart().flow();
+
+        List<BeamRaySpec> rays = new ArrayList<>();
+        switch (flow) {
+            case DOUBLE_BIFURCATE -> {
+                rays.add(new BeamRaySpec(baseMuzzle, Vec3.directionFromRotation(pitch, yaw - 7.5F), 0.85F));
+                rays.add(new BeamRaySpec(baseMuzzle, Vec3.directionFromRotation(pitch, yaw + 7.5F), 0.85F));
+            }
+            case TRIPLE_TRIFURCATE -> {
+                rays.add(new BeamRaySpec(baseMuzzle, Vec3.directionFromRotation(pitch, yaw - 13.0F), 0.80F));
+                rays.add(new BeamRaySpec(baseMuzzle, look, 0.85F));
+                rays.add(new BeamRaySpec(baseMuzzle, Vec3.directionFromRotation(pitch, yaw + 13.0F), 0.80F));
+            }
+            case OCTUPLE_DOME -> {
+                for (int i = 0; i < 8; i++) {
+                    rays.add(new BeamRaySpec(baseMuzzle, Vec3.directionFromRotation(pitch * 0.35F, yaw + i * 45.0F), 0.65F));
+                }
+            }
+            case ORBIT_SATELLITE -> {
+                double baseAng = (level.getGameTime() + heldTicks) * 0.16D;
+                for (int i = 0; i < 4; i++) {
+                    double a = baseAng + (Math.PI * 0.5D * i);
+                    Vec3 orbitOrigin = caster.position().add(Math.cos(a) * 1.35D, caster.getBbHeight() * 0.72D, Math.sin(a) * 1.35D);
+                    rays.add(new BeamRaySpec(orbitOrigin, look, 0.65F));
+                }
+            }
+            default -> rays.add(new BeamRaySpec(baseMuzzle, look, 1.0F));
+        }
+        return rays;
+    }
+
+    /**
+     * Ticks an active Right-Click Channeled Beam directly from the caster toward their live crosshair aim (Guide Section 4.2):
+     * <ul>
+     *     <li>Every 2 ticks: broadcasts smooth 3D continuous beam geometry attached to the caster's hand.</li>
+     *     <li>Every 4 ticks (5x/sec): drains 1/5th of the spell's {@code Materia/s} cost and ticks continuous beam damage & block mining.</li>
+     *     <li>Every 60 ticks (3.0s): triggers <b>The Burst Finisher</b> shockwave pulse at the beam's impact point!</li>
+     * </ul>
+     */
+    public static boolean tickChanneledBeam(
+            ServerLevel level,
+            Player player,
+            InteractionHand hand,
+            ItemStack apparatusStack,
+            int heldTicks
+    ) {
+        CastingApparatusState state = apparatusStack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+        if (state == null) return false;
+        SocketedSpellgem activeSocket = state.getActiveSocket();
+        if (activeSocket.isEmpty() || activeSocket.spell().isEmpty()) return false;
+
+        long now = level.getGameTime();
+        if (now < EntityHelper.getPersistentData(player).getLong("SpellSilencedUntil").orElse(0L)) {
+            return false;
+        }
+
+        SpellAssembly spell = activeSocket.spell().get();
+        if (!spell.isBoundToTier() || !spell.hasChanneledBeamForm()) {
+            return false;
+        }
+
+        EssenceType fallbackMateria = spell.materiaSpecific()
+                ? EssenceType.REGULAR
+                : Optional.ofNullable(SpellFuelService.detectPrimaryAvailableMateria(player)).orElse(EssenceType.REGULAR);
+
+        SpellCostBreakdown perSecCost = SpellFuelCalculator.calculateCastCost(
+                spell,
+                state.apparatusType(),
+                state.materialEfficiencyBonus(),
+                fallbackMateria
+        );
+
+        boolean actionPulse = (heldTicks % 4 == 0);
+        boolean visualPulse = (heldTicks % 2 == 0);
+        boolean burstFinisher = (heldTicks > 0 && heldTicks % 60 == 0);
+
+        // 1. Drain 1/5th of per-second Materia cost every 4 ticks (5 pulses = 1.0 second)
+        if (actionPulse) {
+            boolean auraDiscount = now <= EntityHelper.getPersistentData(player).getLong(SpellLingeringZoneManager.TAG_AURA_SHROUD_UNTIL).orElse(0L);
+            Map<EssenceType, Long> sliceCost = new EnumMap<>(EssenceType.class);
+            for (Map.Entry<EssenceType, Long> e : perSecCost.totalMfumByType().entrySet()) {
+                double mult = auraDiscount ? 0.16D : 0.20D;
+                sliceCost.put(e.getKey(), Math.max(1L, Math.round(e.getValue() * mult)));
+            }
+            SpellFuelService.FuelCheckResult fuelCheck = SpellFuelService.consumePlayerSpellFuel(
+                    player,
+                    spell.getEffectiveTier(),
+                    sliceCost,
+                    false
+            );
+            if (!fuelCheck.success()) {
+                if (heldTicks == 0) {
+                    String missingNames = fuelCheck.missingTypes().stream()
+                            .map(EssenceType::getDisplayName)
+                            .collect(Collectors.joining(", "));
+                    player.displayClientMessage(
+                            Component.literal("§cInsufficient Materia Fuel! Missing: §e" + missingNames),
+                            true
+                    );
+                } else {
+                    player.displayClientMessage(
+                            Component.literal("§cMateria Fuel depleted — Beam channel ended!"),
+                            true
+                    );
+                }
+                level.playSound(null, player.blockPosition(), SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.5F, 1.5F);
+                return false;
+            }
+        }
+
+        if (!visualPulse && !actionPulse && !burstFinisher) {
+            return true;
+        }
+
+        float apparatusPotency = state.apparatusType().getPotencyMultiplier();
+        float apparatusRange = state.apparatusType().getRangeMultiplier();
+        if (spell.flowPart().flow() == SpellFlowModifier.FAST_DART) {
+            apparatusRange *= 1.25F;
+        }
+
+        int tier = spell.getEffectiveTier();
+        float flawRangeMult = spell.flawProfile().getRangeAndRadiusMultiplier();
+        boolean silent = isSilentStealthSpell(spell, fallbackMateria);
+        boolean voidFlowPhase = spell.flowPart().isVoidWarpAuthorized(spell.materiaSpecific(), fallbackMateria);
+
+        List<BeamRaySpec> rays = resolveChanneledBeamRays(level, player, hand, spell, apparatusRange, heldTicks);
+        List<SubSpellSlot> touchToPrime = (heldTicks == 0) ? new ArrayList<>() : List.of();
+
+        if (heldTicks > 0 && heldTicks % 12 == 0 && !silent) {
+            level.playSound(null, player.blockPosition(), SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, 0.40F, 1.55F);
+        }
+
+        List<SubSpellSlot> slots = spell.subSpells();
+        for (int slotIdx = 0; slotIdx < slots.size(); slotIdx++) {
+            SubSpellSlot slot = slots.get(slotIdx);
+            SpellDeliveryForm form = slot.formPart().form();
+            if (form == SpellDeliveryForm.TOUCH_STRIKE) {
+                if (heldTicks == 0) {
+                    touchToPrime.add(slot);
+                }
+                continue;
+            }
+            if (form != SpellDeliveryForm.BEAM) {
+                // Any companion non-beam sub-spell in a hybrid Multi-Cast pulses cleanly once per second from the caster
+                if (heldTicks % 20 == 0) {
+                    dispatchSingleSubSpellForm(level, player, player.getLookAngle().normalize(), spell, slotIdx, slot,
+                            fallbackMateria, apparatusPotency, apparatusRange);
+                }
+                continue;
+            }
+
+            EssenceType formMat = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            SpellMutationProfile formMutation = slot.formPart().resolveMutation(spell.materiaSpecific(), fallbackMateria);
+            MateriaPartMutationHandler formHandler = SpellMutationHandlerRegistry.resolveActive(formMat, slot.formPart().mutationEnabled());
+            float beamReachMult = (formMutation.mutated() ? formMutation.rangeMultiplier() : 1.0F) * apparatusRange * flawRangeMult;
+
+            boolean earthReachBonus = formMutation.mutated() && MateriaFamilyTier.isEarthLineage(formMat);
+            double maxReach = spell.flowPart().distanceStep().resolveBaseBeamReachBlocks(
+                    tier, spell.prefix() == SpellPrefix.COMBAT, earthReachBonus
+            ) * beamReachMult;
+
+            boolean wallPhasing = ((formMutation.mutated() && formMutation.wallPhasing()) || voidFlowPhase)
+                    && spell.prefix() != SpellPrefix.UTILITY;
+
+            EssenceType effMat = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            EssenceType vPrimary = formMat != EssenceType.REGULAR ? formMat : effMat;
+            EssenceType vSecondary = slot.secondaryEffect()
+                    .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
+                    .orElse(effMat != vPrimary ? effMat : null);
+
+            for (BeamRaySpec ray : rays) {
+                Vec3 rayStart = player.getEyePosition();
+                Vec3 rayEnd = rayStart.add(ray.direction().scale(maxReach));
+                boolean cryoBridgeBeam = formMat == EssenceType.FROZEN && formMutation.mutated();
+                ClipContext.Fluid beamFluidClip = (formMat == EssenceType.WATER || cryoBridgeBeam || !slotHasEffect(slot, SpellCoreEffect.TRANSMUTE))
+                        ? ClipContext.Fluid.NONE
+                        : ClipContext.Fluid.ANY;
+                BlockHitResult blockHit = level.clip(new ClipContext(rayStart, rayEnd, ClipContext.Block.OUTLINE, beamFluidClip, player));
+                Vec3 effectiveEnd = (!wallPhasing && blockHit.getType() == HitResult.Type.BLOCK) ? blockHit.getLocation() : rayEnd;
+                // Section 6.6 Absolute-Zero Cryo-Ray: when grazing the top surface of newly formed ice bridges across water,
+                // project the ray smoothly across the ice sheet out to full maxReach until hitting a genuine non-ice solid wall!
+                if (cryoBridgeBeam && !wallPhasing && blockHit.getType() == HitResult.Type.BLOCK && blockHit.getDirection() == Direction.UP) {
+                    BlockState grazed = level.getBlockState(blockHit.getBlockPos());
+                    if (grazed.is(Blocks.PACKED_ICE) || grazed.is(Blocks.BLUE_ICE) || grazed.is(Blocks.ICE) || grazed.is(Blocks.FROSTED_ICE)) {
+                        double reachD = rayStart.distanceTo(blockHit.getLocation());
+                        Vec3 bridgeEnd = rayEnd;
+                        Vec3 normDir = ray.direction().normalize();
+                        for (double step = reachD + 0.75D; step <= maxReach; step += 0.75D) {
+                            Vec3 probePt = rayStart.add(normDir.scale(step));
+                            BlockPos probePos = BlockPos.containing(probePt);
+                            BlockState ps = level.getBlockState(probePos);
+                            if (!ps.isAir() && !ps.is(Blocks.WATER) && !ps.is(Blocks.LAVA)
+                                    && !ps.is(Blocks.PACKED_ICE) && !ps.is(Blocks.BLUE_ICE)
+                                    && !ps.is(Blocks.ICE) && !ps.is(Blocks.FROSTED_ICE)
+                                    && !ps.getCollisionShape(level, probePos).isEmpty()) {
+                                bridgeEnd = probePt;
+                                break;
+                            }
+                        }
+                        effectiveEnd = bridgeEnd;
+                    }
+                }
+
+                // Section 6.7 & 4.2 Nether Tendril Tether: flexible locking hellfire leash staying anchored within a 45° angle while moving!
+                LivingEntity latchedNetherTarget = null;
+                if (formMat == EssenceType.NETHER && formMutation.mutated() && !spell.prefix().enforcesZeroEntityHarm()) {
+                    latchedNetherTarget = ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler
+                            .resolveLatchedTetherTarget(level, player, rayStart, ray.direction(), maxReach);
+                    if (latchedNetherTarget != null) {
+                        effectiveEnd = latchedNetherTarget.position().add(0.0D, latchedNetherTarget.getBbHeight() * 0.55D, 0.0D);
+                    }
+                }
+
+                if (visualPulse && !silent) {
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastChanneledBeamSlice(
+                            level, ray.origin(), effectiveEnd, vPrimary, vSecondary, tier, 3
+                    );
+                }
+
+                if (actionPulse) {
+                    float tickPotency = apparatusPotency * ray.potencyScale() * 0.25F;
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                                level, effectiveEnd, vPrimary, vSecondary, 0.72D, Math.max(1, tier / 2)
+                        );
+                    }
+
+                    int maxTargets = 1 + (formMutation.mutated() ? formMutation.bonusPierceTargets() : 0);
+                    AABB search = new AABB(rayStart, effectiveEnd).inflate(0.85D);
+                    List<LivingEntity> hitEntities = new ArrayList<>();
+                    if (latchedNetherTarget != null && latchedNetherTarget.isAlive()) {
+                        hitEntities.add(latchedNetherTarget);
+                    }
+                    for (LivingEntity candidate : level.getEntitiesOfClass(LivingEntity.class, search)) {
+                        if (candidate == player || !candidate.isAlive() || candidate == latchedNetherTarget) continue;
+                        if (candidate.getBoundingBox().inflate(0.38D).clip(rayStart, effectiveEnd).isPresent()) {
+                            hitEntities.add(candidate);
+                        }
+                    }
+                    hitEntities.sort(Comparator.comparingDouble(player::distanceToSqr));
+
+                    List<LivingEntity> struckTargets = new ArrayList<>();
+                    int hitCount = 0;
+                    for (LivingEntity target : hitEntities) {
+                        struckTargets.add(target);
+                        deliverSubSpellOnEntity(level, player, target, ray.direction(), spell, slot, fallbackMateria, tickPotency);
+                        if (spell.flowPart().flow() == SpellFlowModifier.CHAIN_LEAP) {
+                            chainLeapFrom(level, player, target, spell, slot, fallbackMateria, tickPotency);
+                        }
+                        if (++hitCount >= maxTargets) break;
+                    }
+
+                    if (hasItemTargetingVerb(slot)) {
+                        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, search)) {
+                            if (item.isAlive() && item.getBoundingBox().inflate(0.45D).clip(rayStart, effectiveEnd).isPresent()) {
+                                deliverSubSpellOnEntity(level, player, item, ray.direction(), spell, slot, fallbackMateria, tickPotency);
+                            }
+                        }
+                    }
+
+                    if (struckTargets.isEmpty() && slotSelfTargetsCasterWhenNoEntityHit(spell, slot)) {
+                        deliverSubSpellOnEntity(level, player, player, ray.direction(), spell, slot, fallbackMateria, tickPotency);
+                    }
+
+                    if (blockHit.getType() == HitResult.Type.BLOCK) {
+                        deliverSubSpellOnBlock(level, player, blockHit.getBlockPos(), blockHit.getDirection(), spell, slot, fallbackMateria, tickPotency);
+                    } else if (hasOpenAirBlockVerb(slot)) {
+                        deliverSubSpellOnBlock(level, player, BlockPos.containing(effectiveEnd), Direction.UP, spell, slot, fallbackMateria, tickPotency);
+                    }
+
+                    if (formHandler != null) {
+                        formHandler.onBeamFormCast(level, player, ray.direction(), maxReach, struckTargets, blockHit, spell, slot, fallbackMateria, tickPotency);
+                    }
+                }
+
+                // Guide Section 4.2 "The Burst Finisher": automatic shockwave pulse every 3.0 seconds (60 ticks) of continuous channel!
+                if (burstFinisher) {
+                    double burstRad = 2.4D + tier * 0.22D;
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                                level, effectiveEnd, burstRad, vPrimary, vSecondary, tier
+                        );
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                                level, effectiveEnd, vPrimary, vSecondary, burstRad * 0.8D, tier
+                        );
+                        level.playSound(null, BlockPos.containing(effectiveEnd), SoundEvents.RESPAWN_ANCHOR_DEPLETE.value(),
+                                SoundSource.PLAYERS, 0.90F, 1.35F);
+                    }
+                    deliverRadialArea(level, player, effectiveEnd, burstRad, ray.direction(), spell, slot,
+                            fallbackMateria, apparatusPotency * ray.potencyScale() * 0.75F);
+                    for (LivingEntity stag : level.getEntitiesOfClass(LivingEntity.class, new AABB(effectiveEnd, effectiveEnd).inflate(burstRad), LivingEntity::isAlive)) {
+                        if (stag == player || SpellCombatReactionEngine.isBossEntity(level, stag)) continue;
+                        if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(stag, player, spell.hasWardFriendlyFireSafeguard())) continue;
+                        Vec3 out = stag.position().subtract(effectiveEnd);
+                        Vec3 push = out.lengthSqr() > 1.0E-4D ? out.normalize() : ray.direction();
+                        applySyncedMotion(stag, new Vec3(push.x * 0.65D, 0.34D, push.z * 0.65D));
+                    }
+                }
+            }
+        }
+
+        if (!touchToPrime.isEmpty()) {
+            primeCasterTouchStrike(level, player, spell, touchToPrime, fallbackMateria, apparatusPotency, apparatusRange, perSecCost);
+        }
+        return true;
     }
 
     /**
@@ -89,6 +1417,16 @@ public final class SpellExecutionEngine {
             Player player,
             InteractionHand hand,
             ItemStack apparatusStack
+    ) {
+        return castFromApparatus(level, player, hand, apparatusStack, 1.0F);
+    }
+
+    public static boolean castFromApparatus(
+            ServerLevel level,
+            Player player,
+            InteractionHand hand,
+            ItemStack apparatusStack,
+            float extraPotencyMult
     ) {
         CastingApparatusState state = apparatusStack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
         if (state == null) {
@@ -163,6 +1501,29 @@ public final class SpellExecutionEngine {
             }
         }
 
+        // Section 4.6 Safe Glyph Disarm: Sneak-casting while looking near an owned Glyph safely removes it & refunds 50% fuel!
+        if (player.isShiftKeyDown() && SpellLingeringZoneManager.tryDisarmCasterGlyph(level, player)) {
+            player.getCooldowns().addCooldown(apparatusStack, 6);
+            return true;
+        }
+
+        // Section 4.4 Safe Sheath: Sneak-casting a Touch/Strike spell while already primed safely clears the infusion at 0 cost!
+        if (player.isShiftKeyDown() && spell.isPureTouchStrikeSpell() && PRIMED_TOUCH_STRIKES.remove(player.getUUID()) != null) {
+            player.displayClientMessage(Component.literal("§7✦ Sheathed primed Touch / Strike weapon infusion."), true);
+            level.playSound(null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_IRON.value(), SoundSource.PLAYERS, 0.7F, 1.2F);
+            player.getCooldowns().addCooldown(apparatusStack, 6);
+            return true;
+        }
+
+        // Fallback for Engraved Vanilla Tools/Weapons casting a Channeled Beam via RIGHT_CLICK_ITEM event:
+        if (spell.isChanneledHoldBeam()) {
+            boolean pulsed = tryBeginChanneledBeam(level, player, hand, apparatusStack);
+            if (pulsed) {
+                player.getCooldowns().addCooldown(apparatusStack, 4);
+            }
+            return pulsed;
+        }
+
         EssenceType fallbackMateria = spell.materiaSpecific()
                 ? EssenceType.REGULAR
                 : Optional.ofNullable(SpellFuelService.detectPrimaryAvailableMateria(player)).orElse(EssenceType.REGULAR);
@@ -177,12 +1538,15 @@ public final class SpellExecutionEngine {
         // Section 5.4 Spatial Fatigue: Blinking repeatedly within 3 seconds (60t) adds +50% cumulative fuel surcharge
         boolean hasBlink = containsBlinkEffect(spell);
         Map<EssenceType, Long> effectiveUpfrontCost = cost.upfrontMfumByType();
+        int prevBlinkFatigueStacks = 0;
+        long prevLastBlinkTick = -200L;
         int blinkFatigueStacks = 0;
         if (hasBlink) {
             CompoundTag pData = EntityHelper.getPersistentData(player);
-            long lastBlink = pData.getLong("LastSpellBlinkTick").orElse(-200L);
-            if (now - lastBlink <= 60L) {
-                blinkFatigueStacks = pData.getInt("SpellBlinkFatigueStacks").orElse(0) + 1;
+            prevBlinkFatigueStacks = pData.getInt("SpellBlinkFatigueStacks").orElse(0);
+            prevLastBlinkTick = pData.getLong("LastSpellBlinkTick").orElse(-200L);
+            if (now - prevLastBlinkTick <= 60L) {
+                blinkFatigueStacks = prevBlinkFatigueStacks + 1;
                 double fatigueMult = 1.0D + (0.5D * blinkFatigueStacks);
                 Map<EssenceType, Long> surcharged = new EnumMap<>(EssenceType.class);
                 for (Map.Entry<EssenceType, Long> entry : effectiveUpfrontCost.entrySet()) {
@@ -226,8 +1590,11 @@ public final class SpellExecutionEngine {
             pData.putLong("LastSpellBlinkTick", now);
         }
 
-        // Apply Apparatus-modified cast cooldown
+        // Apply Apparatus-modified cast cooldown (smooth 6-tick cadence when hovering downward with Air Jetstream Propulsion!)
         int cooldown = Math.max(4, Math.round(spell.getBaseCooldownTicks() * state.apparatusType().getCooldownMultiplier()));
+        if (isDownwardAirJetstreamCast(player, spell, fallbackMateria)) {
+            cooldown = Math.min(cooldown, 6);
+        }
         player.getCooldowns().addCooldown(apparatusStack, cooldown);
 
         // First-Cast Field-Swap 45% Backfire Check (clears flag immediately whether it backfires or succeeds!)
@@ -259,15 +1626,44 @@ public final class SpellExecutionEngine {
             return true;
         }
 
-        // Dispatch Spell Assembly
-        executeSpellAssembly(
-                level,
-                player,
-                spell,
-                fallbackMateria,
-                state.apparatusType(),
-                cost
-        );
+        // Dispatch Spell Assembly (with Section 5.4 100% Materia Fuel Refund if Blink cancels with no safe landing spot!)
+        BLINK_CANCELLED_REFUND_FLAG.set(false);
+        BLINK_CANCELLED_REASON.remove();
+        try {
+            executeSpellAssembly(
+                    level,
+                    player,
+                    spell,
+                    fallbackMateria,
+                    state.apparatusType(),
+                    cost,
+                    extraPotencyMult
+            );
+            if (BLINK_CANCELLED_REFUND_FLAG.get()) {
+                if (!player.isCreative()) {
+                    for (Map.Entry<EssenceType, Long> entry : effectiveUpfrontCost.entrySet()) {
+                        SpellFuelService.restorePlayerMateriaFuel(player, entry.getKey(), entry.getValue());
+                    }
+                }
+                if (hasBlink) {
+                    CompoundTag pData = EntityHelper.getPersistentData(player);
+                    pData.putInt("SpellBlinkFatigueStacks", prevBlinkFatigueStacks);
+                    pData.putLong("LastSpellBlinkTick", prevLastBlinkTick);
+                }
+                player.getCooldowns().addCooldown(apparatusStack, 4);
+                String cancelMsg = BLINK_CANCELLED_REASON.get();
+                player.displayClientMessage(
+                        Component.literal(cancelMsg != null
+                                ? cancelMsg
+                                : "§e✦ Blink Cancelled §7— No safe landing spot (§a100% Materia refunded§7)"),
+                        true
+                );
+                return false;
+            }
+        } finally {
+            BLINK_CANCELLED_REFUND_FLAG.set(false);
+            BLINK_CANCELLED_REASON.remove();
+        }
 
         return true;
     }
@@ -338,7 +1734,7 @@ public final class SpellExecutionEngine {
         }
 
         // Dynamic Trigger Billing for Triggered / Satellite Flows (25% idle upkeep, 75% on enemy proximity for offensive Combat spells)
-        if (spell.flowPart().flow().usesDynamicTriggerBilling()
+        if (spell.flowPart().usesDynamicTriggerBilling(spell.materiaSpecific(), fallbackMateria)
                 && spell.prefix() == SpellPrefix.COMBAT
                 && !isCasterBeneficialSpell(spell)) {
             List<Monster> hostiles = level.getEntitiesOfClass(
@@ -532,105 +1928,147 @@ public final class SpellExecutionEngine {
             @Nullable ApparatusType apparatusType,
             @Nullable SpellCostBreakdown costBreakdown
     ) {
+        executeSpellAssembly(level, caster, spell, fallbackMateria, apparatusType, costBreakdown, 1.0F);
+    }
+
+    public static void executeSpellAssembly(
+            ServerLevel level,
+            LivingEntity caster,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            @Nullable ApparatusType apparatusType,
+            @Nullable SpellCostBreakdown costBreakdown,
+            float extraPotencyMult
+    ) {
         FlowPartBinding flowBinding = spell.flowPart();
         SpellFlowModifier flow = flowBinding.flow();
+        SpellTriggerType trigger = flowBinding.trigger();
+        final boolean materiaSpecific = spell.materiaSpecific();
 
-        float apparatusPotency = apparatusType != null ? apparatusType.getPotencyMultiplier() : 1.0F;
+        float apparatusPotency = (apparatusType != null ? apparatusType.getPotencyMultiplier() : 1.0F) * extraPotencyMult;
         float apparatusRange = apparatusType != null ? apparatusType.getRangeMultiplier() : 1.0F;
 
-        int dispatchCount = Math.max(1, flowBinding.subSpellCount());
         List<SubSpellSlot> slots = spell.subSpells();
+        if (slots.isEmpty()) {
+            return;
+        }
 
         boolean silentCast = isSilentStealthSpell(spell, fallbackMateria);
         if (!silentCast) {
             level.playSound(null, caster.blockPosition(), SoundEvents.ILLUSIONER_CAST_SPELL, SoundSource.PLAYERS, 0.85F, 1.2F);
-            if (!slots.isEmpty()) {
-                SubSpellSlot first = slots.getFirst();
-                EssenceType pMat = first.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
-                EssenceType sMat = first.secondaryEffect().map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria)).orElse(null);
-                ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnCastMuzzleBurst(
-                        level,
-                        caster.getEyePosition().subtract(0.0D, 0.18D, 0.0D),
-                        caster.getLookAngle(),
-                        pMat,
-                        sMat,
-                        spell.getEffectiveTier()
-                );
-            }
-        }
-
-        if (flow == SpellFlowModifier.SELF_CAST || flow == SpellFlowModifier.SELF_TIMED) {
-            for (int i = 0; i < slots.size(); i++) {
-                SubSpellSlot s = slots.get(i);
-                EssenceType pMat = s.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
-                EssenceType sMat = s.secondaryEffect().map(sec -> sec.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria)).orElse(null);
-                if (!silentCast) {
-                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(
-                            level, caster.position(), 1.35D, pMat, sMat, spell.getEffectiveTier()
-                    );
-                }
-                deliverSelfFocusedSubSpell(level, caster, spell, s, fallbackMateria, apparatusPotency);
-
-                if (flow == SpellFlowModifier.SELF_TIMED) {
-                    SubSpellSlot delayedSlot = s;
-                    SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                            caster,
-                            caster.position(),
-                            1.0D,
-                            40,
-                            level.getGameTime(),
-                            null,
-                            null,
-                            pMat,
-                            apparatusPotency,
-                            (srv, zone, elapsed) -> {
-                                if (elapsed < zone.maxDurationTicks) {
-                                    return true;
-                                }
-                                LivingEntity owner = zone.resolveCaster(srv);
-                                if (owner != null && owner.isAlive()) {
-                                    if (!silentCast) {
-                                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(
-                                                srv, owner.position(), 1.45D, pMat, sMat, spell.getEffectiveTier()
-                                        );
-                                    }
-                                    deliverSelfFocusedSubSpell(srv, owner, spell, delayedSlot, fallbackMateria, apparatusPotency * 0.75F);
-                                }
-                                return false;
-                            }
-                    ));
-                }
-            }
-            return;
-        }
-
-        // Dynamic Trigger Billing check for Triggered / Satellite Flows (75% remaining fuel when enemies are proximate on offensive Combat spells)
-        if (flow.usesDynamicTriggerBilling() && caster instanceof Player player && costBreakdown != null) {
-            if (spell.prefix() == SpellPrefix.COMBAT && !isCasterBeneficialSpell(spell)) {
-                List<LivingEntity> nearbyHostiles = level.getEntitiesOfClass(
-                        LivingEntity.class,
-                        caster.getBoundingBox().inflate(10.0D),
-                        e -> e.isAlive() && e != caster && e instanceof Monster
-                );
-                if (nearbyHostiles.isEmpty()) {
-                    level.sendParticles(ParticleTypes.ENCHANT, caster.getX(), caster.getY(0.5), caster.getZ(),
-                            18, 0.6, 0.2, 0.6, 0.05);
-                    return;
-                }
-            }
-            SpellFuelService.FuelCheckResult triggerFuel = SpellFuelService.consumePlayerSpellFuel(
-                    player,
-                    spell.getEffectiveTier(),
-                    costBreakdown.dynamicTriggerMfumByType(),
-                    false
+            SubSpellSlot first = slots.getFirst();
+            EssenceType pMat = first.primaryEffect().resolveEffectiveMateria(materiaSpecific, fallbackMateria);
+            EssenceType sMat = first.secondaryEffect().map(s -> s.resolveEffectiveMateria(materiaSpecific, fallbackMateria)).orElse(null);
+            ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnCastMuzzleBurst(
+                    level,
+                    caster.getEyePosition().subtract(0.0D, 0.18D, 0.0D),
+                    caster.getLookAngle(),
+                    pMat,
+                    sMat,
+                    spell.getEffectiveTier()
             );
-            if (!triggerFuel.success()) {
-                return;
-            }
         }
 
         EssenceType flowMateria = flowBinding.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
         MateriaPartMutationHandler flowHandler = SpellMutationHandlerRegistry.resolveActive(flowMateria, flowBinding.mutationEnabled());
+
+        // 0. Touch / Melee Strike Priming (Guide Section 4.4):
+        // Touch/Strike ALWAYS primes the player's weapon/hand for their next hit rather than firing as a spell payload!
+        if (caster instanceof Player player && spell.hasTouchStrikeForm()) {
+            List<SubSpellSlot> touchSlots = new ArrayList<>();
+            List<SubSpellSlot> remainingSlots = new ArrayList<>();
+            for (SubSpellSlot s : slots) {
+                if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE) {
+                    touchSlots.add(s);
+                } else {
+                    remainingSlots.add(s);
+                }
+            }
+            primeCasterTouchStrike(level, player, spell, touchSlots, fallbackMateria, apparatusPotency, apparatusRange, costBreakdown);
+            if (remainingSlots.isEmpty()) {
+                return;
+            }
+            spell = new SpellAssembly(
+                    spell.customName(),
+                    spell.customLore(),
+                    spell.materiaSpecific(),
+                    spell.prefix(),
+                    spell.potencyTier(),
+                    spell.flowPart().withSubSpellCount(remainingSlots.size()),
+                    remainingSlots,
+                    spell.flawProfile(),
+                    spell.resoniteCritFragments()
+            );
+            slots = spell.subSpells();
+        }
+
+        // 1. Self Trigger: immediately execute all 1..8 Multi-Cast sub-spells centered on the caster (or launch Orbit/Dome satellites)!
+        if (trigger == SpellTriggerType.SELF) {
+            if (flow == SpellFlowModifier.ORBIT_SATELLITE || flow == SpellFlowModifier.OCTUPLE_DOME) {
+                launchFlowCarrierPayloads(level, caster, flow, flowHandler, spell, fallbackMateria, apparatusPotency, apparatusRange);
+            } else {
+                executeSelfMultiCast(level, caster, spell, fallbackMateria, apparatusPotency, apparatusRange, silentCast);
+            }
+            return;
+        }
+
+        // 2. Self-Timed Contingency Trigger (Guide Section 3.5: 30s / 60s / 120s delayed self-discharge at 100% potency!)
+        if (trigger == SpellTriggerType.SELF_TIMED) {
+            float configuredSec = flowBinding.delaySeconds() >= 5.0F ? flowBinding.delaySeconds() : 30.0F;
+            int delayTicks = Math.clamp(Math.round(configuredSec * 20.0F), 100, 2400);
+            SubSpellSlot first = slots.getFirst();
+            EssenceType pMat = first.primaryEffect().resolveEffectiveMateria(materiaSpecific, fallbackMateria);
+            EssenceType sMat = first.secondaryEffect().map(sec -> sec.resolveEffectiveMateria(materiaSpecific, fallbackMateria)).orElse(null);
+            if (!silentCast) {
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                        level, caster.position(), 1.4D, pMat, sMat, 30, spell.getEffectiveTier()
+                );
+                level.playSound(null, caster.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.9F, 1.35F);
+            }
+            if (caster instanceof Player player) {
+                player.displayClientMessage(
+                        Component.literal("§d✦ Self-Timed Contingency Armed §7— §f" + spell.customName()
+                                + " §7(" + SpellFlowModifier.getCastCountTitle(slots.size())
+                                + ") triggers in §e" + Math.round(configuredSec) + "s§7!"),
+                        true
+                );
+            }
+            final SpellAssembly contingencySpell = spell;
+            SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                    caster,
+                    caster.position(),
+                    1.0D,
+                    delayTicks,
+                    level.getGameTime(),
+                    null,
+                    null,
+                    pMat,
+                    apparatusPotency,
+                    (srv, zone, elapsed) -> {
+                        LivingEntity owner = zone.resolveCaster(srv);
+                        if (owner == null || !owner.isAlive()) {
+                            return false;
+                        }
+                        if (elapsed < zone.maxDurationTicks) {
+                            if (!silentCast && elapsed > 0 && elapsed % 20 == 0) {
+                                srv.sendParticles(ParticleTypes.ENCHANT, owner.getX(), owner.getY(0.75D), owner.getZ(),
+                                        5, 0.35D, 0.35D, 0.35D, 0.04D);
+                            }
+                            return true;
+                        }
+                        if (consumeDynamicTriggerFeeForPayload(srv, owner, contingencySpell, fallbackMateria)) {
+                            if (flow == SpellFlowModifier.ORBIT_SATELLITE || flow == SpellFlowModifier.OCTUPLE_DOME) {
+                                launchFlowCarrierPayloads(srv, owner, flow, flowHandler, contingencySpell, fallbackMateria, apparatusPotency, apparatusRange);
+                            } else {
+                                executeSelfMultiCast(srv, owner, contingencySpell, fallbackMateria, apparatusPotency, apparatusRange, silentCast);
+                            }
+                        }
+                        return false;
+                    }
+            ));
+            return;
+        }
+
         if (flowBinding.mutationEnabled() && flowMateria == EssenceType.CHIMERA) {
             String rolled = switch (level.random.nextInt(4)) {
                 case 0 -> "AIR";
@@ -640,7 +2078,8 @@ public final class SpellExecutionEngine {
             };
             EntityHelper.getPersistentData(caster).putString(SpellLingeringZoneManager.TAG_CHIMERA_ORBIT_ELEMENT, rolled);
         }
-        if (flowBinding.mutationEnabled() && flow.usesDynamicTriggerBilling()) {
+        if (flowBinding.mutationEnabled() && (flow == SpellFlowModifier.ORBIT_SATELLITE
+                || flowBinding.usesDynamicTriggerBilling(spell.materiaSpecific(), fallbackMateria))) {
             long orbitUntil = level.getGameTime() + 160L;
             CompoundTag cData = EntityHelper.getPersistentData(caster);
             switch (flowMateria) {
@@ -698,71 +2137,1254 @@ public final class SpellExecutionEngine {
                 default -> {
                 }
             }
+            SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.50F, null);
         }
 
-        List<Vec3> directions = computeFlowDirections(caster, flow, dispatchCount);
-        if (directions.size() > 1 && flowHandler != null) {
-            flowHandler.onFlowMultiCastOrigin(level, caster, flow, directions.size(), spell);
+        // 2b. Point-Blank 0m Travel Distance Stop (Outer Rim Distance Circle = 0m):
+        //     Discharges at point-blank muzzle / caster origin with zero forward carrier travel (except Orbiting Satellites, which orbit first).
+        if (flowBinding.distanceStep().isPointBlankZero() && flow != SpellFlowModifier.ORBIT_SATELLITE) {
+            SubSpellSlot leadSlot = slots.getFirst();
+            SpellDeliveryForm leadForm = leadSlot.formPart().form();
+            if (leadSlot.primaryEffect().effect() == SpellCoreEffect.BLINK
+                    && leadForm != SpellDeliveryForm.GLYPH
+                    && !leadForm.isSummonForm()) {
+                Vec3 lookDir = caster.getLookAngle().normalize();
+                dispatchSingleSubSpellForm(
+                        level, caster, lookDir, spell, 0, leadSlot, fallbackMateria, apparatusPotency, apparatusRange
+                );
+                if (BLINK_CANCELLED_REFUND_FLAG.get()) {
+                    return;
+                }
+                for (int i = 1; i < slots.size(); i++) {
+                    dispatchSingleSubSpellForm(
+                            level, caster, lookDir, spell, i, slots.get(i), fallbackMateria, apparatusPotency, apparatusRange
+                    );
+                }
+                return;
+            }
+            executePointBlankZeroCast(level, caster, spell, fallbackMateria, apparatusPotency, apparatusRange);
+            return;
         }
-        for (int i = 0; i < directions.size(); i++) {
-            SubSpellSlot slot = slots.get(i % slots.size());
-            Vec3 dir = directions.get(i);
+
+        // 3. Void-Warp Travel Mutation Relay (Guide Section 3.4: requires Void or Void-Created Materia + Mutation ACTIVE!)
+        if (flowBinding.isVoidWarpAuthorized(spell.materiaSpecific(), fallbackMateria)) {
+            executeVoidWarpRelay(level, caster, spell, fallbackMateria, apparatusPotency, apparatusRange, flowMateria);
+            return;
+        }
+
+        // 4. Direct Instant Blink / Lead-Blink Multi-Cast (Guide Section 5.4):
+        //    Standard Self-Blink & Position Swap execute immediately along crosshair without launching a slow carrier orb;
+        //    multi-cast assemblies starting with Self-Blink teleport first and detonate follow-up sub-spells upon arrival!
+        boolean linearBlinkFlow = flow == SpellFlowModifier.SINGLE
+                || flow == SpellFlowModifier.FAST_DART
+                || flow == SpellFlowModifier.SLOW_HEAVY
+                || flow == SpellFlowModifier.VOID_WARP;
+        boolean directBlinkTrigger = trigger == SpellTriggerType.ON_ENTITY_HIT
+                || trigger == SpellTriggerType.ON_BLOCK_COLLISION
+                || trigger == SpellTriggerType.ON_RELEASE;
+        SubSpellSlot firstSlot = slots.getFirst();
+        if (linearBlinkFlow && directBlinkTrigger && firstSlot.primaryEffect().effect() == SpellCoreEffect.BLINK) {
+            SpellDeliveryForm firstForm = firstSlot.formPart().form();
+            boolean directBlinkForm = firstForm != SpellDeliveryForm.GLYPH && !firstForm.isSummonForm();
+            String firstMode = firstSlot.primaryEffect().subMode().toLowerCase(Locale.ROOT);
+            boolean firstIsSelfBlink = !firstMode.equals("swap") && !firstMode.equals("transposition");
+            if (directBlinkForm && (slots.size() == 1 || firstIsSelfBlink)) {
+                Vec3 lookDir = caster.getLookAngle().normalize();
+                dispatchSingleSubSpellForm(
+                        level, caster, lookDir, spell, 0, firstSlot, fallbackMateria, apparatusPotency, apparatusRange
+                );
+                if (BLINK_CANCELLED_REFUND_FLAG.get()) {
+                    return;
+                }
+                for (int i = 1; i < slots.size(); i++) {
+                    dispatchSingleSubSpellForm(
+                            level, caster, lookDir, spell, i, slots.get(i), fallbackMateria, apparatusPotency, apparatusRange
+                    );
+                }
+                return;
+            }
+        }
+
+        // 4b. Native Single Cast (1x) + Normal Flow + Direct/Release Trigger: execute the single sub-spell Form directly!
+        if (slots.size() == 1
+                && (flow == SpellFlowModifier.SINGLE || flow == SpellFlowModifier.VOID_WARP)
+                && (trigger == SpellTriggerType.ON_ENTITY_HIT || trigger == SpellTriggerType.ON_RELEASE)) {
             dispatchSingleSubSpellForm(
                     level,
                     caster,
-                    dir,
+                    caster.getLookAngle().normalize(),
                     spell,
-                    i % slots.size(),
-                    slot,
+                    0,
+                    slots.getFirst(),
                     fallbackMateria,
                     apparatusPotency,
                     apparatusRange
             );
+            return;
+        }
+
+        // 5. Carrier Payload Flows, Triggered Shells & Point-of-Contact Multi-Cast (Double 2x .. Octuple 8x):
+        // Launch the Flow Modifier's carrier projectile(s); each payload casts ALL slotted spells when its Trigger fires!
+        launchFlowCarrierPayloads(
+                level,
+                caster,
+                flow,
+                flowHandler,
+                spell,
+                fallbackMateria,
+                apparatusPotency,
+                apparatusRange
+        );
+    }
+
+    private static void executeSelfMultiCast(
+            ServerLevel level,
+            LivingEntity caster,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange,
+            boolean silentCast
+    ) {
+        List<SubSpellSlot> slots = spell.subSpells();
+        int tier = spell.getEffectiveTier();
+        Vec3 look = caster.getLookAngle().normalize();
+
+        for (int i = 0; i < slots.size(); i++) {
+            SubSpellSlot s = slots.get(i);
+            SpellDeliveryForm form = s.formPart().form();
+            EssenceType pMat = s.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            EssenceType sMat = s.secondaryEffect().map(sec -> sec.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria)).orElse(null);
+
+            if (s.primaryEffect().effect() == SpellCoreEffect.BLINK && form != SpellDeliveryForm.GLYPH && !form.isSummonForm()) {
+                dispatchSingleSubSpellForm(level, caster, look, spell, i, s, fallbackMateria, apparatusPotency, apparatusRange);
+                if (i == 0 && BLINK_CANCELLED_REFUND_FLAG.get()) {
+                    return;
+                }
+                continue;
+            }
+
+            if (!silentCast && (form == SpellDeliveryForm.PROJECTILE
+                    || form == SpellDeliveryForm.BEAM
+                    || form == SpellDeliveryForm.TOUCH_STRIKE)) {
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(
+                        level, caster.position(), 1.35D, pMat, sMat, tier
+                );
+            }
+
+            switch (form) {
+                case AURA, RADIAL_BURST, GLYPH, CONE, SKYFALL, SUMMON_AGENT, SUMMON_SENTRY, SUMMON_DECOY -> {
+                    dispatchSingleSubSpellForm(level, caster, look, spell, i, s, fallbackMateria, apparatusPotency, apparatusRange);
+                    if (form != SpellDeliveryForm.AURA
+                            && form != SpellDeliveryForm.RADIAL_BURST
+                            && s.primaryEffect().effect() != SpellCoreEffect.BLINK
+                            && isCasterBeneficialVerb(s.primaryEffect().effect())) {
+                        deliverSelfFocusedSubSpell(level, caster, spell, s, fallbackMateria, apparatusPotency);
+                    }
+                }
+                default -> deliverSelfFocusedSubSpell(level, caster, spell, s, fallbackMateria, apparatusPotency);
+            }
         }
     }
 
-    private static List<Vec3> computeFlowDirections(LivingEntity caster, SpellFlowModifier flow, int count) {
-        Vec3 baseLook = caster.getLookAngle().normalize();
-        if (count <= 1 && flow != SpellFlowModifier.SEPTUPLE_CROWN && flow != SpellFlowModifier.OCTUPLE_DOME) {
-            return List.of(baseLook);
+    private static void executePointBlankZeroCast(
+            ServerLevel level,
+            LivingEntity caster,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange
+    ) {
+        List<SubSpellSlot> slots = spell.subSpells();
+        if (slots.isEmpty()) {
+            return;
+        }
+        Vec3 look = caster.getLookAngle().normalize();
+
+        // Grant caster wings immediately if any slotted sub-spell includes FLIGHT!
+        for (SubSpellSlot s : slots) {
+            if (slotHasEffect(s, SpellCoreEffect.FLIGHT)) {
+                deliverFlightOnlyToCaster(level, caster, look, spell, s, fallbackMateria, apparatusPotency);
+                break;
+            }
         }
 
-        List<Vec3> list = new ArrayList<>(count);
+        Vec3 eye = caster.getEyePosition();
+        double pbReach = 1.85D;
+        Vec3 maxEnd = eye.add(look.scale(pbReach));
+        BlockHitResult blockHit = level.clip(new ClipContext(eye, maxEnd, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, caster));
+        Vec3 clipStop = blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getLocation() : maxEnd;
+
+        SpellTriggerType trigger = spell.flowPart().trigger();
+        LivingEntity hitEntity = null;
+        double bestDistSq = eye.distanceToSqr(clipStop);
+        if (trigger != SpellTriggerType.ON_BLOCK_COLLISION) {
+            AABB pbBox = new AABB(eye, clipStop).inflate(0.85D);
+            for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, pbBox, LivingEntity::isAlive)) {
+                if (cand == caster) continue;
+                Optional<Vec3> clip = cand.getBoundingBox().inflate(0.4D).clip(eye, clipStop);
+                if (clip.isPresent()) {
+                    double dSq = eye.distanceToSqr(clip.get());
+                    if (dSq < bestDistSq) {
+                        bestDistSq = dSq;
+                        hitEntity = cand;
+                    }
+                }
+            }
+        }
+
+        if (!consumeDynamicTriggerFeeForPayload(level, caster, spell, fallbackMateria)) {
+            return;
+        }
+
+        Vec3 contactPos;
+        BlockPos hitBlockPos;
+        Direction hitFace;
+        if (hitEntity != null) {
+            contactPos = hitEntity.position().add(0.0D, hitEntity.getBbHeight() * 0.55D, 0.0D);
+            hitBlockPos = hitEntity.blockPosition();
+            hitFace = Direction.UP;
+        } else if (blockHit.getType() == HitResult.Type.BLOCK) {
+            contactPos = blockHit.getLocation();
+            hitBlockPos = blockHit.getBlockPos();
+            hitFace = blockHit.getDirection();
+        } else {
+            contactPos = caster.position().add(look.scale(0.85D)).add(0.0D, caster.getBbHeight() * 0.55D, 0.0D);
+            hitBlockPos = BlockPos.containing(contactPos);
+            hitFace = Direction.UP;
+        }
+
+        if (trigger == SpellTriggerType.ON_DEATH && hitEntity != null) {
+            markEntityForCorpseBloom(level, hitEntity, caster, spell, fallbackMateria, apparatusPotency, apparatusRange);
+            deliverSubSpellOnEntity(level, caster, hitEntity, look, spell, slots.getFirst(), fallbackMateria, apparatusPotency);
+            return;
+        }
+
+        if (trigger == SpellTriggerType.ON_TIMER) {
+            float sec = spell.flowPart().delaySeconds() >= 0.5F ? spell.flowPart().delaySeconds() : 1.5F;
+            int fuseTicks = Math.clamp(Math.round(sec * 20.0F), 10, 80);
+            EssenceType pMat = slots.getFirst().primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            LivingEntity lockedEnt = hitEntity;
+            SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                    caster, contactPos, 1.0D, fuseTicks, level.getGameTime(), null, null, pMat, apparatusPotency,
+                    (srv, zone, elapsed) -> {
+                        if (elapsed < zone.maxDurationTicks) {
+                            if (elapsed % 4 == 0) {
+                                srv.sendParticles(ParticleTypes.ENCHANT, zone.center.x, zone.center.y, zone.center.z,
+                                        5, 0.18D, 0.18D, 0.18D, 0.03D);
+                            }
+                            return true;
+                        }
+                        LivingEntity owner = zone.resolveCaster(srv);
+                        executeContactMultiCast(srv, owner, null, zone.center, lockedEnt != null && lockedEnt.isAlive() ? lockedEnt : null,
+                                hitBlockPos, hitFace, look, spell, fallbackMateria, apparatusPotency, apparatusRange);
+                        return false;
+                    }
+            ));
+            return;
+        }
+
+        executeContactMultiCast(
+                level,
+                caster,
+                null,
+                contactPos,
+                hitEntity,
+                hitBlockPos,
+                hitFace,
+                look,
+                spell,
+                fallbackMateria,
+                apparatusPotency,
+                apparatusRange
+        );
+
+        if (spell.flowPart().flow() == SpellFlowModifier.CHAIN_LEAP && hitEntity != null) {
+            chainLeapMultiCastFrom(level, caster, hitEntity, spell, fallbackMateria, apparatusPotency, apparatusRange);
+        }
+    }
+
+    private static void executeVoidWarpRelay(
+            ServerLevel level,
+            LivingEntity caster,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange,
+            EssenceType flowMateria
+    ) {
+        int tier = spell.getEffectiveTier();
+        double baseWarpMeters = spell.flowPart().distanceStep().isPointBlankZero()
+                ? 1.5D
+                : spell.flowPart().travelDistanceMeters();
+        double maxRange = baseWarpMeters * apparatusRange * spell.flawProfile().getRangeAndRadiusMultiplier();
+        Vec3 start = caster.getEyePosition();
+        Vec3 look = caster.getLookAngle().normalize();
+        Vec3 maxEnd = start.add(look.scale(maxRange));
+
+        BlockHitResult blockHit = level.clip(new ClipContext(start, maxEnd, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, caster));
+        // Section 3.4 Barrier Phasing: Void-Warp ALWAYS ignores intervening glass panes, bars, fences, leaves & thin obstacles in transit!
+        int thinPhaseSteps = 0;
+        Vec3 probeStart = start;
+        while (blockHit.getType() == HitResult.Type.BLOCK
+                && thinPhaseSteps++ < 8
+                && ddraig.net.entropica.spell.mutation.element.VoidSpellMutationHandler.isThinVoidPassableObstacle(
+                        level, blockHit.getBlockPos(), level.getBlockState(blockHit.getBlockPos()), look)) {
+            probeStart = blockHit.getLocation().add(look.scale(0.85D));
+            if (start.distanceToSqr(probeStart) >= maxRange * maxRange) {
+                blockHit = BlockHitResult.miss(maxEnd, Direction.getApproximateNearest(look.x, look.y, look.z), BlockPos.containing(maxEnd));
+                break;
+            }
+            blockHit = level.clip(new ClipContext(probeStart, maxEnd, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, caster));
+        }
+        Vec3 stopPos = blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getLocation() : maxEnd;
+
+        SpellTriggerType trigger = spell.flowPart().trigger();
+
+        // Ray-cast living entities along visible line first (unless On-Block-Collision specifically targets world geometry!)
+        LivingEntity bestEntity = null;
+        double bestDistSq = start.distanceToSqr(stopPos);
+        if (trigger != SpellTriggerType.ON_BLOCK_COLLISION) {
+            AABB rayBox = new AABB(start, stopPos).inflate(1.0D);
+            for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, rayBox, LivingEntity::isAlive)) {
+                if (cand == caster) continue;
+                Optional<Vec3> clip = cand.getBoundingBox().inflate(0.4D).clip(start, stopPos);
+                if (clip.isPresent()) {
+                    double dSq = start.distanceToSqr(clip.get());
+                    if (dSq < bestDistSq) {
+                        bestDistSq = dSq;
+                        bestEntity = cand;
+                    }
+                }
+            }
+
+            // Section 3.4 & 6.11 Wall Phasing Synergy: Tier 4+ spells, Void-Warp Phasing Flow, OR Starlight-Sonar-revealed
+            // targets can be warped directly behind solid walls into hidden rooms!
+            boolean fullVoidWallPhase = tier >= 4
+                    || (spell.flowPart().mutationEnabled() && flowMateria == EssenceType.VOID);
+            boolean canBypassWalls = fullVoidWallPhase
+                    || (spell.flowPart().mutationEnabled() && MateriaFamilyTier.hasVoidCreationHeritage(flowMateria));
+            if (bestEntity == null && canBypassWalls && blockHit.getType() == HitResult.Type.BLOCK) {
+                AABB fullBox = new AABB(start, maxEnd).inflate(1.5D);
+                double wallBest = Double.MAX_VALUE;
+                for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, fullBox, LivingEntity::isAlive)) {
+                    if (cand == caster || (!fullVoidWallPhase && !cand.hasEffect(MobEffects.GLOWING))) continue;
+                    Optional<Vec3> clip = cand.getBoundingBox().inflate(0.65D).clip(start, maxEnd);
+                    if (clip.isPresent()) {
+                        double dSq = start.distanceToSqr(clip.get());
+                        if (dSq < wallBest) {
+                            wallBest = dSq;
+                            bestEntity = cand;
+                        }
+                    }
+                }
+            }
+        }
+        // Section 3.4 Barrier Phasing: Void-Warp materializes behind/inside raised shields, ignoring shield blocks!
+        if (bestEntity != null && bestEntity.isBlocking() && !spell.prefix().enforcesZeroEntityHarm()) {
+            if (bestEntity instanceof Player bp && !bp.getUseItem().isEmpty()) {
+                bp.getCooldowns().addCooldown(bp.getUseItem(), 60);
+            }
+            bestEntity.stopUsingItem();
+        }
+
+        Vec3 handRift = start.subtract(0.0D, 0.2D, 0.0D).add(look.scale(0.55D));
+        level.sendParticles(ParticleTypes.REVERSE_PORTAL, handRift.x, handRift.y, handRift.z, 14, 0.15D, 0.15D, 0.15D, 0.04D);
+
+        if (bestEntity == null && blockHit.getType() != HitResult.Type.BLOCK && !hasAnyOpenAirVerb(spell)
+                && trigger != SpellTriggerType.ON_TIMER) {
+            // Complete open-sky miss: play fizzled rift at max range and schedule 5s upfront fuel refund!
+            level.sendParticles(ParticleTypes.PORTAL, maxEnd.x, maxEnd.y, maxEnd.z, 16, 0.25D, 0.25D, 0.25D, 0.08D);
+            if (caster instanceof Player player) {
+                scheduleMissFuelRefund(level, player, spell, fallbackMateria);
+            }
+            return;
+        }
+
+        if (!consumeDynamicTriggerFeeForPayload(level, caster, spell, fallbackMateria)) {
+            return;
+        }
+
+        Vec3 contactPos = bestEntity != null
+                ? bestEntity.position().add(0.0D, bestEntity.getBbHeight() * 0.5D, 0.0D)
+                : (blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getLocation() : maxEnd);
+        BlockPos hitBlockPos = bestEntity != null
+                ? bestEntity.blockPosition()
+                : (blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getBlockPos() : BlockPos.containing(maxEnd));
+        Direction hitFace = bestEntity != null
+                ? Direction.UP
+                : (blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getDirection() : Direction.UP);
+
+        EssenceType riftMat = flowMateria != EssenceType.REGULAR ? flowMateria : EssenceType.VOID;
+        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastBlinkRift(level, handRift, contactPos, riftMat, tier);
+        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVacuumSphere(
+                level, contactPos.subtract(0.0D, 0.75D, 0.0D), 1.45D, true, riftMat, null, 18, tier
+        );
+        level.sendParticles(ParticleTypes.REVERSE_PORTAL, contactPos.x, contactPos.y, contactPos.z, 20, 0.3D, 0.3D, 0.3D, 0.06D);
+        level.playSound(null, BlockPos.containing(contactPos), SoundEvents.CHORUS_FRUIT_TELEPORT, SoundSource.PLAYERS, 0.9F, 1.3F);
+
+        if (trigger == SpellTriggerType.ON_DEATH && bestEntity != null) {
+            markEntityForCorpseBloom(level, bestEntity, caster, spell, fallbackMateria, apparatusPotency, apparatusRange);
+            deliverSubSpellOnEntity(level, caster, bestEntity, look, spell, spell.subSpells().getFirst(), fallbackMateria, apparatusPotency);
+            return;
+        }
+
+        if (trigger == SpellTriggerType.ON_TIMER) {
+            float sec = spell.flowPart().delaySeconds() >= 0.5F ? spell.flowPart().delaySeconds() : 1.5F;
+            int fuseTicks = Math.clamp(Math.round(sec * 20.0F), 10, 80);
+            LivingEntity lockedEnt = bestEntity;
+            SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                    caster, contactPos, 1.2D, fuseTicks, level.getGameTime(), null, null, riftMat, apparatusPotency,
+                    (srv, zone, elapsed) -> {
+                        if (elapsed < zone.maxDurationTicks) {
+                            if (elapsed % 4 == 0) {
+                                srv.sendParticles(ParticleTypes.REVERSE_PORTAL, zone.center.x, zone.center.y, zone.center.z,
+                                        6, 0.2D, 0.2D, 0.2D, 0.03D);
+                            }
+                            return true;
+                        }
+                        LivingEntity owner = zone.resolveCaster(srv);
+                        executeContactMultiCast(srv, owner, null, zone.center, lockedEnt != null && lockedEnt.isAlive() ? lockedEnt : null,
+                                hitBlockPos, hitFace, look, spell, fallbackMateria, apparatusPotency, apparatusRange);
+                        return false;
+                    }
+            ));
+            return;
+        }
+
+        float effectivePotency = (trigger == SpellTriggerType.ON_ENTITY_HIT
+                && bestEntity == null
+                && blockHit.getType() == HitResult.Type.BLOCK
+                && shouldPenalizeEntityTriggerBlockFallback(spell))
+                ? (apparatusPotency * 0.75F)
+                : apparatusPotency;
+
+        executeContactMultiCast(
+                level,
+                caster,
+                null,
+                contactPos,
+                bestEntity,
+                hitBlockPos,
+                hitFace,
+                look,
+                spell,
+                fallbackMateria,
+                effectivePotency,
+                apparatusRange
+        );
+    }
+
+    private static void launchFlowCarrierPayloads(
+            ServerLevel level,
+            LivingEntity caster,
+            SpellFlowModifier flow,
+            @Nullable MateriaPartMutationHandler flowHandler,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange
+    ) {
+        List<SubSpellSlot> slots = spell.subSpells();
+        SubSpellSlot visualSlot = slots.getFirst();
+        EssenceType formMateria = visualSlot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        SpellMutationProfile formMutation = visualSlot.formPart().resolveMutation(spell.materiaSpecific(), fallbackMateria);
+        MateriaPartMutationHandler formHandler = SpellMutationHandlerRegistry.resolveActive(formMateria, visualSlot.formPart().mutationEnabled());
+        SpellMutationProfile flowMutation = spell.flowPart().resolveMutation(spell.materiaSpecific(), fallbackMateria);
+
+        // Grant caster wings on launch if any slotted sub-spell includes FLIGHT!
+        for (SubSpellSlot s : slots) {
+            if (slotHasEffect(s, SpellCoreEffect.FLIGHT)) {
+                deliverFlightOnlyToCaster(level, caster, caster.getLookAngle().normalize(), spell, s, fallbackMateria, apparatusPotency);
+                break;
+            }
+        }
+
+        SpellTriggerType trigger = spell.flowPart().trigger();
+        boolean timedMidAirForkShell = trigger == SpellTriggerType.ON_TIMER
+                && (flow == SpellFlowModifier.DOUBLE_BIFURCATE
+                        || flow == SpellFlowModifier.TRIPLE_TRIFURCATE
+                        || flow == SpellFlowModifier.OCTUPLE_DOME);
+
         float baseYaw = caster.getYRot();
         float basePitch = caster.getXRot();
+        List<Vec3> launchDirs = new ArrayList<>();
+        List<UUID> assignedTargets = new ArrayList<>();
 
-        switch (flow) {
-            case SEPTUPLE_CROWN -> {
-                int ringCount = Math.max(count, 7);
-                for (int i = 0; i < ringCount; i++) {
-                    float yaw = baseYaw + (360.0F * i / ringCount);
-                    list.add(Vec3.directionFromRotation(0.0F, yaw));
+        if (timedMidAirForkShell) {
+            // Guide Section 3.5: Combining Timed Fuse with Fork/Scatter launches 1 primary fuse shell that splits mid-air!
+            launchDirs.add(caster.getLookAngle().normalize());
+            assignedTargets.add(null);
+        } else {
+            switch (flow) {
+                case DOUBLE_BIFURCATE -> {
+                    launchDirs.add(Vec3.directionFromRotation(basePitch, baseYaw - 12.0F));
+                    launchDirs.add(Vec3.directionFromRotation(basePitch, baseYaw + 12.0F));
+                    double lockDist = Math.max(8.0D, spell.flowPart().travelDistanceMeters()) * apparatusRange;
+                    List<LivingEntity> hostiles = findForwardHostileTargets(level, caster, lockDist, spell);
+                    for (int i = 0; i < 2; i++) {
+                        assignedTargets.add(hostiles.isEmpty() ? null : hostiles.get(i % hostiles.size()).getUUID());
+                    }
                 }
-            }
-            case OCTUPLE_DOME -> {
-                int domeCount = Math.max(count, 8);
-                for (int i = 0; i < domeCount; i++) {
-                    float yaw = baseYaw + (360.0F * i / domeCount);
-                    float pitch = (i % 2 == 0) ? -25.0F : -55.0F;
-                    list.add(Vec3.directionFromRotation(pitch, yaw));
+                case TRIPLE_TRIFURCATE -> {
+                    launchDirs.add(Vec3.directionFromRotation(basePitch, baseYaw - 18.0F));
+                    launchDirs.add(Vec3.directionFromRotation(basePitch, baseYaw));
+                    launchDirs.add(Vec3.directionFromRotation(basePitch, baseYaw + 18.0F));
+                    double lockDist = Math.max(8.0D, spell.flowPart().travelDistanceMeters()) * apparatusRange;
+                    List<LivingEntity> hostiles = findForwardHostileTargets(level, caster, lockDist, spell);
+                    for (int i = 0; i < 3; i++) {
+                        assignedTargets.add(hostiles.isEmpty() ? null : hostiles.get(i % hostiles.size()).getUUID());
+                    }
                 }
-            }
-            case QUAD_SPREAD -> {
-                list.add(Vec3.directionFromRotation(basePitch - 8.0F, baseYaw));
-                list.add(Vec3.directionFromRotation(basePitch + 8.0F, baseYaw));
-                list.add(Vec3.directionFromRotation(basePitch, baseYaw - 10.0F));
-                list.add(Vec3.directionFromRotation(basePitch, baseYaw + 10.0F));
-            }
-            default -> {
-                float totalSpread = Math.min(60.0F, (count - 1) * 10.0F);
-                float startOffset = -totalSpread / 2.0F;
-                float step = count > 1 ? totalSpread / (count - 1) : 0.0F;
-                for (int i = 0; i < count; i++) {
-                    list.add(Vec3.directionFromRotation(basePitch, baseYaw + startOffset + (step * i)));
+                case OCTUPLE_DOME -> {
+                    for (int i = 0; i < 8; i++) {
+                        float yaw = baseYaw + (45.0F * i);
+                        float pitch = (i % 2 == 0) ? -25.0F : -52.0F;
+                        launchDirs.add(Vec3.directionFromRotation(pitch, yaw));
+                        assignedTargets.add(null);
+                    }
+                }
+                case ORBIT_SATELLITE -> {
+                    for (int i = 0; i < 4; i++) {
+                        float yaw = baseYaw + (90.0F * i);
+                        launchDirs.add(Vec3.directionFromRotation(0.0F, yaw));
+                        assignedTargets.add(null);
+                    }
+                }
+                default -> {
+                    launchDirs.add(caster.getLookAngle().normalize());
+                    assignedTargets.add(null);
                 }
             }
         }
-        return list;
+
+        if (launchDirs.size() > 1 && flowHandler != null) {
+            flowHandler.onFlowMultiCastOrigin(level, caster, flow, launchDirs.size(), spell);
+        }
+
+        float baseSpeed = trigger == SpellTriggerType.ON_PROXIMITY
+                ? 0.95F
+                : switch (flow) {
+                    case FAST_DART -> 2.45F;
+                    case SLOW_HEAVY -> 0.75F;
+                    case OCTUPLE_DOME -> 1.35F;
+                    default -> 1.65F;
+                };
+        float speed = baseSpeed
+                * (flowMutation.mutated() ? flowMutation.velocityMultiplier() : 1.0F)
+                * (visualSlot.formPart().form() == SpellDeliveryForm.PROJECTILE && formMutation.mutated() ? formMutation.velocityMultiplier() : 1.0F);
+
+        for (int i = 0; i < launchDirs.size(); i++) {
+            Vec3 dir = launchDirs.get(i);
+            SpellProjectileEntity proj = new SpellProjectileEntity(level, caster);
+            proj.setPos(caster.getX() + dir.x * 0.6D, caster.getEyeY() - 0.15D + dir.y * 0.6D, caster.getZ() + dir.z * 0.6D);
+            proj.configurePayload(spell, 0, fallbackMateria, apparatusPotency);
+            proj.configureCarrierPayload(assignedTargets.get(i), apparatusRange);
+            if (flow == SpellFlowModifier.ORBIT_SATELLITE) {
+                proj.setOrbitPhaseRadians((float) (i * (Math.PI * 0.5D)));
+            }
+            proj.shoot(dir.x, dir.y, dir.z, speed, 0.0F);
+            level.addFreshEntity(proj);
+            if (visualSlot.formPart().form() == SpellDeliveryForm.PROJECTILE && formHandler != null) {
+                formHandler.onProjectileSpawnedFromForm(level, proj, caster, spell, visualSlot);
+            }
+        }
+    }
+
+    /**
+     * Guide Section 3.5 Timed Fuse + Multi-Payload Flow Synergy:
+     * Splits a mid-air Timed Fuse shell into its 2 (Bifurcate), 3 (Trifurcate), or 8 (Octuple Dome) child carrier payloads!
+     */
+    public static void burstTimedMidAirFlowSplit(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            Vec3 origin,
+            Vec3 forwardDir,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange
+    ) {
+        SpellFlowModifier flow = spell.flowPart().flow();
+        SpellAssembly childSpell = new SpellAssembly(
+                spell.customName(),
+                spell.customLore(),
+                spell.materiaSpecific(),
+                spell.prefix(),
+                spell.potencyTier(),
+                spell.flowPart().withTrigger(SpellTriggerType.ON_ENTITY_HIT),
+                spell.subSpells(),
+                spell.flawProfile(),
+                spell.resoniteCritFragments()
+        );
+
+        float baseYaw = (float) (Math.toDegrees(Math.atan2(-forwardDir.x, forwardDir.z)));
+        float basePitch = (float) (Math.toDegrees(-Math.asin(Math.clamp(forwardDir.y, -1.0D, 1.0D))));
+        List<Vec3> childDirs = new ArrayList<>();
+        switch (flow) {
+            case DOUBLE_BIFURCATE -> {
+                childDirs.add(Vec3.directionFromRotation(basePitch, baseYaw - 16.0F));
+                childDirs.add(Vec3.directionFromRotation(basePitch, baseYaw + 16.0F));
+            }
+            case TRIPLE_TRIFURCATE -> {
+                childDirs.add(Vec3.directionFromRotation(basePitch, baseYaw - 22.0F));
+                childDirs.add(Vec3.directionFromRotation(basePitch, baseYaw));
+                childDirs.add(Vec3.directionFromRotation(basePitch, baseYaw + 22.0F));
+            }
+            default -> {
+                for (int i = 0; i < 8; i++) {
+                    float yaw = baseYaw + (45.0F * i);
+                    float pitch = (i % 2 == 0) ? -18.0F : -42.0F;
+                    childDirs.add(Vec3.directionFromRotation(pitch, yaw));
+                }
+            }
+        }
+
+        List<LivingEntity> nearbyHostiles = level.getEntitiesOfClass(
+                LivingEntity.class,
+                new AABB(origin, origin).inflate(14.0D * apparatusRange),
+                e -> e.isAlive()
+                        && e != caster
+                        && (e instanceof net.minecraft.world.entity.monster.Enemy || (caster != null && e == caster.getLastHurtMob()))
+                        && (caster == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                                e, caster, spell.hasWardFriendlyFireSafeguard()))
+        );
+        nearbyHostiles.sort(Comparator.comparingDouble(e -> e.distanceToSqr(origin)));
+
+        level.sendParticles(ParticleTypes.FIREWORK, origin.x, origin.y, origin.z, 18, 0.25D, 0.25D, 0.25D, 0.08D);
+        SubSpellSlot splitVisualSlot = childSpell.subSpells().getFirst();
+        EssenceType splitFormMat = splitVisualSlot.formPart().resolveEffectiveMateria(childSpell.materiaSpecific(), fallbackMateria);
+        MateriaPartMutationHandler splitFormHandler = SpellMutationHandlerRegistry.resolveActive(
+                splitFormMat, splitVisualSlot.formPart().mutationEnabled()
+        );
+        for (int i = 0; i < childDirs.size(); i++) {
+            Vec3 d = childDirs.get(i);
+            SpellProjectileEntity child = caster != null
+                    ? new SpellProjectileEntity(level, caster)
+                    : new SpellProjectileEntity(ModEntityTypes.SPELL_PROJECTILE.get(), level);
+            child.setPos(origin.x + d.x * 0.35D, origin.y + d.y * 0.35D, origin.z + d.z * 0.35D);
+            child.configurePayload(childSpell, 0, fallbackMateria, apparatusPotency);
+            UUID targetId = (!nearbyHostiles.isEmpty() && flow != SpellFlowModifier.OCTUPLE_DOME)
+                    ? nearbyHostiles.get(i % nearbyHostiles.size()).getUUID()
+                    : null;
+            child.configureCarrierPayload(targetId, apparatusRange);
+            child.setSplitChild(true);
+            child.shoot(d.x, d.y, d.z, flow == SpellFlowModifier.OCTUPLE_DOME ? 1.25F : 1.55F, 0.0F);
+            level.addFreshEntity(child);
+            if (splitVisualSlot.formPart().form() == SpellDeliveryForm.PROJECTILE && splitFormHandler != null && caster != null) {
+                splitFormHandler.onProjectileSpawnedFromForm(level, child, caster, childSpell, splitVisualSlot);
+            }
+        }
+    }
+
+    /**
+     * Guide Section 3.5 Ground Collision Fallback:
+     * Returns true when an {@link SpellTriggerType#ON_ENTITY_HIT} spell is aimed at living targets and should suffer
+     * the 25% potency penalty (75% potency) upon accidentally striking world blocks instead of an entity.
+     */
+    public static boolean shouldPenalizeEntityTriggerBlockFallback(SpellAssembly spell) {
+        if (spell.prefix() == SpellPrefix.UTILITY) {
+            return false;
+        }
+        for (SubSpellSlot s : spell.subSpells()) {
+            SpellCoreEffect eff = s.primaryEffect().effect();
+            switch (eff) {
+                case HARM, AFFLICTION, KINETIC, WARD, RESTORATION -> {
+                    return true;
+                }
+                default -> {
+                }
+            }
+        }
+        return false;
+    }
+
+    private static List<LivingEntity> findForwardHostileTargets(
+            ServerLevel level,
+            LivingEntity caster,
+            double range,
+            SpellAssembly spell
+    ) {
+        Vec3 eye = caster.getEyePosition();
+        Vec3 look = caster.getLookAngle().normalize();
+        List<LivingEntity> found = level.getEntitiesOfClass(
+                LivingEntity.class,
+                caster.getBoundingBox().inflate(range),
+                e -> e.isAlive()
+                        && e != caster
+                        && (e instanceof net.minecraft.world.entity.monster.Enemy || e == caster.getLastHurtMob())
+                        && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, caster, spell.hasWardFriendlyFireSafeguard())
+                        && e.getEyePosition().subtract(eye).normalize().dot(look) >= 0.35D
+        );
+        found.sort(Comparator.comparingDouble(caster::distanceToSqr));
+        return found;
+    }
+
+    /**
+     * Point-of-Contact Multi-Cast Engine:
+     * Executes ALL slotted sub-spells ({@code Single 1x} through {@code Octuple 8x}) originating directly at {@code contactPos}!
+     */
+    public static void executeContactMultiCast(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            @Nullable SpellProjectileEntity carrierProj,
+            Vec3 contactPos,
+            @Nullable Entity directHit,
+            @Nullable BlockPos hitBlockPos,
+            @Nullable Direction hitFace,
+            Vec3 travelDir,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange
+    ) {
+        List<SubSpellSlot> slots = spell.subSpells();
+        if (slots.isEmpty()) {
+            return;
+        }
+        int tier = spell.getEffectiveTier();
+        float flawRangeMult = spell.flawProfile().getRangeAndRadiusMultiplier();
+        BlockPos effectiveBlockPos = hitBlockPos != null ? hitBlockPos : BlockPos.containing(contactPos);
+        Direction effectiveFace = hitFace != null ? hitFace : Direction.UP;
+        Vec3 surfaceNormal = Vec3.atLowerCornerOf(effectiveFace.getUnitVec3i());
+        Vec3 unitDir = travelDir.lengthSqr() > 1.0E-4D ? travelDir.normalize() : new Vec3(0.0D, 1.0D, 0.0D);
+        boolean silent = isSilentStealthSpell(spell, fallbackMateria);
+
+        for (int slotIndex = 0; slotIndex < slots.size(); slotIndex++) {
+            SubSpellSlot slot = slots.get(slotIndex);
+            SpellDeliveryForm form = slot.formPart().form();
+            EssenceType formMateria = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            SpellMutationProfile formMutation = slot.formPart().resolveMutation(spell.materiaSpecific(), fallbackMateria);
+            MateriaPartMutationHandler formHandler = SpellMutationHandlerRegistry.resolveActive(formMateria, slot.formPart().mutationEnabled());
+            float formRangeMult = (formMutation.mutated() ? formMutation.radiusMultiplier() : 1.0F) * apparatusRange * flawRangeMult;
+
+            EssenceType effPrimary = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            EssenceType vPrimary = formMateria != EssenceType.REGULAR ? formMateria : effPrimary;
+            EssenceType vSecondary = slot.secondaryEffect()
+                    .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
+                    .orElse(effPrimary != vPrimary ? effPrimary : null);
+
+            switch (form) {
+                case PROJECTILE -> {
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, contactPos, vPrimary, vSecondary, 1.15D, tier);
+                    }
+                    SpellProjectileEntity hookProj = carrierProj;
+                    if (hookProj == null && formHandler != null) {
+                        hookProj = caster != null
+                                ? new SpellProjectileEntity(level, caster)
+                                : new SpellProjectileEntity(ModEntityTypes.SPELL_PROJECTILE.get(), level);
+                        hookProj.setPos(contactPos.x, contactPos.y, contactPos.z);
+                        hookProj.configurePayload(spell, slotIndex, fallbackMateria, apparatusPotency);
+                    }
+                    if (directHit != null) {
+                        deliverSubSpellOnEntity(level, caster, directHit, unitDir, spell, slot, fallbackMateria, apparatusPotency);
+                        if (formHandler != null && hookProj != null) {
+                            formHandler.onProjectileHitEntityFromForm(level, hookProj, caster, directHit, spell, slot);
+                        }
+                    } else {
+                        deliverSubSpellOnBlock(level, caster, effectiveBlockPos, effectiveFace, spell, slot, fallbackMateria, apparatusPotency);
+                        if (formHandler != null && hookProj != null) {
+                            formHandler.onProjectileHitBlockFromForm(
+                                    level, hookProj, caster,
+                                    new BlockHitResult(contactPos, effectiveFace, effectiveBlockPos, false),
+                                    spell, slot
+                            );
+                        }
+                        // Near-Miss / Geometry Blast Splash within 2.2m of impact spot (75% fallback already factored into apparatusPotency when On-Entity-Hit misses!)
+                        AABB nearSplash = new AABB(contactPos, contactPos).inflate(2.2D);
+                        for (LivingEntity splashTarget : level.getEntitiesOfClass(LivingEntity.class, nearSplash, LivingEntity::isAlive)) {
+                            if (splashTarget == caster && !slotIncludesCasterInArea(spell, slot)) continue;
+                            if (splashTarget.position().distanceToSqr(contactPos) > 4.84D) continue;
+                            Vec3 outDir = splashTarget.position().distanceToSqr(contactPos) > 1.0E-4D
+                                    ? splashTarget.position().subtract(contactPos).normalize()
+                                    : unitDir;
+                            deliverSubSpellOnEntity(level, caster, splashTarget, outDir, spell, slot, fallbackMateria, apparatusPotency);
+                        }
+                    }
+                }
+                case BEAM -> {
+                    boolean earthReachBonus = formMutation.mutated() && MateriaFamilyTier.isEarthLineage(formMateria);
+                    float beamReachMult = (formMutation.mutated() ? formMutation.rangeMultiplier() : 1.0F) * apparatusRange * flawRangeMult;
+                    double maxReach = spell.flowPart().distanceStep().resolveBaseBeamReachBlocks(
+                            tier, spell.prefix() == SpellPrefix.COMBAT, earthReachBonus
+                    ) * beamReachMult;
+                    Vec3 beamOrigin = caster != null ? computeCasterMuzzleOrigin(caster, InteractionHand.MAIN_HAND) : contactPos;
+                    Vec3 beamDir = caster != null && contactPos.distanceToSqr(beamOrigin) > 0.09D
+                            ? contactPos.subtract(beamOrigin).normalize()
+                            : resolveContactOutwardDirection(level, caster, contactPos, directHit, unitDir, surfaceNormal, maxReach, spell);
+                    Vec3 beamEnd = beamOrigin.add(beamDir.scale(maxReach));
+                    boolean wallPhasing = formMutation.mutated() && formMutation.wallPhasing() && spell.prefix() != SpellPrefix.UTILITY;
+                    ClipContext.Fluid bFluidClip = (formMateria == EssenceType.WATER || !slotHasEffect(slot, SpellCoreEffect.TRANSMUTE))
+                            ? ClipContext.Fluid.NONE
+                            : ClipContext.Fluid.ANY;
+                    BlockHitResult bHit = level.clip(new ClipContext(beamOrigin, beamEnd, ClipContext.Block.OUTLINE, bFluidClip,
+                            caster != null ? caster : (directHit != null ? directHit : carrierProj)));
+                    Vec3 effectiveEnd = (!wallPhasing && bHit.getType() == HitResult.Type.BLOCK) ? bHit.getLocation() : beamEnd;
+
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastBeam(level, beamOrigin, effectiveEnd, vPrimary, vSecondary, tier);
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, effectiveEnd, vPrimary, vSecondary, 1.05D, tier);
+                    }
+
+                    int maxTargets = 1 + (formMutation.mutated() ? formMutation.bonusPierceTargets() : 0);
+                    List<LivingEntity> struck = new ArrayList<>();
+                    if (directHit instanceof LivingEntity directLiv && directLiv.isAlive()) {
+                        struck.add(directLiv);
+                        deliverSubSpellOnEntity(level, caster, directLiv, beamDir, spell, slot, fallbackMateria, apparatusPotency);
+                    }
+                    if (struck.size() < maxTargets) {
+                        AABB search = new AABB(beamOrigin, effectiveEnd).inflate(0.85D);
+                        List<LivingEntity> candidates = new ArrayList<>();
+                        for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, search, LivingEntity::isAlive)) {
+                            if (cand == caster || cand == directHit) continue;
+                            if (cand.getBoundingBox().inflate(0.35D).clip(beamOrigin, effectiveEnd).isPresent()) {
+                                candidates.add(cand);
+                            }
+                        }
+                        candidates.sort(Comparator.comparingDouble(e -> e.distanceToSqr(beamOrigin)));
+                        for (LivingEntity t : candidates) {
+                            struck.add(t);
+                            deliverSubSpellOnEntity(level, caster, t, beamDir, spell, slot, fallbackMateria, apparatusPotency);
+                            if (struck.size() >= maxTargets) break;
+                        }
+                    }
+                    if (bHit.getType() == HitResult.Type.BLOCK) {
+                        deliverSubSpellOnBlock(level, caster, bHit.getBlockPos(), bHit.getDirection(), spell, slot, fallbackMateria, apparatusPotency);
+                    } else if (directHit == null) {
+                        deliverSubSpellOnBlock(level, caster, effectiveBlockPos, effectiveFace, spell, slot, fallbackMateria, apparatusPotency);
+                    }
+                    if (formHandler != null && caster != null) {
+                        formHandler.onBeamFormCast(level, caster, beamDir, maxReach, struck, bHit, spell, slot, fallbackMateria, apparatusPotency);
+                    }
+                }
+                case TOUCH_STRIKE -> {
+                    if (caster instanceof Player player) {
+                        primeCasterTouchStrike(level, player, spell, List.of(slot), fallbackMateria, apparatusPotency, apparatusRange, null);
+                        break;
+                    }
+                    float touchPotency = apparatusPotency * 1.15F;
+                    double reach = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.TOUCH_STRIKE, tier) * formRangeMult;
+                    Vec3 slashDir = directHit != null ? unitDir : resolveContactOutwardDirection(level, caster, contactPos, null, unitDir, surfaceNormal, reach, spell);
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                                level, contactPos, slashDir, reach, vPrimary, vSecondary, tier
+                        );
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, contactPos, vPrimary, vSecondary, 1.15D, tier);
+                    }
+                    boolean radiantPurifyCarrier = slot.formPart().mutationEnabled() && vPrimary == EssenceType.RADIANT;
+                    long radiantPurifyCarrierUntil = level.getGameTime() + 40L;
+                    List<LivingEntity> struck = new ArrayList<>();
+                    if (directHit instanceof LivingEntity directLiv && directLiv.isAlive()) {
+                        if (radiantPurifyCarrier) {
+                            EntityHelper.getPersistentData(directLiv).putLong(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL, radiantPurifyCarrierUntil);
+                        }
+                        struck.add(directLiv);
+                        deliverSubSpellOnEntity(level, caster, directLiv, slashDir, spell, slot, fallbackMateria, touchPotency);
+                    }
+                    for (LivingEntity near : level.getEntitiesOfClass(LivingEntity.class, new AABB(contactPos, contactPos).inflate(Math.max(2.5D, reach)), LivingEntity::isAlive)) {
+                        if (near == caster || near == directHit) continue;
+                        if (caster != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(near, caster, spell.hasWardFriendlyFireSafeguard())) continue;
+                        if (radiantPurifyCarrier) {
+                            EntityHelper.getPersistentData(near).putLong(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL, radiantPurifyCarrierUntil);
+                        }
+                        float mult = struck.isEmpty() ? 1.0F : 0.50F;
+                        struck.add(near);
+                        deliverSubSpellOnEntity(level, caster, near, slashDir, spell, slot, fallbackMateria, touchPotency * mult);
+                    }
+                    if (directHit == null) {
+                        deliverSubSpellOnBlock(level, caster, effectiveBlockPos, effectiveFace, spell, slot, fallbackMateria, touchPotency);
+                    }
+                    if (formHandler != null && caster != null && !struck.isEmpty()) {
+                        formHandler.onTouchStrikeFormCast(level, caster, slashDir, struck, spell, slot, fallbackMateria, touchPotency);
+                    }
+                }
+                case RADIAL_BURST -> {
+                    double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.RADIAL_BURST, tier) * formRangeMult;
+                    if (formHandler != null && (vPrimary == EssenceType.NATURE
+                            || vPrimary == EssenceType.FROZEN
+                            || vPrimary == EssenceType.NETHER
+                            || vPrimary == EssenceType.RADIANT
+                            || vPrimary == EssenceType.UMBRAL
+                            || vPrimary == EssenceType.UNDEAD
+                            || vPrimary == EssenceType.DUST
+                            || vPrimary == EssenceType.SPORE)) {
+                        radius = Math.max(radius, 6.0D * formRangeMult);
+                    }
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(level, contactPos, radius, vPrimary, vSecondary, tier);
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, contactPos, vPrimary, vSecondary, radius, tier);
+                    }
+                    deliverRadialArea(level, caster, contactPos, radius, unitDir, spell, slot, fallbackMateria, apparatusPotency);
+                    if (formHandler != null && caster != null) {
+                        formHandler.onRadialBurstFormCast(level, caster, contactPos, radius, unitDir, spell, slot, fallbackMateria, apparatusPotency);
+                    }
+                }
+                case AURA -> {
+                    double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.AURA, tier) * formRangeMult;
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(level, contactPos, Math.min(radius, 3.2D), vPrimary, vSecondary, tier);
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, contactPos, radius, vPrimary, vSecondary, 36, tier);
+                    }
+                    deliverRadialArea(level, caster, contactPos, radius, unitDir, spell, slot, fallbackMateria, apparatusPotency);
+                    if (formHandler != null && caster != null && directHit == caster) {
+                        formHandler.onAuraFormCast(level, caster, radius, spell, slot, fallbackMateria, apparatusPotency);
+                        SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.55F, null);
+                    }
+                    if (caster != null) {
+                        int anchorDuration = 160 + (tier * 30);
+                        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                                caster,
+                                contactPos,
+                                radius,
+                                anchorDuration,
+                                level.getGameTime(),
+                                spell,
+                                slot,
+                                fallbackMateria,
+                                apparatusPotency,
+                                (srv, zone, elapsed) -> {
+                                    if (elapsed > zone.maxDurationTicks) return false;
+                                    if (elapsed > 0 && elapsed % 20 == 0) {
+                                        LivingEntity owner = zone.resolveCaster(srv);
+                                        if (owner != null) {
+                                            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                                                    srv, zone.center, zone.radius, vPrimary, vSecondary, 22, tier
+                                            );
+                                            deliverRadialArea(
+                                                    srv, owner, zone.center, zone.radius, new Vec3(0.0D, 1.0D, 0.0D),
+                                                    zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.35F
+                                            );
+                                        }
+                                    }
+                                    return true;
+                                }
+                        ));
+                    }
+                }
+                case GLYPH -> {
+                    double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.GLYPH, tier) * formRangeMult;
+                    Vec3 glyphCenter = directHit != null
+                            ? directHit.position().add(0.0D, 0.05D, 0.0D)
+                            : contactPos.add(surfaceNormal.scale(0.08D));
+                    boolean invisibleCorpseBloom = caster != null && formMutation.mutated() && formMateria == EssenceType.UNDEAD;
+                    if (!silent && !invisibleCorpseBloom) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                                level, glyphCenter.subtract(0.0D, 0.40D, 0.0D), radius, vPrimary, vSecondary, 28, tier
+                        );
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, glyphCenter, vPrimary, vSecondary, radius * 0.55D, tier);
+                    }
+                    if (caster != null) {
+                        if (formHandler != null
+                                && formHandler.onGlyphFormCast(level, caster, glyphCenter, radius, spell, slot, fallbackMateria, apparatusPotency)) {
+                            break;
+                        }
+                        plantStandardGlyphTrap(level, caster, glyphCenter, radius, vPrimary, vSecondary, spell, slot, fallbackMateria, apparatusPotency);
+                    } else {
+                        deliverRadialArea(level, null, glyphCenter, radius, unitDir, spell, slot, fallbackMateria, apparatusPotency);
+                    }
+                }
+                case CONE -> {
+                    double coneRange = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.CONE, tier) * formRangeMult;
+                    if (formMutation.mutated() && formMateria == EssenceType.WATER) {
+                        coneRange = Math.max(12.0D * apparatusRange * flawRangeMult, coneRange);
+                    } else if (formMutation.mutated() && formMateria == EssenceType.FROZEN) {
+                        coneRange = Math.max(10.0D * apparatusRange * flawRangeMult, coneRange);
+                    }
+                    Vec3 coneDir = resolveContactOutwardDirection(level, caster, contactPos, directHit, unitDir, surfaceNormal, coneRange, spell);
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVortexCone(
+                                level, contactPos, coneDir, coneRange, vPrimary, vSecondary, tier
+                        );
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                                level, contactPos.add(coneDir.scale(coneRange * 0.45D)), vPrimary, vSecondary, coneRange * 0.45D, tier
+                        );
+                    }
+                    AABB box = new AABB(contactPos, contactPos).expandTowards(coneDir.scale(coneRange)).inflate(coneRange * 0.55D);
+                    boolean radiantCleansingCone = formMutation.mutated() && formMateria == EssenceType.RADIANT;
+                    List<LivingEntity> hitTargets = new ArrayList<>();
+                    if (directHit instanceof LivingEntity directLiv && directLiv.isAlive()) {
+                        hitTargets.add(directLiv);
+                        if (!(radiantCleansingCone && caster != null
+                                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.isFriendlyRecipientPublic(caster, directLiv)
+                                && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
+                            deliverSubSpellOnEntity(level, caster, directLiv, coneDir, spell, slot, fallbackMateria, apparatusPotency);
+                        }
+                    }
+                    for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
+                        if (target == caster || target == directHit) continue;
+                        Vec3 toTarget = target.getEyePosition().subtract(contactPos);
+                        if (toTarget.lengthSqr() < 0.25D || toTarget.normalize().dot(coneDir) >= 0.50D) {
+                            hitTargets.add(target);
+                            if (!(radiantCleansingCone && caster != null
+                                    && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.isFriendlyRecipientPublic(caster, target)
+                                    && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
+                                deliverSubSpellOnEntity(level, caster, target, coneDir, spell, slot, fallbackMateria, apparatusPotency);
+                            }
+                        }
+                    }
+                    if (hasItemTargetingVerb(slot)) {
+                        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, box, ItemEntity::isAlive)) {
+                            Vec3 toItem = item.position().subtract(contactPos);
+                            if (toItem.lengthSqr() < 0.25D || toItem.normalize().dot(coneDir) >= 0.45D) {
+                                deliverSubSpellOnEntity(level, caster, item, coneDir, spell, slot, fallbackMateria, apparatusPotency);
+                            }
+                        }
+                    }
+                    if (hasKineticVerb(slot)) {
+                        sweepLooseObjectsAndProjectiles(level, caster, box, contactPos, coneDir, tier, true);
+                    }
+                    deliverConeBlocksFromOrigin(level, caster, contactPos, coneDir, coneRange, spell, slot, fallbackMateria, apparatusPotency);
+                    if (formHandler != null && caster != null) {
+                        formHandler.onConeFormCast(level, caster, coneDir, coneRange, hitTargets, spell, slot, fallbackMateria, apparatusPotency);
+                    }
+                }
+                case SKYFALL -> {
+                    Vec3 skyImpact = directHit != null ? directHit.position() : contactPos;
+                    double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * 0.5D * formRangeMult;
+                    if (formMutation.mutated() && formMateria == EssenceType.WATER) {
+                        radius = Math.max(8.0D * apparatusRange * flawRangeMult, radius);
+                    }
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, skyImpact, vPrimary, vSecondary, radius, tier);
+                    }
+                    int zonesBefore = SpellLingeringZoneManager.getActiveZoneCount(level.dimension());
+                    if (formHandler != null && caster != null
+                            && formHandler.onSkyfallFormCast(level, caster, skyImpact, radius, spell, slot, fallbackMateria, apparatusPotency)) {
+                        if (!silent && SpellLingeringZoneManager.getActiveZoneCount(level.dimension()) == zonesBefore) {
+                            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastSkyfallPillar(level, skyImpact, radius, vPrimary, vSecondary, tier);
+                        }
+                        break;
+                    }
+                    deliverRadialArea(level, caster, skyImpact, radius, new Vec3(0.0D, -1.0D, 0.0D), spell, slot, fallbackMateria, apparatusPotency);
+                    if (caster != null) {
+                        final double sustainRad = Math.max(3.6D, radius);
+                        final int sustainTicks = 140 + (tier * 12);
+                        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                                caster, skyImpact, sustainRad, sustainTicks, level.getGameTime(),
+                                spell, slot, fallbackMateria, apparatusPotency,
+                                (srv, zone, elapsed) -> {
+                                    if (elapsed > zone.maxDurationTicks) return false;
+                                    if (elapsed > 0 && elapsed % 20 == 0) {
+                                        LivingEntity owner = zone.resolveCaster(srv);
+                                        deliverRadialArea(srv, owner, zone.center, zone.radius, new Vec3(0.0D, -1.0D, 0.0D),
+                                                zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.25F);
+                                    }
+                                    return true;
+                                }
+                        ));
+                    } else if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastSkyfallPillar(level, skyImpact, radius, vPrimary, vSecondary, tier);
+                    }
+                }
+                case SUMMON_AGENT, SUMMON_SENTRY, SUMMON_DECOY -> {
+                    if (caster == null) break;
+                    Vec3 spawnPos = directHit != null
+                            ? directHit.position().add(unitDir.scale(-0.8D))
+                            : Vec3.atBottomCenterOf(effectiveBlockPos.relative(effectiveFace));
+                    if (!silent) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastSummonPillar(level, spawnPos, 1.75D, vPrimary, vSecondary, tier);
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, spawnPos, vPrimary, vSecondary, 1.8D, tier);
+                    }
+                    SpellEidolonEntity.TriadArchetype reqArchetype = slot.formPart().resolveSummonArchetype();
+                    if (formMutation.mutated()
+                            && SpellEidolonEntity.isLifecycleRefreshMateria(formMateria)
+                            && reqArchetype != SpellEidolonEntity.TriadArchetype.DECOY
+                            && SpellEidolonEntity.tryRefreshLifecycleConstruct(level, caster, formMateria, reqArchetype, tier, spawnPos)) {
+                        break;
+                    }
+                    SpellEidolonEntity.enforceSummonCap(level, caster, tier);
+                    SpellEidolonEntity eidolon = ModEntityTypes.SPELL_EIDOLON.get().create(level, EntitySpawnReason.MOB_SUMMONED);
+                    if (eidolon != null) {
+                        eidolon.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
+                        eidolon.configureConstruct(caster, spell, slotIndex, fallbackMateria, apparatusPotency, spawnPos);
+                        level.addFreshEntity(eidolon);
+                        if (formHandler != null) {
+                            formHandler.onSummonFormSpawned(level, caster, eidolon, spawnPos, 3.0D * formRangeMult, spell, slot);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static Vec3 resolveContactOutwardDirection(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            Vec3 contactPos,
+            @Nullable Entity directHit,
+            Vec3 travelDir,
+            Vec3 surfaceNormal,
+            double searchRange,
+            SpellAssembly spell
+    ) {
+        // Aim toward the nearest other hostile if one is nearby so contact-cast Beams & Cones sweep enemies intelligently!
+        List<LivingEntity> nearbyHostiles = level.getEntitiesOfClass(
+                LivingEntity.class,
+                new AABB(contactPos, contactPos).inflate(Math.min(14.0D, Math.max(5.0D, searchRange))),
+                e -> e.isAlive()
+                        && e != caster
+                        && e != directHit
+                        && (e instanceof Monster || (caster != null && e == caster.getLastHurtMob()))
+                        && (caster == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                                e, caster, spell.hasWardFriendlyFireSafeguard()))
+        );
+        if (!nearbyHostiles.isEmpty()) {
+            nearbyHostiles.sort(Comparator.comparingDouble(e -> e.distanceToSqr(contactPos)));
+            Vec3 toFoe = nearbyHostiles.getFirst().getEyePosition().subtract(contactPos);
+            if (toFoe.lengthSqr() > 1.0E-4D) {
+                return toFoe.normalize();
+            }
+        }
+        if (directHit == null && surfaceNormal.lengthSqr() > 0.25D && travelDir.dot(surfaceNormal) < -0.15D) {
+            Vec3 reflected = travelDir.subtract(surfaceNormal.scale(2.0D * travelDir.dot(surfaceNormal)));
+            if (reflected.lengthSqr() > 1.0E-4D) {
+                return reflected.normalize();
+            }
+        }
+        return travelDir;
+    }
+
+    private static void deliverConeBlocksFromOrigin(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            Vec3 origin,
+            Vec3 direction,
+            double coneRange,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency
+    ) {
+        if (slotHasVoxelSweepBlockVerb(slot)) {
+            int maxDist = Math.min(slotHasEffect(slot, SpellCoreEffect.CONSTRUCT) ? 3 : 6, (int) Math.ceil(coneRange));
+            BlockPos base = BlockPos.containing(origin);
+            for (BlockPos p : BlockPos.betweenClosed(base.offset(-maxDist, -2, -maxDist), base.offset(maxDist, 2, maxDist))) {
+                Vec3 center = Vec3.atCenterOf(p);
+                double dSq = center.distanceToSqr(origin);
+                if (dSq > (double) (maxDist * maxDist)) continue;
+                if (dSq < 1.0D || center.subtract(origin).normalize().dot(direction) >= 0.55D) {
+                    deliverSubSpellOnBlock(level, caster, p.immutable(), Direction.UP, spell, slot, fallbackMateria, apparatusPotency);
+                }
+            }
+        } else if (slotHasSinglePointBlockVerb(slot) && !slotSelfTargetsCasterWhenNoEntityHit(spell, slot)) {
+            BlockPos apex = BlockPos.containing(origin.add(direction.scale(Math.min(4.0D, coneRange * 0.5D))));
+            deliverSubSpellOnBlock(level, caster, apex, Direction.UP, spell, slot, fallbackMateria, apparatusPotency);
+        }
+    }
+
+    /**
+     * Multi-Cast {@code CHAIN_LEAP} across adjacent hostiles: executes {@link #executeContactMultiCast} at every chained target!
+     */
+    public static void chainLeapMultiCastFrom(
+            ServerLevel level,
+            LivingEntity caster,
+            LivingEntity firstTarget,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange
+    ) {
+        if (spell.subSpells().isEmpty()) {
+            return;
+        }
+        SubSpellSlot firstSlot = spell.subSpells().getFirst();
+        EssenceType flowMateria = spell.flowPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        boolean flowMutated = spell.flowPart().mutationEnabled();
+        MateriaPartMutationHandler flowHandler = SpellMutationHandlerRegistry.resolveActive(flowMateria, flowMutated);
+
+        boolean lightningBranching = flowMutated && (flowMateria == EssenceType.LIGHTNING || flowMateria == EssenceType.ASTRAL);
+        boolean entropicQuintupleChain = flowMutated && flowMateria == EssenceType.ENTROPIC;
+        boolean voidIgnoreWalls = flowMutated && (flowMateria == EssenceType.VOID || flowMateria == EssenceType.ASTRAL || entropicQuintupleChain);
+        boolean trinityQuadChain = flowMutated && (flowMateria == EssenceType.MIASMA || flowMateria == EssenceType.OBLIVION);
+
+        int leaps = (trinityQuadChain || entropicQuintupleChain) ? 1 : (1 + (spell.getEffectiveTier() / 3));
+        Set<UUID> visited = new HashSet<>();
+        visited.add(firstTarget.getUUID());
+        List<LivingEntity> frontier = List.of(firstTarget);
+
+        for (int step = 0; step < leaps && !frontier.isEmpty(); step++) {
+            List<LivingEntity> nextFrontier = new ArrayList<>();
+            int branchesPerAnchor = entropicQuintupleChain ? 5 : (trinityQuadChain ? 4 : (lightningBranching ? 2 : 1));
+            float hopPotencyMult = entropicQuintupleChain ? 0.70F : (trinityQuadChain ? 0.60F : 0.85F);
+
+            for (LivingEntity anchor : frontier) {
+                boolean stormRainBoost = flowMutated && flowMateria == EssenceType.STORM && level.isRaining();
+                double jumpRad = entropicQuintupleChain ? 12.0D
+                        : (((lightningBranching && SpellLingeringZoneManager.isEntityWetOrSoaked(anchor)) || stormRainBoost)
+                        ? 18.0D : 12.0D);
+                List<LivingEntity> candidates = level.getEntitiesOfClass(
+                        LivingEntity.class,
+                        anchor.getBoundingBox().inflate(jumpRad),
+                        e -> e.isAlive()
+                                && e != caster
+                                && !visited.contains(e.getUUID())
+                                && (voidIgnoreWalls || anchor.hasLineOfSight(e))
+                                && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, caster, spell.hasWardFriendlyFireSafeguard())
+                );
+                candidates.sort(Comparator.comparingDouble(anchor::distanceToSqr));
+
+                EssenceType arcPrimary = flowMateria != EssenceType.REGULAR
+                        ? flowMateria
+                        : firstSlot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+                EssenceType arcSecondary = firstSlot.secondaryEffect()
+                        .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
+                        .orElse(null);
+
+                if (candidates.isEmpty()) {
+                    if (step == 0) {
+                        float concPotency = apparatusPotency * (0.25F * leaps);
+                        Vec3 mid = anchor.position().add(0.0D, anchor.getBbHeight() * 0.55D, 0.0D);
+                        if (!(flowMutated && flowMateria == EssenceType.UMBRAL)) {
+                            ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                                    level, mid, arcPrimary, arcSecondary, 1.15D, spell.getEffectiveTier()
+                            );
+                        }
+                        executeContactMultiCast(
+                                level, caster, null, mid, anchor, anchor.blockPosition(), Direction.UP,
+                                caster.getLookAngle().normalize(), spell, fallbackMateria, concPotency, apparatusRange
+                        );
+                        return;
+                    } else {
+                        List<LivingEntity> bounceCandidates = level.getEntitiesOfClass(
+                                LivingEntity.class,
+                                anchor.getBoundingBox().inflate(jumpRad),
+                                e -> e.isAlive()
+                                        && e != caster
+                                        && e != anchor
+                                        && (voidIgnoreWalls || anchor.hasLineOfSight(e))
+                                        && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, caster, spell.hasWardFriendlyFireSafeguard())
+                        );
+                        bounceCandidates.sort(Comparator.comparingDouble(anchor::distanceToSqr));
+                        candidates = bounceCandidates;
+                    }
+                }
+
+                int branched = 0;
+                for (LivingEntity next : candidates) {
+                    visited.add(next.getUUID());
+                    Vec3 anchorMid = anchor.position().add(0.0D, anchor.getBbHeight() * 0.55D, 0.0D);
+                    Vec3 nextMid = next.position().add(0.0D, next.getBbHeight() * 0.55D, 0.0D);
+                    // Section 6.9 Silent Shadow Chains: leaps along completely silent, invisible shadow threads!
+                    if (!(flowMutated && flowMateria == EssenceType.UMBRAL)) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastChainArc(
+                                level, anchorMid, nextMid, arcPrimary, arcSecondary, spell.getEffectiveTier()
+                        );
+                    }
+                    Vec3 hopDir = next.position().subtract(anchor.position()).normalize();
+                    executeContactMultiCast(
+                            level, caster, null, nextMid, next, next.blockPosition(), Direction.UP,
+                            hopDir, spell, fallbackMateria, apparatusPotency * hopPotencyMult, apparatusRange
+                    );
+                    if (flowHandler != null) {
+                        flowHandler.onChainLeapStep(level, caster, anchor, next, spell, firstSlot);
+                    }
+                    nextFrontier.add(next);
+                    if (++branched >= branchesPerAnchor) break;
+                }
+            }
+            frontier = nextFrontier;
+        }
     }
 
     private static void dispatchSingleSubSpellForm(
@@ -789,6 +3411,12 @@ public final class SpellExecutionEngine {
             apparatusPotency *= 1.15F;
         }
 
+        if (tryDispatchDirectBlinkSlot(
+                level, caster, direction, spell, slotIndex, slot,
+                fallbackMateria, apparatusPotency, apparatusRange, formRangeMult, formMutation, formHandler, flowMutation)) {
+            return;
+        }
+
         switch (form) {
             case PROJECTILE -> {
                 // Immediately grant Arcane Wings & 3D Flight to the caster when launching a FLIGHT projectile,
@@ -800,6 +3428,7 @@ public final class SpellExecutionEngine {
                 SpellProjectileEntity proj = new SpellProjectileEntity(level, caster);
                 proj.setPos(caster.getX() + direction.x * 0.6D, caster.getEyeY() - 0.15D + direction.y * 0.6D, caster.getZ() + direction.z * 0.6D);
                 proj.configurePayload(spell, slotIndex, fallbackMateria, apparatusPotency);
+                proj.setApparatusRangeMult(apparatusRange);
 
                 float baseSpeed = switch (spell.flowPart().flow()) {
                     case FAST_DART -> 2.35F;
@@ -815,19 +3444,43 @@ public final class SpellExecutionEngine {
                     formHandler.onProjectileSpawnedFromForm(level, proj, caster, spell, slot);
                 }
             }
-            case BEAM, TOUCH_STRIKE -> {
+            case BEAM -> {
                 boolean earthReachBonus = formMutation.mutated() && MateriaFamilyTier.isEarthLineage(formMateria);
-                double maxReach = (form == SpellDeliveryForm.TOUCH_STRIKE
-                        ? SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.TOUCH_STRIKE, tier)
-                        : SpellDeliveryForm.getBeamReachBlocks(tier, earthReachBonus)) * formRangeMult;
+                float beamReachMult = (formMutation.mutated() ? formMutation.rangeMultiplier() : 1.0F) * apparatusRange * flawRangeMult;
+                double maxReach = spell.flowPart().distanceStep().resolveBaseBeamReachBlocks(
+                        tier, spell.prefix() == SpellPrefix.COMBAT, earthReachBonus
+                ) * beamReachMult;
 
                 castRayOrBeam(level, caster, direction, maxReach, spell, slot, fallbackMateria, apparatusPotency, formMutation, formHandler);
             }
+            case TOUCH_STRIKE -> {
+                if (caster instanceof Player player) {
+                    primeCasterTouchStrike(level, player, spell, List.of(slot), fallbackMateria, apparatusPotency, apparatusRange, null);
+                } else {
+                    double maxReach = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.TOUCH_STRIKE, tier) * formRangeMult;
+                    castRayOrBeam(level, caster, direction, maxReach, spell, slot, fallbackMateria, apparatusPotency, formMutation, formHandler);
+                }
+            }
             case RADIAL_BURST, AURA, GLYPH -> {
                 double radius = SpellDeliveryForm.getCombatRadiusBlocks(form, tier) * formRangeMult;
+                if (form == SpellDeliveryForm.RADIAL_BURST && formMutation.mutated()
+                        && (formMateria == EssenceType.NATURE
+                        || formMateria == EssenceType.FROZEN
+                        || formMateria == EssenceType.NETHER
+                        || formMateria == EssenceType.RADIANT
+                        || formMateria == EssenceType.UMBRAL
+                        || formMateria == EssenceType.UNDEAD
+                        || formMateria == EssenceType.DUST
+                        || formMateria == EssenceType.SPORE)) {
+                    radius = Math.max(radius, 6.0D * formRangeMult);
+                }
+                if (form == SpellDeliveryForm.GLYPH && formMutation.mutated() && formMateria == EssenceType.NATURE) {
+                    radius = Math.max(radius, 4.0D * formRangeMult);
+                }
                 Vec3 center = caster.position();
-                if (spell.flowPart().flow() == SpellFlowModifier.VOID_WARP || form == SpellDeliveryForm.GLYPH) {
-                    BlockHitResult hit = raycastBlocks(level, caster, direction, 16.0D * formRangeMult);
+                if (spell.flowPart().isVoidWarpAuthorized(spell.materiaSpecific(), fallbackMateria) || form == SpellDeliveryForm.GLYPH) {
+                    double glyphReach = Math.max(1.5D, spell.flowPart().travelDistanceMeters()) * apparatusRange * flawRangeMult;
+                    BlockHitResult hit = raycastBlocks(level, caster, direction, glyphReach);
                     if (hit.getType() == HitResult.Type.BLOCK) {
                         center = Vec3.atCenterOf(hit.getBlockPos().relative(hit.getDirection()));
                     }
@@ -838,7 +3491,10 @@ public final class SpellExecutionEngine {
                         .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
                         .orElse(effPrimary != vPrimary ? effPrimary : null);
 
-                if (!isSilentStealthSpell(spell, fallbackMateria)) {
+                boolean invisibleCorpseBloom = form == SpellDeliveryForm.GLYPH
+                        && formMutation.mutated()
+                        && formMateria == EssenceType.UNDEAD;
+                if (!isSilentStealthSpell(spell, fallbackMateria) && !invisibleCorpseBloom) {
                     if (form == SpellDeliveryForm.RADIAL_BURST) {
                         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(level, center, radius, vPrimary, vSecondary, tier);
                         ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, center, vPrimary, vSecondary, radius, tier);
@@ -846,40 +3502,291 @@ public final class SpellExecutionEngine {
                         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(level, center, Math.min(radius, 3.2D), vPrimary, vSecondary, tier);
                         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, center, radius, vPrimary, vSecondary, 36, tier);
                     } else {
-                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, center.subtract(0.0D, 0.45D, 0.0D), radius, vPrimary, vSecondary, 50, tier);
-                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, center, vPrimary, vSecondary, radius * 0.7D, tier);
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, center.subtract(0.0D, 0.45D, 0.0D), radius, vPrimary, vSecondary, 28, tier);
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, center, vPrimary, vSecondary, radius * 0.55D, tier);
                     }
                 }
 
-                if (form == SpellDeliveryForm.GLYPH
-                        && formHandler != null
-                        && formHandler.onGlyphFormCast(level, caster, center, radius, spell, slot, fallbackMateria, apparatusPotency)) {
+                if (form == SpellDeliveryForm.GLYPH) {
+                    if (formHandler != null
+                            && formHandler.onGlyphFormCast(level, caster, center, radius, spell, slot, fallbackMateria, apparatusPotency)) {
+                        break;
+                    }
+                    plantStandardGlyphTrap(level, caster, center, radius, vPrimary, vSecondary, spell, slot, fallbackMateria, apparatusPotency);
                     break;
                 }
+
                 deliverRadialArea(level, caster, center, radius, direction, spell, slot, fallbackMateria, apparatusPotency);
                 if (formHandler != null) {
                     if (form == SpellDeliveryForm.RADIAL_BURST) {
                         formHandler.onRadialBurstFormCast(level, caster, center, radius, direction, spell, slot, fallbackMateria, apparatusPotency);
                     } else if (form == SpellDeliveryForm.AURA) {
                         formHandler.onAuraFormCast(level, caster, radius, spell, slot, fallbackMateria, apparatusPotency);
+                        SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.55F, null);
+                    }
+                }
+
+                // Section 4.5 Anchored Aura Option: sneaking while casting AURA anchors a stationary pulsing field!
+                if (form == SpellDeliveryForm.AURA && caster.isShiftKeyDown()) {
+                    int anchorDuration = 160 + (tier * 30);
+                    Vec3 anchoredCenter = center;
+                    SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                            caster,
+                            anchoredCenter,
+                            radius,
+                            anchorDuration,
+                            level.getGameTime(),
+                            spell,
+                            slot,
+                            fallbackMateria,
+                            apparatusPotency,
+                            (srv, zone, elapsed) -> {
+                                if (elapsed > zone.maxDurationTicks) return false;
+                                if (elapsed > 0 && elapsed % 20 == 0) {
+                                    LivingEntity owner = zone.resolveCaster(srv);
+                                    if (owner != null) {
+                                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                                                srv, zone.center, zone.radius, vPrimary, vSecondary, 22, tier
+                                        );
+                                        deliverRadialArea(
+                                                srv, owner, zone.center, zone.radius, new Vec3(0.0D, 1.0D, 0.0D),
+                                                zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.35F
+                                        );
+                                        if (formMutation.mutated() && formMateria == EssenceType.FROZEN) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL, Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL).orElse(0L)));
+                                                    aTag.putInt("SpellFrozenSpikesTier", tier);
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.NETHER) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    ally.clearFire();
+                                                    ally.setTicksFrozen(0);
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                            ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler
+                                                    .meltIceAndSnowInRadius(srv, BlockPos.containing(zone.center), (int) Math.ceil(zone.radius));
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.RADIANT) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.UMBRAL) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
+                                            for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ent == owner || ent.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ent);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
+                                                } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                                                        ent, owner, zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard())) {
+                                                    ent.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 50, 0, true, false));
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.UNDEAD) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
+                                            for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ent == owner || ent.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ent);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_UNDEAD_SHROUD_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_UNDEAD_SHROUD_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
+                                                } else if (!ent.getType().is(net.minecraft.tags.EntityTypeTags.UNDEAD)
+                                                        && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                                                                ent, owner, zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard())
+                                                        && (ent instanceof net.minecraft.world.entity.monster.Enemy
+                                                            || (ent instanceof Mob m && m.getTarget() == owner))) {
+                                                    SpellCombatReactionEngine.hurtWithPureMateria(
+                                                            srv, ent, srv.damageSources().indirectMagic(owner, owner), 1.0F
+                                                    );
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.VOID) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    ally.resetFallDistance();
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_VOID_ZERO_G_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_VOID_ZERO_G_UNTIL).orElse(0L)));
+                                                    ally.addEffect(new MobEffectInstance(
+                                                            net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(
+                                                                    ddraig.net.entropica.registry.ModEffects.WEIGHTLESSNESS.get()),
+                                                            35, 0, true, false));
+                                                    ally.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 35, 2, true, false));
+                                                    ally.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 35, 0, true, false));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.ARID) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.LIGHTNING) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_LIGHTNING_SHROUD_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_LIGHTNING_SHROUD_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.MAGMA) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_MAGMA_MANTLE_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_MAGMA_MANTLE_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.STORM) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_STORM_SHROUD_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_STORM_SHROUD_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.GLACIAL) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_GLACIAL_SHROUD_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_GLACIAL_SHROUD_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.OVERGROWTH) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_OVERGROWTH_BASTION_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_OVERGROWTH_BASTION_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.DUST) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    ally.clearFire();
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_DUST_VEIL_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_DUST_VEIL_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                            ddraig.net.entropica.spell.mutation.element.DustSpellMutationHandler
+                                                    .snuffTorchesAndFiresPublic(srv, BlockPos.containing(zone.center), (int) Math.max(3, Math.ceil(zone.radius)));
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.SPORE) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || ally.isAlliedTo(owner)) {
+                                                    ally.removeEffect(MobEffects.POISON);
+                                                    ally.removeEffect(MobEffects.NAUSEA);
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_SPORE_MANTLE_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_SPORE_MANTLE_UNTIL).orElse(0L)));
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                            ddraig.net.entropica.spell.mutation.element.SporeSpellMutationHandler
+                                                    .sproutMushroomsPublic(srv, BlockPos.containing(zone.center), 2, false);
+                                        }
+                                    }
+                                }
+                                return true;
+                            }
+                    ));
+                    if (caster instanceof Player player) {
+                        player.displayClientMessage(
+                                Component.literal("§b✦ Aura Anchored §7— Stationary field deployed for §f" + (anchorDuration / 20) + "s§7!"),
+                                true
+                        );
                     }
                 }
             }
             case CONE -> {
                 double coneRange = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.CONE, tier) * formRangeMult;
+                if (formMutation.mutated() && formMateria == EssenceType.WATER) {
+                    coneRange = Math.max(12.0D * apparatusRange * flawRangeMult, coneRange);
+                } else if (formMutation.mutated() && formMateria == EssenceType.FROZEN) {
+                    coneRange = Math.max(10.0D * apparatusRange * flawRangeMult, coneRange);
+                }
                 EssenceType effPrimary = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
                 EssenceType vPrimary = formMateria != EssenceType.REGULAR ? formMateria : effPrimary;
                 EssenceType vSecondary = slot.secondaryEffect()
                         .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
                         .orElse(effPrimary != vPrimary ? effPrimary : null);
 
-                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVortexCone(
-                        level, caster.getEyePosition().subtract(0.0D, 0.2D, 0.0D), direction, coneRange, vPrimary, vSecondary, tier
-                );
-                ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
-                        level, caster.getEyePosition().add(direction.scale(coneRange * 0.45D)), vPrimary, vSecondary, coneRange * 0.45D, tier
-                );
+                boolean silentCone = isSilentStealthSpell(spell, fallbackMateria);
+                if (!silentCone) {
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVortexCone(
+                            level, caster.getEyePosition().subtract(0.0D, 0.2D, 0.0D), direction, coneRange, vPrimary, vSecondary, tier
+                    );
+                    ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                            level, caster.getEyePosition().add(direction.scale(coneRange * 0.45D)), vPrimary, vSecondary, coneRange * 0.45D, tier
+                    );
+                }
 
+                boolean radiantCleansingCone = formMutation.mutated() && formMateria == EssenceType.RADIANT;
                 AABB box = caster.getBoundingBox().expandTowards(direction.scale(coneRange)).inflate(coneRange * 0.55D);
                 List<LivingEntity> hitTargets = new ArrayList<>();
                 for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, box)) {
@@ -887,7 +3794,11 @@ public final class SpellExecutionEngine {
                     Vec3 toTarget = target.getEyePosition().subtract(caster.getEyePosition()).normalize();
                     if (toTarget.dot(direction) >= 0.55D) {
                         hitTargets.add(target);
-                        deliverSubSpellOnEntity(level, caster, target, direction, spell, slot, fallbackMateria, apparatusPotency);
+                        if (!(radiantCleansingCone
+                                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.isFriendlyRecipientPublic(caster, target)
+                                && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
+                            deliverSubSpellOnEntity(level, caster, target, direction, spell, slot, fallbackMateria, apparatusPotency);
+                        }
                     }
                 }
                 if (hitTargets.isEmpty() && slotSelfTargetsCasterWhenNoEntityHit(spell, slot)) {
@@ -911,31 +3822,61 @@ public final class SpellExecutionEngine {
                 }
             }
             case SKYFALL -> {
-                BlockHitResult hit = raycastBlocks(level, caster, direction, 24.0D * formRangeMult);
+                double skyfallReach = Math.max(1.5D, spell.flowPart().travelDistanceMeters()) * apparatusRange * flawRangeMult;
+                double openAirFallback = Math.max(1.0D, spell.flowPart().travelDistanceMeters() * 0.65D) * apparatusRange * flawRangeMult;
+                BlockHitResult hit = raycastBlocks(level, caster, direction, skyfallReach);
                 Vec3 impact = hit.getType() == HitResult.Type.BLOCK
                         ? Vec3.atBottomCenterOf(hit.getBlockPos().above())
-                        : caster.position().add(direction.scale(10.0D));
+                        : caster.position().add(direction.scale(openAirFallback));
                 double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * 0.5D * formRangeMult;
+                if (formMutation.mutated() && formMateria == EssenceType.WATER) {
+                    radius = Math.max(8.0D * apparatusRange * flawRangeMult, radius);
+                }
                 EssenceType effPrimary = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
                 EssenceType vPrimary = formMateria != EssenceType.REGULAR ? formMateria : effPrimary;
                 EssenceType vSecondary = slot.secondaryEffect()
                         .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
                         .orElse(effPrimary != vPrimary ? effPrimary : null);
 
-                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastSkyfallPillar(level, impact, radius, vPrimary, vSecondary, tier);
-                ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, impact, vPrimary, vSecondary, radius, tier);
+                boolean silentSkyfall = isSilentStealthSpell(spell, fallbackMateria);
+                if (!silentSkyfall) {
+                    ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, impact, vPrimary, vSecondary, radius, tier);
+                }
 
+                int zonesBefore = SpellLingeringZoneManager.getActiveZoneCount(level.dimension());
                 if (formHandler != null
                         && formHandler.onSkyfallFormCast(level, caster, impact, radius, spell, slot, fallbackMateria, apparatusPotency)) {
+                    if (!silentSkyfall && SpellLingeringZoneManager.getActiveZoneCount(level.dimension()) == zonesBefore) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastSkyfallPillar(level, impact, radius, vPrimary, vSecondary, tier);
+                    }
                     break;
                 }
                 deliverRadialArea(level, caster, impact, radius, new Vec3(0, -1, 0), spell, slot, fallbackMateria, apparatusPotency);
+                final double sustainRad = Math.max(3.6D, radius);
+                final int sustainTicks = 140 + (tier * 12);
+                SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                        caster, impact, sustainRad, sustainTicks, level.getGameTime(),
+                        spell, slot, fallbackMateria, apparatusPotency,
+                        (srv, zone, elapsed) -> {
+                            if (elapsed > zone.maxDurationTicks) return false;
+                            if (elapsed > 0 && elapsed % 20 == 0) {
+                                LivingEntity owner = zone.resolveCaster(srv);
+                                deliverRadialArea(srv, owner, zone.center, zone.radius, new Vec3(0.0D, -1.0D, 0.0D),
+                                        zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.25F);
+                            }
+                            return true;
+                        }
+                ));
             }
             case SUMMON_AGENT, SUMMON_SENTRY, SUMMON_DECOY -> {
-                BlockHitResult hit = raycastBlocks(level, caster, direction, 12.0D);
+                double summonReach = Math.max(1.85D, spell.flowPart().travelDistanceMeters() * 0.75D) * apparatusRange * flawRangeMult;
+                double fallbackStep = spell.flowPart().distanceStep().isPointBlankZero()
+                        ? 1.2D
+                        : Math.min(6.0D, Math.max(1.75D, spell.flowPart().travelDistanceMeters() * 0.25D));
+                BlockHitResult hit = raycastBlocks(level, caster, direction, summonReach);
                 Vec3 spawnPos = hit.getType() == HitResult.Type.BLOCK
                         ? Vec3.atBottomCenterOf(hit.getBlockPos().relative(hit.getDirection()))
-                        : caster.position().add(direction.scale(2.5D));
+                        : caster.position().add(direction.scale(fallbackStep));
 
                 EssenceType effPrimary = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
                 EssenceType vPrimary = formMateria != EssenceType.REGULAR ? formMateria : effPrimary;
@@ -943,15 +3884,16 @@ public final class SpellExecutionEngine {
                         .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
                         .orElse(effPrimary != vPrimary ? effPrimary : null);
 
-                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastSummonPillar(level, spawnPos, 1.75D, vPrimary, vSecondary, tier);
-                ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, spawnPos, vPrimary, vSecondary, 1.8D, tier);
+                if (!isSilentStealthSpell(spell, fallbackMateria)) {
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastSummonPillar(level, spawnPos, 1.75D, vPrimary, vSecondary, tier);
+                    ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, spawnPos, vPrimary, vSecondary, 1.8D, tier);
+                }
 
                 SpellEidolonEntity.TriadArchetype reqArchetype = slot.formPart().resolveSummonArchetype();
                 if (formMutation.mutated()
                         && SpellEidolonEntity.isLifecycleRefreshMateria(formMateria)
                         && reqArchetype != SpellEidolonEntity.TriadArchetype.DECOY
                         && SpellEidolonEntity.tryRefreshLifecycleConstruct(level, caster, formMateria, reqArchetype, tier, spawnPos)) {
-                    deliverRadialArea(level, caster, spawnPos, 3.0D * formRangeMult, direction, spell, slot, fallbackMateria, apparatusPotency);
                     break;
                 }
 
@@ -965,9 +3907,93 @@ public final class SpellExecutionEngine {
                         formHandler.onSummonFormSpawned(level, caster, eidolon, spawnPos, 3.0D * formRangeMult, spell, slot);
                     }
                 }
-                deliverRadialArea(level, caster, spawnPos, 3.0D * formRangeMult, direction, spell, slot, fallbackMateria, apparatusPotency);
             }
         }
+    }
+
+    /**
+     * Section 4.6 Baseline Glyph / Trap Persistence:
+     * Arms after 1.0 second (20t), persists 10 minutes (12,000t) or indefinitely at Tier 5+,
+     * can be safely disarmed via Sneak + Right-Click for a 50% Materia fuel refund, and erupts on proximity!
+     */
+    private static void plantStandardGlyphTrap(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 glyphCenter,
+            double radius,
+            EssenceType vPrimary,
+            @Nullable EssenceType vSecondary,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency
+    ) {
+        int tier = spell.getEffectiveTier();
+        int maxWaitTicks = tier >= 5 ? 72_000_000 : 12_000;
+        double triggerRad = Math.max(1.6D, Math.min(3.0D, radius * 0.65D));
+        boolean beneficial = isCasterBeneficialVerb(slot.primaryEffect().effect());
+
+        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                caster,
+                glyphCenter,
+                radius,
+                maxWaitTicks,
+                level.getGameTime(),
+                spell,
+                slot,
+                fallbackMateria,
+                apparatusPotency,
+                (srv, zone, elapsed) -> {
+                    if (elapsed > zone.maxDurationTicks) return false;
+                    if (elapsed % 16 == 0) {
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnZonePerimeterParticles(
+                                srv, zone.center, Math.min(1.6D, zone.radius * 0.45D), vPrimary, elapsed
+                        );
+                    }
+                    // 1.0-second (20-tick) arming delay!
+                    if (elapsed < 20) {
+                        return true;
+                    }
+
+                    LivingEntity owner = zone.resolveCaster(srv);
+                    AABB triggerBox = new AABB(
+                            zone.center.x - triggerRad, zone.center.y - 0.85D, zone.center.z - triggerRad,
+                            zone.center.x + triggerRad, zone.center.y + 1.85D, zone.center.z + triggerRad
+                    );
+                    List<LivingEntity> stepped = srv.getEntitiesOfClass(LivingEntity.class, triggerBox, ent -> {
+                        if (!ent.isAlive()) return false;
+                        if (beneficial) return true;
+                        if (ent == owner) return false;
+                        return !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                                ent, owner, zone.spell.hasWardFriendlyFireSafeguard()
+                        );
+                    });
+                    if (stepped.isEmpty()) {
+                        return true;
+                    }
+
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                            srv, zone.center.subtract(0.0D, 0.4D, 0.0D), zone.radius, vPrimary, vSecondary, 34, tier
+                    );
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                            srv, zone.center, zone.radius, vPrimary, vSecondary, tier
+                    );
+                    ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                            srv, zone.center, vPrimary, vSecondary, zone.radius, tier
+                    );
+                    if (owner != null) {
+                        deliverRadialArea(
+                                srv, owner, zone.center, zone.radius, new Vec3(0.0D, 1.0D, 0.0D),
+                                zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency
+                        );
+                    }
+                    srv.playSound(null, BlockPos.containing(zone.center), SoundEvents.RESPAWN_ANCHOR_DEPLETE.value(),
+                            SoundSource.PLAYERS, 0.9F, 1.25F);
+                    return false;
+                }
+        ).markDisarmableGlyph());
+
+        level.playSound(null, BlockPos.containing(glyphCenter), SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.PLAYERS, 0.7F, 1.35F);
     }
 
     private static void castRayOrBeam(
@@ -985,17 +4011,18 @@ public final class SpellExecutionEngine {
         Vec3 start = caster.getEyePosition();
         Vec3 end = start.add(direction.scale(maxReach));
 
-        boolean voidFlowPhase = spell.flowPart().flow() == SpellFlowModifier.VOID_WARP
-                && spell.flowPart().mutationEnabled()
-                && spell.flowPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.VOID;
+        boolean voidFlowPhase = spell.flowPart().isVoidWarpAuthorized(spell.materiaSpecific(), fallbackMateria);
         boolean wallPhasing = ((formMutation.mutated() && formMutation.wallPhasing()) || voidFlowPhase)
                 && spell.prefix() != SpellPrefix.UTILITY;
 
-        BlockHitResult blockHit = level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY, caster));
+        EssenceType formMat = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        ClipContext.Fluid rayFluidClip = (formMat == EssenceType.WATER || !slotHasEffect(slot, SpellCoreEffect.TRANSMUTE))
+                ? ClipContext.Fluid.NONE
+                : ClipContext.Fluid.ANY;
+        BlockHitResult blockHit = level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, rayFluidClip, caster));
         Vec3 effectiveEnd = (!wallPhasing && blockHit.getType() == HitResult.Type.BLOCK) ? blockHit.getLocation() : end;
 
         // Broadcast custom 3D volumetric Beam or Crescent Slash + Materia-matched custom particles!
-        EssenceType formMat = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
         EssenceType effMat = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
         EssenceType vPrimary = formMat != EssenceType.REGULAR ? formMat : effMat;
         EssenceType vSecondary = slot.secondaryEffect()
@@ -1033,13 +4060,75 @@ public final class SpellExecutionEngine {
         boolean miasmaOrOblivionStrikeChain = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
                 && spell.flowPart().mutationEnabled()
                 && (rayFlowMat == EssenceType.MIASMA || rayFlowMat == EssenceType.OBLIVION);
+        boolean radiantRayTouchPurify = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                && slot.formPart().mutationEnabled()
+                && slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.RADIANT;
+        boolean netherRayTouchSmelt = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                && slot.formPart().mutationEnabled()
+                && slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.NETHER;
+        boolean aridRayTouchMummify = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                && slot.formPart().mutationEnabled()
+                && slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.ARID;
+        long radiantRayPurifyUntil = level.getGameTime() + 40L;
+        long netherRaySmeltUntil = level.getGameTime() + 130L;
+        long aridRayMummifyUntil = level.getGameTime() + 60L;
         for (LivingEntity target : hitEntities) {
+            if (radiantRayTouchPurify) {
+                EntityHelper.getPersistentData(target).putLong(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL, radiantRayPurifyUntil);
+            }
+            if (netherRayTouchSmelt) {
+                EntityHelper.getPersistentData(target).putLong(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL, netherRaySmeltUntil);
+            }
+            if (aridRayTouchMummify) {
+                EntityHelper.getPersistentData(target).putLong(SpellLingeringZoneManager.TAG_ARID_MUMMIFY_DROPS_UNTIL, aridRayMummifyUntil);
+            }
             struckTargets.add(target);
             deliverSubSpellOnEntity(level, caster, target, direction, spell, slot, fallbackMateria, apparatusPotency);
             if (spell.flowPart().flow() == SpellFlowModifier.CHAIN_LEAP || miasmaOrOblivionStrikeChain) {
                 chainLeapFrom(level, caster, target, spell, slot, fallbackMateria, apparatusPotency);
             }
             if (++hitCount >= maxTargets) break;
+        }
+
+        // Section 4.4 Touch / Melee Strike: 50% adjacent cleave splash on direct hit OR 30-second primed weapon infusion!
+        List<LivingEntity> allRayTouchStruck = new ArrayList<>(struckTargets);
+        if (slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE) {
+            if (!struckTargets.isEmpty()) {
+                Set<UUID> alreadyStruck = struckTargets.stream().map(Entity::getUUID).collect(Collectors.toSet());
+                for (LivingEntity primary : struckTargets) {
+                    for (LivingEntity cleaveTarget : level.getEntitiesOfClass(
+                            LivingEntity.class, primary.getBoundingBox().inflate(2.5D), LivingEntity::isAlive)) {
+                        if (cleaveTarget == caster || alreadyStruck.contains(cleaveTarget.getUUID())) continue;
+                        if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                                cleaveTarget, caster, spell.hasWardFriendlyFireSafeguard())) {
+                            continue;
+                        }
+                        alreadyStruck.add(cleaveTarget.getUUID());
+                        allRayTouchStruck.add(cleaveTarget);
+                        if (radiantRayTouchPurify) {
+                            EntityHelper.getPersistentData(cleaveTarget).putLong(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL, radiantRayPurifyUntil);
+                        }
+                        if (netherRayTouchSmelt) {
+                            EntityHelper.getPersistentData(cleaveTarget).putLong(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL, level.getGameTime() + 70L);
+                        }
+                        if (slot.primaryEffect().effect() == SpellCoreEffect.BLINK) {
+                            slot.secondaryEffect().ifPresent(sec -> {
+                                if (sec.effect() != SpellCoreEffect.BLINK) {
+                                    executeSingleEffectOnEntity(level, caster, cleaveTarget, direction, spell, slot, sec,
+                                            SpellPartSlotType.SECONDARY_EFFECT, fallbackMateria, apparatusPotency * 0.50F);
+                                }
+                            });
+                            continue;
+                        }
+                        deliverSubSpellOnEntity(level, caster, cleaveTarget, direction, spell, slot, fallbackMateria, apparatusPotency * 0.50F);
+                    }
+                }
+            } else if (caster instanceof Player primeOwner
+                    && !slotSelfTargetsCasterWhenNoEntityHit(spell, slot)
+                    && blockHit.getType() != HitResult.Type.BLOCK
+                    && !hasOpenAirBlockVerb(slot)) {
+                primeCasterTouchStrike(level, primeOwner, spell, List.of(slot), fallbackMateria, apparatusPotency, 1.0F, null);
+            }
         }
 
         // Process floating ItemEntities along beam when spell uses Transmute or Logistics!
@@ -1064,10 +4153,24 @@ public final class SpellExecutionEngine {
         if (formHandler != null) {
             if (slot.formPart().form() == SpellDeliveryForm.BEAM) {
                 formHandler.onBeamFormCast(level, caster, direction, maxReach, struckTargets, blockHit, spell, slot, fallbackMateria, apparatusPotency);
-            } else if (slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE) {
-                formHandler.onTouchStrikeFormCast(level, caster, direction, struckTargets, spell, slot, fallbackMateria, apparatusPotency);
+            } else if (slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE && !allRayTouchStruck.isEmpty()) {
+                formHandler.onTouchStrikeFormCast(level, caster, direction, allRayTouchStruck, spell, slot, fallbackMateria, apparatusPotency);
             }
         }
+    }
+
+    private static boolean isDownwardAirJetstreamCast(Player player, SpellAssembly spell, @Nullable EssenceType fallbackMateria) {
+        if (player.getXRot() < 32.0F) {
+            return false;
+        }
+        for (SubSpellSlot slot : spell.subSpells()) {
+            if (slot.formPart().form() == SpellDeliveryForm.BEAM
+                    && slot.formPart().mutationEnabled()
+                    && slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.AIR) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean containsBlinkEffect(SpellAssembly spell) {
@@ -1091,18 +4194,32 @@ public final class SpellExecutionEngine {
         return slot.secondaryEffect().map(s -> s.effect() == SpellCoreEffect.KINETIC).orElse(false);
     }
 
+    public static boolean isSilentStealthSpellPublic(SpellAssembly spell, @Nullable EssenceType fallbackMateria) {
+        return isSilentStealthSpell(spell, fallbackMateria);
+    }
+
     private static boolean isSilentStealthSpell(SpellAssembly spell, @Nullable EssenceType fallbackMateria) {
+        SubSpellSlot first = spell.subSpells().isEmpty() ? null : spell.subSpells().getFirst();
+        if (first != null && isSilentBlinkBinding(first.primaryEffect(), spell, fallbackMateria)
+                && first.secondaryEffect().map(sec -> isSilentBlinkBinding(sec, spell, fallbackMateria)).orElse(true)) {
+            return true;
+        }
+        // Guide Section 1.7 Umbral / Silence Stealth Assassination:
+        // Infusing a spell with Umbral or Silence Sub-Materia suppresses all sound and light emissions!
+        EssenceType flowMat = spell.flowPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        if (flowMat == EssenceType.UMBRAL || flowMat == EssenceType.NULL_U) {
+            return true;
+        }
         for (SubSpellSlot slot : spell.subSpells()) {
             EssenceType formMat = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            EssenceType effMat = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            if (formMat == EssenceType.UMBRAL || formMat == EssenceType.NULL_U
+                    || effMat == EssenceType.UMBRAL || effMat == EssenceType.NULL_U) {
+                return true;
+            }
             if (slot.formPart().mutationEnabled()
                     && slot.formPart().form() == SpellDeliveryForm.RADIAL_BURST
-                    && (formMat == EssenceType.ABYSS || formMat == EssenceType.NULL_U || formMat == EssenceType.UMBRAL)) {
-                return true;
-            }
-            if (isSilentBlinkBinding(slot.primaryEffect(), spell, fallbackMateria)) {
-                return true;
-            }
-            if (slot.secondaryEffect().map(sec -> isSilentBlinkBinding(sec, spell, fallbackMateria)).orElse(false)) {
+                    && formMat == EssenceType.ABYSS) {
                 return true;
             }
         }
@@ -1110,11 +4227,16 @@ public final class SpellExecutionEngine {
     }
 
     private static boolean isSilentBlinkBinding(EffectPartBinding binding, SpellAssembly spell, @Nullable EssenceType fallbackMateria) {
-        if (binding.effect() != SpellCoreEffect.BLINK || !binding.mutationEnabled()) {
+        if (binding.effect() != SpellCoreEffect.BLINK) {
             return false;
         }
+        // Section 5.4 Clean Stealth Transit: unmutated Blink is 100% silent & smoke-free by default!
+        if (!binding.mutationEnabled()) {
+            return true;
+        }
         EssenceType mat = binding.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
-        return mat == EssenceType.ABYSS || mat == EssenceType.NULL_U || mat == EssenceType.UMBRAL
+        return mat == EssenceType.AIR || mat == EssenceType.WATER || mat == EssenceType.DUST || mat == EssenceType.AURA
+                || mat == EssenceType.ABYSS || mat == EssenceType.NULL_U || mat == EssenceType.UMBRAL
                 || mat == EssenceType.DAWN || mat == EssenceType.WRAITH || mat == EssenceType.STATIC
                 || mat == EssenceType.CATACLYSM || mat == EssenceType.ESCHATON;
     }
@@ -1222,6 +4344,10 @@ public final class SpellExecutionEngine {
         boolean trinityQuadChain = flowMutated && (flowMateria == EssenceType.MIASMA || flowMateria == EssenceType.OBLIVION);
 
         int leaps = (trinityQuadChain || entropicQuintupleChain) ? 1 : (1 + (spell.getEffectiveTier() / 3));
+        if (lightningBranching) {
+            // Section 6.13 Supercharged Forked Chains: always supports at least 2 forked leaps (1 -> 2 -> 4 targets)!
+            leaps = Math.max(2, leaps);
+        }
         Set<UUID> visited = new HashSet<>();
         visited.add(firstTarget.getUUID());
         List<LivingEntity> frontier = List.of(firstTarget);
@@ -1233,37 +4359,84 @@ public final class SpellExecutionEngine {
 
             for (LivingEntity anchor : frontier) {
                 boolean stormRainBoost = flowMutated && flowMateria == EssenceType.STORM && level.isRaining();
-                double jumpRad = entropicQuintupleChain ? 8.0D
-                        : (((lightningBranching && SpellLingeringZoneManager.isEntityWetOrSoaked(anchor)) || stormRainBoost)
-                        ? 9.0D : 6.0D); // 8m wall-phasing chain (Entropic) or +50% jump search radius when wet/raining!
+                boolean anchorWet = SpellLingeringZoneManager.isEntityWetOrSoaked(anchor);
+                // Section 3.2.1 & 6.13 Chain Leap: 12-block search radius (+50% = 18m across wet mobs or water surfaces)
+                double jumpRad = entropicQuintupleChain ? 12.0D
+                        : ((lightningBranching || stormRainBoost) ? 18.0D : 12.0D);
                 List<LivingEntity> candidates = level.getEntitiesOfClass(
                         LivingEntity.class,
                         anchor.getBoundingBox().inflate(jumpRad),
-                        e -> e.isAlive()
-                                && e != caster
-                                && !visited.contains(e.getUUID())
-                                && (voidIgnoreWalls || anchor.hasLineOfSight(e))
-                                && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, caster, spell.hasWardFriendlyFireSafeguard())
+                        e -> {
+                            if (!e.isAlive() || e == caster || visited.contains(e.getUUID())) return false;
+                            if (!voidIgnoreWalls && !anchor.hasLineOfSight(e)) return false;
+                            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, caster, spell.hasWardFriendlyFireSafeguard())) {
+                                return false;
+                            }
+                            double distSq = anchor.distanceToSqr(e);
+                            if (distSq <= 144.0D || stormRainBoost) return true;
+                            return lightningBranching
+                                    && distSq <= 324.0D
+                                    && (anchorWet
+                                    || SpellLingeringZoneManager.isEntityWetOrSoaked(e)
+                                    || ddraig.net.entropica.spell.mutation.element.LightningSpellMutationHandler
+                                            .hasWaterAlongArc(level, anchor.position(), e.position()));
+                        }
                 );
                 candidates.sort(Comparator.comparingDouble(anchor::distanceToSqr));
 
-                int branched = 0;
                 EssenceType arcPrimary = flowMateria != EssenceType.REGULAR
                         ? flowMateria
                         : slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
                 EssenceType arcSecondary = slot.secondaryEffect()
                         .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
                         .orElse(null);
+
+                // Section 3.2.1 Single-Target Concentration & Two-Target Ping-Pong Bounce:
+                if (candidates.isEmpty()) {
+                    if (step == 0) {
+                        // Isolated single target: collapse all unused leaps inward for +25% concentrated surge per unused leap!
+                        float concPotency = apparatusPotency * (0.25F * leaps);
+                        Vec3 mid = anchor.position().add(0.0D, anchor.getBbHeight() * 0.55D, 0.0D);
+                        if (!(flowMutated && flowMateria == EssenceType.UMBRAL)) {
+                            ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                                    level, mid, arcPrimary, arcSecondary, 1.15D, spell.getEffectiveTier()
+                            );
+                        }
+                        deliverSubSpellOnEntity(
+                                level, caster, anchor, caster != null ? caster.getLookAngle() : new Vec3(0, 1, 0),
+                                spell, slot, fallbackMateria, concPotency
+                        );
+                        return;
+                    } else {
+                        // 2+ target ping-pong bounce: allow leaping back to a previously struck hostile != anchor!
+                        List<LivingEntity> bounceCandidates = level.getEntitiesOfClass(
+                                LivingEntity.class,
+                                anchor.getBoundingBox().inflate(jumpRad),
+                                e -> e.isAlive()
+                                        && e != caster
+                                        && e != anchor
+                                        && (voidIgnoreWalls || anchor.hasLineOfSight(e))
+                                        && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, caster, spell.hasWardFriendlyFireSafeguard())
+                        );
+                        bounceCandidates.sort(Comparator.comparingDouble(anchor::distanceToSqr));
+                        candidates = bounceCandidates;
+                    }
+                }
+
+                int branched = 0;
                 for (LivingEntity next : candidates) {
                     visited.add(next.getUUID());
                     Vec3 anchorMid = anchor.position().add(0.0D, anchor.getBbHeight() * 0.55D, 0.0D);
                     Vec3 nextMid = next.position().add(0.0D, next.getBbHeight() * 0.55D, 0.0D);
-                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastChainArc(
-                            level, anchorMid, nextMid, arcPrimary, arcSecondary, spell.getEffectiveTier()
-                    );
-                    ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
-                            level, nextMid, arcPrimary, arcSecondary, 0.9D, spell.getEffectiveTier()
-                    );
+                    // Section 6.9 Silent Shadow Chains: leaps along completely silent, invisible shadow threads!
+                    if (!(flowMutated && flowMateria == EssenceType.UMBRAL)) {
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastChainArc(
+                                level, anchorMid, nextMid, arcPrimary, arcSecondary, spell.getEffectiveTier()
+                        );
+                        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
+                                level, nextMid, arcPrimary, arcSecondary, 0.9D, spell.getEffectiveTier()
+                        );
+                    }
                     Vec3 hopDir = next.position().subtract(anchor.position()).normalize();
                     deliverSubSpellOnEntity(level, caster, next, hopDir, spell, slot, fallbackMateria, apparatusPotency * hopPotencyMult);
                     if (flowHandler != null) {
@@ -1279,7 +4452,7 @@ public final class SpellExecutionEngine {
 
     private static void deliverRadialArea(
             ServerLevel level,
-            LivingEntity caster,
+            @Nullable LivingEntity caster,
             Vec3 center,
             double radius,
             Vec3 direction,
@@ -1318,6 +4491,17 @@ public final class SpellExecutionEngine {
             Vec3 radialDir = entity == caster
                     ? direction
                     : (entity.position().distanceToSqr(center) > 1.0E-4D ? entity.position().subtract(center).normalize() : direction);
+            if (entity != caster && slot.primaryEffect().effect() == SpellCoreEffect.BLINK) {
+                // Never loop-blink the caster onto every surrounding mob in a radial area!
+                final float secPotency = radialPotency;
+                slot.secondaryEffect().ifPresent(sec -> {
+                    if (sec.effect() != SpellCoreEffect.BLINK) {
+                        executeSingleEffectOnEntity(level, caster, entity, radialDir, spell, slot, sec,
+                                SpellPartSlotType.SECONDARY_EFFECT, fallbackMateria, secPotency);
+                    }
+                });
+                continue;
+            }
             deliverSubSpellOnEntity(level, caster, entity, radialDir, spell, slot, fallbackMateria, radialPotency);
         }
 
@@ -1380,6 +4564,7 @@ public final class SpellExecutionEngine {
                 hitEntity,
                 direction,
                 spell,
+                slot,
                 slot.primaryEffect(),
                 SpellPartSlotType.CORE_EFFECT,
                 fallbackMateria,
@@ -1392,6 +4577,7 @@ public final class SpellExecutionEngine {
                 hitEntity,
                 direction,
                 spell,
+                slot,
                 secondary,
                 SpellPartSlotType.SECONDARY_EFFECT,
                 fallbackMateria,
@@ -1405,6 +4591,7 @@ public final class SpellExecutionEngine {
             Entity hitEntity,
             Vec3 direction,
             SpellAssembly spell,
+            @Nullable SubSpellSlot activeSlot,
             EffectPartBinding effectBinding,
             SpellPartSlotType slotType,
             @Nullable EssenceType fallbackMateria,
@@ -1420,6 +4607,15 @@ public final class SpellExecutionEngine {
         // Floating ItemEntity Transmutation & Logistics (works across Utility, Misc, and Combat casts!)
         if (hitEntity instanceof ItemEntity itemEntity && itemEntity.isAlive()) {
             if (effect == SpellCoreEffect.LOGISTICS && caster != null) {
+                if (MateriaFamilyTier.isNetherLineage(effectMateria)) {
+                    ItemStack refined = ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler
+                            .trySmeltRawOreInTransit(level, itemEntity.getItem());
+                    if (refined != itemEntity.getItem()) {
+                        itemEntity.setItem(refined);
+                        level.sendParticles(ParticleTypes.FLAME, itemEntity.getX(), itemEntity.getY() + 0.2D, itemEntity.getZ(),
+                                6, 0.14D, 0.14D, 0.14D, 0.02D);
+                    }
+                }
                 itemEntity.setNoPickUpDelay();
                 itemEntity.setPos(caster.getX(), caster.getY() + 0.5D, caster.getZ());
             } else if (effect == SpellCoreEffect.TRANSMUTE) {
@@ -1436,18 +4632,13 @@ public final class SpellExecutionEngine {
                     case RESTORATION -> applySpellRestoration(
                             level, caster, living, spell, effectBinding, effectMateria, effectMutation, apparatusPotency, true
                     );
-                    case WARD -> {
-                        SpellCombatReactionEngine.grantWardShield(
-                                living,
-                                effectMateria,
-                                tier,
-                                effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
-                                160 + tier * 40
-                        );
-                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(
-                                level, living.position(), Math.max(1.25D, living.getBbWidth() + 0.75D), effectMateria, null, tier
-                        );
-                    }
+                    case WARD -> SpellCombatReactionEngine.grantWardShield(
+                            living,
+                            effectMateria,
+                            tier,
+                            effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
+                            160 + tier * 40
+                    );
                     case FLIGHT -> {
                         boolean validRecipient = living == caster
                                 || living instanceof Player
@@ -1480,21 +4671,45 @@ public final class SpellExecutionEngine {
                     }
                     case GRAPPLE -> {
                         if (caster != null) {
+                            double grappleDist = Math.max(2.0D, spell.flowPart().travelDistanceMeters())
+                                    * spell.flawProfile().getRangeAndRadiusMultiplier();
                             Vec3 anchor = living == caster
-                                    ? caster.position().add(caster.getLookAngle().scale(10.0D + tier * 2.0D))
+                                    ? caster.position().add(caster.getLookAngle().scale(grappleDist))
                                     : living.position().add(0.0D, living.getBbHeight() * 0.5D, 0.0D);
                             performGrappleTetherToPoint(level, caster, anchor, tier, effectMateria, effectMutation.potencyMultiplier());
                         }
                     }
                     case BLINK -> {
                         if (caster != null) {
-                            if ((subMode.equals("swap") || subMode.equals("transposition")) && living != caster) {
-                                performTranspositionSwap(level, caster, living, tier, effectMateria, effectMutation.mutated());
+                            boolean zeroStep = spell.flowPart().distanceStep().isPointBlankZero();
+                            float flawScale = spell.flawProfile().getRangeAndRadiusMultiplier();
+                            float rangeScale = zeroStep
+                                    ? flawScale
+                                    : flawScale * spell.flowPart().distanceStep().getDistanceScaleFromStandard();
+                            if (subMode.equals("swap") || subMode.equals("transposition")) {
+                                double swapReach = zeroStep
+                                        ? 2.5D * flawScale
+                                        : (tier <= 3 ? 16.0D : 16.0D + (tier - 3) * 2.5D) * rangeScale;
+                                LivingEntity swapTarget = living != caster
+                                        ? living
+                                        : raycastBlinkSwapTarget(level, caster, caster.getLookAngle().normalize(),
+                                                swapReach, tier, effectMateria, effectMutation.mutated());
+                                if (swapTarget == null || !performTranspositionSwap(level, caster, swapTarget, tier, effectMateria, effectMutation.mutated(), rangeScale)) {
+                                    if (spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
+                                        BLINK_CANCELLED_REFUND_FLAG.set(true);
+                                        BLINK_CANCELLED_REASON.set("§e✦ Position Swap Cancelled §7— No valid target in sights (§a100% Materia refunded§7)");
+                                    }
+                                }
+                            } else if (living == caster) {
+                                boolean blinked = zeroStep
+                                        ? performPointBlankZeroBlink(level, caster, tier, effectMateria, effectMutation.mutated())
+                                        : performAimedSelfBlink(level, caster, caster.getLookAngle(), tier, effectMateria, effectMutation.mutated(), rangeScale);
+                                if (!blinked && spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
+                                    BLINK_CANCELLED_REFUND_FLAG.set(true);
+                                }
                             } else {
-                                Vec3 dest = living == caster
-                                        ? caster.position().add(caster.getLookAngle().scale(6.0D + tier * 2.5D))
-                                        : living.position();
-                                performSafeBlink(level, caster, dest, tier, effectMateria, effectMutation.mutated());
+                                Vec3 stepDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
+                                performSafeBlink(level, caster, living.position().add(stepDir.scale(1.6D)), tier, effectMateria, effectMutation.mutated(), rangeScale);
                             }
                         }
                     }
@@ -1526,7 +4741,7 @@ public final class SpellExecutionEngine {
 
         switch (effect) {
             case HARM -> SpellCombatReactionEngine.applyElementalHarm(
-                    level, caster, living, spell, effectMateria, effectMutation, apparatusPotency
+                    level, caster, living, spell, activeSlot, fallbackMateria, effectMateria, effectMutation, apparatusPotency
             );
             case FLIGHT -> {
                 boolean friendlyOrSelf = living == caster
@@ -1617,27 +4832,44 @@ public final class SpellExecutionEngine {
                     applySyncedMotion(living, new Vec3(direction.x * strength, Math.max(0.32D, direction.y * strength + 0.25D), direction.z * strength));
                 }
             }
-            case WARD -> {
-                SpellCombatReactionEngine.grantWardShield(
-                        living,
-                        effectMateria,
-                        tier,
-                        effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
-                        160 + tier * 40
-                );
-                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(
-                        level, living.position(), Math.max(1.25D, living.getBbWidth() + 0.75D), effectMateria, null, tier
-                );
-            }
+            case WARD -> SpellCombatReactionEngine.grantWardShield(
+                    living,
+                    effectMateria,
+                    tier,
+                    effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
+                    160 + tier * 40
+            );
             case BLINK -> {
                 if (caster != null) {
-                    if ((subMode.equals("swap") || subMode.equals("transposition")) && living != caster) {
-                        performTranspositionSwap(level, caster, living, tier, effectMateria, effectMutation.mutated());
+                    boolean zeroStep = spell.flowPart().distanceStep().isPointBlankZero();
+                    float flawScale = spell.flawProfile().getRangeAndRadiusMultiplier();
+                    float rangeScale = zeroStep
+                            ? flawScale
+                            : flawScale * spell.flowPart().distanceStep().getDistanceScaleFromStandard();
+                    if (subMode.equals("swap") || subMode.equals("transposition")) {
+                        double swapReach = zeroStep
+                                ? 2.5D * flawScale
+                                : (tier <= 3 ? 16.0D : 16.0D + (tier - 3) * 2.5D) * rangeScale;
+                        LivingEntity swapTarget = living != caster
+                                ? living
+                                : raycastBlinkSwapTarget(level, caster, caster.getLookAngle().normalize(),
+                                        swapReach, tier, effectMateria, effectMutation.mutated());
+                        if (swapTarget == null || !performTranspositionSwap(level, caster, swapTarget, tier, effectMateria, effectMutation.mutated(), rangeScale)) {
+                            if (spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
+                                BLINK_CANCELLED_REFUND_FLAG.set(true);
+                                BLINK_CANCELLED_REASON.set("§e✦ Position Swap Cancelled §7— No valid target in sights (§a100% Materia refunded§7)");
+                            }
+                        }
+                    } else if (living == caster) {
+                        boolean blinked = zeroStep
+                                ? performPointBlankZeroBlink(level, caster, tier, effectMateria, effectMutation.mutated())
+                                : performAimedSelfBlink(level, caster, caster.getLookAngle(), tier, effectMateria, effectMutation.mutated(), rangeScale);
+                        if (!blinked && spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
+                            BLINK_CANCELLED_REFUND_FLAG.set(true);
+                        }
                     } else {
-                        Vec3 dest = living == caster
-                                ? caster.position().add(caster.getLookAngle().scale(6.0D + tier * 2.5D))
-                                : living.position().subtract(direction.scale(1.2D));
-                        performSafeBlink(level, caster, dest, tier, effectMateria, effectMutation.mutated());
+                        Vec3 stepDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
+                        performSafeBlink(level, caster, living.position().add(stepDir.scale(1.6D)), tier, effectMateria, effectMutation.mutated(), rangeScale);
                     }
                 }
             }
@@ -1729,17 +4961,53 @@ public final class SpellExecutionEngine {
                             effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
                             160 + tier * 40
                     );
-                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(
-                            level, caster.position(), Math.max(1.25D, caster.getBbWidth() + 0.75D), effectMateria, null, tier
-                    );
                 }
             }
             case RESTORATION -> {
                 if (caster != null && caster.position().distanceToSqr(Vec3.atCenterOf(pos)) <= 20.25D) {
                     applySpellRestoration(level, caster, caster, spell, effectBinding, effectMateria, effectMutation, 1.0F, true);
+                    if (effHandler != null) {
+                        effHandler.onEffectAppliedToEntity(level, caster, caster, Vec3.atLowerCornerOf(hitFace.getUnitVec3i()), effect, tier, spell);
+                    }
                 }
             }
             case KINETIC -> {
+                // Section 6.11 Void Gravity Well: aiming a Void-mutated Kinetic spell at terrain spawns a stationary 3D black hole!
+                if (effectMutation.mutated() && effectMateria == EssenceType.VOID) {
+                    Vec3 wellPos = state.isAir()
+                            ? Vec3.atCenterOf(pos)
+                            : Vec3.atCenterOf(pos).add(Vec3.atLowerCornerOf(hitFace.getUnitVec3i()).scale(0.85D));
+                    ddraig.net.entropica.spell.mutation.element.VoidSpellMutationHandler.spawnGravityWell(
+                            level, caster, wellPos, tier, spell
+                    );
+                    break;
+                }
+                // Section 6.13 Magnetic Railgun: casting a Lightning-mutated Kinetic spell into open space / ground launches caster horizontally forward!
+                if (effectMutation.mutated() && effectMateria == EssenceType.LIGHTNING && caster != null) {
+                    ddraig.net.entropica.spell.mutation.element.LightningSpellMutationHandler
+                            .fireMagneticRailgunCasterLaunch(level, caster, caster.getLookAngle(), tier);
+                    break;
+                }
+                // Section 6.14 Volcanic Eruption Blast: aiming a Magma-mutated Kinetic spell at terrain erupts an upward volcanic blast launching mobs 12m airborne!
+                if (effectMutation.mutated() && effectMateria == EssenceType.MAGMA) {
+                    ddraig.net.entropica.spell.mutation.element.MagmaSpellMutationHandler
+                            .eruptVolcanicKineticBlastAt(level, caster, Vec3.atCenterOf(pos), tier, spell);
+                    break;
+                }
+                // Section 6.15 Hurricane Force Push: aiming a Storm-mutated Kinetic spell at terrain blasts nearby mobs 14m (2x if wet)!
+                if (effectMutation.mutated() && effectMateria == EssenceType.STORM) {
+                    ddraig.net.entropica.spell.mutation.element.StormSpellMutationHandler
+                            .unleashHurricaneForcePushAt(level, caster, Vec3.atCenterOf(pos),
+                                    caster != null ? caster.getLookAngle() : new Vec3(0.0D, 0.0D, 1.0D), tier, spell);
+                    break;
+                }
+                // Section 6.18 Pneumatic Dust-Blast: aiming a Dust-mutated Kinetic spell at terrain unleashes a 10m blast with Armor Erosion!
+                if (effectMutation.mutated() && effectMateria == EssenceType.DUST) {
+                    ddraig.net.entropica.spell.mutation.element.DustSpellMutationHandler
+                            .unleashPneumaticDustBlastAt(level, caster, Vec3.atCenterOf(pos),
+                                    caster != null ? caster.getLookAngle() : new Vec3(0.0D, 0.0D, 1.0D), tier, spell);
+                    break;
+                }
                 // Rocket-jumping by firing a Kinetic spell at the ground near your feet!
                 if (caster != null && caster.position().distanceToSqr(Vec3.atCenterOf(pos)) <= 20.25D) {
                     double strength = (0.60D + tier * 0.18D)
@@ -1763,16 +5031,65 @@ public final class SpellExecutionEngine {
             }
             case BREAK -> {
                 if (isProtectedBlockOrContainer(level, pos, state)) return;
+                float maxHardness = 2.0F + (tier * 5.0F);
+                // Section 2.2 / 2.3 / 6.6 Frozen & Glacial Lineage Excavation: guaranteed Silk Touch drops
+                // AND automatic freezing of exposed adjacent water/lava leaks into Ice / Obsidian!
+                if (MateriaFamilyTier.isFrozenLineage(effectMateria)) {
+                    if (ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler
+                            .harvestBlockWithSilkTouchAndSealLiquids(
+                                    level, caster, pos, state, maxHardness,
+                                    effectMutation.mutated(), spell, fallbackMateria)) {
+                        return;
+                    }
+                }
+                // Section 2.2 / 2.3 / 6.7 Nether & Pyre Lineage Excavation: in-world auto-smelting of broken blocks,
+                // batch fuel discount, AND automatic vaporization of exposed water pockets into high-pressure steam!
+                if (MateriaFamilyTier.isNetherLineage(effectMateria)) {
+                    if (ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler
+                            .harvestBlockWithAutoSmeltAndVaporizeWater(
+                                    level, caster, pos, state, maxHardness, tier, effectMateria)) {
+                        return;
+                    }
+                }
+                // Section 2.2 / 2.3 Void-Lineage Utility Specialization (Direct-to-Inventory & Omni-Sponge):
+                // Teleports all mined drops straight into the player's inventory and sponges up liquid source blocks into held buckets!
+                if (MateriaFamilyTier.isVoidLineage(effectMateria)) {
+                    if (ddraig.net.entropica.spell.mutation.element.VoidSpellMutationHandler
+                            .harvestBlockWithDirectToInventoryAndOmniSponge(
+                                    level, caster, pos, state, maxHardness, tier,
+                                    effectMutation.mutated(), effHandler)) {
+                        return;
+                    }
+                }
+                boolean radiantLineageExcavate = effectMateria == EssenceType.RADIANT
+                        || effectMateria == EssenceType.DAWN
+                        || effectMateria == EssenceType.AURORA
+                        || effectMateria == EssenceType.CELESTIAL
+                        || effectMateria == EssenceType.EMPYREAN
+                        || effectMateria == EssenceType.APOTHEOSIS;
                 if (effHandler != null && effHandler.onTransmuteBlock(level, caster, pos, state, tier)) {
+                    if (radiantLineageExcavate) {
+                        ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler
+                                .onRadiantLineageExcavateBlock(level, caster, pos, tier);
+                    }
                     return;
                 }
-                float maxHardness = 2.0F + (tier * 5.0F);
                 float hardness = state.getDestroySpeed(level, pos);
                 if (hardness >= 0.0F && hardness <= maxHardness) {
                     level.destroyBlock(pos, true, caster);
+                    if (radiantLineageExcavate) {
+                        ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler
+                                .onRadiantLineageExcavateBlock(level, caster, pos, tier);
+                    }
                 }
             }
-            case HARVEST -> harvestOrGrowPlantBlock(level, caster, pos, state, tier, effectMateria, effectMutation.mutated());
+            case HARVEST -> {
+                harvestOrGrowPlantBlock(level, caster, pos, state, tier, effectMateria, effectMutation.mutated());
+                if (MateriaFamilyTier.isVoidLineage(effectMateria) && caster instanceof Player voidHarvester) {
+                    ddraig.net.entropica.spell.mutation.element.VoidSpellMutationHandler
+                            .collectFreshDropsDirectToInventory(level, voidHarvester, pos, 1.85D);
+                }
+            }
             case TRANSMUTE -> {
                 // Also transmute any floating ItemEntities resting directly on this block!
                 for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1.25D))) {
@@ -1780,8 +5097,42 @@ public final class SpellExecutionEngine {
                         transmuteDroppedItemWithFallback(level, caster, item, tier, effectMateria, effHandler);
                     }
                 }
+                // Section 2.2 Lightning / Static Lineage Machine Re-Charging: recharge placed Orbis Cells & redstone machinery safely before container guard!
+                if ((effectMateria == EssenceType.LIGHTNING || effectMateria == EssenceType.STATIC)
+                        && ddraig.net.entropica.spell.mutation.element.LightningSpellMutationHandler
+                                .tryMachineRecharging(level, pos, effectMateria, tier)) {
+                    return;
+                }
                 if (!state.isAir() && isProtectedBlockOrContainer(level, pos, state)) return;
                 if (effHandler != null) {
+                    // Magma (#13) Igneous Forging: when a ray/bolt passes through a water pool to hit the floor/wall behind it,
+                    // solidify the adjacent water block directly into Obsidian / Magma Block!
+                    if (effectMateria == EssenceType.MAGMA && effectMutation.mutated() && !state.is(Blocks.WATER)) {
+                        BlockPos adjWater = pos.relative(hitFace);
+                        BlockState adjWaterState = level.getBlockState(adjWater);
+                        if (adjWaterState.is(Blocks.WATER) && effHandler.onTransmuteBlock(level, caster, adjWater, adjWaterState, tier)) {
+                            return;
+                        }
+                    }
+                    // Storm (#14) Aero-Hydraulic Erosion: when a ray/bolt passes through a lava pool to hit the basin behind it,
+                    // cool the adjacent lava block directly into Obsidian!
+                    if (effectMateria == EssenceType.STORM && effectMutation.mutated() && !state.is(Blocks.LAVA)) {
+                        BlockPos adjLava = pos.relative(hitFace);
+                        BlockState adjLavaState = level.getBlockState(adjLava);
+                        if (adjLavaState.is(Blocks.LAVA) && effHandler.onTransmuteBlock(level, caster, adjLava, adjLavaState, tier)) {
+                            return;
+                        }
+                    }
+                    // Glacial (#15) Cryo-Solidification & Silk Touch: when a ray/bolt passes through a water or lava pool to hit
+                    // the solid basin behind it, solidify the adjacent water into Blue/Packed Ice or cool lava into Obsidian!
+                    if (effectMateria == EssenceType.GLACIAL && effectMutation.mutated() && !state.is(Blocks.WATER) && !state.is(Blocks.LAVA)) {
+                        BlockPos adjFluid = pos.relative(hitFace);
+                        BlockState adjFluidState = level.getBlockState(adjFluid);
+                        if ((adjFluidState.is(Blocks.WATER) || adjFluidState.is(Blocks.LAVA))
+                                && effHandler.onTransmuteBlock(level, caster, adjFluid, adjFluidState, tier)) {
+                            return;
+                        }
+                    }
                     if (effHandler.onTransmuteBlock(level, caster, pos, state, tier)) {
                         return;
                     }
@@ -1833,7 +5184,7 @@ public final class SpellExecutionEngine {
                         level.setBlockAndUpdate(pos, Blocks.MYCELIUM.defaultBlockState());
                         blockTransmuted = true;
                     }
-                } else if (MateriaFamilyTier.isEarthLineage(effectMateria) || effectMateria == EssenceType.AIR) {
+                } else if (MateriaFamilyTier.isEarthLineage(effectMateria)) {
                     if (state.is(Blocks.STONE)) {
                         level.setBlockAndUpdate(pos, Blocks.COBBLESTONE.defaultBlockState());
                         blockTransmuted = true;
@@ -1893,8 +5244,21 @@ public final class SpellExecutionEngine {
             }
             case BLINK -> {
                 if (caster != null) {
+                    String subMode = effectBinding.subMode().toLowerCase(Locale.ROOT);
+                    if (subMode.equals("swap") || subMode.equals("transposition")) {
+                        // A missed Position Swap projectile striking world blocks does NOT self-blink!
+                        break;
+                    }
                     BlockPos safeDest = state.isAir() ? pos : pos.relative(hitFace);
-                    performSafeBlink(level, caster, Vec3.atBottomCenterOf(safeDest), tier, effectMateria, effectMutation.mutated());
+                    performSafeBlink(
+                            level,
+                            caster,
+                            Vec3.atBottomCenterOf(safeDest),
+                            tier,
+                            effectMateria,
+                            effectMutation.mutated(),
+                            spell.flawProfile().getRangeAndRadiusMultiplier()
+                    );
                 }
             }
             case LOGISTICS -> executeLogisticsMagnet(level, caster, Vec3.atCenterOf(pos), tier, effectMateria);
@@ -1942,8 +5306,9 @@ public final class SpellExecutionEngine {
                     )
                     : 0;
             float undeadMult = score > 0 ? 1.50F : (score < 0 ? 0.25F : 1.00F);
-            living.hurtServer(
+            SpellCombatReactionEngine.hurtWithPureMateria(
                     level,
+                    living,
                     caster != null ? level.damageSources().indirectMagic(caster, caster) : level.damageSources().magic(),
                     healAmt * undeadMult
             );
@@ -2087,7 +5452,7 @@ public final class SpellExecutionEngine {
                         caster,
                         Vec3.atCenterOf(anchorPos),
                         2.5D,
-                        160,
+                        300,
                         level.getGameTime(),
                         spell,
                         refSlot,
@@ -2164,25 +5529,236 @@ public final class SpellExecutionEngine {
     }
 
     /**
-     * Section 5.4 Blink Transposition ("Swap"): swaps spatial coordinates cleanly with a non-boss entity.
+     * Direct Blink / Step & Position Swap dispatcher for {@link #dispatchSingleSubSpellForm} (Guide Section 5.4).
+     * Ensures {@code Self-Blink} executes an instant eye-origin raycast step without waiting for a slow projectile
+     * or multi-blinking onto nearby mobs, while {@code Position Swap} swaps spatial coordinates cleanly.
      */
-    private static void performTranspositionSwap(
+    private static boolean tryDispatchDirectBlinkSlot(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            SpellAssembly spell,
+            int slotIndex,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange,
+            float formRangeMult,
+            SpellMutationProfile formMutation,
+            @Nullable MateriaPartMutationHandler formHandler,
+            SpellMutationProfile flowMutation
+    ) {
+        if (slot.primaryEffect().effect() != SpellCoreEffect.BLINK) {
+            return false;
+        }
+        SpellDeliveryForm form = slot.formPart().form();
+        if (form == SpellDeliveryForm.GLYPH || form == SpellDeliveryForm.TOUCH_STRIKE || form.isSummonForm()) {
+            return false;
+        }
+
+        int tier = spell.getEffectiveTier();
+        EssenceType effPrimary = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        SpellMutationProfile primMut = slot.primaryEffect().resolveMutation(SpellPartSlotType.CORE_EFFECT, spell.materiaSpecific(), fallbackMateria);
+        String subMode = slot.primaryEffect().subMode().toLowerCase(Locale.ROOT);
+        boolean isSwap = subMode.equals("swap") || subMode.equals("transposition");
+        Vec3 normDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
+        boolean zeroStep = spell.flowPart().distanceStep().isPointBlankZero();
+        float blinkTravelScale = zeroStep
+                ? formRangeMult
+                : formRangeMult * spell.flowPart().distanceStep().getDistanceScaleFromStandard();
+
+        if (isSwap) {
+            double swapReach = zeroStep
+                    ? 2.5D * formRangeMult
+                    : resolveBlinkMaxRange(
+                            level,
+                            caster.position(),
+                            BlockPos.containing(caster.position().add(normDir.scale(Math.max(8.0D, spell.flowPart().travelDistanceMeters())))),
+                            tier,
+                            effPrimary,
+                            primMut.mutated(),
+                            blinkTravelScale
+                    );
+            LivingEntity swapTarget = raycastBlinkSwapTarget(level, caster, normDir, swapReach, tier, effPrimary, primMut.mutated());
+            if (swapTarget != null) {
+                boolean swapped = performTranspositionSwap(level, caster, swapTarget, tier, effPrimary, primMut.mutated(), blinkTravelScale);
+                if (!swapped) {
+                    if (slotIndex == 0) {
+                        BLINK_CANCELLED_REFUND_FLAG.set(true);
+                        BLINK_CANCELLED_REASON.set("§e✦ Position Swap Cancelled §7— Target is anchored or boss-immune (§a100% Materia refunded§7)");
+                    }
+                    return true;
+                }
+                slot.secondaryEffect().ifPresent(sec -> executeSingleEffectOnEntity(
+                        level, caster, swapTarget, normDir, spell, slot, sec,
+                        SpellPartSlotType.SECONDARY_EFFECT, fallbackMateria, apparatusPotency
+                ));
+                return true;
+            }
+            if (form == SpellDeliveryForm.PROJECTILE && !zeroStep) {
+                // Lead moving distant targets with a fast zero-drop Transposition Bolt!
+                SpellProjectileEntity proj = new SpellProjectileEntity(level, caster);
+                proj.setPos(caster.getX() + normDir.x * 0.6D, caster.getEyeY() - 0.15D + normDir.y * 0.6D, caster.getZ() + normDir.z * 0.6D);
+                proj.configurePayload(spell, slotIndex, fallbackMateria, apparatusPotency);
+                proj.setApparatusRangeMult(apparatusRange);
+                proj.setNoGravity(true);
+                float speed = 2.35F
+                        * (flowMutation.mutated() ? flowMutation.velocityMultiplier() : 1.0F)
+                        * (formMutation.mutated() ? formMutation.velocityMultiplier() : 1.0F);
+                proj.shoot(normDir.x, normDir.y, normDir.z, speed, 0.0F);
+                level.addFreshEntity(proj);
+                if (formHandler != null) {
+                    formHandler.onProjectileSpawnedFromForm(level, proj, caster, spell, slot);
+                }
+                return true;
+            }
+            if (slotIndex == 0) {
+                BLINK_CANCELLED_REFUND_FLAG.set(true);
+                BLINK_CANCELLED_REASON.set("§e✦ Position Swap Cancelled §7— No valid target in sights (§a100% Materia refunded§7)");
+            }
+            return true;
+        }
+
+        // Self-Blink: instant spatial relocation scaled by Outer Rim Travel Distance (0m .. 128m)!
+        boolean blinked;
+        if (zeroStep) {
+            blinked = performPointBlankZeroBlink(level, caster, tier, effPrimary, primMut.mutated());
+        } else if (form == SpellDeliveryForm.SKYFALL) {
+            BlockHitResult hit = raycastBlocks(level, caster, normDir, 24.0D * blinkTravelScale);
+            Vec3 impact = hit.getType() == HitResult.Type.BLOCK
+                    ? Vec3.atBottomCenterOf(hit.getBlockPos().above())
+                    : caster.getEyePosition().add(normDir.scale(16.0D * blinkTravelScale));
+            blinked = performSafeBlink(level, caster, impact, tier, effPrimary, primMut.mutated(), blinkTravelScale);
+        } else {
+            blinked = performAimedSelfBlink(level, caster, normDir, tier, effPrimary, primMut.mutated(), blinkTravelScale);
+        }
+
+        if (!blinked) {
+            if (slotIndex == 0) {
+                BLINK_CANCELLED_REFUND_FLAG.set(true);
+            }
+            return true;
+        }
+
+        Vec3 arrivalCenter = caster.position();
+        double arrivalRad = Math.max(
+                3.2D,
+                SpellDeliveryForm.getCombatRadiusBlocks(
+                        (form == SpellDeliveryForm.PROJECTILE || form == SpellDeliveryForm.BEAM)
+                                ? SpellDeliveryForm.RADIAL_BURST
+                                : form,
+                        tier
+                ) * formRangeMult
+        );
+
+        // Hybridized Dual-Verb arrival payload (e.g., Blink + Harm = Telefrag Strike, Blink + Ward, Blink + Kinetic)
+        if (slot.secondaryEffect().isPresent()) {
+            EffectPartBinding sec = slot.secondaryEffect().get();
+            EssenceType secMat = sec.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+            if (isCasterBeneficialVerb(sec.effect())) {
+                executeSingleEffectOnEntity(
+                        level, caster, caster, normDir, spell, slot, sec,
+                        SpellPartSlotType.SECONDARY_EFFECT, fallbackMateria, apparatusPotency
+                );
+            } else {
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(level, arrivalCenter, arrivalRad, secMat, effPrimary, tier);
+                ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, arrivalCenter, secMat, effPrimary, arrivalRad * 0.85D, tier);
+                AABB arrivalBox = new AABB(
+                        arrivalCenter.x - arrivalRad, arrivalCenter.y - 1.5D, arrivalCenter.z - arrivalRad,
+                        arrivalCenter.x + arrivalRad, arrivalCenter.y + 2.2D, arrivalCenter.z + arrivalRad
+                );
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, arrivalBox, LivingEntity::isAlive)) {
+                    if (foe == caster) continue;
+                    double dSq = foe.position().distanceToSqr(arrivalCenter);
+                    if (dSq > arrivalRad * arrivalRad) continue;
+                    float falloff = Math.clamp(1.0F - 0.67F * (float) (Math.sqrt(dSq) / Math.max(0.5D, arrivalRad)), 0.33F, 1.0F);
+                    Vec3 outDir = dSq > 1.0E-4D ? foe.position().subtract(arrivalCenter).normalize() : normDir;
+                    executeSingleEffectOnEntity(
+                            level, caster, foe, outDir, spell, slot, sec,
+                            SpellPartSlotType.SECONDARY_EFFECT, fallbackMateria, apparatusPotency * falloff
+                    );
+                }
+            }
+        }
+
+        // Preserve arrival Form mutations when combined with Radial Burst, Aura, or Cone (e.g., Air Gust Shield / Slipstream Shield)
+        if (formHandler != null) {
+            if (form == SpellDeliveryForm.RADIAL_BURST) {
+                formHandler.onRadialBurstFormCast(level, caster, arrivalCenter, arrivalRad, normDir, spell, slot, fallbackMateria, apparatusPotency);
+            } else if (form == SpellDeliveryForm.AURA) {
+                formHandler.onAuraFormCast(level, caster, arrivalRad, spell, slot, fallbackMateria, apparatusPotency);
+                SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.55F, null);
+            } else if (form == SpellDeliveryForm.CONE) {
+                formHandler.onConeFormCast(level, caster, normDir, arrivalRad, List.of(), spell, slot, fallbackMateria, apparatusPotency);
+            }
+        }
+
+        return true;
+    }
+
+    @Nullable
+    private static LivingEntity raycastBlinkSwapTarget(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            int tier,
+            EssenceType materia,
+            boolean mutated
+    ) {
+        Vec3 start = caster.getEyePosition();
+        Vec3 end = start.add(direction.normalize().scale(maxReach));
+        boolean phaseWalls = canBlinkPhaseWalls(level, caster.position(), BlockPos.containing(end), tier, materia, mutated);
+        if (!phaseWalls) {
+            BlockHitResult blockHit = level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, caster));
+            if (blockHit.getType() == HitResult.Type.BLOCK) {
+                end = blockHit.getLocation();
+            }
+        }
+
+        AABB search = new AABB(start, end).inflate(1.0D);
+        LivingEntity best = null;
+        double bestDistSq = Double.MAX_VALUE;
+        long now = level.getGameTime();
+        for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, search, LivingEntity::isAlive)) {
+            if (cand == caster
+                    || SpellCombatReactionEngine.isBossEntity(level, cand)
+                    || SpellCombatReactionEngine.isBlinkAnchored(cand, now)) {
+                continue;
+            }
+            Optional<Vec3> clip = cand.getBoundingBox().inflate(0.55D).clip(start, end);
+            if (clip.isPresent()) {
+                double dSq = start.distanceToSqr(clip.get());
+                if (dSq < bestDistSq) {
+                    bestDistSq = dSq;
+                    best = cand;
+                }
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Section 5.4 Blink Transposition ("Position Swap"): swaps spatial coordinates cleanly with a non-boss entity.
+     */
+    private static boolean performTranspositionSwap(
             ServerLevel level,
             LivingEntity caster,
             LivingEntity target,
             int tier,
             EssenceType materia,
-            boolean mutated
+            boolean mutated,
+            float rangeScale
     ) {
         long now = level.getGameTime();
         if (SpellCombatReactionEngine.isBlinkAnchored(caster, now)
                 || SpellCombatReactionEngine.isBlinkAnchored(target, now)
                 || SpellCombatReactionEngine.isBossEntity(level, target)) {
-            return;
+            return false;
         }
-        double maxDist = 8.0D + (tier * 3.5D);
-        if (caster.distanceToSqr(target) > maxDist * maxDist) {
-            return;
+        double maxDist = resolveBlinkMaxRange(level, caster.position(), target.blockPosition(), tier, materia, mutated, rangeScale);
+        if (caster.distanceToSqr(target) > (maxDist + 1.5D) * (maxDist + 1.5D)) {
+            return false;
         }
         Vec3 casterOrigin = caster.position();
         Vec3 targetOrigin = target.position();
@@ -2192,19 +5768,354 @@ public final class SpellExecutionEngine {
         target.teleportTo(casterOrigin.x, casterOrigin.y, casterOrigin.z);
         target.resetFallDistance();
 
-        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastBlinkRift(level, casterOrigin, targetOrigin, materia, tier);
-        ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, targetOrigin, materia, null, 1.1D, tier);
+        if (mutated && materia != EssenceType.AIR
+                && materia != EssenceType.WATER
+                && materia != EssenceType.UMBRAL
+                && materia != EssenceType.ABYSS
+                && materia != EssenceType.NULL_U) {
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastBlinkRift(level, casterOrigin, targetOrigin, materia, tier);
+            ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, targetOrigin, materia, null, 1.0D, tier);
+        }
 
         MateriaPartMutationHandler effHandler = SpellMutationHandlerRegistry.resolveActive(materia, mutated);
         if (effHandler != null) {
             effHandler.onBlinkCast(level, caster, casterOrigin, targetOrigin, tier);
         }
+        return true;
     }
 
-    private static void performSafeBlink(
+    private static boolean performPointBlankZeroBlink(
+            ServerLevel level,
+            LivingEntity caster,
+            int tier,
+            EssenceType materia,
+            boolean mutated
+    ) {
+        if (SpellCombatReactionEngine.isBlinkAnchored(caster, level.getGameTime())) {
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, caster.getX(), caster.getY(0.8D), caster.getZ(),
+                    14, 0.3D, 0.4D, 0.3D, 0.08D);
+            BLINK_CANCELLED_REASON.set("§5[Spacetime Anchor] §7Dimensional Blink is locked by a Void Hex (§a100% Materia refunded§7)!");
+            return false;
+        }
+
+        Vec3 origin = caster.position();
+        double freefallSpeed = caster.getDeltaMovement().y < -0.25D ? -caster.getDeltaMovement().y : 0.0D;
+        caster.resetFallDistance();
+
+        if (freefallSpeed > 0.0D) {
+            Vec3 look = caster.getLookAngle();
+            Vec3 horiz = new Vec3(look.x, 0.0D, look.z);
+            Vec3 forwardDir = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : look.normalize();
+            Vec3 converted = forwardDir.scale(Math.min(1.85D, freefallSpeed * 0.90D));
+            applySyncedMotion(caster, new Vec3(converted.x, Math.max(0.08D, caster.getDeltaMovement().y), converted.z));
+        }
+
+        boolean suppressGenericRift = !mutated
+                || materia == EssenceType.AIR
+                || materia == EssenceType.WATER
+                || materia == EssenceType.NATURE
+                || materia == EssenceType.OVERGROWTH
+                || materia == EssenceType.EARTH
+                || materia == EssenceType.FROZEN
+                || materia == EssenceType.GLACIAL
+                || materia == EssenceType.NETHER
+                || materia == EssenceType.RADIANT
+                || materia == EssenceType.UMBRAL
+                || materia == EssenceType.UNDEAD
+                || materia == EssenceType.ABYSS
+                || materia == EssenceType.NULL_U
+                || materia == EssenceType.DAWN
+                || materia == EssenceType.WRAITH
+                || materia == EssenceType.STATIC
+                || materia == EssenceType.CATACLYSM
+                || materia == EssenceType.ESCHATON;
+        if (!suppressGenericRift) {
+            ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, origin, materia, null, 1.0D, tier);
+        }
+
+        MateriaPartMutationHandler effHandler = SpellMutationHandlerRegistry.resolveActive(materia, mutated);
+        if (effHandler != null) {
+            effHandler.onBlinkCast(level, caster, origin, origin, tier);
+            return true;
+        }
+
+        if (mutated && MateriaFamilyTier.isNetherLineage(materia)) {
+            for (LivingEntity nearby : level.getEntitiesOfClass(LivingEntity.class, caster.getBoundingBox().inflate(2.5D))) {
+                if (nearby != caster && nearby.isAlive()) {
+                    nearby.igniteForSeconds(3 + tier);
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean performAimedSelfBlink(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 lookDirection,
+            int tier,
+            EssenceType materia,
+            boolean mutated,
+            float rangeScale
+    ) {
+        Vec3 dir = lookDirection.lengthSqr() > 1.0E-4D ? lookDirection.normalize() : caster.getLookAngle().normalize();
+        Vec3 eye = caster.getEyePosition();
+        BlockPos approxEnd = BlockPos.containing(eye.add(dir.scale(16.0D * Math.max(0.25D, rangeScale))));
+        double maxDist = resolveBlinkMaxRange(level, caster.position(), approxEnd, tier, materia, mutated, rangeScale);
+        boolean phaseWalls = canBlinkPhaseWalls(level, caster.position(), approxEnd, tier, materia, mutated);
+        boolean miasmaThinBarrierPhase = mutated && materia == EssenceType.MIASMA;
+
+        Vec3 rayEnd = eye.add(dir.scale(maxDist));
+        BlockHitResult losHit = level.clip(new ClipContext(
+                eye,
+                rayEnd,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                caster
+        ));
+
+        Vec3 desiredPos;
+        if (losHit.getType() == HitResult.Type.BLOCK) {
+            BlockState barrier = level.getBlockState(losHit.getBlockPos());
+            boolean thinBarrier = miasmaThinBarrierPhase
+                    && (barrier.is(BlockTags.FENCES)
+                    || barrier.is(BlockTags.FENCE_GATES)
+                    || barrier.is(Blocks.IRON_BARS)
+                    || barrier.getBlock() instanceof net.minecraft.world.level.block.CrossCollisionBlock);
+            if (thinBarrier) {
+                desiredPos = rayEnd.subtract(0.0D, 0.8D, 0.0D);
+            } else if (!phaseWalls || (losHit.getDirection() == Direction.UP && dir.y > -0.55D)) {
+                // Visible floor surface ahead (or Tiers 1–3 line-of-sight block): snap onto the visible surface!
+                if (losHit.getDirection() == Direction.UP) {
+                    desiredPos = new Vec3(losHit.getLocation().x, losHit.getBlockPos().getY() + 1.0D, losHit.getLocation().z);
+                } else {
+                    desiredPos = Vec3.atBottomCenterOf(losHit.getBlockPos().relative(losHit.getDirection()));
+                }
+            } else {
+                // Tier 4+ / Void / Earth wall-phasing through walls, doors, cliffs, ceilings, or steep floors!
+                desiredPos = rayEnd.subtract(0.0D, 0.8D, 0.0D);
+            }
+        } else {
+            desiredPos = rayEnd.subtract(0.0D, 0.8D, 0.0D);
+        }
+
+        return performSafeBlinkInternal(level, caster, eye, dir, desiredPos, maxDist, phaseWalls, tier, materia, mutated);
+    }
+
+    private static boolean performSafeBlink(
             ServerLevel level,
             LivingEntity caster,
             Vec3 desiredPos,
+            int tier,
+            EssenceType materia,
+            boolean mutated,
+            float rangeScale
+    ) {
+        Vec3 eye = caster.getEyePosition();
+        BlockPos roughTarget = BlockPos.containing(desiredPos);
+        double maxDist = resolveBlinkMaxRange(level, caster.position(), roughTarget, tier, materia, mutated, rangeScale);
+        boolean phaseWalls = canBlinkPhaseWalls(level, caster.position(), roughTarget, tier, materia, mutated);
+        boolean miasmaThinBarrierPhase = mutated && materia == EssenceType.MIASMA;
+
+        Vec3 deltaFromFeet = desiredPos.subtract(caster.position());
+        if (deltaFromFeet.length() > maxDist) {
+            desiredPos = caster.position().add(deltaFromFeet.normalize().scale(maxDist));
+        }
+
+        if (!phaseWalls) {
+            boolean treePhase = mutated && (materia == EssenceType.NATURE || materia == EssenceType.OVERGROWTH);
+            boolean earthBurrowPhase = mutated && materia == EssenceType.EARTH;
+            Vec3 clipEnd = desiredPos.add(0.0D, 0.8D, 0.0D);
+            BlockHitResult losHit = level.clip(new ClipContext(
+                    eye,
+                    clipEnd,
+                    ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE,
+                    caster
+            ));
+            if (losHit.getType() == HitResult.Type.BLOCK) {
+                BlockState barrier = level.getBlockState(losHit.getBlockPos());
+                boolean thinBarrier = miasmaThinBarrierPhase
+                        && (barrier.is(BlockTags.FENCES)
+                        || barrier.is(BlockTags.FENCE_GATES)
+                        || barrier.is(Blocks.IRON_BARS)
+                        || barrier.getBlock() instanceof net.minecraft.world.level.block.CrossCollisionBlock);
+                if (treePhase && (barrier.is(BlockTags.LOGS) || barrier.is(BlockTags.LEAVES))) {
+                    // Section 6.4 Tree-Stepping: phase cleanly through living tree trunks & leaf canopies without phasing stone walls!
+                    Vec3 marchSpan = clipEnd.subtract(eye);
+                    double marchLen = marchSpan.length();
+                    if (marchLen > 0.25D) {
+                        Vec3 marchDir = marchSpan.scale(1.0D / marchLen);
+                        for (double d = 0.5D; d <= marchLen; d += 0.45D) {
+                            Vec3 probePt = eye.add(marchDir.scale(d));
+                            BlockPos bp = BlockPos.containing(probePt);
+                            BlockState bs = level.getBlockState(bp);
+                            if (!bs.getCollisionShape(level, bp).isEmpty()
+                                    && !bs.is(BlockTags.LOGS)
+                                    && !bs.is(BlockTags.LEAVES)) {
+                                desiredPos = eye.add(marchDir.scale(Math.max(0.0D, d - 0.55D))).subtract(0.0D, 0.8D, 0.0D);
+                                break;
+                            }
+                        }
+                    }
+                } else if (earthBurrowPhase && isStoneOrSoilStrata(barrier)) {
+                    // Section 6.5 Burrow Step: submerge through solid stone, soil, & ore walls while stopping cleanly at wood/metal/bedrock!
+                    Vec3 marchSpan = clipEnd.subtract(eye);
+                    double marchLen = marchSpan.length();
+                    if (marchLen > 0.25D) {
+                        Vec3 marchDir = marchSpan.scale(1.0D / marchLen);
+                        for (double d = 0.5D; d <= marchLen; d += 0.45D) {
+                            Vec3 probePt = eye.add(marchDir.scale(d));
+                            BlockPos bp = BlockPos.containing(probePt);
+                            BlockState bs = level.getBlockState(bp);
+                            if (!bs.getCollisionShape(level, bp).isEmpty() && !isStoneOrSoilStrata(bs)) {
+                                desiredPos = eye.add(marchDir.scale(Math.max(0.0D, d - 0.55D))).subtract(0.0D, 0.8D, 0.0D);
+                                break;
+                            }
+                        }
+                    }
+                } else if (!thinBarrier) {
+                    desiredPos = losHit.getDirection() == Direction.UP
+                            ? new Vec3(losHit.getLocation().x, losHit.getBlockPos().getY() + 1.0D, losHit.getLocation().z)
+                            : Vec3.atBottomCenterOf(losHit.getBlockPos().relative(losHit.getDirection()));
+                }
+            }
+        }
+
+        Vec3 rayVec = desiredPos.subtract(caster.position());
+        Vec3 rayDir = rayVec.lengthSqr() > 1.0E-4D ? rayVec.normalize() : caster.getLookAngle().normalize();
+        return performSafeBlinkInternal(level, caster, eye, rayDir, desiredPos, maxDist, phaseWalls, tier, materia, mutated);
+    }
+
+    private static double resolveBlinkMaxRange(
+            ServerLevel level,
+            Vec3 departurePos,
+            BlockPos roughTarget,
+            int tier,
+            EssenceType materia,
+            boolean mutated,
+            float rangeScale
+    ) {
+        // Section 5.4 Canonical Blink Range: 16.0 blocks at Tiers 1–3, scaling upward at Tier 4+!
+        double maxDist = tier <= 3 ? 16.0D : 16.0D + (tier - 3) * 2.5D;
+
+        boolean silentUmbralStep = mutated && materia == EssenceType.UMBRAL;
+        boolean natureTreeStep = mutated && (materia == EssenceType.NATURE || materia == EssenceType.OVERGROWTH);
+        boolean sporeNetworkLinked = mutated && materia == EssenceType.SPORE
+                && (isNearMyceliumOrMushrooms(level, BlockPos.containing(departurePos))
+                || isNearMyceliumOrMushrooms(level, roughTarget));
+        boolean taigaPineStep = mutated && materia == EssenceType.TAIGA;
+        boolean astralCometDash = mutated && (materia == EssenceType.ASTRAL
+                || materia == EssenceType.RIME
+                || materia == EssenceType.GENESIS
+                || materia == EssenceType.PRISMATIC);
+        boolean twentyBlockApexStep = mutated && (materia == EssenceType.AETHER
+                || materia == EssenceType.ENTROPIC
+                || materia == EssenceType.CELESTIAL);
+        boolean twentyTwoBlockEschatonStep = mutated && (materia == EssenceType.EMPYREAN
+                || materia == EssenceType.CATACLYSM
+                || materia == EssenceType.TERMINUS);
+        boolean twentyFourBlockSingularityStep = mutated && (materia == EssenceType.ESCHATON
+                || materia == EssenceType.APOTHEOSIS
+                || materia == EssenceType.ENTROPICA);
+        boolean sixteenBlockDashStep = mutated && (materia == EssenceType.BLOOD
+                || materia == EssenceType.ECLIPSE
+                || materia == EssenceType.VAPOR
+                || materia == EssenceType.NULL_R
+                || materia == EssenceType.NULL_U
+                || materia == EssenceType.PENUMBRA
+                || materia == EssenceType.SYLVAN
+                || materia == EssenceType.OBLIVION
+                || materia == EssenceType.CHIMERA);
+        boolean fourteenBlockFusionStep = mutated && (materia == EssenceType.GLACIAL
+                || materia == EssenceType.OVERGROWTH
+                || materia == EssenceType.DUST
+                || materia == EssenceType.SPORE
+                || materia == EssenceType.TAIGA
+                || materia == EssenceType.OASIS
+                || materia == EssenceType.VITAE
+                || materia == EssenceType.AURA
+                || materia == EssenceType.AMBER
+                || materia == EssenceType.BLIGHT
+                || materia == EssenceType.DAWN
+                || materia == EssenceType.ABYSS
+                || materia == EssenceType.AURORA
+                || materia == EssenceType.MIRAGE
+                || materia == EssenceType.BARROW
+                || materia == EssenceType.PYRE
+                || materia == EssenceType.SPRING
+                || materia == EssenceType.STATIC
+                || materia == EssenceType.MIASMA);
+        boolean twelveBlockStep = mutated && (materia == EssenceType.MAGMA
+                || materia == EssenceType.SOULFIRE
+                || materia == EssenceType.AEGIS
+                || materia == EssenceType.WRAITH);
+
+        if (silentUmbralStep && level.getMaxLocalRawBrightness(roughTarget) <= 9) {
+            boolean fromShadow = level.getMaxLocalRawBrightness(BlockPos.containing(departurePos)) <= 9;
+            maxDist *= fromShadow ? 1.50D : 1.35D;
+        }
+        if (twelveBlockStep) {
+            maxDist = Math.max(maxDist, 12.0D + (tier - 1) * 2.5D);
+        }
+        if (fourteenBlockFusionStep) {
+            maxDist = Math.max(maxDist, 14.0D + (tier - 1) * 2.5D);
+        }
+        if (natureTreeStep && (isNearTreeFoliage(level, BlockPos.containing(departurePos)) || isNearTreeFoliage(level, roughTarget))) {
+            maxDist = Math.max(maxDist, 24.0D + tier * 2.5D);
+        }
+        if (sporeNetworkLinked) {
+            maxDist = Math.max(maxDist, 24.0D + tier * 2.5D);
+        }
+        if (taigaPineStep && (isNearTreeFoliage(level, BlockPos.containing(departurePos)) || isNearTreeFoliage(level, roughTarget))) {
+            maxDist = Math.max(maxDist, 18.0D + tier * 2.5D);
+        }
+        if (sixteenBlockDashStep) {
+            maxDist = Math.max(maxDist, 16.0D + (tier - 1) * 2.5D);
+        }
+        if (astralCometDash) {
+            maxDist = Math.max(maxDist, 18.0D + (tier - 1) * 2.5D);
+        }
+        if (twentyBlockApexStep) {
+            maxDist = Math.max(maxDist, 20.0D + (tier - 1) * 2.5D);
+        }
+        if (twentyTwoBlockEschatonStep) {
+            maxDist = Math.max(maxDist, 22.0D + (tier - 1) * 2.5D);
+        }
+        if (twentyFourBlockSingularityStep) {
+            maxDist = Math.max(maxDist, 24.0D + (tier - 1) * 2.5D);
+        }
+
+        return maxDist * Math.max(0.25D, rangeScale);
+    }
+
+    private static boolean canBlinkPhaseWalls(
+            ServerLevel level,
+            Vec3 departurePos,
+            BlockPos roughTarget,
+            int tier,
+            EssenceType materia,
+            boolean mutated
+    ) {
+        boolean sporeNetworkLinked = mutated && materia == EssenceType.SPORE
+                && (isNearMyceliumOrMushrooms(level, BlockPos.containing(departurePos))
+                || isNearMyceliumOrMushrooms(level, roughTarget));
+        return tier >= 4
+                || sporeNetworkLinked
+                || (mutated && (MateriaFamilyTier.isVoidLineage(materia)
+                        || (MateriaFamilyTier.isEarthLineage(materia) && materia != EssenceType.EARTH)
+                        || materia == EssenceType.VAPOR
+                        || materia == EssenceType.PRISMATIC));
+    }
+
+    private static boolean performSafeBlinkInternal(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 rayOriginEye,
+            Vec3 rayDirection,
+            Vec3 desiredPos,
+            double maxDist,
+            boolean canPhaseWalls,
             int tier,
             EssenceType materia,
             boolean mutated
@@ -2213,15 +6124,11 @@ public final class SpellExecutionEngine {
         if (SpellCombatReactionEngine.isBlinkAnchored(caster, level.getGameTime())) {
             level.sendParticles(ParticleTypes.REVERSE_PORTAL, caster.getX(), caster.getY(0.8D), caster.getZ(),
                     14, 0.3D, 0.4D, 0.3D, 0.08D);
-            if (caster instanceof Player player) {
-                player.displayClientMessage(Component.literal("§5[Spacetime Anchor] §7Dimensional Blink is locked by a Void Hex!"), true);
-            }
-            return;
+            BLINK_CANCELLED_REASON.set("§5[Spacetime Anchor] §7Dimensional Blink is locked by a Void Hex (§a100% Materia refunded§7)!");
+            return false;
         }
 
-        double maxDist = 8.0D + tier * 3.5D;
         Vec3 departurePos = caster.position();
-        BlockPos roughTarget = BlockPos.containing(desiredPos);
 
         // Sec 6.57 Eschaton Spacetime Fold Slip: 24m silent swap with furthest non-boss hostile within 24m through walls!
         if (mutated && materia == EssenceType.ESCHATON) {
@@ -2255,195 +6162,109 @@ public final class SpellExecutionEngine {
                 if (effHandler != null) {
                     effHandler.onBlinkCast(level, caster, departurePos, caster.position(), tier);
                 }
-                return;
+                return true;
             }
         }
 
-        boolean silentUmbralStep = mutated && materia == EssenceType.UMBRAL;
         boolean natureTreeStep = mutated && (materia == EssenceType.NATURE || materia == EssenceType.OVERGROWTH);
-        boolean sporeHyphalStep = mutated && materia == EssenceType.SPORE;
-        boolean sporeNetworkLinked = sporeHyphalStep && (isNearMyceliumOrMushrooms(level, BlockPos.containing(departurePos))
-                || isNearMyceliumOrMushrooms(level, roughTarget));
-        boolean taigaPineStep = mutated && materia == EssenceType.TAIGA;
-        boolean astralCometDash = mutated && (materia == EssenceType.ASTRAL
-                || materia == EssenceType.RIME
-                || materia == EssenceType.GENESIS
-                || materia == EssenceType.PRISMATIC);
-        boolean twentyBlockApexStep = mutated && (materia == EssenceType.AETHER
-                || materia == EssenceType.ENTROPIC
-                || materia == EssenceType.CELESTIAL);
-        boolean twentyTwoBlockEschatonStep = mutated && (materia == EssenceType.EMPYREAN
-                || materia == EssenceType.CATACLYSM
-                || materia == EssenceType.TERMINUS);
-        boolean twentyFourBlockSingularityStep = mutated && (materia == EssenceType.ESCHATON
-                || materia == EssenceType.APOTHEOSIS
-                || materia == EssenceType.ENTROPICA);
-        boolean sixteenBlockDashStep = mutated && (materia == EssenceType.BLOOD
-                || materia == EssenceType.ECLIPSE
-                || materia == EssenceType.VAPOR
-                || materia == EssenceType.NULL_R
-                || materia == EssenceType.NULL_U
-                || materia == EssenceType.PENUMBRA
-                || materia == EssenceType.SYLVAN
-                || materia == EssenceType.OBLIVION
-                || materia == EssenceType.CHIMERA);
+        boolean sporeNetworkLinked = mutated && materia == EssenceType.SPORE
+                && (isNearMyceliumOrMushrooms(level, BlockPos.containing(departurePos))
+                || isNearMyceliumOrMushrooms(level, BlockPos.containing(desiredPos)));
         boolean earthBurrowStep = mutated && (materia == EssenceType.EARTH || sporeNetworkLinked);
-        boolean fourteenBlockFusionStep = mutated && (materia == EssenceType.GLACIAL
-                || materia == EssenceType.OVERGROWTH
-                || materia == EssenceType.DUST
-                || materia == EssenceType.SPORE
-                || materia == EssenceType.TAIGA
-                || materia == EssenceType.OASIS
-                || materia == EssenceType.VITAE
-                || materia == EssenceType.AURA
-                || materia == EssenceType.AMBER
-                || materia == EssenceType.BLIGHT
-                || materia == EssenceType.DAWN
-                || materia == EssenceType.ABYSS
-                || materia == EssenceType.AURORA
-                || materia == EssenceType.MIRAGE
-                || materia == EssenceType.BARROW
-                || materia == EssenceType.PYRE
-                || materia == EssenceType.SPRING
-                || materia == EssenceType.STATIC
-                || materia == EssenceType.MIASMA);
-        boolean twelveBlockStep = mutated && (materia == EssenceType.MAGMA
-                || materia == EssenceType.SOULFIRE
-                || materia == EssenceType.AEGIS
-                || materia == EssenceType.WRAITH);
-        boolean miasmaThinBarrierPhase = mutated && materia == EssenceType.MIASMA;
-        boolean canPhaseWalls = tier >= 4
-                || sporeNetworkLinked
-                || (mutated && (MateriaFamilyTier.isVoidLineage(materia)
-                        || MateriaFamilyTier.isEarthLineage(materia)
-                        || materia == EssenceType.VAPOR
-                        || materia == EssenceType.PRISMATIC));
-
-        if (silentUmbralStep && level.getMaxLocalRawBrightness(roughTarget) <= 9) {
-            maxDist *= 1.35D; // Extended Shadow-Step range between dim/dark areas
-        }
-        if (twelveBlockStep) {
-            maxDist = Math.max(maxDist, 12.0D + (tier - 1) * 2.5D); // 12m+ baseline (Magma, Soulfire, Aegis, Wraith)
-        }
-        if (fourteenBlockFusionStep) {
-            maxDist = Math.max(maxDist, 14.0D + (tier - 1) * 2.5D); // Canonical 14m+ blink baseline
-        }
-        if (natureTreeStep && (isNearTreeFoliage(level, BlockPos.containing(departurePos)) || isNearTreeFoliage(level, roughTarget))) {
-            maxDist = Math.max(maxDist, 24.0D + tier * 2.5D); // Extended Tree-Stepping range across woodland canopies
-        }
-        if (sporeNetworkLinked) {
-            maxDist = Math.max(maxDist, 24.0D + tier * 2.5D); // Extended underground Hyphal Network Blink between mycelium & mushrooms
-        }
-        if (taigaPineStep && (isNearTreeFoliage(level, BlockPos.containing(departurePos)) || isNearTreeFoliage(level, roughTarget))) {
-            maxDist = Math.max(maxDist, 18.0D + tier * 2.5D); // Boreal Pine-Phasing extended stride through timber
-        }
-        if (sixteenBlockDashStep) {
-            maxDist = Math.max(maxDist, 16.0D + (tier - 1) * 2.5D); // 16m+ surge (Blood, Eclipse, Vapor, Null_R, Null_U, Penumbra, Sylvan, Oblivion, Chimera)
-        }
-        if (astralCometDash) {
-            maxDist = Math.max(maxDist, 18.0D + (tier - 1) * 2.5D); // 18m+ surge (Astral, Rime, Genesis, Prismatic)
-        }
-        if (twentyBlockApexStep) {
-            maxDist = Math.max(maxDist, 20.0D + (tier - 1) * 2.5D); // 20m+ surge (Aether, Entropic, Celestial)
-        }
-        if (twentyTwoBlockEschatonStep) {
-            maxDist = Math.max(maxDist, 22.0D + (tier - 1) * 2.5D); // 22m+ surge (Empyrean, Cataclysm, Terminus)
-        }
-        if (twentyFourBlockSingularityStep) {
-            maxDist = Math.max(maxDist, 24.0D + (tier - 1) * 2.5D); // 24m+ surge (Eschaton, Apotheosis, Entropica)
-        }
-
-        Vec3 delta = desiredPos.subtract(departurePos);
-        if (delta.length() > maxDist) {
-            desiredPos = departurePos.add(delta.normalize().scale(maxDist));
-        }
-
-        // Section 5.4 Tiers 1–3 Line-of-Sight Enforcement (Tier 4+ / Void / Earth phase through solid barriers; Miasma phases thin fences/bars!)
-        if (!canPhaseWalls) {
-            BlockHitResult losHit = level.clip(new ClipContext(
-                    caster.getEyePosition(),
-                    desiredPos.add(0.0D, 0.8D, 0.0D),
-                    ClipContext.Block.COLLIDER,
-                    ClipContext.Fluid.NONE,
-                    caster
-            ));
-            if (losHit.getType() == HitResult.Type.BLOCK) {
-                BlockState barrier = level.getBlockState(losHit.getBlockPos());
-                boolean thinBarrier = miasmaThinBarrierPhase
-                        && (barrier.is(BlockTags.FENCES)
-                        || barrier.is(BlockTags.FENCE_GATES)
-                        || barrier.is(Blocks.IRON_BARS)
-                        || barrier.getBlock() instanceof net.minecraft.world.level.block.CrossCollisionBlock);
-                if (!thinBarrier) {
-                    desiredPos = Vec3.atBottomCenterOf(losHit.getBlockPos().relative(losHit.getDirection()));
-                }
-            }
-        }
-
-        BlockPos targetBlock = BlockPos.containing(desiredPos);
-        if (natureTreeStep) {
-            // Scan upward through tree leaves/branches to emerge cleanly atop foliage
-            for (int dy = 0; dy <= 6; dy++) {
-                BlockPos cand = targetBlock.above(dy);
-                if (isTwoBlockClearance(level, cand)) {
-                    targetBlock = cand;
-                    break;
-                }
-            }
-        } else if (earthBurrowStep) {
-            // Scan vertically through stone/dirt strata to emerge safely on open stone/dirt terrain
-            for (int dy = 0; dy <= 6; dy++) {
-                BlockPos up = targetBlock.above(dy);
-                if (isTwoBlockClearance(level, up)) {
-                    targetBlock = up;
-                    break;
-                }
-                BlockPos down = targetBlock.below(dy);
-                if (isTwoBlockClearance(level, down)) {
-                    targetBlock = down;
-                    break;
-                }
-            }
-        } else if (!level.getBlockState(targetBlock).getCollisionShape(level, targetBlock).isEmpty()) {
-            targetBlock = targetBlock.above();
-        }
-
-        // Section 5.4 Raycast Smart-Snap Backward: step backward along transit line to nearest valid 2-block clearance
-        if (!isTwoBlockClearance(level, targetBlock)) {
-            Vec3 rayVec = desiredPos.subtract(departurePos);
-            double totalLen = rayVec.length();
-            if (totalLen > 0.5D) {
-                Vec3 unit = rayVec.normalize();
-                for (double stepBack = 0.75D; stepBack < totalLen; stepBack += 0.75D) {
-                    BlockPos cand = BlockPos.containing(desiredPos.subtract(unit.scale(stepBack)));
-                    if (isTwoBlockClearance(level, cand)) {
-                        targetBlock = cand;
-                        break;
-                    }
-                    if (isTwoBlockClearance(level, cand.above())) {
-                        targetBlock = cand.above();
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (!isTwoBlockClearance(level, targetBlock)) {
-            return;
-        }
 
         // Capture downward freefall speed prior to Blink for Forward Momentum Conversion (Section 5.4)
         double freefallSpeed = caster.getDeltaMovement().y < -0.25D ? -caster.getDeltaMovement().y : 0.0D;
+        boolean allowMidAirExit = freefallSpeed > 0.0D
+                || caster.isFallFlying()
+                || (caster instanceof Player player && player.getAbilities().flying);
 
-        // Clean Stealth Transit by Default (Section 5.4): silent & flash-free on stealth shadow-blinks, 3D Rift on arcane/mutated blinks!
-        caster.teleportTo(targetBlock.getX() + 0.5D, targetBlock.getY(), targetBlock.getZ() + 0.5D);
+        // Section 5.4 Raycast Smart Snap Fail-Safe:
+        // Raycast backward along the cast line to find the nearest valid 2-block open air space with solid, non-hazardous ground underfoot!
+        Vec3 transitVec = desiredPos.subtract(departurePos);
+        double totalLen = transitVec.length();
+        Vec3 transitUnit = totalLen > 1.0E-4D ? transitVec.scale(1.0D / totalLen) : rayDirection;
+
+        BlockPos chosenLanding = null;
+        if (mutated && materia == EssenceType.SPORE) {
+            chosenLanding = findHyphalNetworkNodeNear(level, desiredPos, 5);
+        }
+        if (chosenLanding == null) {
+            chosenLanding = findGroundedBlinkSpotAt(level, desiredPos, natureTreeStep, earthBurrowStep, canPhaseWalls);
+        }
+        if (chosenLanding == null && totalLen > 0.65D) {
+            for (double stepBack = 0.65D; stepBack <= totalLen - 0.85D; stepBack += 0.65D) {
+                Vec3 sample = desiredPos.subtract(transitUnit.scale(stepBack));
+                BlockPos grounded = findGroundedBlinkSpotAt(level, sample, natureTreeStep, earthBurrowStep, canPhaseWalls);
+                if (grounded != null) {
+                    chosenLanding = grounded;
+                    break;
+                }
+            }
+        }
+
+        // Mid-air freefall / flight exit fallback (for Section 5.4 Forward Momentum Conversion when high above non-lava terrain)
+        if (chosenLanding == null && allowMidAirExit) {
+            BlockPos midAir = BlockPos.containing(desiredPos);
+            if (isSafeBlinkClearance(level, midAir) && isSafeMidAirExitOverNonLava(level, midAir)) {
+                chosenLanding = midAir;
+            } else if (totalLen > 0.65D) {
+                for (double stepBack = 0.65D; stepBack <= totalLen - 0.85D; stepBack += 0.65D) {
+                    BlockPos cand = BlockPos.containing(desiredPos.subtract(transitUnit.scale(stepBack)));
+                    if (isSafeBlinkClearance(level, cand) && isSafeMidAirExitOverNonLava(level, cand)) {
+                        chosenLanding = cand;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (chosenLanding == null) {
+            return false;
+        }
+
+        Vec3 arrivalPos = new Vec3(chosenLanding.getX() + 0.5D, chosenLanding.getY(), chosenLanding.getZ() + 0.5D);
+        if (arrivalPos.distanceToSqr(departurePos) < 1.15D) {
+            // Point-blank blocked wall / cliff edge with nowhere safe ahead: cancel safely & refund 100% fuel!
+            return false;
+        }
+
+        if (mutated && (materia == EssenceType.DUST || materia == EssenceType.SPORE || materia == EssenceType.AURA)) {
+            EntityHelper.getPersistentData(caster).putLong(
+                    SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL, level.getGameTime() + 100L);
+        }
+
+        caster.teleportTo(arrivalPos.x, arrivalPos.y, arrivalPos.z);
         caster.resetFallDistance();
 
-        if (!silentUmbralStep && materia != EssenceType.ABYSS && materia != EssenceType.NULL_U) {
+        // Section 5.4 Clean Stealth Transit:
+        // Unmutated Blink is 100% silent & leaves zero rifts/explosions; Air renders its Vacuum Implosion at departure!
+        boolean suppressGenericRift = !mutated
+                || materia == EssenceType.AIR
+                || materia == EssenceType.WATER
+                || materia == EssenceType.NATURE
+                || materia == EssenceType.OVERGROWTH
+                || materia == EssenceType.EARTH
+                || materia == EssenceType.FROZEN
+                || materia == EssenceType.GLACIAL
+                || materia == EssenceType.DUST
+                || materia == EssenceType.SPORE
+                || materia == EssenceType.NETHER
+                || materia == EssenceType.RADIANT
+                || materia == EssenceType.UMBRAL
+                || materia == EssenceType.UNDEAD
+                || materia == EssenceType.ABYSS
+                || materia == EssenceType.NULL_U
+                || materia == EssenceType.DAWN
+                || materia == EssenceType.WRAITH
+                || materia == EssenceType.STATIC
+                || materia == EssenceType.CATACLYSM
+                || materia == EssenceType.ESCHATON;
+        if (!suppressGenericRift) {
             ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastBlinkRift(level, departurePos, caster.position(), materia, tier);
             ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, caster.position(), materia, null, 1.0D, tier);
         }
 
+        // Section 5.4 Forward Momentum Conversion: convert downward terminal velocity into forward horizontal propulsion!
         if (freefallSpeed > 0.0D) {
             Vec3 look = caster.getLookAngle();
             Vec3 horiz = new Vec3(look.x, 0.0D, look.z);
@@ -2455,7 +6276,7 @@ public final class SpellExecutionEngine {
         MateriaPartMutationHandler effHandler = SpellMutationHandlerRegistry.resolveActive(materia, mutated);
         if (effHandler != null) {
             effHandler.onBlinkCast(level, caster, departurePos, caster.position(), tier);
-            return;
+            return true;
         }
 
         if (mutated && MateriaFamilyTier.isNetherLineage(materia)) {
@@ -2465,11 +6286,113 @@ public final class SpellExecutionEngine {
                 }
             }
         }
+        return true;
     }
 
-    private static boolean isTwoBlockClearance(ServerLevel level, BlockPos feet) {
+    @Nullable
+    private static BlockPos findGroundedBlinkSpotAt(
+            ServerLevel level,
+            Vec3 samplePos,
+            boolean natureTreeStep,
+            boolean earthBurrowStep,
+            boolean canPhaseWalls
+    ) {
+        BlockPos base = BlockPos.containing(samplePos);
+        if (natureTreeStep) {
+            for (int dy = 10; dy >= -6; dy--) {
+                BlockPos cand = base.offset(0, dy, 0);
+                if (isSafeBlinkClearance(level, cand) && hasSafeGroundUnderfoot(level, cand)) {
+                    return cand;
+                }
+            }
+            return null;
+        }
+        if (earthBurrowStep) {
+            for (int dy = 0; dy <= 8; dy++) {
+                BlockPos up = base.above(dy);
+                if (isSafeBlinkClearance(level, up) && hasSafeGroundUnderfoot(level, up)) {
+                    return up;
+                }
+                if (dy > 0 && dy <= 6) {
+                    BlockPos down = base.below(dy);
+                    if (isSafeBlinkClearance(level, down) && hasSafeGroundUnderfoot(level, down)) {
+                        return down;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Standard grounded snap: check exact block, +1 step-up, and up to 4 blocks of open air drop onto solid ground
+        int[] offsets = new int[]{0, 1, -1, -2, -3, -4};
+        for (int dy : offsets) {
+            BlockPos cand = base.offset(0, dy, 0);
+            if (!isSafeBlinkClearance(level, cand) || !hasSafeGroundUnderfoot(level, cand)) {
+                continue;
+            }
+            if (!canPhaseWalls && dy < 0) {
+                // Ensure we only drop through open air from the ray height down to the floor (never phasing through a ceiling!)
+                boolean blockedAbove = false;
+                for (int checkY = base.getY(); checkY > cand.getY(); checkY--) {
+                    BlockPos airCol = new BlockPos(cand.getX(), checkY, cand.getZ());
+                    if (!level.getBlockState(airCol).getCollisionShape(level, airCol).isEmpty() || isHazardousBlinkBlock(level, airCol)) {
+                        blockedAbove = true;
+                        break;
+                    }
+                }
+                if (blockedAbove) {
+                    continue;
+                }
+            }
+            return cand;
+        }
+        return null;
+    }
+
+    private static boolean isSafeBlinkClearance(ServerLevel level, BlockPos feet) {
+        BlockPos head = feet.above();
         return level.getBlockState(feet).getCollisionShape(level, feet).isEmpty()
-                && level.getBlockState(feet.above()).getCollisionShape(level, feet.above()).isEmpty();
+                && level.getBlockState(head).getCollisionShape(level, head).isEmpty()
+                && !isHazardousBlinkBlock(level, feet)
+                && !isHazardousBlinkBlock(level, head);
+    }
+
+    private static boolean hasSafeGroundUnderfoot(ServerLevel level, BlockPos feet) {
+        BlockPos below = feet.below();
+        BlockState ground = level.getBlockState(below);
+        return !ground.getCollisionShape(level, below).isEmpty() && !isHazardousBlinkBlock(level, below);
+    }
+
+    private static boolean isHazardousBlinkBlock(ServerLevel level, BlockPos pos) {
+        if (level.getFluidState(pos).is(net.minecraft.tags.FluidTags.LAVA)) {
+            return true;
+        }
+        BlockState bs = level.getBlockState(pos);
+        Block b = bs.getBlock();
+        if (b instanceof BaseFireBlock
+                || bs.is(Blocks.MAGMA_BLOCK)
+                || bs.is(Blocks.CACTUS)
+                || bs.is(Blocks.SWEET_BERRY_BUSH)
+                || bs.is(Blocks.POWDER_SNOW)
+                || bs.is(Blocks.WITHER_ROSE)
+                || bs.is(Blocks.POINTED_DRIPSTONE)) {
+            return true;
+        }
+        return b instanceof CampfireBlock && bs.hasProperty(CampfireBlock.LIT) && bs.getValue(CampfireBlock.LIT);
+    }
+
+    private static boolean isSafeMidAirExitOverNonLava(ServerLevel level, BlockPos feet) {
+        for (int depth = 1; depth <= 24; depth++) {
+            BlockPos probe = feet.below(depth);
+            if (isHazardousBlinkBlock(level, probe)) {
+                return false;
+            }
+            BlockState bs = level.getBlockState(probe);
+            if (!bs.getCollisionShape(level, probe).isEmpty() || !level.getFluidState(probe).isEmpty()) {
+                return true;
+            }
+        }
+        return true;
     }
 
     private static boolean isNearTreeFoliage(ServerLevel level, BlockPos center) {
@@ -2482,20 +6405,74 @@ public final class SpellExecutionEngine {
         return false;
     }
 
+    private static boolean isStoneOrSoilStrata(BlockState bs) {
+        if (bs.is(Blocks.BEDROCK) || bs.is(Blocks.REINFORCED_DEEPSLATE) || bs.is(Blocks.OBSIDIAN) || bs.is(Blocks.CRYING_OBSIDIAN)) {
+            return false;
+        }
+        return bs.is(BlockTags.BASE_STONE_OVERWORLD)
+                || bs.is(BlockTags.BASE_STONE_NETHER)
+                || bs.is(BlockTags.DIRT)
+                || bs.is(BlockTags.SAND)
+                || bs.is(BlockTags.TERRACOTTA)
+                || bs.is(BlockTags.STONE_ORE_REPLACEABLES)
+                || bs.is(BlockTags.DEEPSLATE_ORE_REPLACEABLES)
+                || bs.is(Blocks.GRAVEL)
+                || bs.is(Blocks.COBBLESTONE)
+                || bs.is(Blocks.MOSSY_COBBLESTONE)
+                || bs.is(Blocks.COBBLED_DEEPSLATE)
+                || bs.is(Blocks.SANDSTONE)
+                || bs.is(Blocks.RED_SANDSTONE)
+                || bs.is(Blocks.CLAY)
+                || bs.is(Blocks.DRIPSTONE_BLOCK)
+                || bs.is(Blocks.CALCITE)
+                || bs.is(Blocks.SMOOTH_BASALT)
+                || bs.is(Blocks.BLACKSTONE)
+                || bs.is(Blocks.END_STONE)
+                || bs.getBlock() instanceof net.minecraft.world.level.block.DropExperienceBlock;
+    }
+
     private static boolean isNearMyceliumOrMushrooms(ServerLevel level, BlockPos center) {
         for (BlockPos p : BlockPos.betweenClosed(center.offset(-3, -2, -3), center.offset(3, 2, 3))) {
             BlockState bs = level.getBlockState(p);
-            if (bs.is(Blocks.MYCELIUM)
-                    || bs.is(Blocks.PODZOL)
-                    || bs.is(Blocks.RED_MUSHROOM) || bs.is(Blocks.BROWN_MUSHROOM)
-                    || bs.is(Blocks.RED_MUSHROOM_BLOCK) || bs.is(Blocks.BROWN_MUSHROOM_BLOCK)
-                    || bs.is(Blocks.MUSHROOM_STEM)
-                    || bs.is(Blocks.CRIMSON_NYLIUM) || bs.is(Blocks.WARPED_NYLIUM)
-                    || bs.is(Blocks.CRIMSON_FUNGUS) || bs.is(Blocks.WARPED_FUNGUS)) {
+            if (isFungalNetworkBlock(bs)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean isFungalNetworkBlock(BlockState bs) {
+        return bs.is(Blocks.MYCELIUM)
+                || bs.is(Blocks.PODZOL)
+                || bs.is(Blocks.RED_MUSHROOM) || bs.is(Blocks.BROWN_MUSHROOM)
+                || bs.is(Blocks.RED_MUSHROOM_BLOCK) || bs.is(Blocks.BROWN_MUSHROOM_BLOCK)
+                || bs.is(Blocks.MUSHROOM_STEM)
+                || bs.is(Blocks.CRIMSON_NYLIUM) || bs.is(Blocks.WARPED_NYLIUM)
+                || bs.is(Blocks.CRIMSON_FUNGUS) || bs.is(Blocks.WARPED_FUNGUS);
+    }
+
+    @Nullable
+    private static BlockPos findHyphalNetworkNodeNear(ServerLevel level, Vec3 desiredPos, int searchRadius) {
+        BlockPos center = BlockPos.containing(desiredPos);
+        BlockPos best = null;
+        double bestDistSq = Double.MAX_VALUE;
+        for (BlockPos p : BlockPos.betweenClosed(center.offset(-searchRadius, -3, -searchRadius), center.offset(searchRadius, 3, searchRadius))) {
+            BlockState bs = level.getBlockState(p);
+            if (!isFungalNetworkBlock(bs)) continue;
+            BlockPos stand = (bs.is(Blocks.RED_MUSHROOM) || bs.is(Blocks.BROWN_MUSHROOM)
+                    || bs.is(Blocks.CRIMSON_FUNGUS) || bs.is(Blocks.WARPED_FUNGUS))
+                    ? p.immutable()
+                    : p.above();
+            if (!isSafeBlinkClearance(level, stand)) continue;
+            BlockState floor = level.getBlockState(stand.below());
+            if (floor.getCollisionShape(level, stand.below()).isEmpty() || floor.is(Blocks.LAVA) || floor.is(Blocks.MAGMA_BLOCK)) continue;
+            double dSq = stand.distToCenterSqr(desiredPos);
+            if (dSq < bestDistSq) {
+                bestDistSq = dSq;
+                best = stand;
+            }
+        }
+        return best;
     }
 
     private static void spawnSpellGravityZone(
@@ -2519,12 +6496,13 @@ public final class SpellExecutionEngine {
             mode = GravityField.Mode.INVERSION;
         }
         double rad = 4.5D + tier * 1.2D;
-        int duration = 120 + tier * 35;
+        int duration = 160 + tier * 40;
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath("entropica", "spell_grav_" + level.getGameTime() + "_" + pos.asLong());
         GravityFieldManager.registerField(new GravityField(id, level.dimension(), pos, rad, mode, duration));
 
         Vec3 center = Vec3.atCenterOf(pos);
-        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, center.subtract(0.0D, 0.4D, 0.0D), rad, materia, null, Math.min(80, duration), tier);
+        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, center.subtract(0.0D, 0.4D, 0.0D), rad, materia, null, duration, tier);
+        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(level, center.subtract(0.0D, 0.9D, 0.0D), rad, materia, null, duration, tier);
         ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, center, materia, null, rad * 0.65D, tier);
         level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.65F, 1.35F);
 
@@ -2568,7 +6546,7 @@ public final class SpellExecutionEngine {
      * Sets an entity's motion and marks {@code hurtMarked = true} + {@code hasImpulse = true} so
      * {@link ServerPlayer}s receive an immediate velocity sync packet on the client!
      */
-    private static void applySyncedMotion(Entity entity, Vec3 motion) {
+    public static void applySyncedMotion(Entity entity, Vec3 motion) {
         entity.setDeltaMovement(motion);
         entity.hasImpulse = true;
         entity.hurtMarked = true;
@@ -2684,7 +6662,9 @@ public final class SpellExecutionEngine {
 
         // If SELF_CAST has GRAPPLE and the caster is aiming at a solid block, reel directly to that block!
         if (slotHasEffect(slot, SpellCoreEffect.GRAPPLE)) {
-            BlockHitResult grapHit = raycastBlocks(level, caster, look, 14.0D + tier * 3.0D);
+            double grapReach = Math.max(2.0D, spell.flowPart().travelDistanceMeters())
+                    * spell.flawProfile().getRangeAndRadiusMultiplier();
+            BlockHitResult grapHit = raycastBlocks(level, caster, look, grapReach);
             if (grapHit.getType() == HitResult.Type.BLOCK) {
                 deliverSubSpellOnBlock(level, caster, grapHit.getBlockPos(), grapHit.getDirection(), spell, slot, fallbackMateria, apparatusPotency);
                 return;
@@ -2967,17 +6947,57 @@ public final class SpellExecutionEngine {
         double rad = 6.0D + tier * 2.5D;
         AABB search = new AABB(center.x - rad, center.y - rad * 0.6D, center.z - rad,
                 center.x + rad, center.y + rad * 0.6D, center.z + rad);
+        boolean netherTransitSmelt = materia != null && MateriaFamilyTier.isNetherLineage(materia);
+        boolean voidInstantTeleport = materia != null && MateriaFamilyTier.isVoidLineage(materia);
         int pulled = 0;
+        int smeltedInTransit = 0;
         for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, search, ItemEntity::isAlive)) {
             Vec3 from = item.position();
-            item.setNoPickUpDelay();
-            item.setPos(caster.getX(), caster.getY() + 0.5D, caster.getZ());
-            if (pulled < 8) {
-                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastChainArc(
-                        level, from, caster.position().add(0.0D, 0.7D, 0.0D), materia, null, tier
-                );
+            if (netherTransitSmelt) {
+                ItemStack refined = ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler
+                        .trySmeltRawOreInTransit(level, item.getItem());
+                if (refined != item.getItem()) {
+                    item.setItem(refined);
+                    smeltedInTransit++;
+                    level.sendParticles(ParticleTypes.FLAME, from.x, from.y + 0.25D, from.z,
+                            6, 0.16D, 0.16D, 0.16D, 0.025D);
+                }
+            }
+            if (voidInstantTeleport && caster instanceof Player voidPlayer) {
+                // Section 2.3 Void-Lineage Logistics: instantly teleports collected items straight into the player's inventory!
+                ItemStack copy = item.getItem().copy();
+                if (voidPlayer.getInventory().add(copy)) {
+                    if (copy.isEmpty()) {
+                        item.discard();
+                    } else {
+                        item.setItem(copy);
+                        item.setNoPickUpDelay();
+                        item.setPos(caster.getX(), caster.getY() + 0.5D, caster.getZ());
+                    }
+                } else {
+                    item.setNoPickUpDelay();
+                    item.setPos(caster.getX(), caster.getY() + 0.5D, caster.getZ());
+                }
+                level.sendParticles(ParticleTypes.REVERSE_PORTAL, from.x, from.y + 0.25D, from.z,
+                        8, 0.16D, 0.16D, 0.16D, 0.04D);
+                if (pulled < 8) {
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastBlinkRift(
+                            level, from, caster.position().add(0.0D, 0.7D, 0.0D), materia, tier
+                    );
+                }
+            } else {
+                item.setNoPickUpDelay();
+                item.setPos(caster.getX(), caster.getY() + 0.5D, caster.getZ());
+                if (pulled < 8) {
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastChainArc(
+                            level, from, caster.position().add(0.0D, 0.7D, 0.0D), materia, null, tier
+                    );
+                }
             }
             pulled++;
+        }
+        if (smeltedInTransit > 0) {
+            level.playSound(null, caster.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.65F, 1.28F);
         }
         for (ExperienceOrb xp : level.getEntitiesOfClass(ExperienceOrb.class, search, Entity::isAlive)) {
             xp.setPos(caster.getX(), caster.getY() + 0.5D, caster.getZ());

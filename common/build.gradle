@@ -65,3 +65,98 @@ tasks.matching { it.name.startsWith("transformProduction") }.configureEach { tas
 tasks.matching { it.name == "remapSourcesJar" }.configureEach {
     dependsOn(tasks.named("sourcesJar"))
 }
+
+task runForcefieldTests(type: JavaExec) {
+    group = "verification"
+    description = "Runs the standalone E2E Forcefield Test Runner"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.ForcefieldTestRunner"
+}
+
+task runAdversarialVerification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical adversarial stress verification for M1 Iteration 2"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.AdversarialStressVerification"
+}
+
+task runM2Challenger1Verification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical adversarial stress verification for Milestone 2 Challenger 1 (CCD, Reflection, One-Way)"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.M2PhysicsAdversarialVerification"
+}
+
+task runM2Challenger2Verification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical adversarial stress verification for Milestone 2 Challenger 2"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.Milestone2Challenger2Verification"
+}
+
+task runMilestone3Verification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical verification for Milestone 3 (Weaver Utilities, QoL & Holographic Preview)"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.Milestone3Verification"
+}
+
+task runM3Challenger1Verification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical adversarial verification for Milestone 3 Challenger 1 (Two-Point Drag & Span Math)"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.Milestone3Challenger1Verification"
+}
+
+task runM3Challenger2Verification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical adversarial stress verification for Milestone 3 Challenger 2 (Snapping Math & Z-Fighting)"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.Milestone3Challenger2Verification"
+}
+
+task runM4Challenger1Verification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical adversarial verification for Milestone 4 Challenger 1 (GUI Math, Sliders & Invariants)"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.Milestone4Challenger1Verification"
+}
+
+task runM4Challenger2Verification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical adversarial verification for Milestone 4 Challenger 2 (Packet Fuzzing, Codec & Server Security)"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.Milestone4Challenger2Verification"
+}
+
+task runM6Challenger1Verification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical adversarial verification for Milestone 6 Challenger 1 (Physics, CCD, Geometry & Bouncepad)"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.Milestone6Challenger1Verification"
+}
+
+task runM6Challenger2Verification(type: JavaExec) {
+    group = "verification"
+    description = "Runs empirical adversarial verification for Milestone 6 Challenger 2 (Packet Fuzzing, Redstone, Lifecycle, Weaver & Snapping)"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.test.forcefield.Milestone6Challenger2Verification"
+}
+
+test {
+    dependsOn runForcefieldTests
+    dependsOn runM2Challenger1Verification
+    dependsOn runM2Challenger2Verification
+    dependsOn runMilestone3Verification
+    dependsOn runM3Challenger1Verification
+    dependsOn runM3Challenger2Verification
+    dependsOn runM4Challenger1Verification
+    dependsOn runM4Challenger2Verification
+    dependsOn runM6Challenger1Verification
+    dependsOn runM6Challenger2Verification
+    failOnNoDiscoveredTests = false
+}
+
+
+
+

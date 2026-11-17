@@ -36,6 +36,9 @@ public record SpellVfxEventPayload(
     public static final byte VFX_BLINK_RIFT = 8;
     public static final byte VFX_WARD_SHELL = 9;
     public static final byte VFX_SUMMON_PILLAR = 10;
+    public static final byte VFX_TORNADO_VORTEX = 11;
+    public static final byte VFX_GEYSER_PLUME = 12;
+    public static final byte VFX_VACUUM_SPHERE = 13;
 
     public static final Type<SpellVfxEventPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "spell_vfx_event"));

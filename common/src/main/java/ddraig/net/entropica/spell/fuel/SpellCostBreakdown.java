@@ -21,8 +21,19 @@ public record SpellCostBreakdown(
         List<PartCostEntry> partEntries,
         Map<EssenceType, Long> totalMfumByType,
         Map<EssenceType, Long> upfrontMfumByType,
-        Map<EssenceType, Long> dynamicTriggerMfumByType
+        Map<EssenceType, Long> dynamicTriggerMfumByType,
+        boolean channeledPerSecond
 ) {
+    public SpellCostBreakdown(
+            int potencyTier,
+            List<PartCostEntry> partEntries,
+            Map<EssenceType, Long> totalMfumByType,
+            Map<EssenceType, Long> upfrontMfumByType,
+            Map<EssenceType, Long> dynamicTriggerMfumByType
+    ) {
+        this(potencyTier, partEntries, totalMfumByType, upfrontMfumByType, dynamicTriggerMfumByType, false);
+    }
+
     public record PartCostEntry(
             int subSpellIndex,
             SpellPartSlotType partSlotType,
@@ -57,6 +68,7 @@ public record SpellCostBreakdown(
 
     public String formatTypeCostSummary() {
         String unitCode = MateriaStageTable.getStageUnitCode(this.potencyTier);
+        String rateSuffix = this.channeledPerSecond ? "/s" : "";
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<EssenceType, Long> entry : this.totalMfumByType.entrySet()) {
             if (sb.length() > 0) sb.append(" + ");
@@ -64,7 +76,7 @@ public record SpellCostBreakdown(
             String formattedNum = (Math.abs(nativeVal - Math.rint(nativeVal)) < 1e-4)
                     ? String.valueOf(Math.round(nativeVal))
                     : String.format("%.2f", nativeVal);
-            sb.append(formattedNum).append(' ').append(unitCode).append(' ').append(entry.getKey().getDisplayName());
+            sb.append(formattedNum).append(' ').append(unitCode).append(' ').append(entry.getKey().getDisplayName()).append(rateSuffix);
         }
         return sb.toString();
     }

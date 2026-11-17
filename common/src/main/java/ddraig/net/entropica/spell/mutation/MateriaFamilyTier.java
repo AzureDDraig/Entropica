@@ -140,7 +140,23 @@ public enum MateriaFamilyTier {
         if (type == null) return false;
         if (of(type).hasInnateWallPhasing()) return true;
         return switch (type) {
-            case VOID, ASTRAL, NULL_R, NULL_U, WRAITH, PENUMBRA -> true;
+            case VOID, ASTRAL, NULL_R, NULL_U, WRAITH, PENUMBRA, ABYSS, OBLIVION -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Returns {@code true} strictly for Void Materia and Materia types created using Void in their fusion/fission lineage.
+     * Required on an actively mutated Flow Ring to unlock and execute {@code VOID_WARP} zero-travel spatial transcendence (Guide Section 3.4).
+     */
+    public static boolean hasVoidCreationHeritage(EssenceType type) {
+        if (type == null) return false;
+        return switch (type) {
+            case VOID,
+                 ASTRAL, NULL_R, NULL_U, WRAITH,
+                 PENUMBRA, ABYSS, OBLIVION,
+                 ENTROPIC, CATACLYSM, ESCHATON, ENTROPICA,
+                 SINGULARITY, CHRONOS, VACUUM, OBLIVIATE, AXIOM -> true;
             default -> false;
         };
     }

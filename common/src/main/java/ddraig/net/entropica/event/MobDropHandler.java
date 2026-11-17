@@ -77,16 +77,17 @@ public class MobDropHandler {
                 return;
             }
 
-            // Arid (#11) Desiccating Mummification Strike: desiccate raw meat into cured/cooked meat + fine sand!
+            // Arid (#11) Desiccating Mummification Strike: desiccate raw meat/items into dried cured meat + fine sand!
             if (now <= tag.getLong(ddraig.net.entropica.spell.engine.SpellLingeringZoneManager.TAG_ARID_MUMMIFY_DROPS_UNTIL).orElse(0L)) {
-                ItemStack smelted = trySmeltLootStack(level, stack);
-                if (!smelted.isEmpty()) {
-                    itemEntity.setItem(smelted);
+                ItemStack cured = ddraig.net.entropica.spell.mutation.element.AridSpellMutationHandler
+                        .desiccateRawDropToCuredMeat(level, stack);
+                if (!cured.isEmpty()) {
+                    itemEntity.setItem(cured);
                 }
                 if (!tag.getBoolean("SpellAridSandSpawned").orElse(false)) {
                     tag.putBoolean("SpellAridSandSpawned", true);
                     ItemEntity sandDrop = new ItemEntity(level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(),
-                            new ItemStack(net.minecraft.world.item.Items.SAND, 1));
+                            new ItemStack(net.minecraft.world.item.Items.SAND, 1 + level.random.nextInt(2)));
                     level.addFreshEntity(sandDrop);
                 }
                 return;
@@ -94,8 +95,8 @@ public class MobDropHandler {
 
             // Nether (#6) Cauterizing Cleave: auto-smelt raw meat & ore drops directly in-place!
             if (now <= tag.getLong(ddraig.net.entropica.spell.engine.SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL).orElse(0L)) {
-                ItemStack smelted = trySmeltLootStack(level, stack);
-                if (!smelted.isEmpty()) {
+                ItemStack smelted = ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.trySmeltStack(level, stack);
+                if (smelted != stack && !smelted.isEmpty()) {
                     itemEntity.setItem(smelted);
                     return;
                 }

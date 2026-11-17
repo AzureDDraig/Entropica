@@ -154,6 +154,54 @@ public record SpellAssembly(
     }
 
     /**
+     * Returns true if any active sub-spell uses {@link SpellDeliveryForm#BEAM}.
+     */
+    public boolean hasChanneledBeamForm() {
+        for (SubSpellSlot slot : this.subSpells) {
+            if (slot.formPart().form() == SpellDeliveryForm.BEAM
+                    && slot.primaryEffect().effect() != SpellCoreEffect.BLINK) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true when this spell channels a continuous aimed Beam from the caster while holding Right-Click,
+     * billing Materia per second rather than a flat one-shot cast cost (Guide Section 4.2).
+     */
+    public boolean isChanneledHoldBeam() {
+        return hasChanneledBeamForm() && !this.flowPart.trigger().isSelfCentered();
+    }
+
+    /**
+     * Returns true if any active sub-spell uses {@link SpellDeliveryForm#TOUCH_STRIKE}.
+     */
+    public boolean hasTouchStrikeForm() {
+        for (SubSpellSlot slot : this.subSpells) {
+            if (slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if every sub-spell in this assembly uses {@link SpellDeliveryForm#TOUCH_STRIKE}.
+     */
+    public boolean isPureTouchStrikeSpell() {
+        if (this.subSpells.isEmpty()) {
+            return false;
+        }
+        for (SubSpellSlot slot : this.subSpells) {
+            if (slot.formPart().form() != SpellDeliveryForm.TOUCH_STRIKE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Returns true if any sub-spell integrates a Ward / Aegis component, exempting the caster,
      * tamed pets, and allies from Combat splash friendly fire (Section 2.1.4).
      */
@@ -186,9 +234,11 @@ public record SpellAssembly(
     }
 
     public int getBaseCooldownTicks() {
-        int base = 20 + (this.subSpells.size() - 1) * 6;
+        int multiCastCount = Math.max(1, this.subSpells.size());
+        int carrierCount = Math.max(1, this.flowPart.flow().getCarrierPayloadCount());
+        int base = 20 + (multiCastCount - 1) * 5 + (carrierCount - 1) * 4;
         if (this.flowPart.flow() == SpellFlowModifier.FAST_DART) {
-            base = Math.max(8, (int) (base * 0.75F));
+            base = Math.max(8, Math.round(base * 0.75F));
         }
         return base;
     }
@@ -237,7 +287,7 @@ public record SpellAssembly(
         return new Builder("Basic Wisp", SpellPrefix.MISC)
                 .materiaSpecific(false)
                 .potencyTier(tier)
-                .flow(SpellFlowModifier.SELF_CAST, EssenceType.REGULAR, false, 1)
+                .flowBinding(new FlowPartBinding(SpellFlowModifier.SINGLE, ddraig.net.entropica.spell.SpellTriggerType.SELF, EssenceType.REGULAR, false, 1, 0.0F))
                 .addSubSpell(SubSpellSlot.of(
                         FormPartBinding.of(SpellDeliveryForm.AURA, EssenceType.REGULAR, false),
                         EffectPartBinding.of(SpellCoreEffect.CONJURE, EssenceType.REGULAR, false)
@@ -249,7 +299,7 @@ public record SpellAssembly(
         return new Builder("Basic Ward", SpellPrefix.COMBAT)
                 .materiaSpecific(false)
                 .potencyTier(tier)
-                .flow(SpellFlowModifier.SELF_CAST, EssenceType.REGULAR, false, 1)
+                .flowBinding(new FlowPartBinding(SpellFlowModifier.SINGLE, ddraig.net.entropica.spell.SpellTriggerType.SELF, EssenceType.REGULAR, false, 1, 0.0F))
                 .addSubSpell(SubSpellSlot.of(
                         FormPartBinding.of(SpellDeliveryForm.AURA, EssenceType.REGULAR, false),
                         EffectPartBinding.of(SpellCoreEffect.WARD, EssenceType.REGULAR, false)
@@ -261,7 +311,7 @@ public record SpellAssembly(
         return new Builder("Basic Heal", SpellPrefix.COMBAT)
                 .materiaSpecific(false)
                 .potencyTier(tier)
-                .flow(SpellFlowModifier.SELF_CAST, EssenceType.REGULAR, false, 1)
+                .flowBinding(new FlowPartBinding(SpellFlowModifier.SINGLE, ddraig.net.entropica.spell.SpellTriggerType.SELF, EssenceType.REGULAR, false, 1, 0.0F))
                 .addSubSpell(SubSpellSlot.of(
                         FormPartBinding.of(SpellDeliveryForm.AURA, EssenceType.REGULAR, false),
                         EffectPartBinding.of(SpellCoreEffect.RESTORATION, EssenceType.REGULAR, false)

@@ -11,12 +11,15 @@ import ddraig.net.entropica.spell.SpellDeliveryForm;
 import ddraig.net.entropica.spell.SpellFlowModifier;
 import ddraig.net.entropica.spell.SpellPartSlotType;
 import ddraig.net.entropica.spell.SpellPrefix;
+import ddraig.net.entropica.spell.SpellTravelDistance;
+import ddraig.net.entropica.spell.SpellTriggerType;
 import ddraig.net.entropica.spell.apparatus.CastingApparatusState;
 import ddraig.net.entropica.spell.apparatus.SocketedSpellgem;
 import ddraig.net.entropica.spell.assembly.*;
 import ddraig.net.entropica.spell.fuel.MateriaStageTable;
 import ddraig.net.entropica.spell.fuel.SpellCostBreakdown;
 import ddraig.net.entropica.spell.fuel.SpellFuelCalculator;
+import ddraig.net.entropica.spell.mutation.MateriaFamilyTier;
 import ddraig.net.entropica.spell.mutation.SpellMutationProfile;
 import ddraig.net.entropica.spell.mutation.SpellMutationRegistry;
 import ddraig.net.entropica.spell.research.SpellResearchManager;
@@ -63,16 +66,22 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
     };
 
-    // Wheel geometry relative to (leftPos, topPos)
+    // 6-Zone Concentric Spell Circle geometry relative to (leftPos, topPos)
+    // Wheel rings: 0 = Outer Rim Distance Circle, 1 = Trigger Logic, 2 = Flow Modifier,
+    //              3 = Delivery Form, 4 = Primary Effect, 5 = Center Dual-Verb Medallion
     private static final int WHEEL_REL_CX = 158;
-    private static final int WHEEL_REL_CY = 90;
-    private static final float RING_FLOW_IN = 45.0F;
-    private static final float RING_FLOW_OUT = 56.5F;
-    private static final float RING_FORM_IN = 32.0F;
-    private static final float RING_FORM_OUT = 43.5F;
-    private static final float RING_PRIM_IN = 19.0F;
-    private static final float RING_PRIM_OUT = 30.5F;
-    private static final float RING_DUAL_OUT = 17.5F;
+    private static final int WHEEL_REL_CY = 87;
+    private static final float RING_DIST_IN = 47.4F;
+    private static final float RING_DIST_OUT = 55.6F;
+    private static final float RING_TRIG_IN = 38.9F;
+    private static final float RING_TRIG_OUT = 46.6F;
+    private static final float RING_FLOW_IN = 30.6F;
+    private static final float RING_FLOW_OUT = 38.3F;
+    private static final float RING_FORM_IN = 22.3F;
+    private static final float RING_FORM_OUT = 30.0F;
+    private static final float RING_PRIM_IN = 14.1F;
+    private static final float RING_PRIM_OUT = 21.8F;
+    private static final float RING_DUAL_OUT = 13.1F;
 
     private static final class MutableSubSlot {
         SpellDeliveryForm form = SpellDeliveryForm.PROJECTILE;
@@ -82,17 +91,23 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         SpellCoreEffect primaryEffect = SpellCoreEffect.HARM;
         EssenceType primaryMateria = EssenceType.REGULAR;
         boolean primaryMutation = false;
+        String primarySubMode = "default";
+        int primaryDialValue = 15;
 
         @Nullable
         SpellCoreEffect secondaryEffect = null;
         EssenceType secondaryMateria = EssenceType.REGULAR;
         boolean secondaryMutation = false;
+        String secondarySubMode = "default";
+        int secondaryDialValue = 15;
 
         SubSpellSlot toImmutable() {
             FormPartBinding formPart = FormPartBinding.of(form, formMateria, formMutation);
-            EffectPartBinding primPart = EffectPartBinding.of(primaryEffect, primaryMateria, primaryMutation);
+            String pMode = primaryEffect == SpellCoreEffect.BLINK ? primarySubMode : "default";
+            EffectPartBinding primPart = new EffectPartBinding(primaryEffect, primaryMateria, primaryMutation, pMode, primaryDialValue);
             if (secondaryEffect != null) {
-                EffectPartBinding secPart = EffectPartBinding.of(secondaryEffect, secondaryMateria, secondaryMutation);
+                String sMode = secondaryEffect == SpellCoreEffect.BLINK ? secondarySubMode : "default";
+                EffectPartBinding secPart = new EffectPartBinding(secondaryEffect, secondaryMateria, secondaryMutation, sMode, secondaryDialValue);
                 return SubSpellSlot.ofDualVerb(formPart, primPart, secPart);
             }
             return SubSpellSlot.of(formPart, primPart);
@@ -106,11 +121,15 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             m.primaryEffect = slot.primaryEffect().effect();
             m.primaryMateria = slot.primaryEffect().materiaType();
             m.primaryMutation = slot.primaryEffect().mutationEnabled();
+            m.primarySubMode = slot.primaryEffect().subMode();
+            m.primaryDialValue = slot.primaryEffect().dialValue();
             if (slot.secondaryEffect().isPresent()) {
                 EffectPartBinding sec = slot.secondaryEffect().get();
                 m.secondaryEffect = sec.effect();
                 m.secondaryMateria = sec.materiaType();
                 m.secondaryMutation = sec.mutationEnabled();
+                m.secondarySubMode = sec.subMode();
+                m.secondaryDialValue = sec.dialValue();
             }
             return m;
         }
@@ -123,15 +142,19 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
     private boolean materiaSpecific = false;
     private int potencyTier = 1;
 
+    private SpellTravelDistance travelDistance = SpellTravelDistance.DIST_16;
+    private SpellTriggerType trigger = SpellTriggerType.ON_ENTITY_HIT;
     private SpellFlowModifier flow = SpellFlowModifier.SINGLE;
     private EssenceType flowMateria = EssenceType.REGULAR;
     private boolean flowMutation = false;
+    private int subSpellCount = 1;
+    private float flowDelaySeconds = 0.0F;
 
     private final List<MutableSubSlot> draftSlots = new ArrayList<>();
     private int activeSubSlot = 0;
     private int alignSocketIndex = 0;
 
-    // 0 = Outer Flow Ring, 1 = Middle Form Ring, 2 = Inner Primary Ring, 3 = Center Dual-Verb Medallion
+    // Materia Focus index (0 = Flow Ring, 1 = Delivery Form Ring, 2 = Primary Effect Ring, 3 = Center Dual-Verb Medallion)
     private int focusedRing = 1;
 
     private List<EssenceType> availableMateria = List.of(EssenceType.REGULAR);
@@ -151,10 +174,14 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
     private boolean draggingRightDrawer = false;
     private boolean hadWorkstationItemsLastFrame = false;
 
-    // Smooth Concentric Ring Rotation State
-    private final float[] ringAngleOffset = new float[4];
+    // Smooth Concentric Ring Rotation State (0=Distance, 1=Trigger, 2=Flow, 3=Form, 4=Primary)
+    private final float[] ringAngleOffset = new float[5];
+    private final float[] stoneGrindGlideAccum = new float[5];
     private int draggingRing = -1;
     private float lastRingDragMouseAngle = 0.0F;
+    private float stoneGrindDragAccum = 0.0F;
+    private long lastStoneGrindSoundMs = 0L;
+    private int stoneGrindGrainVariant = 0;
     private double ringClickStartX = 0.0D;
     private double ringClickStartY = 0.0D;
 
@@ -259,7 +286,62 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
     }
 
     private int getActiveSlotCount() {
-        return Math.clamp(this.flow.getDefaultSubSpellCount(), 1, 8);
+        return Math.clamp(this.subSpellCount, 1, 8);
+    }
+
+    private float resolveEffectiveFlowDelaySeconds() {
+        if (this.trigger == SpellTriggerType.ON_TIMER) {
+            return (this.flowDelaySeconds >= 0.5F && this.flowDelaySeconds <= 3.0F) ? this.flowDelaySeconds : 1.5F;
+        }
+        if (this.trigger == SpellTriggerType.SELF_TIMED) {
+            return (this.flowDelaySeconds == 30.0F || this.flowDelaySeconds == 60.0F || this.flowDelaySeconds == 120.0F)
+                    ? this.flowDelaySeconds
+                    : 30.0F;
+        }
+        return 0.0F;
+    }
+
+    private void cycleFlowTimerInterval() {
+        if (this.trigger == SpellTriggerType.ON_TIMER) {
+            float cur = resolveEffectiveFlowDelaySeconds();
+            float next = cur + 0.5F;
+            this.flowDelaySeconds = next > 3.01F ? 0.5F : Math.round(next * 2.0F) / 2.0F;
+            playClickSound(1.25F);
+        } else if (this.trigger == SpellTriggerType.SELF_TIMED) {
+            float cur = resolveEffectiveFlowDelaySeconds();
+            this.flowDelaySeconds = cur < 45.0F ? 60.0F : (cur < 90.0F ? 120.0F : 30.0F);
+            playClickSound(1.25F);
+        }
+    }
+
+    private boolean canSelectVoidWarp() {
+        if (!MateriaFamilyTier.hasVoidCreationHeritage(this.flowMateria)) {
+            return false;
+        }
+        String warpNode = SpellResearchManager.nodeId(SpellFlowModifier.VOID_WARP);
+        Player player = Minecraft.getInstance().player;
+        return player == null || (SpellResearchManager.isNodeUnlocked(player, warpNode)
+                && SpellResearchManager.isMutationUnlocked(player, warpNode, this.flowMateria, true));
+    }
+
+    private boolean isVoidWarpActive() {
+        return canSelectVoidWarp() && this.flowMutation;
+    }
+
+    private void focusMateriaRingForWheel(int wheelRing) {
+        if (wheelRing >= 2 && wheelRing <= 5) {
+            this.focusedRing = wheelRing - 2;
+        }
+    }
+
+    private float getWheelBandMidRadius(int wheelRing) {
+        return switch (wheelRing) {
+            case 0 -> (RING_DIST_IN + RING_DIST_OUT) * 0.5F;
+            case 1 -> (RING_TRIG_IN + RING_TRIG_OUT) * 0.5F;
+            case 2 -> (RING_FLOW_IN + RING_FLOW_OUT) * 0.5F;
+            case 3 -> (RING_FORM_IN + RING_FORM_OUT) * 0.5F;
+            default -> (RING_PRIM_IN + RING_PRIM_OUT) * 0.5F;
+        };
     }
 
     private List<SpellCoreEffect> allowedEffects() {
@@ -275,17 +357,41 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         return list;
     }
 
-    private void cycleRing(int ringIndex, int delta) {
-        switch (ringIndex) {
+    private void cycleWheelRing(int wheelRing, int delta) {
+        switch (wheelRing) {
             case 0 -> {
+                SpellTravelDistance[] vals = SpellTravelDistance.values();
+                int next = Math.floorMod(this.travelDistance.ordinal() + delta, vals.length);
+                this.travelDistance = vals[next];
+            }
+            case 1 -> {
+                SpellTriggerType[] vals = SpellTriggerType.values();
+                int next = Math.floorMod(this.trigger.ordinal() + delta, vals.length);
+                this.trigger = vals[next];
+            }
+            case 2 -> {
                 SpellFlowModifier[] vals = SpellFlowModifier.values();
-                int next = Math.floorMod(this.flow.ordinal() + delta, vals.length);
-                this.flow = vals[next];
+                int step = delta >= 0 ? 1 : -1;
+                int stepsToMove = Math.max(1, Math.abs(delta));
+                int cur = this.flow.ordinal();
+                for (int s = 0; s < stepsToMove; s++) {
+                    for (int guard = 0; guard < vals.length; guard++) {
+                        cur = Math.floorMod(cur + step, vals.length);
+                        if (vals[cur] != SpellFlowModifier.VOID_WARP || canSelectVoidWarp()) {
+                            break;
+                        }
+                    }
+                }
+                this.flow = vals[cur];
+                if (this.flow == SpellFlowModifier.VOID_WARP && canSelectVoidWarp()) {
+                    this.flowMutation = true;
+                    this.materiaSpecific = true;
+                }
                 if (this.activeSubSlot >= getActiveSlotCount()) {
                     this.activeSubSlot = getActiveSlotCount() - 1;
                 }
             }
-            case 1 -> {
+            case 3 -> {
                 SpellDeliveryForm[] vals = SpellDeliveryForm.values();
                 MutableSubSlot s = currentSub();
                 int next = Math.floorMod(s.form.ordinal() + delta, vals.length);
@@ -299,13 +405,13 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                     }
                 }
             }
-            case 2 -> {
+            case 4 -> {
                 List<SpellCoreEffect> allowed = allowedEffects();
                 MutableSubSlot s = currentSub();
                 int cur = Math.max(0, allowed.indexOf(s.primaryEffect));
                 s.primaryEffect = allowed.get(Math.floorMod(cur + delta, allowed.size()));
             }
-            case 3 -> {
+            case 5 -> {
                 List<SpellCoreEffect> allowed = allowedEffects();
                 MutableSubSlot s = currentSub();
                 int total = allowed.size() + 1;
@@ -317,29 +423,43 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         normalizeDraftForPrefixAndResearch();
     }
 
-    private int getRingOptionCount(int ringIndex) {
-        return switch (ringIndex) {
-            case 0 -> SpellFlowModifier.values().length;
-            case 1 -> SpellDeliveryForm.values().length;
-            case 2 -> allowedEffects().size();
+    private int getWheelRingOptionCount(int wheelRing) {
+        return switch (wheelRing) {
+            case 0 -> SpellTravelDistance.values().length;
+            case 1 -> SpellTriggerType.values().length;
+            case 2 -> SpellFlowModifier.values().length;
+            case 3 -> SpellDeliveryForm.values().length;
+            case 4 -> allowedEffects().size();
             default -> allowedEffects().size() + 1;
         };
     }
 
-    private int getRingSelectedIndex(int ringIndex) {
+    private int getWheelRingSelectedIndex(int wheelRing) {
         MutableSubSlot s = currentSub();
-        return switch (ringIndex) {
-            case 0 -> this.flow.ordinal();
-            case 1 -> s.form.ordinal();
-            case 2 -> Math.max(0, allowedEffects().indexOf(s.primaryEffect));
+        return switch (wheelRing) {
+            case 0 -> this.travelDistance.ordinal();
+            case 1 -> this.trigger.ordinal();
+            case 2 -> this.flow.ordinal();
+            case 3 -> s.form.ordinal();
+            case 4 -> Math.max(0, allowedEffects().indexOf(s.primaryEffect));
             default -> s.secondaryEffect == null ? 0 : (allowedEffects().indexOf(s.secondaryEffect) + 1);
         };
     }
 
-    private void selectRingIndexAnimated(int ringIndex, int targetIdx) {
-        int count = getRingOptionCount(ringIndex);
+    private void selectWheelRingIndexAnimated(int wheelRing, int targetIdx) {
+        int count = getWheelRingOptionCount(wheelRing);
         if (count <= 0) return;
-        int cur = getRingSelectedIndex(ringIndex);
+
+        if (wheelRing == 2 && SpellFlowModifier.values()[targetIdx] == SpellFlowModifier.VOID_WARP && !canSelectVoidWarp()) {
+            this.focusedRing = 0;
+            if (this.leftDrawerTarget < 0.5F) {
+                this.leftDrawerTarget = 1.0F;
+            }
+            playClickSound(0.65F);
+            return;
+        }
+
+        int cur = getWheelRingSelectedIndex(wheelRing);
         if (cur == targetIdx) return;
 
         int diff = targetIdx - cur;
@@ -347,9 +467,26 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         if (diff < -count / 2) diff += count;
 
         float stepRad = Mth.TWO_PI / count;
-        cycleRing(ringIndex, diff);
-        this.ringAngleOffset[ringIndex] = diff * stepRad;
-        playRingTickSound(1.15F);
+        if (wheelRing == 2) {
+            this.flow = SpellFlowModifier.values()[targetIdx];
+            if (this.flow == SpellFlowModifier.VOID_WARP && canSelectVoidWarp()) {
+                this.flowMutation = true;
+                this.materiaSpecific = true;
+            }
+            normalizeDraftForPrefixAndResearch();
+        } else {
+            cycleWheelRing(wheelRing, diff);
+        }
+        if (wheelRing >= 0 && wheelRing <= 4) {
+            this.ringAngleOffset[wheelRing] = diff * stepRad;
+            this.stoneGrindGlideAccum[wheelRing] = 0.0F;
+        }
+        if (Math.abs(diff) > 1) {
+            playStoneCircleGrindSound(wheelRing, 0.75F);
+            this.lastStoneGrindSoundMs = System.currentTimeMillis();
+        } else {
+            playStoneCircleDetentSound(wheelRing);
+        }
     }
 
     private EssenceType getRingMateria(int ringIndex) {
@@ -428,6 +565,10 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                 && (!SpellResearchManager.isNodeUnlocked(player, flowNode)
                 || !SpellResearchManager.isMutationUnlocked(player, flowNode, this.flowMateria, true)))) {
             this.flowMutation = false;
+        }
+        if (this.flow == SpellFlowModifier.VOID_WARP
+                && (!this.flowMutation || !MateriaFamilyTier.hasVoidCreationHeritage(this.flowMateria))) {
+            this.flow = SpellFlowModifier.SINGLE;
         }
 
         for (MutableSubSlot s : this.draftSlots) {
@@ -521,9 +662,13 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         this.prefix = found.prefix();
         this.materiaSpecific = found.materiaSpecific();
         this.potencyTier = found.getEffectiveTier();
+        this.travelDistance = found.flowPart().distanceStep();
+        this.trigger = found.flowPart().trigger();
         this.flow = found.flowPart().flow();
         this.flowMateria = found.flowPart().materiaType();
         this.flowMutation = found.flowPart().mutationEnabled();
+        this.subSpellCount = Math.clamp(Math.max(found.subSpells().size(), found.flowPart().subSpellCount()), 1, 8);
+        this.flowDelaySeconds = found.flowPart().delaySeconds();
 
         List<SubSpellSlot> subs = found.subSpells();
         for (int i = 0; i < 8; i++) {
@@ -546,7 +691,10 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                 ? List.of()
                 : List.of(this.customLoreLine.trim());
         int count = getActiveSlotCount();
-        FlowPartBinding flowBinding = new FlowPartBinding(this.flow, this.flowMateria, this.flowMutation, count, 0.0F);
+        FlowPartBinding flowBinding = new FlowPartBinding(
+                this.flow, this.trigger, this.flowMateria, this.flowMutation, count,
+                resolveEffectiveFlowDelaySeconds(), this.travelDistance.meters()
+        );
         List<SubSpellSlot> subList = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             subList.add(this.draftSlots.get(i).toImmutable());
@@ -640,11 +788,30 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                 this.rightDrawerOpen = this.rightDrawerTarget;
             }
         }
-        for (int r = 0; r < 4; r++) {
+        long nowMs = System.currentTimeMillis();
+        for (int r = 0; r < 5; r++) {
             if (this.draggingRing != r) {
+                float prev = this.ringAngleOffset[r];
                 this.ringAngleOffset[r] *= 0.72F;
+                float moved = Math.abs(prev - this.ringAngleOffset[r]);
+                if (Math.abs(this.ringAngleOffset[r]) > 0.06F) {
+                    this.stoneGrindGlideAccum[r] += moved;
+                    if (this.stoneGrindGlideAccum[r] >= 0.20F && nowMs - this.lastStoneGrindSoundMs >= 78L) {
+                        this.stoneGrindGlideAccum[r] = 0.0F;
+                        this.lastStoneGrindSoundMs = nowMs;
+                        playStoneCircleGrindSound(r, Mth.clamp(moved / 0.32F, 0.15F, 0.80F));
+                    }
+                } else if (prev > 0.06F || prev < -0.06F) {
+                    // Soft carved-stone settle as an animated spin locks under the needle
+                    if (nowMs - this.lastStoneGrindSoundMs >= 55L) {
+                        this.lastStoneGrindSoundMs = nowMs;
+                        playStoneCircleDetentSound(r);
+                    }
+                    this.stoneGrindGlideAccum[r] = 0.0F;
+                }
                 if (Math.abs(this.ringAngleOffset[r]) < 0.003F) {
                     this.ringAngleOffset[r] = 0.0F;
+                    this.stoneGrindGlideAccum[r] = 0.0F;
                 }
             }
         }
@@ -654,41 +821,39 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         int deskW = this.imageWidth;
         int deskH = 154;
 
-        // Dark walnut wooden tabletop + subtle pixel plank grain
-        g.fill(x, y + 6, x + deskW, y + deskH, 0xFF23160F);
-        g.fill(x + 2, y + 8, x + deskW - 2, y + deskH - 2, 0xFF2B1B12);
-        for (int py = y + 20; py < y + deskH - 8; py += 16) {
-            g.fill(x + 6, py, x + deskW - 6, py + 2, 0xFF1E120B);
+        // Dark walnut wooden tabletop + fine sub-pixel plank seams & bevels
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x, y + 6.0F, x + deskW, y + deskH, 0xFF1E120B);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 1.25F, y + 7.25F, x + deskW - 1.25F, y + deskH - 1.25F, 0xFF2B1B12);
+        for (float py = y + 19.5F; py < y + deskH - 8.0F; py += 14.5F) {
+            ArcaneScribingGlyphRenderer.fillHiRes(g, x + 5.0F, py, x + deskW - 5.0F, py + 0.75F, 0xFF1A0F09);
+            ArcaneScribingGlyphRenderer.fillHiRes(g, x + 5.0F, py + 0.75F, x + deskW - 5.0F, py + 1.25F, 0x443E271A);
         }
 
-        // Top & Bottom Cyan Arcanite + Brass Trim Rails
-        g.fill(x + 14, y + 6, x + deskW - 14, y + 9, 0xFFD4AF37);
-        g.fill(x + 24, y + 7, x + 82, y + 8, 0xFF2CE6FF);
-        g.fill(x + 234, y + 7, x + deskW - 24, y + 8, 0xFF2CE6FF);
+        // Top & Bottom Cyan Arcanite + Beveled Brass Trim Rails
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 13.0F, y + 6.0F, x + deskW - 13.0F, y + 8.75F, 0xFF9E7B23);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 14.0F, y + 6.25F, x + deskW - 14.0F, y + 8.25F, 0xFFD4AF37);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 23.0F, y + 6.75F, x + 82.0F, y + 7.75F, 0xFF2CE6FF);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 234.0F, y + 6.75F, x + deskW - 23.0F, y + 7.75F, 0xFF2CE6FF);
 
-        g.fill(x + 14, y + deskH - 4, x + deskW - 14, y + deskH - 1, 0xFFD4AF37);
-        g.fill(x + 22, y + deskH - 3, x + 82, y + deskH - 2, 0xFF2CE6FF);
-        g.fill(x + 234, y + deskH - 3, x + deskW - 22, y + deskH - 2, 0xFF2CE6FF);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 13.0F, y + deskH - 3.75F, x + deskW - 13.0F, y + deskH - 1.0F, 0xFF9E7B23);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 14.0F, y + deskH - 3.5F, x + deskW - 14.0F, y + deskH - 1.5F, 0xFFD4AF37);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 22.0F, y + deskH - 2.75F, x + 82.0F, y + deskH - 1.75F, 0xFF2CE6FF);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 234.0F, y + deskH - 2.75F, x + deskW - 22.0F, y + deskH - 1.75F, 0xFF2CE6FF);
 
-        // 4 Ornate Gilded Brass Corner Brackets (matching all 4 concept images!)
-        drawCornerBracket(g, x, y + 4, true, true);
-        drawCornerBracket(g, x + deskW - 16, y + 4, false, true);
-        drawCornerBracket(g, x, y + deskH - 16, true, false);
-        drawCornerBracket(g, x + deskW - 16, y + deskH - 16, false, false);
+        // 4 High-Res Sculpted Gilded Brass Corner Brackets
+        ArcaneScribingGlyphRenderer.drawCornerBracket(g, x, y + 4.0F, 16.0F, true, true);
+        ArcaneScribingGlyphRenderer.drawCornerBracket(g, x + deskW - 16.0F, y + 4.0F, 16.0F, false, true);
+        ArcaneScribingGlyphRenderer.drawCornerBracket(g, x, y + deskH - 16.0F, 16.0F, true, false);
+        ArcaneScribingGlyphRenderer.drawCornerBracket(g, x + deskW - 16.0F, y + deskH - 16.0F, 16.0F, false, false);
 
         // Glowing Cyan Arcanite Conduits feeding from left & right bays into the Central Scroll
-        g.fill(x + 68, y + 79, x + 86, y + 93, 0xFFD4AF37);
-        g.fill(x + 68, y + 81, x + 86, y + 85, 0xFF2CE6FF);
-        g.fill(x + 68, y + 87, x + 86, y + 91, 0xFF2CE6FF);
-
-        g.fill(x + 230, y + 79, x + 244, y + 93, 0xFFD4AF37);
-        g.fill(x + 230, y + 81, x + 244, y + 85, 0xFF2CE6FF);
-        g.fill(x + 230, y + 87, x + 244, y + 91, 0xFF2CE6FF);
+        drawArcaniteConduitBridge(g, x + 68.0F, y + 79.5F, 18.0F);
+        drawArcaniteConduitBridge(g, x + 230.0F, y + 79.5F, 14.0F);
 
         // Top Inkwell & Cryptic Tome Shelf (x = 86..230, y = 0..22)
-        g.fill(x + 86, y, x + 230, y + 22, 0xFF1A100A);
-        g.fill(x + 86, y + 20, x + 230, y + 23, 0xFFD4AF37);
-        g.fill(x + 92, y + 21, x + 224, y + 22, 0xFF2CE6FF);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, x + 86.0F, y, 144.0F, 22.5F, 0xFF1A100A, 0xFFB8922A, 0x55FCE38A);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 86.0F, y + 20.5F, x + 230.0F, y + 22.75F, 0xFFD4AF37);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, x + 92.0F, y + 21.25F, x + 224.0F, y + 22.0F, 0xFF2CE6FF);
 
         int[] defaultBottlePalette = {0x22D3EE, 0xF59E0B, 0xEF4444, 0xA855F7};
         String[] ringNames = {"Outer Flow Ring", "Middle Delivery Form Ring", "Inner Primary Effect Ring", "Center Dual-Verb Core"};
@@ -712,7 +877,7 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         int px = x + 202;
         int py = y + 1;
         boolean pedHover = isInside(mouseX, mouseY, px, py, 20, 20);
-        ArcaneScribingGlyphRenderer.drawCrypticPedestal(g, this.font, px, py, this.editingTitlePopup, pedHover);
+        ArcaneScribingGlyphRenderer.drawCrypticPedestal(g, px, py, this.editingTitlePopup, pedHover);
         if (pedHover) {
             this.pendingTooltip = List.of(
                     Component.literal("§6Incantation Title & Lore Seal"),
@@ -722,16 +887,17 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         }
     }
 
-    private void drawCornerBracket(GuiGraphics g, int bx, int by, boolean left, boolean top) {
-        g.fill(bx, by, bx + 16, by + 16, 0xFF8C6B1F);
-        g.fill(bx + 1, by + 1, bx + 15, by + 15, 0xFFD4AF37);
-        int cutX = left ? bx + 7 : bx;
-        int cutY = top ? by + 7 : by;
-        g.fill(cutX, cutY, cutX + 9, cutY + 9, 0xFF2B1B12);
+    private void drawArcaniteConduitBridge(GuiGraphics g, float bx, float by, float bw) {
+        ArcaneScribingGlyphRenderer.fillHiRes(g, bx, by, bx + bw, by + 13.0F, 0xFF8C6B1F);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, bx, by + 0.75F, bx + bw, by + 12.25F, 0xFFD4AF37);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, bx, by + 2.25F, bx + bw, by + 5.25F, 0xFF0EA5E9);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, bx, by + 2.75F, bx + bw, by + 4.5F, 0xFF67E8F9);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, bx, by + 7.75F, bx + bw, by + 10.75F, 0xFF0EA5E9);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, bx, by + 8.25F, bx + bw, by + 10.0F, 0xFF67E8F9);
     }
 
     private void renderLeftWingAndDrawer(GuiGraphics g, int x, int y, int mouseX, int mouseY) {
-        // 1. Open Pixel Grimoire on the left desk bay when the drawer isn't fully covering it
+        // 1. High-Res Open Arcane Grimoire on the left desk bay when the drawer isn't fully covering it
         if (this.leftDrawerOpen < 0.96F) {
             int gx = x + 8;
             int gy = y + 34;
@@ -751,10 +917,7 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             int hx = x - 8;
             int hy = y + 64;
             boolean hHover = isInside(mouseX, mouseY, hx - 2, hy - 2, 12, 44);
-            int brass = hHover ? 0xFFFDE047 : 0xFFD4AF37;
-            g.fill(hx, hy, hx + 8, hy + 40, 0xFF785917);
-            g.fill(hx + 1, hy + 1, hx + 7, hy + 39, brass);
-            g.fill(hx + 3, hy + 8, hx + 5, hy + 32, 0xFF2CE6FF);
+            ArcaneScribingGlyphRenderer.drawDrawerHandle(g, hx, hy, 8.5F, 40.0F, hHover);
             if (hHover) {
                 this.pendingTooltip = List.of(
                         Component.literal("§6Left Materia & Discipline Drawer"),
@@ -772,14 +935,11 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         int dy = y + 25;
         int dh = 124;
 
-        // Brass Handle attached to the outer left edge of the sliding drawer
+        // High-res Brass Handle attached to the outer left edge of the sliding drawer
         int hx = dx - 9;
         int hy = dy + 39;
         boolean handleHover = isInside(mouseX, mouseY, hx - 2, hy - 2, 11, 46);
-        g.fill(hx, hy, hx + 9, hy + 42, 0xFF785917);
-        g.fill(hx + 1, hy + 1, hx + 8, hy + 41, handleHover ? 0xFFFDE047 : 0xFFD4AF37);
-        g.fill(hx + 2, hy + 6, hx + 5, hy + 36, 0xFF23160F);
-        g.fill(hx + 5, hy + 10, hx + 7, hy + 32, 0xFF2CE6FF);
+        ArcaneScribingGlyphRenderer.drawDrawerHandle(g, hx, hy, 9.0F, 42.0F, handleHover);
         if (handleHover) {
             this.pendingTooltip = List.of(
                     Component.literal("§6Left Drawer Brass Handle"),
@@ -790,25 +950,25 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         // Clip drawer body cleanly at the Central Scroll Frame edge (x + 86) so it slides out from inside!
         g.enableScissor(dx - 2, dy - 3, x + 86, dy + dh + 3);
 
-        // Top & bottom golden brass drawer slide rails (matching State 2)
-        g.fill(dx, dy, dx + drawerW, dy + 4, 0xFFD4AF37);
-        g.fill(dx, dy + dh - 4, dx + drawerW, dy + dh, 0xFFD4AF37);
-        g.fill(dx, dy + 4, dx + drawerW, dy + dh - 4, 0xFF24140D);
-        // Royal purple velvet lining
-        g.fill(dx + 4, dy + 5, dx + drawerW - 2, dy + dh - 5, 0xFF2B124C);
+        // Top & bottom beveled golden brass drawer slide rails + royal purple velvet lining
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx, dy, dx + drawerW, dy + dh, 0xFF8C6B1F);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx + 0.5F, dy + 0.5F, dx + drawerW, dy + 3.5F, 0xFFD4AF37);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx + 0.5F, dy + dh - 3.5F, dx + drawerW, dy + dh - 0.5F, 0xFFD4AF37);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx + 1.0F, dy + 3.5F, dx + drawerW, dy + dh - 3.5F, 0xFF1F100B);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx + 3.5F, dy + 4.5F, dx + drawerW - 1.5F, dy + dh - 4.5F, 0xFF281047);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx + 4.25F, dy + 5.25F, dx + drawerW - 2.25F, dy + dh - 5.25F, 0xFF2E1352);
 
         // --- Compartment A (dy + 7 .. dy + 47): Discipline Wax Seals + Lock Seal + Sub-Spell Tabs I..VIII ---
-        int compAY = dy + 7;
-        String[] sealTitles = {"Combat", "Utility", "Misc", this.materiaSpecific ? "Locked" : "Dynamic"};
-        int[] sealColors = {0x991B1B, 0x0284C7, 0xD97706, this.materiaSpecific ? 0x7E22CE : 0x475569};
+        int compAY = dy + 6;
+        int[] sealColors = {0xB91C1C, 0x0284C7, 0xD97706, this.materiaSpecific ? 0x9333EA : 0x475569};
         for (int s = 0; s < 4; s++) {
             int cardX = dx + 6 + s * 28;
             boolean activeSeal = (s < 3) ? (this.prefix == CRAFTABLE_PREFIXES[s]) : this.materiaSpecific;
             boolean hoverSeal = this.leftDrawerOpen > 0.7F && isInside(mouseX, mouseY, cardX, compAY, 26, 28);
-            // Parchment seal tag
-            g.fill(cardX, compAY, cardX + 26, compAY + 27, activeSeal ? 0xFFF3E5C8 : 0xFFD8C39E);
-            g.fill(cardX, compAY + 26, cardX + 26, compAY + 27, 0xFFA68A5B);
-            ArcaneScribingGlyphRenderer.drawWaxSeal(g, cardX + 13, compAY + 16, 7, sealColors[s], activeSeal, hoverSeal, s);
+            int parchmentFill = activeSeal ? 0xFFF6E8CD : (hoverSeal ? 0xFFEBDCBE : 0xFFD8C39E);
+            int parchmentRim = activeSeal ? 0xFFD4AF37 : 0xFF9C7E50;
+            ArcaneScribingGlyphRenderer.drawBeveledBox(g, cardX, compAY, 26.0F, 26.5F, parchmentFill, parchmentRim, 0x88FFFDF7);
+            ArcaneScribingGlyphRenderer.drawWaxSeal(g, cardX + 13.0F, compAY + 13.5F, 8.2F, sealColors[s], activeSeal, hoverSeal, s);
             if (hoverSeal) {
                 if (s < 3) {
                     SpellPrefix p = CRAFTABLE_PREFIXES[s];
@@ -828,40 +988,64 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                 }
             }
         }
-        // Sub-Spell Roman Parchment Tabs [I .. VIII]
+
+        // Sub-Spell Roman Parchment Tabs [I .. VIII] — directly controls Single (1x) to Octuple (8x) Cast!
         int tabY = compAY + 28;
         int slotCount = getActiveSlotCount();
         for (int i = 0; i < 8; i++) {
-            int tx = dx + 6 + i * 14;
+            float tx = dx + 6.0F + i * 14.0F;
             boolean enabledTab = i < slotCount;
             boolean selectedTab = i == this.activeSubSlot;
-            boolean hoverTab = this.leftDrawerOpen > 0.7F && isInside(mouseX, mouseY, tx, tabY, 13, 11);
-            int tabBg = selectedTab ? 0xFFFDE68A : (enabledTab ? 0xFFE5D1A7 : 0xFF3B235A);
-            g.fill(tx, tabY, tx + 13, tabY + 11, tabBg);
-            int txtCol = selectedTab ? 0xFF1E1B4B : (enabledTab ? 0xFF3E2723 : 0xFF7E6A9E);
-            g.drawCenteredString(this.font, ROMAN[i], tx + 6, tabY + 2, txtCol);
+            boolean hoverTab = this.leftDrawerOpen > 0.7F && isInside(mouseX, mouseY, (int) tx, tabY, 13, 11);
+            int tabBg = selectedTab ? 0xFFFDE68A : (enabledTab ? (hoverTab ? 0xFFF3E5C8 : 0xFFE5D1A7) : (hoverTab ? 0xFF361D5C : 0xFF23133D));
+            int tabRim = selectedTab ? 0xFFD4AF37 : (enabledTab ? 0xFFA68A5B : (hoverTab ? 0xFF8B5CF6 : 0xFF3E2663));
+            ArcaneScribingGlyphRenderer.drawBeveledBox(g, tx, tabY, 13.0F, 11.0F, tabBg, tabRim, 0x44FFFFFF);
+            int txtCol = selectedTab ? 0xFF1E1B4B : (enabledTab ? 0xFF3E2723 : (hoverTab ? 0xFFE9D5FF : 0xFF8B7AA8));
+            ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, ROMAN[i], tx + 6.5F, tabY + 3.0F, 0.66F, txtCol, false);
             if (hoverTab) {
+                String castMode = SpellFlowModifier.getCastCountTitle(slotCount);
+                String targetMode = this.trigger.isSelfCentered()
+                        ? "centered on yourself"
+                        : "at each payload's point of contact";
                 this.pendingTooltip = List.of(
-                        Component.literal("§6Sub-Spell Node " + ROMAN[i] + (enabledTab ? "" : " §8(Inactive for " + this.flow.getDisplayName() + ")")),
+                        Component.literal("§6Spell Slot " + ROMAN[i] + " §8• §d" + castMode),
                         Component.literal(enabledTab
-                                ? "§7Click to configure Form, Effect & Materia for Sub-Spell #" + (i + 1)
-                                : "§8Rotate Outer Flow Ring to a multi-spell Flow (Double..Octuple) to unlock more sub-spells!")
+                                ? "§7Active! All §f" + slotCount + "§7 slotted spells cast " + targetMode + "."
+                                : "§7Left-click to expand to §d" + SpellFlowModifier.getCastCountTitle(i + 1) + "§7!"),
+                        Component.literal("§8• Left-click: Select / Expand (I–VIII) • Right-click or Scroll: Shrink")
                 );
             }
         }
 
-        // Velvet shelf divider
-        g.fill(dx + 4, dy + 49, dx + drawerW - 2, dy + 51, 0xFF4C1D95);
+        // Fine gilded velvet shelf divider
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx + 5.0F, dy + 48.75F, dx + drawerW - 3.0F, dy + 49.5F, 0x88D4AF37);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx + 5.0F, dy + 49.5F, dx + drawerW - 3.0F, dy + 50.25F, 0xFF1A0933);
 
-        // --- Compartment B (dy + 52 .. dy + 89): Ring Focus Pills + Materia Vials & Shards ---
-        String[] pillLabels = {"Flow", "Form", "Eff", "+Verb"};
+        // --- Compartment B (dy + 52 .. dy + 89): Ring Focus Pills + High-Res Materia Vials & Shards ---
+        boolean hasTimerDial = this.trigger.hasTimerDial();
+        String flowLabel = hasTimerDial
+                ? (this.trigger == SpellTriggerType.ON_TIMER
+                        ? String.format("%.1fs", resolveEffectiveFlowDelaySeconds())
+                        : String.format("%.0fs", resolveEffectiveFlowDelaySeconds()))
+                : "Flow";
+        String[] pillLabels = {flowLabel, "Form", "Effect", "+Verb"};
         for (int r = 0; r < 4; r++) {
-            int px = dx + 6 + r * 28;
-            int py = dy + 53;
+            float px = dx + 6.0F + r * 28.0F;
+            float py = dy + 52.5F;
             boolean sel = this.focusedRing == r;
-            boolean hov = this.leftDrawerOpen > 0.7F && isInside(mouseX, mouseY, px, py, 26, 10);
-            g.fill(px, py, px + 26, py + 10, sel ? 0xFFD4AF37 : (hov ? 0xFF5B21B6 : 0xFF1E0B36));
-            g.drawCenteredString(this.font, pillLabels[r], px + 13, py + 1, sel ? 0xFF111827 : 0xFFE2E8F0);
+            boolean hov = this.leftDrawerOpen > 0.7F && isInside(mouseX, mouseY, (int) px, (int) py, 26, 11);
+            int pillFill = sel ? 0xFFD4AF37 : (hov ? 0xFF4C1D95 : 0xFF1B0A33);
+            int pillRim = sel ? 0xFFFEF08A : (hov ? 0xFFA855F7 : 0xFF58337A);
+            ArcaneScribingGlyphRenderer.drawBeveledBox(g, px, py, 26.0F, 10.5F, pillFill, pillRim, 0x44FFFFFF);
+            ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                    g, this.font, pillLabels[r], px + 13.0F, py + 2.5F, 0.68F, sel ? 0xFF111827 : 0xFFF1F5F9, !sel
+            );
+            if (hov && r == 0 && hasTimerDial) {
+                this.pendingTooltip = List.of(
+                        Component.literal("§6Flow Focus §8• §eTrigger Timer: " + flowLabel),
+                        Component.literal("§7Left-click to focus Flow Ring • Right-click here or on the Outer Trigger Ring to tune timer!")
+                );
+            }
         }
 
         int vialY = dy + 65;
@@ -874,7 +1058,7 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             int vx = dx + 13 + slot * 16;
             boolean hov = this.leftDrawerOpen > 0.7F && isInside(mouseX, mouseY, vx - 1, vialY - 1, 16, 22);
             int rgb = resolveEssenceRgb(mat, 0xCBD5E1);
-            boolean shardStyle = listIdx >= 2; // First 2 as classic glass vials, rest as faceted Materia shards (State 2!)
+            boolean shardStyle = listIdx >= 2;
             ArcaneScribingGlyphRenderer.drawMateriaVialOrShard(
                     g, vx, vialY, rgb, shardStyle, currentRingMat == mat, hov, mat == EssenceType.REGULAR
             );
@@ -882,18 +1066,18 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                 this.pendingTooltip = buildMateriaVialTooltip(mat);
             }
         }
-        // Page arrows if > 6 Materia known
         if (this.availableMateria.size() > MATERIA_PER_PAGE) {
             boolean canPrev = this.materiaPage > 0;
             boolean canNext = (this.materiaPage + 1) * MATERIA_PER_PAGE < this.availableMateria.size();
-            g.drawString(this.font, "<", dx + 5, vialY + 6, canPrev ? 0xFFFDE047 : 0xFF6B7280, false);
-            g.drawString(this.font, ">", dx + drawerW - 11, vialY + 6, canNext ? 0xFFFDE047 : 0xFF6B7280, false);
+            ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, "◀", dx + 7.5F, vialY + 7.0F, 0.72F, canPrev ? 0xFFFDE047 : 0xFF6B7280, true);
+            ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, "▶", dx + drawerW - 7.5F, vialY + 7.0F, 0.72F, canNext ? 0xFFFDE047 : 0xFF6B7280, true);
         }
 
-        // Velvet shelf divider
-        g.fill(dx + 4, dy + 88, dx + drawerW - 2, dy + 90, 0xFF4C1D95);
+        // Fine gilded velvet shelf divider
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx + 5.0F, dy + 88.0F, dx + drawerW - 3.0F, dy + 88.75F, 0x88D4AF37);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, dx + 5.0F, dy + 88.75F, dx + drawerW - 3.0F, dy + 89.5F, 0xFF1A0933);
 
-        // --- Compartment C (dy + 92 .. dy + 118): Brass & Crystal Mutation Switch (State 2) ---
+        // --- Compartment C (dy + 91 .. dy + 118): High-Res Brass & Crystal Mutation Switch (State 2) ---
         boolean mutOn = getRingMutation(this.focusedRing);
         boolean canMut = canEnableRingMutation(this.focusedRing);
         int mutRgb = resolveEssenceRgb(currentRingMat, 0x38BDF8);
@@ -912,10 +1096,10 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         int rw = 74;
         int rh = 124;
 
-        // Gilded brass cradle & royal purple velvet recess
-        g.fill(rx, ry, rx + rw, ry + rh, 0xFFD4AF37);
-        g.fill(rx + 2, ry + 2, rx + rw - 2, ry + rh - 2, 0xFF2B124C);
-        g.fill(rx + 35, ry + 4, rx + 39, ry + rh - 4, 0xFF2CE6FF);
+        // Gilded brass cradle & royal purple velvet recess + glowing cyan center conduit
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, rx, ry, rw, rh, 0xFF2A114B, 0xFFD4AF37, 0x66FEF08A);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, rx + 35.5F, ry + 3.0F, rx + 38.5F, ry + rh - 3.0F, 0xFF0EA5E9);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, rx + 36.25F, ry + 3.0F, rx + 37.75F, ry + rh - 3.0F, 0xFF67E8F9);
 
         // 4 Workstation Slot Cradles (matching ArcaneScribingTableMenu positions!)
         drawWorkstationSlotCradle(g, x + 245, y + 33, 0, mouseX, mouseY); // Blank Parchment
@@ -925,19 +1109,25 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
 
         // Golden Halo around Output Cradle when an output item is ready or Scribe flash is active (State 4!)
         if (this.menu.getSlot(3).hasItem() || this.scribeCeremonyTicks > 0) {
-            ArcaneScribingGlyphRenderer.drawRingBand(g, x + 290, y + 124, 10.5F, 13.0F, 0xAAFFD700);
+            ArcaneScribingGlyphRenderer.drawSelectionHalo(g, x + 290.0F, y + 124.0F, 26.0F, true);
         }
 
-        // Central Golden Wax Seal "SCRIBE" Button (x + 248..298, y + 54..90)
-        int sealCx = x + 273;
-        int sealCy = y + 68;
+        // Central High-Res Golden Wax Seal "SCRIBE" Plaque (x + 246..300, y + 53..91)
+        float sealCx = x + 273.0F;
+        float sealCy = y + 67.5F;
         boolean hasSupplies = this.menu.getSlot(0).hasItem() && this.menu.getSlot(1).hasItem();
-        boolean scribeHover = this.rightDrawerOpen > 0.72F && isInside(mouseX, mouseY, x + 248, y + 54, 50, 35);
-        g.fill(x + 249, y + 54, x + 297, y + 90, 0xFF1B0D33);
-        g.fill(x + 249, y + 54, x + 297, y + 55, 0xFFD4AF37);
-        g.fill(x + 249, y + 89, x + 297, y + 90, 0xFFD4AF37);
-        ArcaneScribingGlyphRenderer.drawWaxSeal(g, sealCx, sealCy, 11, 0xEAB308, hasSupplies || this.scribeCeremonyTicks > 0, scribeHover, 4);
-        g.drawCenteredString(this.font, "SCRIBE", sealCx, y + 80, scribeHover || hasSupplies ? 0xFFFDE047 : 0xFFD4AF37);
+        boolean scribeHover = this.rightDrawerOpen > 0.72F && isInside(mouseX, mouseY, x + 246, y + 53, 54, 38);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(
+                g, x + 246.5F, y + 53.5F, 53.0F, 37.5F,
+                scribeHover ? 0xFF241145 : 0xFF190B30,
+                (scribeHover || hasSupplies) ? 0xFFFDE047 : 0xFFB8922A,
+                0x44FFFFFF
+        );
+        ArcaneScribingGlyphRenderer.drawWaxSeal(g, sealCx, sealCy, 10.5F, 0xEAB308, hasSupplies || this.scribeCeremonyTicks > 0, scribeHover, 4);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                g, this.font, "SCRIBE", sealCx, y + 81.5F, 0.76F,
+                scribeHover || hasSupplies ? 0xFFFDE047 : 0xFFD4AF37, true
+        );
         if (scribeHover) {
             SpellAssembly preview = buildDraftAssembly();
             SpellCostBreakdown cost = SpellFuelCalculator.calculateCastCost(preview, null, 0.0F, EssenceType.REGULAR);
@@ -945,22 +1135,29 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                     Component.literal("§6✦ Inscribe Spell Parchment ✦"),
                     Component.literal("§7Spell: §f" + preview.customName() + " §8(Tier " + ROMAN[this.potencyTier - 1] + " " + this.prefix.getDisplayName() + ")"),
                     Component.literal("§7Requires: §f1 Blank Parchment §7+ §b1 Arcane Scribing Ink"),
-                    Component.literal("§7Cast Fuel: §e" + cost.formatTypeCostSummary()),
+                    Component.literal((cost.channeledPerSecond() ? "§7Channeled Drain: §e" : "§7Cast Fuel: §e") + cost.formatTypeCostSummary()),
                     Component.literal(hasSupplies ? "§a• Click the Golden Wax Seal to inscribe!" : "§c• Load Blank Parchment & Scribing Ink above first")
             );
         }
 
-        // Compact Gilded Utility Strip (y + 94..108): [Load] [Copy] [Scrub / S#]
+        // Crisp Gilded Utility Strip (y + 95..108): [Load]  [Copy]  [Scrub / S#] with clean spacing!
         ItemStack studyStack = this.menu.getSlot(2).getItem();
         boolean isInscribedGem = studyStack.getItem() instanceof SpellgemItem && SpellgemItem.isInscribed(studyStack);
         String[] miniBtns = {"Load", "Copy", isInscribedGem ? "Scrub" : ("S#" + (this.alignSocketIndex + 1))};
         for (int b = 0; b < 3; b++) {
-            int bx = x + 239 + b * 23;
-            int by = y + 95;
-            boolean hov = this.rightDrawerOpen > 0.72F && isInside(mouseX, mouseY, bx, by, 22, 13);
-            g.fill(bx, by, bx + 22, by + 13, hov ? 0xFFFDE047 : 0xFF9E7B23);
-            g.fill(bx + 1, by + 1, bx + 21, by + 12, hov ? 0xFF3B1B68 : 0xFF1E0E38);
-            g.drawCenteredString(this.font, miniBtns[b], bx + 11, by + 3, hov ? 0xFFFDE047 : 0xFFE2E8F0);
+            float bx = x + 239.0F + b * 23.5F;
+            float by = y + 95.0F;
+            boolean hov = this.rightDrawerOpen > 0.72F && isInside(mouseX, mouseY, (int) bx, (int) by, 21, 13);
+            ArcaneScribingGlyphRenderer.drawBeveledBox(
+                    g, bx, by, 21.0F, 12.5F,
+                    hov ? 0xFF3B1B68 : 0xFF1A0B33,
+                    hov ? 0xFFFDE047 : 0xFFAA8628,
+                    0x44FFFFFF
+            );
+            ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                    g, this.font, miniBtns[b], bx + 10.5F, by + 3.5F, 0.68F,
+                    hov ? 0xFFFDE047 : 0xFFE2E8F0, true
+            );
             if (hov) {
                 this.pendingTooltip = switch (b) {
                     case 0 -> List.of(
@@ -983,21 +1180,30 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
     }
 
     private void drawWorkstationSlotCradle(GuiGraphics g, int sx, int sy, int idx, int mouseX, int mouseY) {
-        g.fill(sx, sy, sx + 18, sy + 18, idx == 3 ? 0xFFFDE047 : 0xFFD4AF37);
-        g.fill(sx + 1, sy + 1, sx + 17, sy + 17, 0xFF160B28);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(
+                g, sx, sy, 18.0F, 18.0F,
+                0xFF140A26,
+                idx == 3 ? 0xFFFDE047 : 0xFFD4AF37,
+                0x44FFFFFF
+        );
         if (!this.menu.getSlot(idx).hasItem()) {
-            // Subtle ghost silhouettes so players immediately know what goes where!
             switch (idx) {
-                case 0 -> { // Blank Parchment silhouette
-                    g.fill(sx + 5, sy + 4, sx + 13, sy + 14, 0x44E6D2A8);
-                    g.fill(sx + 4, sy + 4, sx + 14, sy + 6, 0x55D4AF37);
-                }
-                case 1 -> { // Ink bottle silhouette
-                    g.fill(sx + 7, sy + 3, sx + 11, sy + 6, 0x55D4AF37);
-                    g.fill(sx + 5, sy + 6, sx + 13, sy + 14, 0x4438BDF8);
-                }
-                case 2 -> g.drawCenteredString(this.font, "✦", sx + 9, sy + 5, 0x44A855F7);
-                case 3 -> g.drawCenteredString(this.font, "◈", sx + 9, sy + 5, 0x55FDE047);
+                case 0 -> ArcaneScribingGlyphRenderer.blitRect(
+                        g, ArcaneScribingGlyphRenderer.TEX_SCROLL_PARCHMENT, 512, 448,
+                        sx + 3.0F, sy + 3.5F, 12.0F, 11.0F, 0x55EAD8B1
+                );
+                case 1 -> ArcaneScribingGlyphRenderer.blitRect(
+                        g, ArcaneScribingGlyphRenderer.TEX_INKWELL_GLASS, 128, 128,
+                        sx + 3.0F, sy + 2.5F, 12.0F, 13.0F, 0x6667E8F9
+                );
+                case 2 -> ArcaneScribingGlyphRenderer.blitCentered(
+                        g, ArcaneScribingGlyphRenderer.TEX_RUNE_EMPTY_CORE, 128, 128,
+                        sx + 9.0F, sy + 9.0F, 11.0F, 11.0F, 0.0F, 0x66C084FC
+                );
+                default -> ArcaneScribingGlyphRenderer.blitCentered(
+                        g, ArcaneScribingGlyphRenderer.TEX_WAX_SEAL_ICON[4], 128, 128,
+                        sx + 9.0F, sy + 9.0F, 11.5F, 11.5F, 0.0F, 0x66FDE047
+                );
             }
             if (this.rightDrawerOpen > 0.72F && isInside(mouseX, mouseY, sx, sy, 18, 18)) {
                 this.pendingTooltip = switch (idx) {
@@ -1018,30 +1224,26 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         int ch = 124;
 
         g.enableScissor(x + 236, cy - 2, x + 356, cy + ch + 2);
-        // Dark walnut & gilded brass lid with glowing cyan Arcanite emblem (matching State 1 & State 3!)
-        g.fill(cx, cy, cx + cw, cy + ch, 0xFF23160F);
-        g.fill(cx + 4, cy + 4, cx + cw - 4, cy + ch - 4, 0xFF2B124C);
-        g.fill(cx + 4, cy + 4, cx + 8, cy + ch - 4, 0xFFD4AF37);
-        g.fill(cx + cw - 8, cy + 4, cx + cw - 4, cy + ch - 4, 0xFFD4AF37);
-        g.fill(cx + 4, cy + 42, cx + 8, cy + 82, 0xFF2CE6FF);
-        g.fill(cx + cw - 8, cy + 42, cx + cw - 4, cy + 82, 0xFF2CE6FF);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, cx, cy, cw, ch, 0xFF23160F, 0xFF9E7B23, 0x44FCE38A);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, cx + 3.5F, cy + 3.5F, cw - 7.0F, ch - 7.0F, 0xFF291147, 0xFFD4AF37, 0x44FFFFFF);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, cx + 4.0F, cy + 42.0F, cx + 6.5F, cy + 82.0F, 0xFF2CE6FF);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, cx + cw - 6.5F, cy + 42.0F, cx + cw - 4.0F, cy + 82.0F, 0xFF2CE6FF);
 
-        // Center cyan & gold emblem plaque
-        int ex = cx + 18;
-        int ey = cy + 38;
-        g.fill(ex, ey, ex + 38, ey + 48, 0xFFD4AF37);
-        g.fill(ex + 2, ey + 2, ex + 36, ey + 46, 0xFF241438);
-        g.fill(ex + 16, ey + 10, ex + 22, ey + 38, 0xFFD4AF37);
-        g.fill(ex + 15, ey + 16, ex + 23, ey + 32, 0xFF2CE6FF);
+        // High-res Arcanite Medallion Plaque in center of cover
+        float ex = cx + 18.0F;
+        float ey = cy + 38.0F;
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, ex, ey, 38.0F, 48.0F, 0xFF1F1135, 0xFFD4AF37, 0x55FFFBEB);
+        ArcaneScribingGlyphRenderer.blitCentered(
+                g, ArcaneScribingGlyphRenderer.TEX_MATERIA_SHARD, 128, 128,
+                ex + 19.0F, ey + 24.0F, 24.0F, 32.0F, 0.0F, 0xFF38E8FF
+        );
         g.disableScissor();
 
-        // Right Brass Pull-Handle
+        // High-res Right Brass Pull-Handle
         int hx = Math.min(x + 346, x + 314 + Math.round(this.rightDrawerOpen * 32.0F));
         int hy = y + 64;
         boolean hov = isInside(mouseX, mouseY, x + 236, cy, 88, ch) || isInside(mouseX, mouseY, hx - 2, hy - 2, 12, 44);
-        g.fill(hx, hy, hx + 8, hy + 40, 0xFF785917);
-        g.fill(hx + 1, hy + 1, hx + 7, hy + 39, hov ? 0xFFFDE047 : 0xFFD4AF37);
-        g.fill(hx + 3, hy + 8, hx + 5, hy + 32, 0xFF2CE6FF);
+        ArcaneScribingGlyphRenderer.drawDrawerHandle(g, hx, hy, 8.5F, 40.0F, hov);
 
         if (hov) {
             this.pendingTooltip = List.of(
@@ -1056,9 +1258,7 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         int hx = x + 312;
         int hy = y + 64;
         boolean hov = isInside(mouseX, mouseY, hx - 1, hy - 2, 11, 44);
-        g.fill(hx, hy, hx + 8, hy + 40, 0xFF785917);
-        g.fill(hx + 1, hy + 1, hx + 7, hy + 39, hov ? 0xFFFDE047 : 0xFFD4AF37);
-        g.fill(hx + 3, hy + 8, hx + 5, hy + 32, 0xFF2CE6FF);
+        ArcaneScribingGlyphRenderer.drawDrawerHandle(g, hx, hy, 8.5F, 40.0F, hov);
         if (hov) {
             this.pendingTooltip = List.of(
                     Component.literal("§6Right Supply Drawer Handle"),
@@ -1068,7 +1268,7 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
     }
 
     // =========================================================================
-    // CENTRAL UNROLLED PARCHMENT & CONCENTRIC ROTATING RINGS
+    // CENTRAL HIGH-RESOLUTION UNROLLED PARCHMENT & CONCENTRIC ROTATING RINGS
     // =========================================================================
 
     private void renderCentralScrollAndRings(GuiGraphics g, int x, int y, int mouseX, int mouseY, float partialTick) {
@@ -1077,25 +1277,20 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         int fw = 148;
         int fh = 129;
 
-        // Gilded outer frame with cyan Arcanite striped trim (matching all 4 approved renders!)
-        g.fill(fx, fy, fx + fw, fy + fh, 0xFFD4AF37);
-        for (int sx = fx + 8; sx < fx + fw - 8; sx += 14) {
-            g.fill(sx, fy + fh - 6, sx + 5, fy + fh - 1, 0xFF2CE6FF);
+        // Beveled gilded outer frame with cyan Arcanite inlay dashes
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, fx, fy, fw, fh, 0xFFD4AF37, 0xFF8C6B1F, 0x88FEF08A);
+        for (float sx = fx + 8.5F; sx < fx + fw - 8.5F; sx += 13.5F) {
+            ArcaneScribingGlyphRenderer.fillHiRes(g, sx, fy + fh - 5.25F, sx + 5.5F, fy + fh - 1.5F, 0xFF0EA5E9);
+            ArcaneScribingGlyphRenderer.fillHiRes(g, sx + 0.5F, fy + fh - 4.75F, sx + 5.0F, fy + fh - 2.0F, 0xFF67E8F9);
         }
-        g.fill(fx + 5, fy + 5, fx + fw - 5, fy + fh - 7, 0xFF2B124C);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, fx + 4.5F, fy + 4.5F, fx + fw - 4.5F, fy + fh - 6.5F, 0xFF261044);
 
-        // Unrolled Parchment Scroll + Left/Right Wooden Scroll Rollers
-        int px = fx + 12;
-        int py = fy + 8;
-        int pw = fw - 24; // 124
-        int ph = fh - 20; // 109
-        g.fill(px + 6, py + 2, px + pw - 6, py + ph - 2, 0xFFE5CFA3);
-        g.fill(px + 10, py + 5, px + pw - 10, py + ph - 5, 0xFFECDAB4);
-        // Left & Right Scroll Rollers
-        g.fill(px, py, px + 8, py + ph, 0xFFC5A878);
-        g.fill(px + 2, py - 2, px + 6, py + ph + 2, 0xFFA68859);
-        g.fill(px + pw - 8, py, px + pw, py + ph, 0xFFC5A878);
-        g.fill(px + pw - 6, py - 2, px + pw - 2, py + ph + 2, 0xFFA68859);
+        // High-Resolution 512x448 Unrolled Vellum Parchment Scroll + 3D Turned Wooden Scroll Rollers
+        int px = fx + 8;
+        int py = fy + 5;
+        int pw = fw - 16; // 132
+        int ph = fh - 12; // 117
+        ArcaneScribingGlyphRenderer.drawParchmentScroll(g, px, py, pw, ph);
 
         int cx = x + WHEEL_REL_CX;
         int cy = y + WHEEL_REL_CY;
@@ -1105,76 +1300,105 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         float dist = Mth.sqrt(dx * dx + dy * dy);
         int hoveredRing = -1;
         if (!this.editingTitlePopup && isInside(mouseX, mouseY, px, py, pw, ph)) {
-            if (dist <= RING_DUAL_OUT) hoveredRing = 3;
-            else if (dist <= RING_PRIM_OUT + 1.0F) hoveredRing = 2;
-            else if (dist <= RING_FORM_OUT + 1.0F) hoveredRing = 1;
-            else if (dist <= RING_FLOW_OUT + 2.0F) hoveredRing = 0;
+            if (dist <= RING_DUAL_OUT) hoveredRing = 5;
+            else if (dist <= RING_PRIM_OUT + 0.5F) hoveredRing = 4;
+            else if (dist <= RING_FORM_OUT + 0.5F) hoveredRing = 3;
+            else if (dist <= RING_FLOW_OUT + 0.5F) hoveredRing = 2;
+            else if (dist <= RING_TRIG_OUT + 0.5F) hoveredRing = 1;
+            else if (dist <= RING_DIST_OUT + 2.5F) hoveredRing = 0;
         }
 
         boolean ceremony = this.scribeCeremonyTicks > 0;
+        int trigRgb = 0x67E8F9;
         int flowRgb = resolveEssenceRgb(this.flowMateria, 0x38BDF8);
         int formRgb = resolveEssenceRgb(currentSub().formMateria, 0x38BDF8);
         int primRgb = resolveEssenceRgb(currentSub().primaryMateria, 0x38BDF8);
         int dualRgb = resolveEssenceRgb(currentSub().secondaryMateria, 0xFACC15);
 
-        // Draw the 3 Concentric Ring Bands + Inner Dual-Verb Core Medallion
-        drawSingleWheelBand(g, cx, cy, RING_FLOW_IN, RING_FLOW_OUT, flowRgb, this.focusedRing == 0, hoveredRing == 0 || this.draggingRing == 0, ceremony);
-        drawSingleWheelBand(g, cx, cy, RING_FORM_IN, RING_FORM_OUT, formRgb, this.focusedRing == 1, hoveredRing == 1 || this.draggingRing == 1, ceremony);
-        drawSingleWheelBand(g, cx, cy, RING_PRIM_IN, RING_PRIM_OUT, primRgb, this.focusedRing == 2, hoveredRing == 2 || this.draggingRing == 2, ceremony);
+        // Outermost Ring 0: Astrolabe Travel Distance Circle (0m -> 8m -> 16m -> 24m -> 32m -> 48m -> 64m -> 96m -> 128m)
+        ArcaneScribingGlyphRenderer.drawOuterDistanceBand(
+                g, cx, cy, this.ringAngleOffset[0], hoveredRing == 0 || this.draggingRing == 0, ceremony
+        );
 
-        // Center Dual-Verb Medallion
-        int coreFill = currentSub().secondaryEffect != null
-                ? ArcaneScribingGlyphRenderer.scaleRgb(dualRgb, 0.42F)
-                : 0xFF6B4F28;
-        ArcaneScribingGlyphRenderer.drawFilledCircle(g, cx, cy, RING_DUAL_OUT, 0xFFD4AF37);
-        ArcaneScribingGlyphRenderer.drawFilledCircle(g, cx, cy, RING_DUAL_OUT - 2.0F, coreFill);
-        if (this.focusedRing == 3 || hoveredRing == 3 || ceremony) {
-            ArcaneScribingGlyphRenderer.drawRingBand(g, cx, cy, RING_DUAL_OUT - 2.6F, RING_DUAL_OUT - 0.8F, 0xFF000000 | dualRgb);
-        }
+        // Inner 4 Concentric Ring Bands & Tintable Metallic Rims (1=Trigger, 2=Flow, 3=Form, 4=Primary)
+        ArcaneScribingGlyphRenderer.drawWheelBand(
+                g, 0, cx, cy, this.ringAngleOffset[1], trigRgb,
+                false, hoveredRing == 1 || this.draggingRing == 1, ceremony
+        );
+        ArcaneScribingGlyphRenderer.drawWheelBand(
+                g, 1, cx, cy, this.ringAngleOffset[2], flowRgb,
+                this.focusedRing == 0, hoveredRing == 2 || this.draggingRing == 2, ceremony
+        );
+        ArcaneScribingGlyphRenderer.drawWheelBand(
+                g, 2, cx, cy, this.ringAngleOffset[3], formRgb,
+                this.focusedRing == 1, hoveredRing == 3 || this.draggingRing == 3, ceremony
+        );
+        ArcaneScribingGlyphRenderer.drawWheelBand(
+                g, 3, cx, cy, this.ringAngleOffset[4], primRgb,
+                this.focusedRing == 2, hoveredRing == 4 || this.draggingRing == 4, ceremony
+        );
+
+        // High-Resolution 256x256 Center Dual-Verb Medallion (wheelRing = 5)
+        ArcaneScribingGlyphRenderer.drawWheelCoreMedallion(
+                g, cx, cy, dualRgb, currentSub().secondaryEffect != null,
+                this.focusedRing == 3, hoveredRing == 5, ceremony
+        );
 
         // State 4 Harmonic Star Circuit Overlay when SCRIBE is pressed!
         if (ceremony) {
-            for (int k = 0; k < 8; k++) {
-                float a1 = k * (Mth.TWO_PI / 8.0F);
-                float a2 = ((k + 3) % 8) * (Mth.TWO_PI / 8.0F);
-                ArcaneScribingGlyphRenderer.drawPixelLine(
-                        g,
-                        cx + Mth.cos(a1) * 53.0F, cy + Mth.sin(a1) * 53.0F,
-                        cx + Mth.cos(a2) * 53.0F, cy + Mth.sin(a2) * 53.0F,
-                        0xCC67E8F9
-                );
-            }
-            ArcaneScribingGlyphRenderer.drawPixelLine(g, cx - 54, cy, cx + 54, cy, 0xEEFEF08A);
-            ArcaneScribingGlyphRenderer.drawPixelLine(g, cx, cy - 56, cx, cy + 54, 0xEEFEF08A);
+            float cerProg = 1.0F - (this.scribeCeremonyTicks - partialTick) / 36.0F;
+            ArcaneScribingGlyphRenderer.drawCeremonyStarCircuit(g, cx, cy, cerProg * 0.45F);
         }
 
-        // Render Rotating Symbols on Outer Flow Ring, Middle Form Ring, Inner Primary Ring, and Dual-Verb Core
-        renderRingSymbols(g, cx, cy, 0, (RING_FLOW_IN + RING_FLOW_OUT) * 0.5F, flowRgb, mouseX, mouseY);
-        renderRingSymbols(g, cx, cy, 1, (RING_FORM_IN + RING_FORM_OUT) * 0.5F, formRgb, mouseX, mouseY);
-        renderRingSymbols(g, cx, cy, 2, (RING_PRIM_IN + RING_PRIM_OUT) * 0.5F, primRgb, mouseX, mouseY);
+        // Sculpted High-Res 12 o'clock Golden Alignment Needle (drawn behind runes/badges so aligned labels stay crystal clear)
+        ArcaneScribingGlyphRenderer.drawAlignmentNeedle(g, cx, y + 23, ceremony);
 
-        // Center Dual-Verb Glyph
+        // Render Crisp Rotating Distance Stops & Spell Symbols across all 5 Concentric Bands
+        renderRingSymbols(g, cx, cy, 0, getWheelBandMidRadius(0), 6.8F, 0x7DF4FF, mouseX, mouseY);
+        renderRingSymbols(g, cx, cy, 1, getWheelBandMidRadius(1), 6.8F, trigRgb, mouseX, mouseY);
+        renderRingSymbols(g, cx, cy, 2, getWheelBandMidRadius(2), 7.0F, flowRgb, mouseX, mouseY);
+        renderRingSymbols(g, cx, cy, 3, getWheelBandMidRadius(3), 7.0F, formRgb, mouseX, mouseY);
+        float primIconSize = getWheelRingOptionCount(4) > 10 ? 6.2F : 6.8F;
+        renderRingSymbols(g, cx, cy, 4, getWheelBandMidRadius(4), primIconSize, primRgb, mouseX, mouseY);
+
+        // Crisp Timer Badge beside the 12 o'clock Trigger Rune when Timed Fuse or Self-Timed is aligned!
+        if (this.trigger.hasTimerDial()) {
+            String badge = this.trigger == SpellTriggerType.ON_TIMER
+                    ? String.format("%.1fs", resolveEffectiveFlowDelaySeconds())
+                    : String.format("%.0fs", resolveEffectiveFlowDelaySeconds());
+            ArcaneScribingGlyphRenderer.drawBeveledBox(g, cx + 8.5F, cy - 46.5F, 18.0F, 8.0F, 0xEE180A30, 0xFFFDE047, 0x55FFFFFF);
+            ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, badge, cx + 17.5F, cy - 44.6F, 0.56F, 0xFF67E8F9, false);
+        }
+
+        // Crisp Transposition Badge when Primary Blink is toggled into Position Swap mode!
+        if (currentSub().primaryEffect == SpellCoreEffect.BLINK && "swap".equalsIgnoreCase(currentSub().primarySubMode)) {
+            ArcaneScribingGlyphRenderer.drawBeveledBox(g, cx - 24.5F, cy - 22.5F, 17.5F, 7.5F, 0xEE180A30, 0xFFFDE047, 0x55FFFFFF);
+            ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, "SWAP", cx - 15.75F, cy - 20.8F, 0.52F, 0xFFFDE047, false);
+        }
+
+        // Center Dual-Verb High-Res Glyph
         SpellCoreEffect secEff = currentSub().secondaryEffect;
         boolean secCryptic = secEff != null && isCryptic(SpellResearchManager.nodeId(secEff));
-        ArcaneScribingGlyphRenderer.drawEffectSymbol(g, this.font, cx, cy, secEff, secCryptic, 0xFF000000 | dualRgb);
-        if (hoveredRing == 3 && this.pendingTooltip == null) {
+        ArcaneScribingGlyphRenderer.drawEffectSymbol(g, cx, cy, 11.5F, secEff, secCryptic, 0xFF000000 | dualRgb);
+        if (hoveredRing == 5 && this.pendingTooltip == null) {
             this.pendingTooltip = buildEffectDecisionTooltip(secEff, currentSub().secondaryMateria, currentSub().secondaryMutation, true, true);
         }
 
-        // Glowing Cyan Directional Rotation Arcs when hovering or dragging a ring (matching State 1 & State 3!)
+        // Smooth High-Res Glowing Cyan Directional Rotation Arcs when hovering or dragging a ring (State 3!)
         int activeArcRing = this.draggingRing >= 0 ? this.draggingRing : hoveredRing;
-        if (activeArcRing >= 0 && activeArcRing <= 2) {
+        if (activeArcRing >= 0 && activeArcRing <= 4) {
             float arcR = switch (activeArcRing) {
-                case 0 -> RING_FLOW_OUT + 3.2F;
-                case 1 -> (RING_FORM_OUT + RING_FLOW_IN) * 0.5F;
+                case 0 -> RING_DIST_OUT + 1.6F;
+                case 1 -> (RING_TRIG_OUT + RING_DIST_IN) * 0.5F;
+                case 2 -> (RING_FLOW_OUT + RING_TRIG_IN) * 0.5F;
+                case 3 -> (RING_FORM_OUT + RING_FLOW_IN) * 0.5F;
                 default -> (RING_PRIM_OUT + RING_FORM_IN) * 0.5F;
             };
-            ArcaneScribingGlyphRenderer.drawArcWithArrows(g, cx, cy, arcR, 2.35F, 3.92F, 0xEE67E8F9);
-            ArcaneScribingGlyphRenderer.drawArcWithArrows(g, cx, cy, arcR, -0.78F, 0.78F, 0xEE67E8F9);
+            ArcaneScribingGlyphRenderer.drawArcWithArrows(g, cx, cy, arcR, this.ringAngleOffset[activeArcRing] * 0.35F, 0xEE7DF4FF);
         }
 
-        // Ornate 12 o'clock Golden Alignment Needle pointing straight down through all 3 rings!
-        renderGoldenAlignmentNeedle(g, cx, y + 25, cy, mouseX, mouseY, ceremony);
+        // Needle Finial Summary Tooltip (if hovering the top finial above the Distance Stop badge)
+        checkGoldenAlignmentNeedleTooltip(cx, y + 23, mouseX, mouseY);
 
         // State 4 Sweeping Feather Quill Animation
         if (ceremony) {
@@ -1183,73 +1407,83 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         }
     }
 
-    private void drawSingleWheelBand(GuiGraphics g, int cx, int cy, float inR, float outR,
-                                     int matRgb, boolean focused, boolean hovered, boolean ceremony) {
-        int bandDark = ceremony ? 0xFF3E3216 : (hovered ? 0xFF6B5028 : 0xFF563F1E);
-        int rimCol = ceremony ? 0xFFFEF08A : ((focused || hovered) ? (0xFF000000 | matRgb) : 0xFFC59B27);
-        ArcaneScribingGlyphRenderer.drawRingBand(g, cx, cy, inR, outR, bandDark);
-        ArcaneScribingGlyphRenderer.drawRingBand(g, cx, cy, outR - 1.2F, outR, rimCol);
-        ArcaneScribingGlyphRenderer.drawRingBand(g, cx, cy, inR, inR + 1.1F, rimCol);
-    }
-
-    private void renderRingSymbols(GuiGraphics g, int cx, int cy, int ringIdx, float midR, int matRgb, int mouseX, int mouseY) {
-        int count = getRingOptionCount(ringIdx);
+    private void renderRingSymbols(GuiGraphics g, int cx, int cy, int wheelRing, float midR, float baseIconSize,
+                                   int matRgb, int mouseX, int mouseY) {
+        int count = getWheelRingOptionCount(wheelRing);
         if (count <= 0) return;
-        int selIdx = getRingSelectedIndex(ringIdx);
+        int selIdx = getWheelRingSelectedIndex(wheelRing);
         float stepRad = Mth.TWO_PI / count;
-        float offset = this.ringAngleOffset[ringIdx];
+        float offset = this.ringAngleOffset[wheelRing];
+        float tickHalf = wheelRing == 0 ? 3.8F : 3.3F;
+        double hoverRad = wheelRing == 0 ? 5.8D : 4.5D;
 
         for (int i = 0; i < count; i++) {
             float ang = -Mth.HALF_PI + (i - selIdx) * stepRad + offset;
-            // Radial divider tick halfway between adjacent symbols
+            // Smooth sub-pixel rotated radial divider tick halfway between adjacent symbols
             float divAng = ang + stepRad * 0.5F;
-            ArcaneScribingGlyphRenderer.drawPixelLine(
-                    g,
-                    cx + Mth.cos(divAng) * (midR - 4.8F),
-                    cy + Mth.sin(divAng) * (midR - 4.8F),
-                    cx + Mth.cos(divAng) * (midR + 4.8F),
-                    cy + Mth.sin(divAng) * (midR + 4.8F),
-                    0x66C59B27
-            );
+            ArcaneScribingGlyphRenderer.drawRadialTick(g, cx, cy, divAng, midR - tickHalf, midR + tickHalf, 0.50F, 0x88D4AF37);
 
-            int sx = Math.round(cx + Mth.cos(ang) * midR);
-            int sy = Math.round(cy + Mth.sin(ang) * midR);
+            float sx = cx + Mth.cos(ang) * midR;
+            float sy = cy + Mth.sin(ang) * midR;
             boolean isSelectedAtNeedle = (i == selIdx && Math.abs(offset) < stepRad * 0.35F);
-            boolean symHover = !this.editingTitlePopup && Math.hypot(mouseX - sx, mouseY - sy) <= 5.6D;
+            boolean symHover = !this.editingTitlePopup && Math.hypot(mouseX - sx, mouseY - sy) <= hoverRad;
 
-            if (isSelectedAtNeedle) {
-                ArcaneScribingGlyphRenderer.drawFilledCircle(g, sx, sy, 5.2F, 0xCC1E1B4B);
-                ArcaneScribingGlyphRenderer.drawRingBand(g, sx, sy, 4.3F, 5.5F, 0xFFFDE047);
-            } else if (symHover) {
-                ArcaneScribingGlyphRenderer.drawFilledCircle(g, sx, sy, 4.8F, 0xAA0F172A);
+            if (wheelRing != 0) {
+                if (isSelectedAtNeedle) {
+                    ArcaneScribingGlyphRenderer.drawSelectionHalo(g, sx, sy, baseIconSize + 2.4F, true);
+                } else if (symHover) {
+                    ArcaneScribingGlyphRenderer.drawSelectionHalo(g, sx, sy, baseIconSize + 1.8F, false);
+                }
             }
 
+            float drawSize = isSelectedAtNeedle ? (baseIconSize + 1.0F) : (symHover ? (baseIconSize + 0.6F) : baseIconSize);
             int symCol = isSelectedAtNeedle
-                    ? ArcaneScribingGlyphRenderer.liftRgb(matRgb, 75)
-                    : (symHover ? 0xFFFFFFFF : (0xFF000000 | matRgb));
+                    ? ArcaneScribingGlyphRenderer.liftRgb(matRgb, 95)
+                    : (symHover ? 0xFFFFFFFF : ArcaneScribingGlyphRenderer.liftRgb(matRgb, 28));
 
-            switch (ringIdx) {
+            switch (wheelRing) {
                 case 0 -> {
+                    SpellTravelDistance step = SpellTravelDistance.values()[i];
+                    ArcaneScribingGlyphRenderer.drawDistanceStopBadge(
+                            g, this.font, sx, sy, step.shortLabel(), isSelectedAtNeedle, symHover
+                    );
+                    if (symHover) {
+                        this.pendingTooltip = buildDistanceDecisionTooltip(step, i == selIdx);
+                    }
+                }
+                case 1 -> {
+                    SpellTriggerType tr = SpellTriggerType.values()[i];
+                    boolean cryp = isCryptic(SpellResearchManager.nodeId(tr));
+                    int trigCol = isSelectedAtNeedle ? 0xFFFEF08A : (symHover ? 0xFFFFFFFF : 0xFF38BDF8);
+                    ArcaneScribingGlyphRenderer.drawTriggerSymbol(g, sx, sy, drawSize, tr, cryp, trigCol);
+                    if (symHover) {
+                        this.pendingTooltip = buildTriggerDecisionTooltip(tr, i == selIdx);
+                    }
+                }
+                case 2 -> {
                     SpellFlowModifier fl = SpellFlowModifier.values()[i];
                     boolean cryp = isCryptic(SpellResearchManager.nodeId(fl));
-                    ArcaneScribingGlyphRenderer.drawFlowSymbol(g, this.font, sx, sy, fl, cryp, symCol);
+                    int flowCol = (fl == SpellFlowModifier.VOID_WARP && !canSelectVoidWarp())
+                            ? (symHover ? 0xFFC084FC : 0xFF6B21A8)
+                            : symCol;
+                    ArcaneScribingGlyphRenderer.drawFlowSymbol(g, sx, sy, drawSize, fl, cryp, flowCol);
                     if (symHover) {
                         this.pendingTooltip = buildFlowDecisionTooltip(fl, this.flowMateria, this.flowMutation, i == selIdx);
                     }
                 }
-                case 1 -> {
+                case 3 -> {
                     SpellDeliveryForm fm = SpellDeliveryForm.values()[i];
                     boolean cryp = isCryptic(SpellResearchManager.nodeId(fm));
-                    ArcaneScribingGlyphRenderer.drawFormSymbol(g, this.font, sx, sy, fm, cryp, symCol);
+                    ArcaneScribingGlyphRenderer.drawFormSymbol(g, sx, sy, drawSize, fm, cryp, symCol);
                     if (symHover) {
                         this.pendingTooltip = buildFormDecisionTooltip(fm, currentSub().formMateria, currentSub().formMutation, i == selIdx);
                     }
                 }
-                case 2 -> {
+                case 4 -> {
                     List<SpellCoreEffect> allowed = allowedEffects();
                     SpellCoreEffect ef = allowed.get(i);
                     boolean cryp = isCryptic(SpellResearchManager.nodeId(ef));
-                    ArcaneScribingGlyphRenderer.drawEffectSymbol(g, this.font, sx, sy, ef, cryp, symCol);
+                    ArcaneScribingGlyphRenderer.drawEffectSymbol(g, sx, sy, drawSize, ef, cryp, symCol);
                     if (symHover) {
                         this.pendingTooltip = buildEffectDecisionTooltip(ef, currentSub().primaryMateria, currentSub().primaryMutation, false, i == selIdx);
                     }
@@ -1258,31 +1492,27 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         }
     }
 
-    private void renderGoldenAlignmentNeedle(GuiGraphics g, int cx, int topY, int cy, int mouseX, int mouseY, boolean ceremony) {
-        // Ornate Fleur-de-lis Pommel above the 12 o'clock slot (matching State 1, 3, 4!)
-        g.fill(cx - 1, topY, cx + 2, topY + 12, 0xFFFDE047);
-        g.fill(cx - 4, topY + 4, cx + 5, topY + 7, 0xFFD4AF37);
-        g.fill(cx - 2, topY + 2, cx + 3, topY + 9, 0xFFFACC15);
-        if (ceremony) {
-            g.fill(cx - 1, topY + 1, cx + 2, topY + 8, 0xFF67E8F9);
-        }
-        // Golden pointer tip & slender translucent alignment blade down to center
-        ArcaneScribingGlyphRenderer.drawPixelLine(g, cx - 3, topY + 9, cx, topY + 14, 0xFFFDE047);
-        ArcaneScribingGlyphRenderer.drawPixelLine(g, cx + 3, topY + 9, cx, topY + 14, 0xFFFDE047);
-        g.fill(cx - 2, topY + 14, cx - 1, cy - 17, 0xAAFFD700);
-        g.fill(cx + 2, topY + 14, cx + 3, cy - 17, 0xAAFFD700);
-
-        boolean needleHover = !this.editingTitlePopup && isInside(mouseX, mouseY, cx - 5, topY, 11, 16);
+    private void checkGoldenAlignmentNeedleTooltip(int cx, int topY, int mouseX, int mouseY) {
+        boolean needleHover = !this.editingTitlePopup && isInside(mouseX, mouseY, cx - 7, topY - 3, 15, 13);
         if (needleHover && this.pendingTooltip == null) {
             SpellAssembly built = buildDraftAssembly();
             SpellCostBreakdown cost = SpellFuelCalculator.calculateCastCost(built, null, 0.0F, EssenceType.REGULAR);
+            String trigSummary = formatResearchAwareName(SpellResearchManager.nodeId(this.trigger), this.trigger.getDisplayName());
+            if (this.trigger == SpellTriggerType.ON_TIMER) {
+                trigSummary += String.format(" (%.1fs)", resolveEffectiveFlowDelaySeconds());
+            } else if (this.trigger == SpellTriggerType.SELF_TIMED) {
+                trigSummary += String.format(" (%.0fs)", resolveEffectiveFlowDelaySeconds());
+            }
             this.pendingTooltip = List.of(
                     Component.literal("§6✦ Aligned Incantation Summary ✦"),
                     Component.literal("§f" + built.customName() + " §8• §eTier " + ROMAN[this.potencyTier - 1] + " " + this.prefix.getDisplayName()),
+                    Component.literal("§7Travel: §b" + this.travelDistance.shortLabel()
+                            + String.format(" §8(%.2fx)", this.travelDistance.getCostMultiplier())
+                            + " §8• §7Trigger: §e" + trigSummary),
                     Component.literal("§7Flow: §b" + formatResearchAwareName(SpellResearchManager.nodeId(this.flow), this.flow.getDisplayName())
-                            + " §8(" + getActiveSlotCount() + " Sub-Spell" + (getActiveSlotCount() > 1 ? "s" : "") + ")"),
+                            + " §8• §7Cast: §d" + SpellFlowModifier.getCastCountTitle(getActiveSlotCount())),
                     Component.literal("§7Cast Fuel: §e" + cost.formatTypeCostSummary()),
-                    Component.literal(String.format("§7Cooldown: §b%.1fs §8• Hover any rune below for full stats!", built.getBaseCooldownTicks() / 20.0F))
+                    Component.literal(String.format("§7Cooldown: §b%.1fs §8• Hover any ring stop below for full stats!", built.getBaseCooldownTicks() / 20.0F))
             );
         }
     }
@@ -1293,29 +1523,28 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
 
     private void renderUnderDeskTray(GuiGraphics g, int x, int y, int mouseX, int mouseY) {
         // Center Player Inventory Satchel Frame (x + 73 .. x + 243, y + 155 .. y + 235)
-        g.fill(x + 73, y + 155, x + 243, y + 235, 0xFFD4AF37);
-        g.fill(x + 74, y + 156, x + 242, y + 234, 0xF20B132B);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, x + 73.0F, y + 155.0F, 170.0F, 80.0F, 0xF40B132B, 0xFFD4AF37, 0x44FFFBEB);
         for (int i = 4; i < this.menu.slots.size(); i++) {
             Slot s = this.menu.slots.get(i);
-            int sx = x + s.x - 1;
-            int sy = y + s.y - 1;
-            g.fill(sx, sy, sx + 18, sy + 18, 0xFF3A4B6E);
-            g.fill(sx + 1, sy + 1, sx + 17, sy + 17, 0xFF141E33);
+            float sx = x + s.x - 1.0F;
+            float sy = y + s.y - 1.0F;
+            ArcaneScribingGlyphRenderer.drawBeveledBox(g, sx, sy, 18.0F, 18.0F, 0xFF111A2E, 0xFF3E5278, 0x22FFFFFF);
         }
 
-        // Left Plaque: Tier Stepper (I..X), Lock Badge & Spell Name Button (x + 4 .. x + 71, y + 155 .. y + 235)
-        g.fill(x + 4, y + 155, x + 71, y + 235, 0xFFD4AF37);
-        g.fill(x + 5, y + 156, x + 70, y + 234, 0xF20B132B);
+        // Left Plaque: Tier Stepper (I..X), Spell Name & Quick Drawer Toggle (x + 4 .. x + 71, y + 155 .. y + 235)
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, x + 4.0F, y + 155.0F, 67.0F, 80.0F, 0xF40B132B, 0xFFD4AF37, 0x44FFFBEB);
 
-        // Tier [-] Tier X [+]
+        // Tier [-] T-X [+]
         boolean minusHov = isInside(mouseX, mouseY, x + 8, y + 160, 13, 13);
         boolean plusHov = isInside(mouseX, mouseY, x + 54, y + 160, 13, 13);
         boolean tierHov = isInside(mouseX, mouseY, x + 21, y + 160, 33, 13);
-        g.fill(x + 8, y + 160, x + 21, y + 173, minusHov ? 0xFFFDE047 : 0xFF334155);
-        g.drawCenteredString(this.font, "-", x + 14, y + 162, minusHov ? 0xFF0F172A : 0xFFFFFFFF);
-        g.drawCenteredString(this.font, "T-" + ROMAN[this.potencyTier - 1], x + 37, y + 162, 0xFF67E8F9);
-        g.fill(x + 54, y + 160, x + 67, y + 173, plusHov ? 0xFFFDE047 : 0xFF334155);
-        g.drawCenteredString(this.font, "+", x + 60, y + 162, plusHov ? 0xFF0F172A : 0xFFFFFFFF);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, x + 8.0F, y + 160.0F, 13.0F, 13.0F,
+                minusHov ? 0xFFFDE047 : 0xFF26354D, minusHov ? 0xFFFFFFFF : 0xFF64748B, 0x33FFFFFF);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, "−", x + 14.5F, y + 163.0F, 0.82F, minusHov ? 0xFF0F172A : 0xFFFFFFFF, false);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, "T-" + ROMAN[this.potencyTier - 1], x + 37.5F, y + 163.0F, 0.82F, 0xFF67E8F9, true);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, x + 54.0F, y + 160.0F, 13.0F, 13.0F,
+                plusHov ? 0xFFFDE047 : 0xFF26354D, plusHov ? 0xFFFFFFFF : 0xFF64748B, 0x33FFFFFF);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, "+", x + 60.5F, y + 163.0F, 0.82F, plusHov ? 0xFF0F172A : 0xFFFFFFFF, false);
         if (minusHov || plusHov || tierHov) {
             this.pendingTooltip = List.of(
                     Component.literal("§6Potency Tier " + ROMAN[this.potencyTier - 1] + " §8(Stage " + MateriaStageTable.getStageUnitCode(this.potencyTier) + ")"),
@@ -1327,10 +1556,14 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             );
         }
 
-        // Quick Rename Ribbon Button
+        // Quick Rename Ribbon Button — crisp scaled text fits full "Arcane Bolt"!
         boolean nameHov = isInside(mouseX, mouseY, x + 8, y + 177, 59, 14);
-        g.fill(x + 8, y + 177, x + 67, y + 191, nameHov ? 0xFFD4AF37 : 0xFF1E293B);
-        g.drawCenteredString(this.font, trimLabel(this.customName, 9), x + 37, y + 180, nameHov ? 0xFF0F172A : 0xFFFDE68A);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, x + 8.0F, y + 177.0F, 59.0F, 14.0F,
+                nameHov ? 0xFFD4AF37 : 0xFF1A2538, nameHov ? 0xFFFDE68A : 0xFF475569, 0x33FFFFFF);
+        String fittedName = ArcaneScribingGlyphRenderer.fitTextToWidth(this.font, this.customName, 55.0F, 0.72F);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                g, this.font, fittedName, x + 37.5F, y + 181.0F, 0.72F, nameHov ? 0xFF0F172A : 0xFFFDE68A, !nameHov
+        );
         if (nameHov) {
             this.pendingTooltip = List.of(
                     Component.literal("§6Spell Name: §f" + this.customName),
@@ -1340,35 +1573,52 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
 
         // Quick Left Drawer Toggle Button
         boolean lDrawBtnHov = isInside(mouseX, mouseY, x + 8, y + 194, 59, 14);
-        g.fill(x + 8, y + 194, x + 67, y + 208, lDrawBtnHov ? 0xFF7E22CE : 0xFF2B124C);
-        g.drawCenteredString(this.font, this.leftDrawerTarget > 0.5F ? "◀ Tuck" : "▶ Drawer", x + 37, y + 197, 0xFFE9D5FF);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, x + 8.0F, y + 194.0F, 59.0F, 14.0F,
+                lDrawBtnHov ? 0xFF6B21A8 : 0xFF281047, lDrawBtnHov ? 0xFFE9D5FF : 0xFF7E22CE, 0x33FFFFFF);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                g, this.font, this.leftDrawerTarget > 0.5F ? "◀ Tuck" : "▶ Drawer", x + 37.5F, y + 198.0F, 0.75F, 0xFFF3E8FF, true
+        );
 
-        // Cooldown readout
+        // Cooldown / Channel readout
         SpellAssembly preview = buildDraftAssembly();
-        g.drawCenteredString(this.font, String.format("CD: %.1fs", preview.getBaseCooldownTicks() / 20.0F), x + 37, y + 215, 0xFF94A3B8);
+        boolean channeledPreview = preview.isChanneledHoldBeam();
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                g, this.font,
+                channeledPreview ? "Hold Beam" : String.format("CD: %.1fs", preview.getBaseCooldownTicks() / 20.0F),
+                x + 37.5F, y + 216.0F, 0.76F, channeledPreview ? 0xFF67E8F9 : 0xFF94A3B8, true
+        );
 
         // Right Plaque: Live Fuel Cost & Quick Supply Drawer Toggle (x + 245 .. x + 312, y + 155 .. y + 235)
-        g.fill(x + 245, y + 155, x + 312, y + 235, 0xFFD4AF37);
-        g.fill(x + 246, y + 156, x + 311, y + 234, 0xF20B132B);
-        g.drawCenteredString(this.font, "Fuel Cost", x + 278, y + 160, 0xFFFDE047);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, x + 245.0F, y + 155.0F, 67.0F, 80.0F, 0xF40B132B, 0xFFD4AF37, 0x44FFFBEB);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                g, this.font, channeledPreview ? "Materia/s" : "Fuel Cost", x + 278.5F, y + 161.0F, 0.80F, 0xFFFDE047, true
+        );
 
         SpellCostBreakdown cost = SpellFuelCalculator.calculateCastCost(preview, null, 0.0F, EssenceType.REGULAR);
         String costStr = cost.formatTypeCostSummary();
-        g.drawCenteredString(this.font, trimLabel(costStr, 10), x + 278, y + 173, 0xFF67E8F9);
-        g.drawCenteredString(this.font, this.materiaSpecific ? "-15% Lock" : "Dynamic", x + 278, y + 185,
-                this.materiaSpecific ? 0xFF4ADE80 : 0xFFCBD5E1);
+        String fittedCost = ArcaneScribingGlyphRenderer.fitTextToWidth(this.font, costStr, 60.0F, 0.70F);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, fittedCost, x + 278.5F, y + 173.5F, 0.70F, 0xFF67E8F9, true);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                g, this.font, this.materiaSpecific ? "-15% Lock" : "Dynamic", x + 278.5F, y + 185.5F, 0.74F,
+                this.materiaSpecific ? 0xFF4ADE80 : 0xFFCBD5E1, true
+        );
 
         boolean rDrawBtnHov = isInside(mouseX, mouseY, x + 249, y + 198, 59, 14);
-        g.fill(x + 249, y + 198, x + 308, y + 212, rDrawBtnHov ? 0xFFD97706 : 0xFF3B2314);
-        g.drawCenteredString(this.font, this.rightDrawerTarget > 0.5F ? "Cover ▶" : "◀ Scribe", x + 278, y + 201, 0xFFFDE68A);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, x + 249.0F, y + 198.0F, 59.0F, 14.0F,
+                rDrawBtnHov ? 0xFFB45309 : 0xFF382010, rDrawBtnHov ? 0xFFFDE68A : 0xFFB8922A, 0x33FFFFFF);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                g, this.font, this.rightDrawerTarget > 0.5F ? "Cover ▶" : "◀ Scribe", x + 278.5F, y + 202.0F, 0.75F, 0xFFFDE68A, true
+        );
 
         boolean ready = this.menu.getSlot(0).hasItem() && this.menu.getSlot(1).hasItem();
-        g.drawCenteredString(this.font, ready ? "Ink Ready" : "Need Ink", x + 278, y + 217, ready ? 0xFF4ADE80 : 0xFFF87171);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(
+                g, this.font, ready ? "Ink Ready" : "Need Ink", x + 278.5F, y + 218.0F, 0.76F, ready ? 0xFF4ADE80 : 0xFFF87171, true
+        );
 
         if (isInside(mouseX, mouseY, x + 246, y + 158, 65, 36)) {
             this.pendingTooltip = List.of(
-                    Component.literal("§6Live Cast Fuel Breakdown"),
-                    Component.literal("§7Total per Cast: §e" + costStr),
+                    Component.literal(channeledPreview ? "§6Live Channeled Beam Drain" : "§6Live Cast Fuel Breakdown"),
+                    Component.literal((channeledPreview ? "§7Drain per Second: §e" : "§7Total per Cast: §e") + costStr),
                     Component.literal(this.materiaSpecific
                             ? "§aIncludes 15% Materia-Locked efficiency discount!"
                             : "§7Dynamic mode: draws from your active Universal Materia Cell.")
@@ -1381,26 +1631,83 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         int py = y + 46;
         int pw = 132;
         int ph = 76;
-        g.fill(px - 2, py - 2, px + pw + 2, py + ph + 2, 0x99000000);
-        g.fill(px, py, px + pw, py + ph, 0xFFD4AF37);
-        g.fill(px + 1, py + 1, px + pw - 1, py + ph - 1, 0xF80B132B);
-        g.drawString(this.font, "§6Spell Name:", px + 8, py + 5, 0xFFFFFFFF, false);
-        g.drawString(this.font, "§7Custom Lore:", px + 8, py + 32, 0xFFFFFFFF, false);
-        g.fill(px + 42, py + 59, px + 90, py + 72, 0xFFD4AF37);
-        g.fill(px + 43, py + 60, px + 89, py + 71, 0xFF1E293B);
-        g.drawCenteredString(this.font, "Done", px + 66, py + 62, 0xFFFDE047);
+        ArcaneScribingGlyphRenderer.fillHiRes(g, px - 2.0F, py - 2.0F, px + pw + 2.0F, py + ph + 2.0F, 0xAA000000);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, px, py, pw, ph, 0xFA0B132B, 0xFFD4AF37, 0x55FFFBEB);
+        ArcaneScribingGlyphRenderer.drawScaledString(g, this.font, "§6Spell Name:", px + 8.0F, py + 6.0F, 0.80F, 0xFFFFFFFF, true);
+        ArcaneScribingGlyphRenderer.drawScaledString(g, this.font, "§7Custom Lore:", px + 8.0F, py + 33.0F, 0.80F, 0xFFFFFFFF, true);
+        ArcaneScribingGlyphRenderer.drawBeveledBox(g, px + 42.0F, py + 59.0F, 48.0F, 13.0F, 0xFF1E293B, 0xFFD4AF37, 0x44FFFFFF);
+        ArcaneScribingGlyphRenderer.drawScaledCenteredString(g, this.font, "Done", px + 66.0F, py + 62.5F, 0.80F, 0xFFFDE047, true);
     }
 
     // =========================================================================
     // RICH SPELL DECISION TOOLTIP BUILDERS (STATE 3)
     // =========================================================================
 
+    private List<Component> buildDistanceDecisionTooltip(SpellTravelDistance step, boolean isCurrent) {
+        List<Component> lines = new ArrayList<>();
+        lines.add(Component.literal("§b✦ " + step.getDisplayName()));
+        lines.add(Component.literal(String.format("§6Outer Rim: §bTravel Distance Circle §8• §6Fuel Mult: §f%.2fx", step.getCostMultiplier())));
+        lines.add(Component.literal("§7• " + step.getSummaryDescription()));
+        if (step.isPointBlankZero()) {
+            lines.add(Component.literal("§e• Point-Blank (0m): Discharges immediately right in front of you — zero flight time!"));
+        } else {
+            lines.add(Component.literal(String.format(
+                    "§7• Scales Projectile flight, Beam reach, Blink step, Void-Warp & Placement (%.1fx standard).",
+                    step.getDistanceScaleFromStandard()
+            )));
+        }
+        SpellTravelDistance saved = this.travelDistance;
+        this.travelDistance = step;
+        SpellAssembly preview = buildDraftAssembly();
+        this.travelDistance = saved;
+        SpellCostBreakdown cost = SpellFuelCalculator.calculateCastCost(preview, null, 0.0F, EssenceType.REGULAR);
+        lines.add(Component.literal((cost.channeledPerSecond() ? "§7• Materia Drain at " + step.shortLabel() + ": §b" : "§7• Cast Fuel at " + step.shortLabel() + ": §b")
+                + cost.formatTypeCostSummary()));
+        lines.add(Component.literal("§8• " + (isCurrent
+                ? "Aligned! Scroll, drag, or Shift+Right-Click to reset to 16m."
+                : "Click, scroll, or drag Outer Rim Distance Circle to align")));
+        return lines;
+    }
+
+    private List<Component> buildTriggerDecisionTooltip(SpellTriggerType tr, boolean isCurrent) {
+        List<Component> lines = new ArrayList<>();
+        String nodeId = SpellResearchManager.nodeId(tr);
+        if (isCryptic(nodeId)) {
+            lines.add(Component.literal("§dCryptic Unknown Trigger Rune [?]"));
+            lines.add(Component.literal("§7Outermost Ring: §dUnresearched Trigger Logic"));
+            lines.add(Component.literal("§7• Align & Scribe to test this activation condition in the wild!"));
+            lines.add(Component.literal("§8• Observing or casting it unlocks its true name."));
+            return lines;
+        }
+        lines.add(Component.literal("§e" + tr.getDisplayName() + (isObservedOnly(nodeId) ? " §6(Observed)" : "")));
+        lines.add(Component.literal("§6Outer Ring: §eTrigger Logic §8• §6Cost Mult: §f" + String.format("%.2fx", tr.getCostMultiplier())));
+
+        String trigDesc = switch (tr) {
+            case ON_ENTITY_HIT -> "Detonates full spell power on living targets; accidental block misses splash at 75% potency.";
+            case ON_BLOCK_COLLISION -> "Detonates at 100% full potency on walls, floors & world blocks (passes cleanly past mobs).";
+            case ON_TIMER -> String.format("Detonates or splits mid-air after %.1fs (Right-click aligned rune or Flow tab to tune 0.5s–3.0s • 25%%/75%% Fuel).",
+                    this.trigger == SpellTriggerType.ON_TIMER ? resolveEffectiveFlowDelaySeconds() : 1.5F);
+            case ON_PROXIMITY -> "Drifts as a sensor orb and detonates when a target enters within 3.0m (25%/75% Dynamic Fuel).";
+            case ON_RELEASE -> "Hold right-click to compress your spell (up to +15% power), firing the instant you release!";
+            case ON_DEATH -> "Marks a struck foe for 3.0s: if slain, its corpse blooms with all slotted spells (25%/75% Fuel)!";
+            case SELF -> "Casts all slotted spells (Single–Octuple) immediately centered on yourself.";
+            case SELF_TIMED -> String.format("Contingency aura: fires centered on yourself after %.0fs (Right-click to cycle 30s / 60s / 120s).",
+                    this.trigger == SpellTriggerType.SELF_TIMED ? resolveEffectiveFlowDelaySeconds() : 30.0F);
+        };
+        lines.add(Component.literal("§7• " + trigDesc));
+        lines.add(Component.literal("§b• Pairs freely with any Flow Modifier & Single–Octuple Cast!"));
+        lines.add(Component.literal("§8• " + (isCurrent
+                ? (tr.hasTimerDial() ? "Aligned! Right-click rune to tune timer interval." : "Aligned under the 12 o'clock Needle!")
+                : "Click or drag Outermost Ring to align")));
+        return lines;
+    }
+
     private List<Component> buildFlowDecisionTooltip(SpellFlowModifier fl, EssenceType mat, boolean mutEnabled, boolean isCurrent) {
         List<Component> lines = new ArrayList<>();
         String nodeId = SpellResearchManager.nodeId(fl);
         if (isCryptic(nodeId)) {
             lines.add(Component.literal("§dCryptic Unknown Flow Rune [?]"));
-            lines.add(Component.literal("§7Outer Ring: §dUnresearched Flow Modifier"));
+            lines.add(Component.literal("§7Flow Ring: §dUnresearched Flow Modifier"));
             lines.add(Component.literal("§7• Align & Scribe to test this mysterious rune in the wild!"));
             lines.add(Component.literal("§8• Observing or casting it unlocks its true name & Mutations."));
             return lines;
@@ -1408,28 +1715,52 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         Player p = Minecraft.getInstance().player;
         boolean canMut = mat != EssenceType.REGULAR && (p == null || (SpellResearchManager.isNodeUnlocked(p, nodeId)
                 && SpellResearchManager.isMutationUnlocked(p, nodeId, mat, true)));
-        SpellMutationProfile prof = SpellMutationRegistry.resolveFlow(fl, mat, mutEnabled && canMut);
+        boolean effectiveMut = (fl == SpellFlowModifier.VOID_WARP && canSelectVoidWarp()) || (mutEnabled && canMut);
+        SpellMutationProfile prof = SpellMutationRegistry.resolveFlow(fl, mat, effectiveMut);
 
-        String titleCol = mat == EssenceType.REGULAR ? "§b" : mat.getColorCode();
+        String titleCol = (fl == SpellFlowModifier.VOID_WARP && !canSelectVoidWarp())
+                ? "§5"
+                : (mat == EssenceType.REGULAR ? "§b" : mat.getColorCode());
         lines.add(Component.literal(titleCol + (prof.mutated() ? prof.signatureTitle() : fl.getDisplayName())
                 + (isObservedOnly(nodeId) ? " §e(Observed)" : "")));
         lines.add(Component.literal("§6Flow: §b" + fl.getDisplayName() + " §8• §6Materia: " + formatTooltipMateriaState(mat, prof.mutated())));
 
-        int count = fl.getDefaultSubSpellCount();
-        String flowTrait = count > 1
-                ? ("Unleashes " + count + " Sub-Spell streams" + (fl.usesDynamicTriggerBilling() ? " (25% Upfront / 75% Trigger)" : ""))
-                : (fl.getVelocityMultiplier() > 1.2F ? "High-speed dart (+85% projectile velocity)"
-                : (fl.getVelocityMultiplier() > 0.0F && fl.getVelocityMultiplier() < 0.7F ? "Heavy deliberate drift (+0.40 Materia Advantage)"
-                : "Focused single-channel spell trajectory"));
+        String flowTrait = switch (fl) {
+            case SINGLE -> "Direct delivery: carries your cast straight to the target (1x Flow Cost)";
+            case DOUBLE_BIFURCATE -> "Splits into 2 smart-seeking payloads (converges on lone bosses! • 1.85x Cost)";
+            case TRIPLE_TRIFURCATE -> "Splits into 3 forward-arc payloads seeking up to 3 foes (2.65x Cost)";
+            case OCTUPLE_DOME -> "Bursts 8 payloads upward in a hemisphere dome — zero ground waste (5.50x Cost)";
+            case CHAIN_LEAP -> "Leaps across up to 3 foes within 12m, casting your spells at each hit (25%/75% Fuel)";
+            case ORBIT_SATELLITE -> "Orbits 4 guardian payloads around you that launch at nearby foes (2.80x Cost)";
+            case VOID_WARP -> "Zero-travel spatial rift: materializes your spells instantly at crosshair (25%/75% Fuel)";
+            case FAST_DART -> "Supersonic zero-gravity bolt (+135% speed, +35% knockback, 64m snipe)";
+            case SLOW_HEAVY -> "Dense creeping orb (-55% speed, grants +0.40 Materia Advantage!)";
+        };
         lines.add(Component.literal("§7• " + flowTrait));
+        if (fl == SpellFlowModifier.VOID_WARP) {
+            if (canSelectVoidWarp()) {
+                lines.add(Component.literal("§d✦ Void Travel Mutation Ready: " + mat.getFormattedName() + " §dauthorizes spatial wormhole travel!"));
+            } else {
+                lines.add(Component.literal("§c✦ Locked Travel Mutation: Requires Void or Void-Created Materia + Mutation: ACTIVE!"));
+                lines.add(Component.literal("§8  (Void, Astral, Null-R, Null-U, Wraith, Penumbra, Abyss, Oblivion, Entropic, Cataclysm, Eschaton, Entropica)"));
+            }
+        }
+        lines.add(Component.literal("§d• Active Cast: §f" + SpellFlowModifier.getCastCountTitle(getActiveSlotCount())
+                + (getActiveSlotCount() > 1 ? " §7(all " + getActiveSlotCount() + " spells cast at hit spot!)" : "")));
         appendMutationTraitBullets(lines, prof);
+        if (mat != EssenceType.REGULAR) {
+            lines.add(Component.literal("§8• Matchup: §7" + ddraig.net.entropica.combat.VisInteractionManager.getInstance().formatMatchupSummary(mat)));
+        }
 
         SpellAssembly preview = buildDraftAssembly();
         SpellCostBreakdown cost = SpellFuelCalculator.calculateCastCost(preview, null, 0.0F, EssenceType.REGULAR);
-        lines.add(Component.literal("§7• Spell Cast Fuel: §b" + cost.formatTypeCostSummary()));
-        lines.add(Component.literal(String.format("§7• Cooldown: §f%.1fs §8• %s",
-                preview.getBaseCooldownTicks() / 20.0F,
-                isCurrent ? "Aligned under Needle!" : "Click or Drag Ring to Align")));
+        lines.add(Component.literal((cost.channeledPerSecond() ? "§7• Materia Drain: §b" : "§7• Spell Cast Fuel: §b") + cost.formatTypeCostSummary()));
+        String cdOrHold = preview.isChanneledHoldBeam()
+                ? "§7• Mode: §bHold Right-Click (Channeled)"
+                : String.format("§7• Cooldown: §f%.1fs", preview.getBaseCooldownTicks() / 20.0F);
+        lines.add(Component.literal(cdOrHold + " §8• " + (isCurrent ? "Aligned under Needle!" : (fl == SpellFlowModifier.VOID_WARP && !canSelectVoidWarp()
+                ? "Infuse Void-Lineage Materia in Flow Drawer to Unlock"
+                : "Click or Drag Ring to Align"))));
         return lines;
     }
 
@@ -1453,28 +1784,39 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                 + (isObservedOnly(nodeId) ? " §e(Observed)" : "")));
         lines.add(Component.literal("§6Form: §b" + fm.getDisplayName() + " §8• §6Materia: " + formatTooltipMateriaState(mat, prof.mutated())));
 
+        boolean earthBonus = prof.mutated() && ddraig.net.entropica.spell.mutation.MateriaFamilyTier.isEarthLineage(mat);
+        double beamReach = this.travelDistance.resolveBaseBeamReachBlocks(this.potencyTier, this.prefix == SpellPrefix.COMBAT, earthBonus) * prof.rangeMultiplier();
         String shapeDesc = switch (fm) {
-            case PROJECTILE -> "Fires an aimed arcane bolt toward your target";
-            case BEAM -> "Channels a " + SpellDeliveryForm.getBeamReachBlocks(this.potencyTier, false) + "-block continuous energy beam";
-            case RADIAL_BURST -> "Detonates an expanding nova ring around impact/caster";
-            case TOUCH_STRIKE -> "Close-range arcane cleave right in front of you";
-            case AURA -> "Wraps you in a sustained protective/reactive shroud";
-            case GLYPH -> "Inscribes a triggered ground rune circle";
-            case CONE -> "Sweeps a wide elemental fan spray forward";
-            case SKYFALL -> "Calls down celestial pillars from the sky";
+            case PROJECTILE -> this.travelDistance.isPointBlankZero()
+                    ? "Discharges immediately at point-blank muzzle origin (0m travel)"
+                    : ("Fires an aimed arcane bolt up to " + this.travelDistance.shortLabel() + " toward your target");
+            case BEAM -> String.format("Hold Right-Click to channel a %.1fm beam from your hand (5x/s + 3s Burst Finisher)", beamReach);
+            case RADIAL_BURST -> String.format("Detonates a %.1fm expanding nova ring around impact/caster",
+                    SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.RADIAL_BURST, this.potencyTier) * prof.radiusMultiplier());
+            case TOUCH_STRIKE -> "Primes your weapon/hand (30s) — discharges on your next melee hit (+50% cleave splash)";
+            case AURA -> "Wraps you in a sustained shroud (Sneak-Cast to anchor field)";
+            case GLYPH -> "Inscribes a persistent 1s-arming trap (Sneak + Right-Click for 50% refund)";
+            case CONE -> String.format("Sweeps a wide 60° elemental fan %.1fm forward",
+                    SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.CONE, this.potencyTier) * prof.radiusMultiplier());
+            case SKYFALL -> "Calls down an overhead elemental tempest or skyfall pillar (cave-safe)";
             case SUMMON_AGENT -> "Conjures a mobile Eidolon companion that hunts foes";
-            case SUMMON_SENTRY -> "Conjures a stationary Eidolon turret at target spot";
-            case SUMMON_DECOY -> "Conjures an aggro-drawing Phantom Eidolon decoy";
+            case SUMMON_SENTRY -> "Conjures a stationary crystalline Eidolon turret pylon";
+            case SUMMON_DECOY -> "Conjures an aggro-drawing Phantom Eidolon effigy";
         };
         lines.add(Component.literal("§7• " + shapeDesc));
         appendMutationTraitBullets(lines, prof);
+        if (mat != EssenceType.REGULAR) {
+            lines.add(Component.literal("§8• Matchup: §7" + ddraig.net.entropica.combat.VisInteractionManager.getInstance().formatMatchupSummary(mat)));
+        }
 
         lines.add(Component.literal(String.format("§7• Base Power: §f%.0f HP §8(Tier %s)",
                 MateriaStageTable.getBaseCombatDamageHp(this.potencyTier), ROMAN[this.potencyTier - 1])));
         SpellAssembly preview = buildDraftAssembly();
         SpellCostBreakdown cost = SpellFuelCalculator.calculateCastCost(preview, null, 0.0F, EssenceType.REGULAR);
-        lines.add(Component.literal("§7• Fuel Cost: §b" + cost.formatTypeCostSummary()));
-        lines.add(Component.literal(String.format("§7• Cooldown: §f%.1fs", preview.getBaseCooldownTicks() / 20.0F)));
+        lines.add(Component.literal((cost.channeledPerSecond() ? "§7• Materia Drain: §b" : "§7• Fuel Cost: §b") + cost.formatTypeCostSummary()));
+        lines.add(Component.literal(preview.isChanneledHoldBeam()
+                ? "§7• Mode: §bHold Right-Click (Channeled)"
+                : String.format("§7• Cooldown: §f%.1fs", preview.getBaseCooldownTicks() / 20.0F)));
         return lines;
     }
 
@@ -1508,30 +1850,58 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                 + " §8• §6Materia: " + formatTooltipMateriaState(mat, prof.mutated())));
 
         String powerLine = switch (ef.getRootFamily()) {
-            case HARM -> String.format("Deals %.0f HP elemental damage (Tier %s)",
+            case HARM -> String.format("Deals %.1f HP pure Materia damage (Tier %s)",
                     MateriaStageTable.getBaseCombatDamageHp(this.potencyTier) * prof.potencyMultiplier(), ROMAN[this.potencyTier - 1]);
             case WARD -> String.format("Grants %.0f HP arcane ward barrier (Tier %s)",
                     MateriaStageTable.getBaseWardShieldHp(this.potencyTier) * prof.potencyMultiplier(), ROMAN[this.potencyTier - 1]);
-            case RESTORATION -> String.format("Restores %.0f HP vitality & mends allies (Tier %s)",
+            case RESTORATION -> String.format("Restores %.1f HP vitality & cleanses hexes (Tier %s)",
                     MateriaStageTable.getBaseRestorationHealHp(this.potencyTier) * prof.potencyMultiplier(), ROMAN[this.potencyTier - 1]);
             case KINETIC -> "Applies forceful knockback, pull, flight, or grapple impulse";
-            case BLINK -> "Teleports or phase-steps across space instantly";
-            case TRANSMUTE -> "Breaks, harvests, or transmutes blocks and matter";
-            case AFFLICTION -> "Inflicts lingering elemental hexes & status debuffs";
+            case BLINK -> {
+                if (this.travelDistance.isPointBlankZero()) {
+                    yield "In-place 0m phase step (resets fall momentum & triggers arrival effects on the spot)";
+                }
+                float blinkReach = (this.potencyTier <= 3 ? 16.0F : 16.0F + (this.potencyTier - 3) * 2.5F)
+                        * this.travelDistance.getDistanceScaleFromStandard();
+                yield String.format("Teleports up to %.1fm (%s) • 100%% fuel refund if blocked/unsafe",
+                        blinkReach, this.potencyTier >= 4 ? "Phases Walls" : "Line-of-Sight");
+            }
+            case TRANSMUTE -> "Breaks, harvests, or transmutes world blocks & dropped items";
+            case AFFLICTION -> "Inflicts persistent anti-milk elemental hexes (30s/15s boss cap)";
             case CONJURE -> "Conjures arcane light, constructs, sonar, or weather shifts";
         };
         lines.add(Component.literal("§7• " + powerLine));
+        if (ef == SpellCoreEffect.BLINK && isCurrent) {
+            String activeMode = isDualVerb ? currentSub().secondarySubMode : currentSub().primarySubMode;
+            boolean swap = "swap".equalsIgnoreCase(activeMode);
+            lines.add(Component.literal("§e• Mode: §f" + (swap ? "Position Swap (Transposition)" : "Self-Blink (Instant Step)")
+                    + " §8(Right-Click rune to toggle)"));
+        }
         appendMutationTraitBullets(lines, prof);
+        if (!prof.mutated() && canMut) {
+            SpellMutationProfile previewMut = SpellMutationRegistry.resolveEffect(slotType, ef, mat, true);
+            if (previewMut.mutated()) {
+                lines.add(Component.literal("§8• Tip: Flip §eMUTATION: ON §8in Left Drawer for §d" + previewMut.signatureTitle() + "§8!"));
+            }
+        }
+        if (mat != EssenceType.REGULAR) {
+            lines.add(Component.literal("§8• Matchup: §7" + ddraig.net.entropica.combat.VisInteractionManager.getInstance().formatMatchupSummary(mat)));
+        }
 
         SpellAssembly preview = buildDraftAssembly();
         SpellCostBreakdown cost = SpellFuelCalculator.calculateCastCost(preview, null, 0.0F, EssenceType.REGULAR);
-        lines.add(Component.literal("§7• Fuel Cost: §b" + cost.formatTypeCostSummary()));
-        lines.add(Component.literal(String.format("§7• Cooldown: §f%.1fs", preview.getBaseCooldownTicks() / 20.0F)));
+        lines.add(Component.literal((cost.channeledPerSecond() ? "§7• Materia Drain: §b" : "§7• Fuel Cost: §b") + cost.formatTypeCostSummary()));
+        lines.add(Component.literal(preview.isChanneledHoldBeam()
+                ? "§7• Mode: §bHold Right-Click (Channeled)"
+                : String.format("§7• Cooldown: §f%.1fs", preview.getBaseCooldownTicks() / 20.0F)));
         return lines;
     }
 
     private void appendMutationTraitBullets(List<Component> lines, SpellMutationProfile prof) {
         if (!prof.mutated()) return;
+        if (prof.mutationDescription() != null && !prof.mutationDescription().isBlank()) {
+            lines.add(Component.literal("§d✦ " + prof.mutationDescription()));
+        }
         List<String> perks = new ArrayList<>();
         if (prof.bonusPierceTargets() > 0) perks.add("+" + prof.bonusPierceTargets() + " Target Pierce");
         if (prof.wallPhasing()) perks.add("Phases Through Walls");
@@ -1563,7 +1933,8 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         return List.of(
                 Component.literal(mat.getFormattedName() + " Materia Infusion"),
                 Component.literal("§7Target: §e" + ringLabels[this.focusedRing]),
-                Component.literal("§7 Epithet: §f" + SpellMutationRegistry.getEpithet(mat)),
+                Component.literal("§7Epithet: §f" + SpellMutationRegistry.getEpithet(mat)),
+                Component.literal("§7Matchup: §e" + ddraig.net.entropica.combat.VisInteractionManager.getInstance().formatMatchupSummary(mat)),
                 Component.literal("§b• Click to infuse " + mat.getDisplayName() + " into this ring!")
         );
     }
@@ -1652,7 +2023,7 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             playWoodenSlideSound(1.1F);
             return true;
         }
-        if (this.leftDrawerOpen > 0.7F && handleOpenLeftDrawerClick(mx, my, x, y)) {
+        if (this.leftDrawerOpen > 0.7F && handleOpenLeftDrawerClick(mx, my, btn, x, y)) {
             return true;
         }
 
@@ -1672,21 +2043,43 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             return true;
         }
 
-        // 4. Concentric Symbol Rings (Click-and-Drag Rotation or Direct Symbol Click!)
+        // 4. 6-Zone Concentric Symbol Rings (Click-and-Drag Rotation or Direct Stop/Symbol Click!)
         int cx = x + WHEEL_REL_CX;
         int cy = y + WHEEL_REL_CY;
-        if (isInside(mx, my, x + 96, y + 31, 124, 109)) {
+        if (isInside(mx, my, x + 92, y + 28, 132, 117)) {
             float dist = (float) Math.hypot(mx - cx, my - cy);
             if (dist <= RING_DUAL_OUT) {
                 this.focusedRing = 3;
-                cycleRing(3, btn == 1 ? -1 : 1);
-                playRingTickSound(1.25F);
+                if (btn == 1 && event.hasShiftDown() && currentSub().secondaryEffect == SpellCoreEffect.BLINK) {
+                    currentSub().secondarySubMode = "swap".equalsIgnoreCase(currentSub().secondarySubMode) ? "default" : "swap";
+                    playRingTickSound(1.4F);
+                    return true;
+                }
+                cycleWheelRing(5, btn == 1 ? -1 : 1);
+                playStoneCircleDetentSound(5);
                 return true;
-            } else if (dist <= RING_FLOW_OUT + 3.0F) {
-                int ring = dist <= RING_PRIM_OUT + 1.0F ? 2 : (dist <= RING_FORM_OUT + 1.0F ? 1 : 0);
-                this.focusedRing = ring;
-                this.draggingRing = ring;
+            } else if (dist <= RING_DIST_OUT + 3.0F) {
+                int wheelRing = dist <= RING_PRIM_OUT + 0.5F ? 4
+                        : (dist <= RING_FORM_OUT + 0.5F ? 3
+                        : (dist <= RING_FLOW_OUT + 0.5F ? 2
+                        : (dist <= RING_TRIG_OUT + 0.5F ? 1 : 0)));
+                focusMateriaRingForWheel(wheelRing);
+                if (wheelRing == 0 && btn == 1 && event.hasShiftDown()) {
+                    selectWheelRingIndexAnimated(0, SpellTravelDistance.DIST_16.ordinal());
+                    return true;
+                }
+                if (wheelRing == 1 && btn == 1 && this.trigger.hasTimerDial()) {
+                    cycleFlowTimerInterval();
+                    return true;
+                }
+                if (wheelRing == 4 && btn == 1 && currentSub().primaryEffect == SpellCoreEffect.BLINK) {
+                    currentSub().primarySubMode = "swap".equalsIgnoreCase(currentSub().primarySubMode) ? "default" : "swap";
+                    playRingTickSound(1.4F);
+                    return true;
+                }
+                this.draggingRing = wheelRing;
                 this.lastRingDragMouseAngle = (float) Mth.atan2(my - cy, mx - cx);
+                this.stoneGrindDragAccum = 0.0F;
                 this.ringClickStartX = mx;
                 this.ringClickStartY = my;
                 this.dragMovedSignificantly = false;
@@ -1724,16 +2117,16 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         return super.mouseClicked(event, doubleClick);
     }
 
-    private boolean handleOpenLeftDrawerClick(double mx, double my, int x, int y) {
+    private boolean handleOpenLeftDrawerClick(double mx, double my, int btn, int x, int y) {
         int dx = x - 38 + Math.round((1.0F - this.leftDrawerOpen) * 124.0F);
         int dy = y + 25;
         if (!isInside(mx, my, dx, dy, 124, 124)) return false;
 
         // Wax Seals (Combat, Utility, Misc, Lock)
-        int compAY = dy + 7;
+        int compAY = dy + 6;
         for (int s = 0; s < 4; s++) {
             int cardX = dx + 6 + s * 28;
-            if (isInside(mx, my, cardX, compAY, 26, 27)) {
+            if (isInside(mx, my, cardX, compAY, 26, 28)) {
                 if (s < 3) {
                     this.prefix = CRAFTABLE_PREFIXES[s];
                     normalizeDraftForPrefixAndResearch();
@@ -1744,21 +2137,45 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
                 return true;
             }
         }
-        // Sub-Spell Roman Tabs I..VIII
+        // Sub-Spell Roman Tabs I..VIII (Single 1x through Octuple 8x Cast!)
         int tabY = compAY + 28;
         int slotCount = getActiveSlotCount();
-        for (int i = 0; i < slotCount; i++) {
+        for (int i = 0; i < 8; i++) {
             if (isInside(mx, my, dx + 6 + i * 14, tabY, 13, 11)) {
-                this.activeSubSlot = i;
+                if (btn == 1) {
+                    if (i == 0) {
+                        this.subSpellCount = 1;
+                    } else if (i == slotCount - 1) {
+                        this.subSpellCount = Math.max(1, i);
+                    } else {
+                        this.subSpellCount = i + 1;
+                    }
+                    this.activeSubSlot = Math.clamp(this.activeSubSlot, 0, this.subSpellCount - 1);
+                } else {
+                    if (i >= slotCount) {
+                        this.subSpellCount = i + 1;
+                    }
+                    this.activeSubSlot = i;
+                }
                 playPageTurnSound();
                 return true;
             }
         }
-        // Ring Focus Pills
+        // Ring Focus Pills (Right-click Flow pill to cycle Timer / Self-Timed interval!)
         for (int r = 0; r < 4; r++) {
-            if (isInside(mx, my, dx + 6 + r * 28, dy + 53, 26, 10)) {
+            if (isInside(mx, my, dx + 6 + r * 28, dy + 52, 26, 11)) {
                 this.focusedRing = r;
-                playClickSound(1.25F);
+                if (r == 0 && btn == 1 && this.trigger.hasTimerDial()) {
+                    cycleFlowTimerInterval();
+                } else if (r == 2 && btn == 1 && currentSub().primaryEffect == SpellCoreEffect.BLINK) {
+                    currentSub().primarySubMode = "swap".equalsIgnoreCase(currentSub().primarySubMode) ? "default" : "swap";
+                    playRingTickSound(1.4F);
+                } else if (r == 3 && btn == 1 && currentSub().secondaryEffect == SpellCoreEffect.BLINK) {
+                    currentSub().secondarySubMode = "swap".equalsIgnoreCase(currentSub().secondarySubMode) ? "default" : "swap";
+                    playRingTickSound(1.4F);
+                } else {
+                    playClickSound(1.25F);
+                }
                 return true;
             }
         }
@@ -1798,7 +2215,7 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
 
     private boolean handleOpenRightDrawerClick(double mx, double my, int btn, int x, int y) {
         // Golden SCRIBE Wax Seal
-        if (isInside(mx, my, x + 248, y + 54, 50, 36)) {
+        if (isInside(mx, my, x + 246, y + 53, 54, 38)) {
             SpellAssembly built = buildDraftAssembly();
             NetworkManager.sendToServer(new ArcaneScribingActionPayload(
                     this.menu.getTablePos(),
@@ -1812,9 +2229,9 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         }
         // Mini Utility Seals: [Load] [Copy] [Scrub / S#]
         for (int b = 0; b < 3; b++) {
-            int bx = x + 239 + b * 23;
+            int bx = (int) (x + 239.0F + b * 23.5F);
             int by = y + 95;
-            if (isInside(mx, my, bx, by, 22, 13)) {
+            if (isInside(mx, my, bx, by, 21, 13)) {
                 if (b == 0) {
                     loadFromStudySlot();
                 } else if (b == 1) {
@@ -1882,7 +2299,7 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             return true;
         }
 
-        if (this.draggingRing >= 0 && this.draggingRing <= 2) {
+        if (this.draggingRing >= 0 && this.draggingRing <= 4) {
             if (Math.hypot(mx - this.ringClickStartX, my - this.ringClickStartY) > 3.5D) {
                 this.dragMovedSignificantly = true;
             }
@@ -1893,19 +2310,34 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             this.lastRingDragMouseAngle = curAng;
 
             int r = this.draggingRing;
-            int count = getRingOptionCount(r);
+            int count = getWheelRingOptionCount(r);
             if (count > 0) {
                 float stepRad = Mth.TWO_PI / count;
                 this.ringAngleOffset[r] += dAng;
+                this.stoneGrindDragAccum += Math.abs(dAng);
+
+                boolean crossedDetent = false;
                 while (this.ringAngleOffset[r] >= stepRad * 0.5F) {
                     this.ringAngleOffset[r] -= stepRad;
-                    cycleRing(r, -1);
-                    playRingTickSound(1.05F + r * 0.12F);
+                    cycleWheelRing(r, -1);
+                    crossedDetent = true;
                 }
                 while (this.ringAngleOffset[r] <= -stepRad * 0.5F) {
                     this.ringAngleOffset[r] += stepRad;
-                    cycleRing(r, 1);
-                    playRingTickSound(1.05F + r * 0.12F);
+                    cycleWheelRing(r, 1);
+                    crossedDetent = true;
+                }
+
+                long nowMs = System.currentTimeMillis();
+                if (crossedDetent) {
+                    this.stoneGrindDragAccum = 0.0F;
+                    this.lastStoneGrindSoundMs = nowMs;
+                    playStoneCircleDetentSound(r);
+                } else if (this.stoneGrindDragAccum >= 0.052F && nowMs - this.lastStoneGrindSoundMs >= 72L) {
+                    this.stoneGrindDragAccum = 0.0F;
+                    this.lastStoneGrindSoundMs = nowMs;
+                    float speedFactor = Mth.clamp(Math.abs(dAng) / 0.14F, 0.0F, 1.0F);
+                    playStoneCircleGrindSound(r, speedFactor);
                 }
             }
             return true;
@@ -1942,20 +2374,20 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             int r = this.draggingRing;
             this.draggingRing = -1;
             if (!this.dragMovedSignificantly) {
-                // Direct click on a visible symbol around the ring spins it smoothly under the needle!
+                // Direct click on a visible stop/symbol around the ring spins it smoothly under the needle!
                 int cx = this.leftPos + WHEEL_REL_CX;
                 int cy = this.topPos + WHEEL_REL_CY;
-                int count = getRingOptionCount(r);
-                int selIdx = getRingSelectedIndex(r);
-                float midR = r == 0 ? (RING_FLOW_IN + RING_FLOW_OUT) * 0.5F
-                        : (r == 1 ? (RING_FORM_IN + RING_FORM_OUT) * 0.5F : (RING_PRIM_IN + RING_PRIM_OUT) * 0.5F);
+                int count = getWheelRingOptionCount(r);
+                int selIdx = getWheelRingSelectedIndex(r);
+                float midR = getWheelBandMidRadius(r);
                 float stepRad = Mth.TWO_PI / count;
+                double hitRad = r == 0 ? 6.5D : 5.2D;
                 for (int i = 0; i < count; i++) {
                     float ang = -Mth.HALF_PI + (i - selIdx) * stepRad;
                     float sx = cx + Mth.cos(ang) * midR;
                     float sy = cy + Mth.sin(ang) * midR;
-                    if (Math.hypot(event.x() - sx, event.y() - sy) <= 6.5D) {
-                        selectRingIndexAnimated(r, i);
+                    if (Math.hypot(event.x() - sx, event.y() - sy) <= hitRad) {
+                        selectWheelRingIndexAnimated(r, i);
                         break;
                     }
                 }
@@ -1975,9 +2407,15 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         int x = this.leftPos;
         int y = this.topPos;
 
-        // Scroll Materia Vials page when hovering open Left Drawer
+        // Scroll Roman Tabs (Single I .. Octuple VIII) or Materia Vials page when hovering open Left Drawer
         if (this.leftDrawerOpen > 0.7F) {
             int dx = x - 38 + Math.round((1.0F - this.leftDrawerOpen) * 124.0F);
+            if (isInside(mouseX, mouseY, dx + 4, y + 57, 116, 15)) {
+                this.subSpellCount = Mth.clamp(this.subSpellCount - delta, 1, 8);
+                this.activeSubSlot = Math.clamp(this.activeSubSlot, 0, this.subSpellCount - 1);
+                playPageTurnSound();
+                return true;
+            }
             if (isInside(mouseX, mouseY, dx, y + 75, 124, 38) && this.availableMateria.size() > MATERIA_PER_PAGE) {
                 int maxPage = (this.availableMateria.size() - 1) / MATERIA_PER_PAGE;
                 this.materiaPage = Mth.clamp(this.materiaPage + delta, 0, maxPage);
@@ -1993,19 +2431,25 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             return true;
         }
 
-        // Scroll Concentric Symbol Rings directly!
+        // Scroll 6-Zone Concentric Symbol Rings directly!
         int cx = x + WHEEL_REL_CX;
         int cy = y + WHEEL_REL_CY;
         float dist = (float) Math.hypot(mouseX - cx, mouseY - cy);
-        if (dist <= RING_FLOW_OUT + 3.0F && isInside(mouseX, mouseY, x + 96, y + 31, 124, 109)) {
-            int r = dist <= RING_DUAL_OUT ? 3 : (dist <= RING_PRIM_OUT + 1.0F ? 2 : (dist <= RING_FORM_OUT + 1.0F ? 1 : 0));
-            this.focusedRing = r;
-            int count = Math.max(1, getRingOptionCount(r));
-            cycleRing(r, delta);
-            if (r < 3) {
-                this.ringAngleOffset[r] = delta * (Mth.TWO_PI / count);
+        if (dist <= RING_DIST_OUT + 3.0F && isInside(mouseX, mouseY, x + 92, y + 28, 132, 117)) {
+            int wheelRing = dist <= RING_DUAL_OUT ? 5
+                    : (dist <= RING_PRIM_OUT + 0.5F ? 4
+                    : (dist <= RING_FORM_OUT + 0.5F ? 3
+                    : (dist <= RING_FLOW_OUT + 0.5F ? 2
+                    : (dist <= RING_TRIG_OUT + 0.5F ? 1 : 0))));
+            focusMateriaRingForWheel(wheelRing);
+            int count = Math.max(1, getWheelRingOptionCount(wheelRing));
+            cycleWheelRing(wheelRing, delta);
+            if (wheelRing <= 4) {
+                this.ringAngleOffset[wheelRing] = delta * (Mth.TWO_PI / count);
+                this.stoneGrindGlideAccum[wheelRing] = 0.0F;
             }
-            playRingTickSound(1.12F + r * 0.1F);
+            this.lastStoneGrindSoundMs = System.currentTimeMillis();
+            playStoneCircleDetentSound(wheelRing);
             return true;
         }
 
@@ -2045,6 +2489,46 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
         if (this.minecraft != null && this.minecraft.player != null) {
             this.minecraft.player.playSound(SoundEvents.AMETHYST_BLOCK_STEP, 0.55F, pitch);
         }
+    }
+
+    /**
+     * Plays a soft, tactile carved-stone sliding/grinding grain while a concentric spell circle is being dragged or spun.
+     * Larger outer rings sound slightly deeper and heavier than smaller inner rings.
+     */
+    private void playStoneCircleGrindSound(int wheelRing, float speedFactor) {
+        if (this.minecraft == null || this.minecraft.player == null) {
+            return;
+        }
+        int clampedRing = Mth.clamp(wheelRing, 0, 5);
+        int variant = (this.stoneGrindGrainVariant++) & 3;
+        float jitter = ((variant - 1.5F) * 0.018F);
+        float basePitch = 0.63F + clampedRing * 0.052F + speedFactor * 0.06F + jitter;
+        float stoneVol = 0.25F + speedFactor * 0.11F;
+        float gritVol = 0.13F + speedFactor * 0.07F;
+
+        net.minecraft.sounds.SoundEvent stoneScrape = switch (variant) {
+            case 0 -> SoundEvents.POLISHED_DEEPSLATE_STEP;
+            case 1 -> SoundEvents.DEEPSLATE_TILES_STEP;
+            case 2 -> SoundEvents.POLISHED_TUFF_STEP;
+            default -> SoundEvents.TUFF_BRICKS_STEP;
+        };
+        this.minecraft.player.playSound(stoneScrape, stoneVol, basePitch);
+        this.minecraft.player.playSound(SoundEvents.BRUSH_SAND, gritVol, basePitch * 0.92F);
+    }
+
+    /**
+     * Plays a light stone grind + carved-notch detent click when a rune or distance stop locks into place under the needle.
+     */
+    private void playStoneCircleDetentSound(int wheelRing) {
+        if (this.minecraft == null || this.minecraft.player == null) {
+            return;
+        }
+        int clampedRing = Mth.clamp(wheelRing, 0, 5);
+        float basePitch = 0.72F + clampedRing * 0.055F;
+        this.minecraft.player.playSound(SoundEvents.DEEPSLATE_TILES_STEP, 0.32F, basePitch);
+        this.minecraft.player.playSound(SoundEvents.BRUSH_SAND, 0.15F, basePitch * 0.90F);
+        this.minecraft.player.playSound(SoundEvents.LODESTONE_HIT, 0.17F, basePitch + 0.10F);
+        this.minecraft.player.playSound(SoundEvents.AMETHYST_BLOCK_STEP, 0.12F, 1.02F + clampedRing * 0.05F);
     }
 
     private void playPageTurnSound() {

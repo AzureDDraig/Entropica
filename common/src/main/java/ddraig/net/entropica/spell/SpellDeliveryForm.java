@@ -48,6 +48,7 @@ public enum SpellDeliveryForm implements StringRepresentable {
             StreamCodec.of(FriendlyByteBuf::writeEnum, buf -> buf.readEnum(SpellDeliveryForm.class));
 
     private static final int[] BEAM_REACH_BY_TIER = {8, 12, 16, 20, 24, 28, 32, 36, 42, 48};
+    private static final int[] COMBAT_BEAM_REACH_BY_TIER = {12, 16, 20, 24, 28, 32, 36, 40, 44, 48};
     private static final int[] BURST_DIAMETER_BY_TIER = {5, 9, 13, 17, 23, 29, 35, 41, 47, 53};
     private static final int[] CONSTRUCTION_SPAN_BY_TIER = {5, 9, 13, 17, 21, 25, 29, 33, 37, 41};
 
@@ -119,6 +120,15 @@ public enum SpellDeliveryForm implements StringRepresentable {
         return earthLineageBonus ? (int) Math.round(base * 1.5D) : base;
     }
 
+    /**
+     * Canonical Section 4.2 Combat Beam reach: 12 blocks at Tier 1 scaling to 48 blocks at Tier 10.
+     */
+    public static int getCombatBeamReachBlocks(int potencyTier, boolean earthLineageBonus) {
+        int idx = Math.clamp(potencyTier, 1, 10) - 1;
+        int base = COMBAT_BEAM_REACH_BY_TIER[idx];
+        return earthLineageBonus ? (int) Math.round(base * 1.5D) : base;
+    }
+
     public static int getBurstOrGlyphDiameter(int potencyTier) {
         int idx = Math.clamp(potencyTier, 1, 10) - 1;
         return BURST_DIAMETER_BY_TIER[idx];
@@ -134,7 +144,7 @@ public enum SpellDeliveryForm implements StringRepresentable {
             case SKYFALL -> 5.0D + (clamped * 1.6D);
             case TOUCH_STRIKE -> 3.5D + (clamped * 0.35D);
             case PROJECTILE -> 1.5D + (clamped * 0.25D);
-            case BEAM -> getBeamReachBlocks(clamped, false);
+            case BEAM -> getCombatBeamReachBlocks(clamped, false);
             case SUMMON_AGENT, SUMMON_SENTRY, SUMMON_DECOY -> 8.0D + (clamped * 1.5D);
         };
     }

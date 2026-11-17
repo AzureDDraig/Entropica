@@ -43,6 +43,58 @@ public class VisInteractionManager {
         return totalScore;
     }
 
+    public Set<EssenceType> getStrongAgainst(EssenceType attacker) {
+        if (attacker == null || attacker == EssenceType.REGULAR) return Collections.emptySet();
+        Set<EssenceType> set = strongAgainstMap.get(attacker.getSerializedName());
+        return set == null ? Collections.emptySet() : Collections.unmodifiableSet(set);
+    }
+
+    public Set<EssenceType> getWeakAgainst(EssenceType attacker) {
+        if (attacker == null || attacker == EssenceType.REGULAR) return Collections.emptySet();
+        Set<EssenceType> set = weakAgainstMap.get(attacker.getSerializedName());
+        return set == null ? Collections.unmodifiableSet(Collections.emptySet()) : Collections.unmodifiableSet(set);
+    }
+
+    /**
+     * Formats a concise, player-readable Materia Advantage/Weakness summary for tooltips.
+     */
+    public String formatMatchupSummary(EssenceType attacker) {
+        if (attacker == null || attacker == EssenceType.REGULAR) {
+            return "Neutral (Adapts to Dynamic Fuel)";
+        }
+        if (attacker == EssenceType.CHIMERA) {
+            return "Shifting Quad-Elemental (Air / Earth / Water / Nether)";
+        }
+        Set<EssenceType> strong = getStrongAgainst(attacker);
+        Set<EssenceType> weak = getWeakAgainst(attacker);
+        if (strong.isEmpty() && weak.isEmpty()) {
+            return "Neutral Matchup";
+        }
+        String strongPart = strong.size() >= 20
+                ? "All Materia (+1)"
+                : (strong.isEmpty() ? "None" : (formatTypeList(strong, 4) + " (+1)"));
+        String weakPart = weak.isEmpty()
+                ? "None (0 Weaknesses)"
+                : (formatTypeList(weak, 4) + " (-1)");
+        return "Strong vs " + strongPart + " • Weak vs " + weakPart;
+    }
+
+    private static String formatTypeList(Set<EssenceType> types, int maxShown) {
+        List<String> names = new ArrayList<>(Math.min(types.size(), maxShown + 1));
+        int idx = 0;
+        for (EssenceType t : types) {
+            if (t == EssenceType.REGULAR) continue;
+            if (idx < maxShown) {
+                names.add(t.getDisplayName());
+            }
+            idx++;
+        }
+        if (idx > maxShown) {
+            return String.join(", ", names) + " +" + (idx - maxShown) + " more";
+        }
+        return String.join(", ", names);
+    }
+
     private void setupHardcodedDefaults() {
         strongAgainstMap.clear();
         weakAgainstMap.clear();

@@ -172,6 +172,13 @@ public class ModNetwork {
         );
 
         NetworkManager.registerReceiver(
+                NetworkManager.Side.S2C,
+                SyncSpellWardPayload.TYPE,
+                SyncSpellWardPayload.STREAM_CODEC,
+                ModNetwork::handleSyncSpellWard
+        );
+
+        NetworkManager.registerReceiver(
                 NetworkManager.Side.C2S,
                 UpdateAutocastPedestalPayload.TYPE,
                 UpdateAutocastPedestalPayload.STREAM_CODEC,
@@ -598,6 +605,10 @@ public class ModNetwork {
 
     public static void handleSyncArcaneWings(final SyncArcaneWingsPayload data, final NetworkManager.PacketContext context) {
         context.queue(() -> ddraig.net.entropica.spell.vfx.ArcaneWingsClientManager.handleSync(data));
+    }
+
+    public static void handleSyncSpellWard(final SyncSpellWardPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> ddraig.net.entropica.spell.vfx.SpellWardClientManager.handleSync(data));
     }
 
     public static void handleJournalBookmark(final JournalBookmarkPayload data, final NetworkManager.PacketContext context) {

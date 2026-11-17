@@ -5,6 +5,7 @@ import ddraig.net.entropica.block.entity.AutocastPedestalBlockEntity;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModDataComponents;
 import ddraig.net.entropica.spell.SpellTooltipFormatter;
+import ddraig.net.entropica.spell.SpellTriggerType;
 import ddraig.net.entropica.spell.apparatus.ApparatusType;
 import ddraig.net.entropica.spell.apparatus.CastingApparatusState;
 import ddraig.net.entropica.spell.apparatus.SocketedSpellgem;
@@ -13,6 +14,7 @@ import ddraig.net.entropica.spell.engine.SpellExecutionEngine;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -21,12 +23,14 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.TooltipDisplay;
@@ -190,9 +194,146 @@ public class CastingApparatusItem extends Item {
         }
     }
 
+    public static boolean isActiveSpellChanneledBeam(ItemStack stack) {
+        CastingApparatusState state = stack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+        if (state == null) return false;
+        SocketedSpellgem active = state.getActiveSocket();
+        return !active.isEmpty()
+                && active.spell().isPresent()
+                && active.spell().get().isChanneledHoldBeam();
+    }
+
+    public static boolean isActiveSpellOnReleaseStatic(ItemStack stack) {
+        CastingApparatusState state = stack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+        if (state == null) return false;
+        SocketedSpellgem active = state.getActiveSocket();
+        return !active.isEmpty()
+                && active.spell().isPresent()
+                && !active.spell().get().isChanneledHoldBeam()
+                && active.spell().get().flowPart().trigger() == SpellTriggerType.ON_RELEASE;
+    }
+
+    public static boolean canClientStartHoldCast(Player player, InteractionHand hand, ItemStack stack) {
+        if (player.getCooldowns().isOnCooldown(stack)) return false;
+        CastingApparatusState state = stack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+        if (state == null) return false;
+        if (hand == InteractionHand.OFF_HAND && !state.apparatusType().allowsOffhandCast()) return false;
+        SocketedSpellgem active = state.getActiveSocket();
+        if (active.isEmpty() || active.spell().isEmpty()) return false;
+        if (!active.spell().get().isBoundToTier()) return false;
+        return !active.isLockedOut(player.level().getGameTime());
+    }
+
+    private boolean isActiveSpellOnRelease(ItemStack stack) {
+        return isActiveSpellOnReleaseStatic(stack);
+    }
+
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+        return (isActiveSpellChanneledBeam(stack) || isActiveSpellOnRelease(stack)) ? 72000 : 0;
+    }
+
+    @Override
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return (isActiveSpellChanneledBeam(stack) || isActiveSpellOnRelease(stack))
+                ? ItemUseAnimation.BOW
+                : ItemUseAnimation.NONE;
+    }
+
+    @Override
+    public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int remainingUseDuration) {
+        int heldTicks = this.getUseDuration(stack, livingEntity) - remainingUseDuration;
+        if (isActiveSpellChanneledBeam(stack)) {
+            if (heldTicks > 0 && level instanceof ServerLevel serverLevel && livingEntity instanceof Player player) {
+                boolean keepChanneling = SpellExecutionEngine.tickChanneledBeam(
+                        serverLevel,
+                        player,
+                        player.getUsedItemHand(),
+                        stack,
+                        heldTicks
+                );
+                if (!keepChanneling) {
+                    player.stopUsingItem();
+                    player.getCooldowns().addCooldown(stack, 6);
+                }
+            }
+            return;
+        }
+        if (!isActiveSpellOnRelease(stack)) {
+            return;
+        }
+        if (level instanceof ServerLevel serverLevel && heldTicks > 0 && heldTicks % 6 == 0) {
+            serverLevel.sendParticles(
+                    ParticleTypes.ENCHANT,
+                    livingEntity.getX(),
+                    livingEntity.getY(0.75D),
+                    livingEntity.getZ(),
+                    5, 0.3D, 0.3D, 0.3D, 0.04D
+            );
+            if (heldTicks <= 24) {
+                float pitch = 0.9F + Math.min(1.0F, heldTicks / 20.0F) * 0.55F;
+                serverLevel.playSound(null, livingEntity.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME,
+                        SoundSource.PLAYERS, 0.55F, pitch);
+            }
+        }
+    }
+
+    @Override
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
+        if (entity instanceof Player player && isActiveSpellChanneledBeam(stack)) {
+            player.getCooldowns().addCooldown(stack, 4);
+            return true;
+        }
+        if (entity instanceof Player player && isActiveSpellOnRelease(stack)) {
+            int heldTicks = this.getUseDuration(stack, entity) - timeLeft;
+            if (heldTicks < 2) {
+                return false;
+            }
+            float chargeRatio = Math.min(1.0F, heldTicks / 20.0F);
+            float compressionPotency = 1.0F + 0.15F * chargeRatio;
+            if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
+                return SpellExecutionEngine.castFromApparatus(
+                        serverLevel,
+                        player,
+                        player.getUsedItemHand(),
+                        stack,
+                        compressionPotency
+                );
+            }
+            return true;
+        }
+        return super.releaseUsing(stack, level, entity, timeLeft);
+    }
+
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (isActiveSpellChanneledBeam(stack)) {
+            if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
+                if (player.isShiftKeyDown()
+                        && ddraig.net.entropica.spell.engine.SpellLingeringZoneManager.tryDisarmCasterGlyph(serverLevel, player)) {
+                    player.getCooldowns().addCooldown(stack, 6);
+                    return InteractionResult.SUCCESS;
+                }
+                if (SpellExecutionEngine.tryBeginChanneledBeam(serverLevel, player, hand, stack)) {
+                    player.startUsingItem(hand);
+                    return InteractionResult.CONSUME;
+                }
+                return InteractionResult.FAIL;
+            }
+            if (canClientStartHoldCast(player, hand, stack)) {
+                player.startUsingItem(hand);
+                return InteractionResult.CONSUME;
+            }
+            return InteractionResult.FAIL;
+        }
+        if (isActiveSpellOnRelease(stack) && canClientStartHoldCast(player, hand, stack) && !player.isShiftKeyDown()) {
+            player.startUsingItem(hand);
+            if (level.isClientSide()) {
+                player.playSound(SoundEvents.AMETHYST_BLOCK_RESONATE, 0.5F, 1.1F);
+            }
+            return InteractionResult.CONSUME;
+        }
         if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
             boolean cast = SpellExecutionEngine.castFromApparatus(serverLevel, player, hand, stack);
             return cast ? InteractionResult.SUCCESS : InteractionResult.FAIL;
@@ -218,9 +359,23 @@ public class CastingApparatusItem extends Item {
                 player.playSound(SoundEvents.ARMOR_EQUIP_IRON.value(), 0.8F, 1.2F);
                 return true;
             }
-        } else if (SpellgemItem.isInscribed(slotStack) && activeSocket.isEmpty()) {
+        } else if (SpellgemItem.isInscribed(slotStack) && (activeSocket.isEmpty() || player.getAbilities().instabuild)) {
             SpellAssembly spell = slotStack.get(ModDataComponents.SPELL_ASSEMBLY.get());
             if (spell != null) {
+                if (player.getAbilities().instabuild) {
+                    ItemStack previousGem = (!activeSocket.isEmpty() && activeSocket.spell().isPresent() && slotStack.getCount() == 1)
+                            ? SpellgemItem.createInscribedGem(activeSocket.spell().get())
+                            : ItemStack.EMPTY;
+                    apparatusStack.set(ModDataComponents.CASTING_APPARATUS_STATE.get(),
+                            state.withSocket(activeIdx, SocketedSpellgem.socketAtWorkstation(spell)));
+                    if (!previousGem.isEmpty()) {
+                        slot.set(previousGem);
+                    } else {
+                        slotStack.shrink(1);
+                    }
+                    player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 0.85F, 1.35F);
+                    return true;
+                }
                 long now = player.level().getGameTime();
                 SocketedSpellgem fieldSocketed = SocketedSpellgem.socketInField(spell, now);
                 apparatusStack.set(ModDataComponents.CASTING_APPARATUS_STATE.get(), state.withSocket(activeIdx, fieldSocketed));
@@ -254,9 +409,23 @@ public class CastingApparatusItem extends Item {
                 player.playSound(SoundEvents.ARMOR_EQUIP_IRON.value(), 0.8F, 1.2F);
                 return true;
             }
-        } else if (SpellgemItem.isInscribed(otherStack) && activeSocket.isEmpty()) {
+        } else if (SpellgemItem.isInscribed(otherStack) && (activeSocket.isEmpty() || player.getAbilities().instabuild)) {
             SpellAssembly spell = otherStack.get(ModDataComponents.SPELL_ASSEMBLY.get());
             if (spell != null) {
+                if (player.getAbilities().instabuild) {
+                    ItemStack previousGem = (!activeSocket.isEmpty() && activeSocket.spell().isPresent() && otherStack.getCount() == 1)
+                            ? SpellgemItem.createInscribedGem(activeSocket.spell().get())
+                            : ItemStack.EMPTY;
+                    apparatusStack.set(ModDataComponents.CASTING_APPARATUS_STATE.get(),
+                            state.withSocket(activeIdx, SocketedSpellgem.socketAtWorkstation(spell)));
+                    if (!previousGem.isEmpty()) {
+                        access.set(previousGem);
+                    } else {
+                        otherStack.shrink(1);
+                    }
+                    player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 0.85F, 1.35F);
+                    return true;
+                }
                 long now = player.level().getGameTime();
                 SocketedSpellgem fieldSocketed = SocketedSpellgem.socketInField(spell, now);
                 apparatusStack.set(ModDataComponents.CASTING_APPARATUS_STATE.get(), state.withSocket(activeIdx, fieldSocketed));

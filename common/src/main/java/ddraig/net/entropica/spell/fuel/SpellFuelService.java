@@ -780,4 +780,130 @@ public final class SpellFuelService {
         else if (be instanceof MonadCoreBlockEntity c) c.setMateria(amount);
         else if (be instanceof AthanorCoreBlockEntity c) c.setMateria(amount);
     }
+
+    private static void setPlacedCellType(BlockEntity be, EssenceType type) {
+        if (be instanceof OrbisCellBlockEntity c) c.setManaType(type);
+        else if (be instanceof SublimatedOrbisCellBlockEntity c) c.setManaType(type);
+        else if (be instanceof PneumaticCalixBlockEntity c) c.setManaType(type);
+        else if (be instanceof VoltaicCalixBlockEntity c) c.setManaType(type);
+        else if (be instanceof MatrixCalixBlockEntity c) c.setManaType(type);
+        else if (be instanceof ThecaCellBlockEntity c) c.setManaType(type);
+        else if (be instanceof VasCellBlockEntity c) c.setManaType(type);
+        else if (be instanceof MonadCoreBlockEntity c) c.setManaType(type);
+        else if (be instanceof AthanorCoreBlockEntity c) c.setManaType(type);
+    }
+
+    private static int getPlacedCellMaxCapacity(int beTier) {
+        return switch (beTier) {
+            case 3 -> 100_000;
+            case 4 -> 250_000;
+            case 5 -> 500_000;
+            case 6 -> 1_000_000;
+            case 7 -> 2_500_000;
+            case 8 -> 5_000_000;
+            case 9 -> 10_000_000;
+            case 10 -> 25_000_000;
+            default -> ddraig.net.entropica.config.EntropicaConfig.ORBIS_CELL_MAX_MATERIA.get();
+        };
+    }
+
+    /**
+     * Guide Section 6.13 <i>Static Shroud (Living Lightning Rod)</i>:
+     * Safely absorbs a lightning strike into <b>100% full Materia fuel restoration</b> across all carried
+     * and weapon-embedded {@link OrbisCellItem}s (preserving each cell's stored Materia type, or attuning
+     * empty cells to {@code fallbackType}).
+     */
+    public static int restoreAllPlayerOrbisCellsToFull(Player player, EssenceType fallbackType) {
+        if (player == null) return 0;
+        EssenceType defaultType = (fallbackType != null && fallbackType != EssenceType.REGULAR)
+                ? fallbackType
+                : EssenceType.LIGHTNING;
+        int cellsFilled = 0;
+        Inventory inv = player.getInventory();
+
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack s = inv.getItem(i);
+            if (!(s.getItem() instanceof OrbisCellItem)) continue;
+            int maxCap = OrbisCellItem.getMaxMateria(s);
+            int curAmt = OrbisCellItem.getStoredMateriaAmount(s);
+            EssenceType curType = readOrbisCellType(s);
+            EssenceType fillType = (curType != null && curAmt > 0) ? curType : defaultType;
+            if (curAmt < maxCap || curType == null) {
+                fillOrbisCellStack(s, fillType, maxCap);
+                setCellCreditMfum(s, 0L);
+                cellsFilled++;
+            }
+        }
+
+        for (ItemStack handStack : List.of(player.getMainHandItem(), player.getOffhandItem())) {
+            VisWeaponState ws = handStack.get(ModDataComponents.VIS_WEAPON_STATE.get());
+            if (ws != null && ws.hasOrbisSlot() && !ws.orbisCell().isEmpty()) {
+                ItemStack embedded = ws.orbisCell().copy();
+                if (embedded.getItem() instanceof OrbisCellItem) {
+                    int maxCap = OrbisCellItem.getMaxMateria(embedded);
+                    int curAmt = OrbisCellItem.getStoredMateriaAmount(embedded);
+                    EssenceType curType = readOrbisCellType(embedded);
+                    EssenceType fillType = (curType != null && curAmt > 0) ? curType : defaultType;
+                    if (curAmt < maxCap || curType == null) {
+                        fillOrbisCellStack(embedded, fillType, maxCap);
+                        setCellCreditMfum(embedded, 0L);
+                        handStack.set(ModDataComponents.VIS_WEAPON_STATE.get(), ws.withOrbisCell(embedded));
+                        cellsFilled++;
+                    }
+                }
+            }
+        }
+        return cellsFilled;
+    }
+
+    /**
+     * Guide Section 2.2 Lightning / Static Lineage Utility Specialization (<i>Machine Re-Charging</i>):
+     * Directly charges placed Materia battery cells ({@link OrbisCellBlockEntity}, {@link VoltaicCalixBlockEntity}, etc.)
+     * and vapor-accepting machinery from a distance!
+     */
+    public static boolean chargePlacedMateriaBatteryOrMachine(
+            Level level,
+            BlockPos pos,
+            @Nullable EssenceType chargeType,
+            int spellTier
+    ) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be == null) return false;
+        EssenceType resolvedType = (chargeType != null && chargeType != EssenceType.REGULAR)
+                ? chargeType
+                : EssenceType.LIGHTNING;
+
+        int beTier = DecompressionCouplerBlockEntity.getMateriaTier(be);
+        if (beTier >= 2) {
+            int maxCap = getPlacedCellMaxCapacity(beTier);
+            int curAmt = getPlacedCellAmount(be);
+            if (curAmt >= maxCap) return false;
+
+            EssenceType existingType = getPlacedCellType(be);
+            EssenceType targetType = (existingType != null && curAmt > 0) ? existingType : resolvedType;
+            int chargeStep = Math.max(250, Math.min(maxCap / 8, (250 + spellTier * 350)));
+            int nextAmt = Math.min(maxCap, curAmt + chargeStep);
+            if (existingType == null || curAmt <= 0) {
+                setPlacedCellType(be, targetType);
+            }
+            setPlacedCellAmount(be, nextAmt);
+            var bs = level.getBlockState(pos);
+            level.sendBlockUpdated(pos, bs, bs, 3);
+            return true;
+        }
+
+        if (be instanceof IVaporHandler vaporHandler) {
+            MateriaStack inTank = vaporHandler.getMateriaInTank();
+            int safeRoom = Math.max(0, vaporHandler.getSafeCapacity() - inTank.getAmount());
+            if (safeRoom <= 0) return false;
+            EssenceType fillVaporType = (!inTank.isEmpty()) ? inTank.getType() : resolvedType;
+            int toFill = Math.min(safeRoom, 16 + spellTier * 16);
+            int inserted = vaporHandler.fill(new ddraig.net.entropica.api.materia.MateriaFumusStack(fillVaporType, toFill), false);
+            if (inserted > 0) {
+                be.setChanged();
+                return true;
+            }
+        }
+        return false;
+    }
 }

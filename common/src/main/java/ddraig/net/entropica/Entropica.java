@@ -114,7 +114,6 @@ public class Entropica {
                     && !(entity instanceof ddraig.net.entropica.entity.SpellEidolonEntity)
                     && monster.tickCount == 0
                     && !monster.isPersistenceRequired()
-                    && srv.getMaxLocalRawBrightness(monster.blockPosition()) <= 7
                     && ddraig.net.entropica.entity.SpellEidolonEntity.isUmbralSentrySuppressingSpawns(srv, monster.blockPosition())) {
                 return dev.architectury.event.EventResult.interruptFalse();
             }
@@ -125,6 +124,11 @@ public class Entropica {
         dev.architectury.event.events.common.InteractionEvent.LEFT_CLICK_BLOCK.register((player, hand, pos, direction) -> {
             if (player.isShiftKeyDown() && player.getItemInHand(hand).getItem() instanceof ddraig.net.entropica.item.FirmamentWeaverItem) {
                 if (ddraig.net.entropica.item.FirmamentWeaverItem.dispelNearestBarrier(player)) {
+                    return net.minecraft.world.InteractionResult.SUCCESS;
+                }
+            }
+            if (!player.level().isClientSide() && player.level() instanceof net.minecraft.server.level.ServerLevel srv) {
+                if (ddraig.net.entropica.spell.engine.SpellExecutionEngine.tryDischargePrimedTouchStrikeOnBlock(srv, player, pos, direction)) {
                     return net.minecraft.world.InteractionResult.SUCCESS;
                 }
             }

@@ -4,7 +4,9 @@
   "package": "ddraig.net.entropica.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "EntityMixin"
+    "EntityMixin",
+    "CommonLivingEntityMixin",
+    "ServerLevelMixin"
   ],
   "client": [
     "EntityRendererMixin",

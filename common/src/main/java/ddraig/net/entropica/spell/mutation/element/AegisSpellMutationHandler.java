@@ -174,6 +174,7 @@ public final class AegisSpellMutationHandler implements MateriaPartMutationHandl
         data.putString(SpellLingeringZoneManager.TAG_AEGIS_TETHER_GUARD_UUID, caster.getUUID().toString());
         data.putLong(SpellLingeringZoneManager.TAG_AEGIS_TETHER_UNTIL, now + 60L);
         SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, level, 8.0D, 2.0D, 0.50D, 0.0D, 60L);
+        SpellCombatReactionEngine.syncEntityBarrierState(level, ally, 0.30F, null);
         level.sendParticles(ParticleTypes.WAX_ON, ally.getX(), ally.getY(1.0D), ally.getZ(), 8, 0.3D, 0.4D, 0.3D, 0.03D);
     }
 
@@ -267,6 +268,7 @@ public final class AegisSpellMutationHandler implements MateriaPartMutationHandl
         int dur = 200 + spell.getEffectiveTier() * 40;
         EntityHelper.getPersistentData(caster).putLong(SpellLingeringZoneManager.TAG_AEGIS_MANTLE_UNTIL, level.getGameTime() + dur);
         SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 10.0D, 4.0D, 0.75D, -0.10D, dur);
+        SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.55F, null);
         caster.removeEffect(MobEffects.BLINDNESS);
         caster.removeEffect(MobEffects.DARKNESS);
         level.sendParticles(ParticleTypes.WAX_ON, caster.getX(), caster.getY(0.9D), caster.getZ(), 22, 0.45D, 0.55D, 0.45D, 0.04D);

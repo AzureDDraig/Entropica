@@ -28,9 +28,88 @@ public class DynamicVisWeaponItem extends Item {
     }
 
     @Override
+    public int getUseDuration(ItemStack stack, net.minecraft.world.entity.LivingEntity entity) {
+        if (stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())
+                && (CastingApparatusItem.isActiveSpellChanneledBeam(stack)
+                || CastingApparatusItem.isActiveSpellOnReleaseStatic(stack))) {
+            return 72000;
+        }
+        return 0;
+    }
+
+    @Override
+    public net.minecraft.world.item.ItemUseAnimation getUseAnimation(ItemStack stack) {
+        if (stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())
+                && (CastingApparatusItem.isActiveSpellChanneledBeam(stack)
+                || CastingApparatusItem.isActiveSpellOnReleaseStatic(stack))) {
+            return net.minecraft.world.item.ItemUseAnimation.BOW;
+        }
+        return net.minecraft.world.item.ItemUseAnimation.NONE;
+    }
+
+    @Override
+    public void onUseTick(Level level, net.minecraft.world.entity.LivingEntity livingEntity, ItemStack stack, int remainingUseDuration) {
+        if (!stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())) return;
+        int heldTicks = this.getUseDuration(stack, livingEntity) - remainingUseDuration;
+        if (CastingApparatusItem.isActiveSpellChanneledBeam(stack) && heldTicks > 0
+                && level instanceof net.minecraft.server.level.ServerLevel serverLevel
+                && livingEntity instanceof Player player) {
+            boolean keepChanneling = ddraig.net.entropica.spell.engine.SpellExecutionEngine.tickChanneledBeam(
+                    serverLevel, player, player.getUsedItemHand(), stack, heldTicks
+            );
+            if (!keepChanneling) {
+                player.stopUsingItem();
+                player.getCooldowns().addCooldown(stack, 6);
+            }
+        }
+    }
+
+    @Override
+    public boolean releaseUsing(ItemStack stack, Level level, net.minecraft.world.entity.LivingEntity entity, int timeLeft) {
+        if (entity instanceof Player player && stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())) {
+            if (CastingApparatusItem.isActiveSpellChanneledBeam(stack)) {
+                player.getCooldowns().addCooldown(stack, 4);
+                return true;
+            }
+            if (CastingApparatusItem.isActiveSpellOnReleaseStatic(stack)) {
+                int heldTicks = this.getUseDuration(stack, entity) - timeLeft;
+                if (heldTicks < 2) return false;
+                float compression = 1.0F + 0.15F * Math.min(1.0F, heldTicks / 20.0F);
+                if (!level.isClientSide() && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    return ddraig.net.entropica.spell.engine.SpellExecutionEngine.castFromApparatus(
+                            serverLevel, player, player.getUsedItemHand(), stack, compression
+                    );
+                }
+                return true;
+            }
+        }
+        return super.releaseUsing(stack, level, entity, timeLeft);
+    }
+
+    @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())) {
+            if (CastingApparatusItem.isActiveSpellChanneledBeam(stack)) {
+                if (!level.isClientSide() && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    if (ddraig.net.entropica.spell.engine.SpellExecutionEngine.tryBeginChanneledBeam(serverLevel, player, hand, stack)) {
+                        player.startUsingItem(hand);
+                        return InteractionResult.CONSUME;
+                    }
+                    return InteractionResult.FAIL;
+                }
+                if (CastingApparatusItem.canClientStartHoldCast(player, hand, stack)) {
+                    player.startUsingItem(hand);
+                    return InteractionResult.CONSUME;
+                }
+                return InteractionResult.FAIL;
+            }
+            if (CastingApparatusItem.isActiveSpellOnReleaseStatic(stack)
+                    && CastingApparatusItem.canClientStartHoldCast(player, hand, stack)
+                    && !player.isShiftKeyDown()) {
+                player.startUsingItem(hand);
+                return InteractionResult.CONSUME;
+            }
             if (!level.isClientSide() && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
                 boolean cast = ddraig.net.entropica.spell.engine.SpellExecutionEngine.castFromApparatus(serverLevel, player, hand, stack);
                 return cast ? InteractionResult.SUCCESS : InteractionResult.FAIL;

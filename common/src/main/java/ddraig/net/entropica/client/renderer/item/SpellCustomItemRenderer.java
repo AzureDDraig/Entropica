@@ -148,10 +148,10 @@ public class SpellCustomItemRenderer implements SpecialModelRenderer<SpellCustom
                 break;
             }
         }
-        int base = chosen.getColorInt() & 0xFFFFFF;
-        int r = ((base >> 16) & 0xFF);
-        int g = ((base >> 8) & 0xFF);
-        int b = (base & 0xFF);
+        int[] rgb = chosen.getCurrentRGB(System.currentTimeMillis() / 50.0);
+        int r = rgb[0] & 0xFF;
+        int g = rgb[1] & 0xFF;
+        int b = rgb[2] & 0xFF;
         // Brighten 25% toward pure white so crystalline facets stay luminous
         r = Math.min(255, (r * 3 + 255) / 4);
         g = Math.min(255, (g * 3 + 255) / 4);

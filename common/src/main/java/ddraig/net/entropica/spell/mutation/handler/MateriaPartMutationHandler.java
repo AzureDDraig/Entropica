@@ -50,6 +50,23 @@ public interface MateriaPartMutationHandler {
         return null;
     }
 
+    // --- Canonical Signature Descriptions (Spellcrafting System Guide Section 6) ---
+
+    @Nullable
+    default String resolveFlowDescription(SpellFlowModifier flow) {
+        return null;
+    }
+
+    @Nullable
+    default String resolveFormDescription(SpellDeliveryForm form) {
+        return null;
+    }
+
+    @Nullable
+    default String resolveEffectDescription(SpellCoreEffect effect) {
+        return null;
+    }
+
     // --- Part 1: Flow Mutations ---
 
     default void onChainLeapStep(
@@ -91,6 +108,20 @@ public interface MateriaPartMutationHandler {
             SpellProjectileEntity projectile,
             @Nullable LivingEntity caster,
             Vec3 splitOrigin,
+            SpellAssembly spell,
+            SubSpellSlot slot
+    ) {
+    }
+
+    /**
+     * Invoked when a spell projectile directly strikes an entity while its Flow Part is mutated
+     * (e.g. Earth's Dense Tectonic Mass guaranteeing an armor-shredding impact on hit).
+     */
+    default void onProjectileHitEntityFromFlow(
+            ServerLevel level,
+            SpellProjectileEntity projectile,
+            @Nullable LivingEntity caster,
+            Entity hitEntity,
             SpellAssembly spell,
             SubSpellSlot slot
     ) {

@@ -8,6 +8,7 @@ import ddraig.net.entropica.item.OrbisCellItem;
 import ddraig.net.entropica.spell.SpellCoreEffect;
 import ddraig.net.entropica.spell.SpellDeliveryForm;
 import ddraig.net.entropica.spell.SpellFlowModifier;
+import ddraig.net.entropica.spell.SpellTriggerType;
 import ddraig.net.entropica.spell.assembly.*;
 import ddraig.net.entropica.spell.fuel.SpellFuelService;
 import ddraig.net.entropica.spell.mutation.MateriaFamilyTier;
@@ -41,9 +42,13 @@ public final class SpellResearchManager {
     public static final String TAG_KNOWN_MATERIA = "KnownSpellMateriaTypes";
 
     private static final Set<String> STARTER_NODES = Set.of(
+            nodeId(SpellTriggerType.ON_ENTITY_HIT),
+            nodeId(SpellTriggerType.ON_BLOCK_COLLISION),
+            nodeId(SpellTriggerType.ON_RELEASE),
+            nodeId(SpellTriggerType.SELF),
             nodeId(SpellFlowModifier.SINGLE),
             nodeId(SpellFlowModifier.DOUBLE_BIFURCATE),
-            nodeId(SpellFlowModifier.SELF_CAST),
+            nodeId(SpellFlowModifier.VOID_WARP),
             nodeId(SpellDeliveryForm.PROJECTILE),
             nodeId(SpellDeliveryForm.TOUCH_STRIKE),
             nodeId(SpellDeliveryForm.RADIAL_BURST),
@@ -55,6 +60,10 @@ public final class SpellResearchManager {
     );
 
     private SpellResearchManager() {
+    }
+
+    public static String nodeId(SpellTriggerType trigger) {
+        return "trigger:" + trigger.getSerializedName();
     }
 
     public static String nodeId(SpellFlowModifier flow) {
@@ -150,9 +159,16 @@ public final class SpellResearchManager {
         discoverMateriaFromInventory(player);
 
         FlowPartBinding flow = spell.flowPart();
+        if (!isNodeUnlocked(player, nodeId(flow.trigger()))) {
+            return false;
+        }
         String flowNode = nodeId(flow.flow());
         if (!isNodeUnlocked(player, flowNode)
                 || !isMutationUnlocked(player, flowNode, flow.materiaType(), flow.mutationEnabled())) {
+            return false;
+        }
+        if (flow.flow() == SpellFlowModifier.VOID_WARP
+                && (!flow.mutationEnabled() || !MateriaFamilyTier.hasVoidCreationHeritage(flow.materiaType()))) {
             return false;
         }
 
@@ -195,6 +211,7 @@ public final class SpellResearchManager {
 
         FlowPartBinding flow = spell.flowPart();
         EssenceType flowType = flow.resolveEffectiveMateria(spell.materiaSpecific(), dynamicFallback);
+        observePartOnCast(player, nodeId(flow.trigger()), flow.trigger().getDisplayName(), EssenceType.REGULAR, false);
         observePartOnCast(player, nodeId(flow.flow()), flow.flow().getDisplayName(), flowType, flow.mutationEnabled());
 
         for (SubSpellSlot slot : spell.subSpells()) {
@@ -317,6 +334,7 @@ public final class SpellResearchManager {
     }
 
     public static void unlockAllSpellResearch(Player player) {
+        for (SpellTriggerType tr : SpellTriggerType.values()) unlockNode(player, nodeId(tr));
         for (SpellFlowModifier f : SpellFlowModifier.values()) unlockNode(player, nodeId(f));
         for (SpellDeliveryForm f : SpellDeliveryForm.values()) unlockNode(player, nodeId(f));
         for (SpellCoreEffect e : SpellCoreEffect.values()) unlockNode(player, nodeId(e));
@@ -413,7 +431,12 @@ public final class SpellResearchManager {
     }
 
     public static String formatNodeDisplayName(String nodeId) {
-        if (nodeId.startsWith("flow:")) {
+        if (nodeId.startsWith("trigger:")) {
+            String id = nodeId.substring(8);
+            for (SpellTriggerType tr : SpellTriggerType.values()) {
+                if (tr.getSerializedName().equals(id)) return "Trigger: " + tr.getDisplayName();
+            }
+        } else if (nodeId.startsWith("flow:")) {
             String id = nodeId.substring(5);
             for (SpellFlowModifier f : SpellFlowModifier.values()) {
                 if (f.getSerializedName().equals(id)) return "Flow: " + f.getDisplayName();

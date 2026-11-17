@@ -57,6 +57,10 @@ public record EffectPartBinding(
         return new EffectPartBinding(this.effect, this.materiaType, enabled, this.subMode, this.dialValue);
     }
 
+    public EffectPartBinding withSubMode(String newSubMode) {
+        return new EffectPartBinding(this.effect, this.materiaType, this.mutationEnabled, newSubMode, this.dialValue);
+    }
+
     public EssenceType resolveEffectiveMateria(boolean materiaSpecificLock, EssenceType fallbackCellType) {
         if (!materiaSpecificLock && this.materiaType == EssenceType.REGULAR && fallbackCellType != null) {
             return fallbackCellType;

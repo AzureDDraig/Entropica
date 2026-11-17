@@ -58,7 +58,7 @@ public final class TaigaSpellMutationHandler implements MateriaPartMutationHandl
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
         return switch (flow) {
-            case DOUBLE_BIFURCATE, TRIPLE_TRIFURCATE, DELAYED_BLOOM -> "Permafrost Fork Split";
+            case DOUBLE_BIFURCATE, TRIPLE_TRIFURCATE, OCTUPLE_DOME -> "Permafrost Fork Split";
             default -> "Boreal Permafrost " + flow.getDisplayName();
         };
     }

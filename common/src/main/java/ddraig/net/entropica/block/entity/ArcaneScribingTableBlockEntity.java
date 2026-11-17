@@ -98,14 +98,22 @@ public class ArcaneScribingTableBlockEntity extends BlockEntity implements Conta
         int safeTier = Math.clamp(rawDraft.potencyTier() > 0 ? rawDraft.potencyTier() : 1, 1, 10);
 
         FlowPartBinding rf = rawDraft.flowPart();
+        EssenceType safeFlowMateria = rawDraft.materiaSpecific() ? rf.materiaType() : EssenceType.REGULAR;
         String flowNodeId = SpellResearchManager.nodeId(rf.flow());
         boolean flowMutAllowed = rf.mutationEnabled()
+                && safeFlowMateria != EssenceType.REGULAR
                 && SpellResearchManager.isNodeUnlocked(player, flowNodeId)
-                && SpellResearchManager.isMutationUnlocked(player, flowNodeId, rf.materiaType(), true);
+                && SpellResearchManager.isMutationUnlocked(player, flowNodeId, safeFlowMateria, true);
+        ddraig.net.entropica.spell.SpellFlowModifier safeFlowEnum = rf.flow();
+        if (safeFlowEnum == ddraig.net.entropica.spell.SpellFlowModifier.VOID_WARP
+                && (!flowMutAllowed || !ddraig.net.entropica.spell.mutation.MateriaFamilyTier.hasVoidCreationHeritage(safeFlowMateria))) {
+            safeFlowEnum = ddraig.net.entropica.spell.SpellFlowModifier.SINGLE;
+        }
         int safeSubCount = Math.clamp(rf.subSpellCount(), 1, 8);
         FlowPartBinding safeFlow = new FlowPartBinding(
-                rf.flow(),
-                rawDraft.materiaSpecific() ? rf.materiaType() : EssenceType.REGULAR,
+                safeFlowEnum,
+                rf.trigger(),
+                safeFlowMateria,
                 flowMutAllowed,
                 safeSubCount,
                 rf.delaySeconds()

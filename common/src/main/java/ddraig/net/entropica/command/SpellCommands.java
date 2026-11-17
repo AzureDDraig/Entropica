@@ -222,11 +222,7 @@ public final class SpellCommands {
         String generatedName = (primMat != EssenceType.REGULAR ? primMat.getDisplayName() + " " : "")
                 + prim.getDisplayName() + " " + form.getDisplayName();
 
-        int slotCopies = flow.getDefaultSubSpellCount();
-        List<SubSpellSlot> slots = new ArrayList<>(slotCopies);
-        for (int i = 0; i < slotCopies; i++) {
-            slots.add(slot);
-        }
+        List<SubSpellSlot> slots = List.of(slot);
 
         SpellAssembly assembly = new SpellAssembly(
                 generatedName,
@@ -234,7 +230,7 @@ public final class SpellCommands {
                 hasSpecific,
                 prefix,
                 tier,
-                new FlowPartBinding(flow, flowMat, flowMut, slotCopies, flow == SpellFlowModifier.DELAYED_BLOOM ? 3.0F : 0.0F),
+                new FlowPartBinding(flow, ddraig.net.entropica.spell.SpellTriggerType.ON_ENTITY_HIT, flowMat, flowMut, 1, 0.0F),
                 slots,
                 SpellFlawProfile.PERFECT,
                 0

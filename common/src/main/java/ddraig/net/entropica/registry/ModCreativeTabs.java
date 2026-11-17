@@ -674,6 +674,25 @@ public class ModCreativeTabs {
                 output.accept(ModItems.BLOOM_CRAWLER_SPAWN_EGG.get());
             }).build());
 
+    public static final RegistrySupplier<CreativeModeTab> SPELLGEMS_TAB = CREATIVE_MODE_TABS.register("spellgems_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.BOTTOM, 2)
+            .title(Component.translatable("itemGroup.entropica.spellgems"))
+            .icon(ddraig.net.entropica.spell.CreativeSpellgemCatalog::createTabIconStack)
+            .displayItems((parameters, output) -> {
+                // Row 1: Quick-grab casting apparatuses & spellcrafting workstations for immediate Creative testing
+                output.accept(ModItems.ARCANUM_FOCUS.get());
+                output.accept(ModItems.SPELL_WAND.get());
+                output.accept(ModItems.SPELL_STAFF.get());
+                output.accept(ModItems.SPELL_GRIMOIRE.get());
+                output.accept(ModItems.BLANK_SPELLGEM.get());
+                output.accept(ModBlocks.ARCANE_SCRIBING_TABLE.get());
+                output.accept(ModBlocks.RUNIC_ANVIL.get());
+                output.accept(ModBlocks.AUTOCAST_PEDESTAL_STONE.get());
+                output.accept(ModBlocks.AUTOCAST_PEDESTAL_ASTRAL_SLATE.get());
+
+                // Single-Materia-locked Spellgems across all Forms, Delivery Vectors, Triggers & Core Effects (fixed 16m length)
+                ddraig.net.entropica.spell.CreativeSpellgemCatalog.populateCreativeTab(output);
+            }).build());
+
     private static boolean isAestheticItem(Item item) {
         if (item == null) return false;
         return ddraig.net.entropica.registry.AestheticGlassRegistry.ALL_GLASS_ITEMS.stream().anyMatch(sup -> sup != null && sup.get() == item);

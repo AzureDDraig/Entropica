@@ -2,6 +2,7 @@ package ddraig.net.entropica.spell.assembly;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import ddraig.net.entropica.spell.SpellCoreEffect;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -50,5 +51,10 @@ public record SubSpellSlot(
 
     public boolean isDualVerb() {
         return this.secondaryEffect.isPresent();
+    }
+
+    public boolean hasHarmVerb() {
+        return this.primaryEffect.effect() == SpellCoreEffect.HARM
+                || this.secondaryEffect.map(e -> e.effect() == SpellCoreEffect.HARM).orElse(false);
     }
 }

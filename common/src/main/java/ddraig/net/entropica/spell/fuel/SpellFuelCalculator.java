@@ -61,13 +61,16 @@ public final class SpellFuelCalculator {
         List<SpellCostBreakdown.PartCostEntry> entries = new ArrayList<>();
         Map<EssenceType, Long> totalByType = new LinkedHashMap<>();
 
-        // 1. Overarching Flow Part: scales linearly by slotCount * 20% of baseSubSpellMfum
+        // 1. Overarching Flow, Trigger & Travel Distance Part: scales by Multi-Cast slotCount, Flow payload multiplier, Trigger multiplier, and Travel Distance multiplier
         FlowPartBinding flowPart = assembly.flowPart();
+        double flowPayloadMult = flowPart.flow().getPayloadCostMultiplier()
+                * flowPart.trigger().getCostMultiplier()
+                * flowPart.distanceStep().getCostMultiplier();
         EssenceType flowType = flowPart.resolveEffectiveMateria(assembly.materiaSpecific(), fallbackCellType);
         SpellMutationProfile flowMut = flowPart.resolveMutation(assembly.materiaSpecific(), fallbackCellType);
         double flowApparatusMult = apparatusType != null ? apparatusType.getBaseFuelMultiplier() : 1.0D;
         long flowMfum = Math.max(1L, Math.round(
-                baseSubSpellMfum * slotCount * SpellPartSlotType.FLOW.getBaseCostWeight() * globalDiscount * flowApparatusMult
+                baseSubSpellMfum * slotCount * flowPayloadMult * SpellPartSlotType.FLOW.getBaseCostWeight() * globalDiscount * flowApparatusMult
         ));
         entries.add(new SpellCostBreakdown.PartCostEntry(
                 -1,
@@ -81,7 +84,8 @@ public final class SpellFuelCalculator {
         ));
         totalByType.merge(flowType, flowMfum, Long::sum);
 
-        // 2. Each Sub-Spell's Form (40%), Primary Core Effect (40%), and optional Dual-Verb Secondary Effect (+100%)
+        // 2. Each Sub-Spell's Form (40%), Primary Core Effect (40%), and optional Dual-Verb Secondary Effect (+100%),
+        //    scaled by the Flow Modifier's payload multiplier since each carrier payload casts the Multi-Cast at its hit spot!
         for (int i = 0; i < slotCount; i++) {
             SubSpellSlot slot = slots.get(i);
             boolean channeled = slot.formPart().form().isChanneled();
@@ -95,7 +99,7 @@ public final class SpellFuelCalculator {
             EssenceType formType = formBinding.resolveEffectiveMateria(assembly.materiaSpecific(), fallbackCellType);
             SpellMutationProfile formMut = formBinding.resolveMutation(assembly.materiaSpecific(), fallbackCellType);
             long formMfum = Math.max(1L, Math.round(
-                    baseSubSpellMfum * SpellPartSlotType.FORM.getBaseCostWeight() * globalDiscount * appMult
+                    baseSubSpellMfum * flowPayloadMult * SpellPartSlotType.FORM.getBaseCostWeight() * globalDiscount * appMult
             ));
             entries.add(new SpellCostBreakdown.PartCostEntry(
                     i,
@@ -114,7 +118,7 @@ public final class SpellFuelCalculator {
             EssenceType primType = primary.resolveEffectiveMateria(assembly.materiaSpecific(), fallbackCellType);
             SpellMutationProfile primMut = primary.resolveMutation(SpellPartSlotType.CORE_EFFECT, assembly.materiaSpecific(), fallbackCellType);
             long primMfum = Math.max(1L, Math.round(
-                    baseSubSpellMfum * SpellPartSlotType.CORE_EFFECT.getBaseCostWeight() * globalDiscount * appMult
+                    baseSubSpellMfum * flowPayloadMult * SpellPartSlotType.CORE_EFFECT.getBaseCostWeight() * globalDiscount * appMult
             ));
             entries.add(new SpellCostBreakdown.PartCostEntry(
                     i,
@@ -134,7 +138,7 @@ public final class SpellFuelCalculator {
                 EssenceType secType = sec.resolveEffectiveMateria(assembly.materiaSpecific(), fallbackCellType);
                 SpellMutationProfile secMut = sec.resolveMutation(SpellPartSlotType.SECONDARY_EFFECT, assembly.materiaSpecific(), fallbackCellType);
                 long secMfum = Math.max(1L, Math.round(
-                        baseSubSpellMfum * SpellPartSlotType.SECONDARY_EFFECT.getBaseCostWeight() * globalDiscount * appMult
+                        baseSubSpellMfum * flowPayloadMult * SpellPartSlotType.SECONDARY_EFFECT.getBaseCostWeight() * globalDiscount * appMult
                 ));
                 entries.add(new SpellCostBreakdown.PartCostEntry(
                         i,
@@ -150,8 +154,11 @@ public final class SpellFuelCalculator {
             }
         }
 
-        // 3. Upfront (25%) vs Dynamic Trigger (75%) split when Flow uses dynamic trigger billing
-        boolean dynamicBilling = ritualMultiplier == 1L && flowPart.flow().usesDynamicTriggerBilling();
+        // 3. Upfront (25%) vs Dynamic Trigger (75%) split when Flow or Trigger uses dynamic trigger billing
+        boolean channeledPerSec = ritualMultiplier == 1L && assembly.isChanneledHoldBeam();
+        boolean dynamicBilling = ritualMultiplier == 1L
+                && !channeledPerSec
+                && flowPart.usesDynamicTriggerBilling(assembly.materiaSpecific(), fallbackCellType);
         Map<EssenceType, Long> upfrontByType = new LinkedHashMap<>();
         Map<EssenceType, Long> triggerByType = new LinkedHashMap<>();
 
@@ -168,6 +175,6 @@ public final class SpellFuelCalculator {
             }
         }
 
-        return new SpellCostBreakdown(tier, entries, totalByType, upfrontByType, triggerByType);
+        return new SpellCostBreakdown(tier, entries, totalByType, upfrontByType, triggerByType, channeledPerSec);
     }
 }
