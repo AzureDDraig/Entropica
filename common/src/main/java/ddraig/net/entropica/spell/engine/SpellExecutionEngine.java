@@ -769,6 +769,83 @@ public final class SpellExecutionEngine {
     }
 
     /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Taiga {@code TOUCH_STRIKE}
+     * (Section 6.20 <i>Heat-Siphon Conifer Touch</i>), so the physical melee swing converts into pure Taiga Materia damage
+     * and grants the caster {@code +30%} movement speed &amp; 10s Frost Walker even on one-shot kills!
+     */
+    public static boolean hasPrimedTaigaHeatSiphonStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.TAIGA) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if the attacker currently holds a primed mutated Oasis {@code TOUCH_STRIKE}
+     * (Section 6.21 <i>Desert Blessing Touch</i>), which heals &amp; cleanses allies (with zero melee hurt!)
+     * or deals pure Oasis Materia damage &amp; pacifies hostile mobs for 2.5s!
+     */
+    public static boolean hasPrimedOasisBlessingStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.OASIS) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isFriendlyAllyForOasis(@Nullable LivingEntity caster, LivingEntity target) {
+        if (caster == null) return false;
+        if (target == caster || target.isAlliedTo(caster)) return true;
+        if (target == caster.getLastHurtMob() || target == caster.getLastHurtByMob()) return false;
+        if (target instanceof net.minecraft.world.entity.monster.Enemy) return false;
+        if (target instanceof ddraig.net.entropica.entity.SpellEidolonEntity eid) {
+            return eid.isFriendlyTo(caster);
+        }
+        return (target instanceof net.minecraft.world.entity.TamableAnimal t && t.isTame())
+                || (target instanceof net.minecraft.world.entity.animal.horse.AbstractHorse h && h.isTamed())
+                || target instanceof net.minecraft.world.entity.npc.AbstractVillager
+                || target instanceof net.minecraft.world.entity.animal.AbstractGolem
+                || (target instanceof Player && caster instanceof Player);
+    }
+
+    public static boolean hasPrimedVitaeOverchargeStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.VITAE) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isFriendlyOrAnimalForVitae(@Nullable LivingEntity caster, LivingEntity target) {
+        if (isFriendlyAllyForOasis(caster, target)) return true;
+        return target instanceof net.minecraft.world.entity.animal.Animal
+                && !(target instanceof net.minecraft.world.entity.monster.Enemy)
+                && (caster == null || target != caster.getLastHurtMob());
+    }
+
+    /**
      * Discharges an active primed Touch / Melee Strike spell when the caster lands their next physical melee hit
      * (Spellcrafting System Guide Section 4.4: 100% primary target + 50% cleave splash + weapon Materia Advantage stacking!).
      */
@@ -786,7 +863,8 @@ public final class SpellExecutionEngine {
         }
 
         SpellAssembly spell = primed.spell();
-        boolean anyBeneficial = false;
+        boolean oasisFriendlyTarget = hasPrimedOasisBlessingStrike(attacker) && isFriendlyAllyForOasis(attacker, primaryTarget);
+        boolean anyBeneficial = oasisFriendlyTarget;
         for (SubSpellSlot s : primed.touchSlots()) {
             if (isCasterBeneficialVerb(s.primaryEffect().effect())) {
                 anyBeneficial = true;
@@ -866,18 +944,29 @@ public final class SpellExecutionEngine {
                 EntityHelper.getPersistentData(primaryTarget).putLong(SpellLingeringZoneManager.TAG_ARID_MUMMIFY_DROPS_UNTIL, aridMummifyUntil);
             }
 
-            deliverSubSpellOnEntity(level, attacker, primaryTarget, direction, spell, slot, fallbackMateria, potency);
-            if (flow == SpellFlowModifier.CHAIN_LEAP || miasmaOrOblivionStrikeChain) {
+            boolean oasisAllySlot = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && slot.formPart().mutationEnabled()
+                    && formMat == EssenceType.OASIS
+                    && isFriendlyAllyForOasis(attacker, primaryTarget);
+            if (!oasisAllySlot || isCasterBeneficialVerb(slot.primaryEffect().effect())) {
+                deliverSubSpellOnEntity(level, attacker, primaryTarget, direction, spell, slot, fallbackMateria, potency);
+            }
+            if (!oasisAllySlot && (flow == SpellFlowModifier.CHAIN_LEAP || miasmaOrOblivionStrikeChain)) {
                 chainLeapFrom(level, attacker, primaryTarget, spell, slot, fallbackMateria, potency);
             }
 
             List<LivingEntity> allTouchStruck = new ArrayList<>();
             allTouchStruck.add(primaryTarget);
 
-            // Section 4.4 Cleave Splash: cleaves adjacent enemies within sweeping arc radius at 50% splash potency!
+            // Section 4.4 Cleave Splash: cleaves adjacent enemies (or allies for Oasis Blessing Touch!) within sweeping arc radius at 50% splash potency!
             for (LivingEntity cleaveTarget : level.getEntitiesOfClass(
                     LivingEntity.class, primaryTarget.getBoundingBox().inflate(cleaveRad), LivingEntity::isAlive)) {
                 if (cleaveTarget == attacker || cleaveTarget == primaryTarget) continue;
+                if (oasisAllySlot) {
+                    if (!isFriendlyAllyForOasis(attacker, cleaveTarget)) continue;
+                    allTouchStruck.add(cleaveTarget);
+                    continue;
+                }
                 if (!isCasterBeneficialVerb(slot.primaryEffect().effect())
                         && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
                         cleaveTarget, attacker, spell.hasWardFriendlyFireSafeguard())) {
@@ -2928,10 +3017,14 @@ public final class SpellExecutionEngine {
                     }
 
                     int maxTargets = 1 + (formMutation.mutated() ? formMutation.bonusPierceTargets() : 0);
+                    boolean vitaeLifeTether = formMutation.mutated() && formMateria == EssenceType.VITAE;
                     List<LivingEntity> struck = new ArrayList<>();
                     if (directHit instanceof LivingEntity directLiv && directLiv.isAlive()) {
                         struck.add(directLiv);
-                        deliverSubSpellOnEntity(level, caster, directLiv, beamDir, spell, slot, fallbackMateria, apparatusPotency);
+                        if (!(vitaeLifeTether && isFriendlyOrAnimalForVitae(caster, directLiv)
+                                && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
+                            deliverSubSpellOnEntity(level, caster, directLiv, beamDir, spell, slot, fallbackMateria, apparatusPotency);
+                        }
                     }
                     if (struck.size() < maxTargets) {
                         AABB search = new AABB(beamOrigin, effectiveEnd).inflate(0.85D);
@@ -2945,7 +3038,10 @@ public final class SpellExecutionEngine {
                         candidates.sort(Comparator.comparingDouble(e -> e.distanceToSqr(beamOrigin)));
                         for (LivingEntity t : candidates) {
                             struck.add(t);
-                            deliverSubSpellOnEntity(level, caster, t, beamDir, spell, slot, fallbackMateria, apparatusPotency);
+                            if (!(vitaeLifeTether && isFriendlyOrAnimalForVitae(caster, t)
+                                    && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
+                                deliverSubSpellOnEntity(level, caster, t, beamDir, spell, slot, fallbackMateria, apparatusPotency);
+                            }
                             if (struck.size() >= maxTargets) break;
                         }
                     }
@@ -3008,7 +3104,10 @@ public final class SpellExecutionEngine {
                             || vPrimary == EssenceType.UMBRAL
                             || vPrimary == EssenceType.UNDEAD
                             || vPrimary == EssenceType.DUST
-                            || vPrimary == EssenceType.SPORE)) {
+                            || vPrimary == EssenceType.SPORE
+                            || vPrimary == EssenceType.TAIGA
+                            || vPrimary == EssenceType.OASIS
+                            || vPrimary == EssenceType.VITAE)) {
                         radius = Math.max(radius, 6.0D * formRangeMult);
                     }
                     if (!silent) {
@@ -3102,12 +3201,14 @@ public final class SpellExecutionEngine {
                     }
                     AABB box = new AABB(contactPos, contactPos).expandTowards(coneDir.scale(coneRange)).inflate(coneRange * 0.55D);
                     boolean radiantCleansingCone = formMutation.mutated() && formMateria == EssenceType.RADIANT;
+                    boolean vitaeRejuvenationCone = formMutation.mutated() && formMateria == EssenceType.VITAE;
                     List<LivingEntity> hitTargets = new ArrayList<>();
                     if (directHit instanceof LivingEntity directLiv && directLiv.isAlive()) {
                         hitTargets.add(directLiv);
-                        if (!(radiantCleansingCone && caster != null
-                                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.isFriendlyRecipientPublic(caster, directLiv)
-                                && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
+                        boolean protectConeAlly = (radiantCleansingCone && caster != null
+                                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.isFriendlyRecipientPublic(caster, directLiv))
+                                || (vitaeRejuvenationCone && isFriendlyAllyForOasis(caster, directLiv));
+                        if (!(protectConeAlly && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
                             deliverSubSpellOnEntity(level, caster, directLiv, coneDir, spell, slot, fallbackMateria, apparatusPotency);
                         }
                     }
@@ -3116,9 +3217,10 @@ public final class SpellExecutionEngine {
                         Vec3 toTarget = target.getEyePosition().subtract(contactPos);
                         if (toTarget.lengthSqr() < 0.25D || toTarget.normalize().dot(coneDir) >= 0.50D) {
                             hitTargets.add(target);
-                            if (!(radiantCleansingCone && caster != null
-                                    && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.isFriendlyRecipientPublic(caster, target)
-                                    && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
+                            boolean protectConeAlly = (radiantCleansingCone && caster != null
+                                    && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.isFriendlyRecipientPublic(caster, target))
+                                    || (vitaeRejuvenationCone && isFriendlyAllyForOasis(caster, target));
+                            if (!(protectConeAlly && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
                                 deliverSubSpellOnEntity(level, caster, target, coneDir, spell, slot, fallbackMateria, apparatusPotency);
                             }
                         }
@@ -3141,7 +3243,7 @@ public final class SpellExecutionEngine {
                 }
                 case SKYFALL -> {
                     Vec3 skyImpact = directHit != null ? directHit.position() : contactPos;
-                    double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * 0.5D * formRangeMult;
+                    double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * formRangeMult;
                     if (formMutation.mutated() && formMateria == EssenceType.WATER) {
                         radius = Math.max(8.0D * apparatusRange * flawRangeMult, radius);
                     }
@@ -3471,7 +3573,10 @@ public final class SpellExecutionEngine {
                         || formMateria == EssenceType.UMBRAL
                         || formMateria == EssenceType.UNDEAD
                         || formMateria == EssenceType.DUST
-                        || formMateria == EssenceType.SPORE)) {
+                        || formMateria == EssenceType.SPORE
+                        || formMateria == EssenceType.TAIGA
+                        || formMateria == EssenceType.OASIS
+                        || formMateria == EssenceType.VITAE)) {
                     radius = Math.max(radius, 6.0D * formRangeMult);
                 }
                 if (form == SpellDeliveryForm.GLYPH && formMutation.mutated() && formMateria == EssenceType.NATURE) {
@@ -3749,6 +3854,49 @@ public final class SpellExecutionEngine {
                                             }
                                             ddraig.net.entropica.spell.mutation.element.SporeSpellMutationHandler
                                                     .sproutMushroomsPublic(srv, BlockPos.containing(zone.center), 2, false);
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.TAIGA) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (ally == owner || (owner != null && ally.isAlliedTo(owner))) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_TAIGA_SHROUD_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_TAIGA_SHROUD_UNTIL).orElse(0L)));
+                                                    aTag.putInt("SpellTaigaShroudTier", tier);
+                                                    ally.clearFire();
+                                                    ally.setTicksFrozen(0);
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.OASIS) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (isFriendlyAllyForOasis(owner, ally)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_OASIS_CARAPACE_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_OASIS_CARAPACE_UNTIL).orElse(0L)));
+                                                    aTag.putInt("SpellOasisCarapaceTier", tier);
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
+                                            ddraig.net.entropica.spell.mutation.element.OasisSpellMutationHandler
+                                                    .hydrateAndGrowFloraPublic(srv, BlockPos.containing(zone.center), 2);
+                                        } else if (formMutation.mutated() && formMateria == EssenceType.VITAE) {
+                                            long zNow = srv.getGameTime();
+                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
+                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                if (isFriendlyAllyForOasis(owner, ally)) {
+                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
+                                                    aTag.putLong(SpellLingeringZoneManager.TAG_VITAE_SHROUD_UNTIL,
+                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_VITAE_SHROUD_UNTIL).orElse(0L)));
+                                                    aTag.putInt("SpellVitaeShroudTier", tier);
+                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3787,6 +3935,7 @@ public final class SpellExecutionEngine {
                 }
 
                 boolean radiantCleansingCone = formMutation.mutated() && formMateria == EssenceType.RADIANT;
+                boolean vitaeRejuvenationCone = formMutation.mutated() && formMateria == EssenceType.VITAE;
                 AABB box = caster.getBoundingBox().expandTowards(direction.scale(coneRange)).inflate(coneRange * 0.55D);
                 List<LivingEntity> hitTargets = new ArrayList<>();
                 for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, box)) {
@@ -3794,9 +3943,10 @@ public final class SpellExecutionEngine {
                     Vec3 toTarget = target.getEyePosition().subtract(caster.getEyePosition()).normalize();
                     if (toTarget.dot(direction) >= 0.55D) {
                         hitTargets.add(target);
-                        if (!(radiantCleansingCone
-                                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.isFriendlyRecipientPublic(caster, target)
-                                && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
+                        boolean protectConeAlly = (radiantCleansingCone
+                                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.isFriendlyRecipientPublic(caster, target))
+                                || (vitaeRejuvenationCone && isFriendlyAllyForOasis(caster, target));
+                        if (!(protectConeAlly && !isCasterBeneficialVerb(slot.primaryEffect().effect()))) {
                             deliverSubSpellOnEntity(level, caster, target, direction, spell, slot, fallbackMateria, apparatusPotency);
                         }
                     }
@@ -3828,7 +3978,7 @@ public final class SpellExecutionEngine {
                 Vec3 impact = hit.getType() == HitResult.Type.BLOCK
                         ? Vec3.atBottomCenterOf(hit.getBlockPos().above())
                         : caster.position().add(direction.scale(openAirFallback));
-                double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * 0.5D * formRangeMult;
+                double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * formRangeMult;
                 if (formMutation.mutated() && formMateria == EssenceType.WATER) {
                     radius = Math.max(8.0D * apparatusRange * flawRangeMult, radius);
                 }
@@ -4069,6 +4219,9 @@ public final class SpellExecutionEngine {
         boolean aridRayTouchMummify = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
                 && slot.formPart().mutationEnabled()
                 && slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.ARID;
+        boolean vitaeLifeTether = slot.formPart().form() == SpellDeliveryForm.BEAM
+                && slot.formPart().mutationEnabled()
+                && formMat == EssenceType.VITAE;
         long radiantRayPurifyUntil = level.getGameTime() + 40L;
         long netherRaySmeltUntil = level.getGameTime() + 130L;
         long aridRayMummifyUntil = level.getGameTime() + 60L;
@@ -4083,9 +4236,14 @@ public final class SpellExecutionEngine {
                 EntityHelper.getPersistentData(target).putLong(SpellLingeringZoneManager.TAG_ARID_MUMMIFY_DROPS_UNTIL, aridRayMummifyUntil);
             }
             struckTargets.add(target);
-            deliverSubSpellOnEntity(level, caster, target, direction, spell, slot, fallbackMateria, apparatusPotency);
-            if (spell.flowPart().flow() == SpellFlowModifier.CHAIN_LEAP || miasmaOrOblivionStrikeChain) {
-                chainLeapFrom(level, caster, target, spell, slot, fallbackMateria, apparatusPotency);
+            boolean skipOffensiveVitaeBeam = vitaeLifeTether
+                    && isFriendlyOrAnimalForVitae(caster, target)
+                    && !isCasterBeneficialVerb(slot.primaryEffect().effect());
+            if (!skipOffensiveVitaeBeam) {
+                deliverSubSpellOnEntity(level, caster, target, direction, spell, slot, fallbackMateria, apparatusPotency);
+                if (spell.flowPart().flow() == SpellFlowModifier.CHAIN_LEAP || miasmaOrOblivionStrikeChain) {
+                    chainLeapFrom(level, caster, target, spell, slot, fallbackMateria, apparatusPotency);
+                }
             }
             if (++hitCount >= maxTargets) break;
         }
@@ -6248,6 +6406,9 @@ public final class SpellExecutionEngine {
                 || materia == EssenceType.GLACIAL
                 || materia == EssenceType.DUST
                 || materia == EssenceType.SPORE
+                || materia == EssenceType.TAIGA
+                || materia == EssenceType.OASIS
+                || materia == EssenceType.VITAE
                 || materia == EssenceType.NETHER
                 || materia == EssenceType.RADIANT
                 || materia == EssenceType.UMBRAL

@@ -1106,15 +1106,32 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             float potencyMult
     ) {
         int tier = spell.getEffectiveTier();
-        double impactRad = Math.max(4.5D, radius);
+        double impactRad = Math.max(5.5D, radius);
         BlockPos groundSurface = findGroundSurfaceNear(level, BlockPos.containing(center));
-        Vec3 impactCenter = new Vec3(center.x, groundSurface.getY() + 1.0D, center.z);
-        double riftClearance = probeOverheadClearance(level, BlockPos.containing(impactCenter), 12);
+        BlockPos baseAir = groundSurface.above();
+        Vec3 impactCenter = new Vec3(groundSurface.getX() + 0.5D, baseAir.getY(), groundSurface.getZ() + 0.5D);
+        double riftClearance = SpellDeliveryForm.probeCaveSafeSkyfallHeight(level, baseAir, tier);
+
+        // Build tier-scaled monolith blueprint & broadcast falling->standing 3D Pseudoblock columns
+        // (pseudoblocks stand in place during ticks 40..110; actual world blocks materialize when the spell finishes!)
+        int maxSpireH = Math.clamp((int) Math.floor(riftClearance) - 1, 3, 4 + tier);
+        List<int[]> monumentPlan = buildTierScaledGlacialColumns(tier, maxSpireH);
+        for (int[] col : monumentPlan) {
+            BlockPos colBase = baseAir.offset(col[0], 0, col[1]);
+            int colH = col[2];
+            BlockState pseudoState = col[3] == 2 ? Blocks.BLUE_ICE.defaultBlockState()
+                    : (col[3] == 1 ? Blocks.PACKED_ICE.defaultBlockState() : Blocks.ICE.defaultBlockState());
+            Vec3 skyOrigin = new Vec3(colBase.getX() + 0.5D, baseAir.getY() + Math.max(3.5D, riftClearance - colH * 0.45D), colBase.getZ() + 0.5D);
+            SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
+                    level, skyOrigin, colBase, pseudoState, colH,
+                    40, VFX_MONOLITH_TOTAL_TICKS - 40, EssenceType.FROZEN, tier
+            );
+        }
 
         // Broadcast 110-tick Colossal Glacial Monolith Sky-Rift & Ground Target Seal
         SpellWorldVfxManager.broadcast(
                 level, SpellVfxEventPayload.VFX_SKYFALL_PILLAR,
-                impactCenter, new Vec3(0.0D, -1.0D, 0.0D),
+                impactCenter, impactCenter.add(0.0D, riftClearance, 0.0D),
                 EssenceType.FROZEN, null, (float) impactRad, VFX_MONOLITH_TOTAL_TICKS, tier
         );
         SpellWorldVfxManager.broadcast(
@@ -1122,47 +1139,50 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                 impactCenter.add(0.0D, 0.03D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D),
                 EssenceType.FROZEN, EssenceType.STASIS, (float) impactRad, VFX_MONOLITH_TOTAL_TICKS, tier
         );
-        level.playSound(null, BlockPos.containing(impactCenter), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.90F, 1.42F);
+        level.playSound(null, baseAir, SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.90F, 1.42F);
 
         final boolean[] crashed = {false};
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, impactRad, VFX_MONOLITH_TOTAL_TICKS, level.getGameTime(), spell, slot, fallbackMateria, potencyMult,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) return false;
+                    if (elapsed >= zone.maxDurationTicks) {
+                        // Spell complete! Replace standing pseudoblocks with actual permanent world ice blocks!
+                        materializePlannedGlacialColumns(srv, baseAir, monumentPlan);
+                        return false;
+                    }
 
-                    // Phase 1 (0..39 ticks = 2.0s warning delay): overhead Snowflake Rift materializes & colossal Blue-Ice Monolith plummets!
+                    // Phase 1 (0..39 ticks = 2.0s warning delay): overhead Snowflake Rift materializes & colossal Blue-Ice Pseudoblock Monolith plummets!
                     if (elapsed < 40) {
                         double dropFrac = elapsed / 40.0D;
                         double spireY = zone.center.y + riftClearance * (1.0D - dropFrac * dropFrac);
                         if (elapsed % 3 == 0) {
                             srv.sendParticles(ParticleTypes.SNOWFLAKE,
-                                    zone.center.x, spireY, zone.center.z, 10, 0.95D, 0.70D, 0.95D, 0.04D);
+                                    zone.center.x, spireY, zone.center.z, 10 + tier, 0.95D + tier * 0.12D, 0.70D, 0.95D + tier * 0.12D, 0.04D);
                             srv.sendParticles(
                                     TimedTintableParticleOption.linear(ModParticles.TINTABLE_CRYSTAL.get(), PERMAFROST_BLUE_HEX_COLOR, 24, 1.30F, 0.06F),
-                                    zone.center.x, spireY, zone.center.z, 6, 0.70D, 0.65D, 0.70D, 0.03D
+                                    zone.center.x, spireY, zone.center.z, 6 + tier / 2, 0.70D + tier * 0.10D, 0.65D, 0.70D + tier * 0.10D, 0.03D
                             );
                             srv.sendParticles(
                                     TimedTintableParticleOption.linear(ModParticles.RUNE_ISA.get(), DIAMOND_FROST_HEX_COLOR, 22, 1.10F, 0.05F),
-                                    zone.center.x, zone.center.y + 0.25D, zone.center.z, 3, impactRad * 0.38D, 0.1D, impactRad * 0.38D, 0.01D
+                                    zone.center.x, zone.center.y + 0.25D, zone.center.z, 4, impactRad * 0.38D, 0.1D, impactRad * 0.38D, 0.01D
                             );
                         }
                         if (elapsed == 20) {
-                            srv.playSound(null, BlockPos.containing(zone.center), SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.PLAYERS, 1.0F, 0.72F);
+                            srv.playSound(null, baseAir, SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.PLAYERS, 1.0F, 0.72F);
                         }
                         return true;
                     }
 
-                    // Phase 2 (Tick 40 = exact 2.0s crash!): crush impact zone, freeze liquids, and raise permanent Blue-Ice Monument!
+                    // Phase 2 (Tick 40 = exact 2.0s crash!): crush impact zone, freeze liquids, and lock pseudoblocks in place!
                     if (!crashed[0]) {
                         crashed[0] = true;
                         LivingEntity owner = zone.resolveCaster(srv);
                         boolean permafrost = zone.spell != null && hasPermafrostCreep(zone.spell, zone.fallbackMateria);
 
                         // Freeze surface water & lava across impact zone first
-                        BlockPos base = BlockPos.containing(zone.center);
                         int rInt = (int) Math.ceil(zone.radius);
                         double rSq = zone.radius * zone.radius;
-                        for (BlockPos p : BlockPos.betweenClosed(base.offset(-rInt, -2, -rInt), base.offset(rInt, 1, rInt))) {
+                        for (BlockPos p : BlockPos.betweenClosed(baseAir.offset(-rInt, -2, -rInt), baseAir.offset(rInt, 1, rInt))) {
                             double dx = (p.getX() + 0.5D) - zone.center.x;
                             double dz = (p.getZ() + 0.5D) - zone.center.z;
                             double dSq = dx * dx + dz * dz;
@@ -1179,22 +1199,17 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                             }
                         }
 
-                        // Crush entities in the impact zone (linear falloff 100% -> 35%) and nudge center entities clear of the physical spire
+                        // Push entities clear of the landed pseudoblock monolith footprint
+                        for (int[] col : monumentPlan) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, baseAir.offset(col[0], 0, col[1]), col[2], true);
+                        }
+
+                        // Crush entities in the impact zone (linear falloff 100% -> 35%)
                         AABB crushBox = new AABB(
                                 zone.center.x - zone.radius, zone.center.y - 2.0D, zone.center.z - zone.radius,
-                                zone.center.x + zone.radius, zone.center.y + 5.0D, zone.center.z + zone.radius
+                                zone.center.x + zone.radius, zone.center.y + Math.max(5.0D, maxSpireH + 1.5D), zone.center.z + zone.radius
                         );
                         for (LivingEntity foe : srv.getEntitiesOfClass(LivingEntity.class, crushBox, LivingEntity::isAlive)) {
-                            // Nudge any entity standing inside the 1x1 central spire column slightly outward so no one suffocates in Blue Ice!
-                            double cdx = foe.getX() - (base.getX() + 0.5D);
-                            double cdz = foe.getZ() - (base.getZ() + 0.5D);
-                            if ((cdx * cdx + cdz * cdz) < 1.35D) {
-                                Vec3 nudge = (cdx * cdx + cdz * cdz) > 1.0E-4D
-                                        ? new Vec3(cdx, 0.0D, cdz).normalize().scale(1.65D)
-                                        : new Vec3(1.65D, 0.0D, 0.0D);
-                                foe.teleportTo(base.getX() + 0.5D + nudge.x, foe.getY() + 0.1D, base.getZ() + 0.5D + nudge.z);
-                            }
-
                             if (foe == owner) continue;
                             if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
                                     foe, owner, zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard())) {
@@ -1202,6 +1217,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                             }
 
                             double dist = Math.sqrt(Math.pow(foe.getX() - zone.center.x, 2) + Math.pow(foe.getZ() - zone.center.z, 2));
+                            if (dist > zone.radius + 0.6D) continue;
                             float falloff = (float) Mth.clamp(1.0D - (dist / Math.max(1.0D, zone.radius)) * 0.65D, 0.35D, 1.0D);
 
                             if (zone.spell != null && zone.slot != null) {
@@ -1228,10 +1244,6 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                             }
                         }
 
-                        // Sculpt permanent decorative Blue-Ice & Packed-Ice Monolith Spire (clamped safely to cave ceiling!)
-                        int maxSpireH = Math.clamp((int) Math.floor(riftClearance) - 1, 3, Math.min(9, 4 + tier / 2));
-                        sculptGlacialMonument(srv, base, maxSpireH);
-
                         SpellWorldVfxManager.broadcast(
                                 srv, SpellVfxEventPayload.VFX_RADIAL_NOVA,
                                 zone.center, new Vec3(0.0D, 1.0D, 0.0D),
@@ -1241,21 +1253,24 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                                 zone.center.x, zone.center.y + 1.2D, zone.center.z, 60, 1.6D, 1.5D, 1.6D, 0.22D);
                         srv.sendParticles(ParticleTypes.SNOWFLAKE,
                                 zone.center.x, zone.center.y + 1.0D, zone.center.z, 42, zone.radius * 0.55D, 1.2D, zone.radius * 0.55D, 0.08D);
-                        srv.playSound(null, base, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 1.05F, 1.18F);
-                        srv.playSound(null, base, SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1.30F, 0.72F);
-                        srv.playSound(null, base, SoundEvents.AMETHYST_CLUSTER_BREAK, SoundSource.PLAYERS, 1.10F, 0.90F);
+                        srv.playSound(null, baseAir, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 1.05F, 1.18F);
+                        srv.playSound(null, baseAir, SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1.30F, 0.72F);
+                        srv.playSound(null, baseAir, SoundEvents.AMETHYST_CLUSTER_BREAK, SoundSource.PLAYERS, 1.10F, 0.90F);
                         return true;
                     }
 
-                    // Phase 3 (41..110 ticks): lingering diamond-frost mist drifting off the newly risen Blue-Ice Monument!
+                    // Phase 3 (41..109 ticks): maintain pseudoblock obstacle pushout & drift frost mist until real blocks materialize!
+                    for (int[] col : monumentPlan) {
+                        SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, baseAir.offset(col[0], 0, col[1]), col[2], false);
+                    }
                     if (elapsed % 8 == 0) {
                         srv.sendParticles(ParticleTypes.SNOWFLAKE,
                                 zone.center.x, zone.center.y + 1.8D, zone.center.z,
-                                6, zone.radius * 0.35D, 1.3D, zone.radius * 0.35D, 0.02D);
+                                6 + tier / 2, zone.radius * 0.35D, 1.3D, zone.radius * 0.35D, 0.02D);
                         srv.sendParticles(
                                 TimedTintableParticleOption.linear(ModParticles.TINTABLE_CRYSTAL.get(), GLACIAL_EIDOLON_HEX_COLOR, 28, 1.05F, 0.04F),
                                 zone.center.x, zone.center.y + 1.5D, zone.center.z,
-                                4, 0.85D, 1.2D, 0.85D, 0.02D
+                                4 + tier / 2, 0.85D + tier * 0.12D, 1.2D, 0.85D + tier * 0.12D, 0.02D
                         );
                     }
                     return true;
@@ -1776,33 +1791,73 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
         return maxScan;
     }
 
-    private static void sculptGlacialMonument(ServerLevel level, BlockPos base, int spireHeight) {
-        // Central tapering Blue-Ice monolith column
-        for (int y = 0; y < spireHeight; y++) {
-            BlockPos p = base.above(y);
-            if (canPlaceMonumentIceAt(level, p)) {
-                level.setBlockAndUpdate(p, Blocks.BLUE_ICE.defaultBlockState());
-            } else if (y > 1) {
-                break;
-            }
+    /**
+     * Builds a tier-scaled monolith blueprint {@code [dx, dz, height, materialKind]} ({@code 2 = BLUE_ICE, 1 = PACKED_ICE, 0 = ICE}):
+     * scales from a compact 3x3 spire at Tier 1–3, to a 5x5 tiered glacial monolith at Tier 4–7,
+     * up to a towering 7x7 cathedral Blue-Ice monolith at Tier 8–10!
+     */
+    private static List<int[]> buildTierScaledGlacialColumns(int tier, int spireHeight) {
+        List<int[]> cols = new ArrayList<>();
+        int h = Math.max(3, spireHeight);
+        cols.add(new int[]{0, 0, h, 2});
+
+        int cardH = Math.max(2, (int) Math.round(h * 0.62D));
+        cols.add(new int[]{1, 0, cardH, 2});
+        cols.add(new int[]{-1, 0, cardH, 2});
+        cols.add(new int[]{0, 1, cardH, 2});
+        cols.add(new int[]{0, -1, cardH, 2});
+
+        int diagH = Math.max(1, (int) Math.round(h * 0.40D));
+        int[][] diags = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+        for (int[] d : diags) {
+            cols.add(new int[]{d[0], d[1], diagH, 1});
         }
-        // 4 cardinal crystalline buttresses (2–3 blocks tall) + 4 lower diagonal rime spurs
-        int buttressH = Math.max(2, spireHeight / 2);
-        for (Direction horiz : Direction.Plane.HORIZONTAL) {
-            for (int y = 0; y < buttressH; y++) {
-                BlockPos bp = base.relative(horiz).above(y);
-                if (canPlaceMonumentIceAt(level, bp)) {
-                    level.setBlockAndUpdate(bp, y == 0 ? Blocks.BLUE_ICE.defaultBlockState() : Blocks.PACKED_ICE.defaultBlockState());
+
+        if (tier >= 4) {
+            int outerCardH = Math.max(1, (int) Math.round(h * 0.34D));
+            cols.add(new int[]{2, 0, outerCardH, 1});
+            cols.add(new int[]{-2, 0, outerCardH, 1});
+            cols.add(new int[]{0, 2, outerCardH, 1});
+            cols.add(new int[]{0, -2, outerCardH, 1});
+            if (tier >= 6) {
+                int knightH = Math.max(1, (int) Math.round(h * 0.22D));
+                int[][] knights = {{2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {-1, 2}, {1, -2}, {-1, -2}};
+                for (int[] k : knights) {
+                    cols.add(new int[]{k[0], k[1], knightH, 1});
                 }
             }
         }
-        int[][] diags = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
-        for (int[] d : diags) {
-            BlockPos dp = base.offset(d[0], 0, d[1]);
-            if (canPlaceMonumentIceAt(level, dp)) {
-                level.setBlockAndUpdate(dp, Blocks.PACKED_ICE.defaultBlockState());
+        if (tier >= 8) {
+            int spurH = Math.max(1, (int) Math.round(h * 0.24D));
+            cols.add(new int[]{3, 0, spurH, 0});
+            cols.add(new int[]{-3, 0, spurH, 0});
+            cols.add(new int[]{0, 3, spurH, 0});
+            cols.add(new int[]{0, -3, spurH, 0});
+            cols.add(new int[]{2, 2, Math.max(1, spurH - 1), 0});
+            cols.add(new int[]{-2, 2, Math.max(1, spurH - 1), 0});
+            cols.add(new int[]{2, -2, Math.max(1, spurH - 1), 0});
+            cols.add(new int[]{-2, -2, Math.max(1, spurH - 1), 0});
+        }
+        return cols;
+    }
+
+    private static void materializePlannedGlacialColumns(ServerLevel level, BlockPos base, List<int[]> cols) {
+        for (int[] col : cols) {
+            BlockPos colBase = base.offset(col[0], 0, col[1]);
+            int colH = col[2];
+            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(level, colBase, colH, true);
+            BlockState state = col[3] == 2 ? Blocks.BLUE_ICE.defaultBlockState()
+                    : (col[3] == 1 ? Blocks.PACKED_ICE.defaultBlockState() : Blocks.ICE.defaultBlockState());
+            for (int y = 0; y < colH; y++) {
+                BlockPos p = colBase.above(y);
+                if (canPlaceMonumentIceAt(level, p)) {
+                    level.setBlockAndUpdate(p, state);
+                } else if (y > 1) {
+                    break;
+                }
             }
         }
+        level.playSound(null, base, SoundEvents.GLASS_PLACE, SoundSource.PLAYERS, 1.05F, 0.85F);
     }
 
     private static boolean canPlaceMonumentIceAt(ServerLevel level, BlockPos pos) {

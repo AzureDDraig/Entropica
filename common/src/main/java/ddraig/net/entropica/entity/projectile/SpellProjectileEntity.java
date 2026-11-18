@@ -469,6 +469,14 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
         return this.remainingPierces;
     }
 
+    /**
+     * Returns the 1-based ordinal of how many distinct entities this projectile has struck so far
+     * ({@code 1} on first target, {@code 2} on second target, etc.).
+     */
+    public int getHitEntityCount() {
+        return this.alreadyHitEntities.size();
+    }
+
     public boolean isSplitChild() {
         return this.splitChild;
     }
@@ -1187,10 +1195,18 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                 }
             }
             case OASIS -> {
+                int sTier = Math.max(1, this.getVisualPotencyTier());
                 if (directHit instanceof LivingEntity foe) {
+                    SpellCombatReactionEngine.hurtWithOasisMateriaAdvantage(
+                            level, foe, caster, 1.45F + sTier * 0.42F, false, true
+                    );
                     foe.clearFire();
                     SpellLingeringZoneManager.applySoaked(foe, 140);
+                } else {
+                    ddraig.net.entropica.spell.mutation.element.OasisSpellMutationHandler
+                            .hydrateAndGrowFloraPublic(level, net.minecraft.core.BlockPos.containing(impactPos), 1);
                 }
+                level.sendParticles(ParticleTypes.SPLASH, impactPos.x, impactPos.y + 0.2D, impactPos.z, 8, 0.25D, 0.2D, 0.25D, 0.04D);
             }
             case NATURE, OVERGROWTH -> {
                 int sTier = this.spell.getEffectiveTier();
@@ -1421,8 +1437,21 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                 }
             }
             case VITAE -> {
-                if (directHit instanceof LivingEntity foe) {
-                    foe.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 50, 0));
+                // Section 6.22 Cardiovascular Spire defensive vitality dart (#FF6B9D): deals Vitae Materia damage & disorients foes!
+                int sTier = this.spell.getEffectiveTier();
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastProjectileImpact(
+                        level, impactPos, new Vec3(0.0D, 1.0D, 0.0D), EssenceType.VITAE, EssenceType.NATURE, 0.95F, sTier
+                );
+                level.sendParticles(ParticleTypes.HEART,
+                        impactPos.x, impactPos.y + 0.15D, impactPos.z, 3, 0.22D, 0.22D, 0.22D, 0.02D);
+                if (directHit instanceof LivingEntity foe
+                        && (caster == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, caster, true))) {
+                    SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(
+                            level, foe, caster, 2.3F + sTier * 0.68F, false, true
+                    );
+                    foe.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
+                    ddraig.net.entropica.util.EntityHelper.getPersistentData(foe)
+                            .putLong(SpellLingeringZoneManager.TAG_VITAE_DISORIENTED_UNTIL, level.getGameTime() + 60L);
                 }
             }
             case MAGMA -> {
@@ -1574,9 +1603,23 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
             }
             case TAIGA -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = Math.max(1, this.getVisualPotencyTier());
+                    SpellCombatReactionEngine.hurtWithTaigaMateriaAdvantage(
+                            level, foe, caster, 1.35F + sTier * 0.40F, false, true
+                    );
                     foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 1));
-                    foe.setTicksFrozen(foe.getTicksFrozen() + 40);
-                    EntityHelper.getPersistentData(foe).putLong(SpellLingeringZoneManager.TAG_TAIGA_BRITTLE_UNTIL, level.getGameTime() + 60L);
+                    if (foe.canFreeze()) {
+                        foe.setTicksFrozen(Math.min(foe.getTicksRequiredToFreeze() + 40, foe.getTicksFrozen() + 50));
+                    }
+                    net.minecraft.nbt.CompoundTag fTag = EntityHelper.getPersistentData(foe);
+                    fTag.putLong(SpellLingeringZoneManager.TAG_TAIGA_BRITTLE_UNTIL, level.getGameTime() + 80L);
+                    if (this.alreadyHitEntities.size() == 2) {
+                        // Section 6.20 Hardened Frost-Resin Spike: pins the 2nd pierced victim in sticky freezing sap for 3.0s (60t)!
+                        fTag.putLong(SpellLingeringZoneManager.TAG_TAIGA_SAP_PIN_UNTIL, level.getGameTime() + 60L);
+                        foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 5));
+                        level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_LEAF.get(), 0x1A5923, 28, 1.05F, 0.06F),
+                                foe.getX(), foe.getY(0.35D), foe.getZ(), 12, 0.35D, 0.25D, 0.35D, 0.04D);
+                    }
                 }
             }
             case ECLIPSE -> {
@@ -1880,25 +1923,24 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
         if (vitaeMitosisOrb && caster != null) {
             List<LivingEntity> injuredAllies = this.level().getEntitiesOfClass(
                     LivingEntity.class,
-                    this.getBoundingBox().inflate(7.5D),
+                    this.getBoundingBox().inflate(8.5D),
                     e -> e.isAlive()
-                            && (e == caster || e.isAlliedTo(caster))
+                            && SpellExecutionEngine.isFriendlyAllyForOasis(caster, e)
                             && !this.alreadyHitEntities.contains(e.getUUID())
                             && e.getHealth() < e.getMaxHealth() - 0.5F
             );
             if (!injuredAllies.isEmpty()) {
                 LivingEntity lowestAlly = injuredAllies.get(0);
-                float minRatio = lowestAlly.getHealth() / Math.max(1.0F, lowestAlly.getMaxHealth());
+                float minHp = lowestAlly.getHealth();
                 for (int i = 1; i < injuredAllies.size(); i++) {
                     LivingEntity cand = injuredAllies.get(i);
-                    float ratio = cand.getHealth() / Math.max(1.0F, cand.getMaxHealth());
-                    if (ratio < minRatio) {
-                        minRatio = ratio;
+                    if (cand.getHealth() < minHp) {
+                        minHp = cand.getHealth();
                         lowestAlly = cand;
                     }
                 }
                 Vec3 desired = lowestAlly.getEyePosition().subtract(this.position()).normalize().scale(speed);
-                Vec3 blended = currentVel.scale(0.70D).add(desired.scale(0.30D)).normalize().scale(speed);
+                Vec3 blended = currentVel.scale(0.68D).add(desired.scale(0.32D)).normalize().scale(speed);
                 this.setDeltaMovement(blended);
                 this.hasImpulse = true;
                 return;
@@ -1907,7 +1949,7 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
 
         List<LivingEntity> candidates = this.level().getEntitiesOfClass(
                 LivingEntity.class,
-                this.getBoundingBox().inflate(7.5D),
+                this.getBoundingBox().inflate(vitaeMitosisOrb ? 8.5D : 7.5D),
                 e -> e.isAlive()
                         && e != caster
                         && !this.alreadyHitEntities.contains(e.getUUID())
@@ -1917,18 +1959,35 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
         );
         if (candidates.isEmpty()) return;
 
-        LivingEntity nearest = candidates.get(0);
-        double bestDist = nearest.distanceToSqr(this);
-        for (int i = 1; i < candidates.size(); i++) {
-            double d = candidates.get(i).distanceToSqr(this);
-            if (d < bestDist) {
-                bestDist = d;
-                nearest = candidates.get(i);
+        LivingEntity chosen = candidates.get(0);
+        if (vitaeMitosisOrb) {
+            // Section 6.22 Cellular Mitosis Split Flow: each sub-orb seeks out the lowest-health nearby ally or hostile!
+            float lowestHp = chosen.getHealth();
+            double tieDist = chosen.distanceToSqr(this);
+            for (int i = 1; i < candidates.size(); i++) {
+                LivingEntity cand = candidates.get(i);
+                float hp = cand.getHealth();
+                double d = cand.distanceToSqr(this);
+                if (hp < lowestHp - 0.1F || (Math.abs(hp - lowestHp) <= 0.1F && ((this.getId() & 1) == 0 ? d < tieDist : d > tieDist))) {
+                    lowestHp = hp;
+                    tieDist = d;
+                    chosen = cand;
+                }
+            }
+        } else {
+            double bestDist = chosen.distanceToSqr(this);
+            for (int i = 1; i < candidates.size(); i++) {
+                double d = candidates.get(i).distanceToSqr(this);
+                if (d < bestDist) {
+                    bestDist = d;
+                    chosen = candidates.get(i);
+                }
             }
         }
 
-        Vec3 desired = nearest.getEyePosition().subtract(this.position()).normalize().scale(speed);
-        Vec3 blended = currentVel.scale(0.75D).add(desired.scale(0.25D)).normalize().scale(speed);
+        Vec3 desired = chosen.getEyePosition().subtract(this.position()).normalize().scale(speed);
+        Vec3 blended = currentVel.scale(vitaeMitosisOrb ? 0.68D : 0.75D)
+                .add(desired.scale(vitaeMitosisOrb ? 0.32D : 0.25D)).normalize().scale(speed);
         this.setDeltaMovement(blended);
         this.hasImpulse = true;
     }
@@ -1946,7 +2005,7 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                 && flowMateria == EssenceType.VITAE
                 && hit instanceof LivingEntity hitLiv
                 && caster != null
-                && (hitLiv == caster || hitLiv.isAlliedTo(caster))
+                && SpellExecutionEngine.isFriendlyAllyForOasis(caster, hitLiv)
                 && hitLiv.getHealth() < hitLiv.getMaxHealth() - 0.5F;
 
         if ((hit == this.getOwner() && !vitaeMitosisHeal) || this.alreadyHitEntities.contains(hit.getUUID())) {
@@ -1959,11 +2018,16 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
         this.alreadyHitEntities.add(hit.getUUID());
 
         if (vitaeMitosisHeal && hit instanceof LivingEntity allyTarget) {
-            float mitosisHeal = 2.0F + this.spell.getEffectiveTier() * 0.75F;
+            float mitosisHeal = 2.5F + this.spell.getEffectiveTier() * 0.85F;
             SpellCombatReactionEngine.notifyMagicalHeal(allyTarget, mitosisHeal);
             allyTarget.heal(mitosisHeal);
             serverLevel.sendParticles(ParticleTypes.HEART, allyTarget.getX(), allyTarget.getY(0.9D), allyTarget.getZ(),
-                    5, 0.25D, 0.25D, 0.25D, 0.03D);
+                    6, 0.25D, 0.25D, 0.25D, 0.03D);
+            serverLevel.sendParticles(
+                    ddraig.net.entropica.client.particle.TimedTintableParticleOption.linear(
+                            ddraig.net.entropica.registry.ModParticles.TINTABLE_SPARKLE.get(), 0xFF6B9D, 20, 0.90F, 0.05F),
+                    allyTarget.getX(), allyTarget.getY(0.85D), allyTarget.getZ(), 8, 0.30D, 0.30D, 0.30D, 0.03D
+            );
             this.discard();
             return;
         }

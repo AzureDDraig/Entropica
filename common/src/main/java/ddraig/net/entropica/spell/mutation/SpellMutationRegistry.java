@@ -315,7 +315,7 @@ public final class SpellMutationRegistry {
             case BLOOD, ENTROPIC -> 0.30F;
             case APOTHEOSIS -> 0.25F;
             case UNDEAD, WRAITH, ECLIPSE -> 0.20F;
-            case VITAE, SOULFIRE -> 0.15F;
+            case SOULFIRE -> 0.15F;
             default -> 0.0F;
         };
         float potencyMult = switch (family) {

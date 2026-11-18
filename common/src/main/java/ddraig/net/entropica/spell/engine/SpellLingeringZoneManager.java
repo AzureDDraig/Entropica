@@ -172,13 +172,16 @@ public final class SpellLingeringZoneManager {
     public static final String TAG_TAIGA_FROST_WALKER_UNTIL = "SpellTaigaFrostWalkerUntil";
     public static final String TAG_TAIGA_COLD_IMMUNE_UNTIL = "SpellTaigaColdImmuneUntil";
     public static final String TAG_TAIGA_BRITTLE_UNTIL = "SpellTaigaBrittleMarkUntil";
+    public static final String TAG_TAIGA_SAP_PIN_UNTIL = "SpellTaigaSapPinUntil";
     public static final String TAG_OASIS_CARAPACE_UNTIL = "SpellOasisThornCarapaceUntil";
+    public static final String TAG_OASIS_SUNSTROKE_NEXT_JOLT = "SpellOasisSunstrokeNextJolt";
 
     // Vital Fusions (#21–#24) & Shared Tactical Estados
     public static final String TAG_VITAE_SHROUD_UNTIL = "SpellVitaeOverdriveShroudUntil";
     public static final String TAG_VITAE_OVERCHARGE_UNTIL = "SpellVitaeOverchargeMarkUntil";
     public static final String TAG_VITAE_DEATH_BLOOM_UNTIL = "SpellVitaeDeathBloomUntil";
     public static final String TAG_VITAE_DISORIENTED_UNTIL = "SpellVitaeDisorientedUntil";
+    public static final String TAG_VITAE_ARRHYTHMIA_NEXT_JOLT = "SpellVitaeArrhythmiaNextJolt";
     public static final String TAG_BLOOD_CARAPACE_UNTIL = "SpellBloodCrimsonCarapaceUntil";
     public static final String TAG_BLOOD_HEMORRHAGE_UNTIL = "SpellBloodHemorrhageUntil";
     public static final String TAG_BLOOD_FEAST_UNTIL = "SpellBloodFeastMarkUntil";
@@ -1206,6 +1209,127 @@ public final class SpellLingeringZoneManager {
                 fastFearMob.yHeadRot = fleeYaw;
                 fastFearMob.yBodyRot = fleeYaw;
             }
+
+            // Taiga (#19) Winter Solstice Shroud — Every-Tick Instant Fire Snuff & Powder-Snow Immunity (Section 6.20):
+            if (fastTag.getLong(TAG_TAIGA_SHROUD_UNTIL).orElse(0L) > now) {
+                fastTag.remove(TAG_UNQUENCHABLE_FIRE_UNTIL);
+                if (living.isOnFire()) {
+                    living.clearFire();
+                }
+                living.setTicksFrozen(0);
+                living.isInPowderSnow = false;
+            }
+
+            // Taiga (#19) Sticky Freezing Sap Ground-Pin (Hardened Frost-Resin Spike 2nd target & Frosted Conifer Briar Trap):
+            if (fastTag.getLong(TAG_TAIGA_SAP_PIN_UNTIL).orElse(0L) > now) {
+                Vec3 v = living.getDeltaMovement();
+                living.setDeltaMovement(0.0D, Math.min(0.0D, v.y), 0.0D);
+                living.setSprinting(false);
+                if (living instanceof Mob pinnedMob) {
+                    pinnedMob.getNavigation().stop();
+                }
+                if (living.canFreeze()) {
+                    living.setTicksFrozen(Math.max(living.getTicksFrozen(), living.getTicksRequiredToFreeze() + 10));
+                }
+            }
+
+            // Taiga (#19) Petrifying Frost-Sap Hex — Every-Tick Anti-Sprint Lock (Section 6.20):
+            if (SpellCombatReactionEngine.hasActiveMutatedHexOnEntity(living, now, EssenceType.TAIGA)) {
+                if (living.isSprinting()) {
+                    living.setSprinting(false);
+                }
+            }
+
+            // Oasis (#20) Dehydrating Sunstroke Hex — Sprint / Jump Exertion Oasis Damage (Section 6.21):
+            if (SpellCombatReactionEngine.hasActiveMutatedHexOnEntity(living, now, EssenceType.OASIS)) {
+                boolean sprintingOrJumping = living.isSprinting() || (!living.onGround() && living.getDeltaMovement().y > 0.14D);
+                if (sprintingOrJumping && now >= fastTag.getLong(TAG_OASIS_SUNSTROKE_NEXT_JOLT).orElse(0L)) {
+                    fastTag.putLong(TAG_OASIS_SUNSTROKE_NEXT_JOLT, now + 12L);
+                    int hexTier = Math.clamp(fastTag.getInt("SpellHexTier").orElse(1), 1, 10);
+                    float mult = SpellCombatReactionEngine.getHexStackMultiplier(living);
+                    SpellCombatReactionEngine.hurtWithOasisMateriaAdvantage(
+                            level, living, null, (2.2F + hexTier * 0.55F) * mult, false, true
+                    );
+                    if (living instanceof net.minecraft.world.entity.player.Player sunPlayer) {
+                        sunPlayer.causeFoodExhaustion(1.2F * mult);
+                    }
+                    level.sendParticles(
+                            new net.minecraft.core.particles.BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.SAND.defaultBlockState()),
+                            living.getX(), living.getY(0.75D), living.getZ(), 6, 0.28D, 0.30D, 0.28D, 0.02D
+                    );
+                }
+            }
+
+            // Vitae (#21) Cellular Overdrive Shroud — Every-Tick +20% Sprint Speed, -50% Food Exhaustion & 2x Natural Health Regen (Section 6.22):
+            if (fastTag.getLong(TAG_VITAE_SHROUD_UNTIL).orElse(0L) > now) {
+                if (living.isSprinting()) {
+                    SpellCombatReactionEngine.applyTimedMovementSpeedBoost(living, level, 0.20D, 6L);
+                }
+                if (living instanceof net.minecraft.world.entity.player.Player vitaePlayer && !vitaePlayer.isCreative()) {
+                    var food = vitaePlayer.getFoodData();
+                    float curSat = food.getSaturationLevel();
+                    int curFood = food.getFoodLevel();
+                    if (fastTag.contains("SpellVitaePrevSat")) {
+                        float prevSat = fastTag.getFloat("SpellVitaePrevSat").orElse(curSat);
+                        int prevFood = fastTag.getInt("SpellVitaePrevFood").orElse(curFood);
+                        // Refund exact 50% of any saturation or food shank drained by exhaustion!
+                        if (curSat < prevSat && curFood == prevFood) {
+                            float restoredSat = Math.min((float) curFood, curSat + (prevSat - curSat) * 0.50F);
+                            food.setSaturation(restoredSat);
+                            curSat = restoredSat;
+                        } else if (curFood < prevFood && prevFood - curFood == 1) {
+                            boolean refundFood = !fastTag.getBoolean("SpellVitaeFoodHalfToggle").orElse(false);
+                            fastTag.putBoolean("SpellVitaeFoodHalfToggle", refundFood);
+                            if (refundFood) {
+                                curFood = Math.min(20, curFood + 1);
+                                food.setFoodLevel(curFood);
+                            }
+                        }
+                    }
+                    fastTag.putFloat("SpellVitaePrevSat", curSat);
+                    fastTag.putInt("SpellVitaePrevFood", curFood);
+
+                    // Double (2.0x) natural food-based health regeneration rate!
+                    if (vitaePlayer.getHealth() < vitaePlayer.getMaxHealth()) {
+                        boolean fastSatRegen = curFood >= 20 && curSat > 0.0F && (now % 10L == 0L);
+                        boolean stdFoodRegen = curFood >= 18 && curFood < 20 && (now % 80L == 0L);
+                        if (fastSatRegen || stdFoodRegen) {
+                            SpellCombatReactionEngine.notifyMagicalHeal(vitaePlayer, 1.0F);
+                            vitaePlayer.heal(1.0F);
+                        }
+                    }
+                } else if (now % 40L == 0L && living.getHealth() < living.getMaxHealth()) {
+                    SpellCombatReactionEngine.notifyMagicalHeal(living, 1.0F);
+                    living.heal(1.0F);
+                }
+            } else if (fastTag.contains("SpellVitaePrevSat")) {
+                fastTag.remove("SpellVitaePrevSat");
+                fastTag.remove("SpellVitaePrevFood");
+                fastTag.remove("SpellVitaeFoodHalfToggle");
+            }
+
+            // Vitae (#21) Hyper-Metabolic Arrhythmia Hex — Every-Tick Regen Lock & Attack-Attempt Self-Recoil (Section 6.22):
+            if (SpellCombatReactionEngine.hasActiveMutatedHexOnEntity(living, now, EssenceType.VITAE)) {
+                if (living.hasEffect(MobEffects.REGENERATION)) {
+                    living.removeEffect(MobEffects.REGENERATION);
+                }
+                if (living.swinging && living.swingTime == 1
+                        && now >= fastTag.getLong(TAG_VITAE_ARRHYTHMIA_NEXT_JOLT).orElse(0L)) {
+                    fastTag.putLong(TAG_VITAE_ARRHYTHMIA_NEXT_JOLT, now + 14L);
+                    int hexTier = Math.clamp(fastTag.getInt("SpellHexTier").orElse(1), 1, 10);
+                    float mult = SpellCombatReactionEngine.getHexStackMultiplier(living);
+                    SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(
+                            level, living, null, (2.8F + hexTier * 0.65F) * mult, false, true
+                    );
+                    level.sendParticles(ParticleTypes.DAMAGE_INDICATOR,
+                            living.getX(), living.getY(0.80D), living.getZ(), 4, 0.22D, 0.25D, 0.22D, 0.03D);
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xFF6B9D, 18, 0.92F, 0.05F),
+                            living.getX(), living.getY(0.85D), living.getZ(), 6, 0.28D, 0.30D, 0.28D, 0.03D
+                    );
+                    level.playSound(null, living.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.70F, 1.35F);
+                }
+            }
         }
 
         // 2. Tick active Elemental Shroud Auras, Fear Panic, Unquenchable Fire & Spatial Anchors every 4 ticks
@@ -1651,41 +1775,65 @@ public final class SpellLingeringZoneManager {
                 SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
             }
 
-            // Taiga (#19) Winter Solstice Shroud: snuff fire & regenerate on snow/ice/cold biomes
+            // Taiga (#19) Winter Solstice Shroud: snuff fire, 3D blizzard shroud sync & regenerate on snow/ice/taiga/cold biomes
             if (tag.getLong(TAG_TAIGA_SHROUD_UNTIL).orElse(0L) > now) {
                 living.clearFire();
                 living.setTicksFrozen(0);
+                living.isInPowderSnow = false;
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                if (now % 8L == 0L) {
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_LEAF.get(), 0x1A5923, 22, 0.85F, 0.06F),
+                            living.getX(), living.getY(0.60D), living.getZ(), 2, 0.38D, 0.35D, 0.38D, 0.02D
+                    );
+                    level.sendParticles(ParticleTypes.SNOWFLAKE,
+                            living.getX(), living.getY(0.75D), living.getZ(), 2, 0.38D, 0.35D, 0.38D, 0.015D);
+                }
                 if (now % 20L == 0L) {
                     BlockPos feet = living.blockPosition();
                     BlockState under = level.getBlockState(feet.below());
-                    boolean coldSurface = under.is(Blocks.SNOW_BLOCK) || under.is(Blocks.ICE) || under.is(Blocks.PACKED_ICE)
-                            || under.is(Blocks.BLUE_ICE) || level.getBlockState(feet).is(Blocks.SNOW)
-                            || level.getBiome(feet).value().getBaseTemperature() < 0.25F;
-                    if (coldSurface) {
-                        SpellCombatReactionEngine.notifyMagicalHeal(living, 1.0F);
-                        living.heal(1.0F);
+                    BlockState atFeet = level.getBlockState(feet);
+                    boolean coldSurface = under.is(Blocks.SNOW_BLOCK)
+                            || under.is(Blocks.POWDER_SNOW)
+                            || under.is(Blocks.PODZOL)
+                            || under.is(net.minecraft.tags.BlockTags.ICE)
+                            || atFeet.is(Blocks.SNOW)
+                            || atFeet.is(Blocks.POWDER_SNOW)
+                            || level.getBiome(feet).value().getBaseTemperature() < 0.35F;
+                    if (coldSurface && living.getHealth() < living.getMaxHealth()) {
+                        int shroudTier = Math.clamp(tag.getInt("SpellTaigaShroudTier").orElse(1), 1, 10);
+                        float healAmt = 1.0F + shroudTier * 0.25F;
+                        SpellCombatReactionEngine.notifyMagicalHeal(living, healAmt);
+                        living.heal(healAmt);
                     }
                 }
             }
 
-            // Vitae (#21) Cellular Overdrive Shroud: +20% sprint speed, 2x natural regen, -50% exhaustion
-            if (tag.getLong(TAG_VITAE_SHROUD_UNTIL).orElse(0L) > now) {
-                if (living.isSprinting()) {
-                    living.addEffect(new MobEffectInstance(MobEffects.SPEED, 15, 0, true, false));
+            // Oasis (#20) Succulent Thorn Carapace: 3D cactus-flesh & thorn ward sync + desert pollen motes
+            if (tag.getLong(TAG_OASIS_CARAPACE_UNTIL).orElse(0L) > now) {
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                if (now % 8L == 0L) {
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_LEAF.get(), 0x1A5923, 22, 0.85F, 0.05F),
+                            living.getX(), living.getY(0.60D), living.getZ(), 2, 0.36D, 0.32D, 0.36D, 0.015D
+                    );
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPORE.get(), 0xC2B28F, 22, 0.82F, 0.05F),
+                            living.getX(), living.getY(0.75D), living.getZ(), 2, 0.36D, 0.32D, 0.36D, 0.015D
+                    );
                 }
-                if (now % 40L == 0L) {
-                    if (living instanceof net.minecraft.world.entity.player.Player player) {
-                        if (player.getFoodData().getFoodLevel() >= 18 && player.getHealth() < player.getMaxHealth()) {
-                            SpellCombatReactionEngine.notifyMagicalHeal(player, 1.0F);
-                            player.heal(1.0F);
-                        }
-                        if (player.getFoodData().getSaturationLevel() < 5.0F) {
-                            player.getFoodData().eat(0, 0.25F);
-                        }
-                    } else if (living.getHealth() < living.getMaxHealth()) {
-                        SpellCombatReactionEngine.notifyMagicalHeal(living, 1.0F);
-                        living.heal(1.0F);
-                    }
+            }
+
+            // Vitae (#21) Cellular Overdrive Shroud: 3D crackling #FF6B9D biological ward sync & rose cellular particles
+            if (tag.getLong(TAG_VITAE_SHROUD_UNTIL).orElse(0L) > now) {
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                if (now % 8L == 0L) {
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xFF6B9D, 20, 0.88F, 0.05F),
+                            living.getX(), living.getY(0.65D), living.getZ(), 3, 0.36D, 0.36D, 0.36D, 0.02D
+                    );
+                    level.sendParticles(ParticleTypes.HEART,
+                            living.getX(), living.getY(0.95D), living.getZ(), 1, 0.32D, 0.28D, 0.32D, 0.01D);
                 }
             }
 

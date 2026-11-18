@@ -1,18 +1,24 @@
 package ddraig.net.entropica.spell.mutation.element;
 
 import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.client.particle.TimedTintableParticleOption;
 import ddraig.net.entropica.entity.projectile.SpellProjectileEntity;
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModEffects;
+import ddraig.net.entropica.registry.ModParticles;
 import ddraig.net.entropica.spell.SpellCoreEffect;
 import ddraig.net.entropica.spell.SpellDeliveryForm;
 import ddraig.net.entropica.spell.SpellFlowModifier;
 import ddraig.net.entropica.spell.assembly.SpellAssembly;
 import ddraig.net.entropica.spell.assembly.SubSpellSlot;
 import ddraig.net.entropica.spell.engine.SpellCombatReactionEngine;
+import ddraig.net.entropica.spell.engine.SpellEidolonSpecs;
 import ddraig.net.entropica.spell.engine.SpellExecutionEngine;
 import ddraig.net.entropica.spell.engine.SpellLingeringZoneManager;
+import ddraig.net.entropica.spell.fuel.MateriaStageTable;
+import ddraig.net.entropica.spell.fuel.SpellFuelService;
 import ddraig.net.entropica.spell.mutation.handler.MateriaPartMutationHandler;
+import ddraig.net.entropica.spell.vfx.SpellWorldVfxManager;
 import ddraig.net.entropica.util.EntityHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -22,6 +28,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -29,9 +36,7 @@ import net.minecraft.world.entity.ConversionParams;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.player.Player;
@@ -52,11 +57,44 @@ import java.util.List;
 
 /**
  * Complete per-part Signature Mutation implementation for <b>Vitae Materia (Vital Fusion #21)</b>
- * (Spellcrafting System Guide Section 6.22).
+ * (Spellcrafting System Guide Section 6.22):
+ * <ul>
+ *     <li><b>Canonical Advantage</b>: Strong against <b>UNDEAD (+1)</b> | Weak against <b>NETHER (-1)</b>,
+ *     <b>FROZEN (-1)</b>, and <b>UMBRAL (-1)</b> (Dominance {@code vitae_nature_dom}: Strong vs Water &amp; Earth,
+ *     Weak vs Nether, Frozen &amp; Umbral; computed dynamically by {@code VisInteractionManager}).</li>
+ *     <li><b>Flow (Split)</b>: <i>Cellular Mitosis Split Flow</i> — splits into two smaller pulsating heart-orbs
+ *     upon impact or reaching maximum range, with each sub-orb seeking out the lowest-health nearby ally or hostile.</li>
+ *     <li><b>Projectile</b>: <i>Spiraling Vitality Helix</i> — intertwined double-helix bolts of vibrant rose life energy
+ *     ({@code #FF6B9D}) siphoning positive status buffs from struck enemies directly to the caster.</li>
+ *     <li><b>Beam</b>: <i>Cardiovascular Life-Tether</i> — audible heartbeat beam leaching exact 25% of damage dealt back
+ *     to heal the caster, cleansing negative debuffs when aimed at allies, and triggering spontaneous breeding on animals.</li>
+ *     <li><b>Radial Burst</b>: <i>Cellular Overcharge Bloom</i> — 6m+ biological shockwave ({@code #FF6B9D}) causing struck
+ *     enemies to drop temporary collectible life-essence orbs while granting allies Speed II &amp; Jump Boost II for 8.0s.</li>
+ *     <li><b>Touch / Strike</b>: <i>Cellular Overcharge Strike</i> — implants volatile vital force into the target, causing
+ *     them to emit healing pulses to nearby allies whenever taking damage over the next 5.0s.</li>
+ *     <li><b>Aura / Self</b>: <i>Cellular Overdrive Shroud</i> — crackling biological energy ({@code #FF6B9D}) doubling
+ *     natural health regeneration rate, cutting food exhaustion rate by 50%, and granting +20% sprint speed while active.</li>
+ *     <li><b>Glyph / Trap</b>: <i>Cellular Overcharge Mine</i> — disarmable Single/Repeating biological rune inflicting
+ *     35% Slowness and marking the target to detonate into a healing explosion for players if killed within 5.0s.</li>
+ *     <li><b>Cone / Spray</b>: <i>Cellular Rejuvenation Spray</i> — 60° sparkling rose mist disorienting enemies (35% miss
+ *     chance) and knocking them back 3 blocks while cleansing debuffs and granting +20% movement speed to caught allies.</li>
+ *     <li><b>Rain / Skyfall</b>: <i>Font of Vitality Downpour</i> — tier-scaled 16m+ rain of rose life essence for 12.0s
+ *     restoring health &amp; hunger to players and pets, clearing ailments every 2.0s, and sprouting vibrant roses &amp; flora.</li>
+ *     <li><b>Summon / Eidolon</b>: <i>Vitae Guardian Eidolon Suite</i> — {@code #FF6B9D} Vitality Knight Agent,
+ *     6m heartbeat-cleansing Cardiovascular Spire Sentry, and 5m 6-heart-restoring Heart-Husk Effigy Decoy.</li>
+ *     <li><b>Blink / Step</b>: <i>Cardiovascular Shock Blink</i> — 14m+ heartbeat boom stunning adjacent hostiles for 1.0s.</li>
+ *     <li><b>Transmute</b>: <i>Vitality Synthesis Transmute</i> — cures zombie villagers back into healthy villagers,
+ *     converts rotten flesh into edible raw meat, and turns dead bushes into blooming rose bushes.</li>
+ *     <li><b>Affliction</b>: <i>Hyper-Metabolic Arrhythmia Hex</i> — milk-immune biological curse permanently disabling
+ *     health regeneration, cutting attack damage by 40%, and inflicting self-damaging recoil whenever attempting an attack
+ *     until cleansed via Restoration magic or caster defeat.</li>
+ * </ul>
  */
 public final class VitaeSpellMutationHandler implements MateriaPartMutationHandler {
 
     public static final int VITAE_GUARDIAN_HEX_COLOR = 0xFF6B9D;
+    public static final int VIBRANT_ROSE_HEX_COLOR = 0xFF6B9D;
+    public static final int PEARL_BLUSH_HEX_COLOR = 0xFFD1E3;
 
     @Override
     public EssenceType materiaType() {
@@ -67,7 +105,7 @@ public final class VitaeSpellMutationHandler implements MateriaPartMutationHandl
     public String resolveFlowTitle(SpellFlowModifier flow) {
         return switch (flow) {
             case DOUBLE_BIFURCATE, TRIPLE_TRIFURCATE, OCTUPLE_DOME -> "Cellular Mitosis Split Flow";
-            default -> "Cellular Vitality " + flow.getDisplayName();
+            default -> "Cellular Mitosis Split Flow (" + flow.getDisplayName() + ")";
         };
     }
 
@@ -82,7 +120,8 @@ public final class VitaeSpellMutationHandler implements MateriaPartMutationHandl
             case GLYPH -> "Cellular Overcharge Mine";
             case CONE -> "Cellular Rejuvenation Spray";
             case SKYFALL -> "Font of Vitality Downpour";
-            case SUMMON_AGENT, SUMMON_SENTRY, SUMMON_DECOY -> ddraig.net.entropica.spell.engine.SpellEidolonSpecs.resolveCanonicalBlueprintTitle(materiaType(), form.getSummonArchetype());
+            case SUMMON_AGENT, SUMMON_SENTRY, SUMMON_DECOY ->
+                    SpellEidolonSpecs.resolveCanonicalBlueprintTitle(materiaType(), form.getSummonArchetype());
         };
     }
 
@@ -92,118 +131,294 @@ public final class VitaeSpellMutationHandler implements MateriaPartMutationHandl
             case BLINK -> "Cardiovascular Shock Blink";
             case TRANSMUTE, BREAK -> "Vitality Synthesis Transmute";
             case AFFLICTION -> "Hyper-Metabolic Arrhythmia Hex";
-            default -> "Vitality " + effect.getDisplayName();
+            case RESTORATION -> "Cellular Vitality Restoration";
+            default -> "Cellular Vitality " + effect.getDisplayName();
         };
     }
 
-    // --- Part 1: Flow Mutations ---
+    // =========================================================================
+    // FLOW MUTATION — CELLULAR MITOSIS SPLIT FLOW
+    // =========================================================================
 
     @Override
-    public void onProjectileImpactOrExpireFromFlow(ServerLevel level, SpellProjectileEntity projectile, @Nullable LivingEntity caster, Vec3 splitOrigin, SpellAssembly spell, SubSpellSlot slot) {
-        // Cellular Mitosis Split Flow: splits into 2 smaller pulsating heart-orbs seeking lowest-HP ally or hostile!
-        projectile.spawnSplitChild(level, splitOrigin, -25.0F, true, 0.65F, 1.20F);
-        projectile.spawnSplitChild(level, splitOrigin, 25.0F, true, 0.65F, 1.20F);
-        level.sendParticles(ParticleTypes.HEART, splitOrigin.x, splitOrigin.y, splitOrigin.z, 6, 0.25D, 0.25D, 0.25D, 0.04D);
+    public void onProjectileTickFromFlow(ServerLevel level, SpellProjectileEntity projectile, SpellFlowModifier flow) {
+        if (projectile.tickCount % 2 == 0) {
+            level.sendParticles(
+                    TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 18, 0.85F, 0.05F),
+                    projectile.getX(), projectile.getY(), projectile.getZ(), 1, 0.06D, 0.06D, 0.06D, 0.01D
+            );
+        }
     }
 
-    // --- Part 2: Delivery Form Mutations ---
+    @Override
+    public void onProjectileImpactOrExpireFromFlow(
+            ServerLevel level,
+            SpellProjectileEntity projectile,
+            @Nullable LivingEntity caster,
+            Vec3 splitOrigin,
+            SpellAssembly spell,
+            SubSpellSlot slot
+    ) {
+        // Section 6.22 Cellular Mitosis Split Flow:
+        // Splits into two smaller pulsating heart-orbs upon impact or reaching maximum range,
+        // with each sub-orb seeking out the lowest-health nearby ally or hostile!
+        projectile.spawnSplitChild(level, splitOrigin, -24.0F, true, 0.68F, 1.30F);
+        projectile.spawnSplitChild(level, splitOrigin, 24.0F, true, 0.68F, 1.30F);
+
+        level.sendParticles(ParticleTypes.HEART,
+                splitOrigin.x, splitOrigin.y, splitOrigin.z, 6, 0.25D, 0.25D, 0.25D, 0.04D);
+        level.sendParticles(
+                TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 24, 1.00F, 0.06F),
+                splitOrigin.x, splitOrigin.y, splitOrigin.z, 12, 0.28D, 0.28D, 0.28D, 0.04D
+        );
+        level.playSound(null, BlockPos.containing(splitOrigin), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.65F, 1.35F);
+    }
+
+    // =========================================================================
+    // FORM MUTATION 1 — SPIRALING VITALITY HELIX (PROJECTILE)
+    // =========================================================================
+
+    @Override
+    public void onProjectileSpawnedFromForm(
+            ServerLevel level,
+            SpellProjectileEntity projectile,
+            LivingEntity caster,
+            SpellAssembly spell,
+            SubSpellSlot slot
+    ) {
+        projectile.setNoGravity(true);
+        Vec3 vel = projectile.getDeltaMovement();
+        if (vel.lengthSqr() > 1.0E-4D && vel.length() < 1.80D) {
+            projectile.setDeltaMovement(vel.normalize().scale(1.82D));
+            projectile.hasImpulse = true;
+        }
+        level.playSound(null, caster.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.70F, 1.38F);
+        level.playSound(null, caster.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.45F, 1.42F);
+    }
 
     @Override
     public void onProjectileTickFromForm(ServerLevel level, SpellProjectileEntity projectile, SubSpellSlot slot) {
-        double phase = projectile.tickCount * 0.7D;
+        double phase = projectile.tickCount * 0.72D;
         double ox = Math.cos(phase) * 0.22D;
         double oz = Math.sin(phase) * 0.22D;
-        level.sendParticles(ParticleTypes.HEART, projectile.getX() + ox, projectile.getY(), projectile.getZ() + oz, 1, 0.02D, 0.02D, 0.02D, 0.0D);
+        level.sendParticles(
+                TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 18, 0.85F, 0.05F),
+                projectile.getX() + ox, projectile.getY(), projectile.getZ() + oz, 1, 0.02D, 0.02D, 0.02D, 0.0D
+        );
+        if (projectile.tickCount % 3 == 0) {
+            level.sendParticles(ParticleTypes.HEART,
+                    projectile.getX() - ox, projectile.getY(), projectile.getZ() - oz, 1, 0.02D, 0.02D, 0.02D, 0.0D);
+        }
     }
 
     @Override
-    public void onProjectileHitEntityFromForm(ServerLevel level, SpellProjectileEntity projectile, @Nullable LivingEntity caster, Entity hitEntity, SpellAssembly spell, SubSpellSlot slot) {
-        // Spiraling Vitality Helix: siphons positive status buffs from struck enemies directly onto the caster!
-        if (caster == null || !caster.isAlive() || !(hitEntity instanceof LivingEntity living) || living == caster) return;
-        if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(living, caster, spell.hasWardFriendlyFireSafeguard())) return;
+    public void onProjectileHitEntityFromForm(
+            ServerLevel level,
+            SpellProjectileEntity projectile,
+            @Nullable LivingEntity caster,
+            Entity hitEntity,
+            SpellAssembly spell,
+            SubSpellSlot slot
+    ) {
+        // Section 6.22 Spiraling Vitality Helix:
+        // On top of normal spell damage, siphons positive status buffs from struck enemies directly to the caster!
+        if (!(hitEntity instanceof LivingEntity living) || !living.isAlive() || living == caster) return;
+        if (caster != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(living, caster, spell.hasWardFriendlyFireSafeguard())) {
+            return;
+        }
 
-        List<Holder<MobEffect>> toStrip = new ArrayList<>();
-        for (MobEffectInstance eff : living.getActiveEffects()) {
-            if (eff.getEffect().value().isBeneficial()) {
-                caster.addEffect(new MobEffectInstance(eff));
-                toStrip.add(eff.getEffect());
+        if (!slot.hasHarmVerb()) {
+            int tier = spell.getEffectiveTier();
+            float helixDmg = (2.8F + tier * 0.85F) * spell.flawProfile().getPotencyMultiplier();
+            SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(level, living, caster, helixDmg, false, true);
+        }
+
+        if (caster != null && caster.isAlive()) {
+            List<Holder<MobEffect>> toStrip = new ArrayList<>();
+            for (MobEffectInstance eff : living.getActiveEffects()) {
+                if (eff.getEffect().value().isBeneficial()) {
+                    caster.addEffect(new MobEffectInstance(
+                            eff.getEffect(),
+                            Math.max(60, eff.getDuration()),
+                            eff.getAmplifier(),
+                            eff.isAmbient(),
+                            eff.isVisible(),
+                            eff.showIcon()
+                    ));
+                    toStrip.add(eff.getEffect());
+                }
+            }
+            for (Holder<MobEffect> h : toStrip) {
+                living.removeEffect(h);
+            }
+            if (!toStrip.isEmpty()) {
+                level.sendParticles(ParticleTypes.HEART,
+                        caster.getX(), caster.getY(0.95D), caster.getZ(), 6, 0.30D, 0.35D, 0.30D, 0.03D);
+                level.sendParticles(
+                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 22, 1.00F, 0.06F),
+                        living.getX(), living.getY(0.85D), living.getZ(), 14, 0.35D, 0.40D, 0.35D, 0.05D
+                );
+                level.playSound(null, caster.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.80F, 1.32F);
             }
         }
-        for (Holder<MobEffect> h : toStrip) {
-            living.removeEffect(h);
-        }
     }
 
+    // =========================================================================
+    // FORM MUTATION 2 — CARDIOVASCULAR LIFE-TETHER (BEAM)
+    // =========================================================================
+
     @Override
-    public void onBeamFormCast(ServerLevel level, LivingEntity caster, Vec3 direction, double maxReach, List<LivingEntity> hitEntities, BlockHitResult blockHit, SpellAssembly spell, SubSpellSlot slot, @Nullable EssenceType fallbackMateria, float apparatusPotency) {
-        // Cardiovascular Life-Tether: heartbeat sound, 25% lifesteal, cleanses allies, triggers spontaneous breeding on animals!
-        level.playSound(null, caster.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.7F, 1.15F);
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency
+    ) {
+        // Section 6.22 Cardiovascular Life-Tether:
+        // Audible heartbeat beam; leaches exact 25% of damage dealt back to heal the caster,
+        // cleanses negative debuffs when aimed at allies, and triggers spontaneous breeding when swept over animals!
+        level.playSound(null, caster.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.75F, 1.15F);
         int tier = spell.getEffectiveTier();
+        boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
+        float potency = Math.max(0.5F, apparatusPotency);
         Player playerCaster = caster instanceof Player p ? p : null;
 
         for (LivingEntity hit : hitEntities) {
-            if (hit instanceof Animal animal && animal.canFallInLove()) {
-                animal.setInLove(playerCaster);
-                level.sendParticles(ParticleTypes.HEART, animal.getX(), animal.getY(0.8D), animal.getZ(), 5, 0.25D, 0.25D, 0.25D, 0.03D);
+            if (!hit.isAlive() || hit == caster) continue;
+            if (hit instanceof Animal animal && !(hit instanceof net.minecraft.world.entity.monster.Enemy)) {
+                if (animal.canFallInLove()) {
+                    animal.setInLove(playerCaster);
+                    level.sendParticles(ParticleTypes.HEART,
+                            animal.getX(), animal.getY(0.85D), animal.getZ(), 6, 0.28D, 0.28D, 0.28D, 0.03D);
+                }
                 continue;
             }
-            if (hit == caster || hit.isAlliedTo(caster)) {
+            if (SpellExecutionEngine.isFriendlyAllyForOasis(caster, hit)) {
                 SpellCombatReactionEngine.purifyHexesAndNegativeEffects(hit);
-                float allyHeal = 2.5F + tier * 0.6F;
+                float allyHeal = (2.6F + tier * 0.65F) * potency;
                 SpellCombatReactionEngine.notifyMagicalHeal(hit, allyHeal);
                 hit.heal(allyHeal);
-            } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, spell.hasWardFriendlyFireSafeguard())) {
-                SpellCombatReactionEngine.applyTierScaledLifesteal(level, caster, tier, 0.25F, apparatusPotency);
+                level.sendParticles(ParticleTypes.HEART,
+                        hit.getX(), hit.getY(0.90D), hit.getZ(), 5, 0.28D, 0.30D, 0.28D, 0.03D);
+            } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, wardSafe)) {
+                // Note: When slot.hasHarmVerb() is true, SpellCombatReactionEngine.applyElementalHarm already heals caster
+                // for exact 25% of actual damage dealt via vitaeBeamLifesteal!
+                if (!slot.hasHarmVerb()) {
+                    float beamDmg = (1.25F + tier * 0.36F) * potency;
+                    float dealt = SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(level, hit, caster, beamDmg, false, true);
+                    if (dealt > 0.0F && caster.isAlive()) {
+                        float siphon = dealt * 0.25F;
+                        SpellCombatReactionEngine.notifyMagicalHeal(caster, siphon);
+                        caster.heal(siphon);
+                    }
+                }
+                level.sendParticles(ParticleTypes.HEART,
+                        caster.getX(), caster.getY(0.95D), caster.getZ(), 2, 0.22D, 0.22D, 0.22D, 0.02D);
             }
         }
 
-        // Also sweep passive animals along the beam corridor for spontaneous breeding
-        AABB corridor = caster.getBoundingBox().expandTowards(direction.scale(maxReach)).inflate(1.25D);
-        for (Animal animal : level.getEntitiesOfClass(Animal.class, corridor)) {
-            if (animal.isAlive() && animal.canFallInLove()) {
+        // Sweep passive animals along the full beam corridor for spontaneous breeding!
+        double actualReach = blockHit != null ? caster.getEyePosition().distanceTo(blockHit.getLocation()) : maxReach;
+        AABB corridor = caster.getBoundingBox().expandTowards(direction.scale(actualReach)).inflate(1.35D);
+        for (Animal animal : level.getEntitiesOfClass(Animal.class, corridor, LivingEntity::isAlive)) {
+            if (animal.canFallInLove()) {
                 animal.setInLove(playerCaster);
+                level.sendParticles(ParticleTypes.HEART,
+                        animal.getX(), animal.getY(0.85D), animal.getZ(), 6, 0.28D, 0.28D, 0.28D, 0.03D);
             }
         }
     }
 
+    // =========================================================================
+    // FORM MUTATION 3 — CELLULAR OVERCHARGE BLOOM (RADIAL BURST)
+    // =========================================================================
+
     @Override
-    public void onRadialBurstFormCast(ServerLevel level, LivingEntity caster, Vec3 center, double radius, Vec3 direction, SpellAssembly spell, SubSpellSlot slot, @Nullable EssenceType fallbackMateria, float apparatusPotency) {
-        // Cellular Overcharge Bloom: 6m allies gain Speed II & Jump Boost II for 8s (160t); struck enemies drop glowing life-essence healing pickup orbs!
+    public void onRadialBurstFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 center,
+            double radius,
+            Vec3 direction,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency
+    ) {
+        // Section 6.22 Cellular Overcharge Bloom:
+        // Outward biological shockwave (6-block+ radius, #FF6B9D); struck enemies drop temporary life-essence orbs,
+        // while allies in the blast gain Speed II and Jump Boost II for 8.0 seconds (160t)!
         double r = Math.max(6.0D, radius);
         long now = level.getGameTime();
         int tier = spell.getEffectiveTier();
-        AABB box = new AABB(center.x - r, center.y - 2.0D, center.z - r, center.x + r, center.y + 2.5D, center.z + r);
-        for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, box)) {
-            if (!e.isAlive()) continue;
-            if (e == caster || e.isAlliedTo(caster) || e instanceof Player) {
+        boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
+        float potency = Math.max(0.5F, apparatusPotency);
+
+        AABB box = new AABB(center.x - r, center.y - 2.0D, center.z - r, center.x + r, center.y + 3.0D, center.z + r);
+        for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
+            double dx = e.getX() - center.x;
+            double dz = e.getZ() - center.z;
+            if (dx * dx + dz * dz > (r + 0.6D) * (r + 0.6D)) continue;
+
+            if (SpellExecutionEngine.isFriendlyAllyForOasis(caster, e)) {
+                // Speed II (amp 1) & Jump Boost II (amp 1) for exact 8.0 seconds (160 ticks)!
                 e.addEffect(new MobEffectInstance(MobEffects.SPEED, 160, 1));
                 e.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 160, 1));
-            } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, caster, spell.hasWardFriendlyFireSafeguard())) {
-                EntityHelper.getPersistentData(e).putLong(SpellLingeringZoneManager.TAG_VITAE_DEATH_BLOOM_UNTIL, now + 120L);
-                Vec3 orbOrigin = e.position().add(0.0D, 0.4D, 0.0D);
-                float orbHeal = 3.0F + tier * 0.85F;
-                level.sendParticles(ParticleTypes.HEART, orbOrigin.x, orbOrigin.y + 0.4D, orbOrigin.z, 4, 0.2D, 0.2D, 0.2D, 0.03D);
+                level.sendParticles(
+                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 22, 0.95F, 0.05F),
+                        e.getX(), e.getY(0.85D), e.getZ(), 8, 0.32D, 0.40D, 0.32D, 0.03D
+                );
+            } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, caster, wardSafe)) {
+                if (!slot.hasHarmVerb()) {
+                    float bloomDmg = (3.3F + tier * 0.90F) * potency;
+                    SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(level, e, caster, bloomDmg, false, true);
+                }
 
-                // Spawn a 5-second (100t) glowing life-essence pickup orb at each struck enemy's position!
+                // Drop a temporary collectible #FF6B9D Life-Essence Orb at each struck enemy's position!
+                final Vec3[] orbPos = {e.position().add(0.0D, 0.45D, 0.0D)};
+                float orbHeal = (3.5F + tier * 0.90F) * potency;
                 SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                        caster, orbOrigin, 2.2D, 100, now, spell, slot, fallbackMateria, apparatusPotency,
+                        caster, orbPos[0], 2.4D, 120, now, spell, slot, fallbackMateria, apparatusPotency,
                         (srv, zone, elapsed) -> {
                             if (elapsed > zone.maxDurationTicks) return false;
-                            if (elapsed % 4 == 0) {
-                                srv.sendParticles(ParticleTypes.HEART, zone.center.x, zone.center.y + 0.25D, zone.center.z, 1, 0.1D, 0.1D, 0.1D, 0.01D);
-                                srv.sendParticles(ParticleTypes.END_ROD, zone.center.x, zone.center.y + 0.25D, zone.center.z, 2, 0.12D, 0.12D, 0.12D, 0.01D);
+                            if (elapsed % 3 == 0) {
+                                srv.sendParticles(
+                                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 14, 1.00F, 0.04F),
+                                        orbPos[0].x, orbPos[0].y + 0.15D * Math.sin(elapsed * 0.25D), orbPos[0].z,
+                                        3, 0.12D, 0.12D, 0.12D, 0.01D
+                                );
+                                if (elapsed % 9 == 0) {
+                                    srv.sendParticles(ParticleTypes.HEART,
+                                            orbPos[0].x, orbPos[0].y + 0.25D, orbPos[0].z, 1, 0.08D, 0.08D, 0.08D, 0.01D);
+                                }
                             }
                             if (elapsed < 4) return true;
+
                             LivingEntity owner = zone.resolveCaster(srv);
-                            AABB pickupBox = new AABB(zone.center.x - 2.2D, zone.center.y - 1.2D, zone.center.z - 2.2D,
-                                    zone.center.x + 2.2D, zone.center.y + 2.0D, zone.center.z + 2.2D);
-                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, pickupBox, LivingEntity::isAlive)) {
-                                if (ally instanceof Player || ally == owner || (owner != null && ally.isAlliedTo(owner))) {
-                                    SpellCombatReactionEngine.notifyMagicalHeal(ally, orbHeal);
-                                    ally.heal(orbHeal);
-                                    srv.sendParticles(ParticleTypes.HEART, ally.getX(), ally.getY(0.85D), ally.getZ(), 5, 0.25D, 0.25D, 0.25D, 0.03D);
-                                    srv.playSound(null, ally.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.7F, 1.35F);
-                                    return false;
+                            AABB magnetBox = new AABB(
+                                    orbPos[0].x - 3.6D, orbPos[0].y - 1.5D, orbPos[0].z - 3.6D,
+                                    orbPos[0].x + 3.6D, orbPos[0].y + 2.2D, orbPos[0].z + 3.6D
+                            );
+                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, magnetBox, LivingEntity::isAlive)) {
+                                if (ally instanceof Player || SpellExecutionEngine.isFriendlyAllyForOasis(owner, ally)) {
+                                    double distSq = ally.position().add(0.0D, 0.5D, 0.0D).distanceToSqr(orbPos[0]);
+                                    if (distSq <= 3.24D) {
+                                        SpellCombatReactionEngine.notifyMagicalHeal(ally, orbHeal);
+                                        ally.heal(orbHeal);
+                                        srv.sendParticles(ParticleTypes.HEART,
+                                                ally.getX(), ally.getY(0.95D), ally.getZ(), 6, 0.28D, 0.28D, 0.28D, 0.03D);
+                                        srv.playSound(null, ally.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.75F, 1.38F);
+                                        return false;
+                                    } else {
+                                        Vec3 pull = ally.position().add(0.0D, 0.5D, 0.0D).subtract(orbPos[0]).normalize().scale(0.28D);
+                                        orbPos[0] = orbPos[0].add(pull);
+                                    }
                                 }
                             }
                             return true;
@@ -211,113 +426,356 @@ public final class VitaeSpellMutationHandler implements MateriaPartMutationHandl
                 ));
             }
         }
+
+        level.playSound(null, BlockPos.containing(center), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 1.0F, 1.05F);
+        level.playSound(null, BlockPos.containing(center), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.90F, 1.32F);
     }
 
+    // =========================================================================
+    // FORM MUTATION 4 — CELLULAR OVERCHARGE STRIKE (TOUCH / STRIKE)
+    // =========================================================================
+
     @Override
-    public void onTouchStrikeFormCast(ServerLevel level, LivingEntity caster, Vec3 direction, List<LivingEntity> hitEntities, SpellAssembly spell, SubSpellSlot slot, @Nullable EssenceType fallbackMateria, float apparatusPotency) {
-        // Cellular Overcharge Strike: victim emits healing pulses to nearby allies whenever taking damage over the next 5s (100t)!
+    public void onTouchStrikeFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            List<LivingEntity> hitEntities,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency
+    ) {
+        // Section 6.22 Cellular Overcharge Strike:
+        // On top of normal spell damage, implants volatile vital force into the target, causing them to emit
+        // healing pulses to nearby allies whenever the afflicted victim takes damage over the next 5.0 seconds (100t)!
+        int tier = spell.getEffectiveTier();
         long until = level.getGameTime() + 100L;
-        for (LivingEntity hit : hitEntities) {
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, spell.hasWardFriendlyFireSafeguard())) continue;
-            EntityHelper.getPersistentData(hit).putLong(SpellLingeringZoneManager.TAG_VITAE_OVERCHARGE_UNTIL, until);
-            level.sendParticles(ParticleTypes.HEART, hit.getX(), hit.getY(0.9D), hit.getZ(), 6, 0.25D, 0.3D, 0.25D, 0.04D);
+        boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
+        float potency = Math.max(0.5F, apparatusPotency);
+
+        SpellWorldVfxManager.broadcastCrescentSlash(
+                level, caster.position().add(0.0D, caster.getBbHeight() * 0.58D, 0.0D),
+                direction, 3.4D, EssenceType.VITAE, EssenceType.NATURE, tier
+        );
+
+        for (int i = 0; i < hitEntities.size(); i++) {
+            LivingEntity hit = hitEntities.get(i);
+            if (!hit.isAlive() || hit == caster) continue;
+            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, wardSafe)) continue;
+
+            float cleaveScale = (i == 0) ? 1.0F : 0.50F;
+            CompoundTag data = EntityHelper.getPersistentData(hit);
+            data.putLong(SpellLingeringZoneManager.TAG_VITAE_OVERCHARGE_UNTIL, until);
+            data.putInt("SpellVitaeOverchargeTier", tier);
+            data.putString("SpellVitaeOverchargeCaster", caster.getUUID().toString());
+
+            if (!slot.hasHarmVerb()) {
+                float strikeDmg = (3.5F + tier * 1.00F) * cleaveScale * potency;
+                SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(level, hit, caster, strikeDmg, true, true);
+            }
+
+            level.sendParticles(ParticleTypes.HEART,
+                    hit.getX(), hit.getY(0.90D), hit.getZ(), 6, 0.28D, 0.32D, 0.28D, 0.04D);
+            level.sendParticles(
+                    TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 24, 1.00F, 0.06F),
+                    hit.getX(), hit.getY(0.85D), hit.getZ(), 12, 0.32D, 0.35D, 0.32D, 0.04D
+            );
         }
+        level.playSound(null, caster.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.85F, 1.25F);
     }
 
-    @Override
-    public void onAuraFormCast(ServerLevel level, LivingEntity caster, double radius, SpellAssembly spell, SubSpellSlot slot, @Nullable EssenceType fallbackMateria, float apparatusPotency) {
-        // Cellular Overdrive Shroud: 2x natural health regen, -50% food exhaustion, +20% sprint speed!
-        int dur = 200 + spell.getEffectiveTier() * 40;
-        EntityHelper.getPersistentData(caster).putLong(SpellLingeringZoneManager.TAG_VITAE_SHROUD_UNTIL, level.getGameTime() + dur);
-        level.sendParticles(ParticleTypes.HEART, caster.getX(), caster.getY(1.0D), caster.getZ(), 12, 0.45D, 0.5D, 0.45D, 0.04D);
-    }
+    // =========================================================================
+    // FORM MUTATION 5 — CELLULAR OVERDRIVE SHROUD (AURA / SELF)
+    // =========================================================================
 
     @Override
-    public boolean onGlyphFormCast(ServerLevel level, LivingEntity caster, Vec3 glyphCenter, double radius, SpellAssembly spell, SubSpellSlot slot, @Nullable EssenceType fallbackMateria, float apparatusPotency) {
-        // Cellular Overcharge Mine: 35% Slowness + marks target to detonate into a healing explosion if killed within 5s (100t)!
-        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                caster, glyphCenter, 3.0D, 400, level.getGameTime(), spell, slot, fallbackMateria, apparatusPotency,
+    public void onAuraFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            double radius,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency
+    ) {
+        // Section 6.22 Cellular Overdrive Shroud:
+        // Crackling biological energy (#FF6B9D): doubles natural health regeneration rate,
+        // cuts food exhaustion rate by 50%, and grants a permanent +20% sprint speed bonus while active!
+        int tier = spell.getEffectiveTier();
+        int dur = 240 + tier * 40;
+        long until = level.getGameTime() + dur;
+
+        CompoundTag data = EntityHelper.getPersistentData(caster);
+        data.putLong(SpellLingeringZoneManager.TAG_VITAE_SHROUD_UNTIL, until);
+        data.putInt("SpellVitaeShroudTier", tier);
+
+        SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.0F, null);
+        level.sendParticles(ParticleTypes.HEART,
+                caster.getX(), caster.getY(1.00D), caster.getZ(), 10, 0.42D, 0.48D, 0.42D, 0.04D);
+        level.sendParticles(
+                TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 28, 1.05F, 0.06F),
+                caster.getX(), caster.getY(0.85D), caster.getZ(), 20, 0.45D, 0.50D, 0.45D, 0.04D
+        );
+        level.playSound(null, caster.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.85F, 1.18F);
+        level.playSound(null, caster.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.85F, 1.35F);
+    }
+
+    // =========================================================================
+    // FORM MUTATION 6 — CELLULAR OVERCHARGE MINE (GLYPH / TRAP)
+    // =========================================================================
+
+    @Override
+    public boolean onGlyphFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 glyphCenter,
+            double radius,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency
+    ) {
+        // Section 6.22 Cellular Overcharge Mine:
+        // Disarmable (Sneak + Right-Click for 50% refund) biological rune (1s arming delay, Single/Repeating);
+        // when triggered, inflicts exact 35% Slowness and marks the target to detonate into a healing explosion
+        // for players if killed within 5.0 seconds (100t)!
+        int tier = spell.getEffectiveTier();
+        BlockPos surface = findGroundSurfaceNear(level, BlockPos.containing(glyphCenter));
+        Vec3 snapped = new Vec3(surface.getX() + 0.5D, surface.above().getY(), surface.getZ() + 0.5D);
+        double trapRad = Math.max(3.0D, radius);
+        String subMode = slot.primaryEffect().subMode();
+        boolean repeating = subMode != null && (subMode.contains("repeat") || subMode.contains("sentry"));
+        int maxTriggers = repeating ? 3 : 1;
+        int maxDuration = tier >= 5 ? Integer.MAX_VALUE : 12_000;
+
+        SpellWorldVfxManager.broadcastArcaneSeal(
+                level, snapped.add(0.0D, 0.03D, 0.0D), trapRad, EssenceType.VITAE, EssenceType.NATURE, maxDuration, tier
+        );
+        level.playSound(null, surface.above(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.75F, 1.22F);
+
+        final int[] triggersLeft = {maxTriggers};
+        final int[] rearmCooldown = {0};
+
+        SpellLingeringZoneManager.ActiveSpellZone glyphZone = new SpellLingeringZoneManager.ActiveSpellZone(
+                caster, snapped, trapRad, maxDuration, level.getGameTime(), spell, slot, fallbackMateria, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) return false;
-                    if (elapsed < 6) return true;
-                    LivingEntity owner = zone.resolveCaster(srv);
-                    AABB box = new AABB(zone.center.x - 3.0D, zone.center.y - 1.0D, zone.center.z - 3.0D,
-                            zone.center.x + 3.0D, zone.center.y + 2.0D, zone.center.z + 3.0D);
-                    List<LivingEntity> stepped = srv.getEntitiesOfClass(LivingEntity.class, box, e -> e.isAlive() && e != owner);
-                    if (stepped.isEmpty()) return true;
-
-                    long markUntil = srv.getGameTime() + 100L;
-                    for (LivingEntity v : stepped) {
-                        if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(v, owner, zone.spell.hasWardFriendlyFireSafeguard())) continue;
-                        v.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 1));
-                        EntityHelper.getPersistentData(v).putLong(SpellLingeringZoneManager.TAG_VITAE_DEATH_BLOOM_UNTIL, markUntil);
-                        SpellExecutionEngine.deliverSubSpellOnEntity(srv, owner, v, Vec3.ZERO, zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency);
+                    if (elapsed > zone.maxDurationTicks || triggersLeft[0] <= 0) return false;
+                    // Canonical 1.0s (20t) Glyph arming delay
+                    if (elapsed < 20) return true;
+                    if (rearmCooldown[0] > 0) {
+                        rearmCooldown[0]--;
+                        return true;
                     }
-                    srv.sendParticles(ParticleTypes.HEART, zone.center.x, zone.center.y + 0.8D, zone.center.z, 18, 1.0D, 0.4D, 1.0D, 0.05D);
-                    return false;
+
+                    if (elapsed % 12 == 0) {
+                        srv.sendParticles(
+                                TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 18, 0.85F, 0.04F),
+                                zone.center.x, zone.center.y + 0.12D, zone.center.z, 4, zone.radius * 0.42D, 0.05D, zone.radius * 0.42D, 0.01D
+                        );
+                    }
+
+                    LivingEntity owner = zone.resolveCaster(srv);
+                    boolean wardSafe = zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard();
+                    AABB triggerBox = new AABB(
+                            zone.center.x - zone.radius, zone.center.y - 1.0D, zone.center.z - zone.radius,
+                            zone.center.x + zone.radius, zone.center.y + 2.2D, zone.center.z + zone.radius
+                    );
+                    List<LivingEntity> victims = srv.getEntitiesOfClass(LivingEntity.class, triggerBox, e ->
+                            e.isAlive() && e != owner && !SpellExecutionEngine.isFriendlyAllyForOasis(owner, e)
+                                    && (owner == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, owner, wardSafe)));
+                    if (victims.isEmpty()) return true;
+
+                    long markUntil = srv.getGameTime() + 100L; // Exact 5.0 seconds
+                    for (LivingEntity v : victims) {
+                        // Stamp 5.0s Death-Bloom mark BEFORE damage so lethal mine kills detonate immediately!
+                        CompoundTag vTag = EntityHelper.getPersistentData(v);
+                        vTag.putLong(SpellLingeringZoneManager.TAG_VITAE_DEATH_BLOOM_UNTIL, markUntil);
+                        vTag.putInt("SpellVitaeDeathBloomTier", tier);
+
+                        // Exact 35% Slowness!
+                        SpellCombatReactionEngine.applyTimedMovementSpeedSap(v, srv, 0.35D, 100L);
+                        v.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 1));
+
+                        if (zone.spell != null && zone.slot != null) {
+                            SpellExecutionEngine.deliverSubSpellOnEntity(
+                                    srv, owner, v, new Vec3(0.0D, 1.0D, 0.0D),
+                                    zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency
+                            );
+                        }
+                        if (zone.slot == null || !zone.slot.hasHarmVerb()) {
+                            float mineDmg = (3.4F + tier * 0.90F) * Math.max(0.5F, zone.apparatusPotency);
+                            SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(srv, v, owner, mineDmg, false, true);
+                        }
+                    }
+
+                    SpellWorldVfxManager.broadcastRadialNova(srv, zone.center, zone.radius, EssenceType.VITAE, EssenceType.NATURE, tier);
+                    srv.sendParticles(ParticleTypes.HEART,
+                            zone.center.x, zone.center.y + 0.65D, zone.center.z, 14, 0.9D, 0.4D, 0.9D, 0.05D);
+                    srv.playSound(null, BlockPos.containing(zone.center), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 1.0F, 1.05F);
+
+                    triggersLeft[0]--;
+                    rearmCooldown[0] = 35;
+                    return triggersLeft[0] > 0;
                 }
-        ));
+        ).markDisarmableGlyph();
+        SpellLingeringZoneManager.registerZone(level, glyphZone);
         return true;
     }
 
-    @Override
-    public void onConeFormCast(ServerLevel level, LivingEntity caster, Vec3 direction, double coneRange, List<LivingEntity> hitTargets, SpellAssembly spell, SubSpellSlot slot, @Nullable EssenceType fallbackMateria, float apparatusPotency) {
-        // Cellular Rejuvenation Spray: disorients enemies (35% miss chance) & knocks back 3m, while cleansing & granting +20% speed to caught allies!
-        long disorientUntil = level.getGameTime() + 80L;
-        for (LivingEntity hit : hitTargets) {
-            if (hit == caster || hit.isAlliedTo(caster) || hit instanceof Player) {
-                SpellCombatReactionEngine.purifyHexesAndNegativeEffects(hit);
-                hit.addEffect(new MobEffectInstance(MobEffects.SPEED, 120, 0));
-            } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, spell.hasWardFriendlyFireSafeguard())) {
-                hit.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 0));
-                EntityHelper.getPersistentData(hit).putLong(SpellLingeringZoneManager.TAG_VITAE_DISORIENTED_UNTIL, disorientUntil);
-                hit.setDeltaMovement(direction.x * 0.85D, 0.25D, direction.z * 0.85D);
-                hit.hasImpulse = true;
-            }
-        }
-    }
+    // =========================================================================
+    // FORM MUTATION 7 — CELLULAR REJUVENATION SPRAY (CONE / SPRAY)
+    // =========================================================================
 
     @Override
-    public boolean onSkyfallFormCast(ServerLevel level, LivingEntity caster, Vec3 impactCenter, double radius, SpellAssembly spell, SubSpellSlot slot, @Nullable EssenceType fallbackMateria, float apparatusPotency) {
-        // Font of Vitality Downpour: 16m rain of rose life essence for 12s (240t) restoring HP/hunger, cleansing every 2s, sprouting roses!
+    public void onConeFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double coneRange,
+            List<LivingEntity> hitTargets,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency
+    ) {
+        // Section 6.22 Cellular Rejuvenation Spray:
+        // Wide 60-degree cone of sparkling rose biological mist; disorients enemies with reduced attack accuracy (35% miss)
+        // and knocks them back 3 blocks, while cleansing all negative debuffs and granting +20% movement speed to caught allies!
+        int tier = spell.getEffectiveTier();
+        long disorientUntil = level.getGameTime() + 100L;
+        boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
+        float potency = Math.max(0.5F, apparatusPotency);
+
+        SpellWorldVfxManager.broadcastVortexCone(
+                level, caster.getEyePosition().subtract(0.0D, 0.22D, 0.0D),
+                direction, coneRange, EssenceType.VITAE, EssenceType.RADIANT, tier
+        );
+
+        Vec3 flatPush = new Vec3(direction.x, 0.0D, direction.z);
+        Vec3 normPush = flatPush.lengthSqr() > 1.0E-4D ? flatPush.normalize() : new Vec3(0.0D, 0.0D, 1.0D);
+
+        for (LivingEntity hit : hitTargets) {
+            if (!hit.isAlive() || hit == caster) continue;
+            if (SpellExecutionEngine.isFriendlyAllyForOasis(caster, hit)) {
+                SpellCombatReactionEngine.purifyHexesAndNegativeEffects(hit);
+                SpellCombatReactionEngine.applyTimedMovementSpeedBoost(hit, level, 0.20D, 160L);
+                hit.addEffect(new MobEffectInstance(MobEffects.SPEED, 160, 0));
+                float mistHeal = (2.8F + tier * 0.70F) * potency;
+                SpellCombatReactionEngine.notifyMagicalHeal(hit, mistHeal);
+                hit.heal(mistHeal);
+                level.sendParticles(ParticleTypes.HEART,
+                        hit.getX(), hit.getY(0.90D), hit.getZ(), 5, 0.28D, 0.30D, 0.28D, 0.03D);
+            } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, wardSafe)) {
+                if (!slot.hasHarmVerb()) {
+                    float coneDmg = (2.6F + tier * 0.75F) * potency;
+                    SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(level, hit, caster, coneDmg, false, true);
+                }
+                hit.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
+                EntityHelper.getPersistentData(hit).putLong(SpellLingeringZoneManager.TAG_VITAE_DISORIENTED_UNTIL, disorientUntil);
+                if (!SpellCombatReactionEngine.isBossEntity(level, hit)) {
+                    // Exact 3-block knockback!
+                    SpellExecutionEngine.applySyncedMotion(hit, new Vec3(normPush.x * 0.88D, 0.26D, normPush.z * 0.88D));
+                }
+            }
+        }
+
+        level.playSound(null, caster.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.90F, 1.35F);
+        level.playSound(null, caster.blockPosition(), SoundEvents.BREEZE_SHOOT, SoundSource.PLAYERS, 0.55F, 1.38F);
+    }
+
+    // =========================================================================
+    // FORM MUTATION 8 — FONT OF VITALITY DOWNPOUR (RAIN / SKYFALL)
+    // =========================================================================
+
+    @Override
+    public boolean onSkyfallFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 impactCenter,
+            double radius,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency
+    ) {
+        // Section 6.22 Font of Vitality Downpour:
+        // Shimmering 16-block+ rain of rose life essence for 12.0 seconds (240t); deals Vitae Materia damage to hostiles,
+        // continuously restores health & hunger to players and pets, clears negative ailments every 2.0 seconds (40t),
+        // and sprouts vibrant roses and flora across the ground!
+        int tier = spell.getEffectiveTier();
         double r = Math.max(8.0D, radius);
+        BlockPos surface = findGroundSurfaceNear(level, BlockPos.containing(impactCenter));
+        BlockPos baseAir = surface.above();
+        Vec3 snappedCenter = new Vec3(surface.getX() + 0.5D, baseAir.getY(), surface.getZ() + 0.5D);
+        double canopyHeight = SpellDeliveryForm.probeCaveSafeSkyfallHeight(level, baseAir, tier);
+        int totalTicks = 240; // Canonical 12.0 seconds
+
+        SpellWorldVfxManager.broadcastSkyfallPillar(
+                level, snappedCenter, r, EssenceType.VITAE, EssenceType.NATURE, totalTicks, tier
+        );
+        SpellWorldVfxManager.broadcastArcaneSeal(
+                level, snappedCenter.add(0.0D, 0.03D, 0.0D), r, EssenceType.VITAE, EssenceType.NATURE, totalTicks, tier
+        );
+        level.playSound(null, baseAir, SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.95F, 1.12F);
+        level.playSound(null, baseAir, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.95F, 1.28F);
+
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                caster, impactCenter, r, 240, level.getGameTime(), spell, slot, fallbackMateria, apparatusPotency,
+                caster, snappedCenter, r, totalTicks, level.getGameTime(), spell, slot, fallbackMateria, apparatusPotency,
                 (srv, zone, elapsed) -> {
                     if (elapsed > zone.maxDurationTicks) return false;
+
                     if (elapsed % 5 == 0) {
-                        srv.sendParticles(ParticleTypes.HEART, zone.center.x, zone.center.y + 4.0D, zone.center.z, 10, zone.radius * 0.5D, 1.2D, zone.radius * 0.5D, 0.03D);
+                        double rainY = zone.center.y + Math.min(canopyHeight * 0.68D, 11.0D);
+                        srv.sendParticles(
+                                TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 24, 0.95F, 0.05F),
+                                zone.center.x, rainY, zone.center.z, 14 + tier * 2, zone.radius * 0.50D, 1.2D, zone.radius * 0.50D, 0.04D
+                        );
+                        srv.sendParticles(ParticleTypes.HEART,
+                                zone.center.x, rainY * 0.85D, zone.center.z, 4 + tier / 2, zone.radius * 0.48D, 1.0D, zone.radius * 0.48D, 0.02D);
                     }
+
                     if (elapsed % 20 == 0) {
                         LivingEntity owner = zone.resolveCaster(srv);
-                        AABB area = new AABB(zone.center.x - zone.radius, zone.center.y - 2.0D, zone.center.z - zone.radius,
-                                zone.center.x + zone.radius, zone.center.y + 5.0D, zone.center.z + zone.radius);
+                        boolean wardSafe = zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard();
+                        float potency = Math.max(0.5F, zone.apparatusPotency);
+
+                        AABB area = new AABB(
+                                zone.center.x - zone.radius, zone.center.y - 2.0D, zone.center.z - zone.radius,
+                                zone.center.x + zone.radius, zone.center.y + Math.max(5.0D, canopyHeight * 0.60D), zone.center.z + zone.radius
+                        );
                         for (LivingEntity e : srv.getEntitiesOfClass(LivingEntity.class, area, LivingEntity::isAlive)) {
-                            if (e instanceof Player || (e instanceof TamableAnimal t && t.isTame()) || (e instanceof AbstractHorse h && h.isTamed())
-                                    || (owner != null && (e == owner || e.isAlliedTo(owner)))) {
-                                SpellCombatReactionEngine.notifyMagicalHeal(e, 2.0F);
-                                e.heal(2.0F);
+                            double dx = e.getX() - zone.center.x;
+                            double dz = e.getZ() - zone.center.z;
+                            if (dx * dx + dz * dz > (zone.radius + 0.6D) * (zone.radius + 0.6D)) continue;
+
+                            if (e instanceof Player || SpellExecutionEngine.isFriendlyAllyForOasis(owner, e)) {
+                                float heal = (2.4F + tier * 0.50F) * potency;
+                                SpellCombatReactionEngine.notifyMagicalHeal(e, heal);
+                                e.heal(heal);
                                 if (e instanceof Player p) {
-                                    p.getFoodData().eat(1, 0.4F);
+                                    p.getFoodData().eat(1, 0.45F);
                                 }
+                                // Clear negative ailments & hexes every 2.0 seconds (40 ticks)!
                                 if (elapsed % 40 == 0) {
                                     SpellCombatReactionEngine.purifyHexesAndNegativeEffects(e);
                                 }
-                            } else if (owner == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, owner, zone.spell.hasWardFriendlyFireSafeguard())) {
-                                SpellExecutionEngine.deliverSubSpellOnEntity(srv, owner, e, new Vec3(0, -1, 0), zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.35F);
-                            }
-                        }
-                        // Sprout vibrant roses & Vitae Orchids on grass/dirt
-                        BlockPos cPos = BlockPos.containing(zone.center);
-                        for (int i = 0; i < 2; i++) {
-                            BlockPos rp = cPos.offset(srv.random.nextInt(9) - 4, 0, srv.random.nextInt(9) - 4);
-                            if (srv.getBlockState(rp).isAir()) {
-                                Block flora = srv.random.nextBoolean() ? ModBlocks.VITAE_ORCHID.get() : Blocks.POPPY;
-                                if (flora.defaultBlockState().canSurvive(srv, rp)) {
-                                    srv.setBlockAndUpdate(rp, flora.defaultBlockState());
+                            } else if (owner == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, owner, wardSafe)) {
+                                if (zone.spell != null && zone.slot != null) {
+                                    SpellExecutionEngine.deliverSubSpellOnEntity(
+                                            srv, owner, e, new Vec3(0.0D, -1.0D, 0.0D),
+                                            zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.35F
+                                    );
+                                }
+                                if (zone.slot == null || !zone.slot.hasHarmVerb()) {
+                                    float downpourDmg = (1.90F + tier * 0.55F) * potency;
+                                    SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(srv, e, owner, downpourDmg, false, true);
                                 }
                             }
                         }
+
+                        // Sprout vibrant roses, Vitae Orchids & pink tulips across the ground!
+                        sproutVitalityRoses(srv, BlockPos.containing(zone.center), zone.radius, 2 + tier / 3);
                     }
                     return true;
                 }
@@ -325,97 +783,304 @@ public final class VitaeSpellMutationHandler implements MateriaPartMutationHandl
         return true;
     }
 
+    // =========================================================================
+    // FORM MUTATION 9 — VITAE GUARDIAN EIDOLON SUITE (AGENT / SENTRY / DECOY)
+    // =========================================================================
+
     @Override
-    public void onSummonFormSpawned(ServerLevel level, LivingEntity caster, Entity summonEntity, Vec3 spawnPos, double radius, SpellAssembly spell, SubSpellSlot slot) {
+    public void onSummonFormSpawned(
+            ServerLevel level,
+            LivingEntity caster,
+            Entity summonEntity,
+            Vec3 spawnPos,
+            double radius,
+            SpellAssembly spell,
+            SubSpellSlot slot
+    ) {
+        int tier = spell.getEffectiveTier();
         CompoundTag tag = EntityHelper.getPersistentData(summonEntity);
         tag.putString("SpellEidolonMateria", EssenceType.VITAE.name());
         tag.putInt("SpellEidolonTintRGB", VITAE_GUARDIAN_HEX_COLOR);
-        level.sendParticles(ParticleTypes.HEART, spawnPos.x, spawnPos.y + 0.9D, spawnPos.z, 16, 0.45D, 0.55D, 0.45D, 0.05D);
+
+        SpellWorldVfxManager.broadcastSummonPillar(
+                level, spawnPos, Math.max(1.65D, radius * 0.35D), EssenceType.VITAE, EssenceType.NATURE, tier
+        );
+        level.sendParticles(ParticleTypes.HEART,
+                spawnPos.x, spawnPos.y + 0.95D, spawnPos.z, 12, 0.42D, 0.55D, 0.42D, 0.04D);
+        level.sendParticles(
+                TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 30, 1.05F, 0.06F),
+                spawnPos.x, spawnPos.y + 0.90D, spawnPos.z, 20, 0.45D, 0.55D, 0.45D, 0.04D
+        );
+        level.playSound(null, BlockPos.containing(spawnPos), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.85F, 1.18F);
+        level.playSound(null, BlockPos.containing(spawnPos), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.90F, 1.32F);
     }
 
-    // --- Part 3: Core Effect Mutations ---
+    // =========================================================================
+    // CORE EFFECT SYNERGIES — BLINK, TRANSMUTE, AFFLICTION & RESTORATION
+    // =========================================================================
 
     @Override
-    public void onBlinkCast(ServerLevel level, LivingEntity caster, Vec3 departurePos, Vec3 arrivalPos, int potencyTier) {
-        // Cardiovascular Shock Blink: heartbeat boom stunning adjacent hostiles for 1s (20t) at both departure and arrival!
-        level.playSound(null, BlockPos.containing(departurePos), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 1.0F, 0.9F);
-        level.playSound(null, BlockPos.containing(arrivalPos), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 1.0F, 0.9F);
+    public void onBlinkCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 departurePos,
+            Vec3 arrivalPos,
+            int potencyTier
+    ) {
+        // Section 6.22 Cardiovascular Shock Blink:
+        // Teleports up to 14+ blocks away with a resounding heartbeat boom, delivering an arrhythmia shock
+        // that stuns adjacent hostiles for exact 1.0 second (20t)!
+        SpellWorldVfxManager.broadcastBlinkRift(level, departurePos, arrivalPos, EssenceType.VITAE, potencyTier);
+        level.playSound(null, BlockPos.containing(departurePos), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 1.15F, 0.88F);
+        level.playSound(null, BlockPos.containing(arrivalPos), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 1.15F, 0.88F);
+
         var paralyzed = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get());
-        AABB depBox = new AABB(departurePos.x - 3.5D, departurePos.y - 1.5D, departurePos.z - 3.5D,
-                departurePos.x + 3.5D, departurePos.y + 2.5D, departurePos.z + 3.5D);
-        for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, depBox)) {
-            if (foe == caster || foe.isAlliedTo(caster)) continue;
-            foe.addEffect(new MobEffectInstance(paralyzed, 20, 0));
-        }
-        for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, caster.getBoundingBox().inflate(3.5D))) {
-            if (foe == caster || foe.isAlliedTo(caster)) continue;
-            foe.addEffect(new MobEffectInstance(paralyzed, 20, 0));
-        }
-        level.sendParticles(ParticleTypes.HEART, departurePos.x, departurePos.y + 0.9D, departurePos.z, 8, 0.5D, 0.4D, 0.5D, 0.04D);
-        level.sendParticles(ParticleTypes.HEART, arrivalPos.x, arrivalPos.y + 0.9D, arrivalPos.z, 12, 0.5D, 0.4D, 0.5D, 0.04D);
-    }
+        var anchor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get());
+        long stunUntil = level.getGameTime() + 20L;
+        float shockDmg = 1.80F + potencyTier * 0.45F;
 
-    @Override
-    public boolean onTransmuteBlock(ServerLevel level, @Nullable LivingEntity caster, BlockPos pos, BlockState state, int potencyTier) {
-        // Vitality Synthesis Transmute: cures zombie villagers, rotten flesh -> raw meat, dead bushes -> rose bushes / Vitae Orchids!
-        boolean curedAny = false;
-        for (ZombieVillager zv : level.getEntitiesOfClass(ZombieVillager.class, new AABB(pos).inflate(2.5D))) {
-            if (zv.convertTo(EntityType.VILLAGER, ConversionParams.single(zv, false, false), v -> {}) != null) {
-                curedAny = true;
+        for (Vec3 shockOrigin : List.of(departurePos, arrivalPos)) {
+            SpellWorldVfxManager.broadcastRadialNova(
+                    level, shockOrigin.add(0.0D, 0.25D, 0.0D), 3.6D, EssenceType.VITAE, EssenceType.NATURE, potencyTier
+            );
+            level.sendParticles(ParticleTypes.HEART,
+                    shockOrigin.x, shockOrigin.y + 0.90D, shockOrigin.z, 8, 0.45D, 0.40D, 0.45D, 0.04D);
+            AABB shockBox = new AABB(
+                    shockOrigin.x - 3.8D, shockOrigin.y - 1.5D, shockOrigin.z - 3.8D,
+                    shockOrigin.x + 3.8D, shockOrigin.y + 2.6D, shockOrigin.z + 3.8D
+            );
+            for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, shockBox, LivingEntity::isAlive)) {
+                if (foe == caster || SpellExecutionEngine.isFriendlyAllyForOasis(caster, foe)) continue;
+                if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, caster, true)) continue;
+
+                SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(level, foe, caster, shockDmg, false, true);
+                foe.addEffect(new MobEffectInstance(paralyzed, 20, 0));
+                foe.addEffect(new MobEffectInstance(anchor, 20, 0));
+                foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 6));
+                EntityHelper.getPersistentData(foe).putLong(SpellLingeringZoneManager.TAG_NO_JUMP_UNTIL, stunUntil);
+                SpellExecutionEngine.applySyncedMotion(foe, new Vec3(0.0D, Math.min(0.0D, foe.getDeltaMovement().y), 0.0D));
             }
         }
-        if (state.is(Blocks.DEAD_BUSH)) {
-            if (Blocks.ROSE_BUSH.defaultBlockState().canSurvive(level, pos) && level.getBlockState(pos.above()).isAir()) {
+    }
+
+    @Override
+    public boolean onTransmuteBlock(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            BlockPos pos,
+            BlockState state,
+            int potencyTier
+    ) {
+        // Section 6.22 Vitality Synthesis Transmute:
+        // Cures zombie villagers back into healthy villagers, converts rotten flesh into edible raw meat,
+        // and turns dead bushes into blooming rose bushes!
+        boolean curedAny = cureNearbyZombieVillagers(level, new AABB(pos).inflate(2.8D), caster, potencyTier);
+        if (SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
+            return curedAny;
+        }
+
+        if (state.is(Blocks.DEAD_BUSH) || state.is(Blocks.WITHER_ROSE)) {
+            BlockPos below = pos.below();
+            BlockState belowState = level.getBlockState(below);
+            // Dead bushes grow on sand/red_sand/terracotta where Rose Bushes cannot survive unless enriched into fertile grass!
+            if (!belowState.is(BlockTags.DIRT)
+                    && (belowState.is(Blocks.SAND) || belowState.is(Blocks.RED_SAND) || belowState.is(BlockTags.TERRACOTTA))
+                    && !SpellExecutionEngine.isProtectedBlockOrContainer(level, below, belowState)) {
+                level.setBlockAndUpdate(below, Blocks.GRASS_BLOCK.defaultBlockState());
+            }
+
+            if (level.getBlockState(pos.above()).isAir()
+                    && !SpellExecutionEngine.isProtectedBlockOrContainer(level, pos.above(), level.getBlockState(pos.above()))
+                    && Blocks.ROSE_BUSH.defaultBlockState().canSurvive(level, pos)) {
+                level.removeBlock(pos, false);
                 DoublePlantBlock.placeAt(level, Blocks.ROSE_BUSH.defaultBlockState(), pos, Block.UPDATE_ALL);
             } else {
                 level.setBlockAndUpdate(pos, ModBlocks.VITAE_ORCHID.get().defaultBlockState());
             }
-            return true;
-        }
-        if (state.is(Blocks.WITHER_ROSE)) {
-            level.setBlockAndUpdate(pos, ModBlocks.VITAE_ORCHID.get().defaultBlockState());
+            level.sendParticles(ParticleTypes.HEART,
+                    pos.getX() + 0.5D, pos.getY() + 0.85D, pos.getZ() + 0.5D, 5, 0.25D, 0.30D, 0.25D, 0.02D);
+            maybeGrantVitaeBatchTransmuteDiscount(level, caster, potencyTier);
             return true;
         }
         return curedAny;
     }
 
     @Override
-    public boolean onTransmuteDroppedItem(ServerLevel level, @Nullable LivingEntity caster, ItemEntity itemEntity, int potencyTier) {
+    public boolean onTransmuteDroppedItem(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            ItemEntity itemEntity,
+            int potencyTier
+    ) {
         ItemStack in = itemEntity.getItem();
+        int count = in.getCount();
+        ItemStack out = ItemStack.EMPTY;
         if (in.is(Items.ROTTEN_FLESH)) {
-            Item rawMeat = switch (level.random.nextInt(4)) {
+            Item rawMeat = switch (level.random.nextInt(5)) {
                 case 0 -> Items.BEEF;
                 case 1 -> Items.PORKCHOP;
                 case 2 -> Items.MUTTON;
-                default -> Items.CHICKEN;
+                case 3 -> Items.CHICKEN;
+                default -> Items.RABBIT;
             };
-            itemEntity.setItem(new ItemStack(rawMeat, in.getCount()));
-            level.sendParticles(ParticleTypes.HEART, itemEntity.getX(), itemEntity.getY(0.3D), itemEntity.getZ(), 5, 0.15D, 0.15D, 0.15D, 0.02D);
-            return true;
+            out = new ItemStack(rawMeat, count);
+        } else if (in.is(Items.DEAD_BUSH) || in.is(Items.WITHER_ROSE)) {
+            out = new ItemStack(Items.ROSE_BUSH, count);
         }
-        if (in.is(Items.DEAD_BUSH)) {
-            itemEntity.setItem(new ItemStack(Items.ROSE_BUSH, in.getCount()));
+
+        if (out.isEmpty()) {
+            return false;
+        }
+        itemEntity.setItem(out);
+        level.sendParticles(ParticleTypes.HEART,
+                itemEntity.getX(), itemEntity.getY(0.35D), itemEntity.getZ(), 5, 0.18D, 0.18D, 0.18D, 0.02D);
+        maybeGrantVitaeBatchTransmuteDiscount(level, caster, potencyTier);
+        return true;
+    }
+
+    @Override
+    public boolean onPersistentHexTick(ServerLevel level, LivingEntity target, int potencyTier) {
+        // Section 6.22 Hyper-Metabolic Arrhythmia Hex:
+        // Milk-immune biological curse (cleansed strictly via Restoration magic or caster defeat):
+        // permanently disables health regeneration, cuts attack damage by 40%, and inflicts severe self-damaging recoil
+        // whenever the afflicted enemy attempts an attack!
+        float mult = SpellCombatReactionEngine.getHexStackMultiplier(target);
+        target.removeEffect(MobEffects.REGENERATION);
+        target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 40, 1, true, true));
+        SpellCombatReactionEngine.applyTimedAttackDebuff(target, level, Math.min(0.85D, 0.40D * mult), 0.0D, 38L);
+
+        float arrhythmiaDmg = (1.20F + potencyTier * 0.42F) * mult;
+        SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(level, target, null, arrhythmiaDmg, false, true);
+
+        level.sendParticles(
+                TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 18, 0.88F, 0.04F),
+                target.getX(), target.getY(0.85D), target.getZ(), 4, 0.25D, 0.30D, 0.25D, 0.02D
+        );
+        return true;
+    }
+
+    @Override
+    public void onEffectAppliedToEntity(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            LivingEntity target,
+            Vec3 direction,
+            SpellCoreEffect effect,
+            int potencyTier,
+            SpellAssembly spell
+    ) {
+        if ((effect == SpellCoreEffect.TRANSMUTE || effect == SpellCoreEffect.BREAK) && target instanceof ZombieVillager zv) {
+            cureSingleZombieVillager(level, zv, caster, potencyTier);
+        } else if (effect == SpellCoreEffect.RESTORATION) {
+            SpellCombatReactionEngine.purifyHexesAndNegativeEffects(target);
+            float bonusHeal = 3.5F + potencyTier * 1.15F;
+            SpellCombatReactionEngine.notifyMagicalHeal(target, bonusHeal);
+            target.heal(bonusHeal);
+            level.sendParticles(ParticleTypes.HEART,
+                    target.getX(), target.getY(0.95D), target.getZ(), 8, 0.32D, 0.38D, 0.32D, 0.03D);
+        }
+    }
+
+    // =========================================================================
+    // HELPERS
+    // =========================================================================
+
+    private static boolean cureNearbyZombieVillagers(
+            ServerLevel level,
+            AABB area,
+            @Nullable LivingEntity caster,
+            int potencyTier
+    ) {
+        boolean curedAny = false;
+        for (ZombieVillager zv : level.getEntitiesOfClass(ZombieVillager.class, area, LivingEntity::isAlive)) {
+            if (cureSingleZombieVillager(level, zv, caster, potencyTier)) {
+                curedAny = true;
+            }
+        }
+        return curedAny;
+    }
+
+    private static boolean cureSingleZombieVillager(
+            ServerLevel level,
+            ZombieVillager zv,
+            @Nullable LivingEntity caster,
+            int potencyTier
+    ) {
+        Vec3 pos = zv.position();
+        var cured = zv.convertTo(EntityType.VILLAGER, ConversionParams.single(zv, false, false), villager -> {
+            villager.setVillagerData(zv.getVillagerData());
+            villager.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1));
+        });
+        if (cured != null) {
+            level.sendParticles(ParticleTypes.HEART, pos.x, pos.y + 1.0D, pos.z, 14, 0.40D, 0.50D, 0.40D, 0.04D);
+            level.sendParticles(
+                    TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), VIBRANT_ROSE_HEX_COLOR, 26, 1.05F, 0.06F),
+                    pos.x, pos.y + 0.95D, pos.z, 18, 0.42D, 0.50D, 0.42D, 0.04D
+            );
+            level.playSound(null, BlockPos.containing(pos), SoundEvents.ZOMBIE_VILLAGER_CURE, SoundSource.PLAYERS, 0.95F, 1.15F);
+            maybeGrantVitaeBatchTransmuteDiscount(level, caster, potencyTier);
             return true;
         }
         return false;
     }
 
-    @Override
-    public boolean onPersistentHexTick(ServerLevel level, LivingEntity target, int potencyTier) {
-        // Hyper-Metabolic Arrhythmia Hex: disables health regen, cuts attack damage by 40%, self-damaging recoil when attacking (in interceptWardDamage)
-        float mult = SpellCombatReactionEngine.getHexStackMultiplier(target);
-        target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 40, 1, true, true));
-        SpellCombatReactionEngine.applyTimedAttackDebuff(target, level, 0.40D * mult, 0.0D, 35L);
-        target.hurtServer(level, level.damageSources().magic(), (1.2F + potencyTier * 0.45F) * mult);
-        level.sendParticles(ParticleTypes.DAMAGE_INDICATOR, target.getX(), target.getY(0.85D), target.getZ(), 3, 0.2D, 0.25D, 0.2D, 0.02D);
-        return true;
+    private static void sproutVitalityRoses(ServerLevel level, BlockPos center, double radius, int count) {
+        for (int i = 0; i < count; i++) {
+            double ang = level.random.nextDouble() * Math.PI * 2.0D;
+            double dist = Math.sqrt(level.random.nextDouble()) * radius;
+            BlockPos sample = BlockPos.containing(
+                    center.getX() + 0.5D + Math.cos(ang) * dist,
+                    center.getY(),
+                    center.getZ() + 0.5D + Math.sin(ang) * dist
+            );
+            BlockPos surf = findGroundSurfaceNear(level, sample);
+            BlockPos up = surf.above();
+            if (!level.getBlockState(up).isAir()
+                    || SpellExecutionEngine.isProtectedBlockOrContainer(level, up, level.getBlockState(up))) {
+                continue;
+            }
+            if (level.random.nextFloat() < 0.25F
+                    && level.getBlockState(up.above()).isAir()
+                    && Blocks.ROSE_BUSH.defaultBlockState().canSurvive(level, up)) {
+                DoublePlantBlock.placeAt(level, Blocks.ROSE_BUSH.defaultBlockState(), up, Block.UPDATE_ALL);
+            } else {
+                Block flora = switch (level.random.nextInt(4)) {
+                    case 0 -> ModBlocks.VITAE_ORCHID.get();
+                    case 1 -> Blocks.POPPY;
+                    case 2 -> Blocks.PINK_TULIP;
+                    default -> Blocks.ALLIUM;
+                };
+                if (flora.defaultBlockState().canSurvive(level, up)) {
+                    level.setBlockAndUpdate(up, flora.defaultBlockState());
+                }
+            }
+        }
     }
 
-    @Override
-    public void onEffectAppliedToEntity(ServerLevel level, @Nullable LivingEntity caster, LivingEntity target, Vec3 direction, SpellCoreEffect effect, int potencyTier, SpellAssembly spell) {
-        if (effect == SpellCoreEffect.TRANSMUTE && target instanceof ZombieVillager zv) {
-            zv.convertTo(EntityType.VILLAGER, ConversionParams.single(zv, false, false), v -> {});
-            level.playSound(null, target.blockPosition(), SoundEvents.ZOMBIE_VILLAGER_CURE, SoundSource.PLAYERS, 0.9F, 1.1F);
+    private static void maybeGrantVitaeBatchTransmuteDiscount(ServerLevel level, @Nullable LivingEntity caster, int tier) {
+        if (!(caster instanceof Player player)) return;
+        CompoundTag pData = EntityHelper.getPersistentData(player);
+        long now = level.getGameTime();
+        long prevTick = pData.getLong("SpellVitaeBatchTick").orElse(-20L);
+        int count = (prevTick == now) ? pData.getInt("SpellVitaeBatchCount").orElse(0) + 1 : 1;
+        pData.putLong("SpellVitaeBatchTick", now);
+        pData.putInt("SpellVitaeBatchCount", count);
+        if (count == 2) {
+            long refund = Math.max(1L, Math.round(MateriaStageTable.getBaseMfumCastCost(tier) * 0.25D));
+            SpellFuelService.restorePlayerMateriaFuel(player, EssenceType.VITAE, refund);
         }
+    }
+
+    private static BlockPos findGroundSurfaceNear(ServerLevel level, BlockPos start) {
+        for (int dy = 2; dy >= -5; dy--) {
+            BlockPos check = start.offset(0, dy, 0);
+            BlockState bs = level.getBlockState(check);
+            BlockState above = level.getBlockState(check.above());
+            if ((!bs.isAir() && !bs.getCollisionShape(level, check).isEmpty())
+                    && (above.isAir() || above.getCollisionShape(level, check.above()).isEmpty())) {
+                return check;
+            }
+        }
+        return start.below();
     }
 }

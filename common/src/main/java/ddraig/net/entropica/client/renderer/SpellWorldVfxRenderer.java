@@ -85,14 +85,54 @@ public final class SpellWorldVfxRenderer {
             bufferSource.endBatch(solidBlackType);
         }
 
+        // Pass 1.5: Skyfall 3D Pseudoblock Monoliths & Barricades (VFX_SKYFALL_PSEUDOBLOCK)
+        // Rendered via BlockRenderDispatcher BEFORE acquiring emissiveType VertexConsumer so block sheet buffers flush cleanly!
+        boolean drewPseudoblocks = false;
+        var blockRenderer = mc.getBlockRenderer();
+        for (SpellWorldVfxManager.ActiveVfxInstance inst : events) {
+            if (inst.vfxType != SpellVfxEventPayload.VFX_SKYFALL_PSEUDOBLOCK) continue;
+            net.minecraft.world.level.block.state.BlockState blockState =
+                    net.minecraft.world.level.block.Block.stateById(inst.primaryRgb);
+            if (blockState.isAir()) {
+                blockState = net.minecraft.world.level.block.Blocks.PACKED_ICE.defaultBlockState();
+            }
+            int fallTicks = Math.max(1, inst.accentRgb);
+            float elapsed = inst.ageTicks + partialTick;
+            float fallT = Mth.clamp(elapsed / (float) fallTicks, 0.0F, 1.0F);
+            float accel = fallT * fallT;
+
+            double curX = Mth.lerp(accel, inst.start.x - 0.5D, inst.endOrDir.x);
+            double curY = Mth.lerp(accel, inst.start.y, inst.endOrDir.y);
+            double curZ = Mth.lerp(accel, inst.start.z - 0.5D, inst.endOrDir.z);
+            int colHeight = Math.clamp(Math.round(inst.radiusOrScale), 1, 20);
+
+            for (int y = 0; y < colHeight; y++) {
+                poseStack.pushPose();
+                poseStack.translate(curX, curY + y, curZ);
+                // Slight mystical scale-in during first 6 ticks of emergence from the overhead rift
+                if (elapsed < 6.0F) {
+                    float s = Mth.lerp(elapsed / 6.0F, 0.35F, 1.0F);
+                    poseStack.translate(0.5D * (1.0D - s), 0.5D * (1.0D - s), 0.5D * (1.0D - s));
+                    poseStack.scale(s, s, s);
+                }
+                blockRenderer.renderSingleBlock(blockState, poseStack, bufferSource, FULL_LIGHT, NO_OVERLAY);
+                poseStack.popPose();
+            }
+            drewPseudoblocks = true;
+        }
+        if (drewPseudoblocks) {
+            bufferSource.endBatch();
+        }
+
         // Pass 2: Translucent-Emissive 3D Procedural Geometry
         VertexConsumer vc = bufferSource.getBuffer(emissiveType);
         for (SpellWorldVfxManager.ActiveVfxInstance inst : events) {
             float progress = Mth.clamp((inst.ageTicks + partialTick) / (float) inst.maxTicks, 0.0F, 1.0F);
-            int pRgb = inst.essence.isDynamic()
+            boolean isPseudoblock = inst.vfxType == SpellVfxEventPayload.VFX_SKYFALL_PSEUDOBLOCK;
+            int pRgb = (isPseudoblock || inst.essence.isDynamic())
                     ? SpellParticleHelper.resolveVibrantPrimaryRgb(inst.essence, gameTime + inst.seed * 5)
                     : inst.primaryRgb;
-            int aRgb = inst.essence.isDynamic()
+            int aRgb = (isPseudoblock || inst.essence.isDynamic())
                     ? SpellParticleHelper.resolveVibrantAccentRgb(inst.essence, null, gameTime + inst.seed * 5)
                     : inst.accentRgb;
 
@@ -133,6 +173,8 @@ public final class SpellWorldVfxRenderer {
                         renderGeyserPlume(matrix, vc, inst, progress, (float) gameTime, pr, pg, pb, ar, ag, ab);
                 case SpellVfxEventPayload.VFX_VACUUM_SPHERE ->
                         renderVacuumSphere(matrix, vc, inst, progress, (float) gameTime, pr, pg, pb, ar, ag, ab);
+                case SpellVfxEventPayload.VFX_SKYFALL_PSEUDOBLOCK ->
+                        renderSkyfallPseudoblockAura(matrix, vc, inst, partialTick, (float) gameTime, pr, pg, pb, ar, ag, ab);
                 default -> {
                 }
             }
@@ -904,6 +946,136 @@ public final class SpellWorldVfxRenderer {
                 float cAlpha = fade * Mth.sin(ct * (float) Math.PI);
                 renderOrientedRing(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
                         cFlare * 0.78F, cFlare, 18, 0.910F, 0.784F, 0.510F, 0.86F * cAlpha);
+            }
+        } else if (isBorealTaigaMateria(inst.essence)) {
+            // Section 6.20 Glacial Amber Leeching Beam (#1A5923 / #98DCF2): sticky coniferous amber-sap core,
+            // sub-zero frost-cyan helical tendrils & inward-siphoning rings pulling warmth back toward caster!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.50F * fade, 10,
+                    0.920F, 0.710F, 0.260F, 0.96F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.18F * fade, 12,
+                    0.102F, 0.349F, 0.137F, 0.72F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.48F * fade, 12,
+                    0.596F, 0.863F, 0.949F, 0.42F * fade, FULL_LIGHT);
+
+            int frostSteps = Math.clamp((int) (len * 4.0D), 10, 44);
+            for (int hIdx = 0; hIdx < 3; hIdx++) {
+                float off = (float) (Math.PI * 2.0D * hIdx / 3.0D) + gameTime * 0.36F;
+                Vec3 prevPt = null;
+                for (int i = 0; i <= frostSteps; i++) {
+                    float t = i / (float) frostSteps;
+                    double dist = t * len;
+                    float coilR = baseR * (1.20F + 0.34F * Mth.sin(t * (float) Math.PI * 2.0F));
+                    float ang = off + t * (float) (len * 2.1D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * coilR))
+                            .add(up.scale(Mth.sin(ang) * coilR));
+                    if (prevPt != null) {
+                        boolean frostStrand = (hIdx % 2 == 0);
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.30F * fade,
+                                frostStrand ? 0.596F : 0.102F,
+                                frostStrand ? 0.863F : 0.349F,
+                                frostStrand ? 0.949F : 0.137F,
+                                0.92F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            // Inward-siphoning rings flowing from target back into caster!
+            for (int c = 0; c < 5; c++) {
+                float ct = 1.0F - (((gameTime * 0.18F) + (c / 5.0F)) % 1.0F);
+                double dist = ct * len;
+                float cFlare = baseR * (1.25F + 0.60F * ct);
+                float cAlpha = fade * Mth.sin(ct * (float) Math.PI);
+                renderOrientedRing(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        cFlare * 0.80F, cFlare, 18, 0.596F, 0.863F, 0.949F, 0.90F * cAlpha);
+            }
+        } else if (isMiracleOasisMateria(inst.essence)) {
+            // Section 6.21 Subterranean Aquifer Stream (#1A5923 / #C2B28F / #38C6F4): pressurized jet of
+            // sparkling desert springwater, succulent emerald vine helices & sunlit pollen rings + 15% life-siphon return!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.56F * fade, 12,
+                    0.220F, 0.776F, 0.957F, 0.96F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.16F * fade, 12,
+                    0.102F, 0.349F, 0.137F, 0.66F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.46F * fade, 12,
+                    0.761F, 0.698F, 0.561F, 0.38F * fade, FULL_LIGHT);
+
+            int vineSteps = Math.clamp((int) (len * 4.0D), 10, 44);
+            for (int hIdx = 0; hIdx < 3; hIdx++) {
+                float off = (float) (Math.PI * 2.0D * hIdx / 3.0D) - gameTime * 0.38F;
+                Vec3 prevPt = null;
+                for (int i = 0; i <= vineSteps; i++) {
+                    float t = i / (float) vineSteps;
+                    double dist = t * len;
+                    float coilR = baseR * (1.18F + 0.30F * Mth.sin(t * (float) Math.PI * 2.0F));
+                    float ang = off + t * (float) (len * 2.0D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * coilR))
+                            .add(up.scale(Mth.sin(ang) * coilR));
+                    if (prevPt != null) {
+                        boolean pollenStrand = (hIdx == 2);
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.28F * fade,
+                                pollenStrand ? 0.871F : 0.133F,
+                                pollenStrand ? 0.788F : 0.471F,
+                                pollenStrand ? 0.604F : 0.188F,
+                                0.92F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            // Outward springwater surge rings + inward emerald 15% life-mending rings!
+            for (int c = 0; c < 6; c++) {
+                boolean siphonReturn = (c % 2 == 1);
+                float raw = ((gameTime * 0.20F) + (c / 6.0F)) % 1.0F;
+                float ct = siphonReturn ? (1.0F - raw) : raw;
+                double dist = ct * len;
+                float cFlare = baseR * (1.22F + 0.55F * ct);
+                float cAlpha = fade * Mth.sin(ct * (float) Math.PI);
+                renderOrientedRing(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        cFlare * 0.80F, cFlare, 18,
+                        siphonReturn ? 0.133F : 0.871F,
+                        siphonReturn ? 0.840F : 0.788F,
+                        siphonReturn ? 0.360F : 0.604F,
+                        0.90F * cAlpha);
+            }
+        } else if (isCellularVitaeMateria(inst.essence)) {
+            // Section 6.22 Cardiovascular Life-Tether (#FF6B9D / #FFD1E3): pulsing heartbeat beam,
+            // intertwined vascular double-helix & 25% life-siphon return rings!
+            float beat = 0.88F + 0.20F * Mth.abs(Mth.sin(gameTime * 0.32F));
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.56F * beat * fade, 12,
+                    1.000F, 0.820F, 0.890F, 0.96F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.18F * beat * fade, 12,
+                    1.000F, 0.420F, 0.616F, 0.72F * fade, FULL_LIGHT);
+
+            int helixSteps = Math.clamp((int) (len * 4.2D), 10, 46);
+            for (int hIdx = 0; hIdx < 2; hIdx++) {
+                float off = hIdx * (float) Math.PI - gameTime * 0.42F;
+                Vec3 prevPt = null;
+                for (int i = 0; i <= helixSteps; i++) {
+                    float t = i / (float) helixSteps;
+                    double dist = t * len;
+                    float coilR = baseR * (1.24F + 0.26F * Mth.sin(t * (float) Math.PI * 2.0F));
+                    float ang = off + t * (float) (len * 2.2D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * coilR))
+                            .add(up.scale(Mth.sin(ang) * coilR));
+                    if (prevPt != null) {
+                        boolean pearl = (hIdx == 1);
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.28F * fade,
+                                1.000F, pearl ? 0.820F : 0.420F, pearl ? 0.890F : 0.616F, 0.94F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int c = 0; c < 6; c++) {
+                boolean siphonInward = (c % 2 == 0);
+                float raw = ((gameTime * 0.22F) + (c / 6.0F)) % 1.0F;
+                float ct = siphonInward ? (1.0F - raw) : raw;
+                double dist = ct * len;
+                float cFlare = baseR * (1.28F + 0.62F * ct) * beat;
+                float cAlpha = fade * Mth.sin(ct * (float) Math.PI);
+                renderOrientedRing(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        cFlare * 0.80F, cFlare, 18,
+                        1.000F, siphonInward ? 0.420F : 0.820F, siphonInward ? 0.616F : 0.890F, 0.92F * cAlpha);
             }
         }
 
@@ -1758,6 +1930,83 @@ public final class SpellWorldVfxRenderer {
                 renderOctahedron(matrix, vc, mPos, Math.max(0.13F, curRadius * 0.042F) * fade,
                         goldCap ? 0.659F : 0.173F, goldCap ? 0.525F : 0.902F, goldCap ? 0.329F : 0.408F, 0.94F * fade);
             }
+        } else if (isBorealTaigaMateria(inst.essence)) {
+            // Section 6.20 Boreal Blizzard Nova: explosive 360-degree #1A5923 / #98DCF2 frosted pine needles & ice shards!
+            float blizzardH = Math.max(1.30F, inst.radiusOrScale * 0.38F)
+                    * (0.78F + 0.28F * Mth.sin(expandProg * (float) Math.PI));
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, blizzardH, 0.0D), right, forward,
+                    Math.max(0.16F, curRadius * 0.82F), curRadius * 1.06F, 30,
+                    0.102F, 0.349F, 0.137F, 0.74F * fade, 0.22F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, blizzardH * 0.66D, 0.0D), right, forward,
+                    Math.max(0.14F, curRadius * 0.74F), curRadius * 0.96F, 28,
+                    0.596F, 0.863F, 0.949F, 0.72F * fade, 0.24F * fade);
+            renderSnowflakeCrystal(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    curRadius * 0.96F, gameTime * 0.08F + inst.seed, 0.84F * fade);
+            for (int c = 0; c < 6; c++) {
+                float cAng = gameTime * 0.34F + (float) (Math.PI * 2.0D * c / 6.0D);
+                renderSweptWindCrescent(matrix, vc, ground.add(0.0D, 0.22D + 0.24D * (c % 3), 0.0D),
+                        right, forward, curRadius * 0.96F, cAng, 1.18F, 0.24F,
+                        (c % 2 == 0) ? 0.596F : 0.102F,
+                        (c % 2 == 0) ? 0.863F : 0.349F,
+                        (c % 2 == 0) ? 0.949F : 0.137F,
+                        0.90F * fade);
+            }
+            Vec3 worldUp = new Vec3(0.0D, 1.0D, 0.0D);
+            for (int s = 0; s < 12; s++) {
+                float sAng = (float) (Math.PI * 2.0D * s / 12.0D) + inst.seed * 0.13F;
+                Vec3 rad = new Vec3(Mth.cos(sAng), 0.0D, Mth.sin(sAng));
+                Vec3 tang = new Vec3(-Mth.sin(sAng), 0.0D, Mth.cos(sAng));
+                Vec3 tilt = worldUp.add(rad.scale(0.55D)).normalize();
+                renderFacetedIceSpire(matrix, vc, ground.add(rad.scale(curRadius * 0.90D)), tilt, rad, tang,
+                        Math.max(0.10F, curRadius * 0.036F), Math.max(0.45F, curRadius * 0.14F) * fade, 5, sAng, fade * 0.92F);
+            }
+        } else if (isMiracleOasisMateria(inst.essence)) {
+            // Section 6.21 Miracle Oasis Bloom Nova: explosive 360-degree #38C6F4 springwater surge,
+            // #1A5923 lush desert-lotus mandala & #C2B28F sunlit desert flowers!
+            float surgeH = Math.max(1.15F, inst.radiusOrScale * 0.34F)
+                    * (0.76F + 0.28F * Mth.sin(expandProg * (float) Math.PI));
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, surgeH, 0.0D), right, forward,
+                    Math.max(0.16F, curRadius * 0.82F), curRadius * 1.06F, 30,
+                    0.220F, 0.776F, 0.957F, 0.72F * fade, 0.18F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, surgeH * 0.62D, 0.0D), right, forward,
+                    Math.max(0.14F, curRadius * 0.74F), curRadius * 0.96F, 28,
+                    0.102F, 0.349F, 0.137F, 0.74F * fade, 0.22F * fade);
+            renderBotanicalBlossom(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    curRadius * 0.96F, 8, gameTime * 0.06F + inst.seed, 0.102F, 0.349F, 0.137F, 0.82F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.07D, 0.0D), right, forward,
+                    curRadius * 0.82F, curRadius * 0.98F, 30, 0.761F, 0.698F, 0.561F, 0.88F * fade);
+            for (int b = 0; b < 12; b++) {
+                float bAng = (float) (Math.PI * 2.0D * b / 12.0D) + inst.seed * 0.15F;
+                Vec3 bPos = ground.add(Mth.cos(bAng) * curRadius * 0.88D,
+                        0.20D + (b % 3) * 0.22D, Mth.sin(bAng) * curRadius * 0.88D);
+                boolean goldPetal = (b % 2 == 0);
+                renderOctahedron(matrix, vc, bPos, Math.max(0.14F, curRadius * 0.045F) * fade,
+                        goldPetal ? 0.871F : 0.133F,
+                        goldPetal ? 0.788F : 0.471F,
+                        goldPetal ? 0.604F : 0.188F,
+                        0.95F * fade);
+            }
+        } else if (isCellularVitaeMateria(inst.essence)) {
+            // Section 6.22 Cellular Overcharge Bloom (#FF6B9D): outward 6m biological shockwave,
+            // rose blossom mandala & 12 glowing life-essence orbs!
+            float bioH = Math.max(1.15F, inst.radiusOrScale * 0.34F)
+                    * (0.76F + 0.28F * Mth.sin(expandProg * (float) Math.PI));
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, bioH, 0.0D), right, forward,
+                    Math.max(0.16F, curRadius * 0.82F), curRadius * 1.06F, 30,
+                    1.000F, 0.420F, 0.616F, 0.74F * fade, 0.20F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, bioH * 0.60D, 0.0D), right, forward,
+                    Math.max(0.14F, curRadius * 0.74F), curRadius * 0.96F, 28,
+                    1.000F, 0.820F, 0.890F, 0.68F * fade, 0.18F * fade);
+            renderBotanicalBlossom(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    curRadius * 0.96F, 8, gameTime * 0.07F + inst.seed, 1.000F, 0.420F, 0.616F, 0.84F * fade);
+            for (int o = 0; o < 12; o++) {
+                float oAng = (float) (Math.PI * 2.0D * o / 12.0D) + inst.seed * 0.16F;
+                Vec3 oPos = ground.add(Mth.cos(oAng) * curRadius * 0.88D,
+                        0.22D + (o % 3) * 0.22D, Mth.sin(oAng) * curRadius * 0.88D);
+                boolean pearl = (o % 2 == 0);
+                renderOctahedron(matrix, vc, oPos, Math.max(0.14F, curRadius * 0.046F) * fade,
+                        1.000F, pearl ? 0.820F : 0.420F, pearl ? 0.890F : 0.616F, 0.96F * fade);
+            }
         }
     }
 
@@ -2331,6 +2580,54 @@ public final class SpellWorldVfxRenderer {
                 renderOctahedron(matrix, vc, outerNode.add(0.0D, 0.08D, 0.0D), Math.min(0.14F, r * 0.065F) * pulse,
                         0.173F, 0.902F, 0.408F, 0.94F * fade);
             }
+        } else if (isBorealTaigaMateria(inst.essence)) {
+            // Section 6.20 Frosted Conifer Briar Trap & Frost-Howler Spire Aura (#1A5923 / #98DCF2):
+            // 6-pointed boreal snowflake rune intertwined with evergreen thorny spruce briar spurs!
+            renderSnowflakeCrystal(matrix, vc, base.add(0.0D, 0.028D, 0.0D), right, forward,
+                    r * 0.96F, rotOuter * 0.30F, 0.88F * fade);
+            renderBotanicalBlossom(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.90F, 6, -rotInner * 0.25F, 0.102F, 0.349F, 0.137F, 0.78F * fade);
+            Vec3 worldUp = new Vec3(0.0D, 1.0D, 0.0D);
+            for (int b = 0; b < 8; b++) {
+                float bAng = (float) (Math.PI * 2.0D * b / 8.0D) + rotOuter * 0.12F;
+                Vec3 rad = new Vec3(Mth.cos(bAng), 0.0D, Mth.sin(bAng));
+                Vec3 tang = new Vec3(-Mth.sin(bAng), 0.0D, Mth.cos(bAng));
+                renderFacetedIceSpire(matrix, vc, base.add(rad.scale(r * 0.92D)), worldUp, rad, tang,
+                        Math.min(0.12F, r * 0.065F), Math.min(0.42F, r * 0.22F) * pulse, 5, bAng, fade * 0.92F);
+            }
+        } else if (isMiracleOasisMateria(inst.essence)) {
+            // Section 6.21 Aquifer Geyser Mine & Aquifer Spring Spire Aura (#1A5923 / #C2B28F / #38C6F4):
+            // 8-petaled succulent desert-lotus mandala & concentric springwater aquifer rings!
+            renderBotanicalBlossom(matrix, vc, base.add(0.0D, 0.024D, 0.0D), right, forward,
+                    r * 0.96F, 8, rotOuter * 0.24F, 0.102F, 0.349F, 0.137F, 0.80F * fade);
+            renderBotanicalBlossom(matrix, vc, base.add(0.0D, 0.030D, 0.0D), right, forward,
+                    r * 0.68F, 8, -rotInner * 0.28F, 0.761F, 0.698F, 0.561F, 0.76F * fade);
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.036D, 0.0D), right, forward,
+                    r * 0.82F, r * 0.98F, 28, 0.220F, 0.776F, 0.957F, 0.86F * fade);
+            for (int p = 0; p < 8; p++) {
+                float pAng = (float) (Math.PI * 2.0D * p / 8.0D) + rotOuter * 0.16F;
+                Vec3 node = base.add(Mth.cos(pAng) * r * 0.90D, 0.10D, Mth.sin(pAng) * r * 0.90D);
+                renderOctahedron(matrix, vc, node, Math.min(0.13F, r * 0.062F) * pulse,
+                        (p % 2 == 0) ? 0.871F : 0.220F,
+                        (p % 2 == 0) ? 0.788F : 0.776F,
+                        (p % 2 == 0) ? 0.604F : 0.957F,
+                        0.94F * fade);
+            }
+        } else if (isCellularVitaeMateria(inst.essence)) {
+            // Section 6.22 Cellular Overcharge Mine & Cardiovascular Spire Aura (#FF6B9D / #FFD1E3):
+            // 8-petaled biological rose heartbeat rune & pulsing life-essence nodes!
+            float beat = 0.90F + 0.14F * Mth.abs(Mth.sin(gameTime * 0.24F));
+            renderBotanicalBlossom(matrix, vc, base.add(0.0D, 0.024D, 0.0D), right, forward,
+                    r * 0.96F * beat, 8, rotOuter * 0.24F, 1.000F, 0.420F, 0.616F, 0.82F * fade);
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.032D, 0.0D), right, forward,
+                    r * 0.80F * beat, r * 0.98F * beat, 28, 1.000F, 0.820F, 0.890F, 0.88F * fade);
+            for (int p = 0; p < 8; p++) {
+                float pAng = (float) (Math.PI * 2.0D * p / 8.0D) + rotInner * 0.18F;
+                Vec3 node = base.add(Mth.cos(pAng) * r * 0.90D, 0.10D, Mth.sin(pAng) * r * 0.90D);
+                boolean pearl = (p % 2 == 0);
+                renderOctahedron(matrix, vc, node, Math.min(0.13F, r * 0.065F) * beat,
+                        1.000F, pearl ? 0.820F : 0.420F, pearl ? 0.890F : 0.616F, 0.95F * fade);
+            }
         }
     }
 
@@ -2351,12 +2648,12 @@ public final class SpellWorldVfxRenderer {
         Vec3 flatUp = flatRight.cross(fwd).normalize();
 
         boolean airBlade = isAerodynamicMateria(inst.essence) || isTempestStormMateria(inst.essence);
-        boolean hydroWave = isHydroMateria(inst.essence);
+        boolean hydroWave = isHydroMateria(inst.essence) || isMiracleOasisMateria(inst.essence);
         boolean botanicalWhip = isBotanicalMateria(inst.essence) || isOvergrowthRampartMateria(inst.essence) || isSymbioticSporeMateria(inst.essence);
         boolean tectonicCleave = isTectonicMateria(inst.essence) || isAbrasiveDustMateria(inst.essence);
-        boolean glacialCleave = isGlacialMateria(inst.essence) || isPermafrostGlacialMateria(inst.essence);
+        boolean glacialCleave = isGlacialMateria(inst.essence) || isPermafrostGlacialMateria(inst.essence) || isBorealTaigaMateria(inst.essence);
         boolean infernalCleave = isInfernalMateria(inst.essence) || isMagmaCalderaMateria(inst.essence);
-        boolean solarCleave = isSolarRadiantMateria(inst.essence);
+        boolean solarCleave = isSolarRadiantMateria(inst.essence) || isCellularVitaeMateria(inst.essence);
         boolean umbralCleave = isUmbralShadowMateria(inst.essence);
         boolean necroticCleave = isNecroticUndeadMateria(inst.essence);
         int bladeLayers = airBlade ? 3 : ((hydroWave || botanicalWhip || tectonicCleave || glacialCleave || infernalCleave || solarCleave || umbralCleave || necroticCleave) ? 2 : 1);
@@ -2431,7 +2728,16 @@ public final class SpellWorldVfxRenderer {
                         hydroWave ? 0.88F : tipR, hydroWave ? 0.98F : tipG, botanicalWhip ? 0.28F : tipB, 0.88F * fade * prof1);
 
                 // Section 6.4 Poison Ivy Slash: jagged 3D thorn barbs jutting outward off the thorny crescent cleave!
-                if (botanicalWhip && layer == 0 && i > 1 && i < segs - 1 && i % 2 == 0) {
+                if (isMiracleOasisMateria(inst.essence) && layer == 0 && i > 1 && i < segs - 1 && i % 3 == 0) {
+                    // Section 6.21 Desert Blessing Touch: blooming #C2B28F / #1A5923 desert lotus blossoms along the springwater wave!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    boolean goldPetal = ((i / 3) % 2 == 0);
+                    renderOctahedron(matrix, vc, midOut, 0.115F * reach * prof0,
+                            goldPetal ? 0.871F : 0.133F,
+                            goldPetal ? 0.788F : 0.471F,
+                            goldPetal ? 0.604F : 0.188F,
+                            0.95F * fade * prof0);
+                } else if (botanicalWhip && layer == 0 && i > 1 && i < segs - 1 && i % 2 == 0) {
                     Vec3 barbTip = pOut0.add(dir0.scale(0.24D * reach * prof0))
                             .add(pOut1.subtract(pOut0).scale(0.65D));
                     emitDoubleSidedFlatQuad(matrix, vc, pOut0, pOut1, barbTip, barbTip,
@@ -2454,6 +2760,12 @@ public final class SpellWorldVfxRenderer {
                     Vec3 tang = pOut1.subtract(pOut0).normalize();
                     renderHellfireFlameTongue(matrix, vc, midOut, dir0, tang, planeNormal,
                             0.115F * reach * prof0, 0.42F * reach * prof0, fade * prof0);
+                } else if (isCellularVitaeMateria(inst.essence) && layer == 0 && i > 1 && i < segs - 1 && i % 3 == 0) {
+                    // Section 6.22 Cellular Overcharge Strike: pulsating #FF6B9D / #FFD1E3 rose vital-force nodes along the strike!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    boolean pearl = ((i / 3) % 2 == 0);
+                    renderOctahedron(matrix, vc, midOut, 0.12F * reach * prof0,
+                            1.000F, pearl ? 0.820F : 0.420F, pearl ? 0.890F : 0.616F, 0.96F * fade * prof0);
                 } else if (solarCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
                     // Section 6.8 Holy Smite & Daylight Ignition: 9 radiant 3D golden-white sun-ray lance teeth along the solar crescent!
                     Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
@@ -2990,6 +3302,82 @@ public final class SpellWorldVfxRenderer {
                 renderOctahedron(matrix, vc, puffPos, 0.095F * fade,
                         gold ? 0.910F : 0.173F, gold ? 0.784F : 0.902F, gold ? 0.510F : 0.408F, 0.94F * fade);
             }
+        } else if (isBorealTaigaMateria(inst.essence)) {
+            // Section 6.20 Frozen Sap Splatter Cone: shotgun-like spread of sticky sub-zero pine sap globs & #98DCF2 ice splinters!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.20F, 0.54F, 22,
+                    0.596F, 0.863F, 0.949F, 0.92F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.26D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.18F, activeReach * 0.96F * coneTan * 0.95F, 22,
+                    0.102F, 0.349F, 0.137F, 0.66F * fade, 0.20F * fade);
+            for (int p = 0; p < 24; p++) {
+                float pAng = (float) (Math.PI * 2.0D * p / 24.0D) + inst.seed * 0.19F;
+                float rFrac = 0.12F + 0.84F * hashFloat(p, 97);
+                float st = ((progress * 1.85F + hashFloat(p, 53)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                Vec3 sapPos = inst.start.add(fwd.scale(0.26D + dist))
+                        .add(right.scale(Mth.cos(pAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(pAng) * dist * coneTan * rFrac));
+                Vec3 tailPos = sapPos.subtract(fwd.scale(0.45D));
+                boolean frostShard = (p % 2 == 0);
+                renderCrossSegment(matrix, vc, tailPos, sapPos, 0.042F * fade,
+                        frostShard ? 0.596F : 0.860F,
+                        frostShard ? 0.863F : 0.640F,
+                        frostShard ? 0.949F : 0.240F,
+                        0.92F * fade);
+                renderOctahedron(matrix, vc, sapPos, 0.088F * fade,
+                        frostShard ? 0.596F : 0.102F,
+                        frostShard ? 0.863F : 0.349F,
+                        frostShard ? 0.949F : 0.137F,
+                        0.96F * fade);
+            }
+        } else if (isMiracleOasisMateria(inst.essence)) {
+            // Section 6.21 Desert Greening Mist: gentle warm botanical mist (#1A5923 / #C2B28F) & sparkling #38C6F4 droplets!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.20F, 0.54F, 22,
+                    0.761F, 0.698F, 0.561F, 0.90F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.26D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.20F, activeReach * 0.96F * coneTan * 0.96F, 24,
+                    0.102F, 0.349F, 0.137F, 0.58F * fade, 0.16F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.32D)), inst.start.add(fwd.scale(activeReach * 0.88D)),
+                    right, up, 0.16F, activeReach * 0.88F * coneTan * 0.84F, 22,
+                    0.220F, 0.776F, 0.957F, 0.44F * fade, 0.12F * fade);
+            for (int p = 0; p < 22; p++) {
+                float pAng = (float) (Math.PI * 2.0D * p / 22.0D) + inst.seed * 0.17F;
+                float rFrac = 0.14F + 0.82F * hashFloat(p, 89);
+                float st = ((progress * 1.45F + hashFloat(p, 47)) % 1.0F);
+                float dist = st * activeReach * 0.90F;
+                Vec3 mistPos = inst.start.add(fwd.scale(0.28D + dist))
+                        .add(right.scale(Mth.cos(pAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(pAng) * dist * coneTan * rFrac));
+                int kind = p % 3;
+                renderOctahedron(matrix, vc, mistPos, 0.088F * fade,
+                        kind == 0 ? 0.871F : (kind == 1 ? 0.220F : 0.133F),
+                        kind == 0 ? 0.788F : (kind == 1 ? 0.776F : 0.471F),
+                        kind == 0 ? 0.604F : (kind == 1 ? 0.957F : 0.188F),
+                        0.92F * fade);
+            }
+        } else if (isCellularVitaeMateria(inst.essence)) {
+            // Section 6.22 Cellular Rejuvenation Spray (#FF6B9D / #FFD1E3): wide 60° sparkling rose biological mist!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.20F, 0.56F, 22,
+                    1.000F, 0.820F, 0.890F, 0.92F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.26D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.20F, activeReach * 0.96F * coneTan * 0.96F, 24,
+                    1.000F, 0.420F, 0.616F, 0.58F * fade, 0.18F * fade);
+            for (int p = 0; p < 22; p++) {
+                float pAng = (float) (Math.PI * 2.0D * p / 22.0D) + inst.seed * 0.17F;
+                float rFrac = 0.14F + 0.82F * hashFloat(p, 97);
+                float st = ((progress * 1.55F + hashFloat(p, 43)) % 1.0F);
+                float dist = st * activeReach * 0.90F;
+                Vec3 mistPos = inst.start.add(fwd.scale(0.28D + dist))
+                        .add(right.scale(Mth.cos(pAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(pAng) * dist * coneTan * rFrac));
+                boolean pearl = (p % 2 == 0);
+                renderOctahedron(matrix, vc, mistPos, 0.090F * fade,
+                        1.000F, pearl ? 0.820F : 0.420F, pearl ? 0.890F : 0.616F, 0.95F * fade);
+            }
         }
     }
 
@@ -3016,9 +3404,9 @@ public final class SpellWorldVfxRenderer {
         Vec3 right = new Vec3(1.0D, 0.0D, 0.0D);
         Vec3 forward = new Vec3(0.0D, 0.0D, 1.0D);
 
-        // Section 6.3 Monsoon Cloudburst: dense 16-block 3D downpour (overhead dark-azure monsoon canopy, angled rain sheets & puddle ripples)!
+        // Section 6.3 Monsoon Cloudburst: dense tier-scaled 3D downpour (overhead dark-azure monsoon canopy, angled rain sheets & puddle ripples)!
         if (isHydroMateria(inst.essence)) {
-            double canopyH = 8.5D;
+            double canopyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 8.8D);
             Vec3 canopyCenter = ground.add(0.0D, canopyH, 0.0D);
             float mFade = fade;
 
@@ -3030,8 +3418,8 @@ public final class SpellWorldVfxRenderer {
             renderLowerHemisphereShell(matrix, vc, canopyCenter, radius * 0.96F, 3, 24,
                     0.133F, 0.361F, 0.486F, 0.28F * mFade);
 
-            // 2. 28 animated 3D torrential rain-sheet streaks falling continuously across the full 16-block storm cylinder!
-            int rainStreaks = 28;
+            // 2. Tier-scaled animated 3D torrential rain-sheet streaks falling continuously across the full storm cylinder!
+            int rainStreaks = 24 + inst.tier * 3;
             for (int i = 0; i < rainStreaks; i++) {
                 float rFrac = (float) Math.sqrt((i + 0.5D) / rainStreaks) * 0.94F;
                 float theta = i * 2.39996F + inst.seed * 0.17F; // Golden-angle uniform disc distribution
@@ -3065,7 +3453,7 @@ public final class SpellWorldVfxRenderer {
 
         // Section 6.4 Spore Tempest: overhead bioluminescent mycelial spore-canopy, drifting fungal spore streams & poison moss patches!
         if (isBotanicalMateria(inst.essence)) {
-            double canopyH = 8.2D;
+            double canopyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 8.5D);
             Vec3 canopyCenter = ground.add(0.0D, canopyH, 0.0D);
 
             // 1. Domed bioluminescent forest-emerald & golden-ochre mycelial mushroom canopy overhead
@@ -3114,9 +3502,9 @@ public final class SpellWorldVfxRenderer {
             return;
         }
 
-        // Section 6.5 Meteorite Shrapnel Barrage: cracked stone cavern-rift overhead raining 14 plummeting 3D stone meteorite shards!
+        // Section 6.5 Meteorite Shrapnel Barrage: cracked stone cavern-rift overhead raining plummeting 3D stone meteorite shards!
         if (isTectonicMateria(inst.essence)) {
-            double riftH = 8.8D;
+            double riftH = resolveTierScaledSkyfallHeight(ground, inst.tier, 9.0D);
             Vec3 riftCenter = ground.add(0.0D, riftH, 0.0D);
             Vec3 downAxis = new Vec3(0.0D, -1.0D, 0.0D);
 
@@ -3132,8 +3520,8 @@ public final class SpellWorldVfxRenderer {
                 renderCrossSegment(matrix, vc, fIn, fOut, 0.075F, 1.00F, 0.76F, 0.47F, 0.86F * fade);
             }
 
-            // 2. 14 heavy 3D stone meteorite shards plummeting straight down & shattering into amber ground shock-rings!
-            int meteorCount = 14;
+            // 2. Tier-scaled heavy 3D stone meteorite shards plummeting straight down & shattering into amber ground shock-rings!
+            int meteorCount = 12 + inst.tier * 2;
             for (int i = 0; i < meteorCount; i++) {
                 float rFrac = (float) Math.sqrt((i + 0.5D) / meteorCount) * 0.90F;
                 float theta = i * 2.39996F + inst.seed * 0.23F;
@@ -3168,19 +3556,7 @@ public final class SpellWorldVfxRenderer {
         // summons a SINGLE gigantic 3D spire of Blue Ice that hovers/descends over 2.0s (40t),
         // crashes into the impact zone, and radiates sub-zero frost shockwaves around the permanent ice monument (100% cave-viable)!
         if (isGlacialMateria(inst.essence) || isPermafrostGlacialMateria(inst.essence)) {
-            double riftH = 12.5D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos gPos = net.minecraft.core.BlockPos.containing(ground);
-                for (int dy = 4; dy <= 13; dy++) {
-                    net.minecraft.core.BlockPos check = gPos.above(dy);
-                    var bs = clientLvl.getBlockState(check);
-                    if (!bs.isAir() && !bs.getCollisionShape(clientLvl, check).isEmpty()) {
-                        riftH = Math.max(3.8D, dy - 0.35D);
-                        break;
-                    }
-                }
-            }
+            double riftH = resolveTierScaledSkyfallHeight(ground, inst.tier, 10.5D);
             Vec3 riftCenter = ground.add(0.0D, riftH, 0.0D);
             Vec3 downAxis = new Vec3(0.0D, -1.0D, 0.0D);
             Vec3 upAxis = new Vec3(0.0D, 1.0D, 0.0D);
@@ -3198,31 +3574,32 @@ public final class SpellWorldVfxRenderer {
             renderOrientedRing(matrix, vc, ground.add(0.0D, 0.045D, 0.0D), right, forward,
                     radius * 0.92F, radius * 1.02F, 24, 0.596F, 0.863F, 0.949F, 0.80F * fade);
 
+            float tierSpireMax = 4.5F + inst.tier * 0.95F;
             if (elapsedTicks < 40.0F) {
                 // Phase 1 (0..40 ticks = 2.0 seconds): Materializes high overhead (0..14t), then accelerates catastrophically downward (14..40t)!
                 float formT = Mth.clamp(elapsedTicks / 14.0F, 0.0F, 1.0F);
                 float fallT = elapsedTicks <= 14.0F ? 0.0F : Mth.clamp((elapsedTicks - 14.0F) / 26.0F, 0.0F, 1.0F);
                 float accelFall = fallT * fallT * fallT; // Dramatic heavy gravitational drop!
-                float maxSpireLen = Math.min(5.4F, (float) (riftH * 0.46D));
+                float maxSpireLen = Math.min(tierSpireMax, (float) (riftH * 0.52D));
                 double startTipY = Math.max(0.65D, riftH - maxSpireLen * 0.82D);
                 double tipY = Mth.lerp(accelFall, startTipY, 0.10D);
                 float monolithScale = 0.45F + 0.55F * formT;
                 float spireLen = maxSpireLen * monolithScale;
-                float spireRad = Math.max(0.88F, radius * 0.28F) * monolithScale;
+                float spireRad = Math.max(0.88F, radius * 0.24F) * monolithScale;
 
                 Vec3 spireBase = ground.add(0.0D, tipY + spireLen, 0.0D);
                 renderFacetedIceSpire(matrix, vc, spireBase, downAxis, right, forward,
-                        spireRad, spireLen, 6, gameTime * 0.06F, fade);
-                // Crown of 6 secondary blue-ice fins flanking the colossal plummeting monolith!
+                        spireRad, spireLen, 6, gameTime * 0.06F, fade * 0.72F);
+                // Crown of 6 secondary blue-ice fins flanking the colossal plummeting pseudoblock monolith!
                 for (int f = 0; f < 6; f++) {
                     float fAng = gameTime * 0.06F + (float) (Math.PI * 2.0D * f / 6.0D);
                     Vec3 fRad = new Vec3(Mth.cos(fAng), 0.0D, Mth.sin(fAng));
                     Vec3 fTang = new Vec3(-Mth.sin(fAng), 0.0D, Mth.cos(fAng));
                     renderFacetedIceSpire(matrix, vc, spireBase.add(fRad.scale(spireRad * 0.72D)).add(0.0D, -0.8D, 0.0D),
-                            downAxis, fRad, fTang, spireRad * 0.44F, spireLen * 0.62F, 5, fAng, fade * 0.92F);
+                            downAxis, fRad, fTang, spireRad * 0.44F, spireLen * 0.62F, 5, fAng, fade * 0.68F);
                 }
             } else {
-                // Phase 2 (40+ ticks): Impact crash! Towering crystalline Blue-Ice aura monument + expanding Frost Nova shockwave rings!
+                // Phase 2 (40+ ticks): Impact crash! Translucent frost aura sheath around the standing 3D Pseudoblock Monolith + expanding Frost Nova shockwave!
                 float postTicks = elapsedTicks - 40.0F;
                 float shockProg = Mth.clamp(postTicks / 24.0F, 0.0F, 1.0F);
                 float shockR = radius * (0.25F + 1.05F * (1.0F - (1.0F - shockProg) * (1.0F - shockProg)));
@@ -3230,17 +3607,9 @@ public final class SpellWorldVfxRenderer {
                     renderOrientedRing(matrix, vc, ground.add(0.0D, 0.08D, 0.0D), right, forward,
                             shockR * 0.80F, shockR, 28, 0.94F, 0.99F, 1.00F, (1.0F - shockProg) * 0.95F * fade);
                 }
-                // Crystalline spire sheath enveloping the newly erected permanent Blue-Ice monument!
+                float auraSpireH = Math.min(tierSpireMax, (float) (riftH - 0.8D));
                 renderFacetedIceSpire(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), upAxis, right, forward,
-                        Math.max(0.95F, radius * 0.26F), 5.2F, 6, 0.25F, fade * 0.72F);
-                for (int s = 0; s < 8; s++) {
-                    float sAng = (float) (Math.PI * 2.0D * s / 8.0D) + 0.39F;
-                    Vec3 sRad = new Vec3(Mth.cos(sAng), 0.0D, Mth.sin(sAng));
-                    Vec3 sTang = new Vec3(-Mth.sin(sAng), 0.0D, Mth.cos(sAng));
-                    Vec3 tilt = upAxis.add(sRad.scale(0.45D)).normalize();
-                    renderFacetedIceSpire(matrix, vc, ground.add(sRad.scale(1.15D)), tilt, sRad, sTang,
-                            0.32F, 2.15F, 5, sAng, fade * 0.85F);
-                }
+                        Math.max(0.95F, radius * 0.22F), auraSpireH, 6, 0.25F, fade * 0.36F);
             }
             return;
         }
@@ -3249,19 +3618,7 @@ public final class SpellWorldVfxRenderer {
         // Overhead roaring volcanic sky-rift raining hurtling 3D molten magma boulders / brimstone meteors!
         // Dynamically adapts rift height inside underground caves, dungeons, and Nether Fortresses (Section 4.8)!
         if (isInfernalMateria(inst.essence) || isMagmaCalderaMateria(inst.essence)) {
-            double riftH = 9.6D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos gPos = net.minecraft.core.BlockPos.containing(ground);
-                for (int dy = 4; dy <= 11; dy++) {
-                    net.minecraft.core.BlockPos check = gPos.above(dy);
-                    var bs = clientLvl.getBlockState(check);
-                    if (!bs.isAir() && !bs.getCollisionShape(clientLvl, check).isEmpty()) {
-                        riftH = Math.max(3.6D, dy - 0.35D);
-                        break;
-                    }
-                }
-            }
+            double riftH = resolveTierScaledSkyfallHeight(ground, inst.tier, 9.6D);
             Vec3 riftCenter = ground.add(0.0D, riftH, 0.0D);
             Vec3 worldUp = new Vec3(0.0D, 1.0D, 0.0D);
 
@@ -3273,8 +3630,8 @@ public final class SpellWorldVfxRenderer {
             renderOrientedStarPolygon(matrix, vc, riftCenter.add(0.0D, -0.12D, 0.0D), right, forward,
                     radius * 0.92F, 8, gameTime * 0.035F + inst.seed, 1.00F, 0.820F, 0.361F, 0.90F * fade);
 
-            // 2. 16 hurtling 3D molten brimstone meteors crashing diagonally down & exploding into hellfire ground shock-rings!
-            int meteorCount = 16;
+            // 2. Tier-scaled hurtling 3D molten brimstone meteors crashing diagonally down & exploding into hellfire ground shock-rings!
+            int meteorCount = 14 + inst.tier * 2;
             for (int i = 0; i < meteorCount; i++) {
                 float rFrac = (float) Math.sqrt((i + 0.5D) / meteorCount) * 0.90F;
                 float theta = i * 2.39996F + inst.seed * 0.29F;
@@ -3322,19 +3679,7 @@ public final class SpellWorldVfxRenderer {
         // crashing down after 2.0 seconds (40 ticks) and emitting expanding 3D holy shockwaves (100% cave-viable)!
         if (isSolarRadiantMateria(inst.essence)) {
             float elapsedTicks = progress * Math.max(1, inst.maxTicks);
-            double skyGateH = 11.5D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos gPos = net.minecraft.core.BlockPos.containing(ground);
-                for (int dy = 4; dy <= 12; dy++) {
-                    net.minecraft.core.BlockPos check = gPos.above(dy);
-                    var bs = clientLvl.getBlockState(check);
-                    if (!bs.isAir() && !bs.getCollisionShape(clientLvl, check).isEmpty()) {
-                        skyGateH = Math.max(3.8D, dy - 0.35D);
-                        break;
-                    }
-                }
-            }
+            double skyGateH = resolveTierScaledSkyfallHeight(ground, inst.tier, 10.5D);
             Vec3 gateCenter = ground.add(0.0D, skyGateH, 0.0D);
 
             // 1. Overhead 12-Ray Solar Gate & Ground Targeting Sun-Compass Sigil
@@ -3351,11 +3696,11 @@ public final class SpellWorldVfxRenderer {
             renderTube(matrix, vc, ground, gateCenter, Math.max(0.28F, radius * 0.20F), 10,
                     1.00F, 0.96F, 0.78F, 0.34F * fade, FULL_LIGHT);
 
-            // 2. Colossal 8-Faceted White-Hot Celestial Quartz Monolith descending over 40 ticks (2.0s)!
+            // 2. Tier-scaled Colossal 8-Faceted White-Hot Celestial Quartz Monolith descending over 40 ticks (2.0s)!
             float fallT = Mth.clamp(elapsedTicks / 40.0F, 0.0F, 1.0F);
             float accelFall = fallT * fallT * fallT; // Dramatic accelerating orbital drop!
             double tipY = Mth.lerp(accelFall, Math.max(1.2D, skyGateH - 1.2D), 0.0D);
-            double pillarBodyH = Math.min(6.2D, Math.max(2.0D, skyGateH - 2.35D));
+            double pillarBodyH = Math.min(5.2D + inst.tier * 0.95D, Math.max(2.0D, skyGateH - 2.35D));
             double crownH = Math.min(1.35D, Math.max(0.65D, skyGateH * 0.14D));
             float pillarR = Math.max(1.05F, radius * 0.34F);
             Vec3 tipPos = ground.add(0.0D, tipY, 0.0D);
@@ -3411,22 +3756,8 @@ public final class SpellWorldVfxRenderer {
             }
             return;
         } else if (isUmbralShadowMateria(inst.essence)) {
-            // Section 6.9 Black Rain of Obfuscation: brooding 16-block umbral eclipse storm-canopy raining 32 dark
-            // 3D umbral droplets over 6 seconds (120t), blinding targets & wiping mob aggro!
-            // Dynamically adapts canopy height to indoor cave & dungeon ceilings (Section 4.8 Cave Viability)!
             float cloudRad = Math.max(4.0F, radius);
-            double canopyClearance = 8.6D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
-                for (int dy = 4; dy <= 10; dy++) {
-                    net.minecraft.core.BlockPos check = baseBlock.above(dy);
-                    if (!clientLvl.getBlockState(check).getCollisionShape(clientLvl, check).isEmpty()) {
-                        canopyClearance = Math.max(3.4D, dy - 0.55D);
-                        break;
-                    }
-                }
-            }
+            double canopyClearance = resolveTierScaledSkyfallHeight(ground, inst.tier, 8.6D);
             Vec3 cloudCenter = new Vec3(ground.x, ground.y + canopyClearance, ground.z);
             renderHemisphereShell(matrix, vc, cloudCenter, cloudRad * 0.96F, 6, 26,
                     0.075F, 0.052F, 0.090F, 0.72F * fade);
@@ -3464,21 +3795,8 @@ public final class SpellWorldVfxRenderer {
             }
             return;
         } else if (isNecroticUndeadMateria(inst.essence)) {
-            // Section 6.10 Spectral Soul Swarm (Grave Haunt Tempest): ghostly aerial rift for 6s across a 12-block area
-            // where 14 swooping 3D hooded spectral wraiths dive-bomb living enemies (100% cave-ceiling adaptive)!
             float hauntRad = Math.max(4.0F, radius);
-            double riftH = 9.0D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
-                for (int dy = 4; dy <= 10; dy++) {
-                    net.minecraft.core.BlockPos check = baseBlock.above(dy);
-                    if (!clientLvl.getBlockState(check).getCollisionShape(clientLvl, check).isEmpty()) {
-                        riftH = Math.max(3.4D, dy - 0.50D);
-                        break;
-                    }
-                }
-            }
+            double riftH = resolveTierScaledSkyfallHeight(ground, inst.tier, 9.0D);
             Vec3 riftCenter = new Vec3(ground.x, ground.y + riftH, ground.z);
 
             // 1. Ghostly aerial ossuary & soul-ectoplasm rift overhead
@@ -3528,21 +3846,8 @@ public final class SpellWorldVfxRenderer {
             }
             return;
         } else if (inst.essence == EssenceType.VOID) {
-            // Section 6.11 Singularity Vortex Rift: cave-ceiling-adaptive dark cosmic sky rift for 6s across a 12-block+ zone!
-            // Exerts an upward gravitational pull with 14 upward-spiraling 3D cosmic ribbons & levitating accretion shards!
             float vortexRad = Math.max(4.5F, radius);
-            double riftH = 9.35D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
-                for (int dy = 4; dy <= 10; dy++) {
-                    net.minecraft.core.BlockPos check = baseBlock.above(dy);
-                    if (!clientLvl.getBlockState(check).getCollisionShape(clientLvl, check).isEmpty()) {
-                        riftH = Math.max(3.6D, dy - 0.65D);
-                        break;
-                    }
-                }
-            }
+            double riftH = resolveTierScaledSkyfallHeight(ground, inst.tier, 9.35D);
             Vec3 skyEye = new Vec3(ground.x, ground.y + riftH, ground.z);
 
             // 1. Overhead Pitch-Black Event Horizon Dome + #41304E / #C77DFF Spinning Accretion Disk!
@@ -3597,21 +3902,8 @@ public final class SpellWorldVfxRenderer {
             }
             return;
         } else if (isAridDesertMateria(inst.essence)) {
-            // Section 6.12 Haboob Sandstorm Downpour: cave-ceiling-adaptive swirling 12-block desert dust storm (6s),
-            // brooding #C2B28F / #9C7A4C Haboob canopy, 3 sweeping cyclone dust walls & 28 diagonal wind-whipped grit streaks!
             float stormRad = Math.max(6.0F, radius);
-            double stormH = 8.4D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
-                for (int dy = 4; dy <= 10; dy++) {
-                    net.minecraft.core.BlockPos check = baseBlock.above(dy);
-                    if (!clientLvl.getBlockState(check).getCollisionShape(clientLvl, check).isEmpty()) {
-                        stormH = Math.max(3.6D, dy - 0.60D);
-                        break;
-                    }
-                }
-            }
+            double stormH = resolveTierScaledSkyfallHeight(ground, inst.tier, 8.6D);
             Vec3 canopyCenter = new Vec3(ground.x, ground.y + stormH, ground.z);
 
             // 1. Swirling desert Haboob dust-cloud canopy overhead + scoured sandstorm perimeter ring underfoot
@@ -3665,21 +3957,8 @@ public final class SpellWorldVfxRenderer {
             }
             return;
         } else if (isGalvanicLightningMateria(inst.essence)) {
-            // Section 6.13 Thunderstorm Skyfall (Bolt Barrage): cave-ceiling-adaptive crackling stormcloud overhead
-            // striking across a 12-block zone with violent 3D #FFE600 lightning bolts over 15s!
             float stormRad = Math.max(6.0F, radius);
-            double cloudH = 9.0D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
-                for (int dy = 4; dy <= 11; dy++) {
-                    net.minecraft.core.BlockPos check = baseBlock.above(dy);
-                    if (!clientLvl.getBlockState(check).getCollisionShape(clientLvl, check).isEmpty()) {
-                        cloudH = Math.max(3.6D, dy - 0.55D);
-                        break;
-                    }
-                }
-            }
+            double cloudH = resolveTierScaledSkyfallHeight(ground, inst.tier, 9.2D);
             Vec3 cloudCenter = new Vec3(ground.x, ground.y + cloudH, ground.z);
             int stormFrame = (int) (gameTime * 0.45F) + inst.seed * 13;
             float sheetFlash = ((stormFrame % 7) == 0) ? 0.95F : 0.45F;
@@ -3727,21 +4006,8 @@ public final class SpellWorldVfxRenderer {
             }
             return;
         } else if (isTempestStormMateria(inst.essence)) {
-            // Section 6.15 Tempest Monsoon Downpour: cave-ceiling-adaptive 16-block torrential hurricane downpour
-            // with swirling cyclone wind-bands & 32 driving diagonal #429BA3 rain streaks!
             float monsoonRad = Math.max(8.0F, radius);
-            double cloudH = 9.2D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
-                for (int dy = 4; dy <= 11; dy++) {
-                    net.minecraft.core.BlockPos check = baseBlock.above(dy);
-                    if (!clientLvl.getBlockState(check).getCollisionShape(clientLvl, check).isEmpty()) {
-                        cloudH = Math.max(3.6D, dy - 0.55D);
-                        break;
-                    }
-                }
-            }
+            double cloudH = resolveTierScaledSkyfallHeight(ground, inst.tier, 9.2D);
             Vec3 cloudCenter = new Vec3(ground.x, ground.y + cloudH, ground.z);
 
             renderOrientedRing(matrix, vc, cloudCenter, right, forward, 0.0F, monsoonRad * 1.04F, 36,
@@ -3774,21 +4040,8 @@ public final class SpellWorldVfxRenderer {
             }
             return;
         } else if (isOvergrowthRampartMateria(inst.essence)) {
-            // Section 6.17 Phyto-Canopy Downpour: cave-ceiling-adaptive 16-block verdant cloud for 8s
-            // raining golden-emerald phyto-motes & fertile growth rings!
             float canopyRad = Math.max(8.0F, radius);
-            double cloudH = 8.6D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
-                for (int dy = 4; dy <= 10; dy++) {
-                    net.minecraft.core.BlockPos check = baseBlock.above(dy);
-                    if (!clientLvl.getBlockState(check).getCollisionShape(clientLvl, check).isEmpty()) {
-                        cloudH = Math.max(3.6D, dy - 0.55D);
-                        break;
-                    }
-                }
-            }
+            double cloudH = resolveTierScaledSkyfallHeight(ground, inst.tier, 8.8D);
             Vec3 cloudCenter = new Vec3(ground.x, ground.y + cloudH, ground.z);
 
             renderOrientedRing(matrix, vc, cloudCenter, right, forward, 0.0F, canopyRad * 1.02F, 34,
@@ -3812,21 +4065,8 @@ public final class SpellWorldVfxRenderer {
             }
             return;
         } else if (isAbrasiveDustMateria(inst.essence)) {
-            // Section 6.18 Whiteout Dust Storm Downpour: cave-ceiling-adaptive swirling 14-block (7.0F radius)
-            // chalk dust storm from the sky for 15s (#C2B28F / #F2ECE1)!
             float stormRad = Math.max(7.0F, radius);
-            double stormH = 8.8D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
-                for (int dy = 4; dy <= 10; dy++) {
-                    net.minecraft.core.BlockPos check = baseBlock.above(dy);
-                    if (!clientLvl.getBlockState(check).getCollisionShape(clientLvl, check).isEmpty()) {
-                        stormH = Math.max(3.6D, dy - 0.55D);
-                        break;
-                    }
-                }
-            }
+            double stormH = resolveTierScaledSkyfallHeight(ground, inst.tier, 8.8D);
             Vec3 canopyCenter = new Vec3(ground.x, ground.y + stormH, ground.z);
 
             renderOrientedRing(matrix, vc, canopyCenter, right, forward, 0.0F, stormRad * 1.04F, 36,
@@ -3869,21 +4109,8 @@ public final class SpellWorldVfxRenderer {
             }
             return;
         } else if (isSymbioticSporeMateria(inst.essence)) {
-            // Section 6.19 Choking Fungal Fog Downpour: cave-ceiling-adaptive 15s persistent choking fungal fog
-            // (#1A5923 / #A88654) blanketing the radius & decaying organic drops into compost!
             float fogRad = Math.max(7.0F, radius);
-            double fogH = 8.4D;
-            var clientLvl = Minecraft.getInstance().level;
-            if (clientLvl != null) {
-                net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
-                for (int dy = 4; dy <= 10; dy++) {
-                    net.minecraft.core.BlockPos check = baseBlock.above(dy);
-                    if (!clientLvl.getBlockState(check).getCollisionShape(clientLvl, check).isEmpty()) {
-                        fogH = Math.max(3.5D, dy - 0.55D);
-                        break;
-                    }
-                }
-            }
+            double fogH = resolveTierScaledSkyfallHeight(ground, inst.tier, 8.6D);
             Vec3 canopyCenter = new Vec3(ground.x, ground.y + fogH, ground.z);
 
             renderOrientedRing(matrix, vc, canopyCenter, right, forward, 0.0F, fogRad * 1.02F, 34,
@@ -3916,6 +4143,149 @@ public final class SpellWorldVfxRenderer {
                 renderOctahedron(matrix, vc, new Vec3(px, py, pz), 0.12F * fade * Mth.sin(cycle * (float) Math.PI),
                         gold ? 0.910F : 0.173F, gold ? 0.784F : 0.902F, gold ? 0.510F : 0.408F, 0.90F * fade);
             }
+            return;
+        } else if (isBorealTaigaMateria(inst.essence)) {
+            // Section 6.20 Falling Glacial Timber Cataclysm: tier-scaled cave-safe Boreal Blizzard Sky-Rift (#1A5923 / #98DCF2)
+            // accompanying the falling 3D Spruce-Log & Packed/Blue-Ice Pseudoblock monoliths!
+            float borealRad = Math.max(6.8F, radius);
+            double riftH = resolveTierScaledSkyfallHeight(ground, inst.tier, 9.5D);
+            Vec3 riftCenter = new Vec3(ground.x, ground.y + riftH, ground.z);
+
+            renderOrientedRing(matrix, vc, riftCenter, right, forward, 0.0F, borealRad * 1.04F, 34,
+                    0.102F, 0.349F, 0.137F, 0.72F * fade);
+            renderLowerHemisphereShell(matrix, vc, riftCenter, borealRad * 0.96F, 3, 24,
+                    0.596F, 0.863F, 0.949F, 0.36F * fade);
+            renderSnowflakeCrystal(matrix, vc, riftCenter.add(0.0D, -0.10D, 0.0D), right, forward,
+                    borealRad * 0.96F, gameTime * 0.045F + inst.seed, 0.88F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    borealRad * 0.90F, borealRad * 1.02F, 36, 0.596F, 0.863F, 0.949F, 0.84F * fade);
+
+            int streakCount = 24 + inst.tier * 2;
+            for (int i = 0; i < streakCount; i++) {
+                float cycle = ((gameTime * (0.078F + 0.014F * (i % 3)) + hashFloat(i, 89)) % 1.0F);
+                float rDist = borealRad * (0.10F + 0.86F * hashFloat(i, 127));
+                float swirlAng = i * 2.39996F + gameTime * 0.06F + cycle * 1.35F;
+                double sx = ground.x + Mth.cos(swirlAng) * rDist;
+                double sz = ground.z + Mth.sin(swirlAng) * rDist;
+                double sy = Mth.lerp(cycle * cycle, riftCenter.y - 0.25D, ground.y + 0.12D);
+                Vec3 tail = new Vec3(sx - Mth.sin(swirlAng) * 0.55D, Math.min(riftCenter.y - 0.10D, sy + 1.15D), sz + Mth.cos(swirlAng) * 0.55D);
+                boolean frostIcicle = (i % 2 == 0);
+                renderCrossSegment(matrix, vc, tail, new Vec3(sx, sy, sz), 0.058F,
+                        frostIcicle ? 0.596F : 0.102F,
+                        frostIcicle ? 0.863F : 0.349F,
+                        frostIcicle ? 0.949F : 0.137F,
+                        0.88F * fade * Mth.sin(cycle * (float) Math.PI));
+            }
+            return;
+        }
+
+        // Section 6.21 Miracle Desert Downpour: tier-scaled restorative rainstorm of sparkling #38C6F4 springwater & #C2B28F golden pollen!
+        if (isMiracleOasisMateria(inst.essence)) {
+            double canopyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 9.0D);
+            Vec3 canopyCenter = ground.add(0.0D, canopyH, 0.0D);
+            float oasisRad = Math.max(6.8F, radius);
+
+            // 1. Sunlit Desert-Mirage & Lush Oasis Sky-Canopy overhead
+            renderHemisphereShell(matrix, vc, canopyCenter.add(0.0D, -0.30D, 0.0D), oasisRad * 0.98F, 4, 26,
+                    0.102F, 0.349F, 0.137F, 0.40F * fade);
+            renderLowerHemisphereShell(matrix, vc, canopyCenter, oasisRad * 0.95F, 3, 24,
+                    0.220F, 0.776F, 0.957F, 0.32F * fade);
+            renderBotanicalBlossom(matrix, vc, canopyCenter.add(0.0D, -0.18D, 0.0D), right, forward,
+                    oasisRad * 0.92F, 8, gameTime * 0.03F + inst.seed, 0.871F, 0.788F, 0.604F, 0.64F * fade);
+            renderOrientedRing(matrix, vc, canopyCenter.add(0.0D, -0.12D, 0.0D), right, forward,
+                    oasisRad * 0.84F, oasisRad * 1.02F, 34, 0.761F, 0.698F, 0.561F, 0.72F * fade);
+
+            // 2. Tier-scaled sparkling springwater rain sheets & drifting sunlit golden pollen blossoms!
+            int streams = 26 + inst.tier * 3;
+            for (int i = 0; i < streams; i++) {
+                float rFrac = (float) Math.sqrt((i + 0.5D) / streams) * 0.94F;
+                float theta = i * 2.39996F + inst.seed * 0.19F;
+                double rx = Mth.cos(theta) * oasisRad * rFrac;
+                double rz = Mth.sin(theta) * oasisRad * rFrac;
+
+                float fallCycle = ((gameTime * 0.125F + hashFloat(i, 79)) % 1.0F);
+                double topY = canopyH * (1.0D - fallCycle * 0.80D);
+                double botY = Math.max(0.06D, topY - 2.20D);
+                boolean pollenStream = (i % 3 == 0);
+                if (pollenStream) {
+                    double swayX = Math.sin(gameTime * 0.08D + i) * 0.32D;
+                    double swayZ = Math.cos(gameTime * 0.07D + i * 1.2D) * 0.32D;
+                    Vec3 pPos = ground.add(rx + swayX, Math.max(0.14D, canopyH * (1.0D - fallCycle)), rz + swayZ);
+                    float pAlpha = fade * Mth.sin(fallCycle * (float) Math.PI);
+                    renderOctahedron(matrix, vc, pPos, 0.105F + 0.03F * (i % 2),
+                            0.871F, 0.788F, 0.604F, 0.88F * pAlpha);
+                } else {
+                    renderCrossSegment(matrix, vc,
+                            ground.add(rx + 0.14D, topY, rz),
+                            ground.add(rx, botY, rz),
+                            0.044F, 0.220F, 0.776F, 0.957F, 0.78F * fade);
+                }
+
+                // Sparkling springwater & oasis-green splash ripples across the hydrated desert floor
+                if (i % 3 == 1) {
+                    float splashCycle = ((gameTime * 0.085F + hashFloat(i, 137)) % 1.0F);
+                    float pRad = 0.20F + 0.80F * splashCycle;
+                    float pAlpha = (1.0F - splashCycle) * 0.72F * fade;
+                    renderOrientedRing(matrix, vc, ground.add(rx, 0.04D, rz), right, forward,
+                            pRad * 0.74F, pRad, 14, 0.220F, 0.776F, 0.957F, pAlpha);
+                }
+            }
+
+            // Lush Oasis perimeter ring on the ground
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    oasisRad * 0.95F, oasisRad * 1.01F, 36, 0.133F, 0.471F, 0.188F, 0.66F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    oasisRad * 0.89F, oasisRad * 0.94F, 34, 0.761F, 0.698F, 0.561F, 0.58F * fade);
+            return;
+        }
+
+        // Section 6.22 Font of Vitality Downpour (#FF6B9D / #FFD1E3): tier-scaled shimmering rain of rose life essence!
+        if (isCellularVitaeMateria(inst.essence)) {
+            double canopyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 9.0D);
+            Vec3 canopyCenter = ground.add(0.0D, canopyH, 0.0D);
+            float vitaeRad = Math.max(6.8F, radius);
+            float beat = 0.92F + 0.10F * Mth.abs(Mth.sin(gameTime * 0.24F));
+
+            renderHemisphereShell(matrix, vc, canopyCenter.add(0.0D, -0.30D, 0.0D), vitaeRad * 0.98F, 4, 26,
+                    1.000F, 0.420F, 0.616F, 0.38F * fade);
+            renderBotanicalBlossom(matrix, vc, canopyCenter.add(0.0D, -0.18D, 0.0D), right, forward,
+                    vitaeRad * 0.92F * beat, 8, gameTime * 0.035F + inst.seed, 1.000F, 0.820F, 0.890F, 0.68F * fade);
+            renderOrientedRing(matrix, vc, canopyCenter.add(0.0D, -0.12D, 0.0D), right, forward,
+                    vitaeRad * 0.84F, vitaeRad * 1.02F, 34, 1.000F, 0.420F, 0.616F, 0.76F * fade);
+
+            int streams = 26 + inst.tier * 3;
+            for (int i = 0; i < streams; i++) {
+                float rFrac = (float) Math.sqrt((i + 0.5D) / streams) * 0.94F;
+                float theta = i * 2.39996F + inst.seed * 0.19F;
+                double rx = Mth.cos(theta) * vitaeRad * rFrac;
+                double rz = Mth.sin(theta) * vitaeRad * rFrac;
+
+                float fallCycle = ((gameTime * 0.115F + hashFloat(i, 83)) % 1.0F);
+                double topY = canopyH * (1.0D - fallCycle * 0.80D);
+                double botY = Math.max(0.06D, topY - 2.10D);
+                if (i % 3 == 0) {
+                    Vec3 orbPos = ground.add(rx, Math.max(0.14D, canopyH * (1.0D - fallCycle)), rz);
+                    float oAlpha = fade * Mth.sin(fallCycle * (float) Math.PI);
+                    renderOctahedron(matrix, vc, orbPos, 0.11F + 0.03F * (i % 2),
+                            1.000F, (i % 2 == 0) ? 0.820F : 0.420F, (i % 2 == 0) ? 0.890F : 0.616F, 0.92F * oAlpha);
+                } else {
+                    renderCrossSegment(matrix, vc,
+                            ground.add(rx + 0.08D, topY, rz),
+                            ground.add(rx, botY, rz),
+                            0.044F, 1.000F, 0.420F, 0.616F, 0.78F * fade);
+                }
+
+                if (i % 3 == 1) {
+                    float splashCycle = ((gameTime * 0.085F + hashFloat(i, 139)) % 1.0F);
+                    float pRad = 0.22F + 0.82F * splashCycle;
+                    float pAlpha = (1.0F - splashCycle) * 0.72F * fade;
+                    renderOrientedRing(matrix, vc, ground.add(rx, 0.04D, rz), right, forward,
+                            pRad * 0.75F, pRad, 14, 1.000F, 0.820F, 0.890F, pAlpha);
+                }
+            }
+
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    vitaeRad * 0.94F, vitaeRad * 1.01F, 36, 1.000F, 0.420F, 0.616F, 0.68F * fade);
             return;
         }
 
@@ -4921,6 +5291,75 @@ public final class SpellWorldVfxRenderer {
                         );
                     }
                 }
+            } else if (ward.primaryMateria == EssenceType.TAIGA) {
+                // Section 6.20 Winter Solstice Shroud (#1A5923 / #98DCF2): sub-zero blizzard mist & whirling
+                // frosted pine-needle crescents deflecting 50% of incoming arrows!
+                Vec3 taigaFeet = feetPos.add(0.0D, 0.04D, 0.0D);
+                float shroudAlpha = localFirstPerson ? (ringAlpha * 0.48F) : (ringAlpha * 0.92F);
+                renderOrientedRing(matrix, vc, taigaFeet, flatX, flatZ, r * 0.80F, r * 1.16F, 24,
+                        0.596F, 0.863F, 0.949F, shroudAlpha * 0.86F);
+                renderSnowflakeCrystal(matrix, vc, taigaFeet.add(0.0D, 0.012D, 0.0D), flatX, flatZ,
+                        r * 1.05F, gameTime * 0.06F, shroudAlpha * 0.82F);
+                for (int c = 0; c < 4; c++) {
+                    float cAng = gameTime * 0.30F + (float) (Math.PI * 0.5D * c);
+                    double cy = taigaFeet.y + 0.30D + c * 0.38D;
+                    renderSweptWindCrescent(matrix, vc, new Vec3(taigaFeet.x, cy, taigaFeet.z),
+                            flatX, flatZ, r * (0.92F + 0.06F * (c % 2)), cAng, 1.22F, Math.max(0.13F, r * 0.11F),
+                            (c % 2 == 0) ? 0.596F : 0.102F,
+                            (c % 2 == 0) ? 0.863F : 0.349F,
+                            (c % 2 == 0) ? 0.949F : 0.137F,
+                            shroudAlpha * 0.92F);
+                }
+            } else if (ward.primaryMateria == EssenceType.OASIS) {
+                // Section 6.21 Succulent Thorn Carapace (#1A5923 / #C2B28F): thick succulent cactus-flesh hex plates
+                // bristling with sharp sunlit desert-gold thorn spines (-20% physical damage + Oasis thorn retaliation)!
+                Vec3 oasisFeet = feetPos.add(0.0D, 0.04D, 0.0D);
+                float carapaceAlpha = localFirstPerson ? (ringAlpha * 0.46F) : (ringAlpha * 0.92F);
+                renderOrientedRing(matrix, vc, oasisFeet, flatX, flatZ, r * 0.82F, r * 1.14F, 24,
+                        0.220F, 0.776F, 0.957F, carapaceAlpha * 0.80F);
+                renderBotanicalBlossom(matrix, vc, oasisFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ,
+                        r * 1.04F, 8, gameTime * 0.05F, 0.102F, 0.349F, 0.137F, carapaceAlpha * 0.82F);
+                for (int p = 0; p < 6; p++) {
+                    float pAng = gameTime * 0.09F + (float) (Math.PI * 2.0D * p / 6.0D);
+                    Vec3 outDir = new Vec3(Mth.cos(pAng), 0.10D * ((p % 2 == 0) ? 1 : -1), Mth.sin(pAng)).normalize();
+                    Vec3 tanU = new Vec3(-Mth.sin(pAng), 0.0D, Mth.cos(pAng));
+                    Vec3 tanV = outDir.cross(tanU).normalize();
+                    Vec3 plateCenter = center.add(outDir.scale(r * 0.94D));
+                    renderFacetedHexPlate(
+                            matrix, vc, plateCenter, tanU, tanV, r * 0.28F, pAng * 0.5F,
+                            0.102F, 0.349F, 0.137F, carapaceAlpha * 0.72F,
+                            0.761F, 0.698F, 0.561F, carapaceAlpha * 0.94F
+                    );
+                    // Sharp outward sunlit cactus thorn spine jutting from each succulent plate!
+                    renderCrossSegment(
+                            matrix, vc, plateCenter, plateCenter.add(outDir.scale(Math.max(0.24D, r * 0.28D))),
+                            0.032F, 0.871F, 0.788F, 0.604F, carapaceAlpha * 0.96F
+                    );
+                }
+            } else if (ward.primaryMateria == EssenceType.VITAE) {
+                // Section 6.22 Cellular Overdrive Shroud (#FF6B9D / #FFD1E3): crackling biological double-helix
+                // & heartbeat overdrive rings!
+                Vec3 vitaeFeet = feetPos.add(0.0D, 0.04D, 0.0D);
+                float shroudAlpha = localFirstPerson ? (ringAlpha * 0.44F) : (ringAlpha * 0.92F);
+                float beat = 0.90F + 0.14F * Mth.abs(Mth.sin(gameTime * 0.28F));
+                renderOrientedRing(matrix, vc, vitaeFeet, flatX, flatZ, r * 0.82F * beat, r * 1.14F * beat, 26,
+                        1.000F, 0.420F, 0.616F, shroudAlpha * 0.86F);
+                for (int h = 0; h < 2; h++) {
+                    float off = h * (float) Math.PI + gameTime * 0.16F;
+                    Vec3 prev = null;
+                    for (int s = 0; s <= 12; s++) {
+                        float t = s / 12.0F;
+                        float ang = off + t * 4.8F;
+                        float hr = r * (0.86F + 0.10F * Mth.sin(t * (float) Math.PI));
+                        Vec3 pt = vitaeFeet.add(Mth.cos(ang) * hr, 0.10D + t * 1.65D, Mth.sin(ang) * hr);
+                        if (prev != null) {
+                            boolean pearl = (h == 1);
+                            renderCrossSegment(matrix, vc, prev, pt, 0.032F,
+                                    1.000F, pearl ? 0.820F : 0.420F, pearl ? 0.890F : 0.616F, shroudAlpha * 0.92F);
+                        }
+                        prev = pt;
+                    }
+                }
             }
         }
 
@@ -5295,6 +5734,34 @@ public final class SpellWorldVfxRenderer {
                             0.165F, 0.090F, 0.071F, 0.90F * fade);
                 }
             }
+        } else if (isMiracleOasisMateria(inst.essence)) {
+            // Section 6.21 Aquifer Geyser Mine: pressurized #38C6F4 groundwater spout + rising #1A5923 / #C2B28F desert blossoms!
+            int vBands = 7;
+            for (int b = 0; b < vBands; b++) {
+                float t0 = b / (float) vBands;
+                float t1 = (b + 1) / (float) vBands;
+                float wr0 = r * (0.54F - 0.18F * Mth.sin(t0 * (float) Math.PI) + 0.44F * t0 * t0);
+                float wr1 = r * (0.54F - 0.18F * Mth.sin(t1 * (float) Math.PI) + 0.44F * t1 * t1);
+                renderOrientedFrustumBand(matrix, vc,
+                        base.add(0.0D, t0 * currentH, 0.0D), base.add(0.0D, t1 * currentH, 0.0D),
+                        right, forward, wr0, wr1, 24,
+                        0.220F, 0.776F, 0.957F, 0.56F * fade, 0.40F * fade);
+            }
+            renderOrientedFrustumBand(matrix, vc,
+                    top.add(0.0D, -0.35D, 0.0D), top.add(0.0D, 0.24D, 0.0D),
+                    right, forward, r * 0.76F, r * 1.14F, 24,
+                    0.871F, 0.788F, 0.604F, 0.84F * fade, 0.18F * fade);
+            for (int f = 0; f < 8; f++) {
+                float rise = ((gameTime * 0.13F + f * 0.125F) % 1.0F);
+                float fAng = gameTime * 0.20F + (float) (Math.PI * 2.0D * f / 8.0D);
+                Vec3 bPos = base.add(Mth.cos(fAng) * r * (0.35D + 0.35D * rise), currentH * rise, Mth.sin(fAng) * r * (0.35D + 0.35D * rise));
+                boolean goldPetal = (f % 2 == 0);
+                renderOctahedron(matrix, vc, bPos, Math.max(0.11F, r * 0.10F) * fade,
+                        goldPetal ? 0.871F : 0.133F,
+                        goldPetal ? 0.788F : 0.471F,
+                        goldPetal ? 0.604F : 0.188F,
+                        0.94F * fade);
+            }
         }
     }
 
@@ -5471,6 +5938,97 @@ public final class SpellWorldVfxRenderer {
 
     private static boolean isSymbioticSporeMateria(EssenceType type) {
         return type == EssenceType.SPORE;
+    }
+
+    private static boolean isBorealTaigaMateria(EssenceType type) {
+        return type == EssenceType.TAIGA;
+    }
+
+    private static boolean isMiracleOasisMateria(EssenceType type) {
+        return type == EssenceType.OASIS;
+    }
+
+    private static boolean isCellularVitaeMateria(EssenceType type) {
+        return type == EssenceType.VITAE;
+    }
+
+    /**
+     * Scales Skyfall rift/canopy height dynamically by Potency Tier ({@code +2.2m} per tier up to ~30m outdoors at Tier 10!)
+     * while scanning upward for cave/dungeon ceilings so indoor Skyfalls always fit cleanly underneath!
+     */
+    private static double resolveTierScaledSkyfallHeight(Vec3 ground, int tier, double tier1BaseHeight) {
+        double desired = tier1BaseHeight + (Math.clamp(tier, 1, 10) - 1) * 2.2D;
+        var clientLvl = Minecraft.getInstance().level;
+        if (clientLvl != null) {
+            net.minecraft.core.BlockPos baseBlock = net.minecraft.core.BlockPos.containing(ground.x, ground.y + 0.2D, ground.z);
+            int maxScan = (int) Math.ceil(desired) + 1;
+            for (int dy = 4; dy <= maxScan; dy++) {
+                net.minecraft.core.BlockPos check = baseBlock.above(dy);
+                var bs = clientLvl.getBlockState(check);
+                if (!bs.isAir() && !bs.getCollisionShape(clientLvl, check).isEmpty()) {
+                    return Math.max(3.6D, dy - 0.50D);
+                }
+            }
+        }
+        return desired;
+    }
+
+    /**
+     * Renders the translucent-emissive Materia aura shell, falling comet wake, and landing shock-ring
+     * around a 3D Skyfall Pseudoblock column ({@link SpellVfxEventPayload#VFX_SKYFALL_PSEUDOBLOCK}).
+     */
+    private static void renderSkyfallPseudoblockAura(
+            Matrix4f matrix,
+            VertexConsumer vc,
+            SpellWorldVfxManager.ActiveVfxInstance inst,
+            float partialTick,
+            float gameTime,
+            float pr, float pg, float pb,
+            float ar, float ag, float ab
+    ) {
+        int fallTicks = Math.max(1, inst.accentRgb);
+        float elapsed = inst.ageTicks + partialTick;
+        float fallT = Mth.clamp(elapsed / (float) fallTicks, 0.0F, 1.0F);
+        float accel = fallT * fallT;
+
+        double curX = Mth.lerp(accel, inst.start.x - 0.5D, inst.endOrDir.x);
+        double curY = Mth.lerp(accel, inst.start.y, inst.endOrDir.y);
+        double curZ = Mth.lerp(accel, inst.start.z - 0.5D, inst.endOrDir.z);
+        int colH = Math.clamp(Math.round(inst.radiusOrScale), 1, 20);
+
+        float pulse = 0.72F + 0.28F * Mth.sin(gameTime * 0.24F + inst.seed);
+        float remTicks = Math.max(0.0F, inst.maxTicks - elapsed);
+        float solidifyFlare = remTicks <= 8.0F ? (1.0F + (1.0F - remTicks / 8.0F) * 0.45F) : 1.0F;
+
+        // 4 glowing vertical corner seams & top/bottom framing edges signifying an active magical Pseudoblock
+        double pad = 0.025D;
+        double[][] corners = {{-pad, -pad}, {1.0D + pad, -pad}, {1.0D + pad, 1.0D + pad}, {-pad, 1.0D + pad}};
+        for (int i = 0; i < 4; i++) {
+            Vec3 b0 = new Vec3(curX + corners[i][0], curY - pad, curZ + corners[i][1]);
+            Vec3 t0 = new Vec3(curX + corners[i][0], curY + colH + pad, curZ + corners[i][1]);
+            Vec3 b1 = new Vec3(curX + corners[(i + 1) % 4][0], curY - pad, curZ + corners[(i + 1) % 4][1]);
+            Vec3 t1 = new Vec3(curX + corners[(i + 1) % 4][0], curY + colH + pad, curZ + corners[(i + 1) % 4][1]);
+            renderCrossSegment(matrix, vc, b0, t0, 0.026F * solidifyFlare, ar, ag, ab, 0.68F * pulse);
+            renderCrossSegment(matrix, vc, b0, b1, 0.022F, pr, pg, pb, 0.58F * pulse);
+            renderCrossSegment(matrix, vc, t0, t1, 0.022F, ar, ag, ab, 0.62F * pulse);
+        }
+
+        // Falling comet wake while descending, or brief impact ring right when the pseudoblock column slams into the ground!
+        Vec3 right = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 forward = new Vec3(0.0D, 0.0D, 1.0D);
+        if (fallT < 1.0F) {
+            Vec3 colTopCenter = new Vec3(curX + 0.5D, curY + colH, curZ + 0.5D);
+            Vec3 wakeTip = new Vec3(curX + 0.5D, Math.min(inst.start.y + colH, curY + colH + 2.4D), curZ + 0.5D);
+            renderCrossSegment(matrix, vc, colTopCenter, wakeTip, 0.18F, pr, pg, pb, 0.62F);
+            renderCrossSegment(matrix, vc, colTopCenter, wakeTip, 0.08F, ar, ag, ab, 0.88F);
+            renderOrientedRing(matrix, vc, new Vec3(inst.endOrDir.x + 0.5D, inst.endOrDir.y + 0.04D, inst.endOrDir.z + 0.5D),
+                    right, forward, 0.42F, 0.62F, 12, ar, ag, ab, 0.54F * fallT);
+        } else if (elapsed - fallTicks < 14.0F) {
+            float impT = (elapsed - fallTicks) / 14.0F;
+            float impR = 0.55F + 1.10F * impT;
+            renderOrientedRing(matrix, vc, new Vec3(inst.endOrDir.x + 0.5D, inst.endOrDir.y + 0.05D, inst.endOrDir.z + 0.5D),
+                    right, forward, impR * 0.76F, impR, 16, ar, ag, ab, (1.0F - impT) * 0.88F);
+        }
     }
 
     private static void renderSkeletalRibSpike(

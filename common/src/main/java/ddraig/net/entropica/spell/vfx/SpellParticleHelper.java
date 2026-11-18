@@ -106,6 +106,9 @@ public final class SpellParticleHelper {
     public static final byte ARCHETYPE_OVERGROWTH_BRIAR_POD = 22;
     public static final byte ARCHETYPE_CHOKING_DUST_POD = 23;
     public static final byte ARCHETYPE_FUNGAL_PUFFBALL = 24;
+    public static final byte ARCHETYPE_FROST_RESIN_SPIKE = 25;
+    public static final byte ARCHETYPE_OASIS_SUCCULENT_SEED = 26;
+    public static final byte ARCHETYPE_VITAE_HELIX = 27;
 
     private SpellParticleHelper() {
     }
@@ -133,7 +136,9 @@ public final class SpellParticleHelper {
                     ARCHETYPE_GLACIAL_SHARD;
             case GLACIAL ->
                     ARCHETYPE_GLACIAL_ICE_LANCE;
-            case RIME, TAIGA, AURORA, TERMINUS, AETHER, AMBER, STASIS, FROST ->
+            case TAIGA ->
+                    ARCHETYPE_FROST_RESIN_SPIKE;
+            case RIME, AURORA, TERMINUS, AETHER, AMBER, STASIS, FROST ->
                     ARCHETYPE_CRYSTALLINE_LANCE;
             case LIGHTNING ->
                     fastLance ? ARCHETYPE_VOLTAIC_JAVELIN : ARCHETYPE_BALL_LIGHTNING;
@@ -165,7 +170,11 @@ public final class SpellParticleHelper {
                     ARCHETYPE_OVERGROWTH_BRIAR_POD;
             case SPORE ->
                     ARCHETYPE_FUNGAL_PUFFBALL;
-            case SYLVAN, OASIS, SPRING, VITAE, BLOOD, BLIGHT, MIASMA, GENESIS ->
+            case OASIS ->
+                    ARCHETYPE_OASIS_SUCCULENT_SEED;
+            case VITAE ->
+                    ARCHETYPE_VITAE_HELIX;
+            case SYLVAN, SPRING, BLOOD, BLIGHT, MIASMA, GENESIS ->
                     ARCHETYPE_BIO_HELIX;
             default -> fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_ARCANE_BOLT;
         };
@@ -196,6 +205,9 @@ public final class SpellParticleHelper {
             case BLOOD -> 0xF01830;
             case NATURE, OVERGROWTH, GROWTH, PRIMAL -> 0x2CE668;
             case SPORE -> 0x248F34; // Canonical Symbiotic Fungal Nature Green (#1A5923 family)
+            case TAIGA -> 0x1F6E2B; // Canonical Boreal Evergreen Conifer Green (#1A5923 family)
+            case OASIS -> 0x227830; // Canonical Lush Oasis Succulent Green (#1A5923 family)
+            case VITAE -> 0xFF6B9D; // Canonical Vibrant Rose Life Energy (#FF6B9D)
             case WATER, FLOW -> 0x24B6FF;
             case EARTH, GRAVITY -> 0xD97B38;
             case FROZEN, GLACIAL -> 0x98DCF2; // Canonical Pale Cryo-Blue / Glacial Cyan (#98DCF2)
@@ -242,6 +254,9 @@ public final class SpellParticleHelper {
             case STORM -> 0xD8FAFF; // Crisp Seafoam Gale-Slipstream Ivory (#D8FAFF)
             case NATURE, OVERGROWTH, SYLVAN -> 0xB4FF78;
             case SPORE -> 0xD6B478; // Canonical Buff Air Gold (#A88654 family)
+            case TAIGA -> 0x98DCF2; // Canonical Boreal Frost Cyan (#98DCF2)
+            case OASIS -> 0xDEC99A; // Canonical Sunlit Desert Sandstone Gold (#C2B28F family)
+            case VITAE -> 0xFFD1E3; // Luminous Rose-Pearl Cellular Blush (#FFD1E3)
             case EARTH, GRAVITY, DENSITY -> 0xFFC278;
             case BLOOD -> 0xFF6B8B;
             case WATER, ABYSS -> 0x8CF4FF;

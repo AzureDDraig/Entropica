@@ -212,6 +212,12 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
                         renderChokingDustPod(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
                 case SpellParticleHelper.ARCHETYPE_FUNGAL_PUFFBALL ->
                         renderFungalPuffball(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
+                case SpellParticleHelper.ARCHETYPE_FROST_RESIN_SPIKE ->
+                        renderFrostResinSpike(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
+                case SpellParticleHelper.ARCHETYPE_OASIS_SUCCULENT_SEED ->
+                        renderOasisSucculentSeed(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
+                case SpellParticleHelper.ARCHETYPE_VITAE_HELIX ->
+                        renderVitaeDoubleHelix(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
                 default ->
                         renderArcaneBolt(mat, vc, scale, state.ageTicks, pr, pg, pb, ar, ag, ab);
             }
@@ -2084,6 +2090,163 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
                 .setColor(r1, g1, b1, a1).setUv(0.0F, 1.0F).setOverlay(NO_OVERLAY).setLight(FULL_LIGHT).setNormal(0.0F, 1.0F, 0.0F);
         vc.addVertex(mat, (float) v0.x, (float) v0.y, (float) v0.z)
                 .setColor(r0, g0, b0, a0).setUv(0.0F, 0.0F).setOverlay(NO_OVERLAY).setLight(FULL_LIGHT).setNormal(0.0F, 1.0F, 0.0F);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 25: HARDENED FROST-RESIN SPIKE (TAIGA #19 — #1A5923 / #98DCF2)
+    // =========================================================================
+
+    private static void renderFrostResinSpike(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed,
+            float pr, float pg, float pb, float ar, float ag, float ab
+    ) {
+        float spin = age * 0.28F + (seed & 0xFF) * 0.05F;
+        // 1. Sub-zero dark coniferous evergreen resin core lance (#1A5923) + golden-amber sap vein
+        renderElongatedBipyramid(mat, vc, 0.13F * scale, 0.88F * scale, 0.42F * scale, 6, spin,
+                0.102F, 0.349F, 0.137F, 0.96F);
+        renderElongatedBipyramid(mat, vc, 0.065F * scale, 0.72F * scale, 0.30F * scale, 4, -spin * 1.4F,
+                0.86F, 0.64F, 0.24F, 0.92F);
+
+        // 2. Translucent razor-faceted #98DCF2 Frost-Cyan outer ice jacket
+        renderElongatedBipyramid(mat, vc, 0.19F * scale, 1.02F * scale, 0.50F * scale, 6, spin + 0.52F,
+                0.596F, 0.863F, 0.949F, 0.62F);
+
+        // 3. Eight backwards-swept frosted evergreen pine-needle barbs for pinning targets
+        for (int b = 0; b < 8; b++) {
+            float bAng = spin + (float) (Math.PI * 2.0D * b / 8.0D);
+            double zRoot = ((b % 2 == 0) ? 0.24D : -0.06D) * scale;
+            Vec3 root = new Vec3(Mth.cos(bAng) * 0.14D * scale, Mth.sin(bAng) * 0.14D * scale, zRoot);
+            Vec3 tip = new Vec3(Mth.cos(bAng) * 0.36D * scale, Mth.sin(bAng) * 0.36D * scale, zRoot - 0.28D * scale);
+            boolean frostTip = (b % 2 == 0);
+            renderLocalSegment(mat, vc, root, tip, 0.028F * scale,
+                    frostTip ? 0.596F : 0.102F,
+                    frostTip ? 0.863F : 0.349F,
+                    frostTip ? 0.949F : 0.137F,
+                    0.94F);
+        }
+
+        // 4. Dual counter-spiraling pine-sap & frost-rime wake tendrils
+        for (int s = 0; s < 2; s++) {
+            float off = s * (float) Math.PI;
+            for (int seg = 0; seg < 8; seg++) {
+                float t0 = seg / 8.0F;
+                float t1 = (seg + 1) / 8.0F;
+                float a0 = -spin * 1.6F + off + t0 * 4.4F;
+                float a1 = -spin * 1.6F + off + t1 * 4.4F;
+                float r0 = (0.14F + 0.10F * t0) * scale * (1.0F - t0 * 0.45F);
+                float r1 = (0.14F + 0.10F * t1) * scale * (1.0F - t1 * 0.45F);
+                Vec3 p0 = new Vec3(Mth.cos(a0) * r0, Mth.sin(a0) * r0, (-0.28D - 0.65D * t0) * scale);
+                Vec3 p1 = new Vec3(Mth.cos(a1) * r1, Mth.sin(a1) * r1, (-0.28D - 0.65D * t1) * scale);
+                renderLocalSegment(mat, vc, p0, p1, 0.020F * scale * (1.0F - t0 * 0.5F),
+                        (s == 0) ? 0.596F : 0.102F,
+                        (s == 0) ? 0.863F : 0.349F,
+                        (s == 0) ? 0.949F : 0.137F,
+                        0.85F * (1.0F - t0 * 0.72F));
+            }
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 26: MIRACLE DESERT BLOOM SEED (OASIS #20 — #1A5923 / #C2B28F)
+    // =========================================================================
+
+    private static void renderOasisSucculentSeed(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed,
+            float pr, float pg, float pb, float ar, float ag, float ab
+    ) {
+        float spin = age * 0.24F + (seed & 0xFF) * 0.04F;
+        // 1. Sparkling springwater core heart + plump 6-ribbed #1A5923 succulent seed bulb
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.14F * scale, 1.35F, 5, 10, age * 0.35F, 0.06F,
+                0.220F, 0.780F, 0.960F, 0.95F);
+        renderElongatedBipyramid(mat, vc, 0.23F * scale, 0.56F * scale, 0.42F * scale, 6, spin,
+                0.102F, 0.349F, 0.137F, 0.88F);
+
+        // 2. Six unfurling #C2B28F sunlit desert-blossom petals & golden cactus spines around the nose
+        for (int p = 0; p < 6; p++) {
+            float pAng = spin * 0.85F + (float) (Math.PI * 2.0D * p / 6.0D);
+            Vec3 baseA = new Vec3(Mth.cos(pAng - 0.22F) * 0.14D * scale, Mth.sin(pAng - 0.22F) * 0.14D * scale, 0.16D * scale);
+            Vec3 baseB = new Vec3(Mth.cos(pAng + 0.22F) * 0.14D * scale, Mth.sin(pAng + 0.22F) * 0.14D * scale, 0.16D * scale);
+            Vec3 petalTip = new Vec3(Mth.cos(pAng) * 0.38D * scale, Mth.sin(pAng) * 0.38D * scale, 0.38D * scale);
+            emitGradientDoubleSidedQuad(mat, vc, baseA, baseB, petalTip, petalTip,
+                    0.761F, 0.698F, 0.561F, 0.96F,
+                    0.980F, 0.880F, 0.620F, 0.94F);
+        }
+
+        // 3. Equatorial springwater halo ring + trailing water/pollen spirals
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.04D * scale), rx, ry,
+                0.24F * scale, 0.30F * scale, 16, 0.220F, 0.780F, 0.960F, 0.78F);
+
+        for (int s = 0; s < 2; s++) {
+            float off = s * (float) Math.PI;
+            for (int seg = 0; seg < 8; seg++) {
+                float t0 = seg / 8.0F;
+                float t1 = (seg + 1) / 8.0F;
+                float a0 = -spin * 1.5F + off + t0 * 4.6F;
+                float a1 = -spin * 1.5F + off + t1 * 4.6F;
+                float r0 = (0.15F + 0.10F * t0) * scale * (1.0F - t0 * 0.45F);
+                float r1 = (0.15F + 0.10F * t1) * scale * (1.0F - t1 * 0.45F);
+                Vec3 p0 = new Vec3(Mth.cos(a0) * r0, Mth.sin(a0) * r0, (-0.24D - 0.62D * t0) * scale);
+                Vec3 p1 = new Vec3(Mth.cos(a1) * r1, Mth.sin(a1) * r1, (-0.24D - 0.62D * t1) * scale);
+                renderLocalSegment(mat, vc, p0, p1, 0.020F * scale * (1.0F - t0 * 0.5F),
+                        (s == 0) ? 0.761F : 0.220F,
+                        (s == 0) ? 0.698F : 0.780F,
+                        (s == 0) ? 0.561F : 0.960F,
+                        0.86F * (1.0F - t0 * 0.72F));
+            }
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 27: SPIRALING VITALITY HELIX (VITAE #21 — #FF6B9D / #FFD1E3)
+    // =========================================================================
+
+    private static void renderVitaeDoubleHelix(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed,
+            float pr, float pg, float pb, float ar, float ag, float ab
+    ) {
+        float spin = age * 0.34F + (seed & 0xFF) * 0.05F;
+        float heartbeat = 0.88F + 0.16F * Mth.abs(Mth.sin(age * 0.30F));
+
+        // 1. Pulsating #FF6B9D / #FFD1E3 anatomical heart-orb core!
+        renderElongatedBipyramid(mat, vc, 0.13F * scale * heartbeat, 0.34F * scale * heartbeat, 0.26F * scale * heartbeat,
+                8, spin, 1.000F, 0.820F, 0.890F, 0.96F);
+        renderElongatedBipyramid(mat, vc, 0.19F * scale * heartbeat, 0.44F * scale * heartbeat, 0.34F * scale * heartbeat,
+                8, -spin * 0.6F, 1.000F, 0.420F, 0.616F, 0.78F);
+
+        // 2. Intertwined 3D DNA Double-Helix strands (#FF6B9D vibrant rose + #FFD1E3 pearl blush) + glowing base-pair rungs!
+        int steps = 12;
+        for (int i = 0; i < steps; i++) {
+            float t0 = i / (float) steps;
+            float t1 = (i + 1) / (float) steps;
+            double z0 = (0.48D - 1.24D * t0) * scale;
+            double z1 = (0.48D - 1.24D * t1) * scale;
+            float r0 = (0.22F * Mth.sin(t0 * (float) Math.PI * 0.92F + 0.12F) + 0.05F) * scale;
+            float r1 = (0.22F * Mth.sin(t1 * (float) Math.PI * 0.92F + 0.12F) + 0.05F) * scale;
+            float a0 = -spin * 1.65F + t0 * 6.8F;
+            float a1 = -spin * 1.65F + t1 * 6.8F;
+
+            Vec3 s1a = new Vec3(Mth.cos(a0) * r0, Mth.sin(a0) * r0, z0);
+            Vec3 s1b = new Vec3(Mth.cos(a1) * r1, Mth.sin(a1) * r1, z1);
+            Vec3 s2a = new Vec3(-Mth.cos(a0) * r0, -Mth.sin(a0) * r0, z0);
+            Vec3 s2b = new Vec3(-Mth.cos(a1) * r1, -Mth.sin(a1) * r1, z1);
+
+            float fade = 1.0F - t0 * 0.45F;
+            renderLocalSegment(mat, vc, s1a, s1b, 0.028F * scale, 1.000F, 0.420F, 0.616F, 0.95F * fade);
+            renderLocalSegment(mat, vc, s2a, s2b, 0.026F * scale, 1.000F, 0.820F, 0.890F, 0.92F * fade);
+
+            // Base-pair cellular rung bridging the two helix strands!
+            if (i % 2 == 1) {
+                renderLocalSegment(mat, vc, s1a, s2a, 0.016F * scale, 1.000F, 0.920F, 0.960F, 0.88F * fade);
+            }
+        }
+
+        // 3. Forward cellular pulse halo ring
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.12D * scale), rx, ry,
+                0.22F * scale * heartbeat, 0.28F * scale * heartbeat, 18, 1.000F, 0.420F, 0.616F, 0.84F);
     }
 
     private static float hash01(int a, int b) {

@@ -513,8 +513,8 @@ public class SpellEidolonEntity extends PathfinderMob {
             case OVERGROWTH -> 0x1A5923;
             case DUST -> 0xC2B28F;
             case SPORE -> 0x1A5923;
-            case TAIGA -> 0x2E6F5E;
-            case OASIS -> 0x2EA87E;
+            case TAIGA -> 0x1A5923;
+            case OASIS -> 0x1A5923;
             case VITAE -> 0xFF6B9D;
             case BLOOD -> 0x8A0303;
             case AURA -> 0xD8B4F8;
@@ -985,13 +985,31 @@ public class SpellEidolonEntity extends PathfinderMob {
             }
         }
 
-        // Vitae Vitality Knight pulses passive Regeneration to adjacent allies!
-        if (mutated && mat == EssenceType.VITAE && this.ageTicks % 30 == 0) {
-            for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(5.0D))) {
-                if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
-                    ally.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 50, 0, true, true));
+        // Vitae Vitality Knight pulses passive Regeneration to adjacent allies & emits pink heart / cellular pulse particles!
+        if (mutated && mat == EssenceType.VITAE) {
+            if (this.ageTicks % 6 == 0) {
+                level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xFF6B9D, 20, 0.88F, 0.05F),
+                        this.getX(), this.getY(0.75D), this.getZ(), 2, 0.28D, 0.32D, 0.28D, 0.02D);
+                if (this.ageTicks % 12 == 0) {
+                    level.sendParticles(ParticleTypes.HEART,
+                            this.getX(), this.getY(1.05D), this.getZ(), 1, 0.25D, 0.25D, 0.25D, 0.01D);
                 }
             }
+            if (this.ageTicks % 30 == 0) {
+                for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(5.0D))) {
+                    if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
+                        ally.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 55, 0, true, true));
+                    }
+                }
+            }
+        }
+
+        if (mutated && mat == EssenceType.OASIS && this.ageTicks % 6 == 0) {
+            // Section 6.21 Oasis-Warden Agent: sand dust and water droplet particle trails!
+            level.sendParticles(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.SAND.defaultBlockState()),
+                    this.getX(), this.getY(0.45D), this.getZ(), 2, 0.25D, 0.25D, 0.25D, 0.01D);
+            level.sendParticles(ParticleTypes.DRIPPING_WATER,
+                    this.getX(), this.getY(0.85D), this.getZ(), 2, 0.28D, 0.30D, 0.28D, 0.0D);
         }
 
         // Section 6.19 Spore-Tender Agent: tends farms by walking to, harvesting, and replanting mature crops,
@@ -1704,22 +1722,62 @@ public class SpellEidolonEntity extends PathfinderMob {
                 }
             }
             case TAIGA -> {
-                target.setTicksFrozen(Math.min(target.getTicksRequiredToFreeze() + 40, target.getTicksFrozen() + 50));
-                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 2));
+                // Section 6.20 Boreal Stalker Agent (#1A5923 / #98DCF2): leaping frost-resin claw strike!
+                float taigaClawDmg = (2.15F + tier * 0.65F) * Math.max(0.5F, this.apparatusPotency);
+                SpellCombatReactionEngine.hurtWithTaigaMateriaAdvantage(
+                        level, target, owner != null ? owner : this, taigaClawDmg, false, true
+                );
+                if (target.canFreeze()) {
+                    target.setTicksFrozen(Math.min(target.getTicksRequiredToFreeze() + 50, target.getTicksFrozen() + 60));
+                }
+                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
+                ddraig.net.entropica.util.EntityHelper.getPersistentData(target)
+                        .putLong(SpellLingeringZoneManager.TAG_TAIGA_BRITTLE_UNTIL, level.getGameTime() + 80L);
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, this.position().add(0.0D, 1.05D, 0.0D), dir, 2.25D, EssenceType.TAIGA, EssenceType.FROZEN, tier
+                );
+                level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_LEAF.get(), 0x1A5923, 24, 0.95F, 0.06F),
+                        target.getX(), target.getY(0.70D), target.getZ(), 10, 0.32D, 0.35D, 0.32D, 0.05D);
+                level.sendParticles(ParticleTypes.SNOWFLAKE,
+                        target.getX(), target.getY(0.75D), target.getZ(), 8, 0.32D, 0.35D, 0.32D, 0.04D);
             }
             case OASIS -> {
-                // Oasis Mirage-Runner Agent heals nearby allies for 20% of its melee damage dealt!
-                for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.0D))) {
+                // Section 6.21 Oasis-Warden Agent (#1A5923 / #C2B28F): deals Oasis Materia damage & siphons 20% healing to nearby allies!
+                float wardenBaseDmg = (2.25F + tier * 0.68F) * Math.max(0.5F, this.apparatusPotency);
+                float dealt = SpellCombatReactionEngine.hurtWithOasisMateriaAdvantage(
+                        level, target, owner != null ? owner : this, wardenBaseDmg, false, true
+                );
+                float siphonHeal = Math.max(1.0F, (dealt > 0.0F ? dealt : wardenBaseDmg) * 0.20F + tier * 0.22F);
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, this.position().add(0.0D, 1.05D, 0.0D), dir, 2.25D, EssenceType.OASIS, EssenceType.ARID, tier
+                );
+                for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.5D))) {
                     if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
-                        SpellCombatReactionEngine.applyTierScaledLifesteal(level, ally, tier, 0.20F, this.apparatusPotency * 0.75F);
+                        SpellCombatReactionEngine.notifyMagicalHeal(ally, siphonHeal);
+                        ally.heal(siphonHeal);
+                        level.sendParticles(ParticleTypes.HAPPY_VILLAGER,
+                                ally.getX(), ally.getY(0.85D), ally.getZ(), 3, 0.25D, 0.25D, 0.25D, 0.02D);
                     }
                 }
             }
             case VITAE -> {
-                // Vitae Vitality Knight heals its caster for 25% of melee damage dealt!
+                // Section 6.22 Vitality Knight Agent (#FF6B9D): deals Vitae Materia damage & leaches health on hit to heal the caster!
+                float vitaeStrikeDmg = (2.35F + tier * 0.70F) * Math.max(0.5F, this.apparatusPotency);
+                float dealt = SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(
+                        level, target, owner != null ? owner : this, vitaeStrikeDmg, false, true
+                );
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, this.position().add(0.0D, 1.05D, 0.0D), dir, 2.25D, EssenceType.VITAE, EssenceType.NATURE, tier
+                );
                 if (owner != null && owner.isAlive()) {
-                    SpellCombatReactionEngine.applyTierScaledLifesteal(level, owner, tier, 0.25F, this.apparatusPotency * 0.75F);
+                    float siphonHeal = Math.max(1.2F, (dealt > 0.0F ? dealt : vitaeStrikeDmg) * 0.30F + tier * 0.25F);
+                    SpellCombatReactionEngine.notifyMagicalHeal(owner, siphonHeal);
+                    owner.heal(siphonHeal);
+                    level.sendParticles(ParticleTypes.HEART,
+                            owner.getX(), owner.getY(0.95D), owner.getZ(), 3, 0.25D, 0.25D, 0.25D, 0.02D);
                 }
+                level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xFF6B9D, 22, 0.95F, 0.06F),
+                        target.getX(), target.getY(0.75D), target.getZ(), 10, 0.32D, 0.35D, 0.32D, 0.04D);
             }
             case BLOOD -> {
                 // Blood-Thrall Knight inflicts Bleeding + Hemorrhage and heals caster for 25% of melee damage dealt!
@@ -2232,44 +2290,64 @@ public class SpellEidolonEntity extends PathfinderMob {
                 level.sendParticles(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.SANDSTONE.defaultBlockState()),
                         this.getX(), this.getY(1.05D), this.getZ(), 5, 0.45D, 0.50D, 0.45D, 0.03D);
             } else if (mat == EssenceType.TAIGA && this.ageTicks % 20 == 0) {
-                // Frost-Howler Spire: increases nearby friendly attack speed (+25%) & grants cold resistance!
+                // Section 6.20 Frost-Howler Spire (#1A5923 / #98DCF2): pulses an aura increasing nearby friendly attack speed (+25%) & cold resistance!
                 long until = level.getGameTime() + 45L;
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                        level, this.position().add(0.0D, 0.05D, 0.0D), 6.0D, EssenceType.TAIGA, EssenceType.FROZEN, 44, tier
+                );
+                level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_LEAF.get(), 0x1A5923, 24, 0.90F, 0.05F),
+                        this.getX(), this.getY(0.95D), this.getZ(), 6, 0.85D, 0.45D, 0.85D, 0.02D);
+                level.sendParticles(ParticleTypes.SNOWFLAKE,
+                        this.getX(), this.getY(1.05D), this.getZ(), 6, 0.85D, 0.45D, 0.85D, 0.02D);
                 for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.0D))) {
                     if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
-                        ally.addEffect(new MobEffectInstance(MobEffects.HASTE, 40, 0, true, true));
+                        ally.addEffect(new MobEffectInstance(MobEffects.HASTE, 45, 0, true, true));
                         SpellCombatReactionEngine.applyTimedAttackSpeedBuff(ally, level, 0.25D, 45L);
                         ally.setTicksFrozen(0);
+                        ally.isInPowderSnow = false;
                         ddraig.net.entropica.util.EntityHelper.getPersistentData(ally)
                                 .putLong(SpellLingeringZoneManager.TAG_TAIGA_COLD_IMMUNE_UNTIL, until);
                     }
                 }
-            } else if (mat == EssenceType.OASIS && this.ageTicks % 30 == 0) {
-                // Aquifer Spring Spire: pulses area healing, farmland hydration, and crop/cactus growth ticks!
+            } else if (mat == EssenceType.OASIS && this.ageTicks % 20 == 0) {
+                // Section 6.21 Aquifer Spring Spire (#1A5923 / #C2B28F): pulses area healing, farmland hydration, and crop/cactus/sugarcane growth ticks!
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                        level, this.position().add(0.0D, 0.05D, 0.0D), 6.0D, EssenceType.OASIS, EssenceType.ARID, 44, tier
+                );
+                level.sendParticles(ParticleTypes.SPLASH,
+                        this.getX(), this.getY(1.05D), this.getZ(), 8, 0.65D, 0.35D, 0.65D, 0.04D);
+                level.sendParticles(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.SAND.defaultBlockState()),
+                        this.getX(), this.getY(0.85D), this.getZ(), 4, 0.55D, 0.30D, 0.55D, 0.02D);
+                float pulseHeal = 1.5F + tier * 0.45F;
                 for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.0D))) {
                     if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
-                        SpellCombatReactionEngine.notifyMagicalHeal(ally, 1.5F + tier * 0.35F);
-                        ally.heal(1.5F + tier * 0.35F);
+                        ally.clearFire();
+                        SpellCombatReactionEngine.notifyMagicalHeal(ally, pulseHeal);
+                        ally.heal(pulseHeal);
                     }
                 }
-                BlockPos c = this.blockPosition();
-                for (BlockPos p : BlockPos.betweenClosed(c.offset(-6, -1, -6), c.offset(6, 2, 6))) {
-                    BlockState bs = level.getBlockState(p);
-                    if (bs.getBlock() instanceof FarmBlock && bs.getValue(FarmBlock.MOISTURE) < 7) {
-                        level.setBlock(p, bs.setValue(FarmBlock.MOISTURE, 7), Block.UPDATE_CLIENTS);
-                    } else if (bs.getBlock() instanceof BonemealableBlock b && b.isValidBonemealTarget(level, p, bs) && level.random.nextFloat() < 0.20F) {
-                        b.performBonemeal(level, level.random, p.immutable(), bs);
-                    } else if ((bs.is(Blocks.CACTUS) || bs.is(Blocks.SUGAR_CANE)) && level.random.nextFloat() < 0.30F) {
-                        bs.randomTick(level, p.immutable(), level.random);
-                    }
+                ddraig.net.entropica.spell.mutation.element.OasisSpellMutationHandler
+                        .hydrateAndGrowFloraPublic(level, this.blockPosition(), 6);
+            } else if (mat == EssenceType.VITAE) {
+                if (this.ageTicks % 6 == 0) {
+                    level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xFF6B9D, 20, 0.88F, 0.05F),
+                            this.getX(), this.getY(0.85D), this.getZ(), 2, 0.30D, 0.35D, 0.30D, 0.02D);
                 }
-            } else if (mat == EssenceType.VITAE && this.ageTicks % 30 == 0) {
-                // Cardiovascular Spire: audible heartbeat healing allies & curing debuffs in 6m!
-                level.playSound(null, this.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.55F, 1.15F);
-                for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.0D))) {
-                    if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
-                        SpellCombatReactionEngine.notifyMagicalHeal(ally, 2.0F + tier * 0.45F);
-                        ally.heal(2.0F + tier * 0.45F);
-                        SpellCombatReactionEngine.purifyHexesAndNegativeEffects(ally);
+                if (this.ageTicks % 30 == 0) {
+                    // Section 6.22 Cardiovascular Spire: audible heartbeat healing allies & curing debuffs in 6m!
+                    level.playSound(null, this.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.65F, 1.12F);
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                            level, this.position().add(0.0D, 0.04D, 0.0D), 6.0D, EssenceType.VITAE, EssenceType.NATURE, 32, tier
+                    );
+                    float pulseHeal = 2.4F + tier * 0.50F;
+                    for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.0D))) {
+                        if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
+                            SpellCombatReactionEngine.purifyHexesAndNegativeEffects(ally);
+                            SpellCombatReactionEngine.notifyMagicalHeal(ally, pulseHeal);
+                            ally.heal(pulseHeal);
+                            level.sendParticles(ParticleTypes.HEART,
+                                    ally.getX(), ally.getY(0.95D), ally.getZ(), 2, 0.25D, 0.25D, 0.25D, 0.02D);
+                        }
                     }
                 }
             } else if (mat == EssenceType.BLOOD && this.ageTicks % 20 == 0) {
@@ -2863,6 +2941,15 @@ public class SpellEidolonEntity extends PathfinderMob {
         } else if (isMutated() && mat == EssenceType.SPORE) {
             level.playSound(null, this.blockPosition(), SoundEvents.SPORE_BLOSSOM_PLACE, SoundSource.PLAYERS, 0.70F, 1.18F);
             level.playSound(null, this.blockPosition(), SoundEvents.BREEZE_SHOOT, SoundSource.PLAYERS, 0.35F, 1.45F);
+        } else if (isMutated() && mat == EssenceType.TAIGA) {
+            level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_CLUSTER_HIT, SoundSource.PLAYERS, 0.65F, 1.38F);
+            level.playSound(null, this.blockPosition(), SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.PLAYERS, 0.60F, 1.28F);
+        } else if (isMutated() && mat == EssenceType.OASIS) {
+            level.playSound(null, this.blockPosition(), SoundEvents.BUCKET_EMPTY, SoundSource.PLAYERS, 0.50F, 1.38F);
+            level.playSound(null, this.blockPosition(), SoundEvents.SPORE_BLOSSOM_PLACE, SoundSource.PLAYERS, 0.65F, 1.25F);
+        } else if (isMutated() && mat == EssenceType.VITAE) {
+            level.playSound(null, this.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.55F, 1.38F);
+            level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.50F, 1.45F);
         } else {
             level.playSound(null, this.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.PLAYERS, 0.45F, 1.55F);
         }
@@ -2894,7 +2981,7 @@ public class SpellEidolonEntity extends PathfinderMob {
                     || mat == EssenceType.ESCHATON || mat == EssenceType.APOTHEOSIS || mat == EssenceType.ENTROPICA) {
                 bolt.setWallPhasing(true);
             }
-            if (mat == EssenceType.OVERGROWTH || mat == EssenceType.BLIGHT
+            if (mat == EssenceType.OVERGROWTH || mat == EssenceType.TAIGA || mat == EssenceType.BLIGHT
                     || mat == EssenceType.NULL_R || mat == EssenceType.DAWN || mat == EssenceType.AURORA
                     || mat == EssenceType.RIME || mat == EssenceType.SPRING || mat == EssenceType.PRISMATIC) {
                 bolt.addBonusPierces((mat == EssenceType.AURORA || mat == EssenceType.DAWN || mat == EssenceType.RIME || mat == EssenceType.PRISMATIC) ? 3 : 2);
@@ -2940,6 +3027,18 @@ public class SpellEidolonEntity extends PathfinderMob {
             // Section 6.19 Bio-Pollen Spire: launches zero-gravity buoyant Aerodynamic Fungal Puffballs (#1A5923 / #A88654)!
             bolt.setNoGravity(true);
             bolt.shoot(dir.x, dir.y, dir.z, 1.38F, 0.0F);
+        } else if (isMutated() && mat == EssenceType.TAIGA) {
+            // Section 6.20 Frost-Howler Spire: fires high-speed zero-drop 2-pierce Hardened Frost-Resin Spikes (#1A5923 / #98DCF2)!
+            bolt.setNoGravity(true);
+            bolt.shoot(dir.x, dir.y, dir.z, 1.92F, 0.0F);
+        } else if (isMutated() && mat == EssenceType.OASIS) {
+            // Section 6.21 Aquifer Spring Spire: fires sparkling Oasis springwater bolts at hostiles!
+            bolt.setNoGravity(true);
+            bolt.shoot(dir.x, dir.y, dir.z, 1.72F, 0.0F);
+        } else if (isMutated() && mat == EssenceType.VITAE) {
+            // Section 6.22 Cardiovascular Spire: fires high-speed zero-drop #FF6B9D defensive vitality darts at foes!
+            bolt.setNoGravity(true);
+            bolt.shoot(dir.x, dir.y, dir.z, 1.86F, 0.0F);
         } else if (isMutated() && mat == EssenceType.LIGHTNING) {
             // Section 6.13 Volt-Spark Sentry: fires rapid zero-gravity homing Ball-Lightning orbs (#FFE600)!
             bolt.setNoGravity(true);
@@ -2967,7 +3066,7 @@ public class SpellEidolonEntity extends PathfinderMob {
             double tauntRad = !mutated ? 9.0D : switch (mat) {
                 case ESCHATON, APOTHEOSIS, ENTROPICA -> 20.0D;
                 case AETHER, ENTROPIC, CELESTIAL, PRISMATIC, EMPYREAN, CATACLYSM, TERMINUS -> 16.0D;
-                case PENUMBRA, RIME, SPRING, STATIC, SYLVAN, GENESIS, OBLIVION, CHIMERA, UMBRAL, SPORE -> 14.0D;
+                case PENUMBRA, RIME, SPRING, STATIC, SYLVAN, GENESIS, OBLIVION, CHIMERA, UMBRAL, SPORE, TAIGA, OASIS, VITAE -> 14.0D;
                 case ARID, DUST, MIRAGE, MIASMA, NATURE, EARTH, UNDEAD, VOID, MAGMA, STORM, GLACIAL, OVERGROWTH -> 12.0D;
                 default -> 9.0D;
             };
@@ -3025,6 +3124,25 @@ public class SpellEidolonEntity extends PathfinderMob {
             level.sendParticles(ParticleTypes.SOUL, this.getX(), this.getY(0.95D), this.getZ(), 2, 0.35D, 0.50D, 0.35D, 0.015D);
             level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_WISP.get(), 0x5EE088, 28, 0.90F, 0.08F),
                     this.getX(), this.getY(1.05D), this.getZ(), 3, 0.40D, 0.50D, 0.40D, 0.012D);
+        } else if (mutated && mat == EssenceType.TAIGA && this.ageTicks % 6 == 0) {
+            // Section 6.20 Phantom Snow Stalker Decoy: snow & evergreen pine-needle trails!
+            level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY(1.00D), this.getZ(), 3, 0.38D, 0.50D, 0.38D, 0.015D);
+            level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_LEAF.get(), 0x1A5923, 26, 0.92F, 0.06F),
+                    this.getX(), this.getY(0.95D), this.getZ(), 3, 0.40D, 0.45D, 0.40D, 0.015D);
+        } else if (mutated && mat == EssenceType.OASIS && this.ageTicks % 6 == 0) {
+            // Section 6.21 Mirage Blossom Effigy Decoy: sand dust & water droplet trails!
+            level.sendParticles(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.SAND.defaultBlockState()),
+                    this.getX(), this.getY(0.85D), this.getZ(), 3, 0.36D, 0.45D, 0.36D, 0.015D);
+            level.sendParticles(ParticleTypes.SPLASH,
+                    this.getX(), this.getY(1.05D), this.getZ(), 3, 0.36D, 0.45D, 0.36D, 0.03D);
+        } else if (mutated && mat == EssenceType.VITAE && this.ageTicks % 6 == 0) {
+            // Section 6.22 Heart-Husk Effigy Decoy: pink heart & #FF6B9D cellular pulse particles!
+            level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xFF6B9D, 22, 0.92F, 0.05F),
+                    this.getX(), this.getY(1.00D), this.getZ(), 3, 0.38D, 0.48D, 0.38D, 0.02D);
+            if (this.ageTicks % 12 == 0) {
+                level.sendParticles(ParticleTypes.HEART,
+                        this.getX(), this.getY(1.15D), this.getZ(), 2, 0.32D, 0.35D, 0.32D, 0.02D);
+            }
         }
 
         // Lightning Volt-Spark Decoy shocks any hostile entity that attempts to pass through / touch it!
@@ -3250,8 +3368,15 @@ public class SpellEidolonEntity extends PathfinderMob {
 
         // Beneficial ally death-burst effects
         if (mat == EssenceType.VITAE || mat == EssenceType.GENESIS) {
+            if (mat == EssenceType.VITAE) {
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                        level, this.position().add(0.0D, 0.40D, 0.0D), burstRad, EssenceType.VITAE, EssenceType.NATURE, tier
+                );
+                level.playSound(null, this.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 1.0F, 0.92F);
+                level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.95F, 1.32F);
+            }
             for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, box)) {
-                if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
+                if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally) || ally instanceof Player)) {
                     SpellCombatReactionEngine.notifyMagicalHeal(ally, 12.0F);
                     ally.heal(12.0F); // 6 full hearts!
                     level.sendParticles(ParticleTypes.HEART, ally.getX(), ally.getY(1.0D), ally.getZ(), 8, 0.35D, 0.35D, 0.35D, 0.04D);
@@ -3851,14 +3976,41 @@ public class SpellEidolonEntity extends PathfinderMob {
                     ddraig.net.entropica.spell.mutation.element.DustSpellMutationHandler.wipeMobAggroPublic(level, foe, 80L);
                 }
                 case TAIGA -> {
-                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 70, 0));
-                    foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 70, 2));
-                    foe.setTicksFrozen(foe.getTicksRequiredToFreeze() + 40);
+                    // Section 6.20 Phantom Snow Stalker Decoy: blinds & freezes attackers in a frosted pine-needle whiteout burst when destroyed!
+                    float taigaBurstDmg = (3.4F + tier * 0.90F) * Math.max(0.5F, this.apparatusPotency);
+                    SpellCombatReactionEngine.hurtWithTaigaMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, taigaBurstDmg, false, true
+                    );
+                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
+                    foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 2));
+                    if (foe.canFreeze()) {
+                        foe.setTicksFrozen(foe.getTicksRequiredToFreeze() + 50);
+                    }
+                    ddraig.net.entropica.util.EntityHelper.getPersistentData(foe)
+                            .putLong(SpellLingeringZoneManager.TAG_TAIGA_BRITTLE_UNTIL, level.getGameTime() + 100L);
                 }
                 case OASIS -> {
-                    foe.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 2));
+                    // Section 6.21 Mirage Blossom Effigy Decoy: 5-block pacifying water & pollen burst upon defeat!
+                    float oasisBurstDmg = (2.8F + tier * 0.80F) * Math.max(0.5F, this.apparatusPotency);
+                    SpellCombatReactionEngine.hurtWithOasisMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, oasisBurstDmg, false, true
+                    );
+                    foe.clearFire();
+                    foe.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 2));
                     SpellLingeringZoneManager.applySoaked(foe, 140);
-                    SpellLingeringZoneManager.applyPacified(foe, 80);
+                    SpellLingeringZoneManager.applyPacified(foe, 100);
+                    ddraig.net.entropica.spell.mutation.element.DustSpellMutationHandler.wipeMobAggroPublic(level, foe, 100L);
+                }
+                case VITAE -> {
+                    if (getArchetype() == TriadArchetype.SENTRY) break;
+                    // Section 6.22 Heart-Husk Effigy Decoy: 5-block cellular shockwave harming & disorienting hostiles while restoring 6 hearts to players!
+                    float vitaeBurstDmg = (2.8F + tier * 0.80F) * Math.max(0.5F, this.apparatusPotency);
+                    SpellCombatReactionEngine.hurtWithVitaeMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, vitaeBurstDmg, false, true
+                    );
+                    foe.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 1));
+                    ddraig.net.entropica.util.EntityHelper.getPersistentData(foe)
+                            .putLong(SpellLingeringZoneManager.TAG_VITAE_DISORIENTED_UNTIL, level.getGameTime() + 80L);
                 }
                 case BLOOD -> {
                     foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));

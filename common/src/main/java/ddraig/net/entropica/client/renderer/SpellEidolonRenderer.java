@@ -259,6 +259,12 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                 renderDustStalkerAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
             } else if (state.materia == EssenceType.SPORE) {
                 renderSporeTenderAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.TAIGA) {
+                renderBorealStalkerAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.OASIS) {
+                renderOasisWardenAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.VITAE) {
+                renderVitalityKnightAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
             }
         });
 
@@ -883,6 +889,84 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                     Vec3 puffPos = new Vec3(Mth.cos(pAng) * 0.80D, py, Mth.sin(pAng) * 0.80D);
                     renderOctahedron(m, vc, puffPos, 0.13F, 0.14F, pAng, 0.102F, 0.349F, 0.137F, 0.94F);
                     renderOctahedron(m, vc, puffPos, 0.085F, 0.09F, -pAng, 0.910F, 0.784F, 0.510F, 0.98F);
+                }
+            } else if (state.materia == EssenceType.TAIGA) {
+                // Section 6.20 Frost-Howler Spire (#1A5923 / #98DCF2): petrified spruce-bark totem spire,
+                // howling frost-cyan crystal horns, +25% attack-speed / cold-resist aura rings & 4 orbiting frost-resin spikes!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float pulseWave = (age * 0.055F) % 1.0F;
+                float auraR = 0.65F + pulseWave * 1.35F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.045D, 0.0D), flatX, flatZ, 0.68F, 0.98F, 24,
+                        0.102F, 0.349F, 0.137F, 0.92F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.060D, 0.0D), flatX, flatZ, auraR * 0.88F, auraR, 26,
+                        0.596F, 0.863F, 0.949F, 0.86F * (1.0F - pulseWave));
+                // Tiered evergreen conifer trunk & frosted crown
+                renderCylinderFrustum(m, vc, 0.02F, 1.28F, 0.36F, 0.24F, 8, 0.0F, 0.102F, 0.349F, 0.137F, 0.96F);
+                renderCylinderFrustum(m, vc, 0.72F, 1.18F, 0.76F, 0.26F, 8, 0.39F, 0.102F, 0.349F, 0.137F, 0.88F);
+                renderCylinderFrustum(m, vc, 1.16F, 1.68F, 0.58F, 0.10F, 8, 0.0F, 0.596F, 0.863F, 0.949F, 0.90F);
+                renderOctahedron(m, vc, new Vec3(0.0D, 1.84D, 0.0D), 0.18F, 0.34F, spin * 0.8F, 0.596F, 0.863F, 0.949F, 0.98F);
+
+                for (int s = 0; s < 4; s++) {
+                    float sAng = spin * 1.55F + (float) (Math.PI * 0.5D * s);
+                    double sy = coreCenter.y + 0.12D * Mth.sin(age * 0.24F + s * 1.57F);
+                    Vec3 spikePos = new Vec3(Mth.cos(sAng) * 0.82D, sy, Mth.sin(sAng) * 0.82D);
+                    renderOctahedron(m, vc, spikePos, 0.10F, 0.24F, sAng, 0.102F, 0.349F, 0.137F, 0.95F);
+                    renderOctahedron(m, vc, spikePos, 0.13F, 0.18F, -sAng, 0.596F, 0.863F, 0.949F, 0.78F);
+                }
+            } else if (state.materia == EssenceType.OASIS) {
+                // Section 6.21 Aquifer Spring Spire (#1A5923 / #C2B28F): carved sunlit sandstone fountain basin,
+                // central sparkling springwater column, lush succulent palm crown & 4 orbiting water/pollen orbs!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float springWave = (age * 0.050F) % 1.0F;
+                float springR = 0.65F + springWave * 1.40F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.045D, 0.0D), flatX, flatZ, 0.70F, 1.00F, 24,
+                        0.761F, 0.698F, 0.561F, 0.94F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.060D, 0.0D), flatX, flatZ, springR * 0.88F, springR, 26,
+                        0.220F, 0.780F, 0.960F, 0.86F * (1.0F - springWave));
+                // Sandstone basin + glowing azure springwater fountain jet + lush green succulent crown
+                renderCylinderFrustum(m, vc, 0.02F, 0.54F, 0.58F, 0.72F, 10, 0.0F, 0.761F, 0.698F, 0.561F, 0.95F);
+                renderCylinderFrustum(m, vc, 0.48F, 1.62F, 0.24F, 0.16F, 10, spin * 0.4F, 0.220F, 0.780F, 0.960F, 0.88F);
+                renderCylinderFrustum(m, vc, 1.38F, 1.72F, 0.76F, 0.22F, 8, spin * 0.2F, 0.102F, 0.349F, 0.137F, 0.94F);
+                renderOctahedron(m, vc, new Vec3(0.0D, 1.86D, 0.0D), 0.18F, 0.26F, spin, 0.761F, 0.698F, 0.561F, 0.98F);
+
+                for (int o = 0; o < 4; o++) {
+                    float oAng = spin * 1.35F + (float) (Math.PI * 0.5D * o);
+                    double oy = coreCenter.y + 0.14D * Mth.sin(age * 0.22F + o * 1.57F);
+                    Vec3 orbPos = new Vec3(Mth.cos(oAng) * 0.80D, oy, Mth.sin(oAng) * 0.80D);
+                    boolean waterDrop = (o % 2 == 0);
+                    renderOctahedron(m, vc, orbPos, 0.12F, 0.14F, oAng,
+                            waterDrop ? 0.220F : 0.102F,
+                            waterDrop ? 0.780F : 0.349F,
+                            waterDrop ? 0.960F : 0.137F,
+                            0.94F);
+                }
+            } else if (state.materia == EssenceType.VITAE) {
+                // Section 6.22 Cardiovascular Spire (#FF6B9D): pulsing rose-crystal heartbeat chamber,
+                // double-helix vascular rings & 4 orbiting defensive vitality darts!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float beat = 0.88F + 0.18F * Mth.abs(Mth.sin(age * 0.22F));
+                float pulseWave = (age * 0.055F) % 1.0F;
+                float pulseR = 0.65F + pulseWave * 1.45F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.045D, 0.0D), flatX, flatZ, 0.68F, 0.98F, 24,
+                        1.000F, 0.420F, 0.616F, 0.92F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.060D, 0.0D), flatX, flatZ, pulseR * 0.88F, pulseR, 26,
+                        1.000F, 0.820F, 0.890F, 0.88F * (1.0F - pulseWave));
+
+                renderCylinderFrustum(m, vc, 0.02F, 0.46F, 0.62F, 0.44F, 10, 0.0F, 0.788F, 0.180F, 0.400F, 0.94F);
+                renderOpenFrustumWall(m, vc, 0.38F, 1.62F, 0.42F, 0.32F, 10, spin * 0.35F, 1.000F, 0.420F, 0.616F, 0.56F);
+                Vec3 heartPos = new Vec3(0.0D, 1.15D, 0.0D);
+                renderOctahedron(m, vc, heartPos, 0.24F * beat, 0.34F * beat, spin * 0.5F, 1.000F, 0.420F, 0.616F, 0.96F);
+                renderOctahedron(m, vc, heartPos, 0.15F * beat, 0.22F * beat, -spin * 0.7F, 1.000F, 0.820F, 0.890F, 0.99F);
+
+                for (int d = 0; d < 4; d++) {
+                    float dAng = -spin * 1.55F + (float) (Math.PI * 0.5D * d);
+                    double dy = 1.15D + 0.14D * Mth.sin(age * 0.24F + d * 1.57F);
+                    Vec3 dartPos = new Vec3(Mth.cos(dAng) * 0.76D, dy, Mth.sin(dAng) * 0.76D);
+                    renderOctahedron(m, vc, dartPos, 0.085F, 0.24F, dAng, 1.000F, 0.420F, 0.616F, 0.95F);
+                    renderOctahedron(m, vc, dartPos, 0.050F, 0.28F, -dAng, 1.000F, 0.820F, 0.890F, 0.99F);
                 }
             }
         });
@@ -1518,6 +1602,49 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                         0.173F, 0.902F, 0.408F, 0.90F * flicker);
                 renderLocalRing(m, vc, new Vec3(0.0D, 1.61D, 0.0D), flatX, flatZ, 0.22F, 0.80F, 20,
                         0.910F, 0.784F, 0.510F, 0.90F * flicker);
+            } else if (state.materia == EssenceType.TAIGA) {
+                // Section 6.20 Phantom Snow Stalker Decoy (#1A5923 / #98DCF2): frosted evergreen conifer effigy boughs
+                // & swirling snow-whiteout taunt rings!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float tauntWave = (age * 0.048F) % 1.0F;
+                float tauntR = 0.55F + tauntWave * 1.45F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.045D, 0.0D), flatX, flatZ,
+                        tauntR * 0.86F, tauntR, 26, 0.596F, 0.863F, 0.949F, 0.86F * (1.0F - tauntWave) * flicker);
+                renderCylinderFrustum(m, vc, 1.15F, 1.62F, 0.72F, 0.32F, 10, age * 0.05F,
+                        0.102F, 0.349F, 0.137F, 0.88F * flicker);
+                renderCylinderFrustum(m, vc, 1.56F, 2.02F, 0.52F, 0.08F, 10, -age * 0.05F,
+                        0.596F, 0.863F, 0.949F, 0.86F * flicker);
+            } else if (state.materia == EssenceType.OASIS) {
+                // Section 6.21 Mirage Blossom Effigy Decoy (#1A5923 / #C2B28F): shimmering desert-lotus blossom crown
+                // & pacifying springwater mirage rings!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float mirageWave = (age * 0.045F) % 1.0F;
+                float mirageR = 0.55F + mirageWave * 1.45F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.045D, 0.0D), flatX, flatZ,
+                        mirageR * 0.86F, mirageR, 26, 0.220F, 0.780F, 0.960F, 0.86F * (1.0F - mirageWave) * flicker);
+                renderCylinderFrustum(m, vc, 1.52F, 1.82F, 0.36F, 0.78F, 8, age * 0.04F,
+                        0.102F, 0.349F, 0.137F, 0.90F * flicker);
+                renderCylinderFrustum(m, vc, 1.78F, 2.04F, 0.64F, 0.18F, 8, -age * 0.04F,
+                        0.761F, 0.698F, 0.561F, 0.92F * flicker);
+            } else if (state.materia == EssenceType.VITAE) {
+                // Section 6.22 Heart-Husk Effigy Decoy (#FF6B9D): translucent rose-ribbed heart chrysalis
+                // & expanding 5-block heartbeat restoration rings!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float beat = 0.88F + 0.16F * Mth.abs(Mth.sin(age * 0.22F));
+                float heartWave = (age * 0.052F) % 1.0F;
+                float heartR = 0.52F + heartWave * 1.48F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.045D, 0.0D), flatX, flatZ,
+                        heartR * 0.86F, heartR, 26, 1.000F, 0.420F, 0.616F, 0.88F * (1.0F - heartWave) * flicker);
+                renderOpenFrustumWall(m, vc, 0.12F, 1.88F, 0.54F, 0.44F, 10, age * 0.04F,
+                        1.000F, 0.420F, 0.616F, 0.42F * flicker);
+                Vec3 heartCore = new Vec3(0.0D, 1.12D, 0.0D);
+                renderOctahedron(m, vc, heartCore, 0.26F * beat, 0.34F * beat, age * 0.16F,
+                        1.000F, 0.420F, 0.616F, 0.94F * flicker);
+                renderOctahedron(m, vc, heartCore, 0.16F * beat, 0.22F * beat, -age * 0.22F,
+                        1.000F, 0.820F, 0.890F, 0.98F * flicker);
             }
 
             // Pulsing mirage core diamond inside the cyclone eye
@@ -2529,6 +2656,105 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
             boolean gold = (i % 2 == 0);
             renderOctahedron(m, vc, mote, 0.055F, 0.065F, mAng,
                     gold ? 0.910F : 0.173F, gold ? 0.784F : 0.902F, gold ? 0.510F : 0.408F, 0.92F);
+        }
+    }
+
+    /**
+     * Section 6.20 Boreal Stalker Agent (#1A5923 / #98DCF2): dual-tone evergreen conifer shoulder mantle,
+     * frosted cyan hunter antler-crest & swirling snow/pine-needle trail motes!
+     */
+    private static void renderBorealStalkerAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.05D, 0.0D), flatX, flatZ, 0.44F, 0.62F, 20, 0.596F, 0.863F, 0.949F, 0.86F);
+
+        double bob = 0.025D * Mth.sin(age * 0.18F);
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+
+        // Frosted cyan antler-crest horns + evergreen pine mantle pauldrons
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 antler = new Vec3(0.0D, 1.96D + bob, 0.0D).add(rightDir.scale(side * 0.22D));
+            renderOctahedron(m, vc, antler, 0.075F, 0.22F, yawRad + side * 0.35F, 0.596F, 0.863F, 0.949F, 0.96F);
+            Vec3 pauldron = new Vec3(0.0D, 1.38D + bob, 0.0D).add(rightDir.scale(side * 0.36D));
+            renderOctahedron(m, vc, pauldron, 0.15F, 0.12F, yawRad, 0.102F, 0.349F, 0.137F, 0.95F);
+            renderOctahedron(m, vc, pauldron.add(0.0D, 0.08D, 0.0D), 0.085F, 0.14F, -yawRad, 0.596F, 0.863F, 0.949F, 0.92F);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            float mAng = age * 0.22F + (float) (Math.PI * 0.5D * i);
+            Vec3 mote = new Vec3(Mth.cos(mAng) * 0.64D, 0.98D + 0.20D * Mth.sin(age * 0.25F + i), Mth.sin(mAng) * 0.64D);
+            boolean frost = (i % 2 == 0);
+            renderOctahedron(m, vc, mote, 0.055F, 0.075F, mAng,
+                    frost ? 0.596F : 0.102F, frost ? 0.863F : 0.349F, frost ? 0.949F : 0.137F, 0.92F);
+        }
+    }
+
+    /**
+     * Section 6.21 Oasis-Warden Agent (#1A5923 / #C2B28F): sunlit desert-blossom lotus crown,
+     * succulent cactus-flesh shoulder pauldrons & orbiting sand-gold + springwater droplet motes!
+     */
+    private static void renderOasisWardenAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.05D, 0.0D), flatX, flatZ, 0.44F, 0.62F, 20, 0.220F, 0.780F, 0.960F, 0.86F);
+
+        double bob = 0.025D * Mth.sin(age * 0.16F);
+        renderCylinderFrustum(m, vc, (float) (1.84D + bob), (float) (2.00D + bob), 0.26F, 0.46F, 8, age * 0.04F,
+                0.761F, 0.698F, 0.561F, 0.95F);
+        renderOctahedron(m, vc, new Vec3(0.0D, 2.06D + bob, 0.0D), 0.11F, 0.16F, age * 0.08F,
+                0.220F, 0.780F, 0.960F, 0.98F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 pauldron = new Vec3(0.0D, 1.38D + bob, 0.0D).add(rightDir.scale(side * 0.36D));
+            renderOctahedron(m, vc, pauldron, 0.15F, 0.13F, yawRad, 0.102F, 0.349F, 0.137F, 0.95F);
+            renderOctahedron(m, vc, pauldron.add(0.0D, 0.07D, 0.0D), 0.08F, 0.14F, -yawRad, 0.761F, 0.698F, 0.561F, 0.96F);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            float mAng = age * 0.20F + (float) (Math.PI * 0.5D * i);
+            Vec3 mote = new Vec3(Mth.cos(mAng) * 0.64D, 0.96D + 0.18D * Mth.sin(age * 0.24F + i), Mth.sin(mAng) * 0.64D);
+            boolean water = (i % 2 == 0);
+            renderOctahedron(m, vc, mote, 0.055F, 0.070F, mAng,
+                    water ? 0.220F : 0.761F, water ? 0.780F : 0.698F, water ? 0.960F : 0.561F, 0.94F);
+        }
+    }
+
+    /**
+     * Section 6.22 Vitality Knight Agent (#FF6B9D): radiant rose-crystal paladin crest,
+     * pulsating heart-core chest emblem, cellular helix pauldrons & Regeneration aura ring!
+     */
+    private static void renderVitalityKnightAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        float beat = 0.88F + 0.16F * Mth.abs(Mth.sin(age * 0.24F));
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.05D, 0.0D), flatX, flatZ,
+                0.48F * beat, 0.66F * beat, 22, 1.000F, 0.420F, 0.616F, 0.88F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 fwdDir = new Vec3(-Mth.sin(yawRad), 0.0D, Mth.cos(yawRad));
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+        double bob = 0.025D * Mth.sin(age * 0.16F);
+
+        // Pulsating rose-crystal heart emblem on chest + paladin halo crown
+        Vec3 chestHeart = new Vec3(0.0D, 1.22D + bob, 0.0D).add(fwdDir.scale(0.18D));
+        renderOctahedron(m, vc, chestHeart, 0.13F * beat, 0.16F * beat, yawRad, 1.000F, 0.420F, 0.616F, 0.96F);
+        renderOctahedron(m, vc, chestHeart, 0.08F * beat, 0.11F * beat, -yawRad, 1.000F, 0.820F, 0.890F, 0.99F);
+        renderLocalRing(m, vc, new Vec3(0.0D, 1.96D + bob, 0.0D), flatX, flatZ,
+                0.24F, 0.34F, 18, 1.000F, 0.820F, 0.890F, 0.94F);
+
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 pauldron = new Vec3(0.0D, 1.40D + bob, 0.0D).add(rightDir.scale(side * 0.36D));
+            renderOctahedron(m, vc, pauldron, 0.15F, 0.16F, yawRad, 1.000F, 0.420F, 0.616F, 0.95F);
+            renderOctahedron(m, vc, pauldron.add(0.0D, 0.07D, 0.0D), 0.085F, 0.13F, -yawRad, 1.000F, 0.820F, 0.890F, 0.98F);
         }
     }
 

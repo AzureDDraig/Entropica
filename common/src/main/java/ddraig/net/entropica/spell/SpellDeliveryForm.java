@@ -141,7 +141,7 @@ public enum SpellDeliveryForm implements StringRepresentable {
             case AURA -> 3.0D + (clamped * 0.7D);
             case GLYPH -> 2.5D + (clamped * 0.65D);
             case CONE -> 4.0D + (clamped * 1.2D);
-            case SKYFALL -> 5.0D + (clamped * 1.6D);
+            case SKYFALL -> 5.0D + (clamped * 1.8D);
             case TOUCH_STRIKE -> 3.5D + (clamped * 0.35D);
             case PROJECTILE -> 1.5D + (clamped * 0.25D);
             case BEAM -> getCombatBeamReachBlocks(clamped, false);
@@ -153,5 +153,35 @@ public enum SpellDeliveryForm implements StringRepresentable {
         int idx = Math.clamp(potencyTier, 1, 10) - 1;
         int base = CONSTRUCTION_SPAN_BY_TIER[idx];
         return earthLineageBonus ? (int) Math.round(base * 1.5D) : base;
+    }
+
+    /**
+     * Desired overhead ethereal Skyfall rift height (in blocks) for open skies / tall caverns:
+     * scales from {@code 9.5m} at Tier 1 up to {@code 29.3m} at Tier 10!
+     */
+    public static double getSkyfallDesiredHeightBlocks(int potencyTier) {
+        int clamped = Math.clamp(potencyTier, 1, 10);
+        return 9.5D + (clamped - 1) * 2.2D;
+    }
+
+    /**
+     * Probes upward from {@code groundAirPos} up to {@link #getSkyfallDesiredHeightBlocks(int)} so high-tier
+     * Skyfalls soar high overhead outdoors while remaining 100% viable inside low-ceiling caves and dungeons!
+     */
+    public static double probeCaveSafeSkyfallHeight(
+            net.minecraft.world.level.Level level,
+            net.minecraft.core.BlockPos groundAirPos,
+            int potencyTier
+    ) {
+        double desired = getSkyfallDesiredHeightBlocks(potencyTier);
+        int maxScan = (int) Math.ceil(desired) + 1;
+        for (int dy = 3; dy <= maxScan; dy++) {
+            net.minecraft.core.BlockPos check = groundAirPos.above(dy);
+            var bs = level.getBlockState(check);
+            if (!bs.isAir() && !bs.getCollisionShape(level, check).isEmpty()) {
+                return Math.max(3.6D, dy - 0.45D);
+            }
+        }
+        return desired;
     }
 }

@@ -1798,7 +1798,8 @@ public class ArcaneScribingTableScreen extends AbstractContainerScreen<ArcaneScr
             case GLYPH -> "Inscribes a persistent 1s-arming trap (Sneak + Right-Click for 50% refund)";
             case CONE -> String.format("Sweeps a wide 60° elemental fan %.1fm forward",
                     SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.CONE, this.potencyTier) * prof.radiusMultiplier());
-            case SKYFALL -> "Calls down an overhead elemental tempest or skyfall pillar (cave-safe)";
+            case SKYFALL -> String.format("Calls down a %.1fm-radius overhead elemental tempest or monolith cataclysm (cave-safe)",
+                    SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, this.potencyTier) * prof.radiusMultiplier());
             case SUMMON_AGENT -> "Conjures a mobile Eidolon companion that hunts foes";
             case SUMMON_SENTRY -> "Conjures a stationary crystalline Eidolon turret pylon";
             case SUMMON_DECOY -> "Conjures an aggro-drawing Phantom Eidolon effigy";

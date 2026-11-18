@@ -19,7 +19,7 @@ import java.util.List;
  */
 public final class SpellWorldVfxManager {
 
-    private static final int MAX_CLIENT_VFX_EVENTS = 512;
+    private static final int MAX_CLIENT_VFX_EVENTS = 1536;
     private static final double BROADCAST_RANGE_SQ = 160.0D * 160.0D;
 
     public static final class ActiveVfxInstance {
@@ -124,7 +124,8 @@ public final class SpellWorldVfxManager {
 
         boolean endIsWorldPos = vfxType == SpellVfxEventPayload.VFX_BEAM
                 || vfxType == SpellVfxEventPayload.VFX_CHAIN_ARC
-                || vfxType == SpellVfxEventPayload.VFX_BLINK_RIFT;
+                || vfxType == SpellVfxEventPayload.VFX_BLINK_RIFT
+                || vfxType == SpellVfxEventPayload.VFX_SKYFALL_PSEUDOBLOCK;
         for (ServerPlayer player : level.players()) {
             if (player.distanceToSqr(start) <= BROADCAST_RANGE_SQ
                     || (endIsWorldPos && player.distanceToSqr(endOrDir) <= BROADCAST_RANGE_SQ)) {
@@ -256,9 +257,60 @@ public final class SpellWorldVfxManager {
             int durationTicks,
             int tier
     ) {
-        Vec3 skyTop = impactGround.add(0.0D, 18.0D, 0.0D);
+        double skyH = ddraig.net.entropica.spell.SpellDeliveryForm.probeCaveSafeSkyfallHeight(
+                level, net.minecraft.core.BlockPos.containing(impactGround.x, impactGround.y + 0.2D, impactGround.z), tier
+        );
+        Vec3 skyTop = impactGround.add(0.0D, skyH, 0.0D);
         broadcast(level, SpellVfxEventPayload.VFX_SKYFALL_PILLAR, impactGround, skyTop,
                 primary, secondary, (float) Math.max(1.2D, radius), Math.clamp(durationTicks, 40, 800), tier);
+    }
+
+    /**
+     * Broadcasts a falling &amp; standing 3D Skyfall Pseudoblock column ({@link SpellVfxEventPayload#VFX_SKYFALL_PSEUDOBLOCK}):
+     * <ul>
+     *     <li>{@code start} = overhead sky-rift drop origin ({@code x + 0.5, skyY, z + 0.5})</li>
+     *     <li>{@code endOrDir} = exact world lower-corner {@code (targetBase.x, targetBase.y, targetBase.z)} where real blocks will materialize when the spell completes</li>
+     *     <li>{@code primaryRgb} = {@code Block.getId(blockState)}</li>
+     *     <li>{@code accentRgb} = {@code fallTicks} (number of ticks spent accelerating downward before locking into standing pseudoblock form)</li>
+     *     <li>{@code radiusOrScale} = {@code columnHeight} (1..16 stacked blocks in this column)</li>
+     *     <li>{@code durationTicks} = {@code fallTicks + holdTicks} (total lifetime until real world blocks replace the pseudoblocks!)</li>
+     * </ul>
+     */
+    public static void broadcastSkyfallPseudoblockColumn(
+            ServerLevel level,
+            Vec3 skyOrigin,
+            net.minecraft.core.BlockPos targetBase,
+            net.minecraft.world.level.block.state.BlockState blockState,
+            int columnHeight,
+            int fallTicks,
+            int holdTicks,
+            @Nullable EssenceType materia,
+            int tier
+    ) {
+        EssenceType pMat = materia != null ? materia : EssenceType.REGULAR;
+        int stateId = net.minecraft.world.level.block.Block.getId(blockState);
+        int clampedFall = Math.max(1, fallTicks);
+        int totalTicks = Math.max(clampedFall + 1, clampedFall + Math.max(0, holdTicks));
+        Vec3 targetCorner = new Vec3(targetBase.getX(), targetBase.getY(), targetBase.getZ());
+
+        SpellVfxEventPayload payload = new SpellVfxEventPayload(
+                SpellVfxEventPayload.VFX_SKYFALL_PSEUDOBLOCK,
+                (float) skyOrigin.x, (float) skyOrigin.y, (float) skyOrigin.z,
+                (float) targetCorner.x, (float) targetCorner.y, (float) targetCorner.z,
+                stateId,
+                clampedFall,
+                pMat.ordinal(),
+                (float) Math.clamp(columnHeight, 1, 20),
+                totalTicks,
+                tier
+        );
+
+        for (ServerPlayer player : level.players()) {
+            if (player.distanceToSqr(targetCorner) <= BROADCAST_RANGE_SQ
+                    || player.distanceToSqr(skyOrigin) <= BROADCAST_RANGE_SQ) {
+                NetworkManager.sendToPlayer(player, payload);
+            }
+        }
     }
 
     public static void broadcastBlinkRift(
@@ -361,5 +413,39 @@ public final class SpellWorldVfxManager {
         Vec3 modeVec = new Vec3(inwardImplosion ? -1.0D : 1.0D, 0.0D, 0.0D);
         broadcast(level, SpellVfxEventPayload.VFX_VACUUM_SPHERE, center, modeVec,
                 primary, secondary, (float) Math.max(1.2D, radius), Math.clamp(durationTicks, 36, 240), tier);
+    }
+
+    /**
+     * Server-side obstacle helper for landed Skyfall Pseudoblock columns: gently pushes overlapping entities
+     * outside the {@code 1x1xheight} column footprint so pseudoblocks function as physical barricades while
+     * the Skyfall spell is running and prevent suffocation when the real world blocks materialize at completion!
+     */
+    public static void repelEntitiesFromPseudoblockColumn(
+            ServerLevel level,
+            net.minecraft.core.BlockPos basePos,
+            int columnHeight,
+            boolean teleportClearForSolidPlacement
+    ) {
+        int h = Math.max(1, columnHeight);
+        net.minecraft.world.phys.AABB colBox = new net.minecraft.world.phys.AABB(
+                basePos.getX() - 0.15D, basePos.getY(), basePos.getZ() - 0.15D,
+                basePos.getX() + 1.15D, basePos.getY() + h + 0.15D, basePos.getZ() + 1.15D
+        );
+        double cx = basePos.getX() + 0.5D;
+        double cz = basePos.getZ() + 0.5D;
+        for (net.minecraft.world.entity.LivingEntity ent : level.getEntitiesOfClass(
+                net.minecraft.world.entity.LivingEntity.class, colBox, net.minecraft.world.entity.LivingEntity::isAlive)) {
+            double dx = ent.getX() - cx;
+            double dz = ent.getZ() - cz;
+            double dSq = dx * dx + dz * dz;
+            Vec3 outDir = dSq > 1.0E-4D ? new Vec3(dx, 0.0D, dz).normalize() : new Vec3(1.0D, 0.0D, 0.0D);
+            if (teleportClearForSolidPlacement) {
+                ent.teleportTo(cx + outDir.x * 1.18D, ent.getY() + 0.06D, cz + outDir.z * 1.18D);
+            } else {
+                Vec3 curV = ent.getDeltaMovement();
+                ent.setDeltaMovement(outDir.x * 0.36D, Math.max(curV.y, 0.04D), outDir.z * 0.36D);
+                ent.hasImpulse = true;
+            }
+        }
     }
 }
