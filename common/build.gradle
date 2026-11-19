@@ -143,8 +143,16 @@ task runM6Challenger2Verification(type: JavaExec) {
     mainClass = "ddraig.net.entropica.test.forcefield.Milestone6Challenger2Verification"
 }
 
+task runSpellEngineVerification(type: JavaExec) {
+    group = "verification"
+    description = "Runs the standalone deterministic Spellcrafting Engine Verification Suite"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.spell.test.SpellEngineVerificationSuite"
+}
+
 test {
     dependsOn runForcefieldTests
+    dependsOn runSpellEngineVerification
     dependsOn runM2Challenger1Verification
     dependsOn runM2Challenger2Verification
     dependsOn runMilestone3Verification

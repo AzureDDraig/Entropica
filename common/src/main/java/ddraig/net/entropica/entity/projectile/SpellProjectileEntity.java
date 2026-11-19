@@ -204,6 +204,11 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
         if (slot.formPart().form() == SpellDeliveryForm.PROJECTILE
                 && slot.formPart().mutationEnabled()
                 && (formMateria == EssenceType.RADIANT
+                    || formMateria == EssenceType.DAWN
+                    || formMateria == EssenceType.AURORA
+                    || formMateria == EssenceType.NULL_R
+                    || formMateria == EssenceType.NULL_U
+                    || formMateria == EssenceType.WRAITH
                     || (formMateria == EssenceType.FROZEN && spell.flowPart().flow() != SpellFlowModifier.SLOW_HEAVY))) {
             this.setNoGravity(true);
         } else if (spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY
@@ -382,12 +387,14 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
         SpellFlowModifier flow = this.spell.flowPart().flow();
         SpellTriggerType trigger = this.spell.flowPart().trigger();
         SubSpellSlot leadSlot = this.spell.subSpells().getFirst();
+        EssenceType leadFormMat = leadSlot.formPart().resolveEffectiveMateria(this.spell.materiaSpecific(), this.fallbackMateria);
         boolean waterHydroProjectile = leadSlot.formPart().form() == SpellDeliveryForm.PROJECTILE
                 && leadSlot.formPart().mutationEnabled()
-                && leadSlot.formPart().resolveEffectiveMateria(this.spell.materiaSpecific(), this.fallbackMateria) == EssenceType.WATER;
+                && leadFormMat == EssenceType.WATER;
         boolean radiantDawnStarProjectile = leadSlot.formPart().form() == SpellDeliveryForm.PROJECTILE
                 && leadSlot.formPart().mutationEnabled()
-                && leadSlot.formPart().resolveEffectiveMateria(this.spell.materiaSpecific(), this.fallbackMateria) == EssenceType.RADIANT;
+                && (leadFormMat == EssenceType.RADIANT || leadFormMat == EssenceType.DAWN || leadFormMat == EssenceType.AURORA
+                    || leadFormMat == EssenceType.NULL_R || leadFormMat == EssenceType.NULL_U);
         if (flow == SpellFlowModifier.FAST_DART
                 || radiantDawnStarProjectile
                 || (flow == SpellFlowModifier.SLOW_HEAVY && !waterHydroProjectile)
@@ -542,10 +549,15 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
             this.entityData.set(DATA_ESSENCE_ORDINAL, sentryBoltMateria.ordinal());
             this.entityData.set(DATA_COLOR_TINT, ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantPrimaryRgb(sentryBoltMateria, gt));
             this.entityData.set(DATA_ACCENT_COLOR, ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantAccentRgb(sentryBoltMateria, null, gt));
-            this.entityData.set(DATA_ARCHETYPE, ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(sentryBoltMateria, false, false));
+            this.entityData.set(DATA_ARCHETYPE, ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(
+                    sentryBoltMateria, sentryBoltMateria == EssenceType.NULL_R || sentryBoltMateria == EssenceType.NULL_U, false));
             if (sentryBoltMateria == EssenceType.FROZEN
                     || sentryBoltMateria == EssenceType.GLACIAL
-                    || sentryBoltMateria == EssenceType.OVERGROWTH) {
+                    || sentryBoltMateria == EssenceType.OVERGROWTH
+                    || sentryBoltMateria == EssenceType.NULL_R
+                    || sentryBoltMateria == EssenceType.NULL_U
+                    || sentryBoltMateria == EssenceType.DAWN
+                    || sentryBoltMateria == EssenceType.AURORA) {
                 this.setNoGravity(true);
             }
         }
@@ -1010,32 +1022,78 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                         }
                     }
                     case ABYSS -> {
+                        int oTier = Math.max(1, this.spell.getEffectiveTier());
+                        SpellCombatReactionEngine.hurtWithAbyssMateriaAdvantage(
+                                level, meleeFoe, caster, 1.35F + oTier * 0.42F, false, true
+                        );
                         SpellLingeringZoneManager.applySoaked(meleeFoe, 120);
-                        meleeFoe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 1));
-                    }
-                    case AEGIS -> {
-                        SpellCombatReactionEngine.applyTimedAttributeShred(meleeFoe, level, 2.0D, 0.0D, 80L);
-                        Vec3 away = meleeFoe.position().subtract(caster.position()).normalize().scale(0.55D);
+                        SpellCombatReactionEngine.applyTimedMovementSpeedSap(meleeFoe, level, 0.40D, 60L);
+                        meleeFoe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
+                        Vec3 away = meleeFoe.position().subtract(caster.position()).normalize().scale(0.62D);
                         meleeFoe.setDeltaMovement(away.x, 0.22D, away.z);
                         meleeFoe.hasImpulse = true;
                     }
-                    case AURORA -> {
-                        meleeFoe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 1));
-                        meleeFoe.setTicksFrozen(Math.min(meleeFoe.getTicksRequiredToFreeze() + 20, meleeFoe.getTicksFrozen() + 20));
-                    }
-                    case MIRAGE -> {
-                        meleeFoe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 45, 0));
-                        SpellLingeringZoneManager.applyMirageTraitorFrenzy(meleeFoe, 50);
-                    }
-                    case WRAITH -> meleeFoe.addEffect(new MobEffectInstance(MobEffects.WITHER, 50, 0));
-                    case BARROW -> {
+                    case AEGIS -> {
+                        int oTier = Math.max(1, this.spell.getEffectiveTier());
+                        SpellCombatReactionEngine.hurtWithAegisMateriaAdvantage(
+                                level, meleeFoe, caster, 1.50F + oTier * 0.45F, false, true
+                        );
                         SpellCombatReactionEngine.applyTimedAttributeShred(meleeFoe, level, 2.0D, 0.0D, 80L);
                         Vec3 away = meleeFoe.position().subtract(caster.position()).normalize().scale(0.65D);
                         meleeFoe.setDeltaMovement(away.x, 0.24D, away.z);
                         meleeFoe.hasImpulse = true;
                     }
-                    case PYRE -> meleeFoe.igniteForSeconds(4);
-                    case PENUMBRA -> meleeFoe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
+                    case AURORA -> {
+                        int oTier = Math.max(1, this.spell.getEffectiveTier());
+                        SpellCombatReactionEngine.hurtWithAuroraMateriaAdvantage(
+                                level, meleeFoe, caster, 1.45F + oTier * 0.42F, false, true
+                        );
+                        meleeFoe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 1));
+                        meleeFoe.addEffect(new MobEffectInstance(MobEffects.GLOWING, 80, 0));
+                        meleeFoe.setTicksFrozen(Math.min(meleeFoe.getTicksRequiredToFreeze() + 30, meleeFoe.getTicksFrozen() + 30));
+                    }
+                    case MIRAGE -> {
+                        int oTier = Math.max(1, this.spell.getEffectiveTier());
+                        SpellCombatReactionEngine.hurtWithMirageMateriaAdvantage(
+                                level, meleeFoe, caster, 1.45F + oTier * 0.42F, false, true
+                        );
+                        meleeFoe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 45, 0));
+                        SpellLingeringZoneManager.applyMirageTraitorFrenzy(meleeFoe, 50);
+                    }
+                    case WRAITH -> {
+                        int oTier = Math.max(1, this.spell.getEffectiveTier());
+                        SpellCombatReactionEngine.hurtWithWraithMateriaAdvantage(
+                                level, meleeFoe, caster, 1.45F + oTier * 0.42F, false, true
+                        );
+                        meleeFoe.addEffect(new MobEffectInstance(MobEffects.WITHER, 50, 0));
+                    }
+                    case BARROW -> {
+                        int oTier = Math.max(1, this.spell.getEffectiveTier());
+                        SpellCombatReactionEngine.hurtWithBarrowMateriaAdvantage(
+                                level, meleeFoe, caster, 1.55F + oTier * 0.45F, false, true
+                        );
+                        SpellCombatReactionEngine.applyTimedAttributeShred(meleeFoe, level, 2.0D, 0.0D, 80L);
+                        Vec3 away = meleeFoe.position().subtract(caster.position()).normalize().scale(0.65D);
+                        meleeFoe.setDeltaMovement(away.x, 0.24D, away.z);
+                        meleeFoe.hasImpulse = true;
+                    }
+                    case PYRE -> {
+                        int oTier = Math.max(1, this.spell.getEffectiveTier());
+                        meleeFoe.igniteForSeconds(4);
+                        EntityHelper.getPersistentData(meleeFoe).putLong(
+                                SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, level.getGameTime() + 80L
+                        );
+                        SpellCombatReactionEngine.hurtWithPyreMateriaAdvantage(
+                                level, meleeFoe, caster, 1.75F + oTier * 0.48F, false, true
+                        );
+                    }
+                    case PENUMBRA -> {
+                        int oTier = Math.max(1, this.spell.getEffectiveTier());
+                        meleeFoe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
+                        SpellCombatReactionEngine.hurtWithPenumbraMateriaAdvantage(
+                                level, meleeFoe, caster, 1.80F + oTier * 0.50F, false, true
+                        );
+                    }
                     case RIME -> {
                         meleeFoe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 5));
                         meleeFoe.setTicksFrozen(Math.min(meleeFoe.getTicksRequiredToFreeze() + 30, meleeFoe.getTicksFrozen() + 30));
@@ -1591,12 +1649,22 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
             }
             case AURA -> {
                 if (directHit instanceof LivingEntity foe) {
-                    foe.setDeltaMovement(travel.x * 1.10D, 0.45D, travel.z * 1.10D);
-                    foe.hasImpulse = true;
+                    int sTier = Math.max(1, this.getVisualPotencyTier());
+                    SpellCombatReactionEngine.hurtWithAuraMateriaAdvantage(
+                            level, foe, caster, 1.35F + sTier * 0.40F, false, true
+                    );
+                    if (!SpellCombatReactionEngine.isBossEntity(level, foe)) {
+                        SpellExecutionEngine.applySyncedMotion(foe, new Vec3(travel.x * 0.95D, 0.34D, travel.z * 0.95D));
+                    }
                 }
             }
             case AMBER -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = Math.max(1, this.getVisualPotencyTier());
+                    SpellCombatReactionEngine.hurtWithAmberMateriaAdvantage(
+                            level, foe, caster, 1.40F + sTier * 0.42F, false, true
+                    );
+                    SpellCombatReactionEngine.applyTimedMovementSpeedSap(foe, level, 0.50D, 60L);
                     foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
                     EntityHelper.getPersistentData(foe).putLong(SpellLingeringZoneManager.TAG_NO_JUMP_UNTIL, level.getGameTime() + 60L);
                 }
@@ -1623,7 +1691,10 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                 }
             }
             case ECLIPSE -> {
-                if (directHit instanceof LivingEntity foe) {
+                if (directHit instanceof LivingEntity foe && foe.isAlive()) {
+                    int sTier = Math.max(1, this.getVisualPotencyTier());
+                    float shadowBoltDmg = 1.45F + sTier * 0.45F;
+                    SpellCombatReactionEngine.hurtWithEclipseMateriaAdvantage(level, foe, caster, shadowBoltDmg, false, true);
                     foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 50, 0));
                     foe.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0));
                     for (var eff : new java.util.ArrayList<>(foe.getActiveEffects())) {
@@ -1632,7 +1703,10 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                 }
             }
             case BLIGHT -> {
-                if (directHit instanceof LivingEntity foe) {
+                if (directHit instanceof LivingEntity foe && foe.isAlive()) {
+                    int sTier = Math.max(1, this.getVisualPotencyTier());
+                    float thornDartDmg = 1.45F + sTier * 0.44F;
+                    SpellCombatReactionEngine.hurtWithBlightMateriaAdvantage(level, foe, caster, thornDartDmg, false, true);
                     foe.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 1));
                     foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 1));
                     SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 1.0D, 0.0D, 100L);
@@ -1640,93 +1714,162 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
             }
             case ASTRAL -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float orbDmg = 1.50F + sTier * 0.45F;
+                    SpellCombatReactionEngine.hurtWithAstralMateriaAdvantage(level, foe, caster, orbDmg, false, true);
                     foe.addEffect(new MobEffectInstance(
-                            net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ddraig.net.entropica.registry.ModEffects.PARALYZED.get()), 12, 0));
-                    foe.setDeltaMovement(foe.getDeltaMovement().x, 0.45D, foe.getDeltaMovement().z);
+                            net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ddraig.net.entropica.registry.ModEffects.PARALYZED.get()), 15, 0));
+                    foe.setDeltaMovement(foe.getDeltaMovement().x, 0.48D, foe.getDeltaMovement().z);
                     foe.hasImpulse = true;
+                    level.sendParticles(ParticleTypes.ELECTRIC_SPARK, foe.getX(), foe.getY(0.85D), foe.getZ(), 10, 0.25D, 0.30D, 0.25D, 0.08D);
                 }
             }
             case SOULFIRE -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float skullDmg = 1.55F + sTier * 0.45F;
+                    float dealt = SpellCombatReactionEngine.hurtWithSoulfireMateriaAdvantage(level, foe, caster, skullDmg, false, true);
                     foe.igniteForSeconds(5);
                     EntityHelper.getPersistentData(foe).putLong(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL, level.getGameTime() + 100L);
+                    if (dealt > 0.0F && caster != null && caster.isAlive()) {
+                        float heal = dealt * 0.20F;
+                        SpellCombatReactionEngine.notifyMagicalHeal(caster, heal);
+                        caster.heal(heal);
+                    }
+                    level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, foe.getX(), foe.getY(0.8D), foe.getZ(), 10, 0.25D, 0.30D, 0.25D, 0.04D);
                 }
             }
             case VAPOR -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float steamDmg = 1.50F + sTier * 0.44F;
+                    SpellCombatReactionEngine.hurtWithVaporMateriaAdvantage(level, foe, caster, steamDmg, false, true);
                     foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 50, 0));
                     SpellLingeringZoneManager.applySoaked(foe, 120);
                 }
             }
             case NULL_R -> {
                 if (directHit instanceof LivingEntity foe) {
-                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 50, 0));
-                    for (var eff : new java.util.ArrayList<>(foe.getActiveEffects())) {
-                        if (eff.getEffect().value().isBeneficial()) foe.removeEffect(eff.getEffect());
-                    }
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float lanceDmg = 1.85F + sTier * 0.52F;
+                    SpellCombatReactionEngine.hurtWithNullRMateriaAdvantage(level, foe, caster, lanceDmg, false, true);
+                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 55, 0));
+                    ddraig.net.entropica.spell.mutation.element.EclipseSpellMutationHandler.purgeBeneficialEffects(foe);
+                    level.sendParticles(ParticleTypes.END_ROD, foe.getX(), foe.getY(0.85D), foe.getZ(), 10, 0.24D, 0.28D, 0.24D, 0.04D);
                 }
             }
-            case NULL_U, ABYSS -> {
+            case NULL_U -> {
                 if (directHit instanceof LivingEntity foe) {
-                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 50, 0));
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float dartDmg = 1.75F + sTier * 0.48F;
+                    SpellCombatReactionEngine.hurtWithNullUMateriaAdvantage(level, foe, caster, dartDmg, false, true);
+                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 55, 0));
+                    SpellLingeringZoneManager.applyArcaneSilence(foe, 55);
+                    Vec3 inward = travel.scale(-0.78D);
+                    foe.setDeltaMovement(inward.x, 0.22D, inward.z);
+                    foe.hasImpulse = true;
+                    level.sendParticles(ParticleTypes.SQUID_INK, foe.getX(), foe.getY(0.8D), foe.getZ(), 8, 0.22D, 0.26D, 0.22D, 0.03D);
+                }
+            }
+            case ABYSS -> {
+                if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float trenchDmg = 1.80F + sTier * 0.50F;
+                    SpellCombatReactionEngine.hurtWithAbyssMateriaAdvantage(level, foe, caster, trenchDmg, false, true);
+                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
+                    foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
                     SpellLingeringZoneManager.applyArcaneSilence(foe, 50);
-                    if (this.sentryBoltMateria == EssenceType.NULL_U) {
-                        Vec3 inward = travel.scale(-0.75D);
-                        foe.setDeltaMovement(inward.x, 0.20D, inward.z);
-                        foe.hasImpulse = true;
-                    } else {
-                        SpellLingeringZoneManager.applySoaked(foe, 140);
-                    }
+                    SpellLingeringZoneManager.applySoaked(foe, 140);
+                    Vec3 pull = travel.scale(-0.68D);
+                    foe.setDeltaMovement(pull.x, 0.18D, pull.z);
+                    foe.hasImpulse = true;
+                    level.sendParticles(ParticleTypes.SQUID_INK, foe.getX(), foe.getY(0.8D), foe.getZ(), 8, 0.22D, 0.25D, 0.22D, 0.03D);
                 }
             }
             case DAWN -> {
                 if (directHit instanceof LivingEntity foe) {
-                    foe.setDeltaMovement(travel.x * 1.35D, 0.38D, travel.z * 1.35D);
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float javelinDmg = 1.85F + sTier * 0.52F;
+                    SpellCombatReactionEngine.hurtWithDawnMateriaAdvantage(level, foe, caster, javelinDmg, false, true);
+                    foe.setDeltaMovement(travel.x * 1.45D, 0.40D, travel.z * 1.45D);
                     foe.hasImpulse = true;
-                    foe.addEffect(new MobEffectInstance(MobEffects.GLOWING, 80, 0));
-                    if (foe.getType().is(net.minecraft.tags.EntityTypeTags.UNDEAD)) foe.igniteForSeconds(4);
+                    foe.removeEffect(MobEffects.INVISIBILITY);
+                    foe.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 0));
+                    if (foe.getType().is(net.minecraft.tags.EntityTypeTags.UNDEAD)) {
+                        foe.igniteForSeconds(5);
+                    }
+                    level.sendParticles(ParticleTypes.END_ROD, foe.getX(), foe.getY(0.85D), foe.getZ(), 10, 0.24D, 0.28D, 0.24D, 0.04D);
                 }
             }
             case AEGIS -> {
                 if (directHit instanceof LivingEntity foe) {
-                    foe.setDeltaMovement(travel.x * 1.15D, 0.32D, travel.z * 1.15D);
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float slugDmg = 2.05F + sTier * 0.55F;
+                    SpellCombatReactionEngine.hurtWithAegisMateriaAdvantage(level, foe, caster, slugDmg, false, true);
+                    foe.setDeltaMovement(travel.x * 1.25D, 0.32D, travel.z * 1.25D);
                     foe.hasImpulse = true;
                     SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 2.0D, 0.0D, 100L);
+                    foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 3));
+                    level.sendParticles(ParticleTypes.WAX_ON, foe.getX(), foe.getY(0.85D), foe.getZ(), 8, 0.22D, 0.26D, 0.22D, 0.03D);
                 }
             }
             case AURORA -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float lanceDmg = 1.95F + sTier * 0.52F;
+                    SpellCombatReactionEngine.hurtWithAuroraMateriaAdvantage(level, foe, caster, lanceDmg, false, true);
                     foe.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 0));
                     foe.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 40, 0));
                     foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 6));
                     foe.setTicksFrozen(foe.getTicksRequiredToFreeze() + 40);
+                    level.sendParticles(ParticleTypes.SNOWFLAKE, foe.getX(), foe.getY(0.85D), foe.getZ(), 8, 0.22D, 0.26D, 0.22D, 0.03D);
+                    level.sendParticles(ParticleTypes.END_ROD, foe.getX(), foe.getY(0.90D), foe.getZ(), 6, 0.22D, 0.26D, 0.22D, 0.04D);
                 }
             }
             case MIRAGE -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float dartDmg = 1.95F + sTier * 0.52F;
+                    SpellCombatReactionEngine.hurtWithMirageMateriaAdvantage(level, foe, caster, dartDmg, false, true);
                     foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
                     SpellLingeringZoneManager.applyMirageTraitorFrenzy(foe, 60);
                 }
             }
             case WRAITH -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float skullDmg = 1.95F + sTier * 0.52F;
+                    SpellCombatReactionEngine.hurtWithWraithMateriaAdvantage(level, foe, caster, skullDmg, false, true);
                     SpellLingeringZoneManager.applyArcaneSilence(foe, 60);
                     foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
+                    foe.addEffect(new MobEffectInstance(MobEffects.WITHER, 60, 0));
                 }
             }
             case BARROW -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float tombDmg = 2.05F + sTier * 0.54F;
+                    SpellCombatReactionEngine.hurtWithBarrowMateriaAdvantage(level, foe, caster, tombDmg, false, true);
                     foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
                     SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 2.0D, 0.0D, 100L);
                 }
             }
             case PYRE -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float pyreBoltDmg = 2.20F + sTier * 0.58F;
                     foe.igniteForSeconds(5);
+                    EntityHelper.getPersistentData(foe).putLong(
+                            SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, level.getGameTime() + 100L
+                    );
+                    SpellCombatReactionEngine.hurtWithPyreMateriaAdvantage(level, foe, caster, pyreBoltDmg, false, true);
                 }
             }
             case PENUMBRA -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float lanceDmg = 2.15F + sTier * 0.56F;
+                    SpellCombatReactionEngine.hurtWithPenumbraMateriaAdvantage(level, foe, caster, lanceDmg, false, true);
                     foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
                     Vec3 pull = travel.scale(-0.55D);
                     foe.setDeltaMovement(pull.x, 0.18D, pull.z);
@@ -2141,7 +2284,13 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                 && orbitTarget.isAlive()
                 && (caster == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(orbitTarget, caster, this.spell.hasWardFriendlyFireSafeguard()))) {
             switch (flowMateria) {
-                case PENUMBRA -> orbitTarget.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
+                case PENUMBRA -> {
+                    int dTier = Math.max(1, this.spell.getEffectiveTier());
+                    orbitTarget.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
+                    SpellCombatReactionEngine.hurtWithPenumbraMateriaAdvantage(
+                            serverLevel, orbitTarget, caster, 2.25F + dTier * 0.55F, false, true
+                    );
+                }
                 case RIME -> {
                     orbitTarget.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 5));
                     orbitTarget.addEffect(new MobEffectInstance(
@@ -2219,6 +2368,18 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                 default -> {
                 }
             }
+        }
+
+        // Section 6.30 Hydro-Steam Split Flow: split steam bursts blind secondary enemies on hit!
+        if (this.splitChild
+                && this.spell.flowPart().mutationEnabled()
+                && flowMateria == EssenceType.VAPOR
+                && hit instanceof LivingEntity steamTarget
+                && steamTarget.isAlive()
+                && (caster == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(steamTarget, caster, this.spell.hasWardFriendlyFireSafeguard()))) {
+            steamTarget.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
+            SpellLingeringZoneManager.applySoaked(steamTarget, 120);
+            serverLevel.sendParticles(ParticleTypes.CLOUD, steamTarget.getX(), steamTarget.getY(0.8D), steamTarget.getZ(), 10, 0.3D, 0.3D, 0.3D, 0.04D);
         }
 
         EssenceType vPrimary = this.getVisualEssenceType();
@@ -2370,7 +2531,8 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                 && formMateria == EssenceType.VOID
                 && ddraig.net.entropica.spell.mutation.element.VoidSpellMutationHandler.isThinVoidPassableObstacle(
                         serverLevel, result.getBlockPos(), serverLevel.getBlockState(result.getBlockPos()), travelDir);
-        boolean effectiveWallPhase = (this.wallPhasing && !honorBlockTrigger) || voidThinObstaclePhase;
+        boolean groundCometImpact = this.slightFluidArc && result.getDirection() == net.minecraft.core.Direction.UP;
+        boolean effectiveWallPhase = ((this.wallPhasing && !honorBlockTrigger) || voidThinObstaclePhase) && !groundCometImpact;
         if (voidThinObstaclePhase && !this.wallPhasing) {
             // Section 6.11 Singularity Rift Orb: phases cleanly through thin obstacles (panes, bars, fences, gates, leaves, thin partitions)
             // without premature detonation!
@@ -2476,7 +2638,7 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                 && !slot.primaryEffect().subMode().equalsIgnoreCase("swap")
                 && !slot.primaryEffect().subMode().equalsIgnoreCase("transposition")
                 && slot.secondaryEffect().isEmpty();
-        if (entityTriggerBlockPenalty && !this.wallPhasing && !skipSplashSelfBlink) {
+        if (entityTriggerBlockPenalty && !effectiveWallPhase && !skipSplashSelfBlink) {
             Vec3 hitPos = result.getLocation();
             net.minecraft.world.phys.AABB splashBox = new net.minecraft.world.phys.AABB(hitPos, hitPos).inflate(2.2D);
             for (LivingEntity splashTarget : serverLevel.getEntitiesOfClass(LivingEntity.class, splashBox, LivingEntity::isAlive)) {

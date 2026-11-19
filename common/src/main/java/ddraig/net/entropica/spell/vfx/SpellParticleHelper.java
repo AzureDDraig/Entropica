@@ -109,6 +109,23 @@ public final class SpellParticleHelper {
     public static final byte ARCHETYPE_FROST_RESIN_SPIKE = 25;
     public static final byte ARCHETYPE_OASIS_SUCCULENT_SEED = 26;
     public static final byte ARCHETYPE_VITAE_HELIX = 27;
+    public static final byte ARCHETYPE_AMBER_BUBBLE_ORB = 28;
+    public static final byte ARCHETYPE_PENUMBRA_CRESCENT_SCYTHE = 29;
+    public static final byte ARCHETYPE_NECRO_SPORE_POD = 30;
+    public static final byte ARCHETYPE_CELESTIAL_COMET = 31;
+    public static final byte ARCHETYPE_SOULFLAME_SKULL = 32;
+    public static final byte ARCHETYPE_STEAM_GEYSER_ORB = 33;
+    public static final byte ARCHETYPE_WHITE_HOLE_ORB = 34;
+    public static final byte ARCHETYPE_BLACK_HOLE_ORB = 35;
+    public static final byte ARCHETYPE_SOLAR_HORIZON_JAVELIN = 36;
+    public static final byte ARCHETYPE_ABYSSAL_DEPTH_CHARGE_ORB = 37;
+    public static final byte ARCHETYPE_GILDED_PAVISE_SHIELD = 38;
+    public static final byte ARCHETYPE_AURORA_RIBBON_LANCE = 39;
+    public static final byte ARCHETYPE_MIRAGE_SAND_JAVELIN = 40;
+    public static final byte ARCHETYPE_WRAITH_SKULL = 41;
+    public static final byte ARCHETYPE_TOMBSTONE_BOULDER = 42;
+    public static final byte ARCHETYPE_COMBUSTION_HEARTH_ORB = 43;
+    public static final byte ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT = 44;
 
     private SpellParticleHelper() {
     }
@@ -126,20 +143,34 @@ public final class SpellParticleHelper {
             return ARCHETYPE_PRISMATIC_CHAKRAM;
         }
         return switch (type) {
-            case AIR, AURA, VAPOR ->
+            case AIR, AURA ->
                     ARCHETYPE_WIND_SPIRAL;
+            case VAPOR ->
+                    ARCHETYPE_STEAM_GEYSER_ORB;
             case WATER, FLOW, UMBRAL_WATER ->
                     ARCHETYPE_HYDRO_ORB;
-            case VOID, ABYSS, NULL_U, OBLIVION, ENTROPIC, ESCHATON, SINGULARITY, VACUUM, OBLIVIATE ->
+            case VOID, OBLIVION, ENTROPIC, ESCHATON, SINGULARITY, VACUUM, OBLIVIATE ->
                     ARCHETYPE_SINGULARITY_ORB;
+            case ABYSS ->
+                    ARCHETYPE_ABYSSAL_DEPTH_CHARGE_ORB;
+            case NULL_R ->
+                    fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_WHITE_HOLE_ORB;
+            case NULL_U ->
+                    fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_BLACK_HOLE_ORB;
             case FROZEN ->
                     ARCHETYPE_GLACIAL_SHARD;
             case GLACIAL ->
                     ARCHETYPE_GLACIAL_ICE_LANCE;
             case TAIGA ->
                     ARCHETYPE_FROST_RESIN_SPIKE;
-            case RIME, AURORA, TERMINUS, AETHER, AMBER, STASIS, FROST ->
+            case AURORA ->
+                    ARCHETYPE_AURORA_RIBBON_LANCE;
+            case RIME, TERMINUS, AETHER, STASIS, FROST ->
                     ARCHETYPE_CRYSTALLINE_LANCE;
+            case AMBER ->
+                    ARCHETYPE_AMBER_BUBBLE_ORB;
+            case ECLIPSE ->
+                    ARCHETYPE_PENUMBRA_CRESCENT_SCYTHE;
             case LIGHTNING ->
                     fastLance ? ARCHETYPE_VOLTAIC_JAVELIN : ARCHETYPE_BALL_LIGHTNING;
             case STORM ->
@@ -152,17 +183,35 @@ public final class SpellParticleHelper {
                     ARCHETYPE_UMBRAL_SNARE;
             case UNDEAD ->
                     ARCHETYPE_UNDEAD_SKULL;
-            case ARID, MIRAGE ->
+            case ARID ->
                     fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_DUST_DEVIL;
+            case MIRAGE ->
+                    ARCHETYPE_MIRAGE_SAND_JAVELIN;
+            case WRAITH ->
+                    ARCHETYPE_WRAITH_SKULL;
+            case BARROW ->
+                    ARCHETYPE_TOMBSTONE_BOULDER;
+            case PYRE ->
+                    ARCHETYPE_COMBUSTION_HEARTH_ORB;
+            case PENUMBRA ->
+                    ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT;
             case DUST ->
                     ARCHETYPE_CHOKING_DUST_POD;
-            case DAWN, AUREOLE, CELESTIAL, APOTHEOSIS, EMPYREAN, PHOTON, ASTRAL ->
+            case DAWN ->
+                    ARCHETYPE_SOLAR_HORIZON_JAVELIN;
+            case AEGIS ->
+                    ARCHETYPE_GILDED_PAVISE_SHIELD;
+            case AUREOLE, CELESTIAL, APOTHEOSIS, EMPYREAN, PHOTON ->
                     fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_SOLAR_CROWN;
+            case ASTRAL ->
+                    ARCHETYPE_CELESTIAL_COMET;
+            case SOULFIRE ->
+                    ARCHETYPE_SOULFLAME_SKULL;
             case EARTH, DENSITY, GRAVITY ->
                     ARCHETYPE_QUAKE_SPIRE;
             case NETHER ->
                     fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_NETHERFIRE_COMET;
-            case MAGMA, PYRE, CATACLYSM, RADIANT_FIRE, IGNIS, FERVOR, HEAT ->
+            case MAGMA, CATACLYSM, RADIANT_FIRE, IGNIS, FERVOR, HEAT ->
                     fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_MOLTEN_METEOR;
             case NATURE ->
                     ARCHETYPE_BRIAR_SEED;
@@ -174,7 +223,9 @@ public final class SpellParticleHelper {
                     ARCHETYPE_OASIS_SUCCULENT_SEED;
             case VITAE ->
                     ARCHETYPE_VITAE_HELIX;
-            case SYLVAN, SPRING, BLOOD, BLIGHT, MIASMA, GENESIS ->
+            case BLIGHT ->
+                    ARCHETYPE_NECRO_SPORE_POD;
+            case SYLVAN, SPRING, BLOOD, MIASMA, GENESIS ->
                     ARCHETYPE_BIO_HELIX;
             default -> fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_ARCANE_BOLT;
         };
@@ -192,33 +243,49 @@ public final class SpellParticleHelper {
             return Mth.hsvToRgb(hue, 0.72F, 1.0F) & 0xFFFFFF;
         }
         return switch (type) {
-            case AIR, AURA -> 0xCFA86E; // Luminous golden-buff Air palette (#A88654 family)
+            case AIR -> 0xCFA86E; // Luminous golden-buff Air palette (#A88654 family)
+            case AURA -> 0xFF6B9D; // Canonical Dual-Tone Living Pink (#FF6B9D) + Buff Air Gold (#A88654)
             case VOID -> 0x7E3BFF;
             case UMBRAL -> 0x3A2444; // Canonical Abyssal Shadow-Black (#211A21 family)
             case SHADOW, SILENCE, CONCEALMENT -> 0x6D4AFF;
             case ESCHATON -> 0xD926FF;
-            case NULL_U -> 0x5936D9;
-            case ABYSS, UMBRAL_WATER -> 0x1E88E5;
+            case NULL_U -> 0x110B17; // Canonical Abyssal Pitch Black (#110B17) + Cosmic Violet (#41304E)
+            case ABYSS -> 0x211A21; // Canonical Pitch-Black Oceanic Ink (#211A21) + Deep Trench Navy (#225C7C)
+            case UMBRAL_WATER -> 0x1E88E5;
             case OBLIVION -> 0xE63E1C;
             case ENTROPIC -> 0xC61A52;
             case CATACLYSM -> 0xFF3D1F;
-            case BLOOD -> 0xF01830;
+            case BLOOD -> 0xB80614; // Canonical Deep Venous Crimson (#8A0303 family)
             case NATURE, OVERGROWTH, GROWTH, PRIMAL -> 0x2CE668;
             case SPORE -> 0x248F34; // Canonical Symbiotic Fungal Nature Green (#1A5923 family)
             case TAIGA -> 0x1F6E2B; // Canonical Boreal Evergreen Conifer Green (#1A5923 family)
             case OASIS -> 0x227830; // Canonical Lush Oasis Succulent Green (#1A5923 family)
             case VITAE -> 0xFF6B9D; // Canonical Vibrant Rose Life Energy (#FF6B9D)
+            case AMBER -> 0xF29B2E; // Translucent Golden Resin (#773214 / #F29B2E family)
+            case ECLIPSE -> 0x211A21; // Canonical Abyssal Void-Black (#211A21) encircled by Celestial Gold (#FFEA78)
+            case BLIGHT -> 0x4D6453; // Canonical Tombstone Green-Grey (#4D6453) + Necrotic Green (#34CC48)
+            case ASTRAL -> 0x41304E; // Canonical Cosmic Violet (#41304E) + Electric Gold-Yellow (#FFE600)
+            case SOULFIRE -> 0x1DF0E5; // Canonical Cyan Soulflame (#1DF0E5) + Soul-Ember Teal (#0D6469)
+            case VAPOR -> 0xE0F7FA; // Canonical Scalding Steam White (#E0F7FA) + Boiling Aquatic Cyan (#30A9B0)
+            case NULL_R -> 0xFFFFFF; // Canonical Brilliant Antimatter White (#FFFFFF) + Cosmic Violet (#41304E)
+            case DAWN -> 0xFFEA78; // Canonical Blazing Sunrise Gold (#FFEA78) + Buff Air Gold (#A88654)
+            case AEGIS -> 0xFFEA78; // Canonical Holy Gold (#FFEA78) + Granite Brown (#773214)
+            case AURORA -> 0xFFEA78; // Canonical Radiant Solar Gold (#FFEA78) + Crystalline Cryo Cyan (#98DCF2)
+            case MIRAGE -> 0xFFEA78; // Canonical Sunlit Mirage Gold (#FFEA78) + Bleached Desert Sandstone (#C2B28F)
             case WATER, FLOW -> 0x24B6FF;
             case EARTH, GRAVITY -> 0xD97B38;
             case FROZEN, GLACIAL -> 0x98DCF2; // Canonical Pale Cryo-Blue / Glacial Cyan (#98DCF2)
             case NETHER -> 0xE24C0E; // Canonical Infernal Volcanic Red-Orange (#B83C08 family)
             case RADIANT -> 0xFFE278; // Canonical Solar Gold (#FFE278)
-            case UNDEAD, BARROW -> 0x5EE088;
+            case UNDEAD -> 0x5EE088;
+            case BARROW -> 0x773214; // Canonical Granite Brown (#773214) + Necrotic Moss (#4D6453)
+            case PYRE -> 0xFF4500; // Canonical Roaring Wildfire Red-Orange (#FF4500) + Charred Timber Coal (#773214)
+            case PENUMBRA -> 0x281E3C; // Canonical Deep Twilight Indigo (#281E3C) + Blazing Corona Gold (#FFEA78)
             case ARID, DUST -> 0xC2B28F; // Canonical Bleached Dune Sandstone (#C2B28F)
             case LIGHTNING, STATIC, VOLT -> 0xFFE600; // Canonical Electric Gold-Yellow (#FFE600)
             case MAGMA -> 0xB83C08; // Canonical Molten Volcanic Red-Orange (#B83C08)
             case STORM -> 0x429BA3; // Canonical Tempest Teal (#429BA3)
-            case WRAITH -> 0x7CF2C2;
+            case WRAITH -> 0x41304E; // Canonical Abyssal Void Indigo (#41304E) + Necrotic Moss (#4D6453)
             default -> boostEmissiveLuminance(packRgb(type.getCurrentRGB(timeTicks)), 135);
         };
     }
@@ -238,18 +305,28 @@ public final class SpellParticleHelper {
             return Mth.hsvToRgb(hue, 0.65F, 1.0F) & 0xFFFFFF;
         }
         return switch (primary) {
-            case AIR, AURA -> 0xEEF9FF; // Crisp silver-white slipstream ivory
+            case AIR -> 0xEEF9FF; // Crisp silver-white slipstream ivory
+            case AURA -> 0xD6B478; // Canonical Buff Air Gold (#A88654 family)
             case UMBRAL -> 0x8F5CFF; // Twilight Umbral-Eclipse Violet Rim
-            case UNDEAD, BARROW -> 0xE6DFCF; // Bleached Ossuary Bone Ivory (#E6DFCF)
+            case UNDEAD -> 0xE6DFCF; // Bleached Ossuary Bone Ivory (#E6DFCF)
+            case BARROW -> 0x4D6453; // Canonical Necrotic Moss / Tombstone Lichen (#4D6453)
             case ARID -> 0xF5E4BE; // Sunlit Desert Ivory (#F5E4BE)
             case DUST -> 0xF2ECE1; // Fine Abrasive Chalk-White Ivory (#F2ECE1)
-            case VOID, NULL_U -> 0xC77DFF;
+            case VOID -> 0xC77DFF;
+            case NULL_U -> 0x41304E; // Canonical Cosmic Event-Horizon Violet (#41304E)
+            case ABYSS -> 0x225C7C; // Canonical Deep Trench Navy (#225C7C)
             case ESCHATON -> 0xFF4518;
             case RADIANT -> 0xFFFDF0; // Incandescent Daylight Ivory-White (#FFFDF0)
-            case APOTHEOSIS, DAWN, AUREOLE -> 0xFFF6C4;
+            case DAWN -> 0xA88654; // Canonical Atmospheric Buff Air Gold (#A88654)
+            case AEGIS -> 0x773214; // Canonical Granite Brown (#773214)
+            case AURORA -> 0x98DCF2; // Canonical Crystalline Cryo Cyan (#98DCF2)
+            case MIRAGE -> 0xC2B28F; // Canonical Bleached Desert Sandstone (#C2B28F)
+            case WRAITH -> 0x4D6453; // Canonical Necrotic Moss / Tombstone Ectoplasm (#4D6453)
+            case APOTHEOSIS, AUREOLE -> 0xFFF6C4;
             case FROZEN -> 0xEBF9FF; // Diamond-white permafrost highlight (#EBF9FF)
             case GLACIAL, RIME, TERMINUS -> 0xE0FFFF;
-            case NETHER, MAGMA, PYRE, CATACLYSM -> 0xFFD15C;
+            case PYRE -> 0x773214; // Canonical Charred Cedar Timber & Granite Coal Brown (#773214)
+            case NETHER, MAGMA, CATACLYSM -> 0xFFD15C;
             case LIGHTNING, STATIC -> 0xB8F4FF;
             case STORM -> 0xD8FAFF; // Crisp Seafoam Gale-Slipstream Ivory (#D8FAFF)
             case NATURE, OVERGROWTH, SYLVAN -> 0xB4FF78;
@@ -257,10 +334,17 @@ public final class SpellParticleHelper {
             case TAIGA -> 0x98DCF2; // Canonical Boreal Frost Cyan (#98DCF2)
             case OASIS -> 0xDEC99A; // Canonical Sunlit Desert Sandstone Gold (#C2B28F family)
             case VITAE -> 0xFFD1E3; // Luminous Rose-Pearl Cellular Blush (#FFD1E3)
+            case AMBER -> 0xFF6B9D; // Canonical Dual-Tone Living Pink (#FF6B9D) + Deep Earth Amber (#773214)
             case EARTH, GRAVITY, DENSITY -> 0xFFC278;
-            case BLOOD -> 0xFF6B8B;
-            case WATER, ABYSS -> 0x8CF4FF;
-            case ASTRAL, ECLIPSE, PENUMBRA -> 0xFFE678;
+            case BLOOD -> 0xFF384C; // Luminous Arterial Scarlet Highlight (#FF384C)
+            case WATER -> 0x8CF4FF;
+            case ASTRAL -> 0xFFE600; // Canonical Electric Gold-Yellow (#FFE600)
+            case SOULFIRE -> 0x0D6469; // Canonical Soul-Ember Teal (#0D6469)
+            case VAPOR -> 0x30A9B0; // Canonical Boiling Aquatic Cyan (#30A9B0)
+            case NULL_R -> 0x41304E; // Canonical Cosmic Event-Horizon Violet (#41304E)
+            case PENUMBRA -> 0xFFEA78; // Canonical Blazing Solar Corona Gold (#FFEA78)
+            case ECLIPSE -> 0xFFEA78; // Canonical Blazing Coronal Gold (#FFEA78)
+            case BLIGHT -> 0x34CC48; // Canonical Virulent Necrotic Green (#34CC48)
             default -> {
                 int[][] cycle = primary.getColorCycle();
                 if (cycle.length > 1) {
@@ -299,11 +383,12 @@ public final class SpellParticleHelper {
             return ModParticles.TINTABLE_RUNE.get();
         }
         return switch (type) {
-            case WATER, OASIS, SPRING, ABYSS -> ModParticles.TINTABLE_DRIP.get();
+            case WATER, OASIS, SPRING, ABYSS, AMBER -> ModParticles.TINTABLE_DRIP.get();
             case SPORE, BLIGHT, MIASMA -> ModParticles.TINTABLE_ACID.get();
-            case AIR, VAPOR, MIRAGE, UMBRAL, UNDEAD, WRAITH, DUST, ARID -> ModParticles.TINTABLE_MIST.get();
-            case VOID, NULL_U, ESCHATON, CATACLYSM, STORM -> ModParticles.TINTABLE_VORTEX.get();
+            case AIR, VAPOR, MIRAGE, UMBRAL, UNDEAD, WRAITH, DUST, ARID, BLOOD, AURA -> ModParticles.TINTABLE_MIST.get();
+            case VOID, NULL_R, NULL_U, ESCHATON, CATACLYSM, STORM -> ModParticles.TINTABLE_VORTEX.get();
             case AEGIS, RADIANT, CELESTIAL, APOTHEOSIS, ENTROPICA -> ModParticles.TINTABLE_SIGIL.get();
+            case ECLIPSE -> ModParticles.TINTABLE_EMBER.get();
             default -> ModParticles.TINTABLE_SPARKLE.get();
         };
     }
@@ -508,6 +593,492 @@ public final class SpellParticleHelper {
                     -vel.y * 0.05D + (rand.nextDouble() - 0.5D) * 0.06D,
                     -vel.z * 0.05D + (rand.nextDouble() - 0.5D) * 0.06D
             );
+        } else if (primary == EssenceType.ASTRAL) {
+            // 3f. Astral (#27) Celestial Comet Missile wake: dual-tone #41304E cosmic star-matter tail + #FFE600 electric pulsar sparks!
+            TimedTintableParticleOption cometTail = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SPARKLE.get(),
+                    0x41304E,
+                    26,
+                    0.78F * tierScale,
+                    0.06F
+            );
+            clientLevel.addParticle(
+                    cometTail,
+                    pos.x - vel.x * 0.14D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.y - vel.y * 0.14D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.z - vel.z * 0.14D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    -vel.x * 0.08D,
+                    -vel.y * 0.08D,
+                    -vel.z * 0.08D
+            );
+            TimedTintableParticleOption goldSpark = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_ARC.get(),
+                    0xFFE600,
+                    18,
+                    0.72F * tierScale,
+                    0.08F
+            );
+            clientLevel.addParticle(
+                    goldSpark,
+                    pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                    -vel.x * 0.05D,
+                    -vel.y * 0.05D,
+                    -vel.z * 0.05D
+            );
+        } else if (primary == EssenceType.SOULFIRE) {
+            // 3g. Soulfire (#28) Screaming Soul Skull wake: howling #1DF0E5 cyan soulfire flames & #0D6469 spectral mist!
+            clientLevel.addParticle(
+                    net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    -vel.x * 0.06D,
+                    -vel.y * 0.06D,
+                    -vel.z * 0.06D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption soulMist = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_MIST.get(),
+                        0x0D6469,
+                        24,
+                        0.72F * tierScale,
+                        0.05F
+                );
+                clientLevel.addParticle(
+                        soulMist,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.18D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        0.01D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.VAPOR) {
+            // 3h. Vapor (#29) Scalding Steam-Burst Geyser Orb wake: pressurized #E0F7FA steam plumes & #30A9B0 boiling droplets!
+            TimedTintableParticleOption steamPlume = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_MIST.get(),
+                    0xE0F7FA,
+                    24,
+                    0.82F * tierScale,
+                    0.06F
+            );
+            clientLevel.addParticle(
+                    steamPlume,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    -vel.x * 0.05D,
+                    0.025D,
+                    -vel.z * 0.05D
+            );
+            if ((tickCount & 1) == 0) {
+                clientLevel.addParticle(
+                        net.minecraft.core.particles.ParticleTypes.SPLASH,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.18D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.18D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.18D,
+                        -vel.x * 0.04D,
+                        0.01D,
+                        -vel.z * 0.04D
+                );
+            }
+        } else if (primary == EssenceType.NULL_R) {
+            // 3i. Null_R (#30) White Hole Singularity Orb wake: incandescent #FFFFFF antimatter flares & #41304E cosmic violet gravity motes!
+            TimedTintableParticleOption antimatterSpark = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SPARKLE.get(),
+                    0xFFFFFF,
+                    22,
+                    0.80F * tierScale,
+                    0.07F
+            );
+            clientLevel.addParticle(
+                    antimatterSpark,
+                    pos.x - vel.x * 0.10D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.y - vel.y * 0.10D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.z - vel.z * 0.10D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    -vel.x * 0.05D,
+                    -vel.y * 0.05D,
+                    -vel.z * 0.05D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption horizonVortex = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_SINGULARITY.get(),
+                        0x41304E,
+                        24,
+                        0.74F * tierScale,
+                        0.15F
+                );
+                clientLevel.addParticle(
+                        horizonVortex,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                        -vel.x * 0.03D,
+                        -vel.y * 0.03D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.NULL_U) {
+            // 3j. Null_U (#31) Black Hole Singularity Orb wake: light-devouring #110B17 abyssal singularity & #41304E shadow smoke!
+            TimedTintableParticleOption abyssCore = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SINGULARITY.get(),
+                    0x110B17,
+                    24,
+                    0.82F * tierScale,
+                    0.16F
+            );
+            clientLevel.addParticle(
+                    abyssCore,
+                    pos.x - vel.x * 0.10D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.y - vel.y * 0.10D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.z - vel.z * 0.10D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    -vel.x * 0.04D,
+                    -vel.y * 0.04D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption umbralMist = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_MIST.get(),
+                        0x41304E,
+                        24,
+                        0.74F * tierScale,
+                        0.05F
+                );
+                clientLevel.addParticle(
+                        umbralMist,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                        -vel.x * 0.03D,
+                        -vel.y * 0.03D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.DAWN) {
+            // 3k. Dawn (#32) Solar Horizon Javelin wake: blazing #FFEA78 sunrise rays & #A88654 floating wind-feather slipstream!
+            TimedTintableParticleOption sunRay = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SUNBEAM.get(),
+                    0xFFEA78,
+                    22,
+                    0.80F * tierScale,
+                    0.06F
+            );
+            clientLevel.addParticle(
+                    sunRay,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    -vel.x * 0.06D,
+                    -vel.y * 0.06D,
+                    -vel.z * 0.06D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption windFeather = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_WISP.get(),
+                        0xA88654,
+                        24,
+                        0.72F * tierScale,
+                        0.05F
+                );
+                clientLevel.addParticle(
+                        windFeather,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.04D,
+                        0.012D,
+                        -vel.z * 0.04D
+                );
+            }
+        } else if (primary == EssenceType.ABYSS) {
+            // 3l. Abyss (#33) Abyssal Depth Charge Orb wake: #211A21 cephalopod ink mist & #225C7C deep-trench pressure droplets!
+            TimedTintableParticleOption inkMist = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_MIST.get(),
+                    0x211A21,
+                    22,
+                    0.82F * tierScale,
+                    0.03F
+            );
+            clientLevel.addParticle(
+                    inkMist,
+                    pos.x - vel.x * 0.10D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.y - vel.y * 0.10D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.z - vel.z * 0.10D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    -vel.x * 0.04D,
+                    -vel.y * 0.04D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption trenchDrip = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_DRIP.get(),
+                        0x225C7C,
+                        24,
+                        0.76F * tierScale,
+                        -0.06F
+                );
+                clientLevel.addParticle(
+                        trenchDrip,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        -0.02D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.AEGIS) {
+            // 3m. Aegis (#34) Gilded Bastion Shield-Slug wake: #FFEA78 holy rune sigils & #773214 granite bastion shields!
+            TimedTintableParticleOption holySigil = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SIGIL.get(),
+                    0xFFEA78,
+                    22,
+                    0.82F * tierScale,
+                    0.04F
+            );
+            clientLevel.addParticle(
+                    holySigil,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    -vel.x * 0.05D,
+                    -vel.y * 0.05D,
+                    -vel.z * 0.05D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption graniteShield = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_SHIELD.get(),
+                        0x773214,
+                        24,
+                        0.76F * tierScale,
+                        0.02F
+                );
+                clientLevel.addParticle(
+                        graniteShield,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        0.0D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.AURORA) {
+            // 3n. Aurora (#35) Prismatic Aurora Ribbon-Lance wake: #FFEA78 dancing solar ribbons & #98DCF2 crystalline cryo sparkles!
+            TimedTintableParticleOption auroraRibbon = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SUNBEAM.get(),
+                    0xFFEA78,
+                    22,
+                    0.82F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    auroraRibbon,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.18D,
+                    -vel.x * 0.05D,
+                    -vel.y * 0.05D,
+                    -vel.z * 0.05D
+            );
+            TimedTintableParticleOption cryoSparkle = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SPARKLE.get(),
+                    0x98DCF2,
+                    24,
+                    0.78F * tierScale,
+                    0.06F
+            );
+            clientLevel.addParticle(
+                    cryoSparkle,
+                    pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                    -vel.x * 0.04D,
+                    -vel.y * 0.04D,
+                    -vel.z * 0.04D
+            );
+        } else if (primary == EssenceType.MIRAGE) {
+            // 3o. Mirage (#36) Shimmering Mirage Sand-Dart wake: #FFEA78 sunlit heat-haze rays & #C2B28F swirling desert sand plumes!
+            TimedTintableParticleOption mirageShimmer = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SUNBEAM.get(),
+                    0xFFEA78,
+                    20,
+                    0.80F * tierScale,
+                    0.06F
+            );
+            clientLevel.addParticle(
+                    mirageShimmer,
+                    pos.x - vel.x * 0.10D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.y - vel.y * 0.10D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.z - vel.z * 0.10D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    -vel.x * 0.05D,
+                    -vel.y * 0.05D,
+                    -vel.z * 0.05D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption sandVortex = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_VORTEX.get(),
+                        0xC2B28F,
+                        22,
+                        0.74F * tierScale,
+                        0.14F
+                );
+                clientLevel.addParticle(
+                        sandVortex,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                        -vel.x * 0.04D,
+                        0.01D,
+                        -vel.z * 0.04D
+                );
+            }
+        } else if (primary == EssenceType.WRAITH) {
+            // 3p. Wraith (#37) Spectral Wraith-Skull Missile wake: #41304E abyssal void singularity & #4D6453 ectoplasmic soul wisps!
+            TimedTintableParticleOption voidMist = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SINGULARITY.get(),
+                    0x41304E,
+                    22,
+                    0.82F * tierScale,
+                    0.12F
+            );
+            clientLevel.addParticle(
+                    voidMist,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    -vel.x * 0.05D,
+                    -vel.y * 0.05D,
+                    -vel.z * 0.05D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption ectoWisp = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_WISP.get(),
+                        0x4D6453,
+                        24,
+                        0.76F * tierScale,
+                        0.05F
+                );
+                clientLevel.addParticle(
+                        ectoWisp,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                        -vel.x * 0.04D,
+                        0.015D,
+                        -vel.z * 0.04D
+                );
+            }
+        } else if (primary == EssenceType.BARROW) {
+            // 3q. Barrow (#38) Tombstone Ossuary Boulder-Slug wake: #773214 grave-earth grit & #4D6453 necrotic lichen spores!
+            TimedTintableParticleOption tombSlab = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SHIELD.get(),
+                    0x773214,
+                    22,
+                    0.82F * tierScale,
+                    0.04F
+            );
+            clientLevel.addParticle(
+                    tombSlab,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.20D,
+                    -vel.x * 0.05D,
+                    -0.015D,
+                    -vel.z * 0.05D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption mossSpore = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_SPORE.get(),
+                        0x4D6453,
+                        24,
+                        0.76F * tierScale,
+                        0.04F
+                );
+                clientLevel.addParticle(
+                        mossSpore,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                        -vel.x * 0.03D,
+                        -0.01D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.PYRE) {
+            // 3r. Pyre (#39) Combustion Hearth Orb wake: #FF4500 roaring wildfire sparks & #773214 charred cedar coal ash!
+            TimedTintableParticleOption hearthEmber = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_EMBER.get(),
+                    0xFF4500,
+                    22,
+                    0.85F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    hearthEmber,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    -vel.x * 0.05D,
+                    0.025D,
+                    -vel.z * 0.05D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption coalSmoke = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_MIST.get(),
+                        0x773214,
+                        24,
+                        0.80F * tierScale,
+                        0.04F
+                );
+                clientLevel.addParticle(
+                        coalSmoke,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                        -vel.x * 0.03D,
+                        0.02D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.PENUMBRA) {
+            // 3s. Penumbra (#40) Penumbral Twilight Eclipse-Bolt wake: #FFEA78 coronal rays & #281E3C twilight singularities!
+            TimedTintableParticleOption coronaRay = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SUNBEAM.get(),
+                    0xFFEA78,
+                    22,
+                    0.84F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    coronaRay,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    -vel.x * 0.05D,
+                    0.01D,
+                    -vel.z * 0.05D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption twilightCore = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_SINGULARITY.get(),
+                        0x281E3C,
+                        24,
+                        0.82F * tierScale,
+                        0.04F
+                );
+                clientLevel.addParticle(
+                        twilightCore,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        0.0D,
+                        -vel.z * 0.03D
+                );
+            }
         }
 
         // 4. Lingering glowing Elder Futhark rune glyph every 4 ticks on non-split projectiles

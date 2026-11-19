@@ -26,7 +26,12 @@ public abstract class CommonLivingEntityMixin {
         if (self.level() != null) {
             long now = self.level().getGameTime();
             var data = EntityHelper.getPersistentData(self);
-            if (data.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L) > now) {
+            if (data.getLong(SpellLingeringZoneManager.TAG_NULL_U_VEIL_UNTIL).orElse(0L) > now) {
+                // Section 6.32 Null_U Abyssal Zero-Acoustic Veil: cuts hostile mob detection range by an exact 70% (0.30x)!
+                cir.setReturnValue(cir.getReturnValueD() * 0.30D);
+            } else if (data.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L) > now
+                    || data.getLong(SpellLingeringZoneManager.TAG_ABYSS_SHROUD_UNTIL).orElse(0L) > now) {
+                // Section 6.9 Umbral Shroud & Section 6.34 Abyss Hadopelagic Trench Shroud: cuts mob detection range by 60% (0.40x)!
                 cir.setReturnValue(cir.getReturnValueD() * 0.40D);
             } else if (data.getLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL).orElse(0L) > now) {
                 cir.setReturnValue(cir.getReturnValueD() * 0.50D);

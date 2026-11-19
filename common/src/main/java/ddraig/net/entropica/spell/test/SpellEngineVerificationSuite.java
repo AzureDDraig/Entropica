@@ -1111,7 +1111,8 @@ public final class SpellEngineVerificationSuite {
             int pRgb = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantPrimaryRgb(et, 40.0D);
             int aRgb = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantAccentRgb(et, null, 40.0D);
             byte arch = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(et, false, false);
-            if (pRgb <= 0 || pRgb > 0xFFFFFF || aRgb <= 0 || aRgb > 0xFFFFFF || arch < 0 || arch > 7) {
+            if (pRgb <= 0 || pRgb > 0xFFFFFF || aRgb <= 0 || aRgb > 0xFFFFFF
+                    || arch < 0 || arch > ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT) {
                 vfxPalettesAndArchetypesOk = false;
                 break;
             }
@@ -1124,15 +1125,53 @@ public final class SpellEngineVerificationSuite {
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.TERMINUS, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_CRYSTALLINE_LANCE
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.LIGHTNING, false, false)
-                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_VOLTAIC_JAVELIN
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_BALL_LIGHTNING
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.APOTHEOSIS, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_SOLAR_CROWN
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.MAGMA, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_MOLTEN_METEOR
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.BLOOD, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_BIO_HELIX
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.AMBER, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_AMBER_BUBBLE_ORB
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.ECLIPSE, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_PENUMBRA_CRESCENT_SCYTHE
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.BLIGHT, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_NECRO_SPORE_POD
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.ASTRAL, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_CELESTIAL_COMET
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.SOULFIRE, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_SOULFLAME_SKULL
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.VAPOR, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_STEAM_GEYSER_ORB
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.NULL_R, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_WHITE_HOLE_ORB
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.NULL_R, true, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_CRYSTALLINE_LANCE
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.NULL_U, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_BLACK_HOLE_ORB
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.NULL_U, true, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_CRYSTALLINE_LANCE
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.DAWN, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_SOLAR_HORIZON_JAVELIN
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.ABYSS, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_ABYSSAL_DEPTH_CHARGE_ORB
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.AEGIS, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_GILDED_PAVISE_SHIELD
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.AURORA, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_AURORA_RIBBON_LANCE
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.MIRAGE, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_MIRAGE_SAND_JAVELIN
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.WRAITH, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_WRAITH_SKULL
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.BARROW, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_TOMBSTONE_BOULDER
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.PYRE, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_COMBUSTION_HEARTH_ORB
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.PENUMBRA, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.AIR, false, false)
-                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_ARCANE_BOLT;
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_WIND_SPIRAL;
 
         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.tickClient(false);
         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.enqueueClientEvent(new ddraig.net.entropica.network.SpellVfxEventPayload(
@@ -1290,6 +1329,8 @@ public final class SpellEngineVerificationSuite {
     }
 
     public static void main(String[] args) {
+        net.minecraft.SharedConstants.tryDetectVersion();
+        net.minecraft.server.Bootstrap.bootStrap();
         VerificationReport report = runAllChecks();
         for (String line : report.lines()) {
             System.out.println(line);

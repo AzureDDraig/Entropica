@@ -153,7 +153,8 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             case GLYPH -> "Rime Pitfall";
             case CONE -> "Hoarfrost Flash-Freeze";
             case SKYFALL -> "Colossal Glacial Monolith";
-            case SUMMON_AGENT, SUMMON_SENTRY, SUMMON_DECOY -> "Glacial Eidolon Suite";
+            case SUMMON_AGENT, SUMMON_SENTRY, SUMMON_DECOY ->
+                    ddraig.net.entropica.spell.engine.SpellEidolonSpecs.resolveCanonicalBlueprintTitle(materiaType(), form.getSummonArchetype());
         };
     }
 

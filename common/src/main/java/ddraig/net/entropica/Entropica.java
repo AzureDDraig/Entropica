@@ -65,10 +65,13 @@ public class Entropica {
                 if (prev.distanceToSqr(curr) > 1e-6) {
                     ddraig.net.entropica.forcefield.BarrierFieldManager.checkMovementCollisions(serverPlayer, prev, curr);
                 }
-                // Section 6.32 Null_U Sensory Blackout Hex: eating Mushroom Stew / Suspicious Stew cleanses the abyssal blackout!
+                // Section 6.32 Null_U Sensory Blackout Hex: eating Mushroom Stew / Soup cleanses the abyssal blackout!
                 if (serverPlayer.isUsingItem() && serverPlayer.getUseItemRemainingTicks() <= 1) {
                     net.minecraft.world.item.ItemStack using = serverPlayer.getUseItem();
-                    if (using.is(net.minecraft.world.item.Items.MUSHROOM_STEW) || using.is(net.minecraft.world.item.Items.SUSPICIOUS_STEW)) {
+                    if (using.is(net.minecraft.world.item.Items.MUSHROOM_STEW)
+                            || using.is(net.minecraft.world.item.Items.SUSPICIOUS_STEW)
+                            || using.is(net.minecraft.world.item.Items.RABBIT_STEW)
+                            || using.is(net.minecraft.world.item.Items.BEETROOT_SOUP)) {
                         net.minecraft.nbt.CompoundTag pData = ddraig.net.entropica.util.EntityHelper.getPersistentData(serverPlayer);
                         if ("NULL_U".equals(pData.getString("SpellHexType").orElse(""))) {
                             ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.purifyHexesAndNegativeEffects(serverPlayer);

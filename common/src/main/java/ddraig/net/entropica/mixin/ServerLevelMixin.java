@@ -53,17 +53,23 @@ public abstract class ServerLevelMixin {
             }
         }
         if (src instanceof Projectile proj && proj.getOwner() instanceof LivingEntity owner) {
-            long shroud = EntityHelper.getPersistentData(owner)
-                    .getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L);
-            if (shroud > now) {
+            var oData = EntityHelper.getPersistentData(owner);
+            if (oData.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L) > now
+                    || oData.getLong(SpellLingeringZoneManager.TAG_NULL_U_VEIL_UNTIL).orElse(0L) > now
+                    || oData.getLong(SpellLingeringZoneManager.TAG_ABYSS_SHROUD_UNTIL).orElse(0L) > now
+                    || oData.getLong(SpellLingeringZoneManager.TAG_WRAITH_SHROUD_UNTIL).orElse(0L) > now
+                    || oData.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L) > now) {
                 ci.cancel();
                 return;
             }
         }
         if (src instanceof LivingEntity living) {
-            long shroud = EntityHelper.getPersistentData(living)
-                    .getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L);
-            if (shroud > now) {
+            var lData = EntityHelper.getPersistentData(living);
+            if (lData.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L) > now
+                    || lData.getLong(SpellLingeringZoneManager.TAG_NULL_U_VEIL_UNTIL).orElse(0L) > now
+                    || lData.getLong(SpellLingeringZoneManager.TAG_ABYSS_SHROUD_UNTIL).orElse(0L) > now
+                    || lData.getLong(SpellLingeringZoneManager.TAG_WRAITH_SHROUD_UNTIL).orElse(0L) > now
+                    || lData.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L) > now) {
                 ci.cancel();
             }
         }

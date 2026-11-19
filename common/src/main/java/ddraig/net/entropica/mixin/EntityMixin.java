@@ -89,16 +89,24 @@ public abstract class EntityMixin {
             return true;
         }
         if (entity instanceof Projectile proj && proj.getOwner() instanceof LivingEntity owner && owner.level() != null) {
-            long ownerShroud = EntityHelper.getPersistentData(owner)
-                    .getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L);
-            if (ownerShroud > owner.level().getGameTime()) {
+            long now = owner.level().getGameTime();
+            var oData = EntityHelper.getPersistentData(owner);
+            if (oData.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L) > now
+                    || oData.getLong(SpellLingeringZoneManager.TAG_NULL_U_VEIL_UNTIL).orElse(0L) > now
+                    || oData.getLong(SpellLingeringZoneManager.TAG_ABYSS_SHROUD_UNTIL).orElse(0L) > now
+                    || oData.getLong(SpellLingeringZoneManager.TAG_WRAITH_SHROUD_UNTIL).orElse(0L) > now
+                    || oData.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L) > now) {
                 return true;
             }
         }
         if (entity instanceof LivingEntity living && living.level() != null) {
-            long shroudUntil = EntityHelper.getPersistentData(living)
-                    .getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L);
-            return shroudUntil > living.level().getGameTime();
+            long now = living.level().getGameTime();
+            var lData = EntityHelper.getPersistentData(living);
+            return lData.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L) > now
+                    || lData.getLong(SpellLingeringZoneManager.TAG_NULL_U_VEIL_UNTIL).orElse(0L) > now
+                    || lData.getLong(SpellLingeringZoneManager.TAG_ABYSS_SHROUD_UNTIL).orElse(0L) > now
+                    || lData.getLong(SpellLingeringZoneManager.TAG_WRAITH_SHROUD_UNTIL).orElse(0L) > now
+                    || lData.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L) > now;
         }
         return false;
     }

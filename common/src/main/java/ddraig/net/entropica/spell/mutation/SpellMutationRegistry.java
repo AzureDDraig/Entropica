@@ -312,7 +312,7 @@ public final class SpellMutationRegistry {
         float lifesteal = switch (materiaType) {
             case ENTROPICA -> 0.50F;
             case CELESTIAL, EMPYREAN -> 0.35F;
-            case BLOOD, ENTROPIC -> 0.30F;
+            case ENTROPIC -> 0.30F;
             case APOTHEOSIS -> 0.25F;
             case UNDEAD, WRAITH, ECLIPSE -> 0.20F;
             case SOULFIRE -> 0.15F;

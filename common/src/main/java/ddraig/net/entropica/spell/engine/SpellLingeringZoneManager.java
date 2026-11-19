@@ -184,6 +184,7 @@ public final class SpellLingeringZoneManager {
     public static final String TAG_VITAE_ARRHYTHMIA_NEXT_JOLT = "SpellVitaeArrhythmiaNextJolt";
     public static final String TAG_BLOOD_CARAPACE_UNTIL = "SpellBloodCrimsonCarapaceUntil";
     public static final String TAG_BLOOD_HEMORRHAGE_UNTIL = "SpellBloodHemorrhageUntil";
+    public static final String TAG_BLOOD_HEMORRHAGE_NEXT_TICK = "SpellBloodHemorrhageNextTick";
     public static final String TAG_BLOOD_FEAST_UNTIL = "SpellBloodFeastMarkUntil";
     public static final String TAG_AURA_SHROUD_UNTIL = "SpellAuraChakraShroudUntil";
     public static final String TAG_AMBER_MANTLE_UNTIL = "SpellAmberBastionMantleUntil";
@@ -200,13 +201,17 @@ public final class SpellLingeringZoneManager {
     // Ethereal & Paradox Fusions (#25–#36)
     public static final String TAG_ECLIPSE_BASTION_UNTIL = "SpellEclipseBastionUntil";
     public static final String TAG_ECLIPSE_CORONA_BURN_UNTIL = "SpellEclipseCoronaBurnUntil";
+    public static final String TAG_ECLIPSE_MYOPIA_UNTIL = "SpellEclipseMyopiaUntil";
     public static final String TAG_BLIGHT_CARAPACE_UNTIL = "SpellBlightCarapaceUntil";
     public static final String TAG_BLIGHT_CHAIN_MARK_UNTIL = "SpellBlightChainDeathMarkUntil";
+    public static final String TAG_BLIGHT_POD_CONTAGION_UNTIL = "SpellBlightPodContagionUntil";
     public static final String TAG_BLIGHT_CORPSE_SNARE_UNTIL = "SpellBlightCorpseSnareUntil";
+    public static final String TAG_BLIGHT_WITHER_ROSE_SNARE_UNTIL = "SpellBlightWitherRoseSnareUntil";
     public static final String TAG_ASTRAL_SHROUD_UNTIL = "SpellAstralStarlightShroudUntil";
     public static final String TAG_SOULFIRE_SHROUD_UNTIL = "SpellSoulfireShroudUntil";
     public static final String TAG_SOULFIRE_BURN_UNTIL = "SpellSoulfireBurnUntil";
     public static final String TAG_SOULFIRE_CHAIN_BURST_UNTIL = "SpellSoulfireChainBurstUntil";
+    public static final String TAG_SOULFIRE_CLEAVE_BURST_UNTIL = "SpellSoulfireCleaveBurstUntil";
     public static final String TAG_SOULFIRE_SOULSAND_MARK_UNTIL = "SpellSoulfireSoulSandMarkUntil";
     public static final String TAG_VAPOR_MIST_SHROUD_UNTIL = "SpellVaporMistShroudUntil";
     public static final String TAG_VAPOR_BOIL_DEATH_UNTIL = "SpellVaporBoilDeathUntil";
@@ -456,17 +461,28 @@ public final class SpellLingeringZoneManager {
                 && zone.spell.flowPart().mutationEnabled()
                 && zone.spell.flowPart().resolveEffectiveMateria(zone.spell.materiaSpecific(), zone.fallbackMateria) == EssenceType.AMBER) {
             // Section 6.25 Amber Resinite Viscous Linger Flow: +50% duration on lingering zones/traps + escalating 10%/s up to 50% slow!
-            int extendedDuration = Math.max(zone.maxDurationTicks + 10, (int) Math.ceil(zone.maxDurationTicks * 1.5D));
+            int extendedDuration = zone.maxDurationTicks >= 1_000_000_000
+                    ? zone.maxDurationTicks
+                    : Math.max(zone.maxDurationTicks + 10, (int) Math.ceil(zone.maxDurationTicks * 1.5D));
             ZoneTickBehavior inner = zone.behavior;
             ZoneTickBehavior wrapped = (srv, z, elapsed) -> {
                 if (elapsed <= z.maxDurationTicks && elapsed % 20 == 0) {
                     LivingEntity owner = z.resolveCaster(srv);
-                    int amp = Math.min(2, elapsed / 40); // escalates from Slowness I (~15%) up to Slowness III (~45-50%)
+                    long zNow = srv.getGameTime();
+                    boolean wardSafe = z.spell != null && z.spell.hasWardFriendlyFireSafeguard();
                     AABB amberBox = new AABB(z.center.x - z.radius, z.center.y - 1.5D, z.center.z - z.radius,
                             z.center.x + z.radius, z.center.y + 2.5D, z.center.z + z.radius);
                     for (LivingEntity foe : srv.getEntitiesOfClass(LivingEntity.class, amberBox, e -> e.isAlive() && e != owner)) {
-                        if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, owner, z.spell.hasWardFriendlyFireSafeguard())) continue;
-                        foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, amp, true, true));
+                        if (SpellExecutionEngine.isFriendlyAllyForOasis(owner, foe)) continue;
+                        if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, owner, wardSafe)) continue;
+                        CompoundTag fTag = EntityHelper.getPersistentData(foe);
+                        long lastLinger = fTag.getLong("SpellAmberLingerLastTick").orElse(0L);
+                        int stacks = (zNow - lastLinger <= 32L) ? Math.min(5, fTag.getInt("SpellAmberLingerStacks").orElse(0) + 1) : 1;
+                        fTag.putLong("SpellAmberLingerLastTick", zNow);
+                        fTag.putInt("SpellAmberLingerStacks", stacks);
+                        // Exact escalating 10% slow per second up to 50% max!
+                        SpellCombatReactionEngine.applyTimedMovementSpeedSap(foe, srv, stacks * 0.10D, 30L);
+                        foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, Math.min(2, (stacks - 1) / 2), true, true));
                     }
                 }
                 return inner.tick(srv, z, elapsed);
@@ -550,6 +566,7 @@ public final class SpellLingeringZoneManager {
         CompoundTag data = EntityHelper.getPersistentData(entity);
         data.putLong(TAG_SOAKED_UNTIL, Math.max(until, data.getLong(TAG_SOAKED_UNTIL).orElse(0L)));
         data.remove(TAG_UNQUENCHABLE_FIRE_UNTIL);
+        data.remove(TAG_SOULFIRE_BURN_UNTIL);
         entity.clearFire();
         SpellCombatReactionEngine.checkElementalHexCounterCleanse(entity, EssenceType.WATER);
     }
@@ -954,7 +971,8 @@ public final class SpellLingeringZoneManager {
                     living.resetFallDistance();
                 }
             }
-            if (fastTag.getLong(TAG_UNQUENCHABLE_FIRE_UNTIL).orElse(0L) > now
+            if ((fastTag.getLong(TAG_UNQUENCHABLE_FIRE_UNTIL).orElse(0L) > now
+                    || fastTag.getLong(TAG_SOULFIRE_BURN_UNTIL).orElse(0L) > now)
                     && (!living.isOnFire() || living.isInWaterOrRain())) {
                 living.igniteForSeconds(2);
             }
@@ -1330,6 +1348,25 @@ public final class SpellLingeringZoneManager {
                     level.playSound(null, living.blockPosition(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 0.70F, 1.35F);
                 }
             }
+
+            // Blood (#22) Hemorrhage — Extra Bleeding Laceration Damage Whenever Moving or Attacking (Section 6.23):
+            if (fastTag.getLong(TAG_BLOOD_HEMORRHAGE_UNTIL).orElse(0L) > now
+                    && now >= fastTag.getLong(TAG_BLOOD_HEMORRHAGE_NEXT_TICK).orElse(0L)) {
+                Vec3 dv = living.getDeltaMovement();
+                boolean moving = dv.horizontalDistanceSqr() > 0.004D || (!living.onGround() && Math.abs(dv.y) > 0.14D);
+                boolean swinging = living.swinging && living.swingTime == 1;
+                if (moving || swinging) {
+                    fastTag.putLong(TAG_BLOOD_HEMORRHAGE_NEXT_TICK, now + 12L);
+                    int bTier = Math.clamp(fastTag.getInt("SpellBloodHemorrhageTier").orElse(1), 1, 10);
+                    int bAmp = Math.clamp(fastTag.getInt("SpellBloodHemorrhageAmp").orElse(0), 0, 3);
+                    float bleedDmg = (1.45F + bTier * 0.35F) * (1.0F + 0.35F * bAmp);
+                    SpellCombatReactionEngine.hurtWithBloodMateriaAdvantage(level, living, null, bleedDmg, false, true);
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_BLOOD.get(), 0x8A0303, 18, 0.92F, 0.05F),
+                            living.getX(), living.getY(0.65D), living.getZ(), 5, 0.25D, 0.28D, 0.25D, 0.03D
+                    );
+                }
+            }
         }
 
         // 2. Tick active Elemental Shroud Auras, Fear Panic, Unquenchable Fire & Spatial Anchors every 4 ticks
@@ -1359,6 +1396,7 @@ public final class SpellLingeringZoneManager {
             // Water (#2) Oceanic Shroud: instant auto-extinguishing of fire (including unquenchable fire)
             if (tag.getLong(TAG_WATER_SHROUD_UNTIL).orElse(0L) > now) {
                 tag.remove(TAG_UNQUENCHABLE_FIRE_UNTIL);
+                tag.remove(TAG_SOULFIRE_BURN_UNTIL);
                 if (living.isOnFire()) {
                     living.clearFire();
                 }
@@ -1837,119 +1875,205 @@ public final class SpellLingeringZoneManager {
                 }
             }
 
-            // Blood (#22) Coagulated Crimson Carapace: slow saturation drain while active
-            if (tag.getLong(TAG_BLOOD_CARAPACE_UNTIL).orElse(0L) > now && now % 80L == 0L) {
-                if (living instanceof net.minecraft.world.entity.player.Player player && !player.isCreative()) {
+            // Blood (#22) Coagulated Crimson Carapace: +6 Armor, +2 Toughness, 3D hardened blood shell & slow saturation drain!
+            if (tag.getLong(TAG_BLOOD_CARAPACE_UNTIL).orElse(0L) > now) {
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 6.0D, 2.0D, 0.0D, 0.0D, 24L);
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                if (now % 8L == 0L) {
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_BLOOD.get(), 0x8A0303, 20, 0.88F, 0.05F),
+                            living.getX(), living.getY(0.65D), living.getZ(), 2, 0.34D, 0.34D, 0.34D, 0.015D
+                    );
+                }
+                if (now % 80L == 0L && living instanceof net.minecraft.world.entity.player.Player player && !player.isCreative()) {
                     player.causeFoodExhaustion(2.0F);
                 }
             }
 
-            // Blood (#22) Hemorrhage: extra laceration bleed damage whenever moving rapidly!
-            if (tag.getLong(TAG_BLOOD_HEMORRHAGE_UNTIL).orElse(0L) > now && now % 12L == 0L) {
-                if (living.getDeltaMovement().horizontalDistanceSqr() > 0.006D) {
-                    living.hurtServer(level, level.damageSources().magic(), 1.5F);
-                    level.sendParticles(ParticleTypes.DAMAGE_INDICATOR, living.getX(), living.getY(0.6D), living.getZ(),
-                            2, 0.2D, 0.2D, 0.2D, 0.02D);
-                }
-            }
-
-            // Aura (#23) Chakra Respiration Shroud: 100% drowning immunity & passive saturation every 4s
+            // Aura (#23) Chakra Respiration Shroud: -20% Materia fuel cost, 100% drowning/suffocation immunity & passive saturation every 4s!
             if (tag.getLong(TAG_AURA_SHROUD_UNTIL).orElse(0L) > now) {
                 if (living.getAirSupply() < living.getMaxAirSupply()) {
                     living.setAirSupply(living.getMaxAirSupply());
                 }
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                if (now % 12L == 0L) {
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_MIST.get(), 0xFF6B9D, 22, 0.88F, 0.05F),
+                            living.getX(), living.getY(0.75D), living.getZ(), 2, 0.36D, 0.35D, 0.36D, 0.01D
+                    );
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_WISP.get(), 0xA88654, 22, 0.85F, 0.04F),
+                            living.getX(), living.getY(0.95D), living.getZ(), 2, 0.36D, 0.35D, 0.36D, 0.01D
+                    );
+                }
                 if (now % 80L == 0L && living instanceof net.minecraft.world.entity.player.Player player) {
-                    player.getFoodData().eat(1, 0.5F);
+                    var food = player.getFoodData();
+                    if (food.needsFood()) {
+                        food.eat(1, 0.65F);
+                    } else {
+                        food.setSaturation(Math.min(20.0F, food.getSaturationLevel() + 1.5F));
+                    }
                 }
             }
 
-            // Amber (#24) & Aegis (#34) Bastion Mantles: prevent/mend armor durability wear while active
-            if ((tag.getLong(TAG_AMBER_MANTLE_UNTIL).orElse(0L) > now
-                    || tag.getLong(TAG_AEGIS_MANTLE_UNTIL).orElse(0L) > now) && now % 20L == 0L) {
+            // Amber (#24) & Aegis (#34) Bastion Mantles: prevent equipped armor durability from taking wear while active!
+            boolean amberMantleActive = tag.getLong(TAG_AMBER_MANTLE_UNTIL).orElse(0L) > now;
+            if (amberMantleActive) {
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
                 for (net.minecraft.world.entity.EquipmentSlot eq : new net.minecraft.world.entity.EquipmentSlot[]{
                         net.minecraft.world.entity.EquipmentSlot.HEAD,
                         net.minecraft.world.entity.EquipmentSlot.CHEST,
                         net.minecraft.world.entity.EquipmentSlot.LEGS,
                         net.minecraft.world.entity.EquipmentSlot.FEET}) {
                     net.minecraft.world.item.ItemStack piece = living.getItemBySlot(eq);
-                    if (!piece.isEmpty() && piece.isDamaged()) {
-                        piece.setDamageValue(Math.max(0, piece.getDamageValue() - 1));
+                    String snapKey = "SpellAmberArmorSnap_" + eq.getName();
+                    if (!piece.isEmpty() && piece.isDamageableItem()) {
+                        int curDmg = piece.getDamageValue();
+                        int savedDmg = tag.contains(snapKey) ? tag.getInt(snapKey).orElse(curDmg) : curDmg;
+                        if (curDmg > savedDmg) {
+                            piece.setDamageValue(savedDmg);
+                        } else {
+                            tag.putInt(snapKey, curDmg);
+                        }
+                    } else {
+                        tag.remove(snapKey);
                     }
                 }
-            }
-
-            // Eclipse (#25) Unquenchable Coronal Burn & Solar Corona Bastion
-            if (tag.getLong(TAG_ECLIPSE_CORONA_BURN_UNTIL).orElse(0L) > now) {
-                living.igniteForSeconds(2);
-                if (now % 16L == 0L) {
-                    level.sendParticles(ParticleTypes.END_ROD, living.getX(), living.getY(0.75D), living.getZ(), 2, 0.2D, 0.25D, 0.2D, 0.02D);
-                    level.sendParticles(ParticleTypes.SMOKE, living.getX(), living.getY(0.75D), living.getZ(), 3, 0.2D, 0.25D, 0.2D, 0.01D);
+                if (now % 12L == 0L) {
+                    level.sendParticles(ParticleTypes.DRIPPING_HONEY,
+                            living.getX(), living.getY(0.75D), living.getZ(), 1, 0.34D, 0.35D, 0.34D, 0.0D);
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_CRYSTAL.get(), 0xFF6B9D, 20, 0.88F, 0.04F),
+                            living.getX(), living.getY(0.90D), living.getZ(), 2, 0.36D, 0.35D, 0.36D, 0.01D
+                    );
                 }
-            }
-            if (tag.getLong(TAG_ECLIPSE_BASTION_UNTIL).orElse(0L) > now) {
-                living.clearFire();
+            } else if (tag.getLong(TAG_AEGIS_MANTLE_UNTIL).orElse(0L) > now) {
                 living.removeEffect(MobEffects.BLINDNESS);
                 living.removeEffect(MobEffects.DARKNESS);
-                living.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 220, 0, true, false));
-                if (now % 16L == 0L) {
-                    for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, living.getBoundingBox().inflate(3.0D))) {
-                        if (foe == living || !foe.isAlive() || !(foe instanceof Monster)) continue;
-                        foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 45, 0, true, false));
-                    }
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
                 }
-            }
-
-            // Blight (#26) Cadaverous Briar-Carapace: Poison/Wither/Hunger immunity, undead neutrality unless provoked, & crop/flower wilting underfoot
-            if (tag.getLong(TAG_BLIGHT_CARAPACE_UNTIL).orElse(0L) > now) {
-                living.removeEffect(MobEffects.POISON);
-                living.removeEffect(MobEffects.WITHER);
-                living.removeEffect(MobEffects.HUNGER);
-                if (now % 16L == 0L) {
-                    for (Mob undead : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(16.0D),
-                            m -> m.isAlive() && m.getType().is(EntityTypeTags.UNDEAD))) {
-                        if (undead.getTarget() == living && undead.getLastHurtByMob() != living) {
-                            undead.setTarget(null);
-                            undead.setAggressive(false);
+                if (now % 20L == 0L) {
+                    for (net.minecraft.world.entity.EquipmentSlot eq : new net.minecraft.world.entity.EquipmentSlot[]{
+                            net.minecraft.world.entity.EquipmentSlot.HEAD,
+                            net.minecraft.world.entity.EquipmentSlot.CHEST,
+                            net.minecraft.world.entity.EquipmentSlot.LEGS,
+                            net.minecraft.world.entity.EquipmentSlot.FEET}) {
+                        net.minecraft.world.item.ItemStack piece = living.getItemBySlot(eq);
+                        if (!piece.isEmpty() && piece.isDamaged()) {
+                            piece.setDamageValue(Math.max(0, piece.getDamageValue() - 1));
                         }
                     }
                 }
+            }
+
+            // Eclipse (#25) Unquenchable Coronal Burn, 2m Myopia Aggro Clamp & Solar Corona Bastion
+            if (tag.getLong(TAG_ECLIPSE_CORONA_BURN_UNTIL).orElse(0L) > now) {
+                living.igniteForSeconds(2);
                 if (now % 20L == 0L) {
-                    BlockPos feet = living.blockPosition();
-                    BlockState atFeet = level.getBlockState(feet);
-                    if ((atFeet.is(BlockTags.SMALL_FLOWERS) || atFeet.is(Blocks.SHORT_GRASS) || atFeet.is(Blocks.FERN))
-                            && !atFeet.is(Blocks.WITHER_ROSE)) {
-                        level.setBlockAndUpdate(feet, Blocks.DEAD_BUSH.defaultBlockState());
-                    }
+                    SpellCombatReactionEngine.hurtWithEclipseMateriaAdvantage(level, living, null, 1.50F, false, true);
+                }
+                if (now % 12L == 0L) {
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_EMBER.get(), 0xFFEA78, 18, 0.90F, 0.04F),
+                            living.getX(), living.getY(0.75D), living.getZ(), 2, 0.22D, 0.28D, 0.22D, 0.02D
+                    );
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_MIST.get(), 0x211A21, 18, 0.88F, 0.05F),
+                            living.getX(), living.getY(0.75D), living.getZ(), 2, 0.22D, 0.28D, 0.22D, 0.01D
+                    );
+                }
+            }
+            if (living instanceof Mob myopiaMob && tag.getLong(TAG_ECLIPSE_MYOPIA_UNTIL).orElse(0L) > now) {
+                LivingEntity curTarget = myopiaMob.getTarget();
+                if (curTarget != null && myopiaMob.distanceToSqr(curTarget) > 4.0D) {
+                    myopiaMob.setTarget(null);
+                    myopiaMob.getNavigation().stop();
+                }
+            }
+            if (tag.getLong(TAG_ECLIPSE_BASTION_UNTIL).orElse(0L) > now) {
+                living.removeEffect(MobEffects.BLINDNESS);
+                living.removeEffect(MobEffects.DARKNESS);
+                if (now % 16L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_EMBER.get(), 0xFFEA78, 18, 0.88F, 0.04F),
+                            living.getX(), living.getY(0.85D), living.getZ(), 2, 0.35D, 0.40D, 0.35D, 0.02D
+                    );
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_MIST.get(), 0x211A21, 18, 0.85F, 0.04F),
+                            living.getX(), living.getY(0.85D), living.getZ(), 2, 0.35D, 0.40D, 0.35D, 0.01D
+                    );
                 }
             }
 
-            // Astral (#27) Cosmic Starlight Shroud: high-float jump, zero-g glide, +30% sprint speed, & ambient redstone pulse
+            // Blight (#26) Cadaverous Briar-Carapace: Poison & Hunger immunity, undead neutrality unless attacked first, & 3D carapace sync!
+            if (tag.getLong(TAG_BLIGHT_CARAPACE_UNTIL).orElse(0L) > now) {
+                living.removeEffect(MobEffects.POISON);
+                living.removeEffect(MobEffects.HUNGER);
+                if (now % 4L == 0L) {
+                    for (Mob undead : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(16.0D),
+                            m -> m.isAlive() && m.getType().is(EntityTypeTags.UNDEAD))) {
+                        if (undead.getTarget() == living
+                                && undead.getLastHurtByMob() != living
+                                && living.getLastHurtMob() != undead) {
+                            undead.setTarget(null);
+                            undead.setAggressive(false);
+                            undead.getNavigation().stop();
+                        }
+                    }
+                }
+                if (now % 16L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPORE.get(), 0x34CC48, 20, 0.88F, 0.04F),
+                            living.getX(), living.getY(0.85D), living.getZ(), 2, 0.35D, 0.40D, 0.35D, 0.01D
+                    );
+                }
+            }
+
+            // Astral (#27) Cosmic Starlight Shroud: high-float jump, zero-g glide slow-fall, +30% sprint speed, & cosmic violet/gold sparks
             if (tag.getLong(TAG_ASTRAL_SHROUD_UNTIL).orElse(0L) > now) {
-                living.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 1, true, false));
                 living.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
+                if (living.isSprinting()) {
+                    SpellCombatReactionEngine.applyTimedMovementSpeedBoost(living, level, 0.30D, 25L);
+                } else {
+                    living.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 0, true, false));
+                }
                 if (!living.onGround() && living.getDeltaMovement().y < -0.075D) {
                     Vec3 v = living.getDeltaMovement();
                     living.setDeltaMovement(v.x, -0.075D, v.z);
                     living.resetFallDistance();
                     living.hasImpulse = true;
                 }
-                if (now % 20L == 0L) {
-                    pulseTemporaryRedstonePower(level, living.blockPosition(), 3, 25);
-                    level.sendParticles(ParticleTypes.END_ROD, living.getX(), living.getY(0.9D), living.getZ(), 3, 0.35D, 0.45D, 0.35D, 0.02D);
+                if (now % 16L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0x41304E, 18, 0.90F, 0.05F),
+                            living.getX(), living.getY(0.85D), living.getZ(), 2, 0.35D, 0.42D, 0.35D, 0.01D
+                    );
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_ARC.get(), 0xFFE600, 14, 0.95F, 0.06F),
+                            living.getX(), living.getY(0.95D), living.getZ(), 2, 0.32D, 0.40D, 0.32D, 0.02D
+                    );
                 }
             }
 
-            // Soulfire (#28) Unquenchable Soul-Burn & Phantasmal Soulfire Shroud
+            // Soulfire (#28) Unquenchable Underwater Soul-Burn & Phantasmal Soulfire Shroud
             if (tag.getLong(TAG_SOULFIRE_BURN_UNTIL).orElse(0L) > now) {
                 living.igniteForSeconds(2);
-                living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 25, 0, true, false));
-                if (now % 12L == 0L) {
-                    level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, living.getX(), living.getY(0.7D), living.getZ(), 3, 0.2D, 0.25D, 0.2D, 0.02D);
+                if (living.isInWaterOrRain() && now % 20L == 0L) {
+                    SpellCombatReactionEngine.hurtWithPureMateria(level, living, level.damageSources().onFire(), 1.25F);
+                }
+                if (now % 10L == 0L) {
+                    level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, living.getX(), living.getY(0.7D), living.getZ(), 4, 0.22D, 0.28D, 0.22D, 0.02D);
                 }
             }
             if (tag.getLong(TAG_SOULFIRE_SHROUD_UNTIL).orElse(0L) > now) {
                 living.clearFire();
+                living.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 25, 0, true, false));
                 if (living.isInLava()) {
+                    living.resetFallDistance();
                     Vec3 v = living.getDeltaMovement();
                     living.setDeltaMovement(v.x * 1.15D, Math.max(v.y, 0.08D), v.z * 1.15D);
                     living.hasImpulse = true;
@@ -1958,26 +2082,25 @@ public final class SpellLingeringZoneManager {
                 BlockPos below = feetPos.below();
                 if (level.getBlockState(feetPos).is(Blocks.SOUL_SAND) || level.getBlockState(feetPos).is(Blocks.SOUL_SOIL)
                         || level.getBlockState(below).is(Blocks.SOUL_SAND) || level.getBlockState(below).is(Blocks.SOUL_SOIL)) {
+                    SpellCombatReactionEngine.applyTimedMovementSpeedBoost(living, level, 0.40D, 25L);
                     living.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 1, true, false));
                 }
                 if (now % 16L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0x1DF0E5, 18, 0.90F, 0.05F),
+                            living.getX(), living.getY(0.85D), living.getZ(), 2, 0.35D, 0.42D, 0.35D, 0.01D
+                    );
+                    level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, living.getX(), living.getY(0.75D), living.getZ(), 2, 0.30D, 0.35D, 0.30D, 0.02D);
                     for (Mob netherMob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(16.0D),
                             m -> m.isAlive() && (m instanceof AbstractPiglin || m instanceof Blaze
                                     || m instanceof WitherSkeleton || m instanceof ZombifiedPiglin || m instanceof MagmaCube))) {
-                        if (netherMob.getTarget() == living && netherMob.getLastHurtByMob() != living) {
-                            netherMob.setTarget(null);
-                            netherMob.setAggressive(false);
-                        }
-                    }
-                }
-                if (now % 20L == 0L) {
-                    BlockPos c = living.blockPosition();
-                    for (BlockPos p : BlockPos.betweenClosed(c.offset(-3, -1, -3), c.offset(3, 1, 3))) {
-                        BlockState bs = level.getBlockState(p);
-                        if (bs.is(Blocks.ICE) || bs.is(Blocks.FROSTED_ICE)) {
-                            level.setBlockAndUpdate(p, Blocks.WATER.defaultBlockState());
-                        } else if (bs.is(Blocks.SNOW)) {
-                            level.removeBlock(p, false);
+                        if (netherMob.getLastHurtByMob() != living) {
+                            if (netherMob.getTarget() == living) {
+                                netherMob.setTarget(null);
+                                netherMob.setAggressive(false);
+                            }
+                            applyPacified(netherMob, 40);
                         }
                     }
                 }
@@ -1986,12 +2109,21 @@ public final class SpellLingeringZoneManager {
             // Vapor (#29) Mist-Walker Shroud: rain/water invisibility, +30% swim/sprint speed, fire dousing, 40% arrow deflection, 50% aggro range cut
             if (tag.getLong(TAG_VAPOR_MIST_SHROUD_UNTIL).orElse(0L) > now) {
                 living.clearFire();
-                living.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 0, true, false));
+                if (living.isSprinting() || living.isSwimming() || living.isInWater()) {
+                    SpellCombatReactionEngine.applyTimedMovementSpeedBoost(living, level, 0.30D, 25L);
+                } else {
+                    living.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 0, true, false));
+                }
                 if (living.isInWaterOrRain()) {
                     living.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 30, 0, true, false));
                     living.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 30, 0, true, false));
                 }
-                level.sendParticles(ParticleTypes.CLOUD, living.getX(), living.getY(0.65D), living.getZ(), 3, 0.4D, 0.4D, 0.4D, 0.01D);
+                if (now % 12L == 0L) {
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_MIST.get(), 0xE0F7FA, 22, 0.85F, 0.05F),
+                            living.getX(), living.getY(0.75D), living.getZ(), 2, 0.40D, 0.40D, 0.40D, 0.01D
+                    );
+                }
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.6D))) {
                     if (proj.getOwner() != living && proj instanceof AbstractArrow && level.random.nextFloat() < 0.40F) {
                         Vec3 d = proj.getDeltaMovement().add((level.random.nextDouble() - 0.5D) * 0.65D, 0.22D, (level.random.nextDouble() - 0.5D) * 0.65D);
@@ -2000,6 +2132,7 @@ public final class SpellLingeringZoneManager {
                     }
                 }
                 if (now % 16L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
                     for (Mob mob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(16.0D))) {
                         if (mob.getTarget() == living && mob.distanceToSqr(living) > 49.0D) {
                             mob.setTarget(null);
@@ -2008,102 +2141,150 @@ public final class SpellLingeringZoneManager {
                 }
             }
 
-            // Null_R (#30) Singularity Orbit & Event Horizon Bastion: disintegrate projectiles, high-float zero-g, Blind/Darkness immunity, & Level-15 light!
+            // Null_R (#30) Singularity Orbit & Event Horizon Bastion: disintegrate projectiles, 50% hostile arrow deflection, high-float zero-g, Blind/Darkness immunity, & Level-15 light!
             boolean nullROrbit = tag.getLong(TAG_NULL_R_ORBIT_UNTIL).orElse(0L) > now;
             boolean nullRBastion = tag.getLong(TAG_NULL_R_BASTION_UNTIL).orElse(0L) > now;
             if (nullROrbit || nullRBastion) {
-                double pRad = nullRBastion ? 3.5D : 2.5D;
+                double pRad = nullRBastion ? 3.2D : 2.6D;
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(pRad))) {
-                    if (proj.getOwner() != living && (!nullRBastion || nullROrbit || level.random.nextFloat() < 0.50F)) {
+                    if (proj.getOwner() == living) continue;
+                    if (proj.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
+                    if (nullROrbit) {
                         SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.90F, proj.position());
                         level.sendParticles(ParticleTypes.END_ROD, proj.getX(), proj.getY(), proj.getZ(), 8, 0.15D, 0.15D, 0.15D, 0.05D);
                         proj.discard();
+                    } else if (proj instanceof AbstractArrow) {
+                        CompoundTag pTag = EntityHelper.getPersistentData(proj);
+                        if (!pTag.getBoolean("NullRArrowChecked").orElse(false)) {
+                            pTag.putBoolean("NullRArrowChecked", true);
+                            if (level.random.nextFloat() < 0.50F) {
+                                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.90F, proj.position());
+                                level.sendParticles(ParticleTypes.END_ROD, proj.getX(), proj.getY(), proj.getZ(), 10, 0.15D, 0.15D, 0.15D, 0.05D);
+                                proj.discard();
+                            }
+                        }
                     }
                 }
                 if (nullRBastion) {
                     living.removeEffect(MobEffects.BLINDNESS);
                     living.removeEffect(MobEffects.DARKNESS);
                     living.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
-                    living.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
-                    living.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 220, 0, true, false));
+                    if (!living.onGround() && living.getDeltaMovement().y < -0.075D) {
+                        Vec3 v = living.getDeltaMovement();
+                        living.setDeltaMovement(v.x, -0.075D, v.z);
+                        living.resetFallDistance();
+                        living.hasImpulse = true;
+                    }
                     if (now % 16L == 0L) {
+                        SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
                         pulseTemporaryLight(level, living.blockPosition().above(), 15, 22);
+                        level.sendParticles(ParticleTypes.END_ROD, living.getX(), living.getY(0.95D), living.getZ(), 2, 0.35D, 0.45D, 0.35D, 0.02D);
                     }
                 }
             }
 
             // Null_U (#31) Abyssal Singularity Orbit & Zero-Acoustic Veil
-            if (tag.getLong(TAG_NULL_U_ORBIT_UNTIL).orElse(0L) > now) {
-                for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.5D))) {
-                    if (proj.getOwner() != living) {
-                        level.sendParticles(ParticleTypes.SMOKE, proj.getX(), proj.getY(), proj.getZ(), 6, 0.1D, 0.1D, 0.1D, 0.02D);
-                        proj.discard();
+            boolean nullUOrbit = tag.getLong(TAG_NULL_U_ORBIT_UNTIL).orElse(0L) > now;
+            boolean nullUVeil = tag.getLong(TAG_NULL_U_VEIL_UNTIL).orElse(0L) > now;
+            if (nullUOrbit || nullUVeil) {
+                if (nullUVeil) {
+                    tag.putLong(TAG_SILENT_VIBRATION_UNTIL, Math.max(now + 25L, tag.getLong(TAG_SILENT_VIBRATION_UNTIL).orElse(0L)));
+                    living.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
+                    living.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
+                    if (!living.onGround() && living.getDeltaMovement().y < -0.075D) {
+                        Vec3 v = living.getDeltaMovement();
+                        living.setDeltaMovement(v.x, -0.075D, v.z);
+                        living.resetFallDistance();
+                        living.hasImpulse = true;
                     }
-                }
-            }
-            if (tag.getLong(TAG_NULL_U_VEIL_UNTIL).orElse(0L) > now) {
-                living.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
-                living.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
-                for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.8D))) {
-                    if (proj.getOwner() != living && proj instanceof AbstractArrow && level.random.nextFloat() < 0.50F) {
-                        level.sendParticles(ParticleTypes.SMOKE, proj.getX(), proj.getY(), proj.getZ(), 5, 0.1D, 0.1D, 0.1D, 0.02D);
-                        proj.discard();
-                    }
-                }
-                for (Warden warden : level.getEntitiesOfClass(Warden.class, living.getBoundingBox().inflate(20.0D))) {
-                    warden.clearAnger(living);
-                    if (warden.getTarget() == living && warden.distanceToSqr(living) > 9.0D) {
-                        warden.setTarget(null);
-                    }
-                }
-                if (now % 16L == 0L) {
-                    BlockPos c = living.blockPosition();
-                    for (BlockPos p : BlockPos.betweenClosed(c.offset(-3, -1, -3), c.offset(3, 2, 3))) {
-                        BlockState bs = level.getBlockState(p);
-                        if (bs.is(Blocks.TORCH) || bs.is(Blocks.WALL_TORCH) || bs.is(Blocks.SOUL_TORCH) || bs.is(Blocks.SOUL_WALL_TORCH)) {
-                            level.destroyBlock(p, true);
-                        } else if (bs.getBlock() instanceof net.minecraft.world.level.block.BaseFireBlock) {
-                            level.removeBlock(p, false);
+                    for (Warden warden : level.getEntitiesOfClass(Warden.class, living.getBoundingBox().inflate(20.0D))) {
+                        warden.clearAnger(living);
+                        if (warden.getTarget() == living && warden.distanceToSqr(living) > 9.0D) {
+                            warden.setTarget(null);
                         }
                     }
-                    for (Mob mob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(18.0D))) {
-                        if (mob.getTarget() == living && mob.distanceToSqr(living) > 16.0D) {
-                            mob.setTarget(null); // 75% detection range cut!
+                    if (now % 16L == 0L) {
+                        for (Mob mob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(18.0D))) {
+                            if (mob.getTarget() == living && mob.distanceToSqr(living) > 23.04D) {
+                                mob.setTarget(null); // 70% detection range cut (4.8m lock ceiling)!
+                            }
+                        }
+                    }
+                    if (now % 20L == 0L) {
+                        SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                    }
+                }
+                double interceptR = nullUVeil ? 2.8D : 2.5D;
+                for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(interceptR))) {
+                    if (proj.getOwner() == living) continue;
+                    if (proj.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
+                    if (nullUOrbit) {
+                        level.sendParticles(ParticleTypes.SQUID_INK, proj.getX(), proj.getY(), proj.getZ(), 5, 0.1D, 0.1D, 0.1D, 0.02D);
+                        proj.discard();
+                    } else if (proj instanceof AbstractArrow arrow) {
+                        CompoundTag aTag = EntityHelper.getPersistentData(arrow);
+                        if (!aTag.getBoolean("NullUArrowChecked").orElse(false)) {
+                            aTag.putBoolean("NullUArrowChecked", true);
+                            if (level.random.nextFloat() < 0.50F) {
+                                level.sendParticles(ParticleTypes.SQUID_INK, arrow.getX(), arrow.getY(), arrow.getZ(), 6, 0.12D, 0.12D, 0.12D, 0.03D);
+                                level.sendParticles(ParticleTypes.REVERSE_PORTAL, arrow.getX(), arrow.getY(), arrow.getZ(), 5, 0.10D, 0.10D, 0.10D, 0.03D);
+                                arrow.discard();
+                            }
                         }
                     }
                 }
             }
 
             // Dawn (#32) Convective Horizon Orbit & Dawn-Bringer Solar Shroud
-            if (tag.getLong(TAG_DAWN_ORBIT_UNTIL).orElse(0L) > now) {
+            boolean dawnOrbit = tag.getLong(TAG_DAWN_ORBIT_UNTIL).orElse(0L) > now;
+            boolean dawnShroud = tag.getLong(TAG_DAWN_SHROUD_UNTIL).orElse(0L) > now;
+            if (dawnOrbit || dawnShroud) {
                 living.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
-                living.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 0, true, false));
-                for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.5D))) {
-                    if (proj.getOwner() != living && proj instanceof AbstractArrow) {
-                        proj.setDeltaMovement(proj.getDeltaMovement().scale(-0.7D).add(0.0D, 0.35D, 0.0D));
-                        proj.hasImpulse = true;
+                if (dawnOrbit) {
+                    living.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 0, true, false));
+                }
+                if (dawnShroud) {
+                    living.removeEffect(MobEffects.BLINDNESS);
+                    living.removeEffect(MobEffects.DARKNESS);
+                    living.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
+                    if (!living.onGround() && living.getDeltaMovement().y < -0.075D) {
+                        Vec3 v = living.getDeltaMovement();
+                        living.setDeltaMovement(v.x, -0.075D, v.z);
+                        living.resetFallDistance();
+                        living.hasImpulse = true;
+                    }
+                    if (living.isSprinting()) {
+                        living.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 1, true, false));
+                    }
+                    if (now % 40L == 0L && level.isBrightOutside() && level.canSeeSky(living.blockPosition())) {
+                        SpellCombatReactionEngine.notifyMagicalHeal(living, 1.0F);
+                        living.heal(1.0F);
+                        level.sendParticles(ParticleTypes.END_ROD, living.getX(), living.getY(1.0D), living.getZ(), 4, 0.25D, 0.3D, 0.25D, 0.02D);
+                    }
+                    if (now % 20L == 0L) {
+                        SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
                     }
                 }
-            }
-            if (tag.getLong(TAG_DAWN_SHROUD_UNTIL).orElse(0L) > now) {
-                living.removeEffect(MobEffects.BLINDNESS);
-                living.removeEffect(MobEffects.DARKNESS);
-                living.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
-                living.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
-                if (living.isSprinting()) {
-                    living.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 1, true, false));
-                }
-                for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.8D))) {
-                    if (proj.getOwner() != living && proj instanceof AbstractArrow && level.random.nextFloat() < 0.40F) {
-                        Vec3 v = proj.getDeltaMovement();
-                        proj.setDeltaMovement(v.x * 0.25D, 0.85D, v.z * 0.25D);
-                        proj.hasImpulse = true;
+                double interceptR = dawnShroud ? 2.8D : 2.5D;
+                for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(interceptR))) {
+                    if (proj.getOwner() == living) continue;
+                    if (proj.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
+                    if (!(proj instanceof AbstractArrow arrow)) continue;
+                    if (dawnOrbit) {
+                        arrow.setDeltaMovement(arrow.getDeltaMovement().scale(-0.7D).add(0.0D, 0.35D, 0.0D));
+                        arrow.hasImpulse = true;
+                    } else {
+                        CompoundTag aTag = EntityHelper.getPersistentData(arrow);
+                        if (!aTag.getBoolean("DawnArrowChecked").orElse(false)) {
+                            aTag.putBoolean("DawnArrowChecked", true);
+                            if (level.random.nextFloat() < 0.40F) {
+                                Vec3 v = arrow.getDeltaMovement();
+                                arrow.setDeltaMovement(v.x * 0.25D, 0.92D, v.z * 0.25D);
+                                arrow.hasImpulse = true;
+                                level.sendParticles(ParticleTypes.END_ROD, arrow.getX(), arrow.getY(), arrow.getZ(), 5, 0.12D, 0.12D, 0.12D, 0.03D);
+                            }
+                        }
                     }
-                }
-                if (now % 40L == 0L && level.isBrightOutside() && level.canSeeSky(living.blockPosition())) {
-                    SpellCombatReactionEngine.notifyMagicalHeal(living, 1.0F);
-                    living.heal(1.0F);
-                    level.sendParticles(ParticleTypes.END_ROD, living.getX(), living.getY(1.0D), living.getZ(), 4, 0.25D, 0.3D, 0.25D, 0.02D);
                 }
             }
 
@@ -2115,6 +2296,9 @@ public final class SpellLingeringZoneManager {
                 living.clearFire();
                 living.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 30, 0, true, false));
                 living.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 30, 1, true, false));
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 for (Warden warden : level.getEntitiesOfClass(Warden.class, living.getBoundingBox().inflate(18.0D))) {
                     warden.clearAnger(living);
                     if (warden.getTarget() == living && warden.distanceToSqr(living) > 9.0D) {
@@ -2124,8 +2308,8 @@ public final class SpellLingeringZoneManager {
                 if (living.isInWater()) {
                     living.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 220, 0, true, false));
                     Vec3 v = living.getDeltaMovement();
-                    if (v.horizontalDistanceSqr() > 0.002D && v.horizontalDistanceSqr() < 0.85D) {
-                        living.setDeltaMovement(v.x * 1.18D, v.y, v.z * 1.18D);
+                    if (v.horizontalDistanceSqr() > 0.002D && v.horizontalDistanceSqr() < 0.90D) {
+                        living.setDeltaMovement(v.x * 1.22D, v.y, v.z * 1.22D);
                         living.hasImpulse = true;
                     }
                 }
@@ -2144,18 +2328,31 @@ public final class SpellLingeringZoneManager {
                     living.setAirSupply(0);
                     living.hurtServer(level, level.damageSources().drown(), 2.0F);
                     level.sendParticles(ParticleTypes.BUBBLE_POP, living.getX(), living.getY(0.85D), living.getZ(), 8, 0.25D, 0.25D, 0.25D, 0.03D);
+                    level.sendParticles(ParticleTypes.SQUID_INK, living.getX(), living.getY(0.75D), living.getZ(), 4, 0.20D, 0.20D, 0.20D, 0.01D);
                 }
             }
 
-            // Aegis (#34) Gilded Bastion Orbit: +4 Armor & 50% projectile interception
+            // Aegis (#34) Gilded Bastion Orbit: +4 Armor & automatic arrow/projectile deflection!
             if (tag.getLong(TAG_AEGIS_ORBIT_UNTIL).orElse(0L) > now) {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 4.0D, 0.0D, 0.0D, 0.0D, 15L);
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.5D))) {
-                    if (proj.getOwner() != living && level.random.nextFloat() < 0.50F) {
-                        SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.92F, proj.position());
-                        level.sendParticles(ParticleTypes.CRIT, proj.getX(), proj.getY(), proj.getZ(), 5, 0.1D, 0.1D, 0.1D, 0.04D);
-                        proj.discard();
+                    if (proj instanceof ddraig.net.entropica.entity.projectile.SpellProjectileEntity spellProj
+                            && spellProj.getOwner() == living) {
+                        continue;
                     }
+                    Entity pOwner = proj.getOwner();
+                    if (pOwner == living || (pOwner instanceof LivingEntity lOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, lOwner))) {
+                        continue;
+                    }
+                    Vec3 away = proj.position().subtract(living.getEyePosition());
+                    Vec3 defl = away.lengthSqr() > 1.0E-4D ? away.normalize() : new Vec3(0.0D, 0.5D, 0.0D);
+                    double spd = Math.max(1.15D, proj.getDeltaMovement().length());
+                    proj.setDeltaMovement(defl.x * spd, Math.max(0.25D, defl.y * spd), defl.z * spd);
+                    proj.setOwner(living);
+                    proj.hasImpulse = true;
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.92F, proj.position());
+                    level.sendParticles(ParticleTypes.CRIT, proj.getX(), proj.getY(), proj.getZ(), 5, 0.1D, 0.1D, 0.1D, 0.04D);
+                    level.playSound(null, living.blockPosition(), SoundEvents.SHIELD_BLOCK.value(), SoundSource.PLAYERS, 0.65F, 1.35F);
                 }
             }
 
@@ -2170,7 +2367,9 @@ public final class SpellLingeringZoneManager {
                     }
                 }
                 for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, living.getBoundingBox().inflate(3.2D))) {
-                    if (foe != living && foe.isAlive() && foe instanceof Monster) {
+                    if (foe != living && foe.isAlive()
+                            && !SpellExecutionEngine.isFriendlyAllyForOasis(living, foe)
+                            && (foe instanceof Monster || (foe instanceof Mob m && m.getTarget() == living))) {
                         foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, 1, true, false));
                         foe.setTicksFrozen(Math.min(foe.getTicksRequiredToFreeze() + 40, foe.getTicksFrozen() + 8));
                     }
@@ -2181,7 +2380,10 @@ public final class SpellLingeringZoneManager {
                 living.isInPowderSnow = false;
                 living.removeEffect(MobEffects.BLINDNESS);
                 living.removeEffect(MobEffects.DARKNESS);
-                living.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 220, 0, true, false));
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 4.0D, 1.0D, 0.0D, 0.0D, 25L);
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 if (now % 16L == 0L) {
                     pulseTemporaryLight(level, living.blockPosition().above(), 12, 22);
                 }
@@ -2201,7 +2403,11 @@ public final class SpellLingeringZoneManager {
                     }
                 }
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.6D))) {
-                    if (proj.getOwner() != living && proj instanceof AbstractArrow && level.random.nextFloat() < 0.40F) {
+                    Entity pOwner = proj.getOwner();
+                    if (pOwner == living || (pOwner instanceof LivingEntity lOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, lOwner))) {
+                        continue;
+                    }
+                    if (proj instanceof AbstractArrow && level.random.nextFloat() < 0.40F) {
                         proj.setDeltaMovement(proj.getDeltaMovement().scale(-0.85D).add(0.0D, 0.2D, 0.0D));
                         proj.hasImpulse = true;
                     }
@@ -2214,9 +2420,13 @@ public final class SpellLingeringZoneManager {
                     pulseTemporaryLight(level, living.blockPosition().above(), 12, 22);
                 }
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.8D))) {
-                    if (proj.getOwner() != living && level.random.nextFloat() < 0.25F) {
-                        Vec3 back = proj.getOwner() != null
-                                ? proj.getOwner().getEyePosition().subtract(proj.position()).normalize().scale(Math.max(1.1D, proj.getDeltaMovement().length()))
+                    Entity pOwner = proj.getOwner();
+                    if (pOwner == living || (pOwner instanceof LivingEntity lOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, lOwner))) {
+                        continue;
+                    }
+                    if (level.random.nextFloat() < 0.25F) {
+                        Vec3 back = pOwner != null && pOwner.isAlive()
+                                ? pOwner.getEyePosition().subtract(proj.position()).normalize().scale(Math.max(1.1D, proj.getDeltaMovement().length()))
                                 : proj.getDeltaMovement().scale(-1.0D);
                         proj.setDeltaMovement(back);
                         proj.setOwner(living);
@@ -2226,9 +2436,8 @@ public final class SpellLingeringZoneManager {
                 }
             }
             if (tag.getLong(TAG_MIRAGE_SHROUD_UNTIL).orElse(0L) > now) {
-                BlockPos below = living.blockPosition().below();
-                if (level.getBlockState(below).is(Blocks.WATER)) {
-                    level.setBlockAndUpdate(below, Blocks.SANDSTONE.defaultBlockState());
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
                 }
                 if (now % 80L == 0L) {
                     double angle = level.random.nextDouble() * Math.PI * 2.0D;
@@ -2246,16 +2455,25 @@ public final class SpellLingeringZoneManager {
             }
             if (tag.getLong(TAG_MIRAGE_PARANOIA_UNTIL).orElse(0L) > now) {
                 String pCasterUuid = tag.getString(TAG_MIRAGE_PARANOIA_CASTER_UUID).orElse("");
+                LivingEntity pCaster = null;
+                if (!pCasterUuid.isEmpty()) {
+                    try {
+                        Entity ce = level.getEntity(java.util.UUID.fromString(pCasterUuid));
+                        if (ce instanceof LivingEntity l) pCaster = l;
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                }
                 if (living instanceof Mob pMob && pMob.getTarget() != null
                         && pMob.getTarget().getUUID().toString().equals(pCasterUuid)) {
                     pMob.setTarget(null);
                     pMob.setAggressive(false);
                 }
-                if (now % 12L == 0L) {
+                long remParanoia = tag.getLong(TAG_MIRAGE_PARANOIA_UNTIL).orElse(0L) - now;
+                if (remParanoia > 40L && now % 12L == 0L) {
                     living.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
                 }
                 if (now % 20L == 0L) {
-                    living.hurtServer(level, level.damageSources().magic(), 1.8F);
+                    SpellCombatReactionEngine.hurtWithMirageMateriaAdvantage(level, living, pCaster, 1.85F, false, true);
                     level.sendParticles(ParticleTypes.ENCHANT, living.getX(), living.getY(0.95D), living.getZ(), 6, 0.25D, 0.3D, 0.25D, 0.05D);
                 }
             }
@@ -2302,6 +2520,9 @@ public final class SpellLingeringZoneManager {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 8.0D, 0.0D, 1.0D, 0.0D, 12L);
                 living.removeEffect(MobEffects.WITHER);
                 tag.putLong(TAG_SILENT_VIBRATION_UNTIL, Math.max(now + 12L, tag.getLong(TAG_SILENT_VIBRATION_UNTIL).orElse(0L)));
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 if (now % 12L == 0L) {
                     for (Warden warden : level.getEntitiesOfClass(Warden.class, living.getBoundingBox().inflate(18.0D))) {
                         warden.clearAnger(living);
@@ -2317,6 +2538,9 @@ public final class SpellLingeringZoneManager {
                 living.removeEffect(MobEffects.POISON);
                 living.removeEffect(MobEffects.WITHER);
                 living.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 240, 0, true, false));
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 if (now % 16L == 0L) {
                     for (Mob mob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(16.0D))) {
                         if (mob.getTarget() == living && mob.distanceToSqr(living) > 58.0D) {
@@ -2340,14 +2564,19 @@ public final class SpellLingeringZoneManager {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 8.0D, 2.0D, 0.0D, -0.10D, 12L);
                 living.clearFire();
                 living.setTicksFrozen(0);
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 if (now % 16L == 0L) {
                     BlockPos c = living.blockPosition();
                     for (BlockPos p : BlockPos.betweenClosed(c.offset(-2, -1, -2), c.offset(2, 1, 2))) {
                         BlockState bs = level.getBlockState(p);
                         if (bs.is(Blocks.ICE) || bs.is(Blocks.FROSTED_ICE) || bs.is(Blocks.PACKED_ICE)) {
                             level.setBlockAndUpdate(p, Blocks.WATER.defaultBlockState());
-                        } else if (bs.is(Blocks.SNOW) || bs.is(Blocks.POWDER_SNOW)) {
+                            level.sendParticles(ParticleTypes.CLOUD, p.getX() + 0.5D, p.getY() + 0.8D, p.getZ() + 0.5D, 2, 0.18D, 0.12D, 0.18D, 0.02D);
+                        } else if (bs.is(Blocks.SNOW) || bs.is(Blocks.SNOW_BLOCK) || bs.is(Blocks.POWDER_SNOW)) {
                             level.removeBlock(p, false);
+                            level.sendParticles(ParticleTypes.CLOUD, p.getX() + 0.5D, p.getY() + 0.4D, p.getZ() + 0.5D, 2, 0.18D, 0.12D, 0.18D, 0.02D);
                         }
                     }
                 }
@@ -2356,6 +2585,7 @@ public final class SpellLingeringZoneManager {
                 for (AbstractArrow arrow : level.getEntitiesOfClass(AbstractArrow.class, living.getBoundingBox().inflate(2.8D))) {
                     if (arrow.getOwner() == living) continue;
                     level.sendParticles(ParticleTypes.ASH, arrow.getX(), arrow.getY(), arrow.getZ(), 6, 0.1D, 0.1D, 0.1D, 0.02D);
+                    level.sendParticles(ParticleTypes.FLAME, arrow.getX(), arrow.getY(), arrow.getZ(), 4, 0.08D, 0.08D, 0.08D, 0.02D);
                     arrow.discard();
                 }
             }
@@ -2365,10 +2595,14 @@ public final class SpellLingeringZoneManager {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 6.0D, 2.0D, 0.0D, 0.0D, 12L);
                 living.removeEffect(MobEffects.BLINDNESS);
                 living.removeEffect(MobEffects.DARKNESS);
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.8D))) {
                     if (proj.getOwner() == living || proj instanceof ddraig.net.entropica.entity.projectile.SpellProjectileEntity) continue;
                     if (level.random.nextFloat() < 0.25F) {
                         level.sendParticles(ParticleTypes.REVERSE_PORTAL, proj.getX(), proj.getY(), proj.getZ(), 6, 0.1D, 0.1D, 0.1D, 0.04D);
+                        level.sendParticles(ParticleTypes.END_ROD, proj.getX(), proj.getY(), proj.getZ(), 3, 0.08D, 0.08D, 0.08D, 0.02D);
                         proj.discard();
                     }
                 }
@@ -2379,6 +2613,7 @@ public final class SpellLingeringZoneManager {
                 for (AbstractArrow arrow : level.getEntitiesOfClass(AbstractArrow.class, living.getBoundingBox().inflate(2.8D))) {
                     if (arrow.getOwner() == living) continue;
                     level.sendParticles(ParticleTypes.REVERSE_PORTAL, arrow.getX(), arrow.getY(), arrow.getZ(), 6, 0.1D, 0.1D, 0.1D, 0.03D);
+                    level.sendParticles(ParticleTypes.END_ROD, arrow.getX(), arrow.getY(), arrow.getZ(), 3, 0.08D, 0.08D, 0.08D, 0.02D);
                     arrow.discard();
                 }
             }

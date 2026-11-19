@@ -169,12 +169,21 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
                         renderSolarCrown(mat, vc, scale, state.ageTicks, pr, pg, pb, ar, ag, ab);
                 case SpellParticleHelper.ARCHETYPE_MOLTEN_METEOR ->
                         renderMoltenMeteor(mat, vc, scale, state.ageTicks, pr, pg, pb, ar, ag, ab);
-                case SpellParticleHelper.ARCHETYPE_BIO_HELIX ->
+                case SpellParticleHelper.ARCHETYPE_BIO_HELIX -> {
+                    if (state.essence == EssenceType.BLOOD) {
+                        renderSanguineCoagulationNeedle(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
+                    } else {
                         renderBioHelix(mat, vc, scale, state.ageTicks, pr, pg, pb, ar, ag, ab);
+                    }
+                }
                 case SpellParticleHelper.ARCHETYPE_VOLTAIC_JAVELIN ->
                         renderVoltaicJavelin(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
-                case SpellParticleHelper.ARCHETYPE_WIND_SPIRAL ->
-                        renderWindSpiral(mat, vc, scale, state.ageTicks, pr, pg, pb, ar, ag, ab);
+                case SpellParticleHelper.ARCHETYPE_WIND_SPIRAL -> {
+                    renderWindSpiral(mat, vc, scale, state.ageTicks, pr, pg, pb, ar, ag, ab);
+                    if (state.essence == EssenceType.AURA) {
+                        renderSpiritualGaleLotusCollar(mat, vc, scale, state.ageTicks);
+                    }
+                }
                 case SpellParticleHelper.ARCHETYPE_WIND_SLASH ->
                         renderFlyingWindSlash(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
                 case SpellParticleHelper.ARCHETYPE_HYDRO_ORB ->
@@ -218,6 +227,40 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
                         renderOasisSucculentSeed(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
                 case SpellParticleHelper.ARCHETYPE_VITAE_HELIX ->
                         renderVitaeDoubleHelix(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
+                case SpellParticleHelper.ARCHETYPE_AMBER_BUBBLE_ORB ->
+                        renderAmberStasisBubbleOrb(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
+                case SpellParticleHelper.ARCHETYPE_PENUMBRA_CRESCENT_SCYTHE ->
+                        renderPenumbraCrescentScythe(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
+                case SpellParticleHelper.ARCHETYPE_NECRO_SPORE_POD ->
+                        renderNecroSporePod(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
+                case SpellParticleHelper.ARCHETYPE_CELESTIAL_COMET ->
+                        renderCelestialCometMissile(mat, vc, scale, state.ageTicks, state.entitySeed, pr, pg, pb, ar, ag, ab);
+                case SpellParticleHelper.ARCHETYPE_SOULFLAME_SKULL ->
+                        renderSoulflameSkullMissile(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_STEAM_GEYSER_ORB ->
+                        renderSteamGeyserOrb(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_WHITE_HOLE_ORB ->
+                        renderWhiteHoleSingularityOrb(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_BLACK_HOLE_ORB ->
+                        renderBlackHoleSingularityOrb(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_SOLAR_HORIZON_JAVELIN ->
+                        renderSolarHorizonJavelin(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_ABYSSAL_DEPTH_CHARGE_ORB ->
+                        renderAbyssalDepthChargeOrb(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_GILDED_PAVISE_SHIELD ->
+                        renderGildedPaviseShieldSlug(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_AURORA_RIBBON_LANCE ->
+                        renderAuroraRibbonLance(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_MIRAGE_SAND_JAVELIN ->
+                        renderMirageSandJavelin(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_WRAITH_SKULL ->
+                        renderWraithSkullMissile(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_TOMBSTONE_BOULDER ->
+                        renderTombstoneBoulderSlug(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_COMBUSTION_HEARTH_ORB ->
+                        renderCombustionHearthOrb(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT ->
+                        renderPenumbralTwilightEclipseBolt(mat, vc, scale, state.ageTicks, state.entitySeed);
                 default ->
                         renderArcaneBolt(mat, vc, scale, state.ageTicks, pr, pg, pb, ar, ag, ab);
             }
@@ -772,6 +815,57 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
                             vine ? 0.173F : 0.467F,
                             vine ? 0.902F : 0.196F,
                             vine ? 0.408F : 0.078F,
+                            0.90F * (1.0F - t0));
+                }
+            } else if (archetype == SpellParticleHelper.ARCHETYPE_AMBER_BUBBLE_ORB) {
+                // Section 6.25 Amber Stasis Bubble Orb: viscous golden resin (#F29B2E / #773214) & #FF6B9D amber wake droplets!
+                float sag0 = t0 * t0 * 0.10F * scale;
+                float sag1 = t1 * t1 * 0.10F * scale;
+                Vec3 ap0 = p0.subtract(up.scale(sag0));
+                Vec3 ap1 = p1.subtract(up.scale(sag1));
+                renderLocalSegment(mat, vc, ap0, ap1, 0.052F * scale * (1.0F - t0 * 0.50F),
+                        0.949F, 0.608F, 0.180F, 0.78F * (1.0F - t0));
+                if (i % 2 == 0) {
+                    boolean pinkGem = ((i / 2) % 2 == 0);
+                    renderOctahedronAt(mat, vc, ap0, 0.046F * scale * (1.0F - t0 * 0.45F), 0.056F * scale * (1.0F - t0 * 0.45F),
+                            i * 0.7F,
+                            pinkGem ? 1.000F : 0.467F,
+                            pinkGem ? 0.420F : 0.196F,
+                            pinkGem ? 0.616F : 0.078F,
+                            0.92F * (1.0F - t0));
+                }
+            } else if (archetype == SpellParticleHelper.ARCHETYPE_PENUMBRA_CRESCENT_SCYTHE) {
+                // Section 6.26 Penumbra Crescent Scythe: fused #211A21 abyssal shadow & #FFEA78 coronal gold wake!
+                float er0 = (0.20F * scale) * (1.0F - t0 * 0.50F);
+                float er1 = (0.20F * scale) * (1.0F - t1 * 0.50F);
+                float eph0 = -ageTicks * 0.68F + t0 * 10.5F;
+                float eph1 = -ageTicks * 0.68F + t1 * 10.5F;
+                for (int s = 0; s < 2; s++) {
+                    float off = s * (float) Math.PI;
+                    Vec3 ep0 = p0.add(right.scale(Mth.cos(eph0 + off) * er0)).add(up.scale(Mth.sin(eph0 + off) * er0));
+                    Vec3 ep1 = p1.add(right.scale(Mth.cos(eph1 + off) * er1)).add(up.scale(Mth.sin(eph1 + off) * er1));
+                    boolean corona = (s == 0);
+                    renderLocalSegment(mat, vc, ep0, ep1, (corona ? 0.032F : 0.048F) * scale * (1.0F - t0 * 0.45F),
+                            corona ? 1.000F : 0.129F,
+                            corona ? 0.918F : 0.102F,
+                            corona ? 0.471F : 0.129F,
+                            0.92F * (1.0F - t0));
+                }
+            } else if (archetype == SpellParticleHelper.ARCHETYPE_NECRO_SPORE_POD) {
+                // Section 6.27 Contagious Necro-Spore Pod: rotting #4D6453 vines & #34CC48 necrotic mold trail!
+                float br0 = (0.19F * scale) * (1.0F - t0 * 0.52F);
+                float br1 = (0.19F * scale) * (1.0F - t1 * 0.52F);
+                float bph0 = ageTicks * 0.46F + t0 * 10.0F;
+                float bph1 = ageTicks * 0.46F + t1 * 10.0F;
+                for (int s = 0; s < 2; s++) {
+                    float off = s * (float) Math.PI;
+                    Vec3 bp0 = p0.add(right.scale(Mth.cos(bph0 + off) * br0)).add(up.scale(Mth.sin(bph0 + off) * br0));
+                    Vec3 bp1 = p1.add(right.scale(Mth.cos(bph1 + off) * br1)).add(up.scale(Mth.sin(bph1 + off) * br1));
+                    boolean mold = (s == 0);
+                    renderLocalSegment(mat, vc, bp0, bp1, (mold ? 0.036F : 0.044F) * scale * (1.0F - t0 * 0.45F),
+                            mold ? 0.204F : 0.302F,
+                            mold ? 0.800F : 0.392F,
+                            mold ? 0.282F : 0.325F,
                             0.90F * (1.0F - t0));
                 }
             }
@@ -2247,6 +2341,846 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
         Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
         renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.12D * scale), rx, ry,
                 0.22F * scale * heartbeat, 0.28F * scale * heartbeat, 18, 1.000F, 0.420F, 0.616F, 0.84F);
+    }
+
+    // =========================================================================
+    // BLOOD #22: SANGUINE COAGULATION NEEDLE (#8A0303 / #FF384C)
+    // =========================================================================
+
+    private static void renderSanguineCoagulationNeedle(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed,
+            float pr, float pg, float pb, float ar, float ag, float ab
+    ) {
+        float spin = age * 0.42F + (seed & 0xFF) * 0.06F;
+
+        // 1. Razor-sharp elongated hardened #8A0303 crimson blood needle + incandescent arterial scarlet core!
+        renderElongatedBipyramid(mat, vc, 0.075F * scale, 0.96F * scale, 0.62F * scale,
+                6, spin * 0.5F, 1.000F, 0.220F, 0.298F, 0.98F);
+        renderElongatedBipyramid(mat, vc, 0.135F * scale, 0.88F * scale, 0.54F * scale,
+                6, spin, 0.541F, 0.012F, 0.012F, 0.94F);
+
+        // 2. Four swept serrated coagulation barbs swept backward behind the needle tip!
+        for (int b = 0; b < 4; b++) {
+            float bAng = spin + (float) (Math.PI * 0.5D * b);
+            Vec3 noseAnchor = new Vec3(Mth.cos(bAng) * 0.055D * scale, Mth.sin(bAng) * 0.055D * scale, 0.34D * scale);
+            Vec3 midSpine = new Vec3(Mth.cos(bAng) * 0.10D * scale, Mth.sin(bAng) * 0.10D * scale, 0.02D * scale);
+            Vec3 barbTip = new Vec3(Mth.cos(bAng) * 0.30D * scale, Mth.sin(bAng) * 0.30D * scale, -0.34D * scale);
+            emitGradientDoubleSidedQuad(mat, vc, noseAnchor, midSpine, barbTip, barbTip,
+                    0.541F, 0.012F, 0.012F, 0.96F,
+                    0.940F, 0.140F, 0.200F, 0.92F);
+        }
+
+        // 3. Two writhing capillary blood tendrils spiraling along the needle wake
+        for (int s = 0; s < 2; s++) {
+            float off = s * (float) Math.PI;
+            for (int seg = 0; seg < 8; seg++) {
+                float t0 = seg / 8.0F;
+                float t1 = (seg + 1) / 8.0F;
+                float a0 = -spin * 1.8F + off + t0 * 5.2F;
+                float a1 = -spin * 1.8F + off + t1 * 5.2F;
+                float r0 = (0.14F + 0.08F * t0) * scale * (1.0F - t0 * 0.45F);
+                float r1 = (0.14F + 0.08F * t1) * scale * (1.0F - t1 * 0.45F);
+                Vec3 p0 = new Vec3(Mth.cos(a0) * r0, Mth.sin(a0) * r0, (0.12D - 0.86D * t0) * scale);
+                Vec3 p1 = new Vec3(Mth.cos(a1) * r1, Mth.sin(a1) * r1, (0.12D - 0.86D * t1) * scale);
+                boolean bright = (s == 1);
+                renderLocalSegment(mat, vc, p0, p1, 0.022F * scale * (1.0F - t0 * 0.4F),
+                        bright ? 1.000F : 0.541F,
+                        bright ? 0.220F : 0.012F,
+                        bright ? 0.298F : 0.012F,
+                        0.90F * (1.0F - t0 * 0.65F));
+            }
+        }
+    }
+
+    // =========================================================================
+    // AURA #23: SPIRITUAL GALE LANCE CHAKRA LOTUS COLLAR (#FF6B9D / #A88654)
+    // =========================================================================
+
+    private static void renderSpiritualGaleLotusCollar(Matrix4f mat, VertexConsumer vc, float scale, float age) {
+        float spin = age * 0.48F;
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        // 8-petal dual-tone #FF6B9D / #A88654 chakra lotus mandala spinning around the compressed pranic wind lance!
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.16D * scale), rx, ry,
+                0.24F * scale, 0.31F * scale, 18, 0.839F, 0.706F, 0.471F, 0.90F);
+        for (int p = 0; p < 8; p++) {
+            float pAng = -spin + (float) (Math.PI * 2.0D * p / 8.0D);
+            Vec3 baseL = new Vec3(Mth.cos(pAng - 0.18F) * 0.22D * scale, Mth.sin(pAng - 0.18F) * 0.22D * scale, 0.18D * scale);
+            Vec3 baseR = new Vec3(Mth.cos(pAng + 0.18F) * 0.22D * scale, Mth.sin(pAng + 0.18F) * 0.22D * scale, 0.18D * scale);
+            Vec3 tip = new Vec3(Mth.cos(pAng) * 0.44D * scale, Mth.sin(pAng) * 0.44D * scale, 0.04D * scale);
+            boolean pink = (p % 2 == 0);
+            emitDoubleSidedQuad(mat, vc, baseL, baseR, tip, tip,
+                    pink ? 1.000F : 0.839F,
+                    pink ? 0.420F : 0.706F,
+                    pink ? 0.616F : 0.471F,
+                    0.92F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 28: AMBER STASIS BUBBLE ORB (#FF6B9D / #773214 / #F29B2E)
+    // =========================================================================
+
+    private static void renderAmberStasisBubbleOrb(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed,
+            float pr, float pg, float pb, float ar, float ag, float ab
+    ) {
+        float spin = age * 0.28F + (seed & 0xFF) * 0.04F;
+        float pulse = 0.92F + 0.08F * Mth.sin(age * 0.24F);
+        Vec3 center = Vec3.ZERO;
+
+        // 1. Suspended #FF6B9D living-pink vital crystal heart & #773214 deep earth amber facets preserved inside the resin!
+        renderOctahedronAt(mat, vc, center, 0.16F * scale * pulse, 0.24F * scale * pulse, spin * 0.85F,
+                1.000F, 0.420F, 0.616F, 0.98F);
+        renderElongatedBipyramid(mat, vc, 0.11F * scale, 0.30F * scale, 0.26F * scale, 6, -spin * 0.55F,
+                0.467F, 0.196F, 0.078F, 0.94F);
+
+        // 2. 4 suspended prehistoric crystal inclusions floating inside the golden sap sphere
+        for (int g = 0; g < 4; g++) {
+            float gAng = spin * 0.70F + (float) (Math.PI * 0.5D * g);
+            double gz = ((g % 2 == 0) ? 0.10D : -0.10D) * scale;
+            Vec3 gemPos = new Vec3(Mth.cos(gAng) * 0.20D * scale, Mth.sin(gAng) * 0.20D * scale, gz);
+            boolean rose = (g % 2 == 0);
+            renderOctahedronAt(mat, vc, gemPos, 0.055F * scale, 0.072F * scale, gAng,
+                    rose ? 1.000F : 0.467F,
+                    rose ? 0.420F : 0.196F,
+                    rose ? 0.616F : 0.078F,
+                    0.95F);
+        }
+
+        // 3. Aerodynamic sphere of viscous translucent golden resin (#F29B2E) & deep amber sheen
+        renderUndulatingFluidSphere(mat, vc, center, 0.33F * scale, 1.18F,
+                8, 14, age * 0.22F, 0.06F,
+                0.949F, 0.608F, 0.180F, 0.56F);
+        renderUndulatingFluidSphere(mat, vc, center, 0.38F * scale, 1.24F,
+                7, 12, -age * 0.16F, 0.05F,
+                pr, pg, pb, 0.28F);
+
+        // 4. Viscous golden-brown #773214 / #FF6B9D surface-tension equatorial bands
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.04D * scale), rx, ry,
+                0.34F * scale, 0.40F * scale, 18, 0.467F, 0.196F, 0.078F, 0.84F);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.10D * scale), rx, ry,
+                0.28F * scale, 0.33F * scale, 16, ar, ag, ab, 0.80F);
+    }
+
+    private static void renderOctahedronAt(
+            Matrix4f mat, VertexConsumer vc, Vec3 c,
+            float rXY, float rZ, float rot,
+            float r, float g, float b, float a
+    ) {
+        Vec3 front = c.add(0.0D, 0.0D, rZ);
+        Vec3 back = c.add(0.0D, 0.0D, -rZ);
+        for (int i = 0; i < 4; i++) {
+            float a0 = rot + (float) (Math.PI * 0.5D * i);
+            float a1 = rot + (float) (Math.PI * 0.5D * (i + 1));
+            Vec3 p0 = c.add(Mth.cos(a0) * rXY, Mth.sin(a0) * rXY, 0.0D);
+            Vec3 p1 = c.add(Mth.cos(a1) * rXY, Mth.sin(a1) * rXY, 0.0D);
+            emitDoubleSidedQuad(mat, vc, front, p0, p1, front, r, g, b, a);
+            emitDoubleSidedQuad(mat, vc, back, p1, p0, back, r * 0.88F, g * 0.88F, b * 0.88F, a);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 29: PENUMBRA CRESCENT SCYTHE (#FFEA78 / #211A21)
+    // =========================================================================
+
+    private static void renderPenumbraCrescentScythe(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed,
+            float pr, float pg, float pb, float ar, float ag, float ab
+    ) {
+        float spin = age * 0.82F + (seed & 0xFF) * 0.05F;
+        // 1. Pitch-black #211A21 eclipse singularity eye encircled by blazing #FFEA78 coronal gold!
+        renderOctahedronAt(mat, vc, Vec3.ZERO, 0.16F * scale, 0.12F * scale, -spin * 0.5F,
+                0.085F, 0.065F, 0.090F, 0.98F);
+        Vec3 planeU = new Vec3(1.0D, 0.18D, 0.0D).normalize();
+        Vec3 planeV = new Vec3(0.0D, 0.18D, 1.0D).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, planeU, planeV,
+                0.18F * scale, 0.25F * scale, 20, 1.000F, 0.918F, 0.471F, 0.96F);
+
+        // 2. Spinning 3D Crescent Scythe of fused shadow (#211A21) & blazing coronal gold (#FFEA78) edge!
+        int segs = 16;
+        float arcSpan = 4.05F; // ~232-degree wide reaper crescent
+        float outerR = 0.62F * scale;
+        for (int i = 0; i < segs; i++) {
+            float t0 = i / (float) segs;
+            float t1 = (i + 1) / (float) segs;
+            float prof0 = Mth.sin(t0 * (float) Math.PI);
+            float prof1 = Mth.sin(t1 * (float) Math.PI);
+            float a0 = spin + (t0 - 0.5F) * arcSpan;
+            float a1 = spin + (t1 - 0.5F) * arcSpan;
+
+            double rOut0 = outerR * (0.78D + 0.22D * prof0);
+            double rOut1 = outerR * (0.78D + 0.22D * prof1);
+            double rMid0 = rOut0 - (0.11D * scale * prof0);
+            double rMid1 = rOut1 - (0.11D * scale * prof1);
+            double rIn0 = rOut0 - (0.28D * scale * prof0);
+            double rIn1 = rOut1 - (0.28D * scale * prof1);
+
+            Vec3 out0 = planeU.scale(Mth.cos(a0) * rOut0).add(planeV.scale(Mth.sin(a0) * rOut0));
+            Vec3 out1 = planeU.scale(Mth.cos(a1) * rOut1).add(planeV.scale(Mth.sin(a1) * rOut1));
+            Vec3 mid0 = planeU.scale(Mth.cos(a0) * rMid0).add(planeV.scale(Mth.sin(a0) * rMid0));
+            Vec3 mid1 = planeU.scale(Mth.cos(a1) * rMid1).add(planeV.scale(Mth.sin(a1) * rMid1));
+            Vec3 in0 = planeU.scale(Mth.cos(a0) * rIn0).add(planeV.scale(Mth.sin(a0) * rIn0));
+            Vec3 in1 = planeU.scale(Mth.cos(a1) * rIn1).add(planeV.scale(Mth.sin(a1) * rIn1));
+
+            // Inner abyssal void-black (#211A21) scythe body
+            emitDoubleSidedQuad(mat, vc, in0, mid0, mid1, in1, 0.129F, 0.102F, 0.129F, 0.96F);
+            // Razor blazing coronal gold (#FFEA78) outer cutting edge!
+            emitGradientDoubleSidedQuad(mat, vc, mid0, out0, out1, mid1,
+                    1.000F, 0.918F, 0.471F, 0.95F,
+                    1.000F, 0.985F, 0.860F, 0.99F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 30: CONTAGIOUS NECRO-SPORE POD (#4D6453 / #34CC48)
+    // =========================================================================
+
+    private static void renderNecroSporePod(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed,
+            float pr, float pg, float pb, float ar, float ag, float ab
+    ) {
+        float spin = age * 0.32F + (seed & 0xFF) * 0.05F;
+        float pulse = 0.88F + 0.14F * Mth.sin(age * 0.34F);
+
+        // 1. Pulsating #34CC48 necrotic mold heart encased in #4D6453 rotting tombstone-bark bulb!
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.24F * scale * pulse, 1.15F,
+                7, 12, age * 0.28F, 0.10F,
+                0.204F, 0.800F, 0.282F, 0.92F);
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.31F * scale, 1.22F,
+                6, 10, -age * 0.20F, 0.09F,
+                0.302F, 0.392F, 0.325F, 0.68F);
+
+        // 2. 6 bleached skeletal bone-thorns (#E6DFCF) & rotting vine ribs jutting from the pod!
+        for (int t = 0; t < 6; t++) {
+            float tAng = spin + (float) (Math.PI * 2.0D * t / 6.0D);
+            double zOff = ((t % 2 == 0) ? 0.10D : -0.10D) * scale;
+            Vec3 root = new Vec3(Mth.cos(tAng) * 0.22D * scale, Mth.sin(tAng) * 0.22D * scale, zOff);
+            Vec3 tip = new Vec3(Mth.cos(tAng) * 0.46D * scale, Mth.sin(tAng) * 0.46D * scale, zOff - 0.14D * scale);
+            boolean bone = (t % 2 == 0);
+            renderLocalSegment(mat, vc, root, tip, 0.032F * scale,
+                    bone ? 0.902F : 0.204F,
+                    bone ? 0.875F : 0.800F,
+                    bone ? 0.812F : 0.282F,
+                    0.96F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 31: CELESTIAL COMET MISSILE (#41304E / #FFE600)
+    // =========================================================================
+
+    private static void renderCelestialCometMissile(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed,
+            float pr, float pg, float pb, float ar, float ag, float ab
+    ) {
+        float spin = age * 0.36F + (seed & 0xFF) * 0.05F;
+        float pulse = 0.90F + 0.12F * Mth.sin(age * 0.42F);
+
+        // 1. Incandescent #FFE600 pulsar core encased inside a faceted #41304E cosmic star-matter comet head!
+        renderElongatedBipyramid(mat, vc, 0.16F * scale * pulse, 0.16F * scale * pulse, 0.28F * scale * pulse,
+                8, spin, 1.000F, 0.902F, 0.000F, 0.98F);
+        renderElongatedBipyramid(mat, vc, 0.26F * scale, 0.26F * scale, 0.42F * scale,
+                8, -spin * 0.65F, 0.255F, 0.188F, 0.306F, 0.84F);
+
+        // 2. Twin gyroscopic pulsar rings (#FFE600 & #41304E)
+        Vec3 r1u = new Vec3(Mth.cos(spin), 0.35D, Mth.sin(spin)).normalize();
+        Vec3 r1v = new Vec3(-Mth.sin(spin), 0.85D, Mth.cos(spin)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, r1u, r1v, 0.28F * scale, 0.36F * scale, 20,
+                1.000F, 0.902F, 0.000F, 0.94F);
+        Vec3 r2u = new Vec3(Mth.cos(-spin * 0.8F), -0.40D, Mth.sin(-spin * 0.8F)).normalize();
+        Vec3 r2v = new Vec3(-Mth.sin(-spin * 0.8F), 0.80D, Mth.cos(-spin * 0.8F)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, r2u, r2v, 0.32F * scale, 0.40F * scale, 20,
+                0.255F, 0.188F, 0.306F, 0.88F);
+
+        // 3. Blazing dual-ribbon cosmic comet tail streaming behind the nucleus (-Z) + crackling #FFE600 lightning arcs!
+        for (int t = 0; t < 4; t++) {
+            float tAng = spin * 0.7F + (float) (Math.PI * 0.5D * t);
+            Vec3 head0 = new Vec3(Mth.cos(tAng) * 0.18D * scale, Mth.sin(tAng) * 0.18D * scale, -0.05D * scale);
+            Vec3 head1 = new Vec3(Mth.cos(tAng + 0.45F) * 0.18D * scale, Mth.sin(tAng + 0.45F) * 0.18D * scale, -0.05D * scale);
+            Vec3 tail0 = new Vec3(Mth.cos(tAng - 0.35F) * 0.05D * scale, Mth.sin(tAng - 0.35F) * 0.05D * scale, -1.15D * scale);
+            Vec3 tail1 = new Vec3(Mth.cos(tAng + 0.10F) * 0.05D * scale, Mth.sin(tAng + 0.10F) * 0.05D * scale, -1.15D * scale);
+            boolean gold = (t % 2 == 0);
+            emitGradientDoubleSidedQuad(mat, vc, head0, head1, tail1, tail0,
+                    gold ? 1.000F : 0.255F, gold ? 0.902F : 0.188F, gold ? 0.000F : 0.306F, 0.92F,
+                    gold ? 1.000F : 0.255F, gold ? 0.902F : 0.188F, gold ? 0.000F : 0.306F, 0.04F);
+        }
+        for (int a = 0; a < 4; a++) {
+            float aAng = -spin * 1.3F + (float) (Math.PI * 0.5D * a);
+            Vec3 p0 = new Vec3(Mth.cos(aAng) * 0.24D * scale, Mth.sin(aAng) * 0.24D * scale, 0.10D * scale);
+            Vec3 p1 = new Vec3(Mth.cos(aAng + 0.8F) * 0.38D * scale, Mth.sin(aAng + 0.8F) * 0.38D * scale, -0.45D * scale);
+            renderLocalSegment(mat, vc, p0, p1, 0.028F * scale, 1.000F, 0.902F, 0.000F, 0.96F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 32: SCREAMING SOULFLAME SKULL (#1DF0E5 / #0D6469)
+    // =========================================================================
+
+    private static void renderSoulflameSkullMissile(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float pulse = 0.93F + 0.09F * Mth.sin(age * 0.36F + seed);
+        float s = scale * pulse;
+        Vec3 right = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 up = new Vec3(0.0D, 1.0D, 0.0D);
+
+        // 1. Sculpted Phantasmal Cranium Dome (#1DF0E5 cyan soulfire brow + #0D6469 soul-ember teal occiput)
+        for (int i = 0; i < 6; i++) {
+            float a0 = (float) (Math.PI * 2.0D * i / 6.0D);
+            float a1 = (float) (Math.PI * 2.0D * (i + 1) / 6.0D);
+            Vec3 w0 = new Vec3(Mth.cos(a0) * 0.26D * s, 0.06D * s + Mth.sin(a0) * 0.22D * s, 0.05D * s);
+            Vec3 w1 = new Vec3(Mth.cos(a1) * 0.26D * s, 0.06D * s + Mth.sin(a1) * 0.22D * s, 0.05D * s);
+            Vec3 brow = new Vec3(0.0D, 0.11D * s, 0.32D * s);
+            Vec3 occiput = new Vec3(0.0D, 0.05D * s, -0.26D * s);
+            emitDoubleSidedQuad(mat, vc, brow, w0, w1, brow, 0.114F, 0.941F, 0.898F, 0.92F);
+            emitDoubleSidedQuad(mat, vc, occiput, w1, w0, occiput, 0.051F, 0.392F, 0.412F, 0.88F);
+        }
+
+        // 2. Twin Shrieking White-Cyan Eye Sockets & Wide-Open Screaming Mandible Jaw!
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 eyePos = new Vec3(side * 0.11D * s, 0.07D * s, 0.28D * s);
+            Vec3 eyeU = right.add(new Vec3(0.0D, 0.0D, -side * 0.28D)).normalize();
+            renderLocalRing(mat, vc, eyePos, eyeU, up, 0.0F, 0.058F * s, 8, 0.88F, 1.00F, 0.99F, 0.99F);
+        }
+        double screamDrop = (0.065D + 0.038D * Math.abs(Mth.sin(age * 0.42F + seed))) * s;
+        Vec3 hingeL = new Vec3(-0.16D * s, -0.04D * s, 0.06D * s);
+        Vec3 hingeR = new Vec3(0.16D * s, -0.04D * s, 0.06D * s);
+        Vec3 chin = new Vec3(0.0D, -0.10D * s - screamDrop, 0.29D * s);
+        renderLocalSegment(mat, vc, hingeL, chin, 0.038F * s, 0.114F, 0.941F, 0.898F, 0.96F);
+        renderLocalSegment(mat, vc, hingeR, chin, 0.038F * s, 0.114F, 0.941F, 0.898F, 0.96F);
+
+        // 3. Roaring 4-ribbon cyan soulfire comet tail streaming behind the screaming skull!
+        float spin = age * 0.34F;
+        for (int f = 0; f < 4; f++) {
+            float fAng = spin + (float) (Math.PI * 0.5D * f);
+            Vec3 h0 = new Vec3(Mth.cos(fAng) * 0.22D * s, Mth.sin(fAng) * 0.22D * s, -0.04D * s);
+            Vec3 h1 = new Vec3(Mth.cos(fAng + 0.55F) * 0.22D * s, Mth.sin(fAng + 0.55F) * 0.22D * s, -0.04D * s);
+            Vec3 t0 = new Vec3(Mth.cos(fAng - 0.30F) * 0.06D * s, Mth.sin(fAng - 0.30F) * 0.06D * s, -1.10D * s);
+            Vec3 t1 = new Vec3(Mth.cos(fAng + 0.15F) * 0.06D * s, Mth.sin(fAng + 0.15F) * 0.06D * s, -1.10D * s);
+            boolean bright = (f % 2 == 0);
+            emitGradientDoubleSidedQuad(mat, vc, h0, h1, t1, t0,
+                    bright ? 0.114F : 0.051F, bright ? 0.941F : 0.392F, bright ? 0.898F : 0.412F, 0.90F,
+                    0.051F, 0.392F, 0.412F, 0.04F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 33: SCALDING STEAM-BURST GEYSER ORB (#E0F7FA / #30A9B0)
+    // =========================================================================
+
+    private static void renderSteamGeyserOrb(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float spin = age * 0.38F + (seed & 0xFF) * 0.04F;
+        float pulse = 0.90F + 0.14F * Mth.sin(age * 0.44F);
+
+        // 1. Boiling #30A9B0 aquatic cyan liquid core encased inside pressurized #E0F7FA scalding steam sphere!
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.18F * scale * pulse, 1.05F,
+                7, 12, age * 0.35F, 0.09F,
+                0.188F, 0.663F, 0.690F, 0.96F);
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.29F * scale, 1.12F,
+                7, 12, -age * 0.26F, 0.12F,
+                0.878F, 0.969F, 0.980F, 0.68F);
+
+        // 2. Twin venting pneumatic pressure hoops (#E0F7FA & #30A9B0)
+        Vec3 u1 = new Vec3(Mth.cos(spin), 0.30D, Mth.sin(spin)).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin), 0.86D, Mth.cos(spin)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1, 0.30F * scale, 0.38F * scale, 20,
+                0.878F, 0.969F, 0.980F, 0.92F);
+        Vec3 u2 = new Vec3(Mth.cos(-spin * 0.85F), -0.35D, Mth.sin(-spin * 0.85F)).normalize();
+        Vec3 v2 = new Vec3(-Mth.sin(-spin * 0.85F), 0.82D, Mth.cos(-spin * 0.85F)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u2, v2, 0.26F * scale, 0.33F * scale, 20,
+                0.188F, 0.663F, 0.690F, 0.90F);
+
+        // 3. 4 hissing steam jets venting backward (-Z)
+        for (int j = 0; j < 4; j++) {
+            float jAng = spin * 0.9F + (float) (Math.PI * 0.5D * j);
+            Vec3 p0 = new Vec3(Mth.cos(jAng) * 0.18D * scale, Mth.sin(jAng) * 0.18D * scale, -0.08D * scale);
+            Vec3 p1 = new Vec3(Mth.cos(jAng - 0.3F) * 0.32D * scale, Mth.sin(jAng - 0.3F) * 0.32D * scale, -0.78D * scale);
+            boolean white = (j % 2 == 0);
+            renderLocalSegment(mat, vc, p0, p1, 0.036F * scale,
+                    white ? 0.878F : 0.188F,
+                    white ? 0.969F : 0.663F,
+                    white ? 0.980F : 0.690F,
+                    0.88F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 34: WHITE HOLE SINGULARITY ORB (NULL_R #30 — #FFFFFF / #41304E)
+    // =========================================================================
+
+    private static void renderWhiteHoleSingularityOrb(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float spin = age * 0.32F + (seed & 0xFF) * 0.05F;
+        float pulse = 0.92F + 0.14F * Mth.sin(age * 0.42F);
+
+        // 1. Incandescent #FFFFFF white-hole antimatter core sphere wrapped in #41304E cosmic violet event-horizon shell!
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.20F * scale * pulse, 1.00F,
+                7, 12, age * 0.28F, 0.05F,
+                1.000F, 1.000F, 1.000F, 0.99F);
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.31F * scale, 1.04F,
+                7, 12, -age * 0.22F, 0.08F,
+                0.255F, 0.188F, 0.306F, 0.72F);
+
+        // 2. Twin gyroscopic accretion & event-horizon gravity rings (#FFFFFF & #41304E)
+        Vec3 u1 = new Vec3(Mth.cos(spin), 0.34D, Mth.sin(spin)).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin), 0.88D, Mth.cos(spin)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1, 0.33F * scale, 0.42F * scale, 22,
+                1.000F, 1.000F, 1.000F, 0.96F);
+        Vec3 u2 = new Vec3(Mth.cos(-spin * 0.82F), -0.38D, Mth.sin(-spin * 0.82F)).normalize();
+        Vec3 v2 = new Vec3(-Mth.sin(-spin * 0.82F), 0.84D, Mth.cos(-spin * 0.82F)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u2, v2, 0.28F * scale, 0.37F * scale, 22,
+                0.255F, 0.188F, 0.306F, 0.94F);
+
+        // 3. 6 radially pulsing antimatter starburst rays (#FFFFFF / #41304E)
+        for (int r = 0; r < 6; r++) {
+            float rAng = spin * 0.75F + (float) (Math.PI * 2.0D * r / 6.0D);
+            float zTilt = ((r % 3) - 1) * 0.24F;
+            Vec3 dir = new Vec3(Mth.cos(rAng), Mth.sin(rAng), zTilt).normalize();
+            float rayLen = (0.44F + 0.10F * Mth.sin(age * 0.50F + r * 1.05F)) * scale;
+            boolean white = (r % 2 == 0);
+            renderLocalSegment(mat, vc, dir.scale(0.16D * scale), dir.scale(rayLen), 0.032F * scale,
+                    white ? 1.000F : 0.255F,
+                    white ? 1.000F : 0.188F,
+                    white ? 1.000F : 0.306F,
+                    0.94F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 35: BLACK HOLE SINGULARITY ORB (NULL_U #31 — #110B17 / #41304E)
+    // =========================================================================
+
+    private static void renderBlackHoleSingularityOrb(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float spin = age * 0.30F + (seed & 0xFF) * 0.05F;
+        float pulse = 0.94F + 0.10F * Mth.sin(age * 0.38F);
+
+        // 1. Light-devouring #110B17 abyssal pitch-black event-horizon sphere encased in warping #41304E cosmic violet shell!
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.22F * scale * pulse, 1.00F,
+                7, 12, -age * 0.24F, 0.04F,
+                0.067F, 0.043F, 0.090F, 0.99F);
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.32F * scale, 1.05F,
+                7, 12, age * 0.20F, 0.08F,
+                0.255F, 0.188F, 0.306F, 0.74F);
+
+        // 2. Wide cosmic violet accretion disk & tilted abyssal pitch-black gravitational lensing hoop (#110B17 / #41304E)
+        Vec3 u1 = new Vec3(Mth.cos(spin), 0.26D, Mth.sin(spin)).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin), 0.90D, Mth.cos(spin)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1, 0.26F * scale, 0.46F * scale, 24,
+                0.255F, 0.188F, 0.306F, 0.95F);
+        Vec3 u2 = new Vec3(Mth.cos(-spin * 0.80F), -0.36D, Mth.sin(-spin * 0.80F)).normalize();
+        Vec3 v2 = new Vec3(-Mth.sin(-spin * 0.80F), 0.84D, Mth.cos(-spin * 0.80F)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u2, v2, 0.30F * scale, 0.39F * scale, 22,
+                0.067F, 0.043F, 0.090F, 0.96F);
+
+        // 3. 6 inward-spiraling dark matter tendrils being devoured into the black hole core!
+        for (int t = 0; t < 6; t++) {
+            float tAng = -spin * 0.95F + (float) (Math.PI * 2.0D * t / 6.0D);
+            Vec3 outer = new Vec3(Mth.cos(tAng) * 0.46D * scale, Mth.sin(tAng) * 0.46D * scale, -0.18D * scale);
+            Vec3 inner = new Vec3(Mth.cos(tAng + 0.55F) * 0.14D * scale, Mth.sin(tAng + 0.55F) * 0.14D * scale, 0.04D * scale);
+            boolean dark = (t % 2 == 0);
+            renderLocalSegment(mat, vc, outer, inner, 0.032F * scale,
+                    dark ? 0.067F : 0.255F,
+                    dark ? 0.043F : 0.188F,
+                    dark ? 0.090F : 0.306F,
+                    0.94F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 36: SOLAR HORIZON JAVELIN (DAWN #32 — #FFEA78 / #A88654)
+    // =========================================================================
+
+    private static void renderSolarHorizonJavelin(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float spin = age * 0.44F + (seed & 0xFF) * 0.04F;
+        float s = scale * 1.08F;
+
+        // 1. Sleek aerodynamic #FFEA78 sunrise gold spearhead & shaft (+Z forward, -Z tail)
+        renderElongatedBipyramid(mat, vc, 0.13F * s, 0.68F * s, 0.78F * s, 6, spin * 0.35F,
+                1.000F, 0.918F, 0.471F, 0.99F);
+        renderElongatedBipyramid(mat, vc, 0.075F * s, 0.72F * s, 0.84F * s, 4, -spin * 0.35F,
+                1.000F, 0.985F, 0.880F, 0.98F);
+
+        // 2. 4 swept #A88654 buff-air aerodynamic wind-feather fins along the javelin flanks
+        for (int f = 0; f < 4; f++) {
+            float fAng = spin * 0.55F + (float) (Math.PI * 0.5D * f);
+            Vec3 nose = new Vec3(Mth.cos(fAng) * 0.08D * s, Mth.sin(fAng) * 0.08D * s, 0.34D * s);
+            Vec3 wingTip = new Vec3(Mth.cos(fAng) * 0.34D * s, Mth.sin(fAng) * 0.34D * s, -0.22D * s);
+            Vec3 tail = new Vec3(Mth.cos(fAng) * 0.06D * s, Mth.sin(fAng) * 0.06D * s, -0.68D * s);
+            emitGradientDoubleSidedQuad(mat, vc, nose, wingTip, tail, tail,
+                    1.000F, 0.918F, 0.471F, 0.94F,
+                    0.659F, 0.525F, 0.329F, 0.72F);
+        }
+
+        // 3. Twin atmospheric slipstream rings (#FFEA78 & #A88654)
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.14D * s), rx, ry,
+                0.22F * s, 0.29F * s, 20, 1.000F, 0.918F, 0.471F, 0.95F);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.34D * s), rx, ry,
+                0.28F * s, 0.36F * s, 20, 0.659F, 0.525F, 0.329F, 0.88F);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 37: ABYSSAL DEPTH CHARGE ORB (ABYSS #33 — #211A21 / #225C7C)
+    // =========================================================================
+
+    private static void renderAbyssalDepthChargeOrb(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float spin = age * 0.32F + (seed & 0xFF) * 0.05F;
+        float pulse = 0.94F + 0.10F * Mth.sin(age * 0.36F);
+
+        // 1. Pressurized #211A21 pitch-black oceanic ink core encased in #225C7C deep-trench navy water sphere!
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.23F * scale * pulse, 1.02F,
+                7, 12, -age * 0.22F, 0.05F,
+                0.129F, 0.102F, 0.129F, 0.99F);
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.34F * scale, 1.06F,
+                7, 12, age * 0.26F, 0.09F,
+                0.133F, 0.361F, 0.486F, 0.78F);
+
+        // 2. Counter-rotating hydrostatic trench pressure hoops (#225C7C & #211A21)
+        Vec3 u1 = new Vec3(Mth.cos(spin), 0.28D, Mth.sin(spin)).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin), 0.90D, Mth.cos(spin)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1, 0.28F * scale, 0.44F * scale, 22,
+                0.133F, 0.361F, 0.486F, 0.94F);
+        Vec3 u2 = new Vec3(Mth.cos(-spin * 0.82F), -0.34D, Mth.sin(-spin * 0.82F)).normalize();
+        Vec3 v2 = new Vec3(-Mth.sin(-spin * 0.82F), 0.85D, Mth.cos(-spin * 0.82F)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u2, v2, 0.31F * scale, 0.40F * scale, 22,
+                0.129F, 0.102F, 0.129F, 0.96F);
+
+        // 3. 6 writhing cephalopod ink-tentacle wakes trailing behind the depth charge!
+        for (int t = 0; t < 6; t++) {
+            float tAng = spin * 0.88F + (float) (Math.PI * 2.0D * t / 6.0D);
+            double wave = 0.08D * scale * Mth.sin(age * 0.34F + t * 1.1F);
+            Vec3 base = new Vec3(Mth.cos(tAng) * 0.20D * scale, Mth.sin(tAng) * 0.20D * scale, -0.06D * scale);
+            Vec3 tip = new Vec3(Mth.cos(tAng + 0.45F) * 0.38D * scale + wave,
+                    Mth.sin(tAng + 0.45F) * 0.38D * scale - wave, -0.52D * scale);
+            boolean ink = (t % 2 == 0);
+            renderLocalSegment(mat, vc, base, tip, 0.034F * scale,
+                    ink ? 0.129F : 0.133F,
+                    ink ? 0.102F : 0.361F,
+                    ink ? 0.129F : 0.486F,
+                    0.95F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 38: GILDED BASTION SHIELD-SLUG (AEGIS #34 — #FFEA78 / #773214)
+    // =========================================================================
+
+    private static void renderGildedPaviseShieldSlug(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.06F;
+        float pulse = 0.95F + 0.06F * Mth.sin(age * 0.30F + (seed & 15));
+
+        // 1. Curved 3-panel flying pavise tower shield (+Z forward face, #773214 granite body + #FFEA78 holy gold trim)
+        double zMid = 0.24D * s;
+        double zFlank = 0.10D * s;
+        double yTop = 0.34D * s;
+        double yBot = -0.36D * s;
+        Vec3 cTL = new Vec3(-0.14D * s, yTop, zMid);
+        Vec3 cTR = new Vec3(0.14D * s, yTop, zMid);
+        Vec3 cBR = new Vec3(0.11D * s, yBot, zMid);
+        Vec3 cBL = new Vec3(-0.11D * s, yBot, zMid);
+        emitDoubleSidedQuad(mat, vc, cTL, cTR, cBR, cBL, 0.467F, 0.196F, 0.078F, 0.99F);
+
+        Vec3 lTL = new Vec3(-0.34D * s, yTop * 0.90D, zFlank);
+        Vec3 lBL = new Vec3(-0.28D * s, yBot * 0.86D, zFlank);
+        emitDoubleSidedQuad(mat, vc, lTL, cTL, cBL, lBL, 0.467F, 0.196F, 0.078F, 0.96F);
+
+        Vec3 rTR = new Vec3(0.34D * s, yTop * 0.90D, zFlank);
+        Vec3 rBR = new Vec3(0.28D * s, yBot * 0.86D, zFlank);
+        emitDoubleSidedQuad(mat, vc, cTR, rTR, rBR, cBR, 0.467F, 0.196F, 0.078F, 0.96F);
+
+        // 2. Holy gold (#FFEA78) cross-boss & quartz battering spike on the front of the pavise!
+        renderLocalSegment(mat, vc, new Vec3(0.0D, yTop * 0.95D, zMid + 0.03D * s),
+                new Vec3(0.0D, yBot * 0.95D, zMid + 0.03D * s), 0.048F * s, 1.000F, 0.918F, 0.471F, 0.99F);
+        renderLocalSegment(mat, vc, new Vec3(-0.28D * s, 0.04D * s, zMid + 0.02D * s),
+                new Vec3(0.28D * s, 0.04D * s, zMid + 0.02D * s), 0.046F * s, 1.000F, 0.918F, 0.471F, 0.99F);
+        renderElongatedBipyramid(mat, vc, 0.11F * s * pulse, 0.46F * s, 0.22F * s, 4, age * 0.18F,
+                1.000F, 0.965F, 0.820F, 0.98F);
+
+        // 3. Trailing kinetic bastion shockwave ring (#FFEA78)
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.24D * s), rx, ry,
+                0.28F * s, 0.38F * s, 18, 1.000F, 0.918F, 0.471F, 0.90F);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 39: PRISMATIC AURORA RIBBON-LANCE (AURORA #35 — #FFEA78 / #98DCF2)
+    // =========================================================================
+
+    private static void renderAuroraRibbonLance(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.06F;
+        float spin = age * 0.28F + (seed & 15) * 0.4F;
+
+        // 1. Piercing crystalline cryo-cyan (#98DCF2) spearhead & solar-white refracting needle core
+        renderElongatedBipyramid(mat, vc, 0.075F * s, 0.72F * s, 0.44F * s, 6, spin,
+                1.000F, 0.985F, 0.920F, 0.99F);
+        renderElongatedBipyramid(mat, vc, 0.155F * s, 0.86F * s, 0.54F * s, 6, -spin * 0.65F,
+                0.596F, 0.863F, 0.949F, 0.86F);
+
+        // 2. Twin undulating polar aurora ribbons (#FFEA78 solar gold & #98DCF2 cryo cyan) streaming behind the lance!
+        int segs = 10;
+        for (int rIdx = 0; rIdx < 2; rIdx++) {
+            boolean goldRibbon = (rIdx == 0);
+            float phase = spin * 1.35F + (rIdx * (float) Math.PI);
+            Vec3 prev = null;
+            for (int i = 0; i <= segs; i++) {
+                float u = i / (float) segs;
+                double z = (0.34D - u * 1.24D) * s;
+                double rad = (0.14D + 0.16D * Mth.sin(u * (float) Math.PI)) * s;
+                float ang = phase + u * 4.2F;
+                Vec3 cur = new Vec3(Mth.cos(ang) * rad, Mth.sin(ang) * rad, z);
+                if (prev != null) {
+                    Vec3 perp = new Vec3(-Mth.sin(ang) * 0.048D * s, Mth.cos(ang) * 0.048D * s, 0.0D);
+                    emitDoubleSidedQuad(mat, vc, prev.subtract(perp), prev.add(perp), cur.add(perp), cur.subtract(perp),
+                            goldRibbon ? 1.000F : 0.596F,
+                            goldRibbon ? 0.918F : 0.863F,
+                            goldRibbon ? 0.471F : 0.949F,
+                            0.94F * (1.0F - 0.35F * u));
+                }
+                prev = cur;
+            }
+        }
+
+        // 3. Refracting hexagonal cryo-prism collar (#FFEA78)
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.08D * s), rx, ry,
+                0.20F * s, 0.28F * s, 6, 1.000F, 0.918F, 0.471F, 0.95F);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 40: SHIMMERING MIRAGE SAND-DART (MIRAGE #36 — #FFEA78 / #C2B28F)
+    // =========================================================================
+
+    private static void renderMirageSandJavelin(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.06F;
+        float spin = age * 0.30F + (seed & 15) * 0.35F;
+        float shimmer = 0.72F + 0.26F * Mth.sin(age * 0.42F + seed);
+
+        // 1. Sunlit golden javelin core (#FFEA78) + carved desert sandstone spearhead (#C2B28F)
+        renderElongatedBipyramid(mat, vc, 0.080F * s, 0.70F * s, 0.46F * s, 4, spin,
+                1.000F, 0.918F, 0.471F, 0.98F);
+        renderElongatedBipyramid(mat, vc, 0.155F * s, 0.84F * s, 0.56F * s, 4, -spin * 0.5F,
+                0.761F, 0.698F, 0.561F, 0.88F);
+
+        // 2. Twin flickering heat-haze phantom ghost-darts flanking the real javelin!
+        for (int side = -1; side <= 1; side += 2) {
+            double ox = side * (0.20D + 0.05D * Mth.sin(age * 0.36F + side)) * s;
+            double oy = 0.04D * Mth.cos(age * 0.32F + side) * s;
+            Vec3 nose = new Vec3(ox, oy, 0.48D * s);
+            Vec3 tail = new Vec3(ox * 1.15D, oy, -0.44D * s);
+            renderLocalSegment(mat, vc, tail, nose, 0.042F * s,
+                    1.000F, 0.918F, 0.471F, 0.58F * shimmer);
+        }
+
+        // 3. Swirling golden-sandstone heat-haze distortion rings
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.10D * s), rx, ry,
+                0.19F * s, 0.27F * s, 18, 1.000F, 0.918F, 0.471F, 0.92F);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.22D * s), rx, ry,
+                0.24F * s, 0.32F * s, 18, 0.761F, 0.698F, 0.561F, 0.80F * shimmer);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 41: SPECTRAL WRAITH-SKULL MISSILE (WRAITH #37 — #41304E / #4D6453)
+    // =========================================================================
+
+    private static void renderWraithSkullMissile(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.08F;
+        float spin = age * 0.28F + (seed & 15) * 0.31F;
+        float jawOpen = 0.065F + 0.045F * Mth.abs(Mth.sin(age * 0.44F + seed));
+
+        // 1. Abyssal Void Indigo (#41304E) inner skull kernel + Necrotic Moss (#4D6453) ectoplasm cranium!
+        renderElongatedBipyramid(mat, vc, 0.16F * s, 0.32F * s, 0.24F * s, 6, 0.0F,
+                0.255F, 0.188F, 0.306F, 0.96F);
+        renderElongatedBipyramid(mat, vc, 0.23F * s, 0.40F * s, 0.30F * s, 6, 0.52F,
+                0.302F, 0.392F, 0.325F, 0.82F);
+
+        // 2. Screaming hinged ectoplasm jawbone & blazing void-soul eye sockets!
+        Vec3 jawL = new Vec3(-0.12D * s, (-0.11D - jawOpen) * s, 0.10D * s);
+        Vec3 jawR = new Vec3(0.12D * s, (-0.11D - jawOpen) * s, 0.10D * s);
+        Vec3 chin = new Vec3(0.0D, (-0.18D - jawOpen) * s, 0.28D * s);
+        emitGradientDoubleSidedQuad(mat, vc, jawL, jawR, chin, chin,
+                0.255F, 0.188F, 0.306F, 0.96F,
+                0.302F, 0.392F, 0.325F, 0.92F);
+
+        for (int eye = -1; eye <= 1; eye += 2) {
+            Vec3 eBase = new Vec3(eye * 0.095D * s, 0.055D * s, 0.24D * s);
+            Vec3 eTip = new Vec3(eye * 0.105D * s, 0.065D * s, 0.36D * s);
+            renderLocalSegment(mat, vc, eBase, eTip, 0.036F * s, 0.620F, 0.880F, 0.720F, 0.98F);
+        }
+
+        // 3. Swirling #41304E void-phase halo & 4 tattered #4D6453 / #41304E ectoplasm shroud streamers!
+        Vec3 rx = new Vec3(Mth.cos(spin), Mth.sin(spin) * 0.35D, 0.0D).normalize();
+        Vec3 ry = new Vec3(-Mth.sin(spin) * 0.35D, Mth.cos(spin), 0.0D).normalize();
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.04D * s), rx, ry,
+                0.25F * s, 0.33F * s, 18, 0.255F, 0.188F, 0.306F, 0.90F);
+
+        for (int t = 0; t < 4; t++) {
+            float tAng = -spin * 0.9F + (float) (Math.PI * 0.5D * t);
+            boolean moss = (t % 2 == 0);
+            Vec3 p0 = new Vec3(Mth.cos(tAng) * 0.15D * s, Mth.sin(tAng) * 0.15D * s, -0.18D * s);
+            Vec3 p1 = new Vec3(Mth.cos(tAng + 0.55F) * 0.24D * s, Mth.sin(tAng + 0.55F) * 0.24D * s, -0.68D * s);
+            renderLocalSegment(mat, vc, p0, p1, 0.034F * s,
+                    moss ? 0.302F : 0.255F,
+                    moss ? 0.392F : 0.188F,
+                    moss ? 0.325F : 0.306F,
+                    0.82F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 42: TOMBSTONE OSSUARY BOULDER-SLUG (BARROW #38 — #773214 / #4D6453)
+    // =========================================================================
+
+    private static void renderTombstoneBoulderSlug(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.12F;
+        float tumble = age * 0.24F + (seed & 15) * 0.29F;
+
+        // 1. Heavy megalithic gravestone slab (#773214 granite brown) + necrotic moss lichen crust (#4D6453)!
+        Vec3 b0 = new Vec3(-0.24D * s, -0.30D * s, -0.14D * s);
+        Vec3 b1 = new Vec3(0.24D * s, -0.30D * s, -0.14D * s);
+        Vec3 t1 = new Vec3(0.22D * s, 0.28D * s, 0.16D * s);
+        Vec3 t0 = new Vec3(-0.22D * s, 0.28D * s, 0.16D * s);
+        emitGradientDoubleSidedQuad(mat, vc, b0, b1, t1, t0,
+                0.467F, 0.196F, 0.078F, 0.98F,
+                0.302F, 0.392F, 0.325F, 0.96F);
+        renderElongatedBipyramid(mat, vc, 0.22F * s, 0.38F * s, 0.32F * s, 4, 0.785F,
+                0.467F, 0.196F, 0.078F, 0.95F);
+        renderElongatedBipyramid(mat, vc, 0.26F * s, 0.28F * s, 0.26F * s, 4, 0.0F,
+                0.302F, 0.392F, 0.325F, 0.78F);
+
+        // 2. Carved petrified bone (#E6DFCF) ossuary cross-relief on the gravestone face!
+        renderLocalSegment(mat, vc, new Vec3(0.0D, -0.22D * s, 0.20D * s), new Vec3(0.0D, 0.24D * s, 0.20D * s),
+                0.036F * s, 0.902F, 0.875F, 0.812F, 0.98F);
+        renderLocalSegment(mat, vc, new Vec3(-0.14D * s, 0.06D * s, 0.20D * s), new Vec3(0.14D * s, 0.06D * s, 0.20D * s),
+                0.034F * s, 0.902F, 0.875F, 0.812F, 0.98F);
+
+        // 3. 4 orbiting petrified bone shrapnel & mossy tomb grit fragments!
+        for (int f = 0; f < 4; f++) {
+            float fAng = tumble + (float) (Math.PI * 0.5D * f);
+            boolean bone = (f % 2 == 0);
+            Vec3 p0 = new Vec3(Mth.cos(fAng) * 0.32D * s, Mth.sin(fAng) * 0.32D * s, -0.06D * s);
+            Vec3 p1 = new Vec3(Mth.cos(fAng + 0.35F) * 0.36D * s, Mth.sin(fAng + 0.35F) * 0.36D * s, -0.34D * s);
+            renderLocalSegment(mat, vc, p0, p1, 0.038F * s,
+                    bone ? 0.902F : 0.302F,
+                    bone ? 0.875F : 0.392F,
+                    bone ? 0.812F : 0.325F,
+                    0.92F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 43: COMBUSTION HEARTH ORB (PYRE #39 — #773214 / #FF4500)
+    // =========================================================================
+
+    private static void renderCombustionHearthOrb(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.10F;
+        float spin = age * 0.34F + (seed & 15) * 0.27F;
+        float pulse = 0.92F + 0.12F * Mth.sin(age * 0.42F + seed);
+
+        // 1. Incandescent hearth-gold (#FFD15C) & roaring wildfire (#FF4500) furnace heart!
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.22F * s * pulse, 1.05F,
+                6, 10, age * 0.36F, 0.08F,
+                1.000F, 0.271F, 0.000F, 0.98F);
+        renderOctahedronAt(mat, vc, Vec3.ZERO, 0.14F * s * pulse, 0.14F * s * pulse, -spin * 0.65F,
+                1.000F, 0.820F, 0.361F, 0.99F);
+
+        // 2. Compressed volcanic coal & charred petrified cedar shell (#773214) cracked with #FF4500 fire fissures!
+        renderElongatedBipyramid(mat, vc, 0.28F * s, 0.30F * s, 0.28F * s, 6, spin * 0.45F,
+                0.467F, 0.196F, 0.078F, 0.88F);
+        Vec3 rx = new Vec3(Mth.cos(spin), Mth.sin(spin) * 0.45D, 0.0D).normalize();
+        Vec3 ry = new Vec3(-Mth.sin(spin) * 0.45D, Mth.cos(spin), 0.25D).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, rx, ry,
+                0.24F * s, 0.34F * s, 18, 1.000F, 0.271F, 0.000F, 0.96F);
+
+        // 3. 4 orbiting burning cedar chunks & blazing coal embers!
+        for (int c = 0; c < 4; c++) {
+            float cAng = -spin * 1.2F + (float) (Math.PI * 0.5D * c);
+            boolean flame = (c % 2 == 0);
+            Vec3 p0 = new Vec3(Mth.cos(cAng) * 0.31D * s, Mth.sin(cAng) * 0.31D * s, 0.04D * s);
+            Vec3 p1 = new Vec3(Mth.cos(cAng + 0.42F) * 0.35D * s, Mth.sin(cAng + 0.42F) * 0.35D * s, -0.36D * s);
+            renderLocalSegment(mat, vc, p0, p1, 0.040F * s,
+                    flame ? 1.000F : 0.467F,
+                    flame ? 0.271F : 0.196F,
+                    flame ? 0.000F : 0.078F,
+                    0.94F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 44: PENUMBRAL TWILIGHT ECLIPSE-BOLT (PENUMBRA #40 — #FFEA78 / #281E3C)
+    // =========================================================================
+
+    private static void renderPenumbralTwilightEclipseBolt(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.12F;
+        float spin = age * 0.46F + (seed & 15) * 0.31F;
+
+        // 1. Dual-core spearhead: #281E3C deep twilight indigo singularity core + #FFEA78 blazing solar corona spear!
+        renderElongatedBipyramid(mat, vc, 0.14F * s, 0.48F * s, 0.34F * s, 6, -spin * 0.55F,
+                0.157F, 0.118F, 0.235F, 0.98F);
+        renderElongatedBipyramid(mat, vc, 0.20F * s, 0.38F * s, 0.26F * s, 4, spin * 0.65F,
+                1.000F, 0.918F, 0.471F, 0.92F);
+
+        // 2. Intersecting counter-rotational event-lensing ellipses (#FFEA78 & #281E3C)
+        Vec3 u1 = new Vec3(Mth.cos(spin), Mth.sin(spin) * 0.45D, 0.15D).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin) * 0.45D, Mth.cos(spin), 0.15D).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1,
+                0.20F * s, 0.29F * s, 20, 1.000F, 0.918F, 0.471F, 0.96F);
+
+        Vec3 u2 = new Vec3(Mth.cos(-spin), -Mth.sin(-spin) * 0.45D, -0.15D).normalize();
+        Vec3 v2 = new Vec3(Mth.sin(-spin) * 0.45D, Mth.cos(-spin), -0.15D).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u2, v2,
+                0.22F * s, 0.31F * s, 20, 0.157F, 0.118F, 0.235F, 0.94F);
+
+        // 3. Twin spiraling corona-umbra bifurcation ribbons trailing behind the missile!
+        for (int h = 0; h < 2; h++) {
+            boolean corona = (h == 0);
+            float baseAng = spin + h * (float) Math.PI;
+            Vec3 prev = null;
+            for (int step = 0; step <= 6; step++) {
+                float t = step / 6.0F;
+                float a = baseAng - t * 2.8F;
+                double rad = (0.18D - t * 0.08D) * s;
+                Vec3 pt = new Vec3(Mth.cos(a) * rad, Mth.sin(a) * rad, (0.24D - t * 0.88D) * s);
+                if (prev != null) {
+                    renderLocalSegment(mat, vc, prev, pt, 0.036F * s,
+                            corona ? 1.000F : 0.157F,
+                            corona ? 0.918F : 0.118F,
+                            corona ? 0.471F : 0.235F,
+                            0.94F * (1.0F - t * 0.35F));
+                }
+                prev = pt;
+            }
+        }
     }
 
     private static float hash01(int a, int b) {
