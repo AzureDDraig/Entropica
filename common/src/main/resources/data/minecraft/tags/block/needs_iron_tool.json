@@ -22,6 +22,8 @@
     "entropica:small_mortisite_bud",
     "entropica:medium_mortisite_bud",
     "entropica:large_mortisite_bud",
-    "entropica:mortisite_cluster"
+    "entropica:mortisite_cluster",
+    "entropica:aegis_crystal_block",
+    "entropica:aegis_crystal_cluster"
   ]
 }

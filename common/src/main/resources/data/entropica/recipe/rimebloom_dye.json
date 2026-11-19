@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:rimebloom_petal"
+  ],
+  "result": {
+    "id": "entropica:rimebloom_dye",
+    "count": 2
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "F F",
+    "NFN"
+  ],
+  "key": {
+    "F": "entropica:shielding_thorn_fiber",
+    "N": "minecraft:iron_nugget"
+  },
+  "result": {
+    "id": "entropica:thorned_wire",
+    "count": 4
+  }
+}

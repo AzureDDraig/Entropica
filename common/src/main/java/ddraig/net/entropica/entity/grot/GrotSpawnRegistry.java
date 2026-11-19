@@ -7,6 +7,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.tags.TagKey;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
@@ -28,6 +29,11 @@ public class GrotSpawnRegistry {
     private static final TagKey<Biome> IS_SNOWY = cTag("is_snowy");
     private static final TagKey<Biome> IS_SWAMP = cTag("is_swamp");
     private static final TagKey<Biome> IS_CAVE = cTag("is_cave");
+
+    public static final ResourceKey<Biome> BLUE_GLACIER_SHELF = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "blue_glacier_shelf")
+    );
 
     // ==========================================
     // CUSTOM WEIGHTED LIST UTILITY
@@ -72,7 +78,14 @@ public class GrotSpawnRegistry {
             .add(EssenceType.WATER, 20)
             .add(EssenceType.AIR, 10);
 
+    public static final WeightedList<EssenceType> BLUE_GLACIER_SHELF_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.GLACIAL, 60)
+            .add(EssenceType.AEGIS, 30)
+            .add(EssenceType.FROZEN, 10);
+
     public static void initialize() {
+        // --- ENTROPICA CUSTOM BIOMES ---
+        BIOME_WEIGHTS.put(BLUE_GLACIER_SHELF, BLUE_GLACIER_SHELF_POOL);
         // --- SCORCHED & SANDY ---
         BIOME_WEIGHTS.put(BiomeTags.IS_NETHER, new WeightedList<EssenceType>()
                 .add(EssenceType.NETHER, 75).add(EssenceType.EARTH, 10).add(EssenceType.MAGMA, 10));
@@ -126,6 +139,11 @@ public class GrotSpawnRegistry {
         // 5% Anomaly Chance intercepts the spawn completely
         if (random.nextFloat() < 0.05f) {
             return ANOMALY_POOL.get(random.nextInt(ANOMALY_POOL.size()));
+        }
+
+        // Dedicated Entropica Biome Pools (evaluated prior to broad climate tags)
+        if (biomeHolder.is(BLUE_GLACIER_SHELF)) {
+            return BIOME_WEIGHTS.getOrDefault(BLUE_GLACIER_SHELF, BLUE_GLACIER_SHELF_POOL).getRandomValue(random, EssenceType.GLACIAL);
         }
 
         // Added .getOrDefault protections to ensure we never throw a NullPointerException if a map key is somehow missing

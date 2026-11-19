@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:frost_veiled_glacial_runic_spire",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 918273645,
+    "spacing": 26,
+    "separation": 10
+  }
+}

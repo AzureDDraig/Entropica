@@ -1,5 +1,8 @@
 package ddraig.net.entropica.config.neoforge;
 
+import ddraig.net.entropica.config.EntropicaBiome;
+import net.neoforged.neoforge.common.ModConfigSpec;
+
 public class EntropicaConfigImpl {
     public static int getMateriaPerEssence() { return EntropicaNeoForgeConfig.MATERIA_PER_ESSENCE.get(); }
     public static int getMateriaFurnaceMaxMateria() { return EntropicaNeoForgeConfig.MATERIA_FURNACE_MAX_MATERIA.get(); }
@@ -103,4 +106,17 @@ public class EntropicaConfigImpl {
     public static int getAstralCollectorTransferRate() { return EntropicaNeoForgeConfig.ASTRAL_COLLECTOR_TRANSFER_RATE.get(); }
     public static int getSpellMutationUnlockMode() { return EntropicaNeoForgeConfig.SPELL_MUTATION_UNLOCK_MODE.get(); }
     public static boolean getEnableSpellMutationOpJoinNotice() { return EntropicaNeoForgeConfig.ENABLE_SPELL_MUTATION_OP_JOIN_NOTICE.get(); }
+    public static boolean getEnableAllBiomes() { return EntropicaNeoForgeConfig.ENABLE_ALL_BIOMES.get(); }
+    public static int getTerraBlenderCompatMode() { return EntropicaNeoForgeConfig.TERRABLENDER_COMPAT_MODE.get(); }
+    public static int getEntropicaBiomeRegionWeight() { return EntropicaNeoForgeConfig.ENTROPICA_BIOME_REGION_WEIGHT.get(); }
+    public static int getVanillaBiomePassthroughWeight() { return EntropicaNeoForgeConfig.VANILLA_BIOME_PASSTHROUGH_WEIGHT.get(); }
+    public static int getBiomeRegionScale() { return EntropicaNeoForgeConfig.BIOME_REGION_SCALE.get(); }
+    public static boolean getEnableBiomeCustomFog() { return EntropicaNeoForgeConfig.ENABLE_BIOME_CUSTOM_FOG.get(); }
+    public static boolean getEnableBiomeCustomSky() { return EntropicaNeoForgeConfig.ENABLE_BIOME_CUSTOM_SKY.get(); }
+    public static boolean getEnableBiomeEnvironmentalEffects() { return EntropicaNeoForgeConfig.ENABLE_BIOME_ENVIRONMENTAL_EFFECTS.get(); }
+    public static boolean getBiomeEnabled(EntropicaBiome biome) {
+        if (biome == null) return false;
+        ModConfigSpec.BooleanValue toggle = EntropicaNeoForgeConfig.BIOME_TOGGLES.get(biome);
+        return toggle == null || toggle.get();
+    }
 }

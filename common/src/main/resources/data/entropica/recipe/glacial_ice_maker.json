@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CIC",
+    "IFI",
+    "CIC"
+  ],
+  "key": {
+    "C": "minecraft:cobblestone",
+    "I": "minecraft:packed_ice",
+    "F": "entropica:frost_core_shard"
+  },
+  "result": {
+    "id": "entropica:glacial_ice_maker",
+    "count": 1
+  }
+}

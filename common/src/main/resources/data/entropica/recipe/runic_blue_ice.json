@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " I ",
+    "IAI",
+    " I "
+  ],
+  "key": {
+    "I": "minecraft:blue_ice",
+    "A": "entropica:aegis_crystal_shard"
+  },
+  "result": {
+    "id": "entropica:runic_blue_ice",
+    "count": 4
+  }
+}

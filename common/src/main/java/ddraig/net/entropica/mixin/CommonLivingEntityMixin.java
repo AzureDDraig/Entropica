@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -37,5 +38,10 @@ public abstract class CommonLivingEntityMixin {
                 cir.setReturnValue(cir.getReturnValueD() * 0.50D);
             }
         }
+    }
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void entropica$tickBiomeEnvironmentalPhysics(CallbackInfo ci) {
+        ddraig.net.entropica.worldgen.biome.EntropicaBiomeEnvironmentHandler.tickLivingEntity((LivingEntity) (Object) this);
     }
 }

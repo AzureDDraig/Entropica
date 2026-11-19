@@ -3,6 +3,7 @@ package ddraig.net.entropica.spell.engine;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.client.particle.TimedTintableParticleOption;
 import ddraig.net.entropica.entity.SpellEidolonEntity;
+import ddraig.net.entropica.registry.ModEffects;
 import ddraig.net.entropica.registry.ModParticles;
 import ddraig.net.entropica.spell.assembly.SpellAssembly;
 import ddraig.net.entropica.spell.assembly.SubSpellSlot;
@@ -10,6 +11,7 @@ import ddraig.net.entropica.util.EntityHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -268,15 +270,23 @@ public final class SpellLingeringZoneManager {
     public static final String TAG_STATIC_SHROUD_UNTIL = "SpellStaticFaradayShroudUntil";
     public static final String TAG_STATIC_SENTRY_IMMUNE_UNTIL = "SpellStaticSentryImmuneUntil";
     public static final String TAG_STATIC_SPRINT_SHOCK_UNTIL = "SpellStaticSprintShockUntil";
+    public static final String TAG_STATIC_ARC_SNARE_UNTIL = "SpellStaticArcSnareUntil";
+    public static final String TAG_STATIC_ARC_SNARE_GROUP = "SpellStaticArcSnareGroup";
+    public static final String TAG_STATIC_ARC_SNARE_CASTER = "SpellStaticArcSnareCaster";
     public static final String TAG_SYLVAN_ORBIT_UNTIL = "SpellSylvanOrbitUntil";
     public static final String TAG_SYLVAN_AEGIS_UNTIL = "SpellSylvanPhotosyntheticAegisUntil";
     public static final String TAG_SYLVAN_AEGIS_HITS = "SpellSylvanPhotosyntheticAegisHits";
+    public static final String TAG_SYLVAN_SOLAR_GLIDE_UNTIL = "SpellSylvanSolarGlideUntil";
     public static final String TAG_MIASMA_CARAPACE_UNTIL = "SpellMiasmaMireCarapaceUntil";
     public static final String TAG_MIASMA_SEPTIC_IMMUNE_UNTIL = "SpellMiasmaSepticImmuneUntil";
+    public static final String TAG_MIASMA_ASPHYXIA_UNTIL = "SpellMiasmaAsphyxiaUntil";
     public static final String TAG_GENESIS_ORBIT_UNTIL = "SpellGenesisOrbitUntil";
     public static final String TAG_GENESIS_SHROUD_UNTIL = "SpellGenesisAmnioticShroudUntil";
     public static final String TAG_OBLIVION_SHROUD_UNTIL = "SpellOblivionVoidShroudUntil";
     public static final String TAG_OBLIVION_EXTINCTION_ARMOR_UNTIL = "SpellOblivionExtinctionArmorUntil";
+    public static final String TAG_OBLIVION_FIRE_FALL_IMMUNE_UNTIL = "SpellOblivionFireFallImmuneUntil";
+    public static final String TAG_OBLIVION_CONFLAGRATION_UNTIL = "SpellOblivionConflagrationUntil";
+    public static final String TAG_OBLIVION_CONFLAGRATION_MAX_HP = "SpellOblivionConflagrationMaxHp";
     public static final String TAG_CHIMERA_ORBIT_UNTIL = "SpellChimeraOrbitUntil";
     public static final String TAG_CHIMERA_ORBIT_ELEMENT = "SpellChimeraOrbitElement";
     public static final String TAG_CHIMERA_SHROUD_UNTIL = "SpellChimeraFluxShroudUntil";
@@ -2650,10 +2660,14 @@ public final class SpellLingeringZoneManager {
             if (tag.getLong(TAG_SPRING_MANTLE_UNTIL).orElse(0L) > now) {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 6.0D, 2.0D, 0.0D, 0.0D, 12L);
                 living.clearFire();
+                living.setAirSupply(living.getMaxAirSupply());
                 living.removeEffect(MobEffects.POISON);
                 living.removeEffect(MobEffects.WITHER);
                 living.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 40, 0, true, false));
                 living.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 40, 0, true, false));
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 if (now % 60L == 0L) {
                     SpellCombatReactionEngine.notifyMagicalHeal(living, 2.0F);
                     living.heal(2.0F);
@@ -2666,21 +2680,21 @@ public final class SpellLingeringZoneManager {
                                 || (ally instanceof SpellEidolonEntity eid && eid.isFriendlyTo(living))) {
                             SpellCombatReactionEngine.notifyMagicalHeal(ally, 2.0F);
                             ally.heal(2.0F);
-                            for (MobEffectInstance eff : new ArrayList<>(ally.getActiveEffects())) {
-                                if (!eff.getEffect().value().isBeneficial()) ally.removeEffect(eff.getEffect());
-                            }
+                            SpellCombatReactionEngine.purifyHexesAndNegativeEffects(ally);
                         }
                     }
                 }
             } else if (tag.getLong(TAG_SPRING_ORBIT_UNTIL).orElse(0L) > now) {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 5.0D, 2.0D, 0.0D, 0.0D, 12L);
                 living.clearFire();
+                living.setAirSupply(living.getMaxAirSupply());
                 living.removeEffect(MobEffects.POISON);
                 living.removeEffect(MobEffects.WITHER);
                 living.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 40, 0, true, false));
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.8D))) {
                     if (proj.getOwner() == living || proj instanceof ddraig.net.entropica.entity.projectile.SpellProjectileEntity) continue;
                     level.sendParticles(ParticleTypes.CHERRY_LEAVES, proj.getX(), proj.getY(), proj.getZ(), 5, 0.1D, 0.1D, 0.1D, 0.02D);
+                    level.sendParticles(ParticleTypes.SPLASH, proj.getX(), proj.getY(), proj.getZ(), 4, 0.1D, 0.1D, 0.1D, 0.02D);
                     proj.discard();
                     SpellCombatReactionEngine.notifyMagicalHeal(living, 1.0F);
                     living.heal(1.0F);
@@ -2701,6 +2715,9 @@ public final class SpellLingeringZoneManager {
                 SpellCombatReactionEngine.applyTimedAttackSpeedBuff(living, level, 0.25D, 12L);
                 living.removeEffect(MobEffects.SLOWNESS);
                 living.resetFallDistance();
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 for (AbstractArrow arrow : level.getEntitiesOfClass(AbstractArrow.class, living.getBoundingBox().inflate(3.0D))) {
                     if (arrow.getOwner() == living) continue;
                     level.sendParticles(ParticleTypes.ELECTRIC_SPARK, arrow.getX(), arrow.getY(), arrow.getZ(), 8, 0.12D, 0.12D, 0.12D, 0.06D);
@@ -2721,16 +2738,19 @@ public final class SpellLingeringZoneManager {
             if (tag.getLong(TAG_STATIC_SPRINT_SHOCK_UNTIL).orElse(0L) > now
                     && (living.isSprinting() || living.getDeltaMovement().horizontalDistanceSqr() > 0.035D)
                     && now % 12L == 0L) {
-                living.hurtServer(level, level.damageSources().lightningBolt(), 2.0F);
+                SpellCombatReactionEngine.hurtWithStaticMateriaAdvantage(level, living, null, 2.35F, false, true);
                 level.sendParticles(ParticleTypes.ELECTRIC_SPARK, living.getX(), living.getY(0.5D), living.getZ(), 8, 0.2D, 0.2D, 0.2D, 0.06D);
             }
 
-            // #44 Sylvan Primeval Photosynthetic Aegis & Sun-Canopy Orbit Flow
+            // #44 Sylvan Primeval Photosynthetic Aegis, Sun-Canopy Orbit Flow & Canopy Solar-Glide Step
             if (tag.getLong(TAG_SYLVAN_AEGIS_UNTIL).orElse(0L) > now) {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 7.0D, 3.0D, 0.0D, 0.0D, 12L);
                 living.removeEffect(MobEffects.POISON);
                 living.removeEffect(MobEffects.WITHER);
                 living.removeEffect(MobEffects.BLINDNESS);
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
             } else if (tag.getLong(TAG_SYLVAN_ORBIT_UNTIL).orElse(0L) > now) {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 5.0D, 2.0D, 0.0D, 0.0D, 12L);
                 living.removeEffect(MobEffects.POISON);
@@ -2742,17 +2762,26 @@ public final class SpellLingeringZoneManager {
                     ddraig.net.entropica.spell.fuel.SpellFuelService.restorePlayerMateriaFuel(sylvanPlayer, EssenceType.SYLVAN, 32L);
                 }
             }
+            if (tag.getLong(TAG_SYLVAN_SOLAR_GLIDE_UNTIL).orElse(0L) > now) {
+                living.resetFallDistance();
+            }
 
-            // #45 Miasma Putrescent Mire-Carapace & Septic Immunity
+            // #45 Miasma Putrescent Mire-Carapace, Septic Immunity & Miasmic Asphyxiation
             if (tag.getLong(TAG_MIASMA_CARAPACE_UNTIL).orElse(0L) > now) {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 7.0D, 3.0D, 0.0D, 0.0D, 12L);
                 living.removeEffect(MobEffects.POISON);
                 living.removeEffect(MobEffects.WITHER);
                 living.removeEffect(MobEffects.HUNGER);
+                living.setAirSupply(living.getMaxAirSupply());
                 living.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 40, 0, true, false));
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 BlockPos below = living.blockPosition().below();
                 BlockState bState = level.getBlockState(below);
-                if ((bState.is(Blocks.WATER) || bState.is(Blocks.MUD)) && level.getBlockState(below.above()).isAir()) {
+                if ((bState.is(Blocks.WATER) || bState.is(Blocks.MUD))
+                        && level.getBlockState(below.above()).isAir()
+                        && !SpellExecutionEngine.isProtectedBlockOrContainer(level, below, bState)) {
                     BlockPos savedPos = below.immutable();
                     BlockState orig = bState;
                     level.setBlockAndUpdate(savedPos, Blocks.MOSS_BLOCK.defaultBlockState());
@@ -2773,6 +2802,11 @@ public final class SpellLingeringZoneManager {
                 living.removeEffect(MobEffects.WITHER);
                 living.removeEffect(MobEffects.HUNGER);
             }
+            if (tag.getLong(TAG_MIASMA_ASPHYXIA_UNTIL).orElse(0L) > now && now % 60L == 0L) {
+                living.stopUsingItem();
+                living.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 8, 0));
+                level.sendParticles(ParticleTypes.SPORE_BLOSSOM_AIR, living.getX(), living.getY(0.8D), living.getZ(), 6, 0.25D, 0.25D, 0.25D, 0.02D);
+            }
 
             // #46 Genesis Amniotic Genesis Shroud & Dawn-Tide Lotus Orbit Flow
             if (tag.getLong(TAG_GENESIS_SHROUD_UNTIL).orElse(0L) > now) {
@@ -2781,13 +2815,19 @@ public final class SpellLingeringZoneManager {
                 living.removeEffect(MobEffects.DARKNESS);
                 living.removeEffect(MobEffects.WITHER);
                 living.removeEffect(MobEffects.POISON);
+                living.setAirSupply(living.getMaxAirSupply());
                 living.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 40, 0, true, false));
                 living.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 40, 1, true, false));
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
             }
             if (tag.getLong(TAG_GENESIS_ORBIT_UNTIL).orElse(0L) > now) {
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(2.8D))) {
                     if (proj.getOwner() == living || proj instanceof ddraig.net.entropica.entity.projectile.SpellProjectileEntity) continue;
+                    if (proj.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
                     level.sendParticles(ParticleTypes.END_ROD, proj.getX(), proj.getY(), proj.getZ(), 5, 0.1D, 0.1D, 0.1D, 0.03D);
+                    level.sendParticles(ParticleTypes.SPLASH, proj.getX(), proj.getY(), proj.getZ(), 4, 0.1D, 0.1D, 0.1D, 0.03D);
                     proj.discard();
                 }
                 if (now % 20L == 0L) {
@@ -2798,30 +2838,37 @@ public final class SpellLingeringZoneManager {
                                 || (ally instanceof SpellEidolonEntity eid && eid.isFriendlyTo(living))) {
                             SpellCombatReactionEngine.notifyMagicalHeal(ally, 2.0F);
                             ally.heal(2.0F);
+                            SpellCombatReactionEngine.applyTimedMovementSpeedBoost(ally, level, 0.20D, 35L);
                             ally.addEffect(new MobEffectInstance(MobEffects.SPEED, 35, 0, true, false));
                         }
                     }
                 }
             }
 
-            // #47 Oblivion Void-Shroud & Obsidian Extinction Armor
+            // #47 Oblivion Void-Shroud, Obsidian Extinction Armor, Ash-Warp Immunity & Stygian Conflagration
             if (tag.getLong(TAG_OBLIVION_SHROUD_UNTIL).orElse(0L) > now) {
                 for (AbstractArrow arrow : level.getEntitiesOfClass(AbstractArrow.class, living.getBoundingBox().inflate(3.0D))) {
                     if (arrow.getOwner() == living) continue;
+                    if (arrow.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
                     level.sendParticles(ParticleTypes.ASH, arrow.getX(), arrow.getY(), arrow.getZ(), 8, 0.12D, 0.12D, 0.12D, 0.03D);
                     arrow.discard();
+                }
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
                 }
                 if (now % 16L == 0L) {
                     BlockPos c = living.blockPosition();
                     for (BlockPos p : BlockPos.betweenClosed(c.offset(-3, -1, -3), c.offset(3, 2, 3))) {
                         BlockState bs = level.getBlockState(p);
-                        if (bs.is(Blocks.TORCH) || bs.is(Blocks.WALL_TORCH) || bs.is(Blocks.SOUL_TORCH) || bs.is(Blocks.SOUL_WALL_TORCH)) {
+                        if ((bs.is(Blocks.TORCH) || bs.is(Blocks.WALL_TORCH) || bs.is(Blocks.SOUL_TORCH) || bs.is(Blocks.SOUL_WALL_TORCH))
+                                && !SpellExecutionEngine.isProtectedBlockOrContainer(level, p, bs)) {
                             level.destroyBlock(p, true);
                         }
                     }
-                    for (Mob mob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(16.0D))) {
-                        if (mob.getTarget() == living && mob.distanceToSqr(living) > 25.0D) {
+                    for (Mob mob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(18.0D))) {
+                        if (mob.getTarget() == living && mob.distanceToSqr(living) > 16.0D) {
                             mob.setTarget(null);
+                            mob.setAggressive(false);
                         }
                     }
                 }
@@ -2838,6 +2885,29 @@ public final class SpellLingeringZoneManager {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 6.0D, 3.0D, 0.0D, 0.0D, 12L);
                 living.clearFire();
                 living.removeEffect(MobEffects.WITHER);
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
+            }
+            if (tag.getLong(TAG_OBLIVION_FIRE_FALL_IMMUNE_UNTIL).orElse(0L) > now) {
+                living.clearFire();
+                living.resetFallDistance();
+            }
+            if (tag.getLong(TAG_OBLIVION_CONFLAGRATION_UNTIL).orElse(0L) > now) {
+                float ceil = tag.getFloat(TAG_OBLIVION_CONFLAGRATION_MAX_HP).orElse(living.getHealth());
+                if (living.getHealth() > ceil) {
+                    living.setHealth(ceil);
+                }
+                if (now % 20L == 0L) {
+                    living.igniteForSeconds(2);
+                    living.hurtServer(level, level.damageSources().onFire(), 2.0F); // 1 heart/s black fire!
+                    tag.putFloat(TAG_OBLIVION_CONFLAGRATION_MAX_HP, living.getHealth());
+                    if (living instanceof net.minecraft.world.entity.player.Player p) {
+                        p.getFoodData().setFoodLevel(Math.max(0, p.getFoodData().getFoodLevel() - 1));
+                    }
+                }
+            } else if (tag.contains(TAG_OBLIVION_CONFLAGRATION_MAX_HP)) {
+                tag.remove(TAG_OBLIVION_CONFLAGRATION_MAX_HP);
             }
 
             // Sec 6.49 Chimera Unstable Hybrid Flux Shroud & Quad-Elemental Orbit
@@ -3673,61 +3743,129 @@ public final class SpellLingeringZoneManager {
     private static void tickApexEschatonSingularityStates(ServerLevel level, LivingEntity living, CompoundTag tag, long now) {
         // #48 Aether Transcendent Firmament Quintessence Shroud, Aegis & Orbit
         if (tag.getLong(TAG_AETHER_SHROUD_UNTIL).orElse(0L) > now) {
-            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 12L);
+            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 16L);
             living.resetFallDistance();
+            living.setAirSupply(living.getMaxAirSupply());
             living.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 40, 0, true, false));
-            grantArcane3DFlight(living, 12);
+            grantArcane3DFlight(living, 14);
+            if (now % 10L == 0L) {
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+            }
             for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(4.0D))) {
                 if (proj.getOwner() == living || proj instanceof ddraig.net.entropica.entity.projectile.SpellProjectileEntity) continue;
-                level.sendParticles(ParticleTypes.ASH, proj.getX(), proj.getY(), proj.getZ(), 6, 0.1D, 0.1D, 0.1D, 0.02D);
+                if (proj.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
+                level.sendParticles(
+                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_MIST.get(), 0x773214, 18, 0.85F, 0.04F),
+                        proj.getX(), proj.getY(), proj.getZ(), 4, 0.10D, 0.10D, 0.10D, 0.02D
+                );
+                level.sendParticles(ParticleTypes.ASH, proj.getX(), proj.getY(), proj.getZ(), 6, 0.10D, 0.10D, 0.10D, 0.02D);
                 proj.discard();
             }
-            if (now % 16L == 0L) dampenMobDetection(level, living, 16.0D);
-            if (now % 20L == 0L) {
+            if (now % 12L == 0L) {
+                // -80% hostile mob detection range (~3.2m aggro drop)!
+                for (Mob mob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(20.0D))) {
+                    if (mob.isAlive() && mob.getTarget() == living && mob.distanceToSqr(living) > 10.24D) {
+                        mob.setTarget(null);
+                    }
+                }
+            }
+            if (now % 16L == 0L) {
                 for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, living.getBoundingBox().inflate(6.0D))) {
                     if (foe == living || !foe.isAlive() || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, living, true)) continue;
                     if (foe instanceof Monster || foe == living.getLastHurtMob()) {
-                        foe.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 25, 0, true, true));
+                        foe.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 26, 0, true, true));
+                        foe.setDeltaMovement(foe.getDeltaMovement().x, Math.max(foe.getDeltaMovement().y, 0.18D), foe.getDeltaMovement().z);
+                        foe.hasImpulse = true;
+                        level.sendParticles(
+                                TimedTintableParticleOption.linear(ModParticles.TINTABLE_WISP.get(), 0xA88654, 18, 0.82F, 0.05F),
+                                foe.getX(), foe.getY(0.65D), foe.getZ(), 3, 0.22D, 0.20D, 0.22D, 0.02D
+                        );
                     }
                 }
             }
         } else if (tag.getLong(TAG_AETHER_AEGIS_UNTIL).orElse(0L) > now) {
-            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 12L);
+            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 16L);
             living.resetFallDistance();
+            living.setAirSupply(living.getMaxAirSupply());
             living.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 40, 0, true, false));
-            grantArcane3DFlight(living, 12);
+            grantArcane3DFlight(living, 14);
+            if (now % 10L == 0L) {
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+            }
         }
         if (tag.getLong(TAG_AETHER_ORBIT_UNTIL).orElse(0L) > now) {
-            for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(3.0D))) {
+            for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(3.2D))) {
                 if (proj.getOwner() == living || proj instanceof ddraig.net.entropica.entity.projectile.SpellProjectileEntity) continue;
-                level.sendParticles(ParticleTypes.END_ROD, proj.getX(), proj.getY(), proj.getZ(), 5, 0.1D, 0.1D, 0.1D, 0.03D);
+                if (proj.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
+                level.sendParticles(
+                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xA88654, 18, 0.85F, 0.04F),
+                        proj.getX(), proj.getY(), proj.getZ(), 5, 0.10D, 0.10D, 0.10D, 0.03D
+                );
                 proj.discard();
+            }
+            // Autonomous retaliatory quad-elemental homing darts against nearby hostiles (-2 armor shred + true Aether Materia damage)!
+            if (now % 24L == 0L) {
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, living.getBoundingBox().inflate(10.0D))) {
+                    if (foe == living || !foe.isAlive() || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, living, true)) continue;
+                    if (foe instanceof Monster || foe == living.getLastHurtMob()) {
+                        ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, living, foe, 1);
+                        EssenceType quadSec = switch ((int) ((now / 24L) & 3L)) {
+                            case 0 -> EssenceType.AIR;
+                            case 1 -> EssenceType.EARTH;
+                            case 2 -> EssenceType.WATER;
+                            default -> EssenceType.NETHER;
+                        };
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastChainArc(
+                                level, living.getEyePosition(), foe.getEyePosition(), EssenceType.AETHER, quadSec, 6
+                        );
+                        SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 2.0D, 0.0D, 120L);
+                        SpellCombatReactionEngine.hurtWithAetherMateriaAdvantage(level, foe, living, 4.0F, true, false);
+                        break;
+                    }
+                }
             }
         }
 
         // #49 Entropic Abyssal Event Horizon Mantle & Apex Entropic Shroud
         if (tag.getLong(TAG_ENTROPIC_SHROUD_UNTIL).orElse(0L) > now) {
-            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 12L);
+            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 16L);
             living.removeEffect(MobEffects.WITHER);
             living.removeEffect(MobEffects.POISON);
             living.removeEffect(MobEffects.BLINDNESS);
             living.removeEffect(MobEffects.DARKNESS);
+            if (now % 10L == 0L) {
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+            }
             for (AbstractArrow arrow : level.getEntitiesOfClass(AbstractArrow.class, living.getBoundingBox().inflate(4.0D))) {
                 if (arrow.getOwner() == living) continue;
-                level.sendParticles(ParticleTypes.ASH, arrow.getX(), arrow.getY(), arrow.getZ(), 8, 0.1D, 0.1D, 0.1D, 0.02D);
+                if (arrow.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
+                level.sendParticles(
+                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_MIST.get(), 0x211A21, 18, 0.85F, 0.04F),
+                        arrow.getX(), arrow.getY(), arrow.getZ(), 5, 0.10D, 0.10D, 0.10D, 0.02D
+                );
+                level.sendParticles(ParticleTypes.ASH, arrow.getX(), arrow.getY(), arrow.getZ(), 6, 0.10D, 0.10D, 0.10D, 0.02D);
                 arrow.discard();
             }
-            if (now % 16L == 0L) {
+            if (now % 12L == 0L) {
                 snuffTorchesInRadius(level, living.blockPosition(), 6, false);
-                dampenMobDetection(level, living, 16.0D);
+                // -80% hostile mob detection range (~3.2m aggro drop)!
+                for (Mob mob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(20.0D))) {
+                    if (mob.isAlive() && mob.getTarget() == living && mob.distanceToSqr(living) > 10.24D) {
+                        mob.setTarget(null);
+                    }
+                }
             }
             if (now % 20L == 0L) {
                 float drained = 0.0F;
                 for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, living.getBoundingBox().inflate(6.0D))) {
                     if (foe == living || !foe.isAlive() || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, living, true)) continue;
                     if (foe instanceof Monster || foe == living.getLastHurtMob()) {
-                        if (foe.hurtServer(level, level.damageSources().wither(), 3.0F)) {
+                        if (foe.hurtServer(level, level.damageSources().fellOutOfWorld(), 3.0F)) {
                             drained += 3.0F;
+                            level.sendParticles(
+                                    TimedTintableParticleOption.linear(ModParticles.TINTABLE_BLOOD.get(), 0x8A0303, 18, 0.85F, 0.04F),
+                                    foe.getX(), foe.getY(0.7D), foe.getZ(), 5, 0.22D, 0.25D, 0.22D, 0.03D
+                            );
                         }
                     }
                 }
@@ -3737,42 +3875,92 @@ public final class SpellLingeringZoneManager {
                 }
             }
         } else if (tag.getLong(TAG_ENTROPIC_LIFESTEAL_SHROUD_UNTIL).orElse(0L) > now) {
-            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 12L);
+            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 16L);
             living.removeEffect(MobEffects.WITHER);
             living.removeEffect(MobEffects.POISON);
             living.removeEffect(MobEffects.BLINDNESS);
+            if (now % 10L == 0L) {
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+            }
         }
 
         // #50 Celestial Holy Supernova Shroud, Ascendance Shroud & White-Hole Star Orbit
         if (tag.getLong(TAG_CELESTIAL_SHROUD_UNTIL).orElse(0L) > now) {
-            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 12L);
+            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 16L);
             living.removeEffect(MobEffects.WITHER);
             living.removeEffect(MobEffects.POISON);
             living.removeEffect(MobEffects.BLINDNESS);
             living.removeEffect(MobEffects.DARKNESS);
+            if (now % 10L == 0L) {
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+            }
             for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(4.0D))) {
                 if (proj.getOwner() == living || proj instanceof ddraig.net.entropica.entity.projectile.SpellProjectileEntity) continue;
-                level.sendParticles(ParticleTypes.END_ROD, proj.getX(), proj.getY(), proj.getZ(), 6, 0.12D, 0.12D, 0.12D, 0.03D);
+                if (proj.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
+                level.sendParticles(
+                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xFFEA78, 20, 0.90F, 0.05F),
+                        proj.getX(), proj.getY(), proj.getZ(), 5, 0.12D, 0.12D, 0.12D, 0.03D
+                );
+                level.sendParticles(
+                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_MIST.get(), 0xFF6B9D, 18, 0.85F, 0.04F),
+                        proj.getX(), proj.getY(), proj.getZ(), 4, 0.12D, 0.12D, 0.12D, 0.02D
+                );
                 proj.discard();
                 SpellCombatReactionEngine.notifyMagicalHeal(living, 2.0F);
                 living.heal(2.0F);
             }
-            if (now % 16L == 0L) dampenMobDetection(level, living, 16.0D);
+            if (now % 12L == 0L) {
+                // -80% hostile mob detection range (~3.2m aggro drop — mobs are blinded and awe-struck)!
+                for (Mob mob : level.getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(20.0D))) {
+                    if (mob.isAlive() && mob.getTarget() == living && mob.distanceToSqr(living) > 10.24D) {
+                        mob.setTarget(null);
+                    }
+                }
+            }
         } else if (tag.getLong(TAG_CELESTIAL_ASCENDANCE_UNTIL).orElse(0L) > now) {
-            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 12L);
+            SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 10.0D, 5.0D, 0.0D, 0.0D, 16L);
             living.removeEffect(MobEffects.WITHER);
             living.removeEffect(MobEffects.POISON);
             living.removeEffect(MobEffects.BLINDNESS);
+            if (now % 10L == 0L) {
+                SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+            }
         }
         if (tag.getLong(TAG_CELESTIAL_ORBIT_UNTIL).orElse(0L) > now) {
-            for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(3.0D))) {
+            for (Projectile proj : level.getEntitiesOfClass(Projectile.class, living.getBoundingBox().inflate(3.2D))) {
                 if (proj.getOwner() == living || proj instanceof ddraig.net.entropica.entity.projectile.SpellProjectileEntity) continue;
-                level.sendParticles(ParticleTypes.END_ROD, proj.getX(), proj.getY(), proj.getZ(), 5, 0.1D, 0.1D, 0.1D, 0.03D);
+                if (proj.getOwner() instanceof LivingEntity pOwner && SpellExecutionEngine.isFriendlyAllyForOasis(living, pOwner)) continue;
+                level.sendParticles(
+                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xFFEA78, 18, 0.88F, 0.04F),
+                        proj.getX(), proj.getY(), proj.getZ(), 5, 0.10D, 0.10D, 0.10D, 0.03D
+                );
                 proj.discard();
                 SpellCombatReactionEngine.notifyMagicalHeal(living, 1.5F);
                 living.heal(1.5F);
             }
+            // Autonomous retaliatory starlight darts bypassing armor & blinding attackers!
+            if (now % 24L == 0L) {
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, living.getBoundingBox().inflate(10.0D))) {
+                    if (foe == living || !foe.isAlive() || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, living, true)) continue;
+                    if (foe instanceof Monster || foe == living.getLastHurtMob() || foe == living.getLastHurtByMob()) {
+                        ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, living, foe, 1);
+                        EssenceType quadSec = switch ((int) ((now / 24L) & 3L)) {
+                            case 0 -> EssenceType.RADIANT;
+                            case 1 -> EssenceType.VITAE;
+                            case 2 -> EssenceType.NATURE;
+                            default -> EssenceType.AIR;
+                        };
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastChainArc(
+                                level, living.getEyePosition(), foe.getEyePosition(), EssenceType.CELESTIAL, quadSec, 6
+                        );
+                        foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
+                        SpellCombatReactionEngine.hurtWithCelestialMateriaAdvantage(level, foe, living, 4.10F, true, false);
+                        break;
+                    }
+                }
+            }
             if (now % 60L == 0L) {
+                // 4m pranic aura healing adjacent allies for 1 heart (2.0 HP) every 3.0 seconds!
                 for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, living.getBoundingBox().inflate(4.0D), LivingEntity::isAlive)) {
                     if (ally instanceof Monster && ally != living) continue;
                     if (ally == living || ally.isAlliedTo(living)
@@ -3780,6 +3968,10 @@ public final class SpellLingeringZoneManager {
                             || (ally instanceof SpellEidolonEntity eid && eid.isFriendlyTo(living))) {
                         SpellCombatReactionEngine.notifyMagicalHeal(ally, 2.0F);
                         ally.heal(2.0F);
+                        level.sendParticles(
+                                TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPARKLE.get(), 0xFF6B9D, 18, 0.85F, 0.04F),
+                                ally.getX(), ally.getY(0.9D), ally.getZ(), 4, 0.25D, 0.25D, 0.25D, 0.02D
+                        );
                     }
                 }
             }

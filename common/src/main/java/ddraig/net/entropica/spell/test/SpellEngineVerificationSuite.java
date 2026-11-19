@@ -850,6 +850,21 @@ public final class SpellEngineVerificationSuite {
                 "Apex Celestial Meteorite".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.AETHER, true).signatureTitle())
                 && "Abyssal Sanguine-Void Chain Flow".equals(SpellMutationRegistry.resolveFlow(SpellFlowModifier.CHAIN_LEAP, EssenceType.ENTROPIC, true).signatureTitle())
                 && "Holy Solar Singularity Dart".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Holy White-Hole Star-Orbit Flow".equals(SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Holy Pranic Fusion Beam & Cataclysmic Supernova".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Holy Supernova Dawn-Shockwave".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Holy Supernova Cleave / White-Hole Touch".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Holy Celestial Supernova Shroud".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.AURA, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Holy White-Hole Sigil".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Holy Dawn-Deluge Cone".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Cataclysmic Supernova Starfall".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Celestial Supernova Ascendance Step".equals(SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BLINK, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Celestial Genesis & Consecration Transmutation".equals(SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.TRANSMUTE, EssenceType.CELESTIAL, true).signatureTitle())
+                && "Divine Genesis Brand / Holy Supernova Overload Hex".equals(SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.CELESTIAL, true).signatureTitle())
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.CELESTIAL, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_HOLY_SOLAR_SINGULARITY_DART
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantPrimaryRgb(EssenceType.CELESTIAL, 0.0D) == 0xFFEA78
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantAccentRgb(EssenceType.CELESTIAL, null, 0.0D) == 0xFF6B9D
                 && "Prismatic Oscillating Light-Disc".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.PRISMATIC, true).signatureTitle())
                 && "World-Tree Siphoning Seed-Pod".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.EMPYREAN, true).signatureTitle())
                 && "Catastrophic Hellfire Railgun Slug".equals(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.CATACLYSM, true).signatureTitle())
@@ -1112,7 +1127,7 @@ public final class SpellEngineVerificationSuite {
             int aRgb = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantAccentRgb(et, null, 40.0D);
             byte arch = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(et, false, false);
             if (pRgb <= 0 || pRgb > 0xFFFFFF || aRgb <= 0 || aRgb > 0xFFFFFF
-                    || arch < 0 || arch > ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_HOARFROST_RIME_JAVELIN) {
+                    || arch < 0 || arch > ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_HOLY_SOLAR_SINGULARITY_DART) {
                 vfxPalettesAndArchetypesOk = false;
                 break;
             }
@@ -1172,6 +1187,24 @@ public final class SpellEngineVerificationSuite {
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.RIME, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_HOARFROST_RIME_JAVELIN
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.SPRING, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_VERNAL_AQUIFER_ORB
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.STATIC, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_DIELECTRIC_MORTAR_ORB
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.SYLVAN, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_ELDERWOOD_SUN_JAVELIN
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.MIASMA, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_SWAMPLAND_GAS_POD
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.GENESIS, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_PRIMORDIAL_DAWN_TEAR
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.OBLIVION, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_STYGIAN_ANNIHILATION_SKULL
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.AETHER, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_APEX_CELESTIAL_METEORITE
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.ENTROPIC, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_ENTROPIC_SINGULARITY_SKULL_ORB
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.CELESTIAL, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_HOLY_SOLAR_SINGULARITY_DART
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.AIR, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_WIND_SPIRAL;
 

@@ -1,6 +1,9 @@
 package ddraig.net.entropica.config.neoforge;
 
+import ddraig.net.entropica.config.EntropicaBiome;
 import net.neoforged.neoforge.common.ModConfigSpec;
+
+import java.util.EnumMap;
 
 public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
@@ -29,6 +32,17 @@ public class EntropicaNeoForgeConfig {
     // Spellcrafting Settings
     public static final ModConfigSpec.IntValue SPELL_MUTATION_UNLOCK_MODE;
     public static final ModConfigSpec.BooleanValue ENABLE_SPELL_MUTATION_OP_JOIN_NOTICE;
+
+    // Biome Generation Settings (Master Switch + Injector Controls + All 108 Biomes)
+    public static final ModConfigSpec.BooleanValue ENABLE_ALL_BIOMES;
+    public static final ModConfigSpec.IntValue TERRABLENDER_COMPAT_MODE;
+    public static final ModConfigSpec.IntValue ENTROPICA_BIOME_REGION_WEIGHT;
+    public static final ModConfigSpec.IntValue VANILLA_BIOME_PASSTHROUGH_WEIGHT;
+    public static final ModConfigSpec.IntValue BIOME_REGION_SCALE;
+    public static final ModConfigSpec.BooleanValue ENABLE_BIOME_CUSTOM_FOG;
+    public static final ModConfigSpec.BooleanValue ENABLE_BIOME_CUSTOM_SKY;
+    public static final ModConfigSpec.BooleanValue ENABLE_BIOME_ENVIRONMENTAL_EFFECTS;
+    public static final EnumMap<EntropicaBiome, ModConfigSpec.BooleanValue> BIOME_TOGGLES = new EnumMap<>(EntropicaBiome.class);
 
     // Materia Vitae Network Configs
     public static final ModConfigSpec.IntValue ORBIS_CELL_MAX_MATERIA;
@@ -394,6 +408,56 @@ public class EntropicaNeoForgeConfig {
         BUILDER.push("spellcrafting_settings");
         SPELL_MUTATION_UNLOCK_MODE = BUILDER.comment("Controls how elemental Spell Mutations unlock (1 = PER_COMBO observation, 2 = AUTO_BY_NODE [Default], 3 = BY_FAMILY_TIER mastery). Min: 1, Max: 3, Default: 2").defineInRange("spellMutationUnlockMode", 2, 1, 3);
         ENABLE_SPELL_MUTATION_OP_JOIN_NOTICE = BUILDER.comment("If true, notifies OP players on their first join that Spell Mutation Unlock Mode defaults to Mode 2 (AUTO_BY_NODE) and can be changed here. Default: true").define("enableSpellMutationOpJoinNotice", true);
+        BUILDER.pop();
+
+        // --- BIOME GENERATION SETTINGS ---
+        BUILDER.push("biome_settings");
+        ENABLE_ALL_BIOMES = BUILDER.comment("Master switch: if false, disables natural world generation for all 108 Entropica biomes. Default: true")
+                .translation("entropica.configuration.biome_settings.enableAllBiomes")
+                .define("enableAllBiomes", true);
+
+        TERRABLENDER_COMPAT_MODE = BUILDER.comment("Controls how Entropica's native multi-noise biome injector interacts when TerraBlender is installed (1 = COOPERATE: gives way to modded TerraBlender biomes while layering over vanilla terrain [Default], 2 = YIELD_TO_TERRABLENDER: yields biome placement completely when TerraBlender is installed, 3 = OVERLAY_ON_TOP: layers Entropica biomes on top of both vanilla and TerraBlender regions). Min: 1, Max: 3, Default: 1")
+                .translation("entropica.configuration.biome_settings.terrablenderCompatMode")
+                .defineInRange("terrablenderCompatMode", 1, 1, 3);
+
+        ENTROPICA_BIOME_REGION_WEIGHT = BUILDER.comment("Relative regional weight for Entropica multi-noise biome regions vs pass-through terrain. Higher values make Entropica biomes appear more often. Min: 1, Max: 100, Default: 4")
+                .translation("entropica.configuration.biome_settings.entropicaBiomeRegionWeight")
+                .defineInRange("entropicaBiomeRegionWeight", 4, 1, 100);
+
+        VANILLA_BIOME_PASSTHROUGH_WEIGHT = BUILDER.comment("Relative regional weight preserved for untouched vanilla / TerraBlender pass-through regions (0 = allow Entropica biomes in 100% of matching climate regions). Min: 0, Max: 100, Default: 10")
+                .translation("entropica.configuration.biome_settings.vanillaBiomePassthroughWeight")
+                .defineInRange("vanillaBiomePassthroughWeight", 10, 0, 100);
+
+        BIOME_REGION_SCALE = BUILDER.comment("Controls the organic regional cell size for Entropica multi-noise biomes (2^scale quart-blocks; 6 = ~256-512 block warped regions). Min: 2, Max: 12, Default: 6")
+                .translation("entropica.configuration.biome_settings.biomeRegionScale")
+                .defineInRange("biomeRegionScale", 6, 2, 12);
+
+        ENABLE_BIOME_CUSTOM_FOG = BUILDER.comment("If true, enables smooth custom fog visibility distances (coastal haze, steam fog, dust mist) and dynamic day/night fog tinting in Entropica biomes (Sodium & Iris shader compatible). Default: true")
+                .translation("entropica.configuration.biome_settings.enableBiomeCustomFog")
+                .define("enableBiomeCustomFog", true);
+
+        ENABLE_BIOME_CUSTOM_SKY = BUILDER.comment("If true, enables Sodium & Iris shader-compatible dynamic night sky colors and high-altitude sky phenomena (Aurora curtains, Ice Halos, Astral veils, Eclipse coronas) in Entropica biomes. Default: true")
+                .translation("entropica.configuration.biome_settings.enableBiomeCustomSky")
+                .define("enableBiomeCustomSky", true);
+
+        ENABLE_BIOME_ENVIRONMENTAL_EFFECTS = BUILDER.comment("If true, enables biome environmental physics, ambient drifting particles, and regional hazards/blessings (such as Aegis heavy gravity, Void low-gravity Jump Boost, and Sanctuary regeneration). Default: true")
+                .translation("entropica.configuration.biome_settings.enableBiomeEnvironmentalEffects")
+                .define("enableBiomeEnvironmentalEffects", true);
+
+        for (EntropicaBiome.ClimateZone zone : EntropicaBiome.ClimateZone.values()) {
+            BUILDER.comment("Enable or disable natural generation for " + zone.getDisplayName())
+                    .translation("entropica.configuration.biome_settings." + zone.getConfigKey())
+                    .push(zone.getConfigKey());
+            for (EntropicaBiome biome : EntropicaBiome.values()) {
+                if (biome.getZone() == zone) {
+                    ModConfigSpec.BooleanValue toggle = BUILDER.comment(biome.getConfigDescription())
+                            .translation("entropica.configuration.biome_settings." + biome.getId())
+                            .define(biome.getId(), true);
+                    BIOME_TOGGLES.put(biome, toggle);
+                }
+            }
+            BUILDER.pop();
+        }
         BUILDER.pop();
 
         SPEC = BUILDER.build();

@@ -9,13 +9,24 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FlowerBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class RimebloomBlock extends FlowerBlock {
-        public RimebloomBlock(Properties properties) {
+    public RimebloomBlock(Properties properties) {
         super(MobEffects.SLOWNESS, 4, properties);
+    }
+
+    @Override
+    protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
+        return super.mayPlaceOn(state, level, pos)
+                || state.is(Blocks.BLUE_ICE)
+                || state.is(Blocks.PACKED_ICE)
+                || state.is(Blocks.ICE)
+                || state.is(Blocks.SNOW_BLOCK);
     }
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isInside) {

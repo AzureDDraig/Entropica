@@ -150,6 +150,13 @@ task runSpellEngineVerification(type: JavaExec) {
     mainClass = "ddraig.net.entropica.spell.test.SpellEngineVerificationSuite"
 }
 
+task runBiomeInjectorVerification(type: JavaExec) {
+    group = "verification"
+    description = "Runs the standalone deterministic Multi-Noise Biome Injector & TerraBlender Compatibility Suite"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.worldgen.test.BiomeInjectorVerificationSuite"
+}
+
 test {
     dependsOn runForcefieldTests
     dependsOn runSpellEngineVerification

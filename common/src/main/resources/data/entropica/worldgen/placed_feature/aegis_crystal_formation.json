@@ -1,0 +1,27 @@
+{
+  "feature": "entropica:aegis_crystal_formation",
+  "placement": [
+    {
+      "type": "minecraft:count",
+      "count": 5
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": {
+          "absolute": 56
+        },
+        "max_inclusive": {
+          "absolute": 96
+        }
+      }
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

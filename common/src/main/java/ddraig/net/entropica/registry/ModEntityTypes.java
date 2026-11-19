@@ -329,4 +329,24 @@ public class ModEntityTypes {
                             .updateInterval(1)
                             .build(ResourceKey.create(Registries.ENTITY_TYPE,
                                      ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "forcefield_barrier"))));
+
+    // --- GLACIAL FROST-CORE (FAUNA 19) ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.frost_core.GlacialFrostCoreEntity>> GLACIAL_FROST_CORE =
+            ENTITY_TYPES.register("glacial_frost_core",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.frost_core.GlacialFrostCoreEntity>of(ddraig.net.entropica.entity.frost_core.GlacialFrostCoreEntity::new, MobCategory.CREATURE)
+                            .sized(0.8F, 1.2F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "glacial_frost_core"))));
+
+    // --- FROST-TUSK MAMMOT (FAUNA 20) ---
+    public static final RegistrySupplier<EntityType<ddraig.net.entropica.entity.mammot.FrostTuskMammotEntity>> FROST_TUSK_MAMMOT =
+            ENTITY_TYPES.register("frost_tusk_mammot",
+                    () -> EntityType.Builder.<ddraig.net.entropica.entity.mammot.FrostTuskMammotEntity>of(ddraig.net.entropica.entity.mammot.FrostTuskMammotEntity::new, MobCategory.CREATURE)
+                            .sized(1.8F, 2.1F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE,
+                                     ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "frost_tusk_mammot"))));
 }

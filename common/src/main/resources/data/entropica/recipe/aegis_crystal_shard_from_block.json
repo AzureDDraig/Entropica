@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:aegis_crystal_block"
+  ],
+  "result": {
+    "id": "entropica:aegis_crystal_shard",
+    "count": 4
+  }
+}

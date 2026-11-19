@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:item/insulated_glacial_wool"
+  }
+}

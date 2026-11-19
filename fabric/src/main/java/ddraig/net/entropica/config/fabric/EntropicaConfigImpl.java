@@ -2,12 +2,14 @@ package ddraig.net.entropica.config.fabric;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import ddraig.net.entropica.config.EntropicaBiome;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 
 public class EntropicaConfigImpl {
 
@@ -179,6 +181,9 @@ public class EntropicaConfigImpl {
         public IntOption spellMutationUnlockMode = new IntOption("Controls how elemental Spell Mutations unlock (1 = PER_COMBO, 2 = AUTO_BY_NODE [Default], 3 = BY_FAMILY_TIER). Min: 1, Max: 3, Default: 2", 1, 3, 2);
         public BooleanOption enableSpellMutationOpJoinNotice = new BooleanOption("If true, notifies OP players on their first join that Spell Mutation Unlock Mode defaults to Mode 2 (AUTO_BY_NODE). Default: true", true);
 
+        // Biome Generation Settings (Master Switch + All 108 Biomes grouped by Climate Zone)
+        public BiomeSettingsCategory biomeSettings = new BiomeSettingsCategory();
+
         public void validateAll() {
             materiaPerEssence.validate();
             materiaFurnaceMaxMateria.validate();
@@ -262,6 +267,10 @@ public class EntropicaConfigImpl {
             extractionNodeCooldown.validate();
             spellMutationUnlockMode.validate();
             enableSpellMutationOpJoinNotice.validate();
+            if (biomeSettings == null) {
+                biomeSettings = new BiomeSettingsCategory();
+            }
+            biomeSettings.validate();
             wardConsumptionAmount.validate();
             wardConsumptionIntervalSeconds.validate();
             wardCircleRadiusBase.validate();
@@ -403,4 +412,183 @@ public class EntropicaConfigImpl {
     public static int getAstralCollectorTransferRate() { return data.astralCollectorTransferRate.value; }
     public static int getSpellMutationUnlockMode() { return data.spellMutationUnlockMode.value; }
     public static boolean getEnableSpellMutationOpJoinNotice() { return data.enableSpellMutationOpJoinNotice.value; }
+    public static boolean getEnableAllBiomes() {
+        return data.biomeSettings == null || data.biomeSettings.enableAllBiomes == null || data.biomeSettings.enableAllBiomes.value;
+    }
+    public static int getTerraBlenderCompatMode() {
+        return data.biomeSettings != null && data.biomeSettings.terrablenderCompatMode != null ? data.biomeSettings.terrablenderCompatMode.value : 1;
+    }
+    public static int getEntropicaBiomeRegionWeight() {
+        return data.biomeSettings != null && data.biomeSettings.entropicaBiomeRegionWeight != null ? data.biomeSettings.entropicaBiomeRegionWeight.value : 4;
+    }
+    public static int getVanillaBiomePassthroughWeight() {
+        return data.biomeSettings != null && data.biomeSettings.vanillaBiomePassthroughWeight != null ? data.biomeSettings.vanillaBiomePassthroughWeight.value : 10;
+    }
+    public static int getBiomeRegionScale() {
+        return data.biomeSettings != null && data.biomeSettings.biomeRegionScale != null ? data.biomeSettings.biomeRegionScale.value : 6;
+    }
+    public static boolean getEnableBiomeCustomFog() {
+        return data.biomeSettings == null || data.biomeSettings.enableBiomeCustomFog == null || data.biomeSettings.enableBiomeCustomFog.value;
+    }
+    public static boolean getEnableBiomeCustomSky() {
+        return data.biomeSettings == null || data.biomeSettings.enableBiomeCustomSky == null || data.biomeSettings.enableBiomeCustomSky.value;
+    }
+    public static boolean getEnableBiomeEnvironmentalEffects() {
+        return data.biomeSettings == null || data.biomeSettings.enableBiomeEnvironmentalEffects == null || data.biomeSettings.enableBiomeEnvironmentalEffects.value;
+    }
+    public static boolean getBiomeEnabled(EntropicaBiome biome) {
+        if (biome == null) return false;
+        return data.biomeSettings == null || data.biomeSettings.isBiomeEnabled(biome);
+    }
+
+    public static class BiomeSettingsCategory {
+        public BooleanOption enableAllBiomes = new BooleanOption(
+                "Master switch: if false, disables natural world generation for all 108 Entropica biomes. Default: true",
+                true
+        );
+        public IntOption terrablenderCompatMode = new IntOption(
+                "Controls how Entropica's native multi-noise biome injector interacts when TerraBlender is installed (1 = COOPERATE: gives way to modded TerraBlender biomes while layering over vanilla terrain [Default], 2 = YIELD_TO_TERRABLENDER: yields biome placement completely when TerraBlender is installed, 3 = OVERLAY_ON_TOP: layers Entropica biomes on top of both vanilla and TerraBlender regions). Min: 1, Max: 3, Default: 1",
+                1, 3, 1
+        );
+        public IntOption entropicaBiomeRegionWeight = new IntOption(
+                "Relative regional weight for Entropica multi-noise biome regions vs pass-through terrain. Min: 1, Max: 100, Default: 4",
+                1, 100, 4
+        );
+        public IntOption vanillaBiomePassthroughWeight = new IntOption(
+                "Relative regional weight preserved for untouched vanilla / TerraBlender pass-through regions (0 = allow Entropica biomes in 100% of matching climate regions). Min: 0, Max: 100, Default: 10",
+                0, 100, 10
+        );
+        public IntOption biomeRegionScale = new IntOption(
+                "Controls the organic regional cell size for Entropica multi-noise biomes (2^scale quart-blocks; 6 = ~256-512 block warped regions). Min: 2, Max: 12, Default: 6",
+                2, 12, 6
+        );
+        public BooleanOption enableBiomeCustomFog = new BooleanOption(
+                "If true, enables smooth custom fog visibility distances and dynamic day/night fog tinting in Entropica biomes (Sodium & Iris shader compatible). Default: true",
+                true
+        );
+        public BooleanOption enableBiomeCustomSky = new BooleanOption(
+                "If true, enables Sodium & Iris shader-compatible dynamic night sky colors and high-altitude sky phenomena (Aurora curtains, Ice Halos, Astral veils, Eclipse coronas) in Entropica biomes. Default: true",
+                true
+        );
+        public BooleanOption enableBiomeEnvironmentalEffects = new BooleanOption(
+                "If true, enables biome environmental physics, ambient drifting particles, and regional hazards/blessings. Default: true",
+                true
+        );
+        public LinkedHashMap<String, BooleanOption> polar_frozen = createZoneMap(EntropicaBiome.ClimateZone.POLAR_FROZEN);
+        public LinkedHashMap<String, BooleanOption> cold_alpine_boreal = createZoneMap(EntropicaBiome.ClimateZone.COLD_ALPINE_BOREAL);
+        public LinkedHashMap<String, BooleanOption> temperate_plains_forests = createZoneMap(EntropicaBiome.ClimateZone.TEMPERATE_PLAINS_FORESTS);
+        public LinkedHashMap<String, BooleanOption> warm_swamps_jungles = createZoneMap(EntropicaBiome.ClimateZone.WARM_SWAMPS_JUNGLES);
+        public LinkedHashMap<String, BooleanOption> hot_arid_desert = createZoneMap(EntropicaBiome.ClimateZone.HOT_ARID_DESERT);
+        public LinkedHashMap<String, BooleanOption> nether_volcanic_depths = createZoneMap(EntropicaBiome.ClimateZone.NETHER_VOLCANIC_DEPTHS);
+
+        private static LinkedHashMap<String, BooleanOption> createZoneMap(EntropicaBiome.ClimateZone zone) {
+            LinkedHashMap<String, BooleanOption> map = new LinkedHashMap<>();
+            for (EntropicaBiome biome : EntropicaBiome.values()) {
+                if (biome.getZone() == zone) {
+                    map.put(biome.getId(), new BooleanOption(biome.getConfigDescription(), true));
+                }
+            }
+            return map;
+        }
+
+        private LinkedHashMap<String, BooleanOption> getZoneMap(EntropicaBiome.ClimateZone zone) {
+            return switch (zone) {
+                case POLAR_FROZEN -> polar_frozen;
+                case COLD_ALPINE_BOREAL -> cold_alpine_boreal;
+                case TEMPERATE_PLAINS_FORESTS -> temperate_plains_forests;
+                case WARM_SWAMPS_JUNGLES -> warm_swamps_jungles;
+                case HOT_ARID_DESERT -> hot_arid_desert;
+                case NETHER_VOLCANIC_DEPTHS -> nether_volcanic_depths;
+            };
+        }
+
+        private static LinkedHashMap<String, BooleanOption> validateZoneMap(
+                LinkedHashMap<String, BooleanOption> existing,
+                EntropicaBiome.ClimateZone zone) {
+            LinkedHashMap<String, BooleanOption> normalized = new LinkedHashMap<>();
+            for (EntropicaBiome biome : EntropicaBiome.values()) {
+                if (biome.getZone() == zone) {
+                    BooleanOption loaded = existing != null ? existing.get(biome.getId()) : null;
+                    BooleanOption clean = new BooleanOption(biome.getConfigDescription(), true);
+                    if (loaded != null) {
+                        clean.value = loaded.value;
+                    }
+                    normalized.put(biome.getId(), clean);
+                }
+            }
+            return normalized;
+        }
+
+        public void validate() {
+            if (enableAllBiomes == null) {
+                enableAllBiomes = new BooleanOption(
+                        "Master switch: if false, disables natural world generation for all 108 Entropica biomes. Default: true",
+                        true
+                );
+            }
+            enableAllBiomes.validate();
+            if (terrablenderCompatMode == null) {
+                terrablenderCompatMode = new IntOption(
+                        "Controls how Entropica's native multi-noise biome injector interacts when TerraBlender is installed (1 = COOPERATE [Default], 2 = YIELD_TO_TERRABLENDER, 3 = OVERLAY_ON_TOP). Min: 1, Max: 3, Default: 1",
+                        1, 3, 1
+                );
+            }
+            terrablenderCompatMode.validate();
+            if (entropicaBiomeRegionWeight == null) {
+                entropicaBiomeRegionWeight = new IntOption(
+                        "Relative regional weight for Entropica multi-noise biome regions vs pass-through terrain. Min: 1, Max: 100, Default: 4",
+                        1, 100, 4
+                );
+            }
+            entropicaBiomeRegionWeight.validate();
+            if (vanillaBiomePassthroughWeight == null) {
+                vanillaBiomePassthroughWeight = new IntOption(
+                        "Relative regional weight preserved for untouched vanilla / TerraBlender pass-through regions. Min: 0, Max: 100, Default: 10",
+                        0, 100, 10
+                );
+            }
+            vanillaBiomePassthroughWeight.validate();
+            if (biomeRegionScale == null) {
+                biomeRegionScale = new IntOption(
+                        "Controls the organic regional cell size for Entropica multi-noise biomes (2^scale quart-blocks; 6 = ~256-512 block warped regions). Min: 2, Max: 12, Default: 6",
+                        2, 12, 6
+                );
+            }
+            biomeRegionScale.validate();
+            if (enableBiomeCustomFog == null) {
+                enableBiomeCustomFog = new BooleanOption(
+                        "If true, enables smooth custom fog visibility distances and dynamic day/night fog tinting in Entropica biomes (Sodium & Iris shader compatible). Default: true",
+                        true
+                );
+            }
+            enableBiomeCustomFog.validate();
+            if (enableBiomeCustomSky == null) {
+                enableBiomeCustomSky = new BooleanOption(
+                        "If true, enables Sodium & Iris shader-compatible dynamic night sky colors and high-altitude sky phenomena in Entropica biomes. Default: true",
+                        true
+                );
+            }
+            enableBiomeCustomSky.validate();
+            if (enableBiomeEnvironmentalEffects == null) {
+                enableBiomeEnvironmentalEffects = new BooleanOption(
+                        "If true, enables biome environmental physics, ambient drifting particles, and regional hazards/blessings. Default: true",
+                        true
+                );
+            }
+            enableBiomeEnvironmentalEffects.validate();
+            polar_frozen = validateZoneMap(polar_frozen, EntropicaBiome.ClimateZone.POLAR_FROZEN);
+            cold_alpine_boreal = validateZoneMap(cold_alpine_boreal, EntropicaBiome.ClimateZone.COLD_ALPINE_BOREAL);
+            temperate_plains_forests = validateZoneMap(temperate_plains_forests, EntropicaBiome.ClimateZone.TEMPERATE_PLAINS_FORESTS);
+            warm_swamps_jungles = validateZoneMap(warm_swamps_jungles, EntropicaBiome.ClimateZone.WARM_SWAMPS_JUNGLES);
+            hot_arid_desert = validateZoneMap(hot_arid_desert, EntropicaBiome.ClimateZone.HOT_ARID_DESERT);
+            nether_volcanic_depths = validateZoneMap(nether_volcanic_depths, EntropicaBiome.ClimateZone.NETHER_VOLCANIC_DEPTHS);
+        }
+
+        public boolean isBiomeEnabled(EntropicaBiome biome) {
+            LinkedHashMap<String, BooleanOption> map = getZoneMap(biome.getZone());
+            if (map == null) return true;
+            BooleanOption option = map.get(biome.getId());
+            return option == null || option.value;
+        }
+    }
 }

@@ -145,6 +145,7 @@ public class ModClientEvents {
         ddraig.net.entropica.client.gravity.GravitonSolesClientHandler.clientTick(mc);
         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.tickClient(mc.level != null);
         ddraig.net.entropica.spell.vfx.ArcaneWingsClientManager.tickClient(mc.level != null);
+        ddraig.net.entropica.client.worldgen.BiomeAtmosphereClientManager.tickClient(mc);
 
         if (mc.player != null && mc.level != null && mc.level.getGameTime() % 4 == 0) {
             BlockPos p = mc.player.blockPosition();
@@ -289,6 +290,8 @@ public class ModClientEvents {
         event.registerEntityRenderer(ModEntityTypes.LUMINOTH.get(), ddraig.net.entropica.client.renderer.luminoth.LuminothRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.AMBER_WEEPING_STAG.get(), ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.STORM_KITE.get(), ddraig.net.entropica.client.renderer.storm_kite.StormKiteRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.GLACIAL_FROST_CORE.get(), ddraig.net.entropica.client.renderer.frost_core.GlacialFrostCoreRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.FROST_TUSK_MAMMOT.get(), ddraig.net.entropica.client.renderer.mammot.FrostTuskMammotRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.RADIANT_FIRE_LANCE.get(), ThrownItemRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.SPELL_PROJECTILE.get(), ddraig.net.entropica.client.renderer.SpellProjectileRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.UMBRAL_VORTEX.get(), ThrownItemRenderer::new);
@@ -409,6 +412,20 @@ public class ModClientEvents {
         event.registerLayerDefinition(ddraig.net.entropica.client.renderer.luminoth.LuminothModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.luminoth.LuminothModel::createBodyLayer);
         event.registerLayerDefinition(ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagModel::createBodyLayer);
         event.registerLayerDefinition(ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel::createBodyLayer);
+        event.registerLayerDefinition(ddraig.net.entropica.client.renderer.frost_core.GlacialFrostCoreModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.frost_core.GlacialFrostCoreModel::createBodyLayer);
+        event.registerLayerDefinition(ddraig.net.entropica.client.renderer.mammot.FrostTuskMammotModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.mammot.FrostTuskMammotModel::createBodyLayer);
+    }
+
+    @SubscribeEvent
+    public static void onClientSetupBiome1RenderLayers(net.neoforged.fml.event.lifecycle.FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(ModBlocks.AEGIS_CRYSTAL_CLUSTER.get(), net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT);
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(ModBlocks.GLACIAL_HEART_ROOT.get(), net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT);
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(ModBlocks.SHIELDING_BRAMBLE.get(), net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT);
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(ModBlocks.THORNED_WIRE.get(), net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT);
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(ModBlocks.RUNIC_BLUE_ICE.get(), net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT);
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(ModBlocks.GLACIAL_BARRICADE.get(), net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT);
+        });
     }
 
     private static void unusedAnchor() {
@@ -468,6 +485,12 @@ public class ModClientEvents {
                 mc.getDeltaTracker().getGameTimeDeltaTicks()
             );
             ddraig.net.entropica.client.renderer.SpellWorldVfxRenderer.renderWorldVfx(
+                poseStack,
+                event.getModelViewMatrix(),
+                mc.gameRenderer.getMainCamera(),
+                mc.getDeltaTracker().getGameTimeDeltaTicks()
+            );
+            ddraig.net.entropica.client.worldgen.BiomeSkyPhenomenaRenderer.renderSkyPhenomena(
                 poseStack,
                 event.getModelViewMatrix(),
                 mc.gameRenderer.getMainCamera(),

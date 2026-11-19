@@ -1261,6 +1261,57 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL12 = ITEMS.registerItem("celestial_journal_vol12", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 12));
     public static final RegistrySupplier<Item> CELESTIAL_JOURNAL_VOL13 = ITEMS.registerItem("celestial_journal_vol13", properties -> new ddraig.net.entropica.item.CelestialJournalItem(properties.stacksTo(1), 13));
 
+    // ==========================================
+    // BIOME 1: 2.1 BLUE-GLACIER SHELF & RUNIC SPIRE ITEMS
+    // ==========================================
+    // BlockItems
+    public static final RegistrySupplier<BlockItem> AEGIS_CRYSTAL_BLOCK_ITEM = ITEMS.registerItem("aegis_crystal_block",
+            properties -> new BlockItem(ModBlocks.AEGIS_CRYSTAL_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> AEGIS_CRYSTAL_CLUSTER_ITEM = ITEMS.registerItem("aegis_crystal_cluster",
+            properties -> new BlockItem(ModBlocks.AEGIS_CRYSTAL_CLUSTER.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> RUNIC_BLUE_ICE_ITEM = ITEMS.registerItem("runic_blue_ice",
+            properties -> new BlockItem(ModBlocks.RUNIC_BLUE_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> RUNED_BASALT_PILLAR_ITEM = ITEMS.registerItem("runed_basalt_pillar",
+            properties -> new BlockItem(ModBlocks.RUNED_BASALT_PILLAR.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLACIAL_HEART_ROOT_ITEM = ITEMS.registerItem("glacial_heart_root",
+            properties -> new BlockItem(ModBlocks.GLACIAL_HEART_ROOT.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SHIELDING_BRAMBLE_ITEM = ITEMS.registerItem("shielding_bramble",
+            properties -> new BlockItem(ModBlocks.SHIELDING_BRAMBLE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> THORNED_WIRE_ITEM = ITEMS.registerItem("thorned_wire",
+            properties -> new BlockItem(ModBlocks.THORNED_WIRE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLACIAL_BARRICADE_ITEM = ITEMS.registerItem("glacial_barricade",
+            properties -> new BlockItem(ModBlocks.GLACIAL_BARRICADE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> CONDUCTIVE_AEGIS_PLATING_ITEM = ITEMS.registerItem("conductive_aegis_plating",
+            properties -> new BlockItem(ModBlocks.CONDUCTIVE_AEGIS_PLATING.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLACIAL_ICE_MAKER_ITEM = ITEMS.registerItem("glacial_ice_maker",
+            properties -> new BlockItem(ModBlocks.GLACIAL_ICE_MAKER.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLACIAL_LIFE_FORCE_ANCHOR_ITEM = ITEMS.registerItem("glacial_life_force_anchor",
+            properties -> new BlockItem(ModBlocks.GLACIAL_LIFE_FORCE_ANCHOR.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 1 Items
+    public static final RegistrySupplier<Item> AEGIS_CRYSTAL_SHARD = ITEMS.registerItem("aegis_crystal_shard", Item::new);
+    public static final RegistrySupplier<Item> RIMEBLOOM_PETAL = ITEMS.registerItem("rimebloom_petal", Item::new);
+    public static final RegistrySupplier<Item> RIMEBLOOM_DYE = ITEMS.registerItem("rimebloom_dye", Item::new);
+    public static final RegistrySupplier<Item> SHIELDING_THORN_FIBER = ITEMS.registerItem("shielding_thorn_fiber", Item::new);
+    public static final RegistrySupplier<Item> SPIKED_ARMOR_LINING = ITEMS.registerItem("spiked_armor_lining",
+            ddraig.net.entropica.item.biome1.SpikedArmorLiningItem::new);
+    public static final RegistrySupplier<Item> AEGIS_SHIELDING_LINING = ITEMS.registerItem("aegis_shielding_lining",
+            ddraig.net.entropica.item.biome1.AegisShieldingLiningItem::new);
+    public static final RegistrySupplier<Item> FROST_CORE_SHARD = ITEMS.registerItem("frost_core_shard", Item::new);
+    public static final RegistrySupplier<Item> INSULATED_GLACIAL_WOOL = ITEMS.registerItem("insulated_glacial_wool", Item::new);
+    public static final RegistrySupplier<Item> RAW_MAMMOT_MEAT = ITEMS.registerItem("raw_mammot_meat",
+            properties -> new Item(properties.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(4).saturationModifier(0.4f).build())));
+    public static final RegistrySupplier<Item> COOKED_MAMMOT_MEAT = ITEMS.registerItem("cooked_mammot_meat",
+            properties -> new Item(properties.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(9).saturationModifier(0.85f).build())));
+    public static final RegistrySupplier<Item> THERMAL_INSULATED_BLANKET = ITEMS.registerItem("thermal_insulated_blanket",
+            ddraig.net.entropica.item.biome1.ThermalInsulatedBlanketItem::new);
+    public static final RegistrySupplier<Item> GLACIAL_FOCUS_LENS = ITEMS.registerItem("glacial_focus_lens",
+            ddraig.net.entropica.item.biome1.GlacialFocusLensItem::new);
+    public static final RegistrySupplier<Item> GLACIAL_FROST_CORE_SPAWN_EGG = ITEMS.registerItem("glacial_frost_core_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.GLACIAL_FROST_CORE, properties));
+    public static final RegistrySupplier<Item> FROST_TUSK_MAMMOT_SPAWN_EGG = ITEMS.registerItem("frost_tusk_mammot_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.FROST_TUSK_MAMMOT, properties));
+
     public static RegistrySupplier<Item> getCelestialJournal(int volume) {
         return switch (volume) {
             case 1 -> CELESTIAL_JOURNAL_VOL1;

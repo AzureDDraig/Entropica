@@ -263,6 +263,24 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
                         renderPenumbralTwilightEclipseBolt(mat, vc, scale, state.ageTicks, state.entitySeed);
                 case SpellParticleHelper.ARCHETYPE_HOARFROST_RIME_JAVELIN ->
                         renderHoarfrostRimeJavelin(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_VERNAL_AQUIFER_ORB ->
+                        renderVernalBlossomAquiferOrb(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_DIELECTRIC_MORTAR_ORB ->
+                        renderDielectricBallLightningMortar(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_ELDERWOOD_SUN_JAVELIN ->
+                        renderElderwoodSunBoughJavelin(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_SWAMPLAND_GAS_POD ->
+                        renderPutridSwamplandGasPod(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_PRIMORDIAL_DAWN_TEAR ->
+                        renderPrimordialDawnTearGlobule(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_STYGIAN_ANNIHILATION_SKULL ->
+                        renderStygianHellfireAnnihilationSkull(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_APEX_CELESTIAL_METEORITE ->
+                        renderApexCelestialMeteorite(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_ENTROPIC_SINGULARITY_SKULL_ORB ->
+                        renderEntropicSingularitySkullOrb(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_HOLY_SOLAR_SINGULARITY_DART ->
+                        renderHolySolarSingularityDart(mat, vc, scale, state.ageTicks, state.entitySeed);
                 default ->
                         renderArcaneBolt(mat, vc, scale, state.ageTicks, pr, pg, pb, ar, ag, ab);
             }
@@ -3221,6 +3239,404 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
                 0.18F * s, 0.25F * s, 18, 0.863F, 0.941F, 1.000F, 0.94F);
         renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.24D * s), rx, ry,
                 0.22F * s, 0.30F * s, 18, 0.388F, 0.584F, 0.694F, 0.86F);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 46: VERNAL BLOSSOM AQUIFER-ORB (SPRING #42 — #FF6B9D / #64C8FF)
+    // =========================================================================
+
+    private static void renderVernalBlossomAquiferOrb(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.12F;
+        float spin = age * 0.40F + (seed & 15) * 0.27F;
+
+        // 1. Pressurized revitalizing aquifer springwater orb (#64C8FF) & rose-heart core (#FF6B9D)!
+        renderElongatedBipyramid(mat, vc, 0.24F * s, 0.28F * s, 0.28F * s, 8, spin * 0.35F,
+                0.392F, 0.784F, 1.000F, 0.92F);
+        renderElongatedBipyramid(mat, vc, 0.14F * s, 0.18F * s, 0.18F * s, 6, -spin * 0.50F,
+                1.000F, 0.420F, 0.616F, 0.98F);
+
+        // 2. 5 spiraling 3D cherry blossom petals (#FF6B9D) orbiting the springwater orb!
+        for (int p = 0; p < 5; p++) {
+            float pAng = spin * 1.25F + (float) (Math.PI * 2.0D * p / 5.0D);
+            double zOff = 0.06D * Mth.sin(age * 0.32F + p) * s;
+            Vec3 pBase = new Vec3(Mth.cos(pAng) * 0.22D * s, Mth.sin(pAng) * 0.22D * s, zOff);
+            Vec3 pTip = new Vec3(Mth.cos(pAng + 0.32F) * 0.38D * s, Mth.sin(pAng + 0.32F) * 0.38D * s, zOff - 0.12D * s);
+            renderLocalSegment(mat, vc, pBase, pTip, 0.046F * s, 1.000F, 0.420F, 0.616F, 0.96F);
+        }
+
+        // 3. Counter-rotating aquifer ripple & blossom dew rings (#64C8FF & #FF6B9D)
+        Vec3 u1 = new Vec3(Mth.cos(spin), Mth.sin(spin) * 0.40D, 0.20D).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin) * 0.40D, Mth.cos(spin), 0.20D).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1,
+                0.24F * s, 0.32F * s, 20, 0.392F, 0.784F, 1.000F, 0.90F);
+
+        Vec3 u2 = new Vec3(Mth.cos(-spin), -Mth.sin(-spin) * 0.40D, -0.20D).normalize();
+        Vec3 v2 = new Vec3(Mth.sin(-spin) * 0.40D, Mth.cos(-spin), -0.20D).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u2, v2,
+                0.26F * s, 0.34F * s, 20, 1.000F, 0.420F, 0.616F, 0.88F);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 47: DIELECTRIC BALL-LIGHTNING MORTAR (STATIC #43 — #FFE600 / #878DA2)
+    // =========================================================================
+
+    private static void renderDielectricBallLightningMortar(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float pulse = 0.92F + 0.12F * Mth.sin(age * 0.55F + (seed & 7));
+        float s = scale * 1.14F * pulse;
+        float spin = age * 0.52F + (seed & 15) * 0.31F;
+
+        // 1. Dense high-voltage static plasma core (#FFE600) & outer dielectric shell (#878DA2)!
+        renderElongatedBipyramid(mat, vc, 0.18F * s, 0.22F * s, 0.22F * s, 8, spin * 0.45F,
+                1.000F, 0.902F, 0.000F, 0.99F);
+        renderElongatedBipyramid(mat, vc, 0.26F * s, 0.30F * s, 0.30F * s, 8, -spin * 0.30F,
+                0.529F, 0.553F, 0.635F, 0.64F);
+
+        // 2. Twin orthogonal polarized galvanized slate cage rings (#878DA2 & #FFE600)
+        Vec3 u1 = new Vec3(Mth.cos(spin), Mth.sin(spin) * 0.45D, 0.25D).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin) * 0.45D, Mth.cos(spin), 0.25D).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1,
+                0.28F * s, 0.35F * s, 18, 0.529F, 0.553F, 0.635F, 0.94F);
+
+        Vec3 u2 = new Vec3(Mth.cos(-spin * 1.2F), -Mth.sin(-spin * 1.2F) * 0.45D, -0.25D).normalize();
+        Vec3 v2 = new Vec3(Mth.sin(-spin * 1.2F) * 0.45D, Mth.cos(-spin * 1.2F), -0.25D).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u2, v2,
+                0.26F * s, 0.32F * s, 18, 1.000F, 0.902F, 0.000F, 0.96F);
+
+        // 3. 6 crackling static discharge filaments (#FFE600) snapping outward!
+        for (int a = 0; a < 6; a++) {
+            float aAng = spin * 1.4F + (float) (Math.PI * 2.0D * a / 6.0D);
+            float jitter = 0.08F * Mth.sin(age * 1.35F + a * 2.1F);
+            Vec3 p0 = new Vec3(Mth.cos(aAng) * 0.14D * s, Mth.sin(aAng) * 0.14D * s, 0.04D * s);
+            Vec3 pMid = new Vec3(Mth.cos(aAng + 0.28F) * (0.28D + jitter) * s, Mth.sin(aAng + 0.28F) * (0.28D + jitter) * s, -0.06D * s);
+            Vec3 p1 = new Vec3(Mth.cos(aAng - 0.18F) * 0.40D * s, Mth.sin(aAng - 0.18F) * 0.40D * s, -0.18D * s);
+            renderLocalSegment(mat, vc, p0, pMid, 0.032F * s, 1.000F, 0.902F, 0.000F, 0.98F);
+            renderLocalSegment(mat, vc, pMid, p1, 0.024F * s, 0.529F, 0.553F, 0.635F, 0.90F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 48: ELDERWOOD SUN-BOUGH JAVELIN (SYLVAN #44 — #1A5923 / #773214 / #FFEA78)
+    // =========================================================================
+
+    private static void renderElderwoodSunBoughJavelin(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.15F;
+        float spin = age * 0.36F + (seed & 15) * 0.25F;
+
+        // 1. Golden solar spearhead (#FFEA78) & heavy petrified ironwood shaft (#773214)!
+        renderElongatedBipyramid(mat, vc, 0.13F * s, 0.64F * s, 0.24F * s, 6, spin * 0.25F,
+                1.000F, 0.918F, 0.471F, 0.99F);
+        renderElongatedBipyramid(mat, vc, 0.19F * s, 0.32F * s, 0.54F * s, 6, 0.0F,
+                0.467F, 0.196F, 0.078F, 0.96F);
+
+        // 2. 4 thorny emerald briar boughs (#1A5923) spiraling around the ironwood shaft!
+        for (int b = 0; b < 4; b++) {
+            float bAng = spin + (float) (Math.PI * 0.5D * b);
+            boolean gold = (b % 2 == 0);
+            Vec3 root = new Vec3(Mth.cos(bAng) * 0.10D * s, Mth.sin(bAng) * 0.10D * s, 0.22D * s);
+            Vec3 mid = new Vec3(Mth.cos(bAng + 0.55F) * 0.24D * s, Mth.sin(bAng + 0.55F) * 0.24D * s, -0.06D * s);
+            Vec3 tail = new Vec3(Mth.cos(bAng + 1.10F) * 0.18D * s, Mth.sin(bAng + 1.10F) * 0.18D * s, -0.38D * s);
+            renderLocalSegment(mat, vc, root, mid, 0.038F * s, 0.102F, 0.349F, 0.137F, 0.96F);
+            renderLocalSegment(mat, vc, mid, tail, 0.030F * s,
+                    gold ? 1.000F : 0.102F,
+                    gold ? 0.918F : 0.349F,
+                    gold ? 0.471F : 0.137F,
+                    0.94F);
+        }
+
+        // 3. Sun-canopy halo ring (#FFEA78) & emerald leaf collar (#1A5923)
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.10D * s), rx, ry,
+                0.18F * s, 0.26F * s, 18, 1.000F, 0.918F, 0.471F, 0.95F);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.22D * s), rx, ry,
+                0.20F * s, 0.28F * s, 16, 0.102F, 0.349F, 0.137F, 0.92F);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 49: PUTRID SWAMPLAND GAS-POD (MIASMA #45 — #1A5923 / #4D6453 / #225C7C)
+    // =========================================================================
+
+    private static void renderPutridSwamplandGasPod(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float pulse = 1.0F + 0.12F * Mth.sin(age * 0.45F + (seed & 7));
+        float s = scale * 1.12F * pulse;
+        float spin = age * 0.32F + (seed & 15) * 0.28F;
+
+        // 1. Pressurized stagnant toxic teal gas bladder (#225C7C) inside a necrotic olive spore-sac (#4D6453)!
+        renderElongatedBipyramid(mat, vc, 0.20F * s, 0.26F * s, 0.24F * s, 8, spin,
+                0.133F, 0.361F, 0.486F, 0.96F);
+        renderElongatedBipyramid(mat, vc, 0.26F * s, 0.32F * s, 0.30F * s, 6, -spin * 0.65F,
+                0.302F, 0.392F, 0.325F, 0.72F);
+
+        // 2. 5 bubbling virulent green (#1A5923) & toxic teal (#225C7C) spore pustules orbiting the gas-pod!
+        for (int p = 0; p < 5; p++) {
+            float pAng = spin * 1.15F + (float) (Math.PI * 2.0D * p / 5.0D);
+            boolean teal = (p % 2 == 0);
+            Vec3 base = new Vec3(Mth.cos(pAng) * 0.16D * s, Mth.sin(pAng) * 0.16D * s, (p - 2) * 0.06D * s);
+            Vec3 tip = new Vec3(Mth.cos(pAng) * 0.34D * s, Mth.sin(pAng) * 0.34D * s, (p - 2) * 0.09D * s - 0.08D * s);
+            renderLocalSegment(mat, vc, base, tip, 0.048F * s,
+                    teal ? 0.133F : 0.102F,
+                    teal ? 0.361F : 0.349F,
+                    teal ? 0.486F : 0.137F,
+                    0.95F);
+        }
+
+        // 3. Swirling virulent swamp-vapor collar (#1A5923) & stagnant cyan halo (#225C7C)
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.05D * s), rx, ry,
+                0.22F * s, 0.30F * s, 16, 0.102F, 0.349F, 0.137F, 0.92F);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.14D * s), rx, ry,
+                0.18F * s, 0.25F * s, 14, 0.133F, 0.361F, 0.486F, 0.88F);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 50: PRIMORDIAL DAWN-TEAR GLOBULE (GENESIS #46 — #FF6B9D / #FFEA78 / #225C7C)
+    // =========================================================================
+
+    private static void renderPrimordialDawnTearGlobule(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float pulse = 1.0F + 0.09F * Mth.sin(age * 0.42F + (seed & 7));
+        float s = scale * 1.14F * pulse;
+        float spin = age * 0.38F + (seed & 15) * 0.25F;
+
+        // 1. Radiant solar dawn nucleus (#FFEA78) encased in an iridescent sacred oceanic teardrop (#225C7C)!
+        renderElongatedBipyramid(mat, vc, 0.16F * s, 0.36F * s, 0.24F * s, 8, spin,
+                1.000F, 0.918F, 0.471F, 0.99F);
+        renderElongatedBipyramid(mat, vc, 0.24F * s, 0.44F * s, 0.34F * s, 8, -spin * 0.55F,
+                0.133F, 0.361F, 0.486F, 0.72F);
+
+        // 2. 6 pulsing cellular vitae lotus petals (#FF6B9D) & golden dawn water-bands (#FFEA78)!
+        for (int p = 0; p < 6; p++) {
+            float pAng = spin + (float) (Math.PI * 2.0D * p / 6.0D);
+            boolean pink = (p % 2 == 0);
+            Vec3 root = new Vec3(Mth.cos(pAng) * 0.14D * s, Mth.sin(pAng) * 0.14D * s, 0.12D * s);
+            Vec3 tip = new Vec3(Mth.cos(pAng + 0.42F) * 0.32D * s, Mth.sin(pAng + 0.42F) * 0.32D * s, -0.24D * s);
+            renderLocalSegment(mat, vc, root, tip, 0.040F * s,
+                    pink ? 1.000F : 1.000F,
+                    pink ? 0.420F : 0.918F,
+                    pink ? 0.616F : 0.471F,
+                    0.96F);
+        }
+
+        // 3. Sacred amniotic halo ring (#FFEA78) & vitae lotus corona (#FF6B9D)
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.06D * s), rx, ry,
+                0.22F * s, 0.30F * s, 18, 1.000F, 0.918F, 0.471F, 0.95F);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.14D * s), rx, ry,
+                0.18F * s, 0.26F * s, 16, 1.000F, 0.420F, 0.616F, 0.92F);
+    }
+
+    // =========================================================================
+    // ARCHETYPE 51: STYGIAN HELLFIRE ANNIHILATION SKULL (OBLIVION #47 — #B83C08 / #211A21 / #4D6453)
+    // =========================================================================
+
+    private static void renderStygianHellfireAnnihilationSkull(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.15F;
+        float spin = age * 0.34F + (seed & 15) * 0.27F;
+        float jawOpen = 0.075F + 0.055F * Mth.abs(Mth.sin(age * 0.48F + seed));
+
+        // 1. Blazing magma rust (#B83C08) inner furnace core encased in a Stygian Obsidian (#211A21) & Necrotic Slate (#4D6453) cranium!
+        renderElongatedBipyramid(mat, vc, 0.14F * s, 0.28F * s, 0.22F * s, 6, spin * 0.4F,
+                0.722F, 0.235F, 0.031F, 0.98F);
+        renderElongatedBipyramid(mat, vc, 0.22F * s, 0.38F * s, 0.30F * s, 6, 0.0F,
+                0.129F, 0.102F, 0.129F, 0.97F);
+        renderElongatedBipyramid(mat, vc, 0.26F * s, 0.34F * s, 0.28F * s, 6, 0.52F,
+                0.302F, 0.392F, 0.325F, 0.84F);
+
+        // 2. Screaming necrotic bone jaw (#4D6453), swept stygian horns (#211A21), & blazing magma eye sockets (#B83C08)!
+        Vec3 jawL = new Vec3(-0.14D * s, (-0.12D - jawOpen) * s, 0.12D * s);
+        Vec3 jawR = new Vec3(0.14D * s, (-0.12D - jawOpen) * s, 0.12D * s);
+        Vec3 chin = new Vec3(0.0D, (-0.20D - jawOpen) * s, 0.30D * s);
+        emitGradientDoubleSidedQuad(mat, vc, jawL, jawR, chin, chin,
+                0.302F, 0.392F, 0.325F, 0.96F,
+                0.722F, 0.235F, 0.031F, 0.92F);
+
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 eBase = new Vec3(side * 0.095D * s, 0.060D * s, 0.24D * s);
+            Vec3 eTip = new Vec3(side * 0.110D * s, 0.075D * s, 0.38D * s);
+            renderLocalSegment(mat, vc, eBase, eTip, 0.040F * s, 0.722F, 0.235F, 0.031F, 0.99F);
+
+            Vec3 hRoot = new Vec3(side * 0.16D * s, 0.14D * s, 0.06D * s);
+            Vec3 hTip = new Vec3(side * 0.30D * s, 0.26D * s, -0.34D * s);
+            renderLocalSegment(mat, vc, hRoot, hTip, 0.038F * s, 0.302F, 0.392F, 0.325F, 0.95F);
+        }
+
+        // 3. Whirling Stygian Hellfire corona (#B83C08) & 6 roaring obsidian-ash + magma-rust streamers!
+        Vec3 rx = new Vec3(Mth.cos(spin), Mth.sin(spin) * 0.38D, 0.0D).normalize();
+        Vec3 ry = new Vec3(-Mth.sin(spin) * 0.38D, Mth.cos(spin), 0.0D).normalize();
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.05D * s), rx, ry,
+                0.26F * s, 0.35F * s, 18, 0.722F, 0.235F, 0.031F, 0.94F);
+
+        for (int t = 0; t < 6; t++) {
+            float tAng = -spin * 0.95F + (float) (Math.PI * 2.0D * t / 6.0D);
+            boolean rust = (t % 2 == 0);
+            Vec3 p0 = new Vec3(Mth.cos(tAng) * 0.17D * s, Mth.sin(tAng) * 0.17D * s, -0.16D * s);
+            Vec3 p1 = new Vec3(Mth.cos(tAng + 0.52F) * 0.28D * s, Mth.sin(tAng + 0.52F) * 0.28D * s, -0.74D * s);
+            renderLocalSegment(mat, vc, p0, p1, 0.038F * s,
+                    rust ? 0.722F : 0.129F,
+                    rust ? 0.235F : 0.102F,
+                    rust ? 0.031F : 0.129F,
+                    0.92F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 52: APEX CELESTIAL METEORITE (AETHER #48 — #A88654 / #773214 / #225C7C / #B83C08)
+    // =========================================================================
+
+    private static void renderApexCelestialMeteorite(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float pulse = 1.0F + 0.10F * Mth.sin(age * 0.44F + (seed & 7));
+        float s = scale * 1.22F * pulse;
+        float spin = age * 0.40F + (seed & 15) * 0.28F;
+
+        // 1. Super-condensed firmament core (#A88654 Air Chalk Gold + white-hot center) encased in bronzed/azure crystalline facets!
+        renderElongatedBipyramid(mat, vc, 0.15F * s, 0.30F * s, 0.26F * s, 8, spin,
+                1.000F, 0.975F, 0.910F, 0.99F);
+        renderElongatedBipyramid(mat, vc, 0.24F * s, 0.40F * s, 0.34F * s, 8, -spin * 0.65F,
+                0.659F, 0.525F, 0.329F, 0.94F);
+        renderElongatedBipyramid(mat, vc, 0.28F * s, 0.32F * s, 0.30F * s, 6, spin * 0.45F,
+                0.133F, 0.361F, 0.486F, 0.72F);
+
+        // 2. Twin gyroscopic luminous atmospheric halo rings (#A88654 & #225C7C)
+        Vec3 u1 = new Vec3(Mth.cos(spin), 0.32D, Mth.sin(spin)).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin), 0.88D, Mth.cos(spin)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1, 0.28F * s, 0.38F * s, 22,
+                0.659F, 0.525F, 0.329F, 0.96F);
+        Vec3 u2 = new Vec3(Mth.cos(-spin * 0.82F), -0.36D, Mth.sin(-spin * 0.82F)).normalize();
+        Vec3 v2 = new Vec3(-Mth.sin(-spin * 0.82F), 0.84D, Mth.cos(-spin * 0.82F)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u2, v2, 0.25F * s, 0.34F * s, 20,
+                0.133F, 0.361F, 0.486F, 0.92F);
+
+        // 3. 4 trailing chromatic plasma ribbons & orbiting primordial spikes (Air #A88654, Earth #773214, Water #225C7C, Nether #B83C08)!
+        float[][] quadRgb = {
+                {0.659F, 0.525F, 0.329F}, // Air Chalk Gold
+                {0.467F, 0.196F, 0.078F}, // Earth Deep Bronze
+                {0.133F, 0.361F, 0.486F}, // Water Tidal Azure
+                {0.722F, 0.235F, 0.031F}  // Nether Blazing Rust
+        };
+        for (int q = 0; q < 4; q++) {
+            float qAng = spin + (float) (Math.PI * 0.5D * q);
+            float[] c = quadRgb[q];
+            Vec3 nose = new Vec3(Mth.cos(qAng) * 0.18D * s, Mth.sin(qAng) * 0.18D * s, 0.12D * s);
+            Vec3 mid = new Vec3(Mth.cos(qAng + 0.38F) * 0.30D * s, Mth.sin(qAng + 0.38F) * 0.30D * s, -0.32D * s);
+            Vec3 tail = new Vec3(Mth.cos(qAng + 0.76F) * 0.22D * s, Mth.sin(qAng + 0.76F) * 0.22D * s, -0.84D * s);
+            renderLocalSegment(mat, vc, nose, mid, 0.044F * s, c[0], c[1], c[2], 0.98F);
+            renderLocalSegment(mat, vc, mid, tail, 0.032F * s, c[0], c[1], c[2], 0.88F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 53: ENTROPIC SINGULARITY SKULL-ORB (ENTROPIC #49 — #41304E / #211A21 / #4D6453 / #8A0303)
+    // =========================================================================
+
+    private static void renderEntropicSingularitySkullOrb(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float pulse = 0.95F + 0.10F * Mth.sin(age * 0.44F + (seed & 7));
+        float s = scale * 1.22F * pulse;
+        float spin = age * 0.38F + (seed & 15) * 0.27F;
+        float jawOpen = 0.070F + 0.050F * Mth.abs(Mth.sin(age * 0.46F + seed));
+
+        // 1. Collapsed #211A21 / #41304E dark-matter event-horizon sphere encased in a #4D6453 necrotic skull cranium!
+        renderUndulatingFluidSphere(mat, vc, Vec3.ZERO, 0.20F * s, 1.02F,
+                7, 12, -age * 0.24F, 0.06F,
+                0.129F, 0.102F, 0.129F, 0.99F);
+        renderElongatedBipyramid(mat, vc, 0.25F * s, 0.40F * s, 0.32F * s, 6, 0.0F,
+                0.255F, 0.188F, 0.306F, 0.90F);
+        renderElongatedBipyramid(mat, vc, 0.28F * s, 0.36F * s, 0.28F * s, 6, 0.52F,
+                0.302F, 0.392F, 0.325F, 0.82F);
+
+        // 2. Screaming necrotic skull jaw (#4D6453) & boiling arterial blood eye sockets (#8A0303)!
+        Vec3 jawL = new Vec3(-0.14D * s, (-0.12D - jawOpen) * s, 0.12D * s);
+        Vec3 jawR = new Vec3(0.14D * s, (-0.12D - jawOpen) * s, 0.12D * s);
+        Vec3 chin = new Vec3(0.0D, (-0.21D - jawOpen) * s, 0.30D * s);
+        emitGradientDoubleSidedQuad(mat, vc, jawL, jawR, chin, chin,
+                0.302F, 0.392F, 0.325F, 0.96F,
+                0.541F, 0.012F, 0.012F, 0.94F);
+
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 eBase = new Vec3(side * 0.095D * s, 0.060D * s, 0.24D * s);
+            Vec3 eTip = new Vec3(side * 0.112D * s, 0.075D * s, 0.39D * s);
+            renderLocalSegment(mat, vc, eBase, eTip, 0.040F * s, 0.780F, 0.060F, 0.100F, 0.99F);
+        }
+
+        // 3. Void accretion disk (#41304E) & 6 writhing sanguine blood + dark-matter tendrils (#8A0303 / #211A21)!
+        Vec3 u1 = new Vec3(Mth.cos(spin), 0.30D, Mth.sin(spin)).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin), 0.88D, Mth.cos(spin)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1, 0.29F * s, 0.40F * s, 22,
+                0.255F, 0.188F, 0.306F, 0.95F);
+
+        for (int t = 0; t < 6; t++) {
+            float tAng = -spin * 0.96F + (float) (Math.PI * 2.0D * t / 6.0D);
+            boolean blood = (t % 2 == 0);
+            Vec3 p0 = new Vec3(Mth.cos(tAng) * 0.18D * s, Mth.sin(tAng) * 0.18D * s, -0.14D * s);
+            Vec3 p1 = new Vec3(Mth.cos(tAng + 0.54F) * 0.30D * s, Mth.sin(tAng + 0.54F) * 0.30D * s, -0.78D * s);
+            renderLocalSegment(mat, vc, p0, p1, 0.038F * s,
+                    blood ? 0.541F : 0.255F,
+                    blood ? 0.012F : 0.188F,
+                    blood ? 0.012F : 0.306F,
+                    0.94F);
+        }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 54: HOLY SOLAR SINGULARITY DART (CELESTIAL #50 — #FFEA78 / #FF6B9D / #1A5923 / #A88654)
+    // =========================================================================
+
+    private static void renderHolySolarSingularityDart(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float pulse = 0.96F + 0.10F * Mth.sin(age * 0.45F + (seed & 7));
+        float s = scale * 1.24F * pulse;
+        float spin = age * 0.40F + (seed & 15) * 0.25F;
+
+        // 1. Incandescent white-hole starcore (#FFFFFF) wrapped in radiant pure gold (#FFEA78) spearhead!
+        renderElongatedBipyramid(mat, vc, 0.12F * s, 0.72F * s, 0.44F * s, 6, spin,
+                1.000F, 1.000F, 1.000F, 0.99F);
+        renderElongatedBipyramid(mat, vc, 0.22F * s, 0.86F * s, 0.54F * s, 6, -spin * 0.65F,
+                1.000F, 0.918F, 0.471F, 0.88F);
+        renderElongatedBipyramid(mat, vc, 0.28F * s, 0.46F * s, 0.36F * s, 6, spin * 0.40F,
+                0.659F, 0.525F, 0.329F, 0.76F);
+
+        // 2. Counter-rotating rose-prana (#FF6B9D) & forest-emerald (#1A5923) white-hole accretion halos!
+        Vec3 u1 = new Vec3(Mth.cos(spin), 0.34D, Mth.sin(spin)).normalize();
+        Vec3 v1 = new Vec3(-Mth.sin(spin), 0.86D, Mth.cos(spin)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u1, v1, 0.28F * s, 0.39F * s, 22,
+                1.000F, 0.420F, 0.616F, 0.96F);
+
+        Vec3 u2 = new Vec3(Mth.cos(-spin * 0.85F), -0.34D, Mth.sin(-spin * 0.85F)).normalize();
+        Vec3 v2 = new Vec3(-Mth.sin(-spin * 0.85F), 0.86D, Mth.cos(-spin * 0.85F)).normalize();
+        renderLocalRing(mat, vc, Vec3.ZERO, u2, v2, 0.25F * s, 0.34F * s, 20,
+                0.102F, 0.349F, 0.137F, 0.92F);
+
+        // 3. 6 streaming starlight, rose-prana, emerald & pale-gold corona plumes!
+        float[][] celRgb = {
+                {1.000F, 0.918F, 0.471F},
+                {1.000F, 0.420F, 0.616F},
+                {0.102F, 0.349F, 0.137F},
+                {0.659F, 0.525F, 0.329F}
+        };
+        for (int p = 0; p < 6; p++) {
+            float pAng = -spin * 0.92F + (float) (Math.PI * 2.0D * p / 6.0D);
+            float[] c = celRgb[p & 3];
+            Vec3 p0 = new Vec3(Mth.cos(pAng) * 0.16D * s, Mth.sin(pAng) * 0.16D * s, -0.14D * s);
+            Vec3 p1 = new Vec3(Mth.cos(pAng + 0.48F) * 0.28D * s, Mth.sin(pAng + 0.48F) * 0.28D * s, -0.82D * s);
+            renderLocalSegment(mat, vc, p0, p1, 0.038F * s, c[0], c[1], c[2], 0.95F);
+        }
     }
 
     private static float hash01(int a, int b) {

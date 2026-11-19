@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "ingredient": "entropica:raw_mammot_meat",
+  "result": {
+    "id": "entropica:cooked_mammot_meat"
+  },
+  "experience": 0.35,
+  "cookingtime": 200
+}

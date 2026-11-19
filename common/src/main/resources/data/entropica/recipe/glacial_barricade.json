@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PPP",
+    "I I"
+  ],
+  "key": {
+    "P": "entropica:glacial_aegis_plate",
+    "I": "minecraft:packed_ice"
+  },
+  "result": {
+    "id": "entropica:glacial_barricade",
+    "count": 2
+  }
+}

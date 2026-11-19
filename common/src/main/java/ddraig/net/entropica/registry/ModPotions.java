@@ -24,4 +24,20 @@ public class ModPotions {
                     new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 3600, 0)
             )
     );
+
+    // Frost Resistance Potion: Resistance I (3m = 3600t) + Fire Resistance (1m30s = 1800t)
+    public static final RegistrySupplier<Potion> FROST_RESISTANCE = POTIONS.register("frost_resistance",
+            () -> new Potion("frost_resistance",
+                    new MobEffectInstance(MobEffects.RESISTANCE, 3600, 0),
+                    new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1800, 0)
+            )
+    );
+
+    // Freezing Potion: Slowness III (20s = 400t) + Weakness I (20s = 400t)
+    public static final RegistrySupplier<Potion> FREEZING = POTIONS.register("freezing",
+            () -> new Potion("freezing",
+                    new MobEffectInstance(MobEffects.SLOWNESS, 400, 2),
+                    new MobEffectInstance(MobEffects.WEAKNESS, 400, 0)
+            )
+    );
 }

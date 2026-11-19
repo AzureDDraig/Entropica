@@ -1,6 +1,9 @@
 package ddraig.net.entropica.config;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class EntropicaConfig {
@@ -112,6 +115,34 @@ public class EntropicaConfig {
     public static final Supplier<Integer> SPELL_MUTATION_UNLOCK_MODE = EntropicaConfig::getSpellMutationUnlockMode;
     public static final Supplier<Boolean> ENABLE_SPELL_MUTATION_OP_JOIN_NOTICE = EntropicaConfig::getEnableSpellMutationOpJoinNotice;
 
+    // Biome Generation Settings (Master Switch + Injector Controls + All 108 Biomes)
+    public static final Supplier<Boolean> ENABLE_ALL_BIOMES = EntropicaConfig::getEnableAllBiomes;
+    public static final Supplier<Integer> TERRABLENDER_COMPAT_MODE = EntropicaConfig::getTerraBlenderCompatMode;
+    public static final Supplier<Integer> ENTROPICA_BIOME_REGION_WEIGHT = EntropicaConfig::getEntropicaBiomeRegionWeight;
+    public static final Supplier<Integer> VANILLA_BIOME_PASSTHROUGH_WEIGHT = EntropicaConfig::getVanillaBiomePassthroughWeight;
+    public static final Supplier<Integer> BIOME_REGION_SCALE = EntropicaConfig::getBiomeRegionScale;
+    public static final Supplier<Boolean> ENABLE_BIOME_CUSTOM_FOG = EntropicaConfig::getEnableBiomeCustomFog;
+    public static final Supplier<Boolean> ENABLE_BIOME_CUSTOM_SKY = EntropicaConfig::getEnableBiomeCustomSky;
+    public static final Supplier<Boolean> ENABLE_BIOME_ENVIRONMENTAL_EFFECTS = EntropicaConfig::getEnableBiomeEnvironmentalEffects;
+    public static final Map<EntropicaBiome, Supplier<Boolean>> BIOME_ENABLED;
+
+    static {
+        EnumMap<EntropicaBiome, Supplier<Boolean>> map = new EnumMap<>(EntropicaBiome.class);
+        for (EntropicaBiome biome : EntropicaBiome.values()) {
+            map.put(biome, () -> isBiomeEnabled(biome));
+        }
+        BIOME_ENABLED = Collections.unmodifiableMap(map);
+    }
+
+    public static boolean isBiomeEnabled(EntropicaBiome biome) {
+        return biome != null && getEnableAllBiomes() && getBiomeEnabled(biome);
+    }
+
+    public static boolean isBiomeEnabled(String biomeId) {
+        EntropicaBiome biome = EntropicaBiome.byId(biomeId);
+        return biome != null && isBiomeEnabled(biome);
+    }
+
     @ExpectPlatform public static int getMateriaPerEssence() { throw new AssertionError(); }
     @ExpectPlatform public static int getMateriaFurnaceMaxMateria() { throw new AssertionError(); }
     @ExpectPlatform public static int getMateriaFurnaceMaxEssence() { throw new AssertionError(); }
@@ -214,4 +245,13 @@ public class EntropicaConfig {
     @ExpectPlatform public static int getAstralCollectorTransferRate() { throw new AssertionError(); }
     @ExpectPlatform public static int getSpellMutationUnlockMode() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getEnableSpellMutationOpJoinNotice() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableAllBiomes() { throw new AssertionError(); }
+    @ExpectPlatform public static int getTerraBlenderCompatMode() { throw new AssertionError(); }
+    @ExpectPlatform public static int getEntropicaBiomeRegionWeight() { throw new AssertionError(); }
+    @ExpectPlatform public static int getVanillaBiomePassthroughWeight() { throw new AssertionError(); }
+    @ExpectPlatform public static int getBiomeRegionScale() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableBiomeCustomFog() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableBiomeCustomSky() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableBiomeEnvironmentalEffects() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getBiomeEnabled(EntropicaBiome biome) { throw new AssertionError(); }
 }

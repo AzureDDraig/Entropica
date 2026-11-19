@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "entropica:block/glacial_ice_maker_top",
+    "bottom": "entropica:block/glacial_ice_maker_bottom",
+    "side": "entropica:block/glacial_ice_maker"
+  }
+}

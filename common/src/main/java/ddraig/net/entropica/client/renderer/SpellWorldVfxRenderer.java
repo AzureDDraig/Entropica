@@ -1849,6 +1849,371 @@ public final class SpellWorldVfxRenderer {
                         white ? 1.000F : 0.694F,
                         0.94F * cAlpha);
             }
+        } else if (isVernalSpringMateria(inst.essence)) {
+            // Section 6.43 Photosynthetic Life-Tether (#FF6B9D / #64C8FF): dual-stream tether of floral blossom vines & pressurized springwater!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.56F * fade, 8,
+                    0.392F, 0.784F, 1.000F, 0.96F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.22F * fade, 10,
+                    1.000F, 0.420F, 0.616F, 0.76F * fade, FULL_LIGHT);
+
+            int springSteps = Math.clamp((int) (len * 4.0D), 10, 44);
+            for (int sIdx = 0; sIdx < 2; sIdx++) {
+                float off = sIdx * (float) Math.PI + gameTime * 0.42F;
+                boolean blossom = (sIdx == 0);
+                Vec3 prevPt = null;
+                for (int i = 0; i <= springSteps; i++) {
+                    float t = i / (float) springSteps;
+                    double dist = t * len;
+                    float waveR = baseR * (1.22F + 0.32F * Mth.sin(t * 9.0F - gameTime * 0.44F + sIdx));
+                    float ang = off + t * (float) (len * 2.2D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * waveR))
+                            .add(up.scale(Mth.sin(ang) * waveR));
+                    if (prevPt != null) {
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.36F * fade,
+                                blossom ? 1.000F : 0.392F,
+                                blossom ? 0.420F : 0.784F,
+                                blossom ? 0.616F : 1.000F,
+                                0.95F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int c = 0; c < 6; c++) {
+                float ct = ((gameTime * 0.28F) + (c / 6.0F)) % 1.0F;
+                double dist = ct * len;
+                float cFlare = baseR * (1.26F + 0.54F * ct);
+                float cAlpha = fade * Mth.sin(ct * (float) Math.PI);
+                boolean blossom = (c % 2 == 0);
+                renderOrientedStarPolygon(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        cFlare, 5, ct * 4.2F,
+                        blossom ? 1.000F : 0.392F,
+                        blossom ? 0.420F : 0.784F,
+                        blossom ? 0.616F : 1.000F,
+                        0.94F * cAlpha);
+            }
+        } else if (isGalvanicStaticMateria(inst.essence)) {
+            // Section 6.44 Dielectric Breakdown Arc-Stream Beam (#FFE600 / #878DA2): high-voltage electrical arc stream & ionizing dust slipstream!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.50F * fade, 8,
+                    1.000F, 0.902F, 0.000F, 0.99F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.24F * fade, 10,
+                    0.529F, 0.553F, 0.635F, 0.66F * fade, FULL_LIGHT);
+
+            int arcSteps = Math.clamp((int) (len * 3.8D), 8, 42);
+            int frame = (int) (gameTime * 1.35F) + inst.seed * 17;
+            for (int strand = 0; strand < 3; strand++) {
+                Vec3 prevPt = inst.start;
+                boolean yellow = (strand < 2);
+                for (int i = 1; i <= arcSteps; i++) {
+                    float t = i / (float) arcSteps;
+                    Vec3 pt;
+                    if (i == arcSteps) {
+                        pt = inst.endOrDir;
+                    } else {
+                        float env = Mth.sin(t * (float) Math.PI);
+                        float jR = (hashFloat(frame + strand * 29, i * 5) - 0.5F) * 2.0F * baseR * 2.15F * env;
+                        float jU = (hashFloat(frame + strand * 29, i * 5 + 1) - 0.5F) * 2.0F * baseR * 2.15F * env;
+                        pt = inst.start.add(fwd.scale(t * len)).add(right.scale(jR)).add(up.scale(jU));
+                    }
+                    renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.34F * fade,
+                            yellow ? 1.000F : 0.529F,
+                            yellow ? 0.902F : 0.553F,
+                            yellow ? 0.000F : 0.635F,
+                            0.96F * fade);
+                    prevPt = pt;
+                }
+            }
+            for (int c = 0; c < 6; c++) {
+                float ct = ((gameTime * 0.34F) + (c / 6.0F)) % 1.0F;
+                double dist = ct * len;
+                float cFlare = baseR * (1.28F + 0.58F * ct);
+                float cAlpha = fade * Mth.sin(ct * (float) Math.PI);
+                boolean yellow = (c % 2 == 0);
+                renderOrientedRing(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        cFlare * 0.80F, cFlare, 8,
+                        yellow ? 1.000F : 0.529F,
+                        yellow ? 0.902F : 0.553F,
+                        yellow ? 0.000F : 0.635F,
+                        0.94F * cAlpha);
+            }
+        } else if (isPrimevalSylvanMateria(inst.essence)) {
+            // Section 6.45 Canopy Solar-Root Tether Beam (#1A5923 / #773214 / #FFEA78): golden solar core & twisting living ironwood roots!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.54F * fade, 8,
+                    1.000F, 0.918F, 0.471F, 0.98F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.18F * fade, 10,
+                    0.102F, 0.349F, 0.137F, 0.72F * fade, FULL_LIGHT);
+
+            int rootSteps = Math.clamp((int) (len * 4.0D), 10, 44);
+            for (int rIdx = 0; rIdx < 2; rIdx++) {
+                float off = rIdx * (float) Math.PI - gameTime * 0.36F;
+                boolean ironwood = (rIdx == 0);
+                Vec3 prevPt = null;
+                for (int i = 0; i <= rootSteps; i++) {
+                    float t = i / (float) rootSteps;
+                    double dist = t * len;
+                    float waveR = baseR * (1.24F + 0.30F * Mth.sin(t * 8.5F + gameTime * 0.38F + rIdx));
+                    float ang = off + t * (float) (len * 2.1D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * waveR))
+                            .add(up.scale(Mth.sin(ang) * waveR));
+                    if (prevPt != null) {
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.38F * fade,
+                                ironwood ? 0.467F : 0.102F,
+                                ironwood ? 0.196F : 0.349F,
+                                ironwood ? 0.078F : 0.137F,
+                                0.96F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int c = 0; c < 6; c++) {
+                float ct = ((gameTime * 0.26F) + (c / 6.0F)) % 1.0F;
+                double dist = ct * len;
+                float cFlare = baseR * (1.26F + 0.54F * ct);
+                float cAlpha = fade * Mth.sin(ct * (float) Math.PI);
+                boolean gold = (c % 2 == 0);
+                renderOrientedStarPolygon(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        cFlare, 6, ct * 3.8F,
+                        gold ? 1.000F : 0.102F,
+                        gold ? 0.918F : 0.349F,
+                        gold ? 0.471F : 0.137F,
+                        0.95F * cAlpha);
+            }
+        } else if (isPestilentMiasmaMateria(inst.essence)) {
+            // Section 6.46 Decomposing Quagmire Siphon Ray & Sinkhole (#1A5923 / #4D6453 / #225C7C): murky toxic teal siphon core & inward-dragging swamp bile tendrils!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.56F * fade, 8,
+                    0.133F, 0.361F, 0.486F, 0.96F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.22F * fade, 10,
+                    0.302F, 0.392F, 0.325F, 0.68F * fade, FULL_LIGHT);
+
+            int bileSteps = Math.clamp((int) (len * 4.0D), 10, 44);
+            for (int bIdx = 0; bIdx < 2; bIdx++) {
+                float off = bIdx * (float) Math.PI + gameTime * 0.42F; // inward-pulling phase!
+                boolean green = (bIdx == 0);
+                Vec3 prevPt = null;
+                for (int i = 0; i <= bileSteps; i++) {
+                    float t = i / (float) bileSteps;
+                    double dist = t * len;
+                    float waveR = baseR * (1.28F + 0.32F * Mth.sin(t * 8.0F + gameTime * 0.40F + bIdx));
+                    float ang = off + t * (float) (len * 2.2D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * waveR))
+                            .add(up.scale(Mth.sin(ang) * waveR));
+                    if (prevPt != null) {
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.40F * fade,
+                                green ? 0.102F : 0.133F,
+                                green ? 0.349F : 0.361F,
+                                green ? 0.137F : 0.486F,
+                                0.95F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int s = 0; s < 6; s++) {
+                float st = (1.0F - (((gameTime * 0.28F) + (s / 6.0F)) % 1.0F));
+                double dist = st * len;
+                float sFlare = baseR * (1.22F + 0.50F * st);
+                float sAlpha = fade * Mth.sin(st * (float) Math.PI);
+                renderOrientedRing(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        sFlare * 0.72F, sFlare, 14,
+                        0.102F, 0.349F, 0.137F, 0.92F * sAlpha);
+            }
+        } else if (isPrimordialGenesisMateria(inst.essence)) {
+            // Section 6.47 Primordial Genesis Creation Ray & Rebirth Pulse (#FF6B9D / #FFEA78 / #225C7C): dual-helix torrent of radiant gold & living water!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.56F * fade, 8,
+                    1.000F, 0.918F, 0.471F, 0.99F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.18F * fade, 10,
+                    0.133F, 0.361F, 0.486F, 0.72F * fade, FULL_LIGHT);
+
+            int helixSteps = Math.clamp((int) (len * 4.2D), 12, 46);
+            for (int hIdx = 0; hIdx < 2; hIdx++) {
+                float off = hIdx * (float) Math.PI - gameTime * 0.44F;
+                boolean pink = (hIdx == 0);
+                Vec3 prevPt = null;
+                for (int i = 0; i <= helixSteps; i++) {
+                    float t = i / (float) helixSteps;
+                    double dist = t * len;
+                    float waveR = baseR * (1.26F + 0.28F * Mth.sin(t * 9.0F + gameTime * 0.40F + hIdx));
+                    float ang = off + t * (float) (len * 2.4D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * waveR))
+                            .add(up.scale(Mth.sin(ang) * waveR));
+                    if (prevPt != null) {
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.38F * fade,
+                                1.000F,
+                                pink ? 0.420F : 0.918F,
+                                pink ? 0.616F : 0.471F,
+                                0.97F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int l = 0; l < 6; l++) {
+                float lt = ((gameTime * 0.28F) + (l / 6.0F)) % 1.0F;
+                double dist = lt * len;
+                float lFlare = baseR * (1.24F + 0.52F * lt);
+                float lAlpha = fade * Mth.sin(lt * (float) Math.PI);
+                renderOrientedStarPolygon(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        lFlare, 6, lt * 4.0F, 1.000F, 0.420F, 0.616F, 0.94F * lAlpha);
+            }
+        } else if (isStygianOblivionMateria(inst.essence)) {
+            // Section 6.48 Stygian Extinction Erasure Beam (#B83C08 / #211A21 / #4D6453): concentrated obsidian hellfire & necrotic decay coils!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.60F * fade, 8,
+                    0.722F, 0.235F, 0.031F, 0.99F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.22F * fade, 10,
+                    0.129F, 0.102F, 0.129F, 0.88F * fade, FULL_LIGHT);
+
+            int coilSteps = Math.clamp((int) (len * 4.2D), 12, 46);
+            for (int cIdx = 0; cIdx < 2; cIdx++) {
+                float off = cIdx * (float) Math.PI + gameTime * 0.48F;
+                boolean rust = (cIdx == 0);
+                Vec3 prevPt = null;
+                for (int i = 0; i <= coilSteps; i++) {
+                    float t = i / (float) coilSteps;
+                    double dist = t * len;
+                    float waveR = baseR * (1.30F + 0.28F * Mth.sin(t * 9.5F - gameTime * 0.42F + cIdx));
+                    float ang = off + t * (float) (len * 2.5D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * waveR))
+                            .add(up.scale(Mth.sin(ang) * waveR));
+                    if (prevPt != null) {
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.38F * fade,
+                                rust ? 0.722F : 0.302F,
+                                rust ? 0.235F : 0.392F,
+                                rust ? 0.031F : 0.325F,
+                                0.97F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int rIdx = 0; rIdx < 6; rIdx++) {
+                float rt = ((gameTime * 0.26F) + (rIdx / 6.0F)) % 1.0F;
+                double dist = rt * len;
+                float rFlare = baseR * (1.28F + 0.56F * rt);
+                float rAlpha = fade * Mth.sin(rt * (float) Math.PI);
+                renderOrientedStarPolygon(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        rFlare, 6, -rt * 4.2F, 0.722F, 0.235F, 0.031F, 0.95F * rAlpha);
+            }
+        } else if (isQuintessentialAetherMateria(inst.essence)) {
+            // Section 6.50 Quintessential Firmament Ray (#A88654 / #773214 / #225C7C / #B83C08): 4-band atmospheric beam & halo rings!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.62F * fade, 8,
+                    0.659F, 0.525F, 0.329F, 0.99F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.24F * fade, 12,
+                    0.133F, 0.361F, 0.486F, 0.74F * fade, FULL_LIGHT);
+
+            float[][] quadRgb = {
+                    {0.659F, 0.525F, 0.329F},
+                    {0.467F, 0.196F, 0.078F},
+                    {0.133F, 0.361F, 0.486F},
+                    {0.722F, 0.235F, 0.031F}
+            };
+            int bandSteps = Math.clamp((int) (len * 4.0D), 12, 46);
+            for (int qIdx = 0; qIdx < 4; qIdx++) {
+                float off = (float) (Math.PI * 0.5D * qIdx) - gameTime * 0.46F;
+                float[] c = quadRgb[qIdx];
+                Vec3 prevPt = null;
+                for (int i = 0; i <= bandSteps; i++) {
+                    float t = i / (float) bandSteps;
+                    double dist = t * len;
+                    float waveR = baseR * (1.32F + 0.28F * Mth.sin(t * 9.0F + gameTime * 0.38F + qIdx));
+                    float ang = off + t * (float) (len * 2.2D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * waveR))
+                            .add(up.scale(Mth.sin(ang) * waveR));
+                    if (prevPt != null) {
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.34F * fade, c[0], c[1], c[2], 0.96F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int hIdx = 0; hIdx < 6; hIdx++) {
+                float ht = ((gameTime * 0.28F) + (hIdx / 6.0F)) % 1.0F;
+                double dist = ht * len;
+                float hFlare = baseR * (1.34F + 0.60F * ht);
+                float hAlpha = fade * Mth.sin(ht * (float) Math.PI);
+                renderOrientedRing(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        hFlare * 0.80F, hFlare, 22, 0.659F, 0.525F, 0.329F, 0.95F * hAlpha);
+            }
+        } else if (isAbyssalEntropicMateria(inst.essence)) {
+            // Section 6.51 Entropic Oblivion-Siphon Ray (#41304E / #211A21 / #4D6453 / #8A0303): light-devouring void darkness & crimson blood mist!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.64F * fade, 8,
+                    0.129F, 0.102F, 0.129F, 0.99F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.26F * fade, 12,
+                    0.255F, 0.188F, 0.306F, 0.84F * fade, FULL_LIGHT);
+
+            float[][] entRgb = {
+                    {0.255F, 0.188F, 0.306F},
+                    {0.129F, 0.102F, 0.129F},
+                    {0.302F, 0.392F, 0.325F},
+                    {0.541F, 0.012F, 0.012F}
+            };
+            int siphonSteps = Math.clamp((int) (len * 4.0D), 12, 46);
+            for (int eIdx = 0; eIdx < 4; eIdx++) {
+                float off = (float) (Math.PI * 0.5D * eIdx) + gameTime * 0.48F;
+                float[] c = entRgb[eIdx];
+                Vec3 prevPt = null;
+                for (int i = 0; i <= siphonSteps; i++) {
+                    float t = i / (float) siphonSteps;
+                    double dist = t * len;
+                    float waveR = baseR * (1.30F + 0.30F * Mth.sin(t * 9.5F - gameTime * 0.44F + eIdx));
+                    float ang = off + t * (float) (len * 2.4D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * waveR))
+                            .add(up.scale(Mth.sin(ang) * waveR));
+                    if (prevPt != null) {
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.36F * fade, c[0], c[1], c[2], 0.96F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int rIdx = 0; rIdx < 6; rIdx++) {
+                float rt = ((gameTime * 0.26F) + (rIdx / 6.0F)) % 1.0F;
+                double dist = (1.0F - rt) * len; // Inward-siphoning rings toward caster!
+                float rFlare = baseR * (1.32F + 0.58F * rt);
+                float rAlpha = fade * Mth.sin(rt * (float) Math.PI);
+                renderOrientedRing(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        rFlare * 0.80F, rFlare, 20, 0.541F, 0.012F, 0.012F, 0.96F * rAlpha);
+            }
+        } else if (isHolyCelestialMateria(inst.essence)) {
+            // Section 6.52 Holy Pranic Fusion Beam (#FFEA78 / #FF6B9D / #1A5923 / #A88654): white-gold starlight & photosynthetic plasma!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.58F * fade, 8,
+                    1.000F, 1.000F, 1.000F, 0.99F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.24F * fade, 12,
+                    1.000F, 0.918F, 0.471F, 0.78F * fade, FULL_LIGHT);
+
+            float[][] celRgb = {
+                    {1.000F, 0.918F, 0.471F},
+                    {1.000F, 0.420F, 0.616F},
+                    {0.102F, 0.349F, 0.137F},
+                    {0.659F, 0.525F, 0.329F}
+            };
+            int beamSteps = Math.clamp((int) (len * 4.0D), 12, 46);
+            for (int cIdx = 0; cIdx < 4; cIdx++) {
+                float off = (float) (Math.PI * 0.5D * cIdx) - gameTime * 0.46F;
+                float[] c = celRgb[cIdx];
+                Vec3 prevPt = null;
+                for (int i = 0; i <= beamSteps; i++) {
+                    float t = i / (float) beamSteps;
+                    double dist = t * len;
+                    float waveR = baseR * (1.28F + 0.28F * Mth.sin(t * 9.0F - gameTime * 0.42F + cIdx));
+                    float ang = off + t * (float) (len * 2.4D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * waveR))
+                            .add(up.scale(Mth.sin(ang) * waveR));
+                    if (prevPt != null) {
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.35F * fade, c[0], c[1], c[2], 0.96F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int rIdx = 0; rIdx < 6; rIdx++) {
+                float rt = ((gameTime * 0.26F) + (rIdx / 6.0F)) % 1.0F;
+                double dist = rt * len;
+                float rFlare = baseR * (1.30F + 0.56F * rt);
+                float rAlpha = fade * Mth.sin(rt * (float) Math.PI);
+                renderOrientedRing(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        rFlare * 0.80F, rFlare, 22, 1.000F, 0.420F, 0.616F, 0.95F * rAlpha);
+            }
         }
 
         float impactExpand = channeledSlice ? (1.15F + 0.12F * Mth.sin(gameTime * 0.9F)) : (1.0F + progress * 1.6F);
@@ -2205,8 +2570,9 @@ public final class SpellWorldVfxRenderer {
             return;
         }
 
-        // Lightning (#12) Supercharged Forked Chains & Thunderstep Arc Line: multi-strand #FFE600 high-voltage lightning bolts with side forks!
-        if (isGalvanicLightningMateria(inst.essence)) {
+        // Lightning (#12) & Static (#43) Supercharged Forked Chains: multi-strand #FFE600 high-voltage lightning bolts with side forks!
+        if (isGalvanicLightningMateria(inst.essence) || isGalvanicStaticMateria(inst.essence)) {
+            boolean staticMat = isGalvanicStaticMateria(inst.essence);
             int segs = Math.clamp((int) (len * 3.2D), 8, 26);
             int flickerFrame = (int) (gameTime * 1.15F) + inst.seed * 19;
             float maxJitter = (float) Math.min(0.58D, len * 0.13D);
@@ -2227,12 +2593,19 @@ public final class SpellWorldVfxRenderer {
                     renderCrossSegment(matrix, vc, prev, curr, (bolt == 0 ? 0.12F : 0.075F) * fade,
                             1.00F, 0.902F, 0.00F, 0.84F * fade);
                     renderCrossSegment(matrix, vc, prev, curr, (bolt == 0 ? 0.050F : 0.030F) * fade,
-                            1.00F, 1.00F, 0.95F, 0.98F * fade);
+                            staticMat ? 0.529F : 1.00F,
+                            staticMat ? 0.553F : 1.00F,
+                            staticMat ? 0.635F : 0.95F,
+                            0.98F * fade);
                     if (bolt == 0 && i % 4 == 0 && len > 1.5D) {
                         float fR = (hashFloat(flickerFrame, i * 11) - 0.5F) * maxJitter * 2.4F;
                         float fU = (hashFloat(flickerFrame, i * 13) - 0.5F) * maxJitter * 2.4F;
                         Vec3 forkTip = curr.add(fwd.scale(len * 0.18D)).add(right.scale(fR)).add(up.scale(fU));
-                        renderCrossSegment(matrix, vc, curr, forkTip, 0.055F * fade, 0.722F, 0.957F, 1.00F, 0.82F * fade);
+                        renderCrossSegment(matrix, vc, curr, forkTip, 0.055F * fade,
+                                staticMat ? 0.529F : 0.722F,
+                                staticMat ? 0.553F : 0.957F,
+                                staticMat ? 0.635F : 1.00F,
+                                0.84F * fade);
                     }
                     prev = curr;
                 }
@@ -2368,6 +2741,138 @@ public final class SpellWorldVfxRenderer {
             Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
             renderOrientedRing(matrix, vc, inst.endOrDir, flatX, flatZ,
                     0.26F * fade, 0.48F * fade, 18, 0.114F, 0.941F, 0.898F, 0.94F * fade);
+            return;
+        }
+
+        // Section 6.46 Virulent Contagion-Chain Flow (#1A5923 / #4D6453 / #225C7C): caustic tendrils of stagnant swamp bile!
+        if (isPestilentMiasmaMateria(inst.essence)) {
+            int steps = Math.clamp((int) (len * 4.0D), 12, 34);
+            double archHeight = Math.min(0.75D, 0.12D + len * 0.06D);
+            Vec3 worldUp = new Vec3(0.0D, 1.0D, 0.0D);
+            Vec3 prevCenter = null;
+            for (int i = 0; i <= steps; i++) {
+                float t = i / (float) steps;
+                float arch = Mth.sin(t * (float) Math.PI);
+                float swayR = 0.09F * arch * Mth.sin(t * 8.5F - gameTime * 0.45F + inst.seed);
+                Vec3 center = inst.start.add(span.scale(t))
+                        .add(worldUp.scale(archHeight * arch))
+                        .add(right.scale(swayR));
+                if (prevCenter != null) {
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.10F * fade, 0.302F, 0.392F, 0.325F, 0.85F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.055F * fade, 0.133F, 0.361F, 0.486F, 0.95F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.028F * fade, 0.102F, 0.349F, 0.137F, 0.98F * fade);
+                }
+                prevCenter = center;
+            }
+            Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+            Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+            renderOrientedRing(matrix, vc, inst.endOrDir, flatX, flatZ,
+                    0.24F * fade, 0.46F * fade, 16, 0.102F, 0.349F, 0.137F, 0.92F * fade);
+            return;
+        }
+
+        // Section 6.48 Entropic Ash-Chain Flow (#B83C08 / #211A21 / #4D6453): leaping black soulfire & blazing magma-ash tendrils!
+        if (isStygianOblivionMateria(inst.essence)) {
+            int steps = Math.clamp((int) (len * 4.2D), 12, 36);
+            double archHeight = Math.min(0.85D, 0.14D + len * 0.07D);
+            Vec3 worldUp = new Vec3(0.0D, 1.0D, 0.0D);
+            Vec3 prevCenter = null;
+            for (int i = 0; i <= steps; i++) {
+                float t = i / (float) steps;
+                float arch = Mth.sin(t * (float) Math.PI);
+                float whipR = 0.10F * arch * Mth.sin(t * 9.5F - gameTime * 0.55F + inst.seed);
+                Vec3 center = inst.start.add(span.scale(t))
+                        .add(worldUp.scale(archHeight * arch))
+                        .add(right.scale(whipR));
+                if (prevCenter != null) {
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.11F * fade, 0.129F, 0.102F, 0.129F, 0.94F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.060F * fade, 0.302F, 0.392F, 0.325F, 0.92F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.032F * fade, 0.722F, 0.235F, 0.031F, 0.99F * fade);
+                }
+                prevCenter = center;
+            }
+            Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+            Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+            renderOrientedRing(matrix, vc, inst.endOrDir, flatX, flatZ,
+                    0.26F * fade, 0.50F * fade, 16, 0.722F, 0.235F, 0.031F, 0.95F * fade);
+            return;
+        }
+
+        // Section 6.50 Quintessential Quad-Harmonic Homing Spike / Orbit Dart (#A88654 / #773214 / #225C7C / #B83C08):
+        if (isQuintessentialAetherMateria(inst.essence)) {
+            int steps = Math.clamp((int) (len * 4.2D), 12, 36);
+            double archHeight = Math.min(0.95D, 0.16D + len * 0.07D);
+            Vec3 worldUp = new Vec3(0.0D, 1.0D, 0.0D);
+            Vec3 prevCenter = null;
+            for (int i = 0; i <= steps; i++) {
+                float t = i / (float) steps;
+                float arch = Mth.sin(t * (float) Math.PI);
+                float spiralR = 0.09F * arch * Mth.sin(t * 10.0F - gameTime * 0.50F + inst.seed);
+                Vec3 center = inst.start.add(span.scale(t))
+                        .add(worldUp.scale(archHeight * arch))
+                        .add(right.scale(spiralR));
+                if (prevCenter != null) {
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.11F * fade, 0.133F, 0.361F, 0.486F, 0.88F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.062F * fade, 0.659F, 0.525F, 0.329F, 0.98F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.030F * fade, ar, ag, ab, 0.99F * fade);
+                }
+                prevCenter = center;
+            }
+            Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+            Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+            renderOrientedRing(matrix, vc, inst.endOrDir, flatX, flatZ,
+                    0.28F * fade, 0.52F * fade, 20, 0.659F, 0.525F, 0.329F, 0.96F * fade);
+            return;
+        }
+
+        // Section 6.51 Abyssal Sanguine-Void Chain Flow (#41304E / #211A21 / #4D6453 / #8A0303): wall-phasing dark matter & boiling blood tendrils!
+        if (isAbyssalEntropicMateria(inst.essence)) {
+            int steps = Math.clamp((int) (len * 4.2D), 12, 36);
+            double archHeight = Math.min(0.95D, 0.16D + len * 0.07D);
+            Vec3 worldUp = new Vec3(0.0D, 1.0D, 0.0D);
+            Vec3 prevCenter = null;
+            for (int i = 0; i <= steps; i++) {
+                float t = i / (float) steps;
+                float arch = Mth.sin(t * (float) Math.PI);
+                float whipR = 0.10F * arch * Mth.sin(t * 10.5F - gameTime * 0.55F + inst.seed);
+                Vec3 center = inst.start.add(span.scale(t))
+                        .add(worldUp.scale(archHeight * arch))
+                        .add(right.scale(whipR));
+                if (prevCenter != null) {
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.12F * fade, 0.129F, 0.102F, 0.129F, 0.95F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.068F * fade, 0.255F, 0.188F, 0.306F, 0.96F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.034F * fade, 0.541F, 0.012F, 0.012F, 0.99F * fade);
+                }
+                prevCenter = center;
+            }
+            Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+            Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+            renderOrientedRing(matrix, vc, inst.endOrDir, flatX, flatZ,
+                    0.28F * fade, 0.54F * fade, 18, 0.541F, 0.012F, 0.012F, 0.96F * fade);
+            return;
+        }
+
+        // Section 6.52 Holy White-Hole Star-Orbit Flow (#FFEA78 / #FF6B9D / #1A5923 / #A88654): retaliatory starlight & pranic dart arc!
+        if (isHolyCelestialMateria(inst.essence)) {
+            int steps = Math.clamp((int) (len * 4.2D), 12, 36);
+            double archHeight = Math.min(0.90D, 0.14D + len * 0.06D);
+            Vec3 worldUp = new Vec3(0.0D, 1.0D, 0.0D);
+            Vec3 prevCenter = null;
+            for (int i = 0; i <= steps; i++) {
+                float t = i / (float) steps;
+                float arch = Mth.sin(t * (float) Math.PI);
+                Vec3 center = inst.start.add(span.scale(t)).add(worldUp.scale(archHeight * arch));
+                if (prevCenter != null) {
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.11F * fade, 1.000F, 0.918F, 0.471F, 0.94F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.062F * fade, 1.000F, 0.420F, 0.616F, 0.96F * fade);
+                    renderCrossSegment(matrix, vc, prevCenter, center, 0.032F * fade, 1.000F, 1.000F, 1.000F, 0.99F * fade);
+                }
+                prevCenter = center;
+            }
+            Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+            Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+            renderOrientedRing(matrix, vc, inst.endOrDir, flatX, flatZ,
+                    0.28F * fade, 0.54F * fade, 20, 1.000F, 0.918F, 0.471F, 0.97F * fade);
             return;
         }
 
@@ -3283,6 +3788,192 @@ public final class SpellWorldVfxRenderer {
                         white ? 1.000F : 0.694F,
                         0.97F * fade);
             }
+        } else if (isVernalSpringMateria(inst.essence)) {
+            // Section 6.43 Vernal Rebirth Blossom-Nova (#FF6B9D / #64C8FF): crystalline springwater & blooming rose petals!
+            float springH = Math.max(1.65F, inst.radiusOrScale * 0.44F)
+                    * (0.88F + 0.26F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.02F, 6, 26,
+                    0.392F, 0.784F, 1.000F, 0.52F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, springH, 0.0D), right, forward,
+                    Math.max(0.24F, curRadius * 0.82F), curRadius * 1.12F, 22,
+                    1.000F, 0.420F, 0.616F, 0.88F * fade, 0.24F * fade);
+            for (int pIdx = 0; pIdx < 16; pIdx++) {
+                float pAng = (float) (Math.PI * 2.0D * pIdx / 16.0D) + inst.seed * 0.15F;
+                Vec3 pBase = ground.add(Mth.cos(pAng) * curRadius * 0.86D, 0.08D, Mth.sin(pAng) * curRadius * 0.86D);
+                Vec3 pTip = pBase.add(Mth.cos(pAng) * 0.72D, 0.86D + (pIdx % 2) * 0.34D, Mth.sin(pAng) * 0.72D);
+                boolean blossom = (pIdx % 2 == 0);
+                renderCrossSegment(matrix, vc, pBase, pTip, 0.072F * fade,
+                        blossom ? 1.000F : 0.392F,
+                        blossom ? 0.420F : 0.784F,
+                        blossom ? 0.616F : 1.000F,
+                        0.96F * fade);
+            }
+        } else if (isGalvanicStaticMateria(inst.essence)) {
+            // Section 6.44 Ground-Discharge EMP Shockwave (#FFE600 / #878DA2): electric ground ripple & polarized dielectric dome!
+            float empH = Math.max(1.55F, inst.radiusOrScale * 0.42F)
+                    * (0.88F + 0.24F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.02F, 6, 20,
+                    0.529F, 0.553F, 0.635F, 0.48F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, empH, 0.0D), right, forward,
+                    Math.max(0.24F, curRadius * 0.84F), curRadius * 1.10F, 16,
+                    1.000F, 0.902F, 0.000F, 0.92F * fade, 0.20F * fade);
+            for (int aIdx = 0; aIdx < 16; aIdx++) {
+                float aAng = (float) (Math.PI * 2.0D * aIdx / 16.0D) + inst.seed * 0.21F;
+                Vec3 aBase = ground.add(Mth.cos(aAng) * curRadius * 0.80D, 0.06D, Mth.sin(aAng) * curRadius * 0.80D);
+                Vec3 aTip = aBase.add(Mth.cos(aAng) * 0.82D, 0.64D + (aIdx % 2) * 0.42D, Mth.sin(aAng) * 0.82D);
+                boolean yellow = (aIdx % 2 == 0);
+                renderCrossSegment(matrix, vc, aBase, aTip, 0.075F * fade,
+                        yellow ? 1.000F : 0.529F,
+                        yellow ? 0.902F : 0.553F,
+                        yellow ? 0.000F : 0.635F,
+                        0.98F * fade);
+            }
+        } else if (isPrimevalSylvanMateria(inst.essence)) {
+            // Section 6.45 Primeval Sylvan Canopy Nova (#1A5923 / #773214 / #FFEA78): golden sun-rays, ironwood branches & emerald leaves!
+            float sylH = Math.max(1.65F, inst.radiusOrScale * 0.44F)
+                    * (0.88F + 0.25F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.02F, 6, 24,
+                    0.102F, 0.349F, 0.137F, 0.52F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, sylH, 0.0D), right, forward,
+                    Math.max(0.24F, curRadius * 0.82F), curRadius * 1.12F, 20,
+                    1.000F, 0.918F, 0.471F, 0.90F * fade, 0.22F * fade);
+            for (int bIdx = 0; bIdx < 16; bIdx++) {
+                float bAng = (float) (Math.PI * 2.0D * bIdx / 16.0D) + inst.seed * 0.17F;
+                Vec3 bBase = ground.add(Mth.cos(bAng) * curRadius * 0.84D, 0.08D, Mth.sin(bAng) * curRadius * 0.84D);
+                Vec3 bTip = bBase.add(Mth.cos(bAng) * 0.78D, 0.88D + (bIdx % 2) * 0.36D, Mth.sin(bAng) * 0.78D);
+                boolean gold = (bIdx % 2 == 0);
+                renderCrossSegment(matrix, vc, bBase, bTip, 0.076F * fade,
+                        gold ? 1.000F : 0.467F,
+                        gold ? 0.918F : 0.196F,
+                        gold ? 0.471F : 0.078F,
+                        0.97F * fade);
+            }
+        } else if (isPestilentMiasmaMateria(inst.essence)) {
+            // Section 6.46 Putrescent Swamp-Blight Nova (#1A5923 / #4D6453 / #225C7C): sickly green & necrotic teal swamp vapor shockwave!
+            float miaH = Math.max(1.50F, inst.radiusOrScale * 0.42F)
+                    * (0.86F + 0.24F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.02F, 6, 24,
+                    0.302F, 0.392F, 0.325F, 0.54F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, miaH, 0.0D), right, forward,
+                    Math.max(0.24F, curRadius * 0.82F), curRadius * 1.12F, 20,
+                    0.133F, 0.361F, 0.486F, 0.88F * fade, 0.24F * fade);
+            for (int gIdx = 0; gIdx < 16; gIdx++) {
+                float gAng = (float) (Math.PI * 2.0D * gIdx / 16.0D) + inst.seed * 0.19F;
+                Vec3 gBase = ground.add(Mth.cos(gAng) * curRadius * 0.84D, 0.08D, Mth.sin(gAng) * curRadius * 0.84D);
+                Vec3 gTip = gBase.add(Mth.cos(gAng) * 0.72D, 0.84D + (gIdx % 2) * 0.34D, Mth.sin(gAng) * 0.72D);
+                boolean green = (gIdx % 2 == 0);
+                renderCrossSegment(matrix, vc, gBase, gTip, 0.078F * fade,
+                        green ? 0.102F : 0.133F,
+                        green ? 0.349F : 0.361F,
+                        green ? 0.137F : 0.486F,
+                        0.96F * fade);
+            }
+        } else if (isPrimordialGenesisMateria(inst.essence)) {
+            // Section 6.47 Dawn-Tide Rebirth Nova (#FF6B9D / #FFEA78 / #225C7C): swirling golden-pink solar liquid & sacred water rings!
+            float genH = Math.max(1.65F, inst.radiusOrScale * 0.44F)
+                    * (0.88F + 0.24F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.02F, 6, 24,
+                    0.133F, 0.361F, 0.486F, 0.52F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, genH, 0.0D), right, forward,
+                    Math.max(0.24F, curRadius * 0.82F), curRadius * 1.12F, 22,
+                    1.000F, 0.918F, 0.471F, 0.90F * fade, 0.24F * fade);
+            for (int pIdx = 0; pIdx < 16; pIdx++) {
+                float pAng = (float) (Math.PI * 2.0D * pIdx / 16.0D) + inst.seed * 0.17F;
+                Vec3 pBase = ground.add(Mth.cos(pAng) * curRadius * 0.84D, 0.08D, Mth.sin(pAng) * curRadius * 0.84D);
+                Vec3 pTip = pBase.add(Mth.cos(pAng) * 0.78D, 0.88D + (pIdx % 2) * 0.36D, Mth.sin(pAng) * 0.78D);
+                boolean pink = (pIdx % 2 == 0);
+                renderCrossSegment(matrix, vc, pBase, pTip, 0.076F * fade,
+                        1.000F,
+                        pink ? 0.420F : 0.918F,
+                        pink ? 0.616F : 0.471F,
+                        0.98F * fade);
+            }
+        } else if (isStygianOblivionMateria(inst.essence)) {
+            // Section 6.48 Stygian Extinction Nova (#B83C08 / #211A21 / #4D6453): explosive black hellfire dome, obsidian ash wall & necrotic bone lances!
+            float oblH = Math.max(1.75F, inst.radiusOrScale * 0.46F)
+                    * (0.88F + 0.26F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.02F, 6, 22,
+                    0.129F, 0.102F, 0.129F, 0.74F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, oblH, 0.0D), right, forward,
+                    Math.max(0.26F, curRadius * 0.84F), curRadius * 1.14F, 20,
+                    0.722F, 0.235F, 0.031F, 0.94F * fade, 0.26F * fade);
+            for (int sIdx = 0; sIdx < 16; sIdx++) {
+                float sAng = (float) (Math.PI * 2.0D * sIdx / 16.0D) + inst.seed * 0.19F;
+                Vec3 sBase = ground.add(Mth.cos(sAng) * curRadius * 0.84D, 0.08D, Mth.sin(sAng) * curRadius * 0.84D);
+                Vec3 sTip = sBase.add(Mth.cos(sAng) * 0.84D, 0.94D + (sIdx % 2) * 0.38D, Mth.sin(sAng) * 0.84D);
+                boolean rust = (sIdx % 2 == 0);
+                renderCrossSegment(matrix, vc, sBase, sTip, 0.080F * fade,
+                        rust ? 0.722F : 0.302F,
+                        rust ? 0.235F : 0.392F,
+                        rust ? 0.031F : 0.325F,
+                        0.98F * fade);
+            }
+        } else if (isQuintessentialAetherMateria(inst.essence)) {
+            // Section 6.50 Quintessential Firmament Resonance Nova (#A88654 / #773214 / #225C7C / #B83C08): luminous halo rings & quad-elemental bands!
+            float aethH = Math.max(1.90F, inst.radiusOrScale * 0.46F)
+                    * (0.90F + 0.26F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.03F, 6, 26,
+                    0.133F, 0.361F, 0.486F, 0.54F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, aethH, 0.0D), right, forward,
+                    Math.max(0.28F, curRadius * 0.86F), curRadius * 1.16F, 24,
+                    0.659F, 0.525F, 0.329F, 0.94F * fade, 0.26F * fade);
+            float[][] quadRgb = {
+                    {0.659F, 0.525F, 0.329F},
+                    {0.467F, 0.196F, 0.078F},
+                    {0.133F, 0.361F, 0.486F},
+                    {0.722F, 0.235F, 0.031F}
+            };
+            for (int qIdx = 0; qIdx < 16; qIdx++) {
+                float qAng = (float) (Math.PI * 2.0D * qIdx / 16.0D) + inst.seed * 0.17F;
+                float[] c = quadRgb[qIdx & 3];
+                Vec3 qBase = ground.add(Mth.cos(qAng) * curRadius * 0.84D, 0.08D, Mth.sin(qAng) * curRadius * 0.84D);
+                Vec3 qTip = qBase.add(Mth.cos(qAng) * 0.88D, 1.02D + (qIdx % 2) * 0.40D, Mth.sin(qAng) * 0.88D);
+                renderCrossSegment(matrix, vc, qBase, qTip, 0.082F * fade, c[0], c[1], c[2], 0.98F * fade);
+            }
+        } else if (isAbyssalEntropicMateria(inst.essence)) {
+            // Section 6.51 Entropic Singularity Implosion Nova (#41304E / #211A21 / #4D6453 / #8A0303): light-devouring darkness & crimson blood rings!
+            float entH = Math.max(1.90F, inst.radiusOrScale * 0.46F)
+                    * (0.90F + 0.26F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.03F, 6, 24,
+                    0.129F, 0.102F, 0.129F, 0.80F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, entH, 0.0D), right, forward,
+                    Math.max(0.28F, curRadius * 0.86F), curRadius * 1.16F, 22,
+                    0.541F, 0.012F, 0.012F, 0.95F * fade, 0.28F * fade);
+            float[][] entRgb = {
+                    {0.255F, 0.188F, 0.306F},
+                    {0.129F, 0.102F, 0.129F},
+                    {0.302F, 0.392F, 0.325F},
+                    {0.541F, 0.012F, 0.012F}
+            };
+            for (int eIdx = 0; eIdx < 16; eIdx++) {
+                float eAng = (float) (Math.PI * 2.0D * eIdx / 16.0D) + inst.seed * 0.19F;
+                float[] c = entRgb[eIdx & 3];
+                Vec3 eBase = ground.add(Mth.cos(eAng) * curRadius * 0.84D, 0.08D, Mth.sin(eAng) * curRadius * 0.84D);
+                Vec3 eTip = eBase.add(Mth.cos(eAng) * 0.88D, 1.02D + (eIdx % 2) * 0.40D, Mth.sin(eAng) * eBase.length() * 0.0D + Mth.sin(eAng) * 0.88D);
+                renderCrossSegment(matrix, vc, eBase, eTip, 0.082F * fade, c[0], c[1], c[2], 0.98F * fade);
+            }
+        } else if (isHolyCelestialMateria(inst.essence)) {
+            // Section 6.52 Holy Supernova Dawn-Shockwave (#FFEA78 / #FF6B9D / #1A5923 / #A88654): stellar dawnfire, rose-prana & emerald life-waves!
+            float celH = Math.max(1.90F, inst.radiusOrScale * 0.46F)
+                    * (0.90F + 0.26F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.03F, 6, 24,
+                    1.000F, 0.918F, 0.471F, 0.62F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, celH, 0.0D), right, forward,
+                    Math.max(0.28F, curRadius * 0.86F), curRadius * 1.16F, 24,
+                    1.000F, 0.420F, 0.616F, 0.95F * fade, 0.28F * fade);
+            float[][] celRgb = {
+                    {1.000F, 0.918F, 0.471F},
+                    {1.000F, 0.420F, 0.616F},
+                    {0.102F, 0.349F, 0.137F},
+                    {0.659F, 0.525F, 0.329F}
+            };
+            for (int cIdx = 0; cIdx < 16; cIdx++) {
+                float cAng = (float) (Math.PI * 2.0D * cIdx / 16.0D) + inst.seed * 0.19F;
+                float[] c = celRgb[cIdx & 3];
+                Vec3 cBase = ground.add(Mth.cos(cAng) * curRadius * 0.84D, 0.08D, Mth.sin(cAng) * curRadius * 0.84D);
+                Vec3 cTip = cBase.add(Mth.cos(cAng) * 0.90D, 1.05D + (cIdx % 2) * 0.42D, Mth.sin(cAng) * 0.90D);
+                renderCrossSegment(matrix, vc, cBase, cTip, 0.082F * fade, c[0], c[1], c[2], 0.98F * fade);
+            }
         }
     }
 
@@ -4178,6 +4869,158 @@ public final class SpellWorldVfxRenderer {
                         white ? 1.000F : 0.694F,
                         0.94F * fade);
             }
+        } else if (isVernalSpringMateria(inst.essence)) {
+            // Section 6.43 Bubbling Vernal Aquifer Well Glyph (#FF6B9D / #64C8FF): glowing cerulean spring runes & 5-petal cherry blossoms!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.78F, r * 1.04F, 24, 0.392F, 0.784F, 1.000F, 0.94F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.036D, 0.0D), right, forward,
+                    r * 0.92F, 5, rotOuter * 0.35F, 1.000F, 0.420F, 0.616F, 0.96F * fade);
+            for (int p = 0; p < 5; p++) {
+                float pAng = (float) (Math.PI * 2.0D * p / 5.0D) + rotOuter * 0.18F;
+                Vec3 petalPos = base.add(Mth.cos(pAng) * r * 0.50D, 0.14D, Mth.sin(pAng) * r * 0.50D);
+                boolean blossom = (p % 2 == 0);
+                renderOctahedron(matrix, vc, petalPos, Math.max(0.15F, r * 0.11F),
+                        blossom ? 1.000F : 0.392F,
+                        blossom ? 0.420F : 0.784F,
+                        blossom ? 0.616F : 1.000F,
+                        0.94F * fade);
+            }
+        } else if (isGalvanicStaticMateria(inst.essence)) {
+            // Section 6.44 Galvanic Arc-Snare Sigil (#FFE600 / #878DA2): crackling yellow lightning runes & dielectric slate capacitor nodes!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.80F, r * 1.04F, 8, 0.529F, 0.553F, 0.635F, 0.95F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.036D, 0.0D), right, forward,
+                    r * 0.94F, 8, rotOuter * 0.42F, 1.000F, 0.902F, 0.000F, 0.98F * fade);
+            for (int n = 0; n < 6; n++) {
+                float nAng = (float) (Math.PI * 2.0D * n / 6.0D) - rotOuter * 0.24F;
+                Vec3 nodePos = base.add(Mth.cos(nAng) * r * 0.58D, 0.14D, Mth.sin(nAng) * r * 0.58D);
+                boolean yellow = (n % 2 == 0);
+                renderOctahedron(matrix, vc, nodePos, Math.max(0.14F, r * 0.10F),
+                        yellow ? 1.000F : 0.529F,
+                        yellow ? 0.902F : 0.553F,
+                        yellow ? 0.000F : 0.635F,
+                        0.96F * fade);
+            }
+        } else if (isPrimevalSylvanMateria(inst.essence)) {
+            // Section 6.45 Canopy Solar-Mine (#1A5923 / #773214 / #FFEA78): floating solar leaf-prism mine & ancient sylvan runes!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.78F, r * 1.04F, 12, 0.102F, 0.349F, 0.137F, 0.94F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.036D, 0.0D), right, forward,
+                    r * 0.92F, 6, rotOuter * 0.36F, 1.000F, 0.918F, 0.471F, 0.98F * fade);
+            renderOctahedron(matrix, vc, base.add(0.0D, 0.24D, 0.0D), Math.max(0.22F, r * 0.14F),
+                    1.000F, 0.918F, 0.471F, 0.98F * fade);
+            for (int l = 0; l < 6; l++) {
+                float lAng = (float) (Math.PI * 2.0D * l / 6.0D) + rotOuter * 0.20F;
+                Vec3 leafPos = base.add(Mth.cos(lAng) * r * 0.54D, 0.18D, Mth.sin(lAng) * r * 0.54D);
+                boolean bark = (l % 2 == 0);
+                renderOctahedron(matrix, vc, leafPos, Math.max(0.14F, r * 0.10F),
+                        bark ? 0.467F : 0.102F,
+                        bark ? 0.196F : 0.349F,
+                        bark ? 0.078F : 0.137F,
+                        0.95F * fade);
+            }
+        } else if (isPestilentMiasmaMateria(inst.essence)) {
+            // Section 6.46 Pressurized Septic Gas-Geyser (#1A5923 / #4D6453 / #225C7C): necrotic swamp pressure rune & bubbling geyser vents!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.76F, r * 1.04F, 14, 0.302F, 0.392F, 0.325F, 0.94F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.036D, 0.0D), right, forward,
+                    r * 0.90F, 6, rotOuter * 0.34F, 0.133F, 0.361F, 0.486F, 0.96F * fade);
+            for (int v = 0; v < 6; v++) {
+                float vAng = (float) (Math.PI * 2.0D * v / 6.0D) + rotOuter * 0.22F;
+                Vec3 ventPos = base.add(Mth.cos(vAng) * r * 0.52D, 0.14D, Mth.sin(vAng) * r * 0.52D);
+                boolean green = (v % 2 == 0);
+                renderOctahedron(matrix, vc, ventPos, Math.max(0.14F, r * 0.10F),
+                        green ? 0.102F : 0.133F,
+                        green ? 0.349F : 0.361F,
+                        green ? 0.137F : 0.486F,
+                        0.95F * fade);
+            }
+        } else if (isPrimordialGenesisMateria(inst.essence)) {
+            // Section 6.47 Well of Creation & Cleansing Geyser (#FF6B9D / #FFEA78 / #225C7C): radiant water & vitae lotus shrine runes!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.78F, r * 1.04F, 18, 0.133F, 0.361F, 0.486F, 0.94F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.036D, 0.0D), right, forward,
+                    r * 0.92F, 6, rotOuter * 0.36F, 1.000F, 0.918F, 0.471F, 0.98F * fade);
+            for (int l = 0; l < 6; l++) {
+                float lAng = (float) (Math.PI * 2.0D * l / 6.0D) + rotOuter * 0.22F;
+                Vec3 lotusPos = base.add(Mth.cos(lAng) * r * 0.54D, 0.16D, Mth.sin(lAng) * r * 0.54D);
+                boolean pink = (l % 2 == 0);
+                renderOctahedron(matrix, vc, lotusPos, Math.max(0.14F, r * 0.10F),
+                        1.000F,
+                        pink ? 0.420F : 0.918F,
+                        pink ? 0.616F : 0.471F,
+                        0.97F * fade);
+            }
+        } else if (isStygianOblivionMateria(inst.essence)) {
+            // Section 6.48 Oblivion Singularity Mine (#B83C08 / #211A21 / #4D6453): stygian obsidian event-horizon ring & blazing magma sigils!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.76F, r * 1.05F, 18, 0.129F, 0.102F, 0.129F, 0.96F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.038D, 0.0D), right, forward,
+                    r * 0.92F, 6, -rotOuter * 0.42F, 0.722F, 0.235F, 0.031F, 0.98F * fade);
+            for (int k = 0; k < 6; k++) {
+                float kAng = (float) (Math.PI * 2.0D * k / 6.0D) - rotOuter * 0.28F;
+                Vec3 skullNode = base.add(Mth.cos(kAng) * r * 0.56D, 0.18D, Mth.sin(kAng) * r * 0.56D);
+                boolean rust = (k % 2 == 0);
+                renderOctahedron(matrix, vc, skullNode, Math.max(0.15F, r * 0.11F),
+                        rust ? 0.722F : 0.302F,
+                        rust ? 0.235F : 0.392F,
+                        rust ? 0.031F : 0.325F,
+                        0.98F * fade);
+            }
+        } else if (isQuintessentialAetherMateria(inst.essence)) {
+            // Section 6.50 Quintessential Firmament Inversion Vortex Sigil (#A88654 / #773214 / #225C7C / #B83C08): radiant quad-elemental mandala!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.78F, r * 1.06F, 22, 0.659F, 0.525F, 0.329F, 0.96F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.038D, 0.0D), right, forward,
+                    r * 0.94F, 8, rotOuter * 0.40F, 0.133F, 0.361F, 0.486F, 0.98F * fade);
+            float[][] quadRgb = {
+                    {0.659F, 0.525F, 0.329F},
+                    {0.467F, 0.196F, 0.078F},
+                    {0.133F, 0.361F, 0.486F},
+                    {0.722F, 0.235F, 0.031F}
+            };
+            for (int q = 0; q < 8; q++) {
+                float qAng = (float) (Math.PI * 2.0D * q / 8.0D) + rotOuter * 0.26F;
+                float[] c = quadRgb[q & 3];
+                Vec3 nodePos = base.add(Mth.cos(qAng) * r * 0.58D, 0.18D, Mth.sin(qAng) * r * 0.58D);
+                renderOctahedron(matrix, vc, nodePos, Math.max(0.15F, r * 0.11F), c[0], c[1], c[2], 0.98F * fade);
+            }
+        } else if (isAbyssalEntropicMateria(inst.essence)) {
+            // Section 6.51 Entropic Singularity Collapse Sigil (#41304E / #211A21 / #4D6453 / #8A0303): void-shadow mandala!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.78F, r * 1.06F, 20, 0.129F, 0.102F, 0.129F, 0.97F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.038D, 0.0D), right, forward,
+                    r * 0.94F, 8, -rotOuter * 0.42F, 0.541F, 0.012F, 0.012F, 0.98F * fade);
+            float[][] entRgb = {
+                    {0.255F, 0.188F, 0.306F},
+                    {0.129F, 0.102F, 0.129F},
+                    {0.302F, 0.392F, 0.325F},
+                    {0.541F, 0.012F, 0.012F}
+            };
+            for (int e = 0; e < 8; e++) {
+                float eAng = (float) (Math.PI * 2.0D * e / 8.0D) - rotOuter * 0.28F;
+                float[] c = entRgb[e & 3];
+                Vec3 nodePos = base.add(Mth.cos(eAng) * r * 0.58D, 0.18D, Mth.sin(eAng) * r * 0.58D);
+                renderOctahedron(matrix, vc, nodePos, Math.max(0.15F, r * 0.11F), c[0], c[1], c[2], 0.98F * fade);
+            }
+        } else if (isHolyCelestialMateria(inst.essence)) {
+            // Section 6.52 Holy White-Hole Sigil (#FFEA78 / #FF6B9D / #1A5923 / #A88654): radiant white-gold star-mandala!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.78F, r * 1.06F, 24, 1.000F, 0.918F, 0.471F, 0.97F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.038D, 0.0D), right, forward,
+                    r * 0.94F, 8, rotOuter * 0.42F, 1.000F, 0.420F, 0.616F, 0.98F * fade);
+            float[][] celRgb = {
+                    {1.000F, 0.918F, 0.471F},
+                    {1.000F, 0.420F, 0.616F},
+                    {0.102F, 0.349F, 0.137F},
+                    {0.659F, 0.525F, 0.329F}
+            };
+            for (int c = 0; c < 8; c++) {
+                float cAng = (float) (Math.PI * 2.0D * c / 8.0D) + rotOuter * 0.28F;
+                float[] col = celRgb[c & 3];
+                Vec3 nodePos = base.add(Mth.cos(cAng) * r * 0.58D, 0.18D, Mth.sin(cAng) * r * 0.58D);
+                renderOctahedron(matrix, vc, nodePos, Math.max(0.15F, r * 0.11F), col[0], col[1], col[2], 0.99F * fade);
+            }
         }
     }
 
@@ -4222,9 +5065,18 @@ public final class SpellWorldVfxRenderer {
         boolean crematingPyreCleave = isCrematingPyreMateria(inst.essence);
         boolean twilightPenumbraCleave = isTwilightPenumbraMateria(inst.essence);
         boolean hoarfrostRimeCleave = isHoarfrostRimeMateria(inst.essence);
+        boolean vernalSpringCleave = isVernalSpringMateria(inst.essence);
+        boolean galvanicStaticCleave = isGalvanicStaticMateria(inst.essence);
+        boolean primevalSylvanCleave = isPrimevalSylvanMateria(inst.essence);
+        boolean pestilentMiasmaCleave = isPestilentMiasmaMateria(inst.essence);
+        boolean primordialGenesisCleave = isPrimordialGenesisMateria(inst.essence);
+        boolean stygianOblivionCleave = isStygianOblivionMateria(inst.essence);
+        boolean quintessentialAetherCleave = isQuintessentialAetherMateria(inst.essence);
+        boolean abyssalEntropicCleave = isAbyssalEntropicMateria(inst.essence);
+        boolean holyCelestialCleave = isHolyCelestialMateria(inst.essence);
         boolean umbralCleave = isUmbralShadowMateria(inst.essence);
         boolean necroticCleave = isNecroticUndeadMateria(inst.essence);
-        int bladeLayers = airBlade ? 3 : ((hydroWave || botanicalWhip || tectonicCleave || glacialCleave || infernalCleave || solarCleave || sanguineCleave || fossilAmberCleave || paradoxEclipseCleave || cosmicAstralCleave || phantasmalSoulfireCleave || scaldingVaporCleave || antimatterNullRCleave || abyssalNullUCleave || daybreakDawnCleave || hadopelagicAbyssCleave || gildedAegisCleave || borealisAuroraCleave || phantasmMirageCleave || incorporealWraithCleave || sepulchralBarrowCleave || crematingPyreCleave || twilightPenumbraCleave || hoarfrostRimeCleave || umbralCleave || necroticCleave) ? 2 : 1);
+        int bladeLayers = airBlade ? 3 : ((hydroWave || botanicalWhip || tectonicCleave || glacialCleave || infernalCleave || solarCleave || sanguineCleave || fossilAmberCleave || paradoxEclipseCleave || cosmicAstralCleave || phantasmalSoulfireCleave || scaldingVaporCleave || antimatterNullRCleave || abyssalNullUCleave || daybreakDawnCleave || hadopelagicAbyssCleave || gildedAegisCleave || borealisAuroraCleave || phantasmMirageCleave || incorporealWraithCleave || sepulchralBarrowCleave || crematingPyreCleave || twilightPenumbraCleave || hoarfrostRimeCleave || vernalSpringCleave || galvanicStaticCleave || primevalSylvanCleave || pestilentMiasmaCleave || primordialGenesisCleave || stygianOblivionCleave || quintessentialAetherCleave || abyssalEntropicCleave || holyCelestialCleave || umbralCleave || necroticCleave) ? 2 : 1);
 
         for (int layer = 0; layer < bladeLayers; layer++) {
             float baseTiltDeg = (inst.seed % 2 == 0) ? 24.0F : -24.0F;
@@ -4510,6 +5362,93 @@ public final class SpellWorldVfxRenderer {
                             white ? 0.941F : 0.584F,
                             white ? 1.000F : 0.694F,
                             0.98F * fade);
+                } else if (vernalSpringCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.43 Vernal Blossom-Cleave: #FF6B9D / #64C8FF surging aquifer water & thorned cherry blossom vines!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.54D * reach * prof0));
+                    boolean blossom = ((i / 2) % 2 == 0);
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.068F * fade * prof0,
+                            blossom ? 1.000F : 0.392F,
+                            blossom ? 0.420F : 0.784F,
+                            blossom ? 0.616F : 1.000F,
+                            0.97F * fade);
+                } else if (galvanicStaticCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.44 Dielectric Palm Overload: #FFE600 / #878DA2 snapping high-voltage static arc teeth!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.60D * reach * prof0));
+                    boolean yellow = ((i / 2) % 2 == 0);
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.072F * fade * prof0,
+                            yellow ? 1.000F : 0.529F,
+                            yellow ? 0.902F : 0.553F,
+                            yellow ? 0.000F : 0.635F,
+                            0.99F * fade);
+                } else if (primevalSylvanCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.45 Elderwood Canopy-Cleave: #1A5923 / #773214 / #FFEA78 petrified oak thorns & golden sun-rays!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.56D * reach * prof0));
+                    boolean gold = ((i / 2) % 2 == 0);
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.074F * fade * prof0,
+                            gold ? 1.000F : 0.467F,
+                            gold ? 0.918F : 0.196F,
+                            gold ? 0.471F : 0.078F,
+                            0.98F * fade);
+                } else if (pestilentMiasmaCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.46 Septic Quagmire Palm-Gouge: #1A5923 / #4D6453 / #225C7C decomposing swamp muck & necrotic bile claws!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.54D * reach * prof0));
+                    boolean teal = ((i / 2) % 2 == 0);
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.078F * fade * prof0,
+                            teal ? 0.133F : 0.102F,
+                            teal ? 0.361F : 0.349F,
+                            teal ? 0.486F : 0.137F,
+                            0.97F * fade);
+                } else if (primordialGenesisCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.47 Primordial Inception Palm-Strike: #FF6B9D / #FFEA78 / #225C7C concentrated dawn vitae & sacred tidal crest!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.58D * reach * prof0));
+                    boolean gold = ((i / 2) % 2 == 0);
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.076F * fade * prof0,
+                            1.000F,
+                            gold ? 0.918F : 0.420F,
+                            gold ? 0.471F : 0.616F,
+                            0.99F * fade);
+                } else if (stygianOblivionCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.48 Stygian Extinction Palm-Cleave: #B83C08 / #211A21 / #4D6453 blazing magma rust & obsidian ash claws!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.62D * reach * prof0));
+                    boolean rust = ((i / 2) % 2 == 0);
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.082F * fade * prof0,
+                            rust ? 0.722F : 0.129F,
+                            rust ? 0.235F : 0.102F,
+                            rust ? 0.031F : 0.129F,
+                            0.99F * fade);
+                } else if (quintessentialAetherCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.50 Quintessential Firmament Sunder: #A88654 / #773214 / #225C7C / #B83C08 quad-elemental firmament rays!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.66D * reach * prof0));
+                    int qIdx = (i / 2) & 3;
+                    float cr = qIdx == 0 ? 0.659F : (qIdx == 1 ? 0.467F : (qIdx == 2 ? 0.133F : 0.722F));
+                    float cg = qIdx == 0 ? 0.525F : (qIdx == 1 ? 0.196F : (qIdx == 2 ? 0.361F : 0.235F));
+                    float cb = qIdx == 0 ? 0.329F : (qIdx == 1 ? 0.078F : (qIdx == 2 ? 0.486F : 0.031F));
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.084F * fade * prof0, cr, cg, cb, 0.99F * fade);
+                } else if (abyssalEntropicCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.51 Entropic Singularity Cleave: #41304E / #211A21 / #4D6453 / #8A0303 event-horizon & blood scythe teeth!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.66D * reach * prof0));
+                    int eIdx = (i / 2) & 3;
+                    float cr = eIdx == 0 ? 0.255F : (eIdx == 1 ? 0.129F : (eIdx == 2 ? 0.302F : 0.541F));
+                    float cg = eIdx == 0 ? 0.188F : (eIdx == 1 ? 0.102F : (eIdx == 2 ? 0.392F : 0.012F));
+                    float cb = eIdx == 0 ? 0.306F : (eIdx == 1 ? 0.129F : (eIdx == 2 ? 0.325F : 0.012F));
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.084F * fade * prof0, cr, cg, cb, 0.99F * fade);
+                } else if (holyCelestialCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.52 Holy Supernova Cleave / White-Hole Touch: #FFEA78 / #FF6B9D / #1A5923 / #A88654 solar corona & living briar rays!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.68D * reach * prof0));
+                    int cIdx = (i / 2) & 3;
+                    float cr = cIdx == 0 ? 1.000F : (cIdx == 1 ? 1.000F : (cIdx == 2 ? 0.102F : 0.659F));
+                    float cg = cIdx == 0 ? 0.918F : (cIdx == 1 ? 0.420F : (cIdx == 2 ? 0.349F : 0.525F));
+                    float cb = cIdx == 0 ? 0.471F : (cIdx == 1 ? 0.616F : (cIdx == 2 ? 0.137F : 0.329F));
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.086F * fade * prof0, cr, cg, cb, 0.99F * fade);
                 } else if (solarCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
                     // Section 6.8 Holy Smite & Daylight Ignition: 9 radiant 3D golden-white sun-ray lance teeth along the solar crescent!
                     Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
@@ -5592,6 +6531,228 @@ public final class SpellWorldVfxRenderer {
                         white ? 0.941F : 0.584F,
                         white ? 1.000F : 0.694F,
                         0.98F * fade);
+            }
+        } else if (isVernalSpringMateria(inst.essence)) {
+            // Section 6.43 Vernal Rejuvenation Torrent Cone (#FF6B9D / #64C8FF): 60° spray of pressurized aquifer springwater & cherry petals!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.18F, 0.62F, 20,
+                    0.392F, 0.784F, 1.000F, 0.96F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.20F, activeReach * 0.96F * coneTan * 0.96F, 24,
+                    0.392F, 0.784F, 1.000F, 0.62F * fade, 0.18F * fade);
+            for (int p = 0; p < 24; p++) {
+                float pAng = (float) (Math.PI * 2.0D * p / 24.0D) + inst.seed * 0.19F;
+                float rFrac = 0.14F + 0.84F * hashFloat(p, 251);
+                float st = ((progress * 2.35F + hashFloat(p, 173)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(pAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(pAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.76D));
+                boolean blossom = (p % 2 == 0);
+                renderCrossSegment(matrix, vc, tail, tip, 0.056F * fade,
+                        blossom ? 1.000F : 0.392F,
+                        blossom ? 0.420F : 0.784F,
+                        blossom ? 0.616F : 1.000F,
+                        0.96F * fade);
+            }
+        } else if (isGalvanicStaticMateria(inst.essence)) {
+            // Section 6.44 High-Voltage Static Arc-Fan Deluge (#FFE600 / #878DA2): 60° cone of high-voltage static sparks & electrified desert dust!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.18F, 0.64F, 8,
+                    1.000F, 0.902F, 0.000F, 0.98F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.20F, activeReach * 0.96F * coneTan * 0.96F, 16,
+                    0.529F, 0.553F, 0.635F, 0.58F * fade, 0.16F * fade);
+            for (int a = 0; a < 24; a++) {
+                float aAng = (float) (Math.PI * 2.0D * a / 24.0D) + inst.seed * 0.23F;
+                float rFrac = 0.14F + 0.84F * hashFloat(a, 257);
+                float st = ((progress * 2.65F + hashFloat(a, 179)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(aAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(aAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.82D));
+                boolean yellow = (a % 2 == 0);
+                renderCrossSegment(matrix, vc, tail, tip, 0.058F * fade,
+                        yellow ? 1.000F : 0.529F,
+                        yellow ? 0.902F : 0.553F,
+                        yellow ? 0.000F : 0.635F,
+                        0.98F * fade);
+            }
+        } else if (isPrimevalSylvanMateria(inst.essence)) {
+            // Section 6.45 Canopy Solar-Flare Breath (#1A5923 / #773214 / #FFEA78): 60° cone of sun-dappled green solar fire & living embers!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.18F, 0.64F, 18,
+                    1.000F, 0.918F, 0.471F, 0.98F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.20F, activeReach * 0.96F * coneTan * 0.96F, 22,
+                    0.102F, 0.349F, 0.137F, 0.62F * fade, 0.18F * fade);
+            for (int e = 0; e < 24; e++) {
+                float eAng = (float) (Math.PI * 2.0D * e / 24.0D) + inst.seed * 0.21F;
+                float rFrac = 0.14F + 0.84F * hashFloat(e, 263);
+                float st = ((progress * 2.40F + hashFloat(e, 181)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(eAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(eAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.78D));
+                boolean gold = (e % 2 == 0);
+                renderCrossSegment(matrix, vc, tail, tip, 0.058F * fade,
+                        gold ? 1.000F : 0.102F,
+                        gold ? 0.918F : 0.349F,
+                        gold ? 0.471F : 0.137F,
+                        0.97F * fade);
+            }
+        } else if (isPestilentMiasmaMateria(inst.essence)) {
+            // Section 6.46 Choking Bog-Gas Fan (#1A5923 / #4D6453 / #225C7C): thick smothering fan of decomposing swamp gas & toxic acid!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.18F, 0.66F, 18,
+                    0.133F, 0.361F, 0.486F, 0.95F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.22F, activeReach * 0.96F * coneTan * 0.98F, 22,
+                    0.302F, 0.392F, 0.325F, 0.64F * fade, 0.22F * fade);
+            for (int g = 0; g < 24; g++) {
+                float gAng = (float) (Math.PI * 2.0D * g / 24.0D) + inst.seed * 0.23F;
+                float rFrac = 0.14F + 0.84F * hashFloat(g, 271);
+                float st = ((progress * 2.20F + hashFloat(g, 193)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(gAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(gAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.74D));
+                boolean green = (g % 2 == 0);
+                renderCrossSegment(matrix, vc, tail, tip, 0.062F * fade,
+                        green ? 0.102F : 0.133F,
+                        green ? 0.349F : 0.361F,
+                        green ? 0.137F : 0.486F,
+                        0.96F * fade);
+            }
+        } else if (isPrimordialGenesisMateria(inst.essence)) {
+            // Section 6.47 Dawn-Tide Rejuvenation Deluge (#FF6B9D / #FFEA78 / #225C7C): pressurized holy dawn water & radiant vitae spray!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.18F, 0.66F, 20,
+                    1.000F, 0.918F, 0.471F, 0.98F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.22F, activeReach * 0.96F * coneTan * 0.98F, 22,
+                    0.133F, 0.361F, 0.486F, 0.62F * fade, 0.20F * fade);
+            for (int d = 0; d < 24; d++) {
+                float dAng = (float) (Math.PI * 2.0D * d / 24.0D) + inst.seed * 0.23F;
+                float rFrac = 0.14F + 0.84F * hashFloat(d, 277);
+                float st = ((progress * 2.35F + hashFloat(d, 197)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(dAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(dAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.78D));
+                boolean pink = (d % 2 == 0);
+                renderCrossSegment(matrix, vc, tail, tip, 0.060F * fade,
+                        1.000F,
+                        pink ? 0.420F : 0.918F,
+                        pink ? 0.616F : 0.471F,
+                        0.98F * fade);
+            }
+        } else if (isStygianOblivionMateria(inst.essence)) {
+            // Section 6.48 Crematorium Shadow-Breath Cone (#B83C08 / #211A21 / #4D6453): roaring black stygian flame & bone-ash embers!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.20F, 0.68F, 18,
+                    0.722F, 0.235F, 0.031F, 0.98F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.24F, activeReach * 0.96F * coneTan * 0.98F, 20,
+                    0.129F, 0.102F, 0.129F, 0.82F * fade, 0.24F * fade);
+            for (int e = 0; e < 24; e++) {
+                float eAng = (float) (Math.PI * 2.0D * e / 24.0D) + inst.seed * 0.25F;
+                float rFrac = 0.14F + 0.84F * hashFloat(e, 283);
+                float st = ((progress * 2.45F + hashFloat(e, 199)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(eAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(eAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.84D));
+                boolean rust = (e % 2 == 0);
+                renderCrossSegment(matrix, vc, tail, tip, 0.064F * fade,
+                        rust ? 0.722F : 0.302F,
+                        rust ? 0.235F : 0.392F,
+                        rust ? 0.031F : 0.325F,
+                        0.98F * fade);
+            }
+        } else if (isQuintessentialAetherMateria(inst.essence)) {
+            // Section 6.50 Quintessential Firmament Deluge (#A88654 / #773214 / #225C7C / #B83C08): pressurized ether & quad-elemental ribbons!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.22F, 0.72F, 22,
+                    0.659F, 0.525F, 0.329F, 0.98F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.24F, activeReach * 0.96F * coneTan * 0.98F, 24,
+                    0.133F, 0.361F, 0.486F, 0.64F * fade, 0.22F * fade);
+            float[][] quadRgb = {
+                    {0.659F, 0.525F, 0.329F},
+                    {0.467F, 0.196F, 0.078F},
+                    {0.133F, 0.361F, 0.486F},
+                    {0.722F, 0.235F, 0.031F}
+            };
+            for (int r = 0; r < 24; r++) {
+                float rAng = (float) (Math.PI * 2.0D * r / 24.0D) + inst.seed * 0.23F;
+                float rFrac = 0.14F + 0.84F * hashFloat(r, 293);
+                float st = ((progress * 2.50F + hashFloat(r, 211)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                float[] c = quadRgb[r & 3];
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(rAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(rAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.88D));
+                renderCrossSegment(matrix, vc, tail, tip, 0.066F * fade, c[0], c[1], c[2], 0.98F * fade);
+            }
+        } else if (isAbyssalEntropicMateria(inst.essence)) {
+            // Section 6.51 Entropic Oblivion-Flame Deluge (#41304E / #211A21 / #4D6453 / #8A0303): void fire, bone-grit & boiling sanguine mist!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.22F, 0.72F, 20,
+                    0.541F, 0.012F, 0.012F, 0.98F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.24F, activeReach * 0.96F * coneTan * 0.98F, 22,
+                    0.129F, 0.102F, 0.129F, 0.84F * fade, 0.26F * fade);
+            float[][] entRgb = {
+                    {0.255F, 0.188F, 0.306F},
+                    {0.129F, 0.102F, 0.129F},
+                    {0.302F, 0.392F, 0.325F},
+                    {0.541F, 0.012F, 0.012F}
+            };
+            for (int r = 0; r < 24; r++) {
+                float rAng = (float) (Math.PI * 2.0D * r / 24.0D) + inst.seed * 0.25F;
+                float rFrac = 0.14F + 0.84F * hashFloat(r, 307);
+                float st = ((progress * 2.50F + hashFloat(r, 223)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                float[] c = entRgb[r & 3];
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(rAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(rAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.88D));
+                renderCrossSegment(matrix, vc, tail, tip, 0.066F * fade, c[0], c[1], c[2], 0.98F * fade);
+            }
+        } else if (isHolyCelestialMateria(inst.essence)) {
+            // Section 6.52 Holy Dawn-Deluge Cone (#FFEA78 / #FF6B9D / #1A5923 / #A88654): blinding white-gold starlight & pranic solar winds!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.22F, 0.74F, 22,
+                    1.000F, 0.918F, 0.471F, 0.99F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.24F, activeReach * 0.96F * coneTan * 0.98F, 24,
+                    1.000F, 0.420F, 0.616F, 0.72F * fade, 0.24F * fade);
+            float[][] celRgb = {
+                    {1.000F, 0.918F, 0.471F},
+                    {1.000F, 0.420F, 0.616F},
+                    {0.102F, 0.349F, 0.137F},
+                    {0.659F, 0.525F, 0.329F}
+            };
+            for (int r = 0; r < 24; r++) {
+                float rAng = (float) (Math.PI * 2.0D * r / 24.0D) + inst.seed * 0.25F;
+                float rFrac = 0.14F + 0.84F * hashFloat(r, 311);
+                float st = ((progress * 2.50F + hashFloat(r, 227)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                float[] c = celRgb[r & 3];
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(rAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(rAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.90D));
+                renderCrossSegment(matrix, vc, tail, tip, 0.066F * fade, c[0], c[1], c[2], 0.98F * fade);
             }
         }
     }
@@ -7212,6 +8373,161 @@ public final class SpellWorldVfxRenderer {
                     fieldRad * 0.86F, 6, -gameTime * 0.040F, 0.388F, 0.584F, 0.694F, 0.90F * fade);
             return;
         }
+        // Section 6.43 Vernal Miracle Downpour (#FF6B9D / #64C8FF): 12m springwater canopy & blooming lotus sanctuary seal!
+        if (isVernalSpringMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 11.2D);
+            Vec3 springTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(12.0F, radius);
+
+            renderOrientedRing(matrix, vc, springTop, right, forward, 0.0F, fieldRad * 0.96F, 28,
+                    0.392F, 0.784F, 1.000F, 0.80F * fade);
+            renderOrientedStarPolygon(matrix, vc, springTop.add(0.0D, -0.15D, 0.0D), right, forward,
+                    fieldRad * 0.88F, 5, gameTime * 0.045F, 1.000F, 0.420F, 0.616F, 0.95F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 32, 0.392F, 0.784F, 1.000F, 0.90F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.85F, 5, -gameTime * 0.040F, 1.000F, 0.420F, 0.616F, 0.90F * fade);
+            return;
+        }
+        // Section 6.44 Galvanic Tesla Cataclysmic Tempest (#FFE600 / #878DA2): 12m electrical storm canopy, lightning pillars & ionized field!
+        if (isGalvanicStaticMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 11.8D);
+            Vec3 staticTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(12.0F, radius);
+
+            renderOrientedRing(matrix, vc, staticTop, right, forward, 0.0F, fieldRad * 0.96F, 24,
+                    0.529F, 0.553F, 0.635F, 0.82F * fade);
+            renderOrientedStarPolygon(matrix, vc, staticTop.add(0.0D, -0.15D, 0.0D), right, forward,
+                    fieldRad * 0.90F, 8, gameTime * 0.065F, 1.000F, 0.902F, 0.000F, 0.98F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 24, 0.529F, 0.553F, 0.635F, 0.92F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.86F, 8, -gameTime * 0.055F, 1.000F, 0.902F, 0.000F, 0.95F * fade);
+
+            int frame = (int) (gameTime * 0.90F) + inst.seed * 23;
+            for (int p = 0; p < 4; p++) {
+                float pAng = (float) (Math.PI * 0.5D * p) + hashFloat(frame, p * 7) * 1.2F;
+                float pDist = (0.20F + 0.65F * hashFloat(frame, p * 11 + 3)) * fieldRad;
+                Vec3 topPt = staticTop.add(Mth.cos(pAng) * pDist, 0.0D, Mth.sin(pAng) * pDist);
+                Vec3 midPt = ground.add(Mth.cos(pAng + 0.14F) * pDist, skyH * 0.50D, Mth.sin(pAng + 0.14F) * pDist);
+                Vec3 botPt = ground.add(Mth.cos(pAng) * pDist, 0.05D, Mth.sin(pAng) * pDist);
+                renderCrossSegment(matrix, vc, topPt, midPt, 0.18F * fade, 1.000F, 0.902F, 0.000F, 0.96F * fade);
+                renderCrossSegment(matrix, vc, midPt, botPt, 0.18F * fade, 1.000F, 0.902F, 0.000F, 0.96F * fade);
+            }
+            return;
+        }
+        // Section 6.45 Sun-Canopy Orbital Meteor Barrage (#1A5923 / #773214 / #FFEA78): 10m solar canopy rift & entangled ironwood root seal!
+        if (isPrimevalSylvanMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 11.4D);
+            Vec3 sylvanTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(10.0F, radius);
+
+            renderOrientedRing(matrix, vc, sylvanTop, right, forward, 0.0F, fieldRad * 0.96F, 24,
+                    0.102F, 0.349F, 0.137F, 0.82F * fade);
+            renderOrientedStarPolygon(matrix, vc, sylvanTop.add(0.0D, -0.15D, 0.0D), right, forward,
+                    fieldRad * 0.90F, 6, gameTime * 0.045F, 1.000F, 0.918F, 0.471F, 0.98F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 24, 0.467F, 0.196F, 0.078F, 0.94F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.86F, 6, -gameTime * 0.040F, 0.102F, 0.349F, 0.137F, 0.95F * fade);
+            return;
+        }
+        // Section 6.46 Cataclysmic Miasmic Bog-Downpour (#1A5923 / #4D6453 / #225C7C): 12m virulent swamp-smog canopy & bubbling quagmire seal!
+        if (isPestilentMiasmaMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 11.6D);
+            Vec3 miasmaTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(12.0F, radius);
+
+            renderOrientedRing(matrix, vc, miasmaTop, right, forward, 0.0F, fieldRad * 0.96F, 24,
+                    0.302F, 0.392F, 0.325F, 0.84F * fade);
+            renderOrientedStarPolygon(matrix, vc, miasmaTop.add(0.0D, -0.15D, 0.0D), right, forward,
+                    fieldRad * 0.88F, 6, gameTime * 0.042F, 0.133F, 0.361F, 0.486F, 0.96F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 24, 0.133F, 0.361F, 0.486F, 0.94F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.84F, 6, -gameTime * 0.038F, 0.102F, 0.349F, 0.137F, 0.95F * fade);
+            return;
+        }
+        // Section 6.47 Cataclysmic Waters of Creation Downpour (#FF6B9D / #FFEA78 / #225C7C): 12m radiant dawn rift & shimmering sanctuary pool!
+        if (isPrimordialGenesisMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 11.6D);
+            Vec3 genTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(12.0F, radius);
+
+            renderOrientedRing(matrix, vc, genTop, right, forward, 0.0F, fieldRad * 0.96F, 24,
+                    0.133F, 0.361F, 0.486F, 0.82F * fade);
+            renderOrientedStarPolygon(matrix, vc, genTop.add(0.0D, -0.15D, 0.0D), right, forward,
+                    fieldRad * 0.90F, 6, gameTime * 0.045F, 1.000F, 0.918F, 0.471F, 0.99F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 24, 0.133F, 0.361F, 0.486F, 0.94F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.86F, 6, -gameTime * 0.042F, 1.000F, 0.420F, 0.616F, 0.96F * fade);
+            return;
+        }
+        // Section 6.48 Cataclysmic Stygian Meteor Downpour (#B83C08 / #211A21 / #4D6453): 12m abyssal hell-rift & smoldering wasteland seal!
+        if (isStygianOblivionMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 11.8D);
+            Vec3 oblTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(12.0F, radius);
+
+            renderOrientedRing(matrix, vc, oblTop, right, forward, 0.0F, fieldRad * 0.96F, 22,
+                    0.129F, 0.102F, 0.129F, 0.92F * fade);
+            renderOrientedStarPolygon(matrix, vc, oblTop.add(0.0D, -0.16D, 0.0D), right, forward,
+                    fieldRad * 0.90F, 6, -gameTime * 0.048F, 0.722F, 0.235F, 0.031F, 0.99F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 22, 0.129F, 0.102F, 0.129F, 0.96F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.86F, 6, gameTime * 0.044F, 0.722F, 0.235F, 0.031F, 0.97F * fade);
+            return;
+        }
+        // Section 6.50 Cataclysmic Firmament Skyfall (#A88654 / #773214 / #225C7C / #B83C08): 14m celestial firmament rift & inverted pressure seal!
+        if (isQuintessentialAetherMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 13.0D);
+            Vec3 aethTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(14.0F, radius);
+
+            renderOrientedRing(matrix, vc, aethTop, right, forward, 0.0F, fieldRad * 0.96F, 26,
+                    0.133F, 0.361F, 0.486F, 0.82F * fade);
+            renderOrientedStarPolygon(matrix, vc, aethTop.add(0.0D, -0.16D, 0.0D), right, forward,
+                    fieldRad * 0.92F, 8, gameTime * 0.050F, 0.659F, 0.525F, 0.329F, 0.99F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 26, 0.659F, 0.525F, 0.329F, 0.96F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.86F, 8, -gameTime * 0.046F, 0.133F, 0.361F, 0.486F, 0.97F * fade);
+            return;
+        }
+        // Section 6.51 Cataclysmic Entropic Skyfall (#41304E / #211A21 / #4D6453 / #8A0303): 14m gaping abyssal void tear & blood-slag crater!
+        if (isAbyssalEntropicMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 13.0D);
+            Vec3 entTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(14.0F, radius);
+
+            renderOrientedRing(matrix, vc, entTop, right, forward, 0.0F, fieldRad * 0.96F, 24,
+                    0.129F, 0.102F, 0.129F, 0.94F * fade);
+            renderOrientedStarPolygon(matrix, vc, entTop.add(0.0D, -0.16D, 0.0D), right, forward,
+                    fieldRad * 0.92F, 8, -gameTime * 0.052F, 0.541F, 0.012F, 0.012F, 0.99F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 24, 0.255F, 0.188F, 0.306F, 0.96F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.86F, 8, gameTime * 0.046F, 0.541F, 0.012F, 0.012F, 0.97F * fade);
+            return;
+        }
+        // Section 6.52 Cataclysmic Supernova Starfall (#FFEA78 / #FF6B9D / #1A5923 / #A88654): 14m consecrated white-hole firmament rift!
+        if (isHolyCelestialMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 13.0D);
+            Vec3 celTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(14.0F, radius);
+
+            renderOrientedRing(matrix, vc, celTop, right, forward, 0.0F, fieldRad * 0.96F, 24,
+                    1.000F, 0.918F, 0.471F, 0.78F * fade);
+            renderOrientedStarPolygon(matrix, vc, celTop.add(0.0D, -0.16D, 0.0D), right, forward,
+                    fieldRad * 0.92F, 8, gameTime * 0.052F, 1.000F, 0.420F, 0.616F, 0.99F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 24, 1.000F, 0.918F, 0.471F, 0.96F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.86F, 8, -gameTime * 0.046F, 0.102F, 0.349F, 0.137F, 0.97F * fade);
+            return;
+        }
 
         // Crisp 8-tick (0.4s) orbital descent slams downward from skyTop to ground, then sustains full sky column!
         float elapsedTicks = progress * inst.maxTicks;
@@ -8688,6 +10004,177 @@ public final class SpellWorldVfxRenderer {
                             white ? 1.000F : 0.694F,
                             rimeAlpha * 0.82F);
                 }
+            } else if (ward.primaryMateria == EssenceType.SPRING) {
+                // Section 6.43 Vernal Fountainhead Mantle (#FF6B9D / #64C8FF): bubbling aquifer springwater cloak & 5m restorative blossom aura!
+                Vec3 springFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float springAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.94F);
+                renderOrientedRing(matrix, vc, springFeet, flatX, flatZ, r * 0.82F, r * 1.24F, 24,
+                        0.392F, 0.784F, 1.000F, springAlpha * 0.95F);
+                renderOrientedStarPolygon(matrix, vc, springFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.16F, 5, gameTime * 0.05F,
+                        1.000F, 0.420F, 0.616F, springAlpha * 0.95F);
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.07F * Mth.sin(gameTime * 0.24F + h));
+                    boolean blossom = (h % 2 == 0);
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.86F, hr, 20,
+                            blossom ? 1.000F : 0.392F,
+                            blossom ? 0.420F : 0.784F,
+                            blossom ? 0.616F : 1.000F,
+                            springAlpha * 0.82F);
+                }
+            } else if (ward.primaryMateria == EssenceType.STATIC) {
+                // Section 6.44 Dielectric Faraday Shroud (#FFE600 / #878DA2): shimmering Faraday mesh cage of static sparks & dielectric slate bands!
+                Vec3 staticFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float staticAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.95F);
+                renderOrientedRing(matrix, vc, staticFeet, flatX, flatZ, r * 0.82F, r * 1.24F, 8,
+                        0.529F, 0.553F, 0.635F, staticAlpha * 0.96F);
+                renderOrientedStarPolygon(matrix, vc, staticFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.18F, 8, gameTime * 0.065F,
+                        1.000F, 0.902F, 0.000F, staticAlpha * 0.98F);
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.07F * Mth.sin(gameTime * 0.30F + h));
+                    boolean yellow = (h % 2 == 0);
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.86F, hr, 12,
+                            yellow ? 1.000F : 0.529F,
+                            yellow ? 0.902F : 0.553F,
+                            yellow ? 0.000F : 0.635F,
+                            staticAlpha * 0.84F);
+                }
+            } else if (ward.primaryMateria == EssenceType.SYLVAN) {
+                // Section 6.45 Primeval Photosynthetic Aegis (#1A5923 / #773214 / #FFEA78): petrified ironwood plates & solar leaves!
+                Vec3 sylvanFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float sylAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.95F);
+                renderOrientedRing(matrix, vc, sylvanFeet, flatX, flatZ, r * 0.82F, r * 1.24F, 12,
+                        0.467F, 0.196F, 0.078F, sylAlpha * 0.96F);
+                renderOrientedStarPolygon(matrix, vc, sylvanFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.18F, 6, gameTime * 0.05F,
+                        1.000F, 0.918F, 0.471F, sylAlpha * 0.97F);
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.07F * Mth.sin(gameTime * 0.22F + h));
+                    boolean gold = (h % 2 == 0);
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.86F, hr, 16,
+                            gold ? 1.000F : 0.102F,
+                            gold ? 0.918F : 0.349F,
+                            gold ? 0.471F : 0.137F,
+                            sylAlpha * 0.84F);
+                }
+            } else if (ward.primaryMateria == EssenceType.MIASMA) {
+                // Section 6.46 Putrescent Mire-Carapace (#1A5923 / #4D6453 / #225C7C): petrified bog peat, necrotic algae & virulent vapor!
+                Vec3 miasmaFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float miaAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.95F);
+                renderOrientedRing(matrix, vc, miasmaFeet, flatX, flatZ, r * 0.80F, r * 1.24F, 14,
+                        0.302F, 0.392F, 0.325F, miaAlpha * 0.95F);
+                renderOrientedStarPolygon(matrix, vc, miasmaFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.16F, 6, gameTime * 0.045F,
+                        0.133F, 0.361F, 0.486F, miaAlpha * 0.96F);
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.08F * Mth.sin(gameTime * 0.24F + h));
+                    boolean green = (h % 2 == 0);
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.86F, hr, 16,
+                            green ? 0.102F : 0.133F,
+                            green ? 0.349F : 0.361F,
+                            green ? 0.137F : 0.486F,
+                            miaAlpha * 0.84F);
+                }
+            } else if (ward.primaryMateria == EssenceType.GENESIS) {
+                // Section 6.47 Amniotic Genesis Shroud (#FF6B9D / #FFEA78 / #225C7C): radiant dawn sunlight, pink vitae currents & sacred oceanic water!
+                Vec3 genFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float genAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.96F);
+                renderOrientedRing(matrix, vc, genFeet, flatX, flatZ, r * 0.82F, r * 1.24F, 18,
+                        0.133F, 0.361F, 0.486F, genAlpha * 0.95F);
+                renderOrientedStarPolygon(matrix, vc, genFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.18F, 6, gameTime * 0.048F,
+                        1.000F, 0.918F, 0.471F, genAlpha * 0.98F);
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.08F * Mth.sin(gameTime * 0.25F + h));
+                    boolean pink = (h % 2 == 0);
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.86F, hr, 18,
+                            1.000F,
+                            pink ? 0.420F : 0.918F,
+                            pink ? 0.616F : 0.471F,
+                            genAlpha * 0.86F);
+                }
+            } else if (ward.primaryMateria == EssenceType.OBLIVION) {
+                // Section 6.48 Stygian Extinction Armor & Oblivion Void-Shroud (#B83C08 / #211A21 / #4D6453): obsidian plates & magma ash rings!
+                Vec3 oblFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float oblAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.96F);
+                renderOrientedRing(matrix, vc, oblFeet, flatX, flatZ, r * 0.82F, r * 1.26F, 16,
+                        0.129F, 0.102F, 0.129F, oblAlpha * 0.96F);
+                renderOrientedStarPolygon(matrix, vc, oblFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.18F, 6, -gameTime * 0.050F,
+                        0.722F, 0.235F, 0.031F, oblAlpha * 0.98F);
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.08F * Mth.sin(gameTime * 0.26F + h));
+                    boolean rust = (h % 2 == 0);
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.86F, hr, 16,
+                            rust ? 0.722F : 0.302F,
+                            rust ? 0.235F : 0.392F,
+                            rust ? 0.031F : 0.325F,
+                            oblAlpha * 0.88F);
+                }
+            } else if (ward.primaryMateria == EssenceType.AETHER) {
+                // Section 6.50 Transcendent Firmament Quintessence Shroud & Aegis (#A88654 / #773214 / #225C7C / #B83C08):
+                Vec3 aethFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float aethAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.96F);
+                renderOrientedRing(matrix, vc, aethFeet, flatX, flatZ, r * 0.84F, r * 1.28F, 22,
+                        0.659F, 0.525F, 0.329F, aethAlpha * 0.96F);
+                renderOrientedStarPolygon(matrix, vc, aethFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.20F, 8, gameTime * 0.052F,
+                        0.133F, 0.361F, 0.486F, aethAlpha * 0.98F);
+                float[][] quadRgb = {
+                        {0.659F, 0.525F, 0.329F},
+                        {0.467F, 0.196F, 0.078F},
+                        {0.133F, 0.361F, 0.486F},
+                        {0.722F, 0.235F, 0.031F}
+                };
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.08F * Mth.sin(gameTime * 0.26F + h));
+                    float[] c = quadRgb[h];
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.86F, hr, 20,
+                            c[0], c[1], c[2], aethAlpha * 0.90F);
+                }
+            } else if (ward.primaryMateria == EssenceType.ENTROPIC) {
+                // Section 6.51 Abyssal Event Horizon Mantle & Apex Entropic Shroud (#41304E / #211A21 / #4D6453 / #8A0303):
+                Vec3 entFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float entAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.96F);
+                renderOrientedRing(matrix, vc, entFeet, flatX, flatZ, r * 0.84F, r * 1.28F, 20,
+                        0.129F, 0.102F, 0.129F, entAlpha * 0.97F);
+                renderOrientedStarPolygon(matrix, vc, entFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.20F, 8, -gameTime * 0.052F,
+                        0.541F, 0.012F, 0.012F, entAlpha * 0.98F);
+                float[][] entRgb = {
+                        {0.255F, 0.188F, 0.306F},
+                        {0.129F, 0.102F, 0.129F},
+                        {0.302F, 0.392F, 0.325F},
+                        {0.541F, 0.012F, 0.012F}
+                };
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.08F * Mth.sin(gameTime * 0.26F + h));
+                    float[] c = entRgb[h];
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.86F, hr, 20,
+                            c[0], c[1], c[2], entAlpha * 0.90F);
+                }
+            } else if (ward.primaryMateria == EssenceType.CELESTIAL) {
+                // Section 6.52 Holy Celestial Supernova Shroud & Ascendance Shroud (#FFEA78 / #FF6B9D / #1A5923 / #A88654):
+                Vec3 celFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float celAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.96F);
+                renderOrientedRing(matrix, vc, celFeet, flatX, flatZ, r * 0.84F, r * 1.28F, 22,
+                        1.000F, 0.918F, 0.471F, celAlpha * 0.97F);
+                renderOrientedStarPolygon(matrix, vc, celFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.20F, 8, gameTime * 0.052F,
+                        1.000F, 0.420F, 0.616F, celAlpha * 0.98F);
+                float[][] celRgb = {
+                        {1.000F, 0.918F, 0.471F},
+                        {1.000F, 0.420F, 0.616F},
+                        {0.102F, 0.349F, 0.137F},
+                        {0.659F, 0.525F, 0.329F}
+                };
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.08F * Mth.sin(gameTime * 0.26F + h));
+                    float[] c = celRgb[h];
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.86F, hr, 20,
+                            c[0], c[1], c[2], celAlpha * 0.90F);
+                }
             }
         }
 
@@ -9358,6 +10845,42 @@ public final class SpellWorldVfxRenderer {
 
     private static boolean isHoarfrostRimeMateria(EssenceType type) {
         return type == EssenceType.RIME;
+    }
+
+    private static boolean isVernalSpringMateria(EssenceType type) {
+        return type == EssenceType.SPRING;
+    }
+
+    private static boolean isGalvanicStaticMateria(EssenceType type) {
+        return type == EssenceType.STATIC;
+    }
+
+    private static boolean isPrimevalSylvanMateria(EssenceType type) {
+        return type == EssenceType.SYLVAN;
+    }
+
+    private static boolean isPestilentMiasmaMateria(EssenceType type) {
+        return type == EssenceType.MIASMA;
+    }
+
+    private static boolean isPrimordialGenesisMateria(EssenceType type) {
+        return type == EssenceType.GENESIS;
+    }
+
+    private static boolean isStygianOblivionMateria(EssenceType type) {
+        return type == EssenceType.OBLIVION;
+    }
+
+    private static boolean isQuintessentialAetherMateria(EssenceType type) {
+        return type == EssenceType.AETHER;
+    }
+
+    private static boolean isAbyssalEntropicMateria(EssenceType type) {
+        return type == EssenceType.ENTROPIC;
+    }
+
+    private static boolean isHolyCelestialMateria(EssenceType type) {
+        return type == EssenceType.CELESTIAL;
     }
 
     /**

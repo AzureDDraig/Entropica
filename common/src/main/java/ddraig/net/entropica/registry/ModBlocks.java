@@ -802,6 +802,120 @@ public class ModBlocks {
                             .mapColor(MapColor.QUARTZ).destroyTime(2.5f).requiresCorrectToolForDrops()
                             .sound(SoundType.STONE).lightLevel(s -> 5).noOcclusion()));
 
+    // ==========================================
+    // BIOME 1: 2.1 BLUE-GLACIER SHELF & RUNIC SPIRE
+    // ==========================================
+    public static final RegistrySupplier<Block> AEGIS_CRYSTAL_BLOCK = BLOCKS.register("aegis_crystal_block",
+            name -> new AmethystBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DIAMOND)
+                    .destroyTime(3.0f)
+                    .explosionResistance(12.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(s -> 6)));
+
+    public static final RegistrySupplier<Block> AEGIS_CRYSTAL_CLUSTER = BLOCKS.register("aegis_crystal_cluster",
+            name -> new AmethystClusterBlock(7.0F, 3.0F, BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DIAMOND)
+                    .forceSolidOn()
+                    .noOcclusion()
+                    .destroyTime(1.5f)
+                    .explosionResistance(6.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST_CLUSTER)
+                    .lightLevel(s -> 5)));
+
+    public static final RegistrySupplier<Block> RUNIC_BLUE_ICE = BLOCKS.register("runic_blue_ice",
+            name -> new net.minecraft.world.level.block.TransparentBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.989f)
+                    .destroyTime(2.8f)
+                    .sound(SoundType.GLASS)
+                    .lightLevel(s -> 5)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<RotatedPillarBlock> RUNED_BASALT_PILLAR = BLOCKS.register("runed_basalt_pillar",
+            name -> new RotatedPillarBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .destroyTime(2.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.BASALT)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome1.GlacialHeartRootBlock> GLACIAL_HEART_ROOT = BLOCKS.register("glacial_heart_root",
+            name -> new ddraig.net.entropica.block.biome1.GlacialHeartRootBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                    .noCollision()
+                    .instabreak()
+                    .sound(SoundType.HANGING_ROOTS)
+                    .noOcclusion()
+                    .lightLevel(s -> 0)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome1.ShieldingBrambleBlock> SHIELDING_BRAMBLE = BLOCKS.register("shielding_bramble",
+            name -> new ddraig.net.entropica.block.biome1.ShieldingBrambleBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.METAL)
+                    .destroyTime(2.0f)
+                    .explosionResistance(24.0f)
+                    .noCollision()
+                    .noOcclusion()
+                    .sound(SoundType.VINE)
+                    .lightLevel(s -> 1)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome1.ThornedWireBlock> THORNED_WIRE = BLOCKS.register("thorned_wire",
+            name -> new ddraig.net.entropica.block.biome1.ThornedWireBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.METAL)
+                    .destroyTime(1.5f)
+                    .explosionResistance(18.0f)
+                    .noCollision()
+                    .noOcclusion()
+                    .sound(SoundType.CHAIN)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome1.GlacialBarricadeBlock> GLACIAL_BARRICADE = BLOCKS.register("glacial_barricade",
+            name -> new ddraig.net.entropica.block.biome1.GlacialBarricadeBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .destroyTime(2.5f)
+                    .explosionResistance(15.0f)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome1.ConductiveAegisPlatingBlock> CONDUCTIVE_AEGIS_PLATING = BLOCKS.register("conductive_aegis_plating",
+            name -> new ddraig.net.entropica.block.biome1.ConductiveAegisPlatingBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .destroyTime(3.0f)
+                    .explosionResistance(12.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER)
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome1.ConductiveAegisPlatingBlock.POWERED) ? 9 : 0)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome1.GlacialIceMakerBlock> GLACIAL_ICE_MAKER = BLOCKS.register("glacial_ice_maker",
+            name -> new ddraig.net.entropica.block.biome1.GlacialIceMakerBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .randomTicks()
+                    .destroyTime(3.0f)
+                    .explosionResistance(10.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.STONE)
+                    .lightLevel(s -> 3)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome1.GlacialLifeForceAnchorBlock> GLACIAL_LIFE_FORCE_ANCHOR = BLOCKS.register("glacial_life_force_anchor",
+            name -> new ddraig.net.entropica.block.biome1.GlacialLifeForceAnchorBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DIAMOND)
+                    .destroyTime(4.0f)
+                    .explosionResistance(24.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome1.GlacialLifeForceAnchorBlock.ACTIVE) ? 15 : 6)));
+
     public static final RegistrySupplier<Block> AUTOCAST_PEDESTAL_ASTRAL_SLATE = BLOCKS.register("autocast_pedestal_astral_slate",
             name -> new ddraig.net.entropica.block.AutocastPedestalBlock(
                     ddraig.net.entropica.block.AutocastPedestalBlock.PedestalVariant.ASTRAL_SLATE,

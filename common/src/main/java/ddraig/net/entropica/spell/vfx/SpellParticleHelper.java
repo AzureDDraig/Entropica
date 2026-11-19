@@ -127,6 +127,15 @@ public final class SpellParticleHelper {
     public static final byte ARCHETYPE_COMBUSTION_HEARTH_ORB = 43;
     public static final byte ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT = 44;
     public static final byte ARCHETYPE_HOARFROST_RIME_JAVELIN = 45;
+    public static final byte ARCHETYPE_VERNAL_AQUIFER_ORB = 46;
+    public static final byte ARCHETYPE_DIELECTRIC_MORTAR_ORB = 47;
+    public static final byte ARCHETYPE_ELDERWOOD_SUN_JAVELIN = 48;
+    public static final byte ARCHETYPE_SWAMPLAND_GAS_POD = 49;
+    public static final byte ARCHETYPE_PRIMORDIAL_DAWN_TEAR = 50;
+    public static final byte ARCHETYPE_STYGIAN_ANNIHILATION_SKULL = 51;
+    public static final byte ARCHETYPE_APEX_CELESTIAL_METEORITE = 52;
+    public static final byte ARCHETYPE_ENTROPIC_SINGULARITY_SKULL_ORB = 53;
+    public static final byte ARCHETYPE_HOLY_SOLAR_SINGULARITY_DART = 54;
 
     private SpellParticleHelper() {
     }
@@ -150,8 +159,12 @@ public final class SpellParticleHelper {
                     ARCHETYPE_STEAM_GEYSER_ORB;
             case WATER, FLOW, UMBRAL_WATER ->
                     ARCHETYPE_HYDRO_ORB;
-            case VOID, OBLIVION, ENTROPIC, ESCHATON, SINGULARITY, VACUUM, OBLIVIATE ->
+            case VOID, ESCHATON, SINGULARITY, VACUUM, OBLIVIATE ->
                     ARCHETYPE_SINGULARITY_ORB;
+            case ENTROPIC ->
+                    ARCHETYPE_ENTROPIC_SINGULARITY_SKULL_ORB;
+            case OBLIVION ->
+                    ARCHETYPE_STYGIAN_ANNIHILATION_SKULL;
             case ABYSS ->
                     ARCHETYPE_ABYSSAL_DEPTH_CHARGE_ORB;
             case NULL_R ->
@@ -168,7 +181,9 @@ public final class SpellParticleHelper {
                     ARCHETYPE_AURORA_RIBBON_LANCE;
             case RIME ->
                     ARCHETYPE_HOARFROST_RIME_JAVELIN;
-            case TERMINUS, AETHER, STASIS, FROST ->
+            case AETHER ->
+                    ARCHETYPE_APEX_CELESTIAL_METEORITE;
+            case TERMINUS, STASIS, FROST ->
                     ARCHETYPE_CRYSTALLINE_LANCE;
             case AMBER ->
                     ARCHETYPE_AMBER_BUBBLE_ORB;
@@ -178,7 +193,9 @@ public final class SpellParticleHelper {
                     fastLance ? ARCHETYPE_VOLTAIC_JAVELIN : ARCHETYPE_BALL_LIGHTNING;
             case STORM ->
                     ARCHETYPE_SQUALL_VORTEX;
-            case STATIC, VOLT, KINETIC ->
+            case STATIC ->
+                    ARCHETYPE_DIELECTRIC_MORTAR_ORB;
+            case VOLT, KINETIC ->
                     ARCHETYPE_VOLTAIC_JAVELIN;
             case RADIANT ->
                     fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_DAWN_STAR;
@@ -204,7 +221,9 @@ public final class SpellParticleHelper {
                     ARCHETYPE_SOLAR_HORIZON_JAVELIN;
             case AEGIS ->
                     ARCHETYPE_GILDED_PAVISE_SHIELD;
-            case AUREOLE, CELESTIAL, APOTHEOSIS, EMPYREAN, PHOTON ->
+            case CELESTIAL ->
+                    ARCHETYPE_HOLY_SOLAR_SINGULARITY_DART;
+            case AUREOLE, APOTHEOSIS, EMPYREAN, PHOTON ->
                     fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_SOLAR_CROWN;
             case ASTRAL ->
                     ARCHETYPE_CELESTIAL_COMET;
@@ -228,7 +247,15 @@ public final class SpellParticleHelper {
                     ARCHETYPE_VITAE_HELIX;
             case BLIGHT ->
                     ARCHETYPE_NECRO_SPORE_POD;
-            case SYLVAN, SPRING, BLOOD, MIASMA, GENESIS ->
+            case SPRING ->
+                    ARCHETYPE_VERNAL_AQUIFER_ORB;
+            case SYLVAN ->
+                    ARCHETYPE_ELDERWOOD_SUN_JAVELIN;
+            case MIASMA ->
+                    ARCHETYPE_SWAMPLAND_GAS_POD;
+            case GENESIS ->
+                    ARCHETYPE_PRIMORDIAL_DAWN_TEAR;
+            case BLOOD ->
                     ARCHETYPE_BIO_HELIX;
             default -> fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_ARCANE_BOLT;
         };
@@ -255,8 +282,8 @@ public final class SpellParticleHelper {
             case NULL_U -> 0x110B17; // Canonical Abyssal Pitch Black (#110B17) + Cosmic Violet (#41304E)
             case ABYSS -> 0x211A21; // Canonical Pitch-Black Oceanic Ink (#211A21) + Deep Trench Navy (#225C7C)
             case UMBRAL_WATER -> 0x1E88E5;
-            case OBLIVION -> 0xE63E1C;
-            case ENTROPIC -> 0xC61A52;
+            case OBLIVION -> 0xB83C08; // Canonical Nether Blazing Magma Rust (#B83C08) + Stygian Obsidian (#211A21) + Necrotic Grave Slate (#4D6453)
+            case ENTROPIC -> 0x41304E; // Canonical Void Deep Indigo (#41304E) + Umbral Charcoal (#211A21) + Undead Slate (#4D6453) + Blood Crimson (#8A0303)
             case CATACLYSM -> 0xFF3D1F;
             case BLOOD -> 0xB80614; // Canonical Deep Venous Crimson (#8A0303 family)
             case NATURE, OVERGROWTH, GROWTH, PRIMAL -> 0x2CE668;
@@ -285,6 +312,12 @@ public final class SpellParticleHelper {
             case PYRE -> 0xFF4500; // Canonical Roaring Wildfire Red-Orange (#FF4500) + Charred Timber Coal (#773214)
             case PENUMBRA -> 0x281E3C; // Canonical Deep Twilight Indigo (#281E3C) + Blazing Corona Gold (#FFEA78)
             case RIME -> 0x6395B1; // Canonical Frostbite Slate Blue (#6395B1) + Hoarfrost White (#DCF0FF)
+            case SPRING -> 0xFF6B9D; // Canonical Vernal Blossom Pink (#FF6B9D) + Aquifer Cyan (#64C8FF)
+            case SYLVAN -> 0x1A5923; // Canonical Primeval Sylvan Emerald (#1A5923) + Ironwood (#773214) + Solar Gold (#FFEA78)
+            case MIASMA -> 0x225C7C; // Canonical Stagnant Toxic Teal (#225C7C) + Virulent Green (#1A5923) + Necrotic Olive (#4D6453)
+            case GENESIS -> 0xFFEA78; // Canonical Radiant Dawn Gold (#FFEA78) + Vitae Blossom Pink (#FF6B9D) + Sacred Oceanic Teal (#225C7C)
+            case AETHER -> 0xA88654; // Canonical Air Chalk Gold (#A88654) + Earth Bronze (#773214) + Water Azure (#225C7C) + Nether Rust (#B83C08)
+            case CELESTIAL -> 0xFFEA78; // Canonical Radiant Pure Gold (#FFEA78) + Vitae Rose Pink (#FF6B9D) + Nature Emerald (#1A5923) + Air Chalk Gold (#A88654)
             case ARID, DUST -> 0xC2B28F; // Canonical Bleached Dune Sandstone (#C2B28F)
             case LIGHTNING, STATIC, VOLT -> 0xFFE600; // Canonical Electric Gold-Yellow (#FFE600)
             case MAGMA -> 0xB83C08; // Canonical Molten Volcanic Red-Orange (#B83C08)
@@ -329,12 +362,21 @@ public final class SpellParticleHelper {
             case APOTHEOSIS, AUREOLE -> 0xFFF6C4;
             case FROZEN -> 0xEBF9FF; // Diamond-white permafrost highlight (#EBF9FF)
             case RIME -> 0xDCF0FF; // Canonical Hoarfrost White (#DCF0FF)
+            case SPRING -> 0x64C8FF; // Canonical Aquifer Springwater Cyan (#64C8FF)
             case GLACIAL, TERMINUS -> 0xE0FFFF;
             case PYRE -> 0x773214; // Canonical Charred Cedar Timber & Granite Coal Brown (#773214)
             case NETHER, MAGMA, CATACLYSM -> 0xFFD15C;
-            case LIGHTNING, STATIC -> 0xB8F4FF;
+            case LIGHTNING -> 0xB8F4FF;
+            case STATIC -> 0x878DA2; // Canonical Galvanized Slate Gray (#878DA2)
             case STORM -> 0xD8FAFF; // Crisp Seafoam Gale-Slipstream Ivory (#D8FAFF)
-            case NATURE, OVERGROWTH, SYLVAN -> 0xB4FF78;
+            case NATURE, OVERGROWTH -> 0xB4FF78;
+            case SYLVAN -> 0xFFEA78; // Canonical Canopy Solar Gold (#FFEA78)
+            case MIASMA -> 0x1A5923; // Canonical Sickly Virulent Green (#1A5923)
+            case GENESIS -> 0xFF6B9D; // Canonical Vitae Blossom Pink (#FF6B9D)
+            case OBLIVION -> 0x4D6453; // Canonical Necrotic Grave Slate (#4D6453)
+            case AETHER -> 0x225C7C; // Canonical Water Tidal Azure (#225C7C)
+            case ENTROPIC -> 0x8A0303; // Canonical Boiling Sanguine Blood Crimson (#8A0303)
+            case CELESTIAL -> 0xFF6B9D; // Canonical Vitae Rose-Prana Pink (#FF6B9D)
             case SPORE -> 0xD6B478; // Canonical Buff Air Gold (#A88654 family)
             case TAIGA -> 0x98DCF2; // Canonical Boreal Frost Cyan (#98DCF2)
             case OASIS -> 0xDEC99A; // Canonical Sunlit Desert Sandstone Gold (#C2B28F family)
@@ -390,10 +432,11 @@ public final class SpellParticleHelper {
         return switch (type) {
             case WATER, OASIS, SPRING, ABYSS, AMBER -> ModParticles.TINTABLE_DRIP.get();
             case SPORE, BLIGHT, MIASMA -> ModParticles.TINTABLE_ACID.get();
-            case AIR, VAPOR, MIRAGE, UMBRAL, UNDEAD, WRAITH, DUST, ARID, BLOOD, AURA -> ModParticles.TINTABLE_MIST.get();
+            case AIR, VAPOR, MIRAGE, UMBRAL, UNDEAD, WRAITH, DUST, ARID, BLOOD, AURA, STATIC -> ModParticles.TINTABLE_MIST.get();
             case VOID, NULL_R, NULL_U, ESCHATON, CATACLYSM, STORM -> ModParticles.TINTABLE_VORTEX.get();
             case AEGIS, RADIANT, CELESTIAL, APOTHEOSIS, ENTROPICA -> ModParticles.TINTABLE_SIGIL.get();
-            case ECLIPSE -> ModParticles.TINTABLE_EMBER.get();
+            case SYLVAN -> ModParticles.TINTABLE_SUNBEAM.get();
+            case ECLIPSE, OBLIVION -> ModParticles.TINTABLE_EMBER.get();
             default -> ModParticles.TINTABLE_SPARKLE.get();
         };
     }
@@ -413,7 +456,7 @@ public final class SpellParticleHelper {
             case ARID, DUST, MIRAGE -> ModParticles.RUNE_FEHU.get();
             case NATURE, OVERGROWTH, SYLVAN, VITAE, SPRING, EMPYREAN -> ModParticles.RUNE_BERKANO.get();
             case WATER, ABYSS, OASIS -> ModParticles.RUNE_LAGUZ.get();
-            case STORM, CATACLYSM, ESCHATON -> ModParticles.RUNE_HAGALAZ.get();
+            case STORM, CATACLYSM, OBLIVION, ESCHATON -> ModParticles.RUNE_HAGALAZ.get();
             case VOID, NULL_R, NULL_U, ASTRAL, ECLIPSE -> ModParticles.RUNE_PERTHRO.get();
             case ENTROPICA, CELESTIAL, PRISMATIC, GENESIS -> ModParticles.RUNE_DAGAZ.get();
             default -> runes.get(Math.floorMod(type.ordinal() + seed, runes.size())).get();
@@ -1117,6 +1160,306 @@ public final class SpellParticleHelper {
                         pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
                         -vel.x * 0.03D,
                         0.005D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.SPRING) {
+            // 3u. Spring (#42) Vernal Blossom Aquifer-Orb wake: #FF6B9D cherry blossom petals & #64C8FF aquifer droplets!
+            TimedTintableParticleOption blossomPetal = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_LEAF.get(),
+                    0xFF6B9D,
+                    24,
+                    0.82F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    blossomPetal,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    -vel.x * 0.04D,
+                    -0.015D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption aquiferDrop = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_DRIP.get(),
+                        0x64C8FF,
+                        22,
+                        0.78F * tierScale,
+                        0.04F
+                );
+                clientLevel.addParticle(
+                        aquiferDrop,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        -0.01D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.STATIC) {
+            // 3v. Static (#43) Dielectric Ball-Lightning Mortar wake: #FFE600 high-voltage arcs & #878DA2 polarized dielectric dust!
+            TimedTintableParticleOption staticArc = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_ARC.get(),
+                    0xFFE600,
+                    22,
+                    0.86F * tierScale,
+                    0.06F
+            );
+            clientLevel.addParticle(
+                    staticArc,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    -vel.x * 0.04D,
+                    0.0D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption slateDust = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_MIST.get(),
+                        0x878DA2,
+                        24,
+                        0.78F * tierScale,
+                        0.05F
+                );
+                clientLevel.addParticle(
+                        slateDust,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                        -vel.x * 0.03D,
+                        0.005D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.SYLVAN) {
+            // 3w. Sylvan (#44) Elderwood Sun-Bough Javelin wake: #1A5923 canopy leaves, #FFEA78 solar rays & #773214 ironwood bark!
+            TimedTintableParticleOption sylvanLeaf = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_LEAF.get(),
+                    0x1A5923,
+                    24,
+                    0.84F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    sylvanLeaf,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    -vel.x * 0.04D,
+                    -0.01D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption solarMote = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_SUNBEAM.get(),
+                        0xFFEA78,
+                        22,
+                        0.80F * tierScale,
+                        0.04F
+                );
+                clientLevel.addParticle(
+                        solarMote,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        0.005D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.MIASMA) {
+            // 3x. Miasma (#45) Putrid Swampland Gas-Pod wake: #1A5923 virulent spores & #225C7C stagnant toxic swamp acid!
+            TimedTintableParticleOption miasmaSpore = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_SPORE.get(),
+                    0x1A5923,
+                    24,
+                    0.85F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    miasmaSpore,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    -vel.x * 0.04D,
+                    -0.01D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption swampAcid = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_ACID.get(),
+                        0x225C7C,
+                        22,
+                        0.80F * tierScale,
+                        0.05F
+                );
+                clientLevel.addParticle(
+                        swampAcid,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        -0.015D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.GENESIS) {
+            // 3y. Genesis (#46) Primordial Dawn-Tear Globule wake: #FF6B9D vitae lotus petals & #225C7C sacred oceanic dew!
+            TimedTintableParticleOption vitaePetal = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_LEAF.get(),
+                    0xFF6B9D,
+                    24,
+                    0.84F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    vitaePetal,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    -vel.x * 0.04D,
+                    -0.01D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption sacredDew = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_DRIP.get(),
+                        0x225C7C,
+                        22,
+                        0.80F * tierScale,
+                        0.04F
+                );
+                clientLevel.addParticle(
+                        sacredDew,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        -0.01D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.OBLIVION) {
+            // 3z. Oblivion (#47) Stygian Hellfire Annihilation Skull wake: #B83C08 blazing magma rust embers & #211A21 stygian obsidian ash!
+            TimedTintableParticleOption stygianEmber = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_EMBER.get(),
+                    0xB83C08,
+                    24,
+                    0.86F * tierScale,
+                    0.06F
+            );
+            clientLevel.addParticle(
+                    stygianEmber,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    -vel.x * 0.04D,
+                    0.01D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption stygianAsh = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_MIST.get(),
+                        0x211A21,
+                        24,
+                        0.84F * tierScale,
+                        0.05F
+                );
+                clientLevel.addParticle(
+                        stygianAsh,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.22D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.22D,
+                        -vel.x * 0.03D,
+                        -0.01D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.AETHER) {
+            // 3za. Aether (#48) Apex Celestial Meteorite wake: 4 chromatic plasma ribbons (#A88654 Air, #773214 Earth, #225C7C Water, #B83C08 Nether)!
+            int quadColor = switch (tickCount & 3) {
+                case 0 -> 0xA88654;
+                case 1 -> 0x773214;
+                case 2 -> 0x225C7C;
+                default -> 0xB83C08;
+            };
+            TimedTintableParticleOption firmamentRibbon = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_WISP.get(),
+                    quadColor,
+                    24,
+                    0.88F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    firmamentRibbon,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    -vel.x * 0.04D,
+                    0.0D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption haloSparkle = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_SPARKLE.get(),
+                        0xA88654,
+                        22,
+                        0.82F * tierScale,
+                        0.04F
+                );
+                clientLevel.addParticle(
+                        haloSparkle,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        0.005D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.ENTROPIC) {
+            // 3zb. Entropic (#49) Entropic Singularity Skull-Orb wake: #41304E dark matter, #211A21 umbral ash, #4D6453 necrotic mist & #8A0303 sanguine droplets!
+            int entColor = switch (tickCount & 3) {
+                case 0 -> 0x41304E;
+                case 1 -> 0x211A21;
+                case 2 -> 0x4D6453;
+                default -> 0x8A0303;
+            };
+            TimedTintableParticleOption entropicMist = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_MIST.get(),
+                    entColor,
+                    24,
+                    0.88F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    entropicMist,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    -vel.x * 0.04D,
+                    -0.005D,
+                    -vel.z * 0.04D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption sanguineDrop = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_BLOOD.get(),
+                        0x8A0303,
+                        22,
+                        0.82F * tierScale,
+                        0.04F
+                );
+                clientLevel.addParticle(
+                        sanguineDrop,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        -0.01D,
                         -vel.z * 0.03D
                 );
             }

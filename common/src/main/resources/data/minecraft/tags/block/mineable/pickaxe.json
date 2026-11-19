@@ -879,6 +879,14 @@
     "entropica:autocast_pedestal_stone",
     "entropica:autocast_pedestal_marble",
     "entropica:autocast_pedestal_quartz",
-    "entropica:autocast_pedestal_astral_slate"
+    "entropica:autocast_pedestal_astral_slate",
+    "entropica:aegis_crystal_block",
+    "entropica:aegis_crystal_cluster",
+    "entropica:runic_blue_ice",
+    "entropica:runed_basalt_pillar",
+    "entropica:glacial_barricade",
+    "entropica:conductive_aegis_plating",
+    "entropica:glacial_ice_maker",
+    "entropica:glacial_life_force_anchor"
   ]
 }

@@ -149,6 +149,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntityTypes.LUMINOTH.get(), ddraig.net.entropica.client.renderer.luminoth.LuminothRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.AMBER_WEEPING_STAG.get(), ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.STORM_KITE.get(), ddraig.net.entropica.client.renderer.storm_kite.StormKiteRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.GLACIAL_FROST_CORE.get(), ddraig.net.entropica.client.renderer.frost_core.GlacialFrostCoreRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.FROST_TUSK_MAMMOT.get(), ddraig.net.entropica.client.renderer.mammot.FrostTuskMammotRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.RADIANT_FIRE_LANCE.get(), ThrownItemRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.SPELL_PROJECTILE.get(), ddraig.net.entropica.client.renderer.SpellProjectileRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.UMBRAL_VORTEX.get(), ThrownItemRenderer::new);
@@ -206,6 +208,8 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.luminoth.LuminothModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.luminoth.LuminothModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.amber_weeping_stag.AmberWeepingStagModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.frost_core.GlacialFrostCoreModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.frost_core.GlacialFrostCoreModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.mammot.FrostTuskMammotModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.mammot.FrostTuskMammotModel::createBodyLayer);
 
         // --- 4. Menu Screens ---
         MenuScreens.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);
@@ -296,7 +300,9 @@ public class EntropicaClientFabric implements ClientModInitializer {
             RenderType.translucentMovingBlock(),
             ModBlocks.GLASS_LAMP_POST.get(),
             ModBlocks.ATTUNED_DISPLAY_VITRINE.get(),
-            ModBlocks.ILLUMINATED_BALUSTRADE.get()
+            ModBlocks.ILLUMINATED_BALUSTRADE.get(),
+            ModBlocks.RUNIC_BLUE_ICE.get(),
+            ModBlocks.GLACIAL_BARRICADE.get()
         );
 
         BlockRenderLayerMap.INSTANCE.putBlocks(
@@ -411,7 +417,11 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ModBlocks.MEDIUM_MORTISITE_BUD.get(),
             ModBlocks.LARGE_MORTISITE_BUD.get(),
             ModBlocks.MORTISITE_CLUSTER.get(),
-            ModBlocks.TIDAL_PULSE_RESONATOR.get()
+            ModBlocks.TIDAL_PULSE_RESONATOR.get(),
+            ModBlocks.AEGIS_CRYSTAL_CLUSTER.get(),
+            ModBlocks.GLACIAL_HEART_ROOT.get(),
+            ModBlocks.SHIELDING_BRAMBLE.get(),
+            ModBlocks.THORNED_WIRE.get()
         );
 
 
@@ -449,6 +459,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ddraig.net.entropica.client.gravity.GravitonSolesClientHandler.clientTick(client);
             ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.tickClient(client.level != null);
             ddraig.net.entropica.spell.vfx.ArcaneWingsClientManager.tickClient(client.level != null);
+            ddraig.net.entropica.client.worldgen.BiomeAtmosphereClientManager.tickClient(client);
         });
 
         // Register GUI Overlay HUD Renderer
@@ -488,6 +499,12 @@ public class EntropicaClientFabric implements ClientModInitializer {
                 context.tickCounter().getGameTimeDeltaTicks()
             );
             ddraig.net.entropica.client.renderer.SpellWorldVfxRenderer.renderWorldVfx(
+                context.matrixStack(),
+                context.projectionMatrix(),
+                context.camera(),
+                context.tickCounter().getGameTimeDeltaTicks()
+            );
+            ddraig.net.entropica.client.worldgen.BiomeSkyPhenomenaRenderer.renderSkyPhenomena(
                 context.matrixStack(),
                 context.projectionMatrix(),
                 context.camera(),

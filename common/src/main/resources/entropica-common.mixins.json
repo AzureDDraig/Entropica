@@ -6,14 +6,23 @@
   "mixins": [
     "EntityMixin",
     "CommonLivingEntityMixin",
-    "ServerLevelMixin"
+    "ServerLevelMixin",
+    "BiomeSourceAccessor",
+    "ChunkGeneratorAccessor",
+    "MultiNoiseBiomeSourceMixin",
+    "NoiseGeneratorSettingsMixin",
+    "MinecraftServerBiomeInjectorMixin"
   ],
   "client": [
     "EntityRendererMixin",
     "AbstractClientPlayerMixin",
     "MouseHandlerMixin",
     "LivingEntityRendererMixin",
-    "AvatarRendererMixin"
+    "AvatarRendererMixin",
+    "AtmosphericFogEnvironmentMixin",
+    "DimensionOrBossFogEnvironmentMixin",
+    "AirBasedFogEnvironmentMixin",
+    "ClientLevelBiomeSkyMixin"
   ],
   "injectors": {
     "defaultRequire": 1

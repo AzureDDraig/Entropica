@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "charges=1": {
+      "model": "entropica:block/glacial_barricade"
+    },
+    "charges=2": {
+      "model": "entropica:block/glacial_barricade"
+    },
+    "charges=3": {
+      "model": "entropica:block/glacial_barricade"
+    }
+  }
+}

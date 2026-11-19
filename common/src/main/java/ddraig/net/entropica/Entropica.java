@@ -29,7 +29,16 @@ public class Entropica {
         ModRecipes.register();
         ModSounds.SOUNDS.register();
         ModMenuTypes.MENU_TYPES.register();
+        ModFeatures.register();
+        ModStructures.register();
         ModCreativeTabs.CREATIVE_MODE_TABS.register();
+
+        // --- Initialize Multi-Noise Biome Placements & Optional TerraBlender Bridge during Common Setup ---
+        dev.architectury.event.events.common.LifecycleEvent.SETUP.register(() -> {
+            ddraig.net.entropica.worldgen.biome.EntropicaBiomePlacements.registerAll();
+            ddraig.net.entropica.worldgen.biome.EntropicaBiomeAtmospheres.registerAll();
+            ddraig.net.entropica.worldgen.biome.TerraBlenderCompatBridge.tryRegisterSurfaceRulesWithTerraBlender();
+        });
 
         // --- Register Network Receiver and Commands ---
         ModNetwork.register();
@@ -78,6 +87,7 @@ public class Entropica {
                         }
                     }
                 }
+                ddraig.net.entropica.worldgen.structure.FrostVeiledRunicSpireStructure.tickSpireHypothermiaHazard(serverPlayer);
             }
         });
         dev.architectury.event.events.common.EntityEvent.LIVING_HURT.register((entity, source, amount) -> {

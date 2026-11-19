@@ -1,13 +1,58 @@
 package ddraig.net.entropica.event;
 
 import ddraig.net.entropica.entity.ashen_stalker.AshenStalkerEntity;
+import ddraig.net.entropica.entity.frost_core.GlacialFrostCoreEntity;
 import ddraig.net.entropica.entity.grot.GrotEntity;
+import ddraig.net.entropica.entity.mammot.FrostTuskMammotEntity;
 import ddraig.net.entropica.entity.veil_fox.VeilFoxAfterimageEntity;
 import ddraig.net.entropica.entity.veil_fox.VeilFoxEntity;
 import ddraig.net.entropica.registry.ModEntityTypes;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
+import dev.architectury.registry.level.entity.SpawnPlacementsRegistry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.SpawnPlacementType;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 
 public class ModEntityEvents {
+
+    /**
+     * Placement type allowing glacial fauna (Rime-Back Ovis, Glacial Frost-Core, Frost-Tusk Mammot)
+     * to spawn naturally on Blue Ice, Packed Ice, regular Ice, Snow Blocks, stone, and grass.
+     */
+    public static final SpawnPlacementType GLACIAL_SURFACE_PLACEMENT = new SpawnPlacementType() {
+        @Override
+        public boolean isSpawnPositionOk(LevelReader level, BlockPos pos, EntityType<?> entityType) {
+            if (entityType == null || !level.getWorldBorder().isWithinBounds(pos)) {
+                return false;
+            }
+            BlockPos belowPos = pos.below();
+            BlockState belowState = level.getBlockState(belowPos);
+            if (!GlacialFrostCoreEntity.isGlacialSpawnSurface(level, belowPos, belowState)) {
+                return false;
+            }
+            return isClearForGlacialSpawn(level.getBlockState(pos))
+                    && isClearForGlacialSpawn(level.getBlockState(pos.above()));
+        }
+
+        @Override
+        public BlockPos adjustSpawnPosition(LevelReader level, BlockPos pos) {
+            BlockPos below = pos.below();
+            return level.getBlockState(below).isPathfindable(PathComputationType.LAND) ? below : pos;
+        }
+
+        private boolean isClearForGlacialSpawn(BlockState state) {
+            if (state.isAir() || state.is(Blocks.SNOW)) {
+                return true;
+            }
+            return !state.blocksMotion() && state.getFluidState().isEmpty();
+        }
+    };
+
     public static void register() {
         EntityAttributeRegistry.register(ModEntityTypes.GROT, GrotEntity::createAttributes);
         EntityAttributeRegistry.register(ModEntityTypes.VEIL_FOX, VeilFoxEntity::createAttributes);
@@ -33,5 +78,29 @@ public class ModEntityEvents {
         EntityAttributeRegistry.register(ModEntityTypes.AMBER_WEEPING_STAG, ddraig.net.entropica.entity.amber_weeping_stag.AmberWeepingStagEntity::createAttributes);
         EntityAttributeRegistry.register(ModEntityTypes.STORM_KITE, ddraig.net.entropica.entity.storm_kite.StormKiteEntity::createAttributes);
         EntityAttributeRegistry.register(ModEntityTypes.SPELL_EIDOLON, ddraig.net.entropica.entity.SpellEidolonEntity::createAttributes);
+
+        // Biome 1 (2.1 Blue-Glacier Shelf) Fauna 19 & 20
+        EntityAttributeRegistry.register(ModEntityTypes.GLACIAL_FROST_CORE, GlacialFrostCoreEntity::createAttributes);
+        EntityAttributeRegistry.register(ModEntityTypes.FROST_TUSK_MAMMOT, FrostTuskMammotEntity::createAttributes);
+
+        // Natural Spawn Placements for Blue-Glacier Shelf Fauna (Blue Ice / Packed Ice / Ice / Snow / Stone)
+        SpawnPlacementsRegistry.register(
+                ModEntityTypes.RIME_BACK_OVIS,
+                GLACIAL_SURFACE_PLACEMENT,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                FrostTuskMammotEntity::checkBlueGlacierSpawnRules
+        );
+        SpawnPlacementsRegistry.register(
+                ModEntityTypes.GLACIAL_FROST_CORE,
+                GLACIAL_SURFACE_PLACEMENT,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                GlacialFrostCoreEntity::checkBlueGlacierSpawnRules
+        );
+        SpawnPlacementsRegistry.register(
+                ModEntityTypes.FROST_TUSK_MAMMOT,
+                GLACIAL_SURFACE_PLACEMENT,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                FrostTuskMammotEntity::checkBlueGlacierSpawnRules
+        );
     }
 }

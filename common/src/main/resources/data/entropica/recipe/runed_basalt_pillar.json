@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "B",
+    "A",
+    "B"
+  ],
+  "key": {
+    "B": "minecraft:polished_basalt",
+    "A": "entropica:aegis_crystal_shard"
+  },
+  "result": {
+    "id": "entropica:runed_basalt_pillar",
+    "count": 2
+  }
+}

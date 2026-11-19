@@ -1,0 +1,6 @@
+{
+  "type": "entropica:frost_veiled_glacial_runic_spire",
+  "biomes": "#entropica:has_structure/frost_veiled_glacial_runic_spire",
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}

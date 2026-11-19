@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "entropica:block/glacial_life_force_anchor"
+    },
+    "active=true": {
+      "model": "entropica:block/glacial_life_force_anchor_active"
+    }
+  }
+}

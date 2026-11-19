@@ -151,6 +151,10 @@ public class ModCreativeTabs {
                 output.accept(ModBlocks.AUTOCAST_PEDESTAL_MARBLE.get());
                 output.accept(ModBlocks.AUTOCAST_PEDESTAL_QUARTZ.get());
                 output.accept(ModBlocks.AUTOCAST_PEDESTAL_ASTRAL_SLATE.get());
+                output.accept(ModItems.SPIKED_ARMOR_LINING.get());
+                output.accept(ModItems.AEGIS_SHIELDING_LINING.get());
+                output.accept(ModItems.THERMAL_INSULATED_BLANKET.get());
+                output.accept(ModItems.GLACIAL_FOCUS_LENS.get());
                 output.accept(ddraig.net.entropica.item.SpellgemItem.createInscribedGem(ddraig.net.entropica.spell.assembly.SpellAssembly.createMagicMissileStarter(1)));
                 output.accept(ddraig.net.entropica.item.SpellgemItem.createInscribedGem(ddraig.net.entropica.spell.assembly.SpellAssembly.createBasicBreakStarter(1)));
                 output.accept(ddraig.net.entropica.item.SpellgemItem.createInscribedGem(ddraig.net.entropica.spell.assembly.SpellAssembly.createBasicWardStarter(1)));
@@ -672,6 +676,40 @@ public class ModCreativeTabs {
                 output.accept(ModItems.OVERGROWTH_OVIS_SPAWN_EGG.get());
                 output.accept(ModItems.RIME_SHEPHERD_SPAWN_EGG.get());
                 output.accept(ModItems.BLOOM_CRAWLER_SPAWN_EGG.get());
+                output.accept(ModItems.GLACIAL_FROST_CORE_SPAWN_EGG.get());
+                output.accept(ModItems.FROST_TUSK_MAMMOT_SPAWN_EGG.get());
+
+                // Biome 1: Blue-Glacier Shelf & Runic Spire Natural Blocks & Drops
+                output.accept(ModItems.AEGIS_CRYSTAL_BLOCK_ITEM.get());
+                output.accept(ModItems.AEGIS_CRYSTAL_CLUSTER_ITEM.get());
+                output.accept(ModItems.AEGIS_CRYSTAL_SHARD.get());
+                output.accept(ModItems.RUNIC_BLUE_ICE_ITEM.get());
+                output.accept(ModItems.RUNED_BASALT_PILLAR_ITEM.get());
+                output.accept(ModItems.GLACIAL_HEART_ROOT_ITEM.get());
+                output.accept(ModItems.SHIELDING_BRAMBLE_ITEM.get());
+                output.accept(ModItems.SHIELDING_THORN_FIBER.get());
+                output.accept(ModItems.RIMEBLOOM_PETAL.get());
+                output.accept(ModItems.RIMEBLOOM_DYE.get());
+                output.accept(ModItems.FROST_CORE_SHARD.get());
+                output.accept(ModItems.INSULATED_GLACIAL_WOOL.get());
+                output.accept(ModItems.RAW_MAMMOT_MEAT.get());
+                output.accept(ModItems.COOKED_MAMMOT_MEAT.get());
+                output.accept(ModItems.GLACIAL_LIFE_FORCE_ANCHOR_ITEM.get());
+                output.accept(ModItems.GLACIAL_FOCUS_LENS.get());
+
+                // Entropica Potions (Frost Resistance & Freezing)
+                parameters.holders().lookup(Registries.POTION).ifPresent(potionLookup -> {
+                    for (String potionId : new String[]{"frost_resistance", "freezing"}) {
+                        potionLookup.get(net.minecraft.resources.ResourceKey.create(
+                                Registries.POTION,
+                                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Entropica.MODID, potionId)
+                        )).ifPresent(holder -> {
+                            output.accept(net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.POTION, holder));
+                            output.accept(net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.SPLASH_POTION, holder));
+                            output.accept(net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.LINGERING_POTION, holder));
+                        });
+                    }
+                });
             }).build());
 
     public static final RegistrySupplier<CreativeModeTab> SPELLGEMS_TAB = CREATIVE_MODE_TABS.register("spellgems_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.BOTTOM, 2)
@@ -714,6 +752,10 @@ public class ModCreativeTabs {
                path.contains("aeterium") ||
                path.contains("ignisite") ||
                path.contains("mortisite") ||
+               path.equals("aegis_crystal_block") ||
+               path.equals("aegis_crystal_cluster") ||
+               path.equals("glacial_heart_root") ||
+               path.equals("shielding_bramble") ||
                path.contains("rubber") ||
                path.contains("silver_pine") ||
                path.contains("amber") ||

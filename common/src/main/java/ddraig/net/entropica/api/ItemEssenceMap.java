@@ -2,6 +2,8 @@ package ddraig.net.entropica.api;
 
 import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.item.EssenceItem;
+import ddraig.net.entropica.registry.ModItems;
+import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -25,11 +27,67 @@ public class ItemEssenceMap {
     // The O(1) Master Cache that holds the generated Essence Graph!
     private static final Map<Item, List<EssenceValue>> CACHE = new ConcurrentHashMap<>();
     private static final Map<Item, List<EssenceValue>> MANUAL_REGISTRY = new ConcurrentHashMap<>();
+    private static volatile boolean modDefaultsInitialized = false;
 
     private static ItemStack[] ALL_ITEMS_CACHE = null;
 
     public static void register(Item item, EssenceValue... values) {
-        MANUAL_REGISTRY.put(item, List.of(values));
+        if (item != null && item != Items.AIR) {
+            MANUAL_REGISTRY.put(item, List.of(values));
+        }
+    }
+
+    private static void registerIfBound(RegistrySupplier<? extends Item> supplier, EssenceValue... values) {
+        if (supplier != null && supplier.isBound()) {
+            register(supplier.get(), values);
+        }
+    }
+
+    /**
+     * Ensures Crucible / Essence mappings for Biome 1 (Blue-Glacier Shelf) flora, crystals,
+     * fauna reagents, and relics are registered as soon asModItems are bound.
+     */
+    public static void ensureModDefaultMappings() {
+        if (modDefaultsInitialized) {
+            return;
+        }
+        if (!ModItems.AEGIS_CRYSTAL_SHARD.isBound()) {
+            return;
+        }
+        synchronized (ItemEssenceMap.class) {
+            if (modDefaultsInitialized) {
+                return;
+            }
+            // Biome 1: Flora & Botanicals
+            registerIfBound(ModItems.RIMEBLOOM_ITEM, new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.RIMEBLOOM_PETAL, new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.GLACIAL_HEART_ROOT_ITEM, new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.SHIELDING_BRAMBLE_ITEM, new EssenceValue(EssenceType.AEGIS, 1.0f));
+            registerIfBound(ModItems.SHIELDING_THORN_FIBER, new EssenceValue(EssenceType.AEGIS, 0.5f));
+
+            // Biome 1: Aegis Crystals
+            registerIfBound(ModItems.AEGIS_CRYSTAL_SHARD, new EssenceValue(EssenceType.AEGIS, 1.0f));
+            registerIfBound(ModItems.AEGIS_CRYSTAL_BLOCK_ITEM, new EssenceValue(EssenceType.AEGIS, 4.0f));
+            registerIfBound(ModItems.AEGIS_CRYSTAL_CLUSTER_ITEM, new EssenceValue(EssenceType.AEGIS, 2.0f));
+
+            // Biome 1: Fauna Drops & Spire Relics
+            registerIfBound(ModItems.FROST_CORE_SHARD, new EssenceValue(EssenceType.GLACIAL, 2.0f));
+            registerIfBound(ModItems.INSULATED_GLACIAL_WOOL, new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.GLACIAL_FOCUS_LENS,
+                    new EssenceValue(EssenceType.GLACIAL, 4.0f),
+                    new EssenceValue(EssenceType.AEGIS, 4.0f));
+            registerIfBound(ModItems.RAW_MAMMOT_MEAT,
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f),
+                    new EssenceValue(EssenceType.NATURE, 0.5f));
+            registerIfBound(ModItems.GLACIAL_AEGIS_PLATE,
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f),
+                    new EssenceValue(EssenceType.AEGIS, 1.0f));
+            registerIfBound(ModItems.PATINA_AEGIS_PLATE,
+                    new EssenceValue(EssenceType.AEGIS, 1.0f),
+                    new EssenceValue(EssenceType.LIGHTNING, 0.5f));
+
+            modDefaultsInitialized = true;
+        }
     }
 
     /**
@@ -40,9 +98,14 @@ public class ItemEssenceMap {
             return List.of();
         }
 
+        ensureModDefaultMappings();
+
         Item item = stack.getItem();
         if (MANUAL_REGISTRY.containsKey(item)) return MANUAL_REGISTRY.get(item);
         if (CACHE.containsKey(item)) return CACHE.get(item);
+
+        List<EssenceValue> base = getBaseMaterialEssence(stack);
+        if (!base.isEmpty()) return base;
 
         // Ultimate Fallback if an item is completely uncraftable and unmapped
         return List.of(new EssenceValue(EssenceType.EARTH, 0.03125f));
@@ -54,8 +117,10 @@ public class ItemEssenceMap {
      */
     public static void buildEssenceGraph(Iterable<RecipeHolder<?>> recipes, net.minecraft.core.HolderLookup.Provider registries) {
         CACHE.clear();
+        ALL_ITEMS_CACHE = null;
+        ensureModDefaultMappings();
 
-        // 1. SEED THE GRAPH: Load base materials into the Cache
+        // 1. SEED THE GRAPH: Load base materials and manual registrations into the Cache
         for (Item item : BuiltInRegistries.ITEM) {
             ItemStack stack = new ItemStack(item);
             List<EssenceValue> base = getBaseMaterialEssence(stack);
@@ -64,6 +129,7 @@ public class ItemEssenceMap {
                 CACHE.put(item, base);
             }
         }
+        CACHE.putAll(MANUAL_REGISTRY);
 
         // 2. ITERATIVE CASCADE: Keep scanning recipes until the entire progression tree is mapped!
         boolean changed = true;
