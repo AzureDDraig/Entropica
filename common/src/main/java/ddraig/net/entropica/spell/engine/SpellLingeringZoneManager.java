@@ -2623,16 +2623,21 @@ public final class SpellLingeringZoneManager {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 7.0D, 3.0D, 0.0D, 0.0D, 12L);
                 living.clearFire();
                 living.setTicksFrozen(0);
+                living.setIsInPowderSnow(false);
                 living.removeEffect(MobEffects.SLOWNESS);
+                if (now % 10L == 0L) {
+                    SpellCombatReactionEngine.syncEntityBarrierState(level, living, 0.0F, null);
+                }
                 BlockPos below = living.blockPosition().below();
                 for (BlockPos p : BlockPos.betweenClosed(below.offset(-1, 0, -1), below.offset(1, 0, 1))) {
-                    if (level.getBlockState(p).is(Blocks.WATER) && level.getBlockState(p.above()).isAir()) {
+                    if (level.getBlockState(p).is(Blocks.WATER) && level.getFluidState(p).isSource() && level.getBlockState(p.above()).isAir()) {
                         level.setBlockAndUpdate(p, Blocks.PACKED_ICE.defaultBlockState());
                     }
                 }
             } else if (tag.getLong(TAG_RIME_ORBIT_UNTIL).orElse(0L) > now) {
                 SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(living, level, 5.0D, 2.0D, 0.0D, 0.0D, 12L);
                 living.setTicksFrozen(0);
+                living.setIsInPowderSnow(false);
                 living.removeEffect(MobEffects.SLOWNESS);
                 for (AbstractArrow arrow : level.getEntitiesOfClass(AbstractArrow.class, living.getBoundingBox().inflate(2.8D))) {
                     if (arrow.getOwner() == living) continue;

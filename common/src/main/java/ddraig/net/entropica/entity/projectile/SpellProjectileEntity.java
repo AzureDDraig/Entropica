@@ -1095,8 +1095,12 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                         );
                     }
                     case RIME -> {
+                        int oTier = Math.max(1, this.spell.getEffectiveTier());
                         meleeFoe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 5));
                         meleeFoe.setTicksFrozen(Math.min(meleeFoe.getTicksRequiredToFreeze() + 30, meleeFoe.getTicksFrozen() + 30));
+                        SpellCombatReactionEngine.hurtWithRimeMateriaAdvantage(
+                                level, meleeFoe, caster, 1.80F + oTier * 0.50F, false, true
+                        );
                     }
                     case FROZEN, GLACIAL -> {
                         SpellCombatReactionEngine.applyTimedMovementSpeedSap(meleeFoe, level, 0.60D, 50L);
@@ -1878,6 +1882,9 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
             }
             case RIME -> {
                 if (directHit instanceof LivingEntity foe) {
+                    int sTier = this.spell != null ? this.spell.getEffectiveTier() : 1;
+                    float rimeBoltDmg = 2.25F + sTier * 0.58F;
+                    SpellCombatReactionEngine.hurtWithRimeMateriaAdvantage(level, foe, caster, rimeBoltDmg, false, true);
                     foe.setTicksFrozen(foe.getTicksFrozen() + 60);
                     foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
                 }
@@ -2292,9 +2299,13 @@ public class SpellProjectileEntity extends ThrowableItemProjectile {
                     );
                 }
                 case RIME -> {
+                    int dTier = Math.max(1, this.spell.getEffectiveTier());
                     orbitTarget.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 5));
                     orbitTarget.addEffect(new MobEffectInstance(
                             net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ddraig.net.entropica.registry.ModEffects.INERTIAL_ANCHOR.get()), 40, 0));
+                    SpellCombatReactionEngine.hurtWithRimeMateriaAdvantage(
+                            serverLevel, orbitTarget, caster, 2.25F + dTier * 0.55F, false, true
+                    );
                 }
                 case SPRING -> {
                     orbitTarget.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 5));

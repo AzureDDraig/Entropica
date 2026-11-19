@@ -261,6 +261,8 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
                         renderCombustionHearthOrb(mat, vc, scale, state.ageTicks, state.entitySeed);
                 case SpellParticleHelper.ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT ->
                         renderPenumbralTwilightEclipseBolt(mat, vc, scale, state.ageTicks, state.entitySeed);
+                case SpellParticleHelper.ARCHETYPE_HOARFROST_RIME_JAVELIN ->
+                        renderHoarfrostRimeJavelin(mat, vc, scale, state.ageTicks, state.entitySeed);
                 default ->
                         renderArcaneBolt(mat, vc, scale, state.ageTicks, pr, pg, pb, ar, ag, ab);
             }
@@ -3181,6 +3183,44 @@ public class SpellProjectileRenderer extends EntityRenderer<SpellProjectileEntit
                 prev = pt;
             }
         }
+    }
+
+    // =========================================================================
+    // ARCHETYPE 45: HOARFROST RIME-SPIKE JAVELIN (RIME #41 — #6395B1 / #DCF0FF)
+    // =========================================================================
+
+    private static void renderHoarfrostRimeJavelin(
+            Matrix4f mat, VertexConsumer vc, float scale, float age, int seed
+    ) {
+        float s = scale * 1.15F;
+        float spin = age * 0.42F + (seed & 15) * 0.29F;
+
+        // 1. Razor-sharp compressed hoarfrost spearhead (#DCF0FF) & frostbite slate shaft (#6395B1)!
+        renderElongatedBipyramid(mat, vc, 0.12F * s, 0.62F * s, 0.46F * s, 6, spin * 0.35F,
+                0.863F, 0.941F, 1.000F, 0.98F);
+        renderElongatedBipyramid(mat, vc, 0.18F * s, 0.36F * s, 0.32F * s, 6, -spin * 0.40F,
+                0.388F, 0.584F, 0.694F, 0.90F);
+
+        // 2. 4 angled crystalline rime-spike barbs splayed backward along the javelin!
+        for (int b = 0; b < 4; b++) {
+            float bAng = spin + (float) (Math.PI * 0.5D * b);
+            boolean white = (b % 2 == 0);
+            Vec3 root = new Vec3(Mth.cos(bAng) * 0.08D * s, Mth.sin(bAng) * 0.08D * s, 0.16D * s);
+            Vec3 barb = new Vec3(Mth.cos(bAng) * 0.28D * s, Mth.sin(bAng) * 0.28D * s, -0.22D * s);
+            renderLocalSegment(mat, vc, root, barb, 0.036F * s,
+                    white ? 0.863F : 0.388F,
+                    white ? 0.941F : 0.584F,
+                    white ? 1.000F : 0.694F,
+                    0.95F);
+        }
+
+        // 3. Howling chilled-air slipstream rings (#6395B1 & #DCF0FF)
+        Vec3 rx = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 ry = new Vec3(0.0D, 1.0D, 0.0D);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, 0.06D * s), rx, ry,
+                0.18F * s, 0.25F * s, 18, 0.863F, 0.941F, 1.000F, 0.94F);
+        renderLocalRing(mat, vc, new Vec3(0.0D, 0.0D, -0.24D * s), rx, ry,
+                0.22F * s, 0.30F * s, 18, 0.388F, 0.584F, 0.694F, 0.86F);
     }
 
     private static float hash01(int a, int b) {

@@ -1130,6 +1130,21 @@ public final class SpellExecutionEngine {
         return false;
     }
 
+    public static boolean hasPrimedRimePermafrostCleaveStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.RIME) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Discharges an active primed Touch / Melee Strike spell when the caster lands their next physical melee hit
      * (Spellcrafting System Guide Section 4.4: 100% primary target + 50% cleave splash + weapon Materia Advantage stacking!).
@@ -3423,7 +3438,8 @@ public final class SpellExecutionEngine {
                             || vPrimary == EssenceType.WRAITH
                             || vPrimary == EssenceType.BARROW
                             || vPrimary == EssenceType.PYRE
-                            || vPrimary == EssenceType.PENUMBRA)) {
+                            || vPrimary == EssenceType.PENUMBRA
+                            || vPrimary == EssenceType.RIME)) {
                         radius = Math.max(radius, 6.0D * formRangeMult);
                     }
                     if (!silent) {
@@ -3565,7 +3581,7 @@ public final class SpellExecutionEngine {
                         radius = Math.max(8.0D * apparatusRange * flawRangeMult, radius);
                     } else if (formMutation.mutated() && formMateria == EssenceType.BARROW) {
                         radius = Math.max(10.0D * formRangeMult, radius);
-                    } else if (formMutation.mutated() && (formMateria == EssenceType.WRAITH || formMateria == EssenceType.PENUMBRA)) {
+                    } else if (formMutation.mutated() && (formMateria == EssenceType.WRAITH || formMateria == EssenceType.PENUMBRA || formMateria == EssenceType.RIME)) {
                         radius = Math.max(12.0D * formRangeMult, radius);
                     } else if (formMutation.mutated() && (formMateria == EssenceType.ASTRAL || formMateria == EssenceType.SOULFIRE || formMateria == EssenceType.VAPOR || formMateria == EssenceType.NULL_R || formMateria == EssenceType.NULL_U || formMateria == EssenceType.DAWN || formMateria == EssenceType.AEGIS)) {
                         radius = Math.max(14.0D * formRangeMult, radius);
@@ -3921,7 +3937,8 @@ public final class SpellExecutionEngine {
                         || formMateria == EssenceType.WRAITH
                         || formMateria == EssenceType.BARROW
                         || formMateria == EssenceType.PYRE
-                        || formMateria == EssenceType.PENUMBRA)) {
+                        || formMateria == EssenceType.PENUMBRA
+                        || formMateria == EssenceType.RIME)) {
                     radius = Math.max(radius, 6.0D * formRangeMult);
                 }
                 if (form == SpellDeliveryForm.GLYPH && formMutation.mutated() && formMateria == EssenceType.NATURE) {
@@ -4543,6 +4560,30 @@ public final class SpellExecutionEngine {
                                                       SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
                                                   }
                                               }
+                                          } else if (formMutation.mutated() && formMateria == EssenceType.RIME) {
+                                              long zNow = srv.getGameTime();
+                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
+                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
+                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
+                                                  if (isFriendlyAllyForOasis(owner, ent)) {
+                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
+                                                      aTag.putLong(SpellLingeringZoneManager.TAG_RIME_MANTLE_UNTIL,
+                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_RIME_MANTLE_UNTIL).orElse(0L)));
+                                                      ent.clearFire();
+                                                      ent.setTicksFrozen(0);
+                                                      ent.setIsInPowderSnow(false);
+                                                      ent.removeEffect(MobEffects.SLOWNESS);
+                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.0D, 30L);
+                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
+                                                  }
+                                              }
+                                              BlockPos zc = BlockPos.containing(zone.center).below();
+                                              int ir = Math.max(2, (int) Math.ceil(zone.radius));
+                                              for (BlockPos p : BlockPos.betweenClosed(zc.offset(-ir, 0, -ir), zc.offset(ir, 1, ir))) {
+                                                  if (srv.getBlockState(p).is(Blocks.WATER) && srv.getFluidState(p).isSource() && srv.getBlockState(p.above()).isAir()) {
+                                                      srv.setBlockAndUpdate(p, Blocks.PACKED_ICE.defaultBlockState());
+                                                  }
+                                              }
                                           }
                                     }
                                 }
@@ -4630,7 +4671,7 @@ public final class SpellExecutionEngine {
                     radius = Math.max(8.0D * apparatusRange * flawRangeMult, radius);
                 } else if (formMutation.mutated() && formMateria == EssenceType.BARROW) {
                     radius = Math.max(10.0D * formRangeMult, radius);
-                } else if (formMutation.mutated() && (formMateria == EssenceType.WRAITH || formMateria == EssenceType.PENUMBRA)) {
+                } else if (formMutation.mutated() && (formMateria == EssenceType.WRAITH || formMateria == EssenceType.PENUMBRA || formMateria == EssenceType.RIME)) {
                     radius = Math.max(12.0D * formRangeMult, radius);
                 } else if (formMutation.mutated() && (formMateria == EssenceType.ASTRAL || formMateria == EssenceType.SOULFIRE || formMateria == EssenceType.VAPOR || formMateria == EssenceType.NULL_R || formMateria == EssenceType.NULL_U || formMateria == EssenceType.DAWN || formMateria == EssenceType.AEGIS)) {
                     radius = Math.max(14.0D * formRangeMult, radius);
@@ -5094,7 +5135,9 @@ public final class SpellExecutionEngine {
             return true;
         }
         return e == SpellCoreEffect.TRANSMUTE && binding.mutationEnabled()
-                && (binding.materiaType() == EssenceType.VAPOR || binding.materiaType() == EssenceType.AETHER);
+                && (binding.materiaType() == EssenceType.VAPOR
+                || binding.materiaType() == EssenceType.AETHER
+                || binding.materiaType() == EssenceType.RIME);
     }
 
     /**
@@ -5936,9 +5979,9 @@ public final class SpellExecutionEngine {
                             return;
                         }
                     }
-                    // Glacial (#15) Cryo-Solidification & Silk Touch: when a ray/bolt passes through a water or lava pool to hit
+                    // Glacial (#15) & Rime (#41) Cryo-Solidification & Silk Touch: when a ray/bolt passes through a water or lava pool to hit
                     // the solid basin behind it, solidify the adjacent water into Blue/Packed Ice or cool lava into Obsidian!
-                    if (effectMateria == EssenceType.GLACIAL && effectMutation.mutated() && !state.is(Blocks.WATER) && !state.is(Blocks.LAVA)) {
+                    if ((effectMateria == EssenceType.GLACIAL || effectMateria == EssenceType.RIME) && effectMutation.mutated() && !state.is(Blocks.WATER) && !state.is(Blocks.LAVA)) {
                         BlockPos adjFluid = pos.relative(hitFace);
                         BlockState adjFluidState = level.getBlockState(adjFluid);
                         if ((adjFluidState.is(Blocks.WATER) || adjFluidState.is(Blocks.LAVA))
@@ -5949,8 +5992,8 @@ public final class SpellExecutionEngine {
                     if (effHandler.onTransmuteBlock(level, caster, pos, state, tier)) {
                         return;
                     }
-                    // Vapor (#29) & Aether (#48) Condensation Transmute: when striking a solid basin floor/wall, condense the adjacent air block into water!
-                    if ((effectMateria == EssenceType.VAPOR || effectMateria == EssenceType.AETHER) && effectMutation.mutated() && !state.isAir()) {
+                    // Vapor (#29), Rime (#41) & Aether (#48) Condensation Transmute: when striking a solid basin floor/wall, condense the adjacent air block!
+                    if ((effectMateria == EssenceType.VAPOR || effectMateria == EssenceType.RIME || effectMateria == EssenceType.AETHER) && effectMutation.mutated() && !state.isAir()) {
                         BlockPos adjPos = pos.relative(hitFace);
                         BlockState adjState = level.getBlockState(adjPos);
                         if (adjState.isAir() && effHandler.onTransmuteBlock(level, caster, adjPos, adjState, tier)) {

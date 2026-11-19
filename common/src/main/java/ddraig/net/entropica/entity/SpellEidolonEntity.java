@@ -2193,11 +2193,22 @@ public class SpellEidolonEntity extends PathfinderMob {
                 target.hasImpulse = true;
             }
             case RIME -> {
-                target.invulnerableTime = 0;
-                target.hurtServer(level, level.damageSources().magic(), 2.5F + tier * 0.75F);
+                // Section 6.42 Glacial Rime-Vanguard: sweeping 35% armor-bypassing frost cleave & 2.5s solid flash-freeze!
+                float rimeBladeDmg = 2.70F + tier * 0.80F;
+                SpellCombatReactionEngine.hurtWithRimeMateriaAdvantage(
+                        level, target, owner != null ? owner : this, rimeBladeDmg, false, true
+                );
                 target.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 50, 0));
                 target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 6));
                 target.setTicksFrozen(target.getTicksRequiredToFreeze() + 50);
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(2.0D))) {
+                    if (foe == this || foe == owner || foe == target || !foe.isAlive() || this.isFriendlyTo(foe)) continue;
+                    foe.setTicksFrozen(foe.getTicksFrozen() + 45);
+                    foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 2));
+                    SpellCombatReactionEngine.hurtWithRimeMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, 1.75F + tier * 0.45F, false, true
+                    );
+                }
             }
             case SPRING -> {
                 target.invulnerableTime = 0;
@@ -3006,7 +3017,12 @@ public class SpellEidolonEntity extends PathfinderMob {
                     }
                 }
             } else if (mat == EssenceType.RIME && this.ageTicks % 20 == 0) {
-                // Hoarfrost Glacial Citadel Spire: +6 Armor, +3 Toughness, complete Fire & Freezing immunity; 8m root burst every 4.0s!
+                // Section 6.42 Hoarfrost Glacial Citadel Spire: +6 Armor, +3 Toughness, complete Fire & Freezing immunity; 8m root burst every 4.0s!
+                if (this.ageTicks % 40 == 0) {
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                            level, this.position().add(0.0D, 0.05D, 0.0D), 8.0D, EssenceType.RIME, EssenceType.FROZEN, 44, tier
+                    );
+                }
                 long coldUntil = level.getGameTime() + 45L;
                 for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(8.0D))) {
                     if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
@@ -3019,10 +3035,17 @@ public class SpellEidolonEntity extends PathfinderMob {
                     }
                 }
                 if (this.ageTicks % 80 == 0) {
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                            level, this.position(), 8.0D, EssenceType.RIME, EssenceType.FROZEN, tier
+                    );
                     for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(8.0D))) {
                         if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
                         foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 5));
                         foe.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 50, 0));
+                        foe.setTicksFrozen(foe.getTicksFrozen() + 50);
+                        SpellCombatReactionEngine.hurtWithRimeMateriaAdvantage(
+                                level, foe, owner != null ? owner : this, 1.95F + tier * 0.50F, false, true
+                        );
                     }
                 }
             } else if (mat == EssenceType.SPRING && this.ageTicks % 20 == 0) {
@@ -3985,6 +4008,10 @@ public class SpellEidolonEntity extends PathfinderMob {
             ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
                     level, this.position(), this.shortLivedIllusion ? 4.0D : 10.0D, EssenceType.PENUMBRA, EssenceType.RADIANT, tier
             );
+        } else if (mat == EssenceType.RIME) {
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                    level, this.position(), 10.0D, EssenceType.RIME, EssenceType.FROZEN, tier
+            );
         } else if (mat == EssenceType.SOULFIRE && owner != null && owner.isAlive()) {
             float healAmt = owner.getMaxHealth() * 0.15F;
             SpellCombatReactionEngine.notifyMagicalHeal(owner, healAmt);
@@ -4936,11 +4963,14 @@ public class SpellEidolonEntity extends PathfinderMob {
                     );
                 }
                 case RIME -> {
+                    // Section 6.42 Brittle Permafrost Effigy: 10m Deep Freeze Shatter Nova (3.5s ice statue + -4 armor)!
                     foe.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 70, 0));
                     foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 70, 6));
                     foe.setTicksFrozen(foe.getTicksRequiredToFreeze() + 70);
                     SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 4.0D, 0.0D, 140L);
-                    foe.hurtServer(level, level.damageSources().magic(), 6.0F + tier * 1.5F);
+                    SpellCombatReactionEngine.hurtWithRimeMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, 6.20F + tier * 1.55F, false, true
+                    );
                 }
                 case SPRING -> {
                     Vec3 away = foe.position().subtract(this.position()).normalize().scale(1.75D);

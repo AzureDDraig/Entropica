@@ -126,6 +126,7 @@ public final class SpellParticleHelper {
     public static final byte ARCHETYPE_TOMBSTONE_BOULDER = 42;
     public static final byte ARCHETYPE_COMBUSTION_HEARTH_ORB = 43;
     public static final byte ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT = 44;
+    public static final byte ARCHETYPE_HOARFROST_RIME_JAVELIN = 45;
 
     private SpellParticleHelper() {
     }
@@ -165,7 +166,9 @@ public final class SpellParticleHelper {
                     ARCHETYPE_FROST_RESIN_SPIKE;
             case AURORA ->
                     ARCHETYPE_AURORA_RIBBON_LANCE;
-            case RIME, TERMINUS, AETHER, STASIS, FROST ->
+            case RIME ->
+                    ARCHETYPE_HOARFROST_RIME_JAVELIN;
+            case TERMINUS, AETHER, STASIS, FROST ->
                     ARCHETYPE_CRYSTALLINE_LANCE;
             case AMBER ->
                     ARCHETYPE_AMBER_BUBBLE_ORB;
@@ -281,6 +284,7 @@ public final class SpellParticleHelper {
             case BARROW -> 0x773214; // Canonical Granite Brown (#773214) + Necrotic Moss (#4D6453)
             case PYRE -> 0xFF4500; // Canonical Roaring Wildfire Red-Orange (#FF4500) + Charred Timber Coal (#773214)
             case PENUMBRA -> 0x281E3C; // Canonical Deep Twilight Indigo (#281E3C) + Blazing Corona Gold (#FFEA78)
+            case RIME -> 0x6395B1; // Canonical Frostbite Slate Blue (#6395B1) + Hoarfrost White (#DCF0FF)
             case ARID, DUST -> 0xC2B28F; // Canonical Bleached Dune Sandstone (#C2B28F)
             case LIGHTNING, STATIC, VOLT -> 0xFFE600; // Canonical Electric Gold-Yellow (#FFE600)
             case MAGMA -> 0xB83C08; // Canonical Molten Volcanic Red-Orange (#B83C08)
@@ -324,7 +328,8 @@ public final class SpellParticleHelper {
             case WRAITH -> 0x4D6453; // Canonical Necrotic Moss / Tombstone Ectoplasm (#4D6453)
             case APOTHEOSIS, AUREOLE -> 0xFFF6C4;
             case FROZEN -> 0xEBF9FF; // Diamond-white permafrost highlight (#EBF9FF)
-            case GLACIAL, RIME, TERMINUS -> 0xE0FFFF;
+            case RIME -> 0xDCF0FF; // Canonical Hoarfrost White (#DCF0FF)
+            case GLACIAL, TERMINUS -> 0xE0FFFF;
             case PYRE -> 0x773214; // Canonical Charred Cedar Timber & Granite Coal Brown (#773214)
             case NETHER, MAGMA, CATACLYSM -> 0xFFD15C;
             case LIGHTNING, STATIC -> 0xB8F4FF;
@@ -1076,6 +1081,42 @@ public final class SpellParticleHelper {
                         pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
                         -vel.x * 0.03D,
                         0.0D,
+                        -vel.z * 0.03D
+                );
+            }
+        } else if (primary == EssenceType.RIME) {
+            // 3t. Rime (#41) Hoarfrost Rime-Spike Javelin wake: #DCF0FF hoarfrost needles & #6395B1 sub-zero gale vapor!
+            TimedTintableParticleOption hoarfrostShard = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_CRYSTAL.get(),
+                    0xDCF0FF,
+                    22,
+                    0.84F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    hoarfrostShard,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.22D,
+                    -vel.x * 0.05D,
+                    -0.01D,
+                    -vel.z * 0.05D
+            );
+            if ((tickCount & 1) == 0) {
+                TimedTintableParticleOption rimeVapor = TimedTintableParticleOption.linear(
+                        ModParticles.TINTABLE_MIST.get(),
+                        0x6395B1,
+                        24,
+                        0.80F * tierScale,
+                        0.04F
+                );
+                clientLevel.addParticle(
+                        rimeVapor,
+                        pos.x + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.y + (rand.nextDouble() - 0.5D) * 0.20D,
+                        pos.z + (rand.nextDouble() - 0.5D) * 0.20D,
+                        -vel.x * 0.03D,
+                        0.005D,
                         -vel.z * 0.03D
                 );
             }

@@ -1806,6 +1806,49 @@ public final class SpellWorldVfxRenderer {
                         corona ? 0.471F : 0.235F,
                         0.94F * cAlpha);
             }
+        } else if (isHoarfrostRimeMateria(inst.essence)) {
+            // Section 6.42 Glacial Absolute-Zero Jetstream Beam (#6395B1 / #DCF0FF): howling sub-zero needle-ice gale & hoarfrost crystals!
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 0.58F * fade, 8,
+                    0.863F, 0.941F, 1.000F, 0.98F * fade, FULL_LIGHT);
+            renderTube(matrix, vc, inst.start, inst.endOrDir, baseR * 1.26F * fade, 10,
+                    0.388F, 0.584F, 0.694F, 0.80F * fade, FULL_LIGHT);
+
+            int rimeSteps = Math.clamp((int) (len * 4.0D), 10, 44);
+            for (int rIdx = 0; rIdx < 2; rIdx++) {
+                float off = rIdx * (float) Math.PI + gameTime * 0.46F;
+                boolean white = (rIdx == 0);
+                Vec3 prevPt = null;
+                for (int i = 0; i <= rimeSteps; i++) {
+                    float t = i / (float) rimeSteps;
+                    double dist = t * len;
+                    float waveR = baseR * (1.20F + 0.34F * Mth.sin(t * 9.5F - gameTime * 0.48F + rIdx));
+                    float ang = off + t * (float) (len * 2.3D);
+                    Vec3 pt = inst.start.add(fwd.scale(dist))
+                            .add(right.scale(Mth.cos(ang) * waveR))
+                            .add(up.scale(Mth.sin(ang) * waveR));
+                    if (prevPt != null) {
+                        renderCrossSegment(matrix, vc, prevPt, pt, baseR * 0.36F * fade,
+                                white ? 0.863F : 0.388F,
+                                white ? 0.941F : 0.584F,
+                                white ? 1.000F : 0.694F,
+                                0.95F * fade);
+                    }
+                    prevPt = pt;
+                }
+            }
+            for (int c = 0; c < 6; c++) {
+                float ct = ((gameTime * 0.30F) + (c / 6.0F)) % 1.0F;
+                double dist = ct * len;
+                float cFlare = baseR * (1.28F + 0.58F * ct);
+                float cAlpha = fade * Mth.sin(ct * (float) Math.PI);
+                boolean white = (c % 2 == 0);
+                renderOrientedStarPolygon(matrix, vc, inst.start.add(fwd.scale(dist)), right, up,
+                        cFlare, 6, ct * 4.0F,
+                        white ? 0.863F : 0.388F,
+                        white ? 0.941F : 0.584F,
+                        white ? 1.000F : 0.694F,
+                        0.94F * cAlpha);
+            }
         }
 
         float impactExpand = channeledSlice ? (1.15F + 0.12F * Mth.sin(gameTime * 0.9F)) : (1.0F + progress * 1.6F);
@@ -3220,6 +3263,26 @@ public final class SpellWorldVfxRenderer {
                         corona ? 0.471F : 0.235F,
                         0.97F * fade);
             }
+        } else if (isHoarfrostRimeMateria(inst.essence)) {
+            // Section 6.42 Flash-Freeze Rime Frost-Nova (#6395B1 / #DCF0FF): radial blizzard shockwave & hoarfrost spires!
+            float rimeH = Math.max(1.70F, inst.radiusOrScale * 0.45F)
+                    * (0.88F + 0.26F * Mth.sin(expandProg * (float) Math.PI));
+            renderHemisphereShell(matrix, vc, ground, curRadius * 1.02F, 6, 26,
+                    0.388F, 0.584F, 0.694F, 0.54F * fade);
+            renderOrientedFrustumBand(matrix, vc, ground, ground.add(0.0D, rimeH, 0.0D), right, forward,
+                    Math.max(0.24F, curRadius * 0.82F), curRadius * 1.12F, 18,
+                    0.863F, 0.941F, 1.000F, 0.90F * fade, 0.24F * fade);
+            for (int rIdx = 0; rIdx < 16; rIdx++) {
+                float rAng = (float) (Math.PI * 2.0D * rIdx / 16.0D) + inst.seed * 0.15F;
+                Vec3 rBase = ground.add(Mth.cos(rAng) * curRadius * 0.85D, 0.06D, Mth.sin(rAng) * curRadius * 0.85D);
+                Vec3 rTip = rBase.add(Mth.cos(rAng) * 0.72D, 0.92D + (rIdx % 2) * 0.36D, Mth.sin(rAng) * 0.72D);
+                boolean white = (rIdx % 2 == 0);
+                renderCrossSegment(matrix, vc, rBase, rTip, 0.074F * fade,
+                        white ? 0.863F : 0.388F,
+                        white ? 0.941F : 0.584F,
+                        white ? 1.000F : 0.694F,
+                        0.97F * fade);
+            }
         }
     }
 
@@ -4099,6 +4162,22 @@ public final class SpellWorldVfxRenderer {
                     r * 0.92F, 8, rotOuter * 0.40F, 1.000F, 0.918F, 0.471F, 0.94F * fade);
             renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.044D, 0.0D), right, forward,
                     r * 0.62F, 8, -rotOuter * 0.55F, 0.157F, 0.118F, 0.235F, 0.92F * fade);
+        } else if (isHoarfrostRimeMateria(inst.essence)) {
+            // Section 6.42 Flash-Freeze Rime Pitfall Glyph (#6395B1 / #DCF0FF): crystalline 6-pointed frost rune & jagged rime spikes!
+            renderOrientedRing(matrix, vc, base.add(0.0D, 0.022D, 0.0D), right, forward,
+                    r * 0.78F, r * 1.04F, 6, 0.388F, 0.584F, 0.694F, 0.95F * fade);
+            renderOrientedStarPolygon(matrix, vc, base.add(0.0D, 0.036D, 0.0D), right, forward,
+                    r * 0.94F, 6, rotOuter * 0.32F, 0.863F, 0.941F, 1.000F, 0.96F * fade);
+            for (int c = 0; c < 6; c++) {
+                float cAng = (float) (Math.PI * 2.0D * c / 6.0D) + rotOuter * 0.15F;
+                Vec3 icePos = base.add(Mth.cos(cAng) * r * 0.48D, 0.16D, Mth.sin(cAng) * r * 0.48D);
+                boolean white = (c % 2 == 0);
+                renderOctahedron(matrix, vc, icePos, Math.max(0.16F, r * 0.12F),
+                        white ? 0.863F : 0.388F,
+                        white ? 0.941F : 0.584F,
+                        white ? 1.000F : 0.694F,
+                        0.94F * fade);
+            }
         }
     }
 
@@ -4142,9 +4221,10 @@ public final class SpellWorldVfxRenderer {
         boolean sepulchralBarrowCleave = isSepulchralBarrowMateria(inst.essence);
         boolean crematingPyreCleave = isCrematingPyreMateria(inst.essence);
         boolean twilightPenumbraCleave = isTwilightPenumbraMateria(inst.essence);
+        boolean hoarfrostRimeCleave = isHoarfrostRimeMateria(inst.essence);
         boolean umbralCleave = isUmbralShadowMateria(inst.essence);
         boolean necroticCleave = isNecroticUndeadMateria(inst.essence);
-        int bladeLayers = airBlade ? 3 : ((hydroWave || botanicalWhip || tectonicCleave || glacialCleave || infernalCleave || solarCleave || sanguineCleave || fossilAmberCleave || paradoxEclipseCleave || cosmicAstralCleave || phantasmalSoulfireCleave || scaldingVaporCleave || antimatterNullRCleave || abyssalNullUCleave || daybreakDawnCleave || hadopelagicAbyssCleave || gildedAegisCleave || borealisAuroraCleave || phantasmMirageCleave || incorporealWraithCleave || sepulchralBarrowCleave || crematingPyreCleave || twilightPenumbraCleave || umbralCleave || necroticCleave) ? 2 : 1);
+        int bladeLayers = airBlade ? 3 : ((hydroWave || botanicalWhip || tectonicCleave || glacialCleave || infernalCleave || solarCleave || sanguineCleave || fossilAmberCleave || paradoxEclipseCleave || cosmicAstralCleave || phantasmalSoulfireCleave || scaldingVaporCleave || antimatterNullRCleave || abyssalNullUCleave || daybreakDawnCleave || hadopelagicAbyssCleave || gildedAegisCleave || borealisAuroraCleave || phantasmMirageCleave || incorporealWraithCleave || sepulchralBarrowCleave || crematingPyreCleave || twilightPenumbraCleave || hoarfrostRimeCleave || umbralCleave || necroticCleave) ? 2 : 1);
 
         for (int layer = 0; layer < bladeLayers; layer++) {
             float baseTiltDeg = (inst.seed % 2 == 0) ? 24.0F : -24.0F;
@@ -4419,6 +4499,16 @@ public final class SpellWorldVfxRenderer {
                             corona ? 1.000F : 0.157F,
                             corona ? 0.918F : 0.118F,
                             corona ? 0.471F : 0.235F,
+                            0.98F * fade);
+                } else if (hoarfrostRimeCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
+                    // Section 6.42 Permafrost Rime-Cleave: #6395B1 / #DCF0FF jagged hoarfrost icicle teeth!
+                    Vec3 midOut = pOut0.add(pOut1).scale(0.5D);
+                    Vec3 tipOut = midOut.add(dir0.scale(0.58D * reach * prof0));
+                    boolean white = ((i / 2) % 2 == 0);
+                    renderCrossSegment(matrix, vc, midOut, tipOut, 0.072F * fade * prof0,
+                            white ? 0.863F : 0.388F,
+                            white ? 0.941F : 0.584F,
+                            white ? 1.000F : 0.694F,
                             0.98F * fade);
                 } else if (solarCleave && layer == 0 && i > 0 && i < segs && i % 2 == 0) {
                     // Section 6.8 Holy Smite & Daylight Ignition: 9 radiant 3D golden-white sun-ray lance teeth along the solar crescent!
@@ -5477,6 +5567,30 @@ public final class SpellWorldVfxRenderer {
                         corona ? 1.000F : 0.157F,
                         corona ? 0.918F : 0.118F,
                         corona ? 0.471F : 0.235F,
+                        0.98F * fade);
+            }
+        } else if (isHoarfrostRimeMateria(inst.essence)) {
+            // Section 6.42 Sub-Zero Blizzarding Rime Cone (#6395B1 / #DCF0FF): 60° blizzard cone of razor-sharp needle-ice!
+            renderOrientedRing(matrix, vc, muzzle, right, up, 0.18F, 0.64F, 6,
+                    0.863F, 0.941F, 1.000F, 0.98F * fade);
+            renderOrientedFrustumBand(matrix, vc,
+                    inst.start.add(fwd.scale(0.24D)), inst.start.add(fwd.scale(activeReach * 0.96D)),
+                    right, up, 0.20F, activeReach * 0.96F * coneTan * 0.96F, 18,
+                    0.388F, 0.584F, 0.694F, 0.66F * fade, 0.20F * fade);
+            for (int d = 0; d < 26; d++) {
+                float dAng = (float) (Math.PI * 2.0D * d / 26.0D) + inst.seed * 0.21F;
+                float rFrac = 0.12F + 0.86F * hashFloat(d, 239);
+                float st = ((progress * 2.55F + hashFloat(d, 163)) % 1.0F);
+                float dist = st * activeReach * 0.92F;
+                Vec3 tail = inst.start.add(fwd.scale(0.22D + dist))
+                        .add(right.scale(Mth.cos(dAng) * dist * coneTan * rFrac))
+                        .add(up.scale(Mth.sin(dAng) * dist * coneTan * rFrac));
+                Vec3 tip = tail.add(fwd.scale(0.88D));
+                boolean white = (d % 2 == 0);
+                renderCrossSegment(matrix, vc, tail, tip, 0.056F * fade,
+                        white ? 0.863F : 0.388F,
+                        white ? 0.941F : 0.584F,
+                        white ? 1.000F : 0.694F,
                         0.98F * fade);
             }
         }
@@ -7082,6 +7196,22 @@ public final class SpellWorldVfxRenderer {
                     fieldRad * 0.86F, 8, -gameTime * 0.040F, 0.157F, 0.118F, 0.235F, 0.94F * fade);
             return;
         }
+        // Section 6.42 Glacial Rime Cataclysmic Blizzard (#6395B1 / #DCF0FF): 12m arctic blizzard canopy & permafrost snowflake seal!
+        if (isHoarfrostRimeMateria(inst.essence)) {
+            double skyH = resolveTierScaledSkyfallHeight(ground, inst.tier, 11.2D);
+            Vec3 rimeTop = ground.add(0.0D, skyH, 0.0D);
+            float fieldRad = Math.max(12.0F, radius);
+
+            renderOrientedRing(matrix, vc, rimeTop, right, forward, 0.0F, fieldRad * 0.96F, 24,
+                    0.388F, 0.584F, 0.694F, 0.82F * fade);
+            renderOrientedStarPolygon(matrix, vc, rimeTop.add(0.0D, -0.15D, 0.0D), right, forward,
+                    fieldRad * 0.90F, 6, gameTime * 0.045F, 0.863F, 0.941F, 1.000F, 0.95F * fade);
+            renderOrientedRing(matrix, vc, ground.add(0.0D, 0.05D, 0.0D), right, forward,
+                    fieldRad * 0.88F, fieldRad * 1.02F, 28, 0.863F, 0.941F, 1.000F, 0.92F * fade);
+            renderOrientedStarPolygon(matrix, vc, ground.add(0.0D, 0.06D, 0.0D), right, forward,
+                    fieldRad * 0.86F, 6, -gameTime * 0.040F, 0.388F, 0.584F, 0.694F, 0.90F * fade);
+            return;
+        }
 
         // Crisp 8-tick (0.4s) orbital descent slams downward from skyTop to ground, then sustains full sky column!
         float elapsedTicks = progress * inst.maxTicks;
@@ -8540,6 +8670,24 @@ public final class SpellWorldVfxRenderer {
                             corona ? 0.471F : 0.235F,
                             penAlpha * 0.82F);
                 }
+            } else if (ward.primaryMateria == EssenceType.RIME) {
+                // Section 6.42 Hoarfrost Glacial Aegis Mantle (#6395B1 / #DCF0FF): crystalline hoarfrost plates & howling sub-zero updrafts!
+                Vec3 rimeFeet = feetPos.add(0.0D, 0.045D, 0.0D);
+                float rimeAlpha = localFirstPerson ? (ringAlpha * 0.36F) : (ringAlpha * 0.95F);
+                renderOrientedRing(matrix, vc, rimeFeet, flatX, flatZ, r * 0.82F, r * 1.25F, 6,
+                        0.388F, 0.584F, 0.694F, rimeAlpha * 0.96F);
+                renderOrientedStarPolygon(matrix, vc, rimeFeet.add(0.0D, 0.015D, 0.0D), flatX, flatZ, r * 1.16F, 6, gameTime * 0.045F,
+                        0.863F, 0.941F, 1.000F, rimeAlpha * 0.95F);
+                for (int h = 0; h < 4; h++) {
+                    double hy = (h - 1.5D) * r * 0.34D;
+                    float hr = r * (0.98F + 0.07F * Mth.sin(gameTime * 0.22F + h));
+                    boolean white = (h % 2 == 0);
+                    renderOrientedRing(matrix, vc, center.add(0.0D, hy, 0.0D), flatX, flatZ, hr * 0.85F, hr, 12,
+                            white ? 0.863F : 0.388F,
+                            white ? 0.941F : 0.584F,
+                            white ? 1.000F : 0.694F,
+                            rimeAlpha * 0.82F);
+                }
             }
         }
 
@@ -9206,6 +9354,10 @@ public final class SpellWorldVfxRenderer {
 
     private static boolean isTwilightPenumbraMateria(EssenceType type) {
         return type == EssenceType.PENUMBRA;
+    }
+
+    private static boolean isHoarfrostRimeMateria(EssenceType type) {
+        return type == EssenceType.RIME;
     }
 
     /**

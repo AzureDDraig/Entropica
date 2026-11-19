@@ -303,6 +303,8 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                 renderPyreJuggernautAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
             } else if (state.materia == EssenceType.PENUMBRA) {
                 renderPenumbraBladewardenAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.RIME) {
+                renderGlacialRimeVanguardAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
             }
         });
 
@@ -1616,6 +1618,36 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                             corona ? 0.471F : 0.235F,
                             0.98F);
                 }
+            } else if (state.materia == EssenceType.RIME) {
+                // Section 6.42 Hoarfrost Glacial Citadel Spire (#6395B1 / #DCF0FF): monolithic jagged permafrost tower,
+                // 8m cryogenic frost-burst ring, & 4 orbiting 3-pierce needle-ice bolts!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float pulse = 0.92F + 0.10F * Mth.sin(age * 0.26F);
+                float frostWave = (age * 0.05F) % 1.0F;
+                float frostR = 0.72F + frostWave * 2.30F;
+
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.045D, 0.0D), flatX, flatZ, 0.72F, 1.14F, 6,
+                        0.388F, 0.584F, 0.694F, 0.97F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.070D, 0.0D), flatX, flatZ, frostR * 0.86F, frostR, 24,
+                        0.863F, 0.941F, 1.000F, 0.92F * (1.0F - frostWave * 0.65F));
+
+                renderCylinderFrustum(m, vc, 0.02F, 0.62F, 0.66F, 0.48F, 6, 0.0F, 0.388F, 0.584F, 0.694F, 0.98F);
+                renderOpenFrustumWall(m, vc, 0.58F, 1.78F, 0.46F, 0.26F, 6, spin * 0.28F,
+                        0.863F, 0.941F, 1.000F, 0.86F);
+
+                Vec3 rimeApex = new Vec3(0.0D, 1.54D, 0.0D);
+                renderOctahedron(m, vc, rimeApex, 0.24F * pulse, 0.44F * pulse, spin * 0.45F,
+                        0.863F, 0.941F, 1.000F, 0.99F);
+                renderLocalRing(m, vc, rimeApex, flatX, flatZ, 0.36F, 0.52F, 18,
+                        0.388F, 0.584F, 0.694F, 0.95F);
+
+                for (int n = 0; n < 4; n++) {
+                    float nAng = -spin * 1.25F + (float) (Math.PI * 0.5D * n);
+                    Vec3 nPos = new Vec3(Mth.cos(nAng) * 0.84D, 1.44D + 0.12D * Mth.sin(age * 0.24F + n), Mth.sin(nAng) * 0.84D);
+                    renderOctahedron(m, vc, nPos, 0.075F, 0.28F, nAng, 0.863F, 0.941F, 1.000F, 0.98F);
+                    renderOctahedron(m, vc, nPos, 0.11F, 0.14F, -nAng, 0.388F, 0.584F, 0.694F, 0.92F);
+                }
             }
         });
         poseStack.popPose();
@@ -2687,6 +2719,25 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                             corona ? 0.918F : 0.118F,
                             corona ? 0.471F : 0.235F,
                             0.88F * flicker);
+                }
+            } else if (state.materia == EssenceType.RIME) {
+                // Section 6.42 Brittle Permafrost Effigy (#6395B1 / #DCF0FF): compacted hoarfrost ice statue
+                // & jagged crystalline shatter spikes!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.048D, 0.0D), flatX, flatZ,
+                        0.60F, 1.04F, 6, 0.388F, 0.584F, 0.694F, 0.96F * flicker);
+                renderOpenFrustumWall(m, vc, 0.10F, 1.84F, 0.52F, 0.34F, 6, age * 0.04F,
+                        0.863F, 0.941F, 1.000F, 0.72F * flicker);
+                for (int s = 0; s < 6; s++) {
+                    float sAng = -age * 0.06F + (float) (Math.PI * 2.0D * s / 6.0D);
+                    boolean white = (s % 2 == 0);
+                    Vec3 spikePos = new Vec3(Mth.cos(sAng) * 0.54D, 0.58D + (s % 3) * 0.36D, Mth.sin(sAng) * 0.54D);
+                    renderOctahedron(m, vc, spikePos, 0.095F, 0.28F, sAng,
+                            white ? 0.863F : 0.388F,
+                            white ? 0.941F : 0.584F,
+                            white ? 1.000F : 0.694F,
+                            0.95F * flicker);
                 }
             }
 
@@ -4522,6 +4573,47 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                     corona ? 0.471F : 0.235F,
                     0.96F);
         }
+    }
+
+    /**
+     * Section 6.42 Glacial Rime-Vanguard Agent (#6395B1 / #DCF0FF):
+     * Heavy armored frost-knight with crystalline hoarfrost pauldrons, permafrost chest core & rime-greatsword!
+     */
+    private static void renderGlacialRimeVanguardAgentOrnaments(
+            Matrix4f m,
+            VertexConsumer vc,
+            float age,
+            float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.04D, 0.0D), flatX, flatZ,
+                0.54F, 0.90F, 6, 0.388F, 0.584F, 0.694F, 0.95F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+        Vec3 fwdDir = new Vec3(-Mth.sin(yawRad), 0.0D, Mth.cos(yawRad));
+
+        // Crystalline hoarfrost pauldrons (#6395B1 + #DCF0FF spires)
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 shoulder = new Vec3(0.0D, 1.46D, 0.0D).add(rightDir.scale(side * 0.48D));
+            renderOctahedron(m, vc, shoulder, 0.20F, 0.18F, yawRad, 0.388F, 0.584F, 0.694F, 0.98F);
+            Vec3 frostSpire = shoulder.add(0.0D, 0.22D, 0.0D);
+            renderOctahedron(m, vc, frostSpire, 0.11F, 0.22F, yawRad, 0.863F, 0.941F, 1.000F, 0.99F);
+        }
+
+        // Permafrost chest core
+        Vec3 chest = new Vec3(0.0D, 1.18D, 0.0D).add(fwdDir.scale(0.18D));
+        renderOctahedron(m, vc, chest, 0.15F, 0.20F, age * 0.20F, 0.863F, 0.941F, 1.000F, 0.98F);
+
+        // Crystalline Rime-Greatsword on main-hand side (+rightDir)
+        double swordBob = 0.06D * Mth.sin(age * 0.24F);
+        Vec3 hilt = new Vec3(0.0D, 0.86D + swordBob, 0.0D).add(rightDir.scale(0.54D)).add(fwdDir.scale(0.22D));
+        Vec3 tip = hilt.add(fwdDir.scale(0.76D)).add(0.0D, 0.34D, 0.0D);
+        Vec3 edgeL = hilt.add(fwdDir.scale(0.36D)).add(0.0D, 0.28D, 0.0D);
+        Vec3 edgeR = hilt.add(fwdDir.scale(0.42D)).subtract(0.0D, 0.04D, 0.0D);
+        emitDoubleSidedQuad(m, vc, hilt, edgeL, tip, edgeR, 0.863F, 0.941F, 1.000F, 0.97F);
+        emitDoubleSidedQuad(m, vc, hilt, edgeR, tip, hilt.add(0.0D, 0.08D, 0.0D), 0.388F, 0.584F, 0.694F, 0.94F);
     }
 
     private static void renderOpenFrustumWall(

@@ -1112,7 +1112,7 @@ public final class SpellEngineVerificationSuite {
             int aRgb = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantAccentRgb(et, null, 40.0D);
             byte arch = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(et, false, false);
             if (pRgb <= 0 || pRgb > 0xFFFFFF || aRgb <= 0 || aRgb > 0xFFFFFF
-                    || arch < 0 || arch > ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT) {
+                    || arch < 0 || arch > ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_HOARFROST_RIME_JAVELIN) {
                 vfxPalettesAndArchetypesOk = false;
                 break;
             }
@@ -1170,6 +1170,8 @@ public final class SpellEngineVerificationSuite {
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_COMBUSTION_HEARTH_ORB
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.PENUMBRA, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_PENUMBRAL_ECLIPSE_BOLT
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.RIME, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_HOARFROST_RIME_JAVELIN
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.AIR, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_WIND_SPIRAL;
 
