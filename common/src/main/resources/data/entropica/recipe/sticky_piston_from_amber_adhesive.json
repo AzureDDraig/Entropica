@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "A",
+    "P"
+  ],
+  "key": {
+    "A": "entropica:amber_adhesive",
+    "P": "minecraft:piston"
+  },
+  "result": {
+    "id": "minecraft:sticky_piston",
+    "count": 1
+  }
+}

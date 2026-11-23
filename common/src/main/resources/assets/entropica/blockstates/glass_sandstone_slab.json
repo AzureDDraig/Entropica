@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "entropica:block/glass_sandstone_slab"
+    },
+    "type=top": {
+      "model": "entropica:block/glass_sandstone_slab_top"
+    },
+    "type=double": {
+      "model": "entropica:block/glass_sandstone"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "group": "bismuth_ingot",
+  "ingredient": "entropica:raw_bismuth",
+  "result": {
+    "id": "entropica:bismuth_ingot"
+  },
+  "experience": 0.7,
+  "cookingtime": 200
+}

@@ -2,6 +2,9 @@ package ddraig.net.entropica.codex;
 
 import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModItems;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -510,7 +513,7 @@ public class CodexCategoryRegistry {
                 "Origin & Obtaining:\n" +
                 "Explored naturally throughout the Overworld and Nether.\n\n" +
                 "Configuration & Customization:\n" +
-                "Entropica features a built-in Multi-Noise Biome Injector that works standalone or alongside TerraBlender (giving way to modded TerraBlender biomes by default, or layering on top if configured). All 108 biomes, region weights, region scale, and TerraBlender compatibility modes can be customized under Biome Generation Settings (biome_settings / biomeSettings) in the mod config.",
+                "Entropica features a built-in Multi-Noise Biome Injector that works standalone or alongside TerraBlender (giving way to modded TerraBlender biomes by default, or layering on top if configured), paired with a Sodium/Embeddium/Rubidium & Iris/Oculus-compatible Enhanced Biome Volumetric Mist & Water Optics Renderer (ground-hugging channel mist, Fresnel sky/aurora reflections, and 3-layer sub-surface starlight parallax, controlled via enable_enhanced_biome_fog_and_water, default: true). All 108 biomes, region weights, region scale, TerraBlender compatibility modes, and atmosphere toggles can be customized under Biome Generation Settings (biome_settings / biomeSettings) in the mod config.",
                 "hub_environment", 0, new ItemStack(Items.GRASS_BLOCK),
                 280f, 0.0f, a_env - 0.20f, false
         ));
@@ -573,9 +576,9 @@ public class CodexCategoryRegistry {
                 "env_aegis_crystal", "Aegis Crystals & Linings", "ENVIRONMENT & NATURE",
                 "Faceted light-blue crystals, defensive linings, shattering barricades, and projectile-sensing plating.",
                 "Overview & Description:\n" +
-                "Faceted light-blue Aegis Crystal Blocks and directional Aegis Crystal Clusters grow embedded inside the sheer ice cliffs of the Blue-Glacier Shelf, radiating protective Aegis Materia.\n\n" +
+                "Faceted light-blue Aegis Crystal Blocks sprout 2-stage Aegis Crystals—young Aegis Crystal Buds (Stage 1) that mature over time into full Aegis Crystal Clusters (Stage 2)—embedded inside the sheer ice cliffs of the Blue-Glacier Shelf and radiating protective Aegis Materia.\n\n" +
                 "Origin & Obtaining:\n" +
-                "Mine exposed Aegis Crystal Clusters with an Iron Pickaxe or better for 2-4 Aegis Crystal Shards (4 shards compact into an Aegis Crystal Block).\n\n" +
+                "Mine young Aegis Crystal Buds with an Iron Pickaxe or better for 1 Aegis Crystal Shard (or Silk Touch to replant on Aegis Crystal or Blue Ice), and harvest mature Aegis Crystal Clusters for 2-4 Aegis Crystal Shards (4 shards compact into an Aegis Crystal Block).\n\n" +
                 "Crafting & Defensive Gear:\n" +
                 "▪ Aegis Shielding Lining: Crafted from Glacial Aegis Plates, Aegis Crystal Shards, and Leather; grants passive Resistance I in your inventory or offhand and shields against Runic Spire hypothermia.\n" +
                 "▪ Glacial Barricade: 3-charge ice bulwark crafted from Glacial Aegis Plates and Packed Ice that absorbs incoming projectiles and shatters on its third hit in a 3.5-block frost blast (4.0 cold damage + Slowness III).\n" +
@@ -587,17 +590,705 @@ public class CodexCategoryRegistry {
 
         ALL_NODES.add(new CodexNode(
                 "env_spire_structure_1", "Frost-Veiled Glacial Runic Spire", "ENVIRONMENT & NATURE",
-                "Rare 18x18x45 hexagonal Blue-Ice tower housing the Frost Scriptorium, waterfall Runic Vault, and Life-Force Anchor.",
+                "Rare 18x18x45 hexagonal Blue-Ice tower housing the Frost Scriptorium, waterfall Runic Vault, and Aegis Crystal apex.",
                 "Overview & Description:\n" +
                 "Rising 45 blocks above the Blue-Glacier Shelf, this tapering hexagonal tower of Blue Ice, Packed Ice flying buttresses, Runed Basalt Pillars, and Silver Pine scaffolding is crowned by a floating Aegis Crystal prism.\n\n" +
                 "Chambers & Secrets:\n" +
                 "▪ Frost Scriptorium (Y+20): Glowing Runic Blue Ice study lined with lecterns, ice benches, and a relic treasure chest.\n" +
                 "▪ Waterfall Runic Vault (Y-6): Hidden behind a ground-floor waterfall curtain, featuring Rimebloom-lined Blue Ice floors, a narrow safe Stone Brick walkway, and tripwire/pressure-plate dispensers loaded with Splash Potions of Freezing and Slowness.\n" +
-                "▪ Spire Relics: Chests contain the rare Glacial Focus Lens alongside Rimebloom Petals, Glacial Heart-Roots, Packed Ice, and precious metals.\n\n" +
-                "Interior Hypothermia & Glacial Life-Force Anchor (Y+42):\n" +
-                "Unprotected explorers inside the Spire suffer 1 heart of freezing hypothermia every 5 seconds unless carrying Aegis frost protection (Aegis armor, Aegis Shielding Lining, or Thermal Insulated Blanket) or activating the summit Glacial Life-Force Anchor with an Aegis Crystal Shard/Block to project a 24-block Resistance I & fire-extinguishing Aegis Ward.",
-                "env_biome_blue_glacier_shelf", 2, new ItemStack(ModBlocks.GLACIAL_LIFE_FORCE_ANCHOR.get()),
+                "▪ Spire Relics & Aegis Apex (Y+42): Chests contain the rare Glacial Focus Lens alongside Rimebloom Petals, Glacial Heart-Roots, Packed Ice, and precious metals beneath the glowing Aegis Crystal summit.\n\n" +
+                "Interior Hypothermia:\n" +
+                "Unprotected explorers inside the Spire suffer 1 heart of freezing hypothermia every 5 seconds unless carrying Aegis or Cryo frost protection (Cryo-Insulated Armor, Aegis Shielding Lining, or Thermal Insulated Blanket).",
+                "env_biome_blue_glacier_shelf", 2, new ItemStack(ModBlocks.AEGIS_CRYSTAL_BLOCK.get()),
                 440f, 0.0f, a_env - 0.28f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biome_auroral_skerries", "2.2 Auroral Skerries", "ENVIRONMENT & NATURE",
+                "Steaming polar archipelago of flat black-gravel islets, warm teal channels, Glimmer-Ice shores, and emerald auroras.",
+                "Overview & Description:\n" +
+                "Biome #2 (entropica:auroral_skerries) scatters low, flat volcanic Coarse Gravel islets (Y=63-65) across warm teal geothermal channels (#0A8E89) bordered by glowing Glimmer-Ice shelves beneath shimmering emerald-green night auroras (#0E6A3B) and rising white steam.\n\n" +
+                "Environmental Hazards & Materia:\n" +
+                "▪ Primary Aurora & Secondary Vapor Materia: Favors Aurora (55%), Vapor (35%), and Glacial (10%) Grots alongside drifting Aurora Jellies and roaming Frost-Tusk Mammots.\n" +
+                "▪ Dense Steam Fog (12 Blocks): Thick geothermal steam cuts visibility down to roughly 12 blocks unless you hold a torch, lantern, or glowing Materia light source (+18 blocks of fog relief).\n\n" +
+                "Native Resources & Landmarks:\n" +
+                "Home to underwater bubbling steam vents, Glimmer-Ice shorelines, Auroral Feather-Moss carpets, Mist-Veil Ferns, ice-melting Auroral Lily-Pads, and the circular Auroral Wellspring sanctuary.",
+                "env_biomes", 1, new ItemStack(ModBlocks.GLIMMER_ICE.get()),
+                375f, 0.0f, a_env - 0.48f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_glimmer_ice", "Glimmer-Ice & Coarse Gravel", "ENVIRONMENT & NATURE",
+                "Glowing shoreline aurora ice, shimmering Aurora Dust, Auroral Spectral Dye, and dark volcanic Coarse Gravel.",
+                "Overview & Description:\n" +
+                "Along the steaming water channels of the Auroral Skerries, Aurora Materia crystallizes into translucent Glimmer-Ice (Light Level 10) banded with gold, pink, and emerald light alongside flat islets of gravity-affected basalt-black Coarse Gravel.\n\n" +
+                "Origin & Obtaining:\n" +
+                "▪ Glimmer-Ice & Aurora Dust: Harvest Glimmer-Ice intact with Silk Touch, or break it normally to collect 2-3 shimmering Aurora Dust. Packed Ice surrounded by 4 Aurora Dust reforms Glimmer-Ice, and 1 Glimmer-Ice breaks down into 2 Aurora Dust.\n" +
+                "▪ Coarse Gravel: Dug across skerries islets with a shovel, or mixed from 2 Gravel and 2 Basalt (yields 4 Coarse Gravel).\n\n" +
+                "Crafting Uses:\n" +
+                "Aurora Dust combines with Glow Ink Sacs or White Dye into 2x Auroral Spectral Dye, and powers the crafting of Auroral Wands and prismatic Auroral Lens Blocks.",
+                "env_biome_auroral_skerries", 1, new ItemStack(ModItems.AURORA_DUST.get()),
+                465f, 0.0f, a_env - 0.41f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_wellspring_structure_3", "Auroral Wellspring", "ENVIRONMENT & NATURE",
+                "24x24x12 concentric quartz sanctuary with debuff-cleansing thermal waters, copper-domed arches, and prismatic Auroral Lens.",
+                "Overview & Description:\n" +
+                "Anchored at sea level (Y=63) in the Auroral Skerries, this 24x24x12 Smooth Quartz and Quartz Bricks sanctuary forms three concentric water rings—an outer cold channel moat, a Glimmer-Ice and Auroral Lily-Pad middle basin, and a warm bubbling inner thermal spring—crowned by four copper-domed quartz arches.\n\n" +
+                "Sanctuary Blocks & Relics:\n" +
+                "▪ Auroral Lens Block (Light Level 12): Prismatic crystal suspended above the warm inner thermal spring; chimes and projects an upward aurora beam when struck or right-clicked. Crafted from Aurora Dust, Amethyst/Glass, and rare Vapor Condensate Crystals.\n" +
+                "▪ Glimmer-Ice Pedestals: Glowing Glimmer-Ice nodes border the radial quartz walkways around the inner pool.\n" +
+                "▪ Sanctuary Chests: Yield Vapor Condensate Crystals, Auroral Spectral Dye, Glowing Auroral Fibers, Prismarine Crystals, and rare Hearts of the Sea.\n\n" +
+                "Thermal Spring Blessing & Vapor Clouds:\n" +
+                "Bathing in the unfrozen inner thermal pool washes away Slowness, Weakness, Poison, Mining Fatigue, and freezing chill, and stepping out grants Speed II and Jump Boost II for 30 seconds. Every 20 seconds, rising aurora-vapor clouds and arch dispensers bathe nearby visitors in Regeneration I and Invisibility I.",
+                "env_biome_auroral_skerries", 2, new ItemStack(ModBlocks.AURORAL_LENS_BLOCK.get()),
+                465f, 0.0f, a_env - 0.54f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biome_frost_bite_floes", "2.3 Frost-Bite Floes", "ENVIRONMENT & NATURE",
+                "Rotting green pack-ice floes drifting at sea level on freezing murky swamp water beneath foul blight mist.",
+                "Overview & Description:\n" +
+                "Biome #3 (entropica:frost_bite_floes) scatters fractured, blocky sheets of Blighted Packed Ice and treacherous Rotten Ice floating at sea level (Y=63) over dark grey swamp water (#3B423D) beneath a sickly yellow-green sky (#7D8C43), olive night haze (#2A3318), and drifting black rot spores.\n\n" +
+                "Environmental Hazards & Materia:\n" +
+                "▪ Primary Glacial & Secondary Blight Materia: Favors Glacial (50%), Blight (40%), and Frozen (10%) Grots alongside camouflaged Cryo-Stalkers, Slimes, Bogged, Strays, and Drowned.\n" +
+                "▪ Rotten Ice Collapse & Poison: Stepping onto Rotten Ice without sneaking or wearing Cryo-Insulated Boots inflicts Poison I and shatters the ice beneath your feet, plunging you into the freezing swamp below.\n" +
+                "▪ Freezing Swamp-Water Hypothermia: Wading in the frigid bog water inflicts Slowness and steadily builds freezing frostbite unless protected by Cryo-Insulated Armor.\n\n" +
+                "Native Resources & Flora:\n" +
+                "Home to half-submerged Frozen Dead Spruce trunks with rime-coated Frozen Spruce Branches, scoopable Necrotic Slime crusts, Rot Powder, and stunted Frostbite Blossoms (Rimebloom) clinging to decaying floes.",
+                "env_biomes", 1, new ItemStack(ModBlocks.BLIGHTED_PACKED_ICE.get()),
+                395f, 0.0f, a_env - 0.66f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_rotten_ice_slime", "Rotten Ice & Necrotic Slime", "ENVIRONMENT & NATURE",
+                "Collapsing blight-mottled floe ice, Rot Powder, Potions of Decay, scoopable Necrotic Slime crusts, and toxic slime blocks.",
+                "Overview & Description:\n" +
+                "Glacial ice sheets steeped in swamp Blight Materia decay into dense Blighted Packed Ice and brittle Rotten Ice coated in slick Necrotic Slime Patches and tangled Frozen Spruce Branches.\n\n" +
+                "Origin & Obtaining:\n" +
+                "▪ Rotten Ice & Rot Powder: Harvest Rotten Ice intact with Silk Touch, or break/collapse it for Rot Powder (2 Ice + 2 Rot Powder reforms 2 Rotten Ice; 4 Packed Ice + Rot Powder + Necrotic Slime crafts 4 Blighted Packed Ice).\n" +
+                "▪ Necrotic Slime & Slime Buckets: Right-click a Necrotic Slime Patch with an empty Bucket to scoop a Necrotic Slime Bucket (which spreads a new patch onto ice or stone and returns the bucket), shear for the intact patch, or break for 1-2x Necrotic Slime.\n" +
+                "▪ Frozen Spruce Branches: Snapped from half-frozen dead spruce trunks with Silk Touch or Shears (otherwise drops 1-2 Sticks).\n\n" +
+                "Alchemy & Crafting Uses:\n" +
+                "▪ Potion of Decay (entropica:decay): Inflicts Poison I and Weakness I for 45 seconds across regular, splash, lingering, and tipped arrow variants.\n" +
+                "▪ Necrotic Slime Block: Compacted from 9 Necrotic Slime (reversible into 9 slime, or 3 in a row for 6 patches); bounces falling entities like slime while poisoning and slowing uninsulated intruders.",
+                "env_biome_frost_bite_floes", 1, new ItemStack(ModItems.NECROTIC_SLIME_BUCKET.get()),
+                480f, 0.0f, a_env - 0.66f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_icebound_blight_wreck", "Icebound Blight-Wreck", "ENVIRONMENT & NATURE",
+                "16x22x14 crushed expedition ship frozen into Blighted Packed Ice with Rotten Ice bilge traps, Glacial/Blight Essences, and early-game gear.",
+                "Overview & Description:\n" +
+                "Anchored at sea level across Frost-Bite Floes, this 16x22x14 canted wooden vessel lies crushed inside a jagged pressure ridge of Blighted Packed Ice and treacherous Rotten Ice beneath a snapped, rime-crusted mast and hanging Soul Lantern.\n\n" +
+                "Hazards & Loot:\n" +
+                "▪ Flooded Bilge & Stern Cabin: Watch your step in the Necrotic Slime-coated lower hold where Rotten Ice planks give way into freezing swamp water—tucked under the tilted bow sits a smuggler's Silver Pine Barrel, while dry Silver Pine steps climb to the Captain's Cabin chest.\n" +
+                "▪ Biome Essences & Starter Gear: Chests reward Glacial and Blight Materia Essences & Ampoules, Cryo-Insulated Boots or Frost-Bite Daggers, Arcanite Ingots & Nuggets, Small Ampoules, Arcane Clay, and polar survival rations.",
+                "env_biome_frost_bite_floes", 2, new ItemStack(ModItems.CRYO_INSULATED_BOOTS.get()),
+                565f, 0.0f, a_env - 0.66f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biome_crystalline_pack_ice", "2.4 Crystalline Pack-Ice", "ENVIRONMENT & NATURE",
+                "Peaceful inland polar snowfields of Blue Ice streaks and glowing Glimmer-Ice & Aegis Quartz spires beneath violet night skies.",
+                "Overview & Description:\n" +
+                "Biome #4 (entropica:crystalline_pack_ice) unfolds across rolling inland polar mountain valleys floored with Snow Blocks, Packed Ice, and exposed Blue Ice bands beneath a lavender-blue sky, violet night skies (#4E2A7A) with brighter stars, and a violet-cyan Glacial Ice Halo.\n\n" +
+                "Peaceful Sanctuary & Materia:\n" +
+                "▪ Zero Environmental Hazards: Unlike coastal blizzards or rotting swamp floes, Crystalline Pack-Ice is a calm sanctuary biome.\n" +
+                "▪ Primary Aegis & Secondary Aurora Materia: Favors Aegis (55%), Aurora (35%), and Glacial (10%) Grots alongside Rime-Back Ovis, drifting Aurora Jellies, Rabbits, Foxes, and rare nocturnal Cryo-Stalkers.\n\n" +
+                "Native Spires, Ores & Flora:\n" +
+                "Dotted with 6-13 block spires of glowing Glimmer-Ice, Blue Ice, Aegis Quartz Blocks, and Aegis Quartz Clusters, rich underground veins of rainbow Bismuth Ore, snowfield Aegis-Spire Orchids (4-block Resistance I aura), Frostbite Blossoms (Rimebloom), and the rare Aegis Shielding Monolith.",
+                "env_biomes", 1, new ItemStack(ModBlocks.AEGIS_QUARTZ_BLOCK.get()),
+                415f, 0.0f, a_env - 0.80f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aegis_quartz_bismuth", "Aegis Quartz & Rainbow Bismuth", "ENVIRONMENT & NATURE",
+                "Glowing spire-base Aegis Quartz crystals, rainbow hopper-crystal Bismuth metallurgy, and double-obsidian Aegis Plated Stone.",
+                "Overview & Description:\n" +
+                "Crystalline spires across Crystalline Pack-Ice concentrate Aegis Materia at their roots as luminous Aegis Quartz, while surrounding strata hold stepped rainbow veins of conductive Bismuth Ore.\n\n" +
+                "Origin & Obtaining:\n" +
+                "▪ Aegis Quartz & Clusters: Mine Aegis Quartz Clusters (Light Level 7) for 2-4x Aegis Quartz (Fortune-boosted; Silk Touch keeps the cluster). 4 Aegis Quartz compact into an Aegis Quartz Block (Light Level 6, reversible).\n" +
+                "▪ Bismuth Metallurgy: Mine Bismuth Ore with an Iron Pickaxe+ for Raw Bismuth and smelt or blast into Bismuth Ingots (9 ingots compact into a Block of Bismuth).\n\n" +
+                "Defensive Masonry:\n" +
+                "▪ Aegis Plated Stone: Forged from 4 Stone Bricks, 4 Bismuth Ingots, and 1 Obsidian into heavy bismuth-riveted masonry boasting double the hardness and blast resistance of Obsidian.",
+                "env_biome_crystalline_pack_ice", 1, new ItemStack(ModItems.BISMUTH_INGOT.get()),
+                500f, 0.0f, a_env - 0.75f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aegis_shielding_charm_core", "Aegis Shielding Charm & Iron Skin", "ENVIRONMENT & NATURE",
+                "Fatal-blow lifesaving Aegis Shielding Charms, Aegis Warding Emblems, and Potions of Iron Skin.",
+                "Overview & Description:\n" +
+                "Combining snowfield Aegis-Spire Petals, Aegis Quartz, and conductive Bismuth unlocks personal lifesaving wards and heavy defensive alchemy.\n\n" +
+                "Crafted Wards & Alchemy:\n" +
+                "▪ Aegis Shielding Charm: Woven from 1 Aegis-Spire Petal, 2 Bismuth Ingots, 2 Aegis Quartz, and String. Carried in your inventory or offhand, it shatters to intercept a single fatal blow—restoring 2 hearts, cleansing harmful debuffs, and granting Absorption II and Resistance II.\n" +
+                "▪ Potion of Iron Skin (entropica:iron_skin): Defensive Aegis brew granting Resistance II and Absorption I for 90 seconds across regular, splash, lingering, and tipped arrow variants.",
+                "env_biome_crystalline_pack_ice", 1, new ItemStack(ModItems.AEGIS_SHIELDING_CHARM.get()),
+                500f, 0.0f, a_env - 0.85f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_monolith_structure_2", "Aegis Shielding Monolith", "ENVIRONMENT & NATURE",
+                "15x15x22 Obsidian & Bismuth sanctuary with 3 outer pylon towers, a floating Aegis Crystal octahedron, and a Bismuth-keyed vault.",
+                "Overview & Description:\n" +
+                "Anchored in the snowfields of Crystalline Pack-Ice, this 15x15x22 stepped triangular dais of Obsidian, Crying Obsidian, and Aegis Plated Stone supports three 12-block Bismuth-trimmed outer pylons beaming aurora-cyan sparks toward a floating Aegis Crystal octahedron.\n\n" +
+                "Under-Dais Bismuth Vault:\n" +
+                "Rear stairs lead into a Conductive Aegis Plating and copper maintenance room where slotting 1 Bismuth Ingot into the Bismuth Key Pedestal powers open the locked Iron Door to treasure chests holding the rare Aegis Warding Emblem (passive Resistance I).",
+                "env_biome_crystalline_pack_ice", 2, new ItemStack(ModItems.AEGIS_WARDING_EMBLEM.get()),
+                585f, 0.0f, a_env - 0.80f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biome_silent_fjord", "2.5 Silent Fjord", "ENVIRONMENT & NATURE",
+                "Deep dark navy fjord inlets carved between sheer Y=120 hexagonal Basalt Columns under a bruised violet Eclipse sky.",
+                "Overview & Description:\n" +
+                "Biome #5 (entropica:silent_fjord) carves narrow, deep dark navy inlets (#080E26) between sheer vertical walls of hexagonal Basalt Columns rising up to Y=120 beneath a bruised violet sky (#1B0E3A), 0.42x eclipsed twilight shadows, cold grey fog (#3E4452), silent snowfall, and an overhead Eclipse Corona.\n\n" +
+                "Environmental Hazard (Deep Shadows) & Materia:\n" +
+                "▪ Primary Eclipse & Secondary Glacial Materia: Favors Eclipse (55%), Glacial (35%), and Frozen (10%) Grots alongside Veil Foxes, camouflaged Cryo-Stalkers, Glow Squids, and shadow-prowling Strays and Drowned.\n" +
+                "▪ Deep Shadows Cliff Gloom: Under the dimmed canopy and towering basalt walls (block light <= 5), hostile monsters gain Speed I and resist daylight sun-burn, while unlit travellers lingering in deep cliff shadows (block light <= 2) build creeping frostbite chill unless holding a light or wearing Silent Striders / Cryo-Insulated Boots.\n\n" +
+                "Native Landmarks & Flora:\n" +
+                "Home to hexagonal Basalt Column cliffs, Chiseled Eclipse Basalt cairns, cushioning Blue Frozen Moss, dark-crevice Shadowed Eclipse Moss, water-freezing Glacial Heart-Roots, and rare cliff-top Frost-Veiled Glacial Runic Spires.",
+                "env_biomes", 1, new ItemStack(ModBlocks.BASALT_COLUMN.get()),
+                435f, 0.0f, a_env - 0.94f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_basalt_columns_frozen_moss", "Basalt Columns & Blue Frozen Moss", "ENVIRONMENT & NATURE",
+                "Hexagonal Basalt Columns, Chiseled Eclipse Basalt, Basalt Pickaxes, and cushioning Bone-Meal-spreadable Blue Frozen Moss.",
+                "Overview & Description:\n" +
+                "Towering organ-pipe cliffs of hexagonal volcanic Basalt Columns line the shores of Silent Fjord, blanketed in soft cushions of pale Blue Frozen Moss.\n\n" +
+                "Masonry & Tools:\n" +
+                "▪ Basalt Column & Chiseled Eclipse Basalt: Craft 4 Basalt Columns from 2 Basalt and 2 Smooth Basalt, and carve 4 Chiseled Eclipse Basalt (Light Level 3) around Shadowed Eclipse Moss or Amethyst.\n" +
+                "▪ Basalt Pickaxe: Forged from 3 Basalt Columns and 2 Sticks for durable 220-use volcanic mining.\n\n" +
+                "Blue Frozen Moss & Carpets:\n" +
+                "▪ Cushioning & Silent: Both Blue Frozen Moss and Blue Frozen Moss Carpets (Light Level 2) dampen sculk/footstep vibrations and reduce fall damage by 40%.\n" +
+                "▪ Propagation & Clumps: Bone Meal spreads Blue Frozen Moss across adjacent basalt and stone; breaking carpets without Shears yields Frozen Moss Clumps (craftable into Light Blue Dye or 2x2 back into Blue Frozen Moss).",
+                "env_biome_silent_fjord", 1, new ItemStack(ModBlocks.BLUE_FROZEN_MOSS.get()),
+                525f, 0.0f, a_env - 0.89f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_shadowed_eclipse_moss_striders", "Shadowed Eclipse Moss & Silent Striders", "ENVIRONMENT & NATURE",
+                "Night-Vision Shadow Siphon moss carpets, footstep-silencing Silent Striders boots, and Potions of Eclipse Shroud.",
+                "Overview & Description:\n" +
+                "In dark basalt undercuts (light level <= 4) of Silent Fjord, charcoal-violet Shadowed Eclipse Moss creeps silently over stone, breathing dark twilight motes.\n\n" +
+                "Shadow Siphon & Harvesting:\n" +
+                "▪ Standing on Shadowed Eclipse Moss silences all footsteps/vibrations and grants Night Vision while slowly draining hunger saturation. Harvest intact with Shears or Silk Touch.\n\n" +
+                "Eclipse Stealth Gear & Alchemy:\n" +
+                "▪ Silent Striders: Stitched from Leather Boots, 4 Shadowed Eclipse Moss, and 2 Blue Frozen Moss Carpets (+2 Armor, +1 Toughness). Permanently dampens sculk/warden vibrations, cuts monster detection range by 35%, and wards off Fjord Shadow Chill.\n" +
+                "▪ Potion of Eclipse Shroud (entropica:eclipse_shroud): Grants Speed I and Night Vision for 3 minutes while halving hostile monster detection range (-50%).",
+                "env_biome_silent_fjord", 1, new ItemStack(ModItems.SILENT_STRIDERS.get()),
+                525f, 0.0f, a_env - 0.99f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_eclipse_fjord_sanctum", "Eclipse Fjord Watch-Sanctum", "ENVIRONMENT & NATURE",
+                "15x17x16 cliffside Basalt Column & Chiseled Eclipse Basalt shrine with a trapped Shadow Crypt, Eclipse/Glacial Essences, and starter gear.",
+                "Overview & Description:\n" +
+                "Perched on dry basalt cliff terraces in Silent Fjord, this 15x17x16 Nordic-basalt shrine pairs twin 8-block hexagonal Basalt Column watch-obelisks and a vaulted Deepslate Brick nave with a glowing purple Chiseled Eclipse Basalt oculus and ritual altar.\n\n" +
+                "Shadow Crypt & Biome Essence Loot:\n" +
+                "▪ Sunken Shadow Crypt: An interior stair lined with footstep-silencing Shadowed Eclipse Moss descends into a dark crypt where a tripwire dispenser fires Blindness and Slowness potions ahead of the reliquary chest and Silver Pine Barrel.\n" +
+                "▪ Biome Essences & Early-Game Rewards: Rewards Eclipse and Glacial Materia Essences & Ampoules, Silent Striders, Cryo-Grenades, Basalt Pickaxes, Arcanite Ingots & Nuggets, Small Ampoules, and explorer supplies.",
+                "env_biome_silent_fjord", 2, new ItemStack(ModBlocks.CHISELED_ECLIPSE_BASALT.get()),
+                610f, 0.0f, a_env - 0.94f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biome_steaming_skerries", "2.6 Steaming Skerries", "ENVIRONMENT & NATURE",
+                "Flat Blue-Ice and Steaming-Ice coasts cut by shallow hot-spring geysers beneath a warm yellow-pink sky.",
+                "Overview & Description:\n" +
+                "Biome #6 (entropica:steaming_skerries) stretches along polar shores where flat plates of Blue Ice, Packed Ice, and fractured Steaming Ice (Y=63) are interwoven with clear shallow hot-spring pools and bubbling Steam Vents beneath a warm yellow-pink sky (#C47B82) and dense rising steam.\n\n" +
+                "Atmosphere & Materia:\n" +
+                "▪ Primary Vapor & Secondary Glacial Materia: Favors Vapor (60%), Glacial (30%), and Magma (10%) Grots alongside sideways-scuttling Vapor-Bellows Crabs and serpentine Geyser Wiggle-Worms.\n" +
+                "▪ Steam Haze & Warm Pools: Thick warm steam reduces sight distance unless carrying a handheld light (+14 blocks relief), while wading in warm pools clears freezing chill.\n\n" +
+                "Native Landmarks & Sanctuary:\n" +
+                "Home to multi-face Vapor-Weaver Lichen, Mist-Veil Ferns, bubbling geyser pools, and the uncommon Blue-Ice-domed Geothermal Vaporous Grotto.",
+                "env_biomes", 1, new ItemStack(ModBlocks.STEAMING_ICE.get()),
+                455f, 0.0f, a_env - 1.12f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_vapor_weaver_lichen", "Vapor-Weaver Lichen & Dampening", "ENVIRONMENT & NATURE",
+                "Multi-face steam-spreading lichen, knockback steam puffs, Steam Vents, and footstep-silencing Potions of Dampening.",
+                "Overview & Description:\n" +
+                "Vapor-Weaver Lichen (Light Level 2) clings as a thin multi-face mist-grey and frost-blue web across ice-shelf cracks and volcanic stone, dotted with glowing amber spore specks.\n\n" +
+                "Growth & Steam Defense:\n" +
+                "▪ Spreads across adjacent rock and ice faces over time when within 2 blocks of a Steam Vent, Steaming Spring Stone, or water.\n" +
+                "▪ Right-clicking unleashes a pressurized cloud of hot steam (15s cooldown) that pushes nearby creatures back 2 blocks and blinds hostile monsters in front for 3 seconds.\n\n" +
+                "Spores, Vents & Potions:\n" +
+                "▪ Breaking without Shears drops 1 Vapor Condenser Spore—used with Cobblestone to craft natural Steam Vent blocks or brewed into Potions of Dampening (entropica:dampening) to silence all player footsteps and vibrations.",
+                "env_biome_steaming_skerries", 1, new ItemStack(ModItems.VAPOR_CONDENSER_SPORE.get()),
+                545f, 0.0f, a_env - 1.07f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_vapor_bellows_crab_condenser", "Vapor-Bellows Crab & Condensers", "ENVIRONMENT & NATURE",
+                "Thermal basalt-carapace crabs, Vapor Lift Mats, and water-producing 3D Thermal Vapor Condensers.",
+                "Overview & Description:\n" +
+                "Vapor-Bellows Crabs (48 HP) scuttle sideways beside hot springs, venting steam from their porous basalt chimneys. Standing on hot vents charges their shell for +50% damage reduction, while cold/freezing hits make them shed Porous Basalt Shells.\n\n" +
+                "Pneumatic & Condenser Gear:\n" +
+                "▪ Vapor Lift Mat: Crafted from Geyser Wiggle-Worm Vapor Vent Membranes; negates fall damage and lifts entities upward on a warm steam cushion.\n" +
+                "▪ Thermal Vapor Condenser: Stepped 3D alembic vessel crafted from Vapor Condensate Crystals, a Porous Basalt Shell, Copper, and Glass. Placed beside steam blocks, it condenses rising vapor to fill adjacent Cauldrons (or empty Buckets) with clean water, and vents a fire-dousing, monster-blinding mist cloud on Redstone.",
+                "env_biome_steaming_skerries", 1, new ItemStack(ModBlocks.VAPOR_CONDENSER.get()),
+                545f, 0.0f, a_env - 1.15f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_grotto_structure_4", "Geothermal Vaporous Grotto", "ENVIRONMENT & NATURE",
+                "Uncommon 20x20x18 Blue-Ice-domed thermal bath cavern with copper steam puzzle, Vapor Shroud Cloak, and 12m Steam Vent chimney.",
+                "Overview & Description:\n" +
+                "Structure 4 (20x20x18) is a pressurized Deepslate Brick and Steaming Spring Stone bathhouse sealed beneath a translucent Blue Ice greenhouse dome, split by an Amber Wood bridge between two steaming thermal pools.\n\n" +
+                "Steam Puzzle, Cloak & Chimney Updraft:\n" +
+                "▪ Copper Steam Puzzle: Three copper-marked pressure plates guard the central vault—stepping on decoy plates triggers blinding/heated steam traps, while the oxidized copper path reaches the treasure chest holding the Vapor Shroud Cloak (silences footsteps and grants Invisibility while sneaking).\n" +
+                "▪ Steam Vent Chimney: Stepping onto the rear Steam Vent shrine launches explorers up the 12-block chimney updraft shaft to an upper ice-ledge alcove.",
+                "env_biome_steaming_skerries", 1, new ItemStack(ModItems.VAPOR_SHROUD_CLOAK.get()),
+                545f, 0.0f, a_env - 1.23f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biome_static_ice_plains", "2.7 Static Ice-Plains", "ENVIRONMENT & NATURE",
+                "Wind-swept polar snowfields veined with Fulgurite Ice, lightning-split pines, and crackling cloud lightning.",
+                "Overview & Description:\n" +
+                "Biome #7 (entropica:static_ice_plains) spans flat inland polar snowfields threaded with glowing Fulgurite Ice sheets where blue static sparks leap across the ground beneath a static-charged grey-yellow sky (#6C664C) and intermittent cloud-to-cloud lightning arcs.\n\n" +
+                "Static Charge Hazard & Materia:\n" +
+                "▪ Primary Lightning & Secondary Glacial Materia: Favors Lightning (55%), Glacial (35%), and Aegis (10%) Grots alongside Cryo-Static Hedgehogs, Rime-Back Ovis, rare Patina Galvanic Ovis, and Glacial Frost-Cores.\n" +
+                "▪ Metal-Armor Static Charge: Running for 30 seconds in Iron, Gold, or Chainmail armor builds static electricity and zaps you for 1 heart—unless you carry a Grounding Coil, step onto a Static-Conductive Mat, wear insulated/leather boots, or drink a Potion of Galvanic Surge.",
+                "env_biomes", 1, new ItemStack(ModBlocks.FULGURITE_ICE.get()),
+                495f, 0.0f, a_env - 1.38f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_fulgurite_ice_surge", "Fulgurite Ice, Pines & Galvanic Surge", "ENVIRONMENT & NATURE",
+                "Redstone-emitting Fulgurite Ice, lightning-split Fulgurite Pines, Static Frost Powder, and Potions of Galvanic Surge.",
+                "Overview & Description:\n" +
+                "Sheets of translucent Fulgurite Ice (Light Level 4) output a steady Level 4 Redstone signal to adjacent wiring while arcing static sparks, and small clumps of bark-less Fulgurite Pine Logs and rime-dusted Fulgurite Pine Leaves dot the plains.\n\n" +
+                "Powder & Brewing:\n" +
+                "▪ Static Frost Powder: Dropped when breaking Fulgurite Ice without Silk Touch; used to re-form Fulgurite Ice and craft Biomass Capacitors and Grounding Coils.\n" +
+                "▪ Potion of Galvanic Surge (entropica:galvanic_surge): Brewed from Static Frost Powder onto an Awkward Potion (extendable to 8m with Redstone); grants Speed I, Haste I, Static Charge shock immunity, and an electric-frost counter-shock when hit in melee.",
+                "env_biome_static_ice_plains", 1, new ItemStack(ModItems.STATIC_FROST_POWDER.get()),
+                590f, 0.0f, a_env - 1.31f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_hedgehog_capacitors", "Cryo-Static Hedgehog & Capacitors", "ENVIRONMENT & NATURE",
+                "Spiky Cryo-Static Hedgehogs, Static-Conductive Mats, and adjustable-delay 3D Biomass Capacitors.",
+                "Overview & Description:\n" +
+                "Cryo-Static Hedgehogs (20 HP) skitter rapidly across snowfields and hide beneath Cryo-Static Shrubs. When bumped or hurt, they curl into a spiky static ball (+8 Armor, zapping attackers for 1.5 hearts plus freeze and Slowness II) and shed Static Quills.\n\n" +
+                "Redstone & Grounding Crafts:\n" +
+                "▪ Static-Conductive Mat: 2px pad woven from Static Quills, Copper, and Smooth Basalt; emits a Level 15 Redstone pulse underfoot while safely clearing metal-armor Static Charge.\n" +
+                "▪ Biomass Capacitor: Stepped 3D Redstone battery & adjustable timer crafted from sheared Charged Static Needles, Copper, and Static Frost Powder; stores Redstone or lightning charge and fires a Level 15 pulse after 0.5s, 1s, 2s, or 4s (right-click to cycle).",
+                "env_biome_static_ice_plains", 1, new ItemStack(ModBlocks.BIOMASS_CAPACITOR.get()),
+                590f, 0.0f, a_env - 1.39f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_fulgurite_cryo_relay", "Fulgurite Cryo-Relay & Grounding Coil", "ENVIRONMENT & NATURE",
+                "Uncommon 17x17x24 Faraday rotunda, 20m lightning spire, central Biomass Capacitor relay, and pocket Grounding Coil.",
+                "Overview & Description:\n" +
+                "Surrounded by a Fulgurite Ice moat and 4 copper/basalt Faraday coil pylons, this 17x17x24 sanctuary pairs an open-ribbed rotunda and 20-block storm needle with a trapped Underground Capacitor Vault.\n\n" +
+                "Capacitor Relay & Relic:\n" +
+                "▪ Storm-Needle Relay: An overhead inverted Lightning Rod channels atmospheric sparks down into the central Biomass Capacitor assembly flanked by Fulgurite Ice.\n" +
+                "▪ Grounding Coil & Loot: Chests reward Lightning and Glacial Materia Essences & Ampoules, early-game starter supplies, and the Grounding Coil—a pocket relic that stops Static Charge shocks, cuts lightning damage by 50%, and unleashes stored static (+3 electric damage + Slowness II) on your next melee strike.",
+                "env_biome_static_ice_plains", 1, new ItemStack(ModItems.GROUNDING_COIL.get()),
+                590f, 0.0f, a_env - 1.47f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biome_barrow_mound_tundra", "2.8 Barrow-Mound Tundra", "ENVIRONMENT & NATURE",
+                "Rolling snow and Necrotic Soil burial hills under bruised-purple skies, prowled by Barrow Hounds and Crypt-Glow Owls.",
+                "Overview & Description:\n" +
+                "Biome #8 (entropica:barrow_mound_tundra) spans rolling polar hills of Snow Blocks, crop-rejecting Necrotic Soil, and footstep-muffling Grave-Moss beneath an overcast purple sky (#3C2B4C), weathered burial cairns, and dead spruces.\n\n" +
+                "Necrotic Cold & Regional Materia:\n" +
+                "▪ Primary Barrow & Secondary Glacial Materia: Favors Barrow (55%), Glacial (35%), and Aegis (10%) Grots alongside Rime Shepherds, Barrow Hounds, and Barrow Crypt-Glow Owls.\n" +
+                "▪ Necrotic Cold: Under the overcast barrow sky, Undead do not burn in daylight, gain passive Strength I, and chill living targets with brief Slowness on melee hits.",
+                "env_biomes", 1, new ItemStack(ModBlocks.BARROW_STONE_BRICKS.get()),
+                495f, 0.0f, a_env - 1.54f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_barrow_flora_ward", "Grave-Moss, Rime-Caps & Barrow Ward", "ENVIRONMENT & NATURE",
+                "Stealthy Grave-Moss rugs, snaring Crypt-Grave Roots, freezing Rime-Cap Mushrooms, and Potions of Barrow Ward.",
+                "Overview & Description:\n" +
+                "Necrotic Soil blocks ordinary crops and saplings while allowing Barrow flora to thrive when fertilized with Bone Meal or Bleached Bone Meal:\n" +
+                "▪ Grave-Moss: Thin 2px moss carpet (Light Level 1) that muffles footsteps and halves monster detection range (-50%) while moving, but drains hunger if you stand still for over 5 seconds.\n" +
+                "▪ Crypt-Grave Root: Skeletal floor roots that snare non-undead trespassers with Slowness IV and Wither I; chop with an Axe for Crypt-Grave Fibers and Bleached Bone Meal.\n" +
+                "▪ Rime-Cap Mushroom: Glowing frost mushroom (Light Level 6) that bursts in a 3x3 freezing spore cloud if trampled; drops throwable Rime-Cap Spores that brew Potions of Barrow Ward (Wither immunity, Resistance I, and -15% Undead damage).",
+                "env_biome_barrow_mound_tundra", 1, new ItemStack(ModItems.RIME_CAP_SPORES.get()),
+                590f, 0.0f, a_env - 1.54f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_barrow_fauna_greaves", "Barrow Hounds, Glow-Owls & Greaves", "ENVIRONMENT & NATURE",
+                "Pack-hunting Barrow Hounds, twilight Crypt-Glow Owls, Barrow-Slate Greaves, and 3D tomb wards.",
+                "Overview & Description:\n" +
+                "▪ Barrow Hound (40 HP): Pack stalkers that gain +20% melee damage near unpurified Barrow masonry, howl to rally packmates, bite with Blindness, and drop Barrow Skull-Plates + 2-4x Average Barrow Essence—used to forge Barrow-Slate Greaves (root-snare & Grave-Moss immunity + -20% Undead damage) and 3D Barrow Sentinel Totems (repels minor Undead within 12 blocks).\n" +
+                "▪ Barrow Crypt-Glow Owl (30 HP): Silent neutral flyers gliding between dead spruces and cairns; drop 2-3x Average Barrow Essence and drop/shed Grave-Glow Feathers to craft sculpted 3D Crypt-Siphon Lanterns (stops natural Undead spawns within 16 blocks).",
+                "env_biome_barrow_mound_tundra", 1, new ItemStack(ModItems.BARROW_SLATE_GREAVES.get()),
+                590f, 0.0f, a_env - 1.62f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_frost_tomb_wardens", "Frost-Tomb of the Aegis Wardens", "ENVIRONMENT & NATURE",
+                "26x32x15 burial mound housing a Crypt-Siphon Lantern dais, corner Runed Braziers, and a hidden Warden's Vault.",
+                "Overview & Description:\n" +
+                "Structure 5 (entropica:frost_tomb_of_the_aegis_wardens) conceals a 3-sarcophagus Antechamber, a Central Crypt illuminated by a Crypt-Siphon Lantern on a raised Barrow Stone dais, and a breakable Cracked Barrow Brick wall hiding the Warden's Vault.\n\n" +
+                "Crypt Wards & Vault Loot:\n" +
+                "▪ Runed Braziers & Crypt-Siphon Lantern: Lighting the corner Runed Braziers with Flint and Steel bathes the crypt in protective Aegis flame alongside the central Crypt-Siphon Lantern.\n" +
+                "▪ Warden's Vault: Breaking through the Cracked Barrow Brick wall behind the central dais reveals sealed burial chests stocked with Barrow and Glacial Materia Essences, Barrow-Slate Greaves, and ancient tomb treasures.",
+                "env_biome_barrow_mound_tundra", 1, new ItemStack(ModBlocks.CRYPT_SIPHON_LANTERN.get()),
+                590f, 0.0f, a_env - 1.70f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biome_null_fringe_bay", "2.9 Null-Fringe Bay", "ENVIRONMENT & NATURE",
+                "Legendary low-gravity polar coastline of dark purple Void Sand, floating obsidian shards, and Void Sea Serpents.",
+                "Overview & Description:\n" +
+                "Biome #9 (entropica:null_fringe_bay) is a Legendary frozen coastline where Blue Ice shelves step down into dark purple Void Sand and frosted Void Sand Turf beaches bordering a deep indigo bay (#150E26 sky with overhead Void Rift Fractures, pulsing purple bay rings, and floating obsidian shards).\n\n" +
+                "Low-Gravity Anomaly & Regional Materia:\n" +
+                "▪ Primary Null-U & Secondary Glacial Materia: Favors Null-U (60%), Glacial (30%), and Void (10%) Grots alongside Void-Rift Shades and deep-water Void Sea Serpents.\n" +
+                "▪ Weak Shoreline Gravity: Explorers naturally receive Jump Boost I and gentler 0.80x fall descent across the bay.",
+                "env_biomes", 1, new ItemStack(ModBlocks.VOID_SAND.get()),
+                495f, 0.0f, a_env - 1.72f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_void_crystals_buoyancy", "Void Sand, Crystals & Null-Buoyancy", "ENVIRONMENT & NATURE",
+                "Void Glass smelting, 2-stage Void Crystals, Null-Fringe Tussocks, and Potions of Null-Buoyancy.",
+                "Overview & Description:\n" +
+                "▪ Void Sand & Void Glass: Gravity-falling dark purple Void Sand smelts directly into Entropica's Void Materia-tinted Void Glass (entropica:void_glass) and supports Void-Stalker Orchids and fall-cushioning Null-Fringe Tussocks (which drop Void Fiber for Void-Weave Fabric).\n" +
+                "▪ Void Crystals & Brewing: Void Crystal Blocks sprout 2-stage Void Crystal Buds and Clusters mined for Void Crystal Shards—brewed onto an Awkward Potion to create Potions of Null-Buoyancy (Jump Boost II + Slow Falling).",
+                "env_biome_null_fringe_bay", 1, new ItemStack(ModItems.VOID_CRYSTAL_SHARD.get()),
+                590f, 0.0f, a_env - 1.78f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_rift_shade_spatial_gear", "Void-Rift Shades & Spatial Gear", "ENVIRONMENT & NATURE",
+                "Void-Rift Shades, Spatial Phase Anchors, Phase Recall Stones, Leviathan Rift-Belts, and Null-Weave Mantles.",
+                "Overview & Description:\n" +
+                "▪ Void-Rift Shade (225 HP): Towering neutral Rift-Lurkers stalking the beaches and floating shards; blink through short rifts in combat, launch targets upward with clawed slashes, and drop Void Crystal Shards and 4-6x Strong Void Essence.\n" +
+                "▪ Spatial Gear: Craft sculpted 3D Spatial Phase Anchors and attune a Phase Recall Stone to warp safely back from up to 128 blocks away; forge Leviathan Rift-Belts from Serpent Void Scales for a 7-block forward Rift Dash, and stitch Null-Weave Mantles for automatic Slow Falling, -50% fall damage, and immunity to random teleportation traps.",
+                "env_biome_null_fringe_bay", 1, new ItemStack(ModItems.PHASE_RECALL_STONE.get()),
+                590f, 0.0f, a_env - 1.86f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_null_fringe_rift_bastion", "Null-Fringe Rift Bastion", "ENVIRONMENT & NATURE",
+                "Legendary 24x24x26 bay bastion with a submerged Void Glass vault, floating spiral steps, and a summit Spatial Phase Anchor.",
+                "Overview & Description:\n" +
+                "Spanning the Void Sand shoreline out into the bay, the Null-Fringe Rift Bastion pairs a dry underwater Void Glass Reliquary Vault with 4 crystal-crowned obsidian pylons, low-gravity floating stepping stones, a floating central Void Crystal focus, and an apex Spatial Phase Anchor.\n\n" +
+                "Summit Spatial Phase Anchor & Vault:\n" +
+                "▪ Ascend the spiral floating Void Stone steps past the glowing central Void Crystal focus to attune a Phase Recall Stone at the summit Spatial Phase Anchor, or dive into the submerged Void Glass vault for Null-U and Void Materia treasures.",
+                "env_biome_null_fringe_bay", 1, new ItemStack(ModBlocks.SPATIAL_PHASE_ANCHOR.get()),
+                590f, 0.0f, a_env - 1.94f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_biome_radiant_glaze_plains", "2.10 Radiant Glaze-Plains", "ENVIRONMENT & NATURE",
+                "Rare warm-lit snow-glaze oasis with golden grass meadows, unfrozen Vitae Springs, and Crystalline Qilins.",
+                "Overview & Description:\n" +
+                "Biome #10 (entropica:radiant_glaze_plains) is a Rare polar sanctuary oasis where glowing Radiant Snow Blocks, golden-tinted meadows (#FACC48), and translucent Radiant Glaze-Ice surround warm, unfrozen Vitae Springs beneath an amber sky (#A67E44) and golden mist.\n\n" +
+                "Sanctuary Warmth & Regional Materia:\n" +
+                "▪ Primary Vitae & Secondary Aurora Materia: Favors Vitae (60%), Aurora (30%), and Glacial (10%) Grots alongside Crystalline Qilins, Amber Weeping Stags, Aurorafowl, and Luminoths.\n" +
+                "▪ Zero Cold Hazard: Passively clears frostbite buildup and gently restores health over time.",
+                "env_biomes", 1, new ItemStack(ModBlocks.RADIANT_SNOW_BLOCK.get()),
+                495f, 0.0f, a_env - 2.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_radiant_springs_amber_oaks", "Vitae Springs, Glazed Oaks & Fertilizer", "ENVIRONMENT & NATURE",
+                "Vitae Spring Stone, Glazed Amber Leaves, Golden Lichen, Vitae Fertilizer, and Potions of Radiant Vitality.",
+                "Overview & Description:\n" +
+                "▪ Vitae Springs & Glazed Oaks: Vitae Spring Stone keeps nearby water unfrozen and sparkling with golden bubbles, while Amber-Oak groves grow Glazed Amber Leaves and shearable Golden Lichen (blended with Bone Meal and Weeping Amber Tears into 3x3 crop-boosting Vitae Fertilizer).\n" +
+                "▪ Liquid Vitae-Resin & Brewing: Right-click an adult Amber Weeping Stag with a Glass Bottle to siphon restorative Liquid Vitae-Resin—drinkable directly or brewed onto an Awkward Potion for Potions of Radiant Vitality (Regeneration + Health Boost).",
+                "env_biome_radiant_glaze_plains", 1, new ItemStack(ModItems.LIQUID_VITAE_RESIN.get()),
+                590f, 0.0f, a_env - 2.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_qilin_radiant_gear", "Crystalline Qilins & Prism Gear", "ENVIRONMENT & NATURE",
+                "Crystalline Qilins, Jade Qilin Scales, Qilin Light-Refractors, Qilin Prism Circlets, and Sun-Glazed Talismans.",
+                "Overview & Description:\n" +
+                "▪ Crystalline Qilin (60 HP): Peaceful emerald-jade Glow Guardians that dazzle attackers with Light-Refraction Pulses (Blindness + Glowing), bless peaceful travellers with Regeneration, drop 2-4x Average Mirage Essence on defeat, and shed Jade Qilin Scales when offered Weeping Amber Tears or Golden Apples.\n" +
+                "▪ Optical & Sanctuary Gear: Craft sculpted 3D Qilin Light-Refractors (daylight Redstone 0–15 + monster-revealing pulse), Qilin Prism Circlets (freeze-immune sunlit mending headgear), and reusable Sun-Glazed Talismans (8-block cleansing, healing, and gear-mending pulse).",
+                "env_biome_radiant_glaze_plains", 1, new ItemStack(ModItems.QILIN_PRISM_CIRCLET.get()),
+                590f, 0.0f, a_env - 2.10f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_radiant_spring_pavilion", "Radiant Spring Pavilion", "ENVIRONMENT & NATURE",
+                "Core-free 22x22x18 warm fountain pavilion under a Radiant Glass dome with hidden underground reliquary chests.",
+                "Overview & Description:\n" +
+                "Crowning flat meadows across the Radiant Glaze-Plains, the Radiant Spring Pavilion frames a bubbling Smooth Quartz, Vitae Spring Stone, and Radiant Glaze-Ice fountain beneath 4 Golden Lichen-draped Amber Log columns and a Radiant Glass skylight dome.\n\n" +
+                "Natural Fountain Blessing & Reliquary:\n" +
+                "▪ Wading in the pavilion's warm spring water naturally clears Poison, Wither, Slowness, and frostbite while slowly mending worn gear durability, and a side stairwell leads down to two hidden reliquary chests.",
+                "env_biome_radiant_glaze_plains", 1, new ItemStack(ModBlocks.QILIN_LIGHT_REFRACTOR.get()),
+                590f, 0.0f, a_env - 2.18f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_storm_swept_icebergs", "2.11 Storm-Swept Icebergs", "ENVIRONMENT & NATURE",
+                "Wind-carved deep-ocean icebergs, lightning-forged Fulgurite Ice & Fulgurite Blocks, Zephyr Ice bridges, and Zephyr-Glass Grass.",
+                "Overview & Description:\n" +
+                "Biome #11 (entropica:storm_swept_icebergs) rises out of deep navy polar seas (#1A2B48) beneath dark slate storm clouds (#2D3238), crackling overhead lightning arcs, and horizontal wind-driven spray. Towering, wind-sheared icebergs climb up to Y=107 with Blue Ice keels, Zephyr Ice overhangs, and snow-capped ledges.\n\n" +
+                "Storm Lightning & Iceberg Materials:\n" +
+                "▪ Primary Storm & Secondary Glacial Materia: Favors Storm (60%), Glacial (30%), and Aurora (10%) Grots.\n" +
+                "▪ Storm Peak Strikes: Thunderstorms naturally strike high iceberg peaks, fusing ordinary ice into redstone-charged Fulgurite Ice and turning stone or gravel into dark glassy Fulgurite Blocks.\n" +
+                "▪ Zephyr Ice & Zephyr-Glass Grass: Wind-infused Zephyr Ice gives travellers a brisk tailwind stride and freezes adjacent surface water into walkable ice bridges, while snow and Zephyr Ice ledges sprout translucent Zephyr-Glass Grass harvested for flexible Zephyr-Glass Fibers.",
+                "env_biomes", 1, resolveBiome11Icon("zephyr_ice", ModBlocks.FULGURITE_ICE.isPresent() ? ModBlocks.FULGURITE_ICE.get().asItem() : Items.BLUE_ICE),
+                495f, 0.0f, a_env - 2.34f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_vapor_observatory", "Auroral Vapor Observatory & Wind Tech", "ENVIRONMENT & NATURE",
+                "Core-free Structure 6 dome observatory, Zephyr Updraft Grates, Simurgh Wind Turbines, gliders, horns, and Tempest Stride.",
+                "Overview & Description:\n" +
+                "Anchored atop iceberg crowns or floating Blue Ice keels, Structure 6 (Auroral Vapor Observatory) is a 22x22x32 core-free outpost featuring a Deepslate & Fulgurite engine room, a panoramic Silver Pine chart gallery with heated Auroral Lily-Pad planters, and a Cut-Copper & Zephyr-Ice dome housing a giant angled copper Sky-Telescope and apex Lightning Rod mast.\n\n" +
+                "Wind Machinery, Relics & Alchemy:\n" +
+                "▪ Zephyr Updraft Grate & Night Clarity: A central floor grate channels a vertical column of wind straight up the 3x3 shaft to the upper telescope deck, where clear night air above Y=74 grants Night Vision and Slow Falling.\n" +
+                "▪ Simurgh Wind Turbine: Corner-mounted copper wind rotors spin faster at high elevation and during storms to output clean Redstone power.\n" +
+                "▪ Observatory Gear & Brewing: Chests and Zephyr-Glass Fiber / Simurgh Feather crafting unlock the Storm-Kite Glider, gale-blasting Cryo-Tempest Horn, dash-boosting Tempest in a Bottle, and Potions of Tempest Stride (wind speed, higher leaps, and cushioned landings).",
+                "env_storm_swept_icebergs", 1, resolveBiome11Icon("storm_kite_glider", ModBlocks.AURORAL_LENS_BLOCK.isPresent() ? ModBlocks.AURORAL_LENS_BLOCK.get().asItem() : Items.SPYGLASS),
+                590f, 0.0f, a_env - 2.28f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_tempest_iceberg_fauna", "Tempest Iceberg Apex Fauna", "ENVIRONMENT & NATURE",
+                "Swooping electric Storm Kites, frost-breathing Glacial Hydras, and weather-heralding Zephyr Simurghs.",
+                "Overview & Description:\n" +
+                "Three powerful creatures rule the sky currents and frozen ledges of Storm-Swept Icebergs:\n" +
+                "▪ Storm Kite (210 HP): High-altitude hostile sky-rays that circle in storm clouds before diving down at high speed—delivering an extra lightning jolt whenever rain or thunder rages.\n" +
+                "▪ Glacial Hydra (480 HP): Armored ice-shelf apex predators that slowly mend their health while standing on ice or snow and unleash cones of freezing breath alongside frost-slowing bites.\n" +
+                "▪ Zephyr Simurgh (105 HP): Neutral copper-plumed wind raptors perching on high iceberg ledges. They screech ahead of approaching storms to warn travellers, bless friendly visitors who offer Copper Ingots or Rabbit with Speed and Slow Falling, and shed prized Simurgh Feathers.",
+                "env_storm_swept_icebergs", 1, new ItemStack(ModItems.SIMURGH_FEATHER.isPresent() ? ModItems.SIMURGH_FEATHER.get() : Items.FEATHER),
+                590f, 0.0f, a_env - 2.40f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_spore_glazed_pack", "2.12 Spore-Glazed Pack", "ENVIRONMENT & NATURE",
+                "Sheltered polar bay pack-ice cushioned in Frozen Spore Moss, Spore-Glazed Ice, Giant Glaze-Cap Mushrooms, and Spore-Wood.",
+                "Overview & Description:\n" +
+                "Biome #12 (entropica:spore_glazed_pack) lines sheltered polar bays and coastal lagoon channels beneath a pale yellow-green sky (#6B7C50) and drifting golden spore mist. Thick pack-ice rafts of Blue Ice and glowing Spore-Glazed Ice carry spongy cushions of Frozen Spore Moss, crooked Spore-Wood trees, and towering Giant Frozen Mushrooms with pale mushroom-stem trunks and golden Frozen Glaze-Cap domes.\n\n" +
+                "Spore & Glacial Materia Ecology:\n" +
+                "▪ Primary Spore & Secondary Glacial Materia: Favors Spore (60%), Glacial (30%), and Overgrowth (10%) Grots.\n" +
+                "▪ Frozen Spore Moss Hazard: Walking across Frozen Spore Moss without sneaking, wearing a Spore-Filter Mask, drinking Spore Clarity, or standing near a Cryo-Spore Censer stirs up a brief dizzying Nausea cloud.\n" +
+                "▪ Spongy Spore-Wood & Mushroom Caps: Spore-Wood Logs craft into all-bark Spore-Wood or Spore-Wood Planks (stairs, slabs, fences, and 3 Sticks per 2 planks due to its soft fungal grain), while Frozen Glaze-Cap Blocks cushion 40% of fall damage.",
+                "env_biomes", 1, resolveBiome11Icon("frozen_spore_moss", Items.MOSS_BLOCK),
+                495f, 0.0f, a_env - 2.52f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_glazed_mycelial_conservatory", "Glazed Mycelial Conservatory & Spore Tech", "ENVIRONMENT & NATURE",
+                "Core-free Spore-Wood & Spore-Glass biodome, Cryo-Spore Censers, Spore Bellows, Filter Masks, Poultices, and Spore Bombs.",
+                "Overview & Description:\n" +
+                "Anchored along pack-ice bays beside a Giant Frozen Mushroom, the Glazed Mycelial Conservatory (20x20x18) arches all-bark Spore-Wood ribs, Frozen Glaze-Cap panels, and green-tinted Spore Glass skylights over cultivated beds of Spore-Bearing Pitcher-Plumps and Spore-Burst Puffballs—with zero Shrine Cores or Anchors.\n\n" +
+                "Air-Purifying Contraptions & Spore Alchemy:\n" +
+                "▪ Cryo-Spore Censer: A copper and Spore Glass lantern (Light 13) that clears Nausea and Poison across a 12-block radius so bases and greenhouses stay clear-headed.\n" +
+                "▪ Spore Bellows: Right-click or power with Redstone to puff a 5-block golden spore jet that boosts crop and moss growth while pushing back hostile monsters.\n" +
+                "▪ Survival Gear & Brewing: Craft the Spore-Filter Mask (full Nausea immunity and halved Poison duration), Cryo-Spore Poultice (instant Poison/Nausea/frostbite cure + Regeneration II), throwable Glazed Spore-Pod Bombs, and Potions of Spore Clarity.",
+                "env_spore_glazed_pack", 1, resolveBiome11Icon("cryo_spore_censer", Items.LANTERN),
+                590f, 0.0f, a_env - 2.48f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_mycelial_spore_weaver", "Mycelial Spore-Weaver & Bay Fauna", "ENVIRONMENT & NATURE",
+                "Shearable 40 HP fungal-wood quadrupeds, buoyant 24 HP Spore Drifters, and mossy 60 HP Overgrowth Ovis.",
+                "Overview & Description:\n" +
+                "Three symbiotic Spore-attuned creatures inhabit the cushioned floes of the Spore-Glazed Pack:\n" +
+                "▪ Mycelial Spore-Weaver (40 HP): Gentle gnarled root-bark quadrupeds crowned with a glowing golden mushroom cap. Use Shears to harvest 1-2 Mycelial Spore Caps (which regrow faster as they graze Frozen Spore Moss); if attacked, they puff a defensive Nausea and Slowness spore cloud.\n" +
+                "▪ Spore Drifter (24 HP): Buoyant glowing fungal floaters that drift above the pack-ice, seeding mushrooms and Spore-Burst Puffballs onto moss and snow while dropping bottled Living Spores.\n" +
+                "▪ Overgrowth Ovis (60 HP): Sturdy moss-plated wild sheep sheared for Mossy Aegis Plates used in Spore-Filter Masks.",
+                "env_spore_glazed_pack", 1, resolveBiome11Icon("mycelial_spore_cap", Items.RED_MUSHROOM),
+                590f, 0.0f, a_env - 2.58f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_mirage_glacier", "2.13 Mirage Glacier", "ENVIRONMENT & NATURE",
+                "Sun-baked desert-glacier arches of seamless Mirage Ice bordered by reddish Glass Sand dunes, Canyon-Strata Glass Sandstone, and Vitreous Cactus.",
+                "Overview & Description:\n" +
+                "Biome #13 (entropica:mirage_glacier) forms a rare inland desert-glacier borderland beneath a burnt terracotta sky (#A8592E) and shimmering amber dust haze. Sweeping arches of seamless Mirage Ice and Blue Ice rise out of reddish-amber Glass Sand dunes and layered Glass Sandstone cliffs dotted with crystal-needled Vitreous Cacti and glowing Shimmerpetals.\n\n" +
+                "Mirage & Glacial Materia Hazards:\n" +
+                "▪ Primary Mirage & Secondary Glacial Materia: Favors Mirage (60%), Glacial (30%), and Arid (10%) Grots.\n" +
+                "▪ Phasic Mirage Ice & Immediate Suffocation: Mirage Ice smelts directly into Mirage Glass, toggles phase with Redstone, and phases open underfoot after a moment unless you sneak, wear Mirage-Veil Goggles, or drink Mirage Phasing. Getting your head trapped inside solid Mirage Ice deals immediate suffocation damage and triggers Double Vision!\n" +
+                "▪ Double Vision & Midday Sun Glare: Unprotected explorers caught in Mirage Ice, Scarab solar flashes, or bright midday glacier glare suffer Double Vision—splitting crosshairs and ghosting nearby blocks and creatures into twin cyan and amber mirages until cured by Mirage-Veil Goggles or a Mirage Prism Lantern.",
+                "env_biomes", 1, resolveBiome11Icon("mirage_ice", Items.BLUE_ICE),
+                495f, 0.0f, a_env - 2.70f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_fata_morgana_sanctuary", "Fata Morgana Sanctuary & Mirage Optics", "ENVIRONMENT & NATURE",
+                "Core-free Mirage Ice & Mirage Glass arch-sanctuary, Mirage Prism Lanterns, Mirage-Veil Goggles, Decoy Prisms, and Shimmering Focus.",
+                "Overview & Description:\n" +
+                "Bridging reddish Glass Sand dunes across a sunken mirror pool, the Fata Morgana Mirage Arch-Sanctuary (22x22x20) weaves seamless Mirage Ice, Mirage Glass, and Canyon-Strata Glass Sandstone into a soaring twin-ribbed arch—built with zero Shrine Cores or Anchors.\n\n" +
+                "Refractive Lanterns, Optical Gear & Brewing:\n" +
+                "▪ Mirage Prism Lantern: A sculpted bronze and Glass Sandstone prism lantern (Light 15) that clears Double Vision, Blindness, and Darkness across 16 blocks while cloaking sneaking players within 8 blocks.\n" +
+                "▪ Mirage-Veil Goggles: Polarized Silica Glass Plate headgear granting full immunity to Double Vision, Blindness, and Darkness, solid footing across Mirage Ice without sneaking, and outlines on nearby invisible creatures.\n" +
+                "▪ Mirage Decoy Prism, Shimmering Focus & Potions: Craft throwable Mirage Decoy Prisms (using Vitreous Needles + Shimmering Mirage Aura) to spawn aggro-drawing Fata afterimages and dazzle foes with Double Vision, channel the upgraded Shimmering Focus to blink backward out of danger, or brew Shimmering Mirage Auras into Potions of Mirage Phasing.",
+                "env_mirage_glacier", 1, resolveBiome11Icon("mirage_prism_lantern", Items.LANTERN),
+                590f, 0.0f, a_env - 2.66f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_silica_glass_scarab", "Silica Glass-Scarab & Mirage Fata-Sprites", "ENVIRONMENT & NATURE",
+                "30 HP solar-focusing Silica Glass-Scarabs that shed Silica Glass Plates alongside 24 HP mirror-twin Mirage Fata-Sprites.",
+                "Overview & Description:\n" +
+                "Two refractive Mirage-attuned creatures thrive along the sun-baked ice and silica dunes of the Mirage Glacier:\n" +
+                "▪ Silica Glass-Scarab (30 HP, 6 Armor): Neutral desert-glacier beetles clad in clay-amber chitin and translucent quartz wing-panes. Feeding Glass Sand, Sand, Quartz, or Amethyst Shards coaxes them to peacefully shed a Silica Glass Plate; if attacked, they angle their quartz wing-panes to flash attackers with fire damage and Double Vision.\n" +
+                "▪ Mirage Fata-Sprite (24 HP): Hovering sun-stone and neon-cyan sylphs that focus daytime sunbeams onto optical collectors, condense Shimmering Mirage Auras, and split off mirror afterimage twins when struck.",
+                "env_mirage_glacier", 1, resolveBiome11Icon("silica_glass_plate", Items.QUARTZ),
+                590f, 0.0f, a_env - 2.76f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_oasis_floes", "2.14 Oasis Floes", "ENVIRONMENT & NATURE",
+                "Warm unfrozen Amber Springs lined in Vitae Spring Stone, nestled within snowy Silver Pine woods and Frost-Draped Amber-Willows.",
+                "Overview & Description:\n" +
+                "Biome #14 (entropica:oasis_floes) carves warm-water thermal basins inside frozen Silver Pine valleys beneath a warm orange-yellow sky (#B57A3C) and clear humid mist. Steaming Amber Springs lined with Vitae Spring Stone and green grass margins stay completely ice-free year-round, shaded by resin-veined Amber-Wood weeping willows draped in Frost-Draped Willow Leaves and full-block Frost-Draped Willow Vines.\n\n" +
+                "Oasis & Glacial Materia Ecology:\n" +
+                "▪ Primary Oasis & Secondary Glacial Materia: Favors Oasis (60%), Glacial (30%), and Vapor (10%) Grots.\n" +
+                "▪ Peaceful Thermal Sanctuary: Zero cold hazards—wading in the warm Amber Springs clears freezing chill and gently restores health while Auroral Lily-Pads and Amber Nectar Blossoms flourish along the grass banks.\n" +
+                "▪ Amber Resin, Torches & Adhesive: Stripping Amber-Wood Logs yields Amber Chunks to craft fall-cushioning Blocks of Amber Resin, snow-melting Amber Torches (Light 14), and sticky Amber Adhesive (used in Sticky Pistons, Leads, and waxing Copper).",
+                "env_biomes", 1, resolveBiome11Icon("frost_willow_leaves", Items.OAK_LEAVES),
+                495f, 0.0f, a_env - 2.88f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_amber_willow_bathhouse", "Amber-Willow Bathhouse & Oasis Dew-Basin", "ENVIRONMENT & NATURE",
+                "Core-free Amber-Wood & Oasis Glass thermal bathhouse, sculpted Oasis Dew-Basins, Bottled Amber Nectar, and Oasis Renewal.",
+                "Overview & Description:\n" +
+                "Nestled beside a weeping Amber-Willow, the Amber-Willow Thermal Bathhouse (22x22x18) shelters an unfrozen Vitae Spring Stone bath and Amber-Wood footbridge under Silver Pine eaves and an Oasis Glass skylight—built with zero Shrine Cores or Anchors.\n\n" +
+                "Thermal Basins, Nectar Ampoules & Gear:\n" +
+                "▪ Oasis Dew-Basin: A sculpted 3D Vitae Spring Stone, Amber-Wood, and Copper font (Light 12-14) that clears freezing chill, Poison, and Hunger across 10 blocks, keeps Farmland hydrated up to 6 blocks away in icy biomes, and steeps Amber Chunks + Glass Bottles into Bottled Amber Nectar.\n" +
+                "▪ Bottled Amber Nectar & Oasis Renewal: Collected from Amber Nectar Blossoms or steeped in an Oasis Dew-Basin—drinkable for 4 hunger, frostbite relief, and 30s Absorption I, or brewed into Potions of Oasis Renewal.\n" +
+                "▪ Salamander Wader Hood: Waterproof diving and thermal headgear granting +50% underwater breath duration and full polar-water chill immunity.",
+                "env_oasis_floes", 1, resolveBiome11Icon("oasis_dew_basin", Items.CAULDRON),
+                590f, 0.0f, a_env - 2.84f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_mud_lurker_salamander", "Mud-Lurker Salamander & Oasis Fauna", "ENVIRONMENT & NATURE",
+                "36 HP amphibious Mud-Lurker Salamanders (Overworld Thermal-Mud & Nether Magma variants), 96 HP Amber-Weeping Stags, and 48 HP Vapor-Bellows Crabs.",
+                "Overview & Description:\n" +
+                "Warm spring amphibians and resin-antlered grazers gather around the steaming basins of Oasis Floes:\n" +
+                "▪ Mud-Lurker Salamander (36 HP, 4 Armor): Neutral 41-cube amphibians in two regional variants—Overworld Thermal-Mud (basalt-pebble hide with burnt-orange geothermal dorsal plates, healing 1 HP/s in water or mud) and Nether Magma & Soul-Fire (fire-immune lava swimmers with cyan soul-fire dorsal plates). Offering Slimeballs, Kelp, Tropical Fish, Magma Cream, or Amber Chunks coaxes them to shed Waterproof Salamander Skin.\n" +
+                "▪ Amber-Weeping Stag & Vapor-Bellows Crab: Crystalline-antlered stags (siphoned with a Glass Bottle for Liquid Vitae-Resin) and steam-venting crabs share the warm grass margins.",
+                "env_oasis_floes", 1, resolveBiome11Icon("waterproof_salamander_skin", Items.SLIME_BALL),
+                590f, 0.0f, a_env - 2.94f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_dust_crusted_bergs", "2.15 Dust-Crusted Bergs", "ENVIRONMENT & NATURE",
+                "Flat-topped polar table-icebergs blanketed in weathered Grey Sand, Dust-Crusted Ice, and dry Wind-Blown Dust Scrub.",
+                "Overview & Description:\n" +
+                "Biome #15 (entropica:dust_crusted_bergs) forms dry, wind-scoured coastal table-icebergs beneath a dusty reddish-gold sky (#8A6B4E) and drifting grey silt haze. Massive flat-topped ice islands built from Blue Ice, Packed Ice, and Dust-Crusted Ice sit covered in sheets of weathered Grey Sand and Coarse Gravel without trees, snow layers, or grass.\n\n" +
+                "Dust & Glacial Materia Ecology:\n" +
+                "▪ Primary Dust & Secondary Glacial Materia: Favors Dust (60%), Glacial (30%), and Arid (10%) Grots.\n" +
+                "▪ Dust-Crusted Ice & Grey Sand: Breaking Dust-Crusted Ice without Silk Touch crumbles the rime into 1-2x Grey Sand. Grey Sand smelts straight into Entropica's Dust Glass (entropica:dust_glass) and sifts into nuggets, Quartz, and rare Dust-Core Shards with a Copper Silt Sieve.\n" +
+                "▪ Wind-Blown Dust Scrub, Dry Fibers & Tough Fiber Rope: Stepping through dry scrub rustles loudly and puffs 3s of Blindness unless your eyes are shielded, while storm gusts can roll scrub downwind. Harvesting yields coal-grade Dry Fibers (80s furnace fuel) woven into diamond-plaited Tough Fiber Rope—a free-hanging climbable line that pays out downward up to 32 blocks when right-clicked with more rope.",
+                "env_biomes", 1, resolveBiome11Icon("dust_crusted_ice", Items.PACKED_ICE),
+                495f, 0.0f, a_env - 3.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_silt_bound_berg_watch_pylon", "Berg Watch-Pylon, Wind-Baffle Lantern & Sieve", "ENVIRONMENT & NATURE",
+                "Core-free table-berg shelter with cliff boarding ropes, brass-louvered Wind-Baffle Lanterns, Copper Silt Sieves, and Dust-Devil Ampoules.",
+                "Overview & Description:\n" +
+                "Perched atop a flat table-iceberg, the Silt-Bound Berg Watch-Pylon (20x20x22) combines exterior Tough Fiber Rope boarding lines down the sheer ice cliffs, an octagonal Mud Brick and Tuff Brick windbreak shelter with Dust Glass storm slits, a central rope shaft, and four Cut Copper wind-vane sails—built with zero Shrine Cores or Anchors.\n\n" +
+                "Storm Beacons, Prospecting & Ampoules:\n" +
+                "▪ Wind-Baffle Lantern: A sculpted 3D brass-louvered Copper, Tuff Brick, and Dust Glass beacon (Light 14) that clears dust Blindness and Darkness across 20 blocks while granting Zephyr Weight (-55% fall damage, +1 block jump boost, and dust-blindness immunity).\n" +
+                "▪ Copper Silt Sieve: A clean riveted copper pan woven with Tough Fiber Rope (128 durability) that sifts Grey Sand, Sand, Red Sand, and Gravel into Flint, Clay, Iron/Gold/Copper nuggets, Quartz, Emeralds, and Dust-Core Shards.\n" +
+                "▪ Dust-Devil Ampoule & Zephyr Weight: Corked Medium Ampoule holding a layered dust-gale vortex—uncork to ride an updraft with 8s of Zephyr Weight while knocking back and blinding nearby foes.",
+                "env_dust_crusted_bergs", 1, resolveBiome11Icon("wind_baffle_lantern", Items.LANTERN),
+                590f, 0.0f, a_env - 2.99f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_dust_core_golem", "Dust-Core Golem & Silt Sentinels", "ENVIRONMENT & NATURE",
+                "60 HP hovering Dust-Core Golems (Polar Ash-Berg & Red Canyon variants) alongside rare Sandstone Golems.",
+                "Overview & Description:\n" +
+                "Elemental silt sentinels patrol the windswept plateaus of Dust-Crusted Bergs:\n" +
+                "▪ Dust-Core Golem (60 HP): Neutral hovering redstone-silt cores orbited by 3 spinning stone shards in two regional variants—Polar Ash-Berg (frosted basalt-ash shards matching Grey Sand and Dust-Crusted Ice) and Red Canyon Silt (chiseled red sandstone shards). Provoking one triggers a 6.0-damage blinding dust blast; injured golems absorb nearby loose sand to heal (+6 HP), and hand-feeding sand at full health can coax them to compact and shed a Dust-Core Shard (which compacts 3x3 patches of loose sand into Sandstone or Tuff and brews Potions of Zephyr Weight).\n" +
+                "▪ Sandstone Golem: Rare heavy 4-limbed sentinels occasionally share the widest sandy berg plateaus.",
+                "env_dust_crusted_bergs", 1, resolveBiome11Icon("dust_core_shard", Items.REDSTONE),
+                590f, 0.0f, a_env - 3.06f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_blood_ice_shallows", "2.16 Blood-Ice Shallows", "ENVIRONMENT & NATURE",
+                "Shallow crimson-glaze polar bays with Sanguine Ice floes, Red Clay Sand seabeds, edible Red Algae mats, and Sanguine Lilies.",
+                "Overview & Description:\n" +
+                "Biome #16 (entropica:blood_ice_shallows) forms sheltered polar coastal bays beneath a dark rose twilight sky (#6A242B) and warm crimson sea mist (#8C353D) with zero passive cold hazard. Translucent shelves of Sanguine Ice float across shallow iron-crimson waters carpeted in Red Clay Sand, Red Algae mats, and floating Sanguine Lilies.\n\n" +
+                "Blood & Glacial Materia Ecology:\n" +
+                "▪ Primary Blood & Secondary Glacial Materia: Favors Blood (60%), Glacial (30%), and Vitae (10%) Grots.\n" +
+                "▪ Sanguine Ice & Red Clay Sand: Sanguine Ice glows faintly (Light 3), drifts crimson mist upward, and chimes softly when walked on while injured; breaking it without Silk Touch or a Sanguine Ice-Lancet melts it into water. Red Clay Sand lines the bay floor, packs 2x2 into Sanguine Clay Bricks (with Stairs & Slabs), and smelts directly into Blood Glass (entropica:blood_glass).\n" +
+                "▪ Red Algae: Coastal crimson dulse mats thriving in water or on Sanguine Ice. Directly edible (3 hunger, halves active Poison & Wither durations, and grants 6s Regeneration I), substitutes for Slimeballs in Sticky Pistons, Leads, and Magma Cream, and crafts Red Dye.",
+                "env_biomes", 1, resolveBiome11Icon("sanguine_ice", Items.PACKED_ICE),
+                495f, 0.0f, a_env - 3.16f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_crimson_tide_sanctum", "Crimson Tide Sanctum, Tide Lantern & Ice-Lancet", "ENVIRONMENT & NATURE",
+                "Half-submerged Blood Glass & Sanguine Clay Brick tide-sanctum with Crimson Tide Lanterns, Sanguine Ice-Lancets, and Sanguine Draught Ampoules.",
+                "Overview & Description:\n" +
+                "Anchored at sea level in Blood-Ice Shallows, the Crimson Tide Sanctum (20x20x18) opens four tide-archways into a sunken crimson basin blooming with Sanguine Lilies and Red Algae beneath a Blood Glass oculus dome—built with zero Shrine Cores or Anchors.\n\n" +
+                "Coastal Beacons, Blades & Ampoules:\n" +
+                "▪ Crimson Tide Lantern: A sculpted 3D Deepslate Tile, Cut Copper, and Blood Glass coastal beacon (Light 15, waterloggable) that clears polar chill, Weakness, and Mining Fatigue across 16 blocks while granting Regeneration I to explorers in water or on Sanguine Ice.\n" +
+                "▪ Sanguine Ice-Lancet: A fast crimson harvesting blade (192 durability) that automatically Silk-Touches all Ice blocks without needing Silk Touch, chills hit foes with Slowness I, and siphons 1.5 HP per melee strike.\n" +
+                "▪ Sanguine Draught Ampoule & Sanguine Vigor: Uncorking restores 3 Hearts, clears Weakness & Wither, and grants 45s of Sanguine Vigor (+2 Max Hearts, freeze immunity, and melee life-steal).",
+                "env_blood_ice_shallows", 1, resolveBiome11Icon("crimson_tide_lantern", Items.LANTERN),
+                590f, 0.0f, a_env - 3.13f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_sanguine_sea_angel", "Sanguine Sea-Angel & Blood-Frost Darts", "ENVIRONMENT & NATURE",
+                "36 HP hostile amphibious sea-angels that swim in bays, skim low over Sanguine Ice, spit Blood-Frost Darts, and drop Sanguine Heart-Gel.",
+                "Overview & Description:\n" +
+                "Shoals of predatory Sanguine Sea-Angels (36 HP, Polar Blood-Shallows & Abyssal Garnet variants) haunt the crimson bays:\n" +
+                "▪ Amphibious Bay & Ice-Shelf Hunter: Translucent pteropods with a pulsing crimson heart visible inside their bell. They swim gracefully through bay water and skim low over Sanguine Ice shelves without ever beaching, chiming like glass when calm before splitting their head cowl open with a sharp snap and rhythmic heartbeat when hunting.\n" +
+                "▪ Blood-Frost Darts & Siphon Lunge: Fires chilling Blood-Frost Darts at mid-range (4.0 damage + Slowness I + freeze buildup) and lunges headfirst up close to siphon 2.5 HP.\n" +
+                "▪ Sanguine Heart-Gel: Dropped (1-2x) alongside Average Blood Essence; brews Potions of Sanguine Vigor and crafts Crimson Tide Lanterns, Sanguine Ice-Lancets, and Sanguine Draught Ampoules.",
+                "env_blood_ice_shallows", 1, resolveBiome11Icon("sanguine_heart_gel", Items.MAGMA_CREAM),
+                590f, 0.0f, a_env - 3.20f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_astral_skerries", "2.17 Astral Skerries", "ENVIRONMENT & NATURE",
+                "Barren Starlight Ice & Astral Impactite island chains with 12-28 block ice needles, Stardust Spikes, and starlight-parallax waters.",
+                "Overview & Description:\n" +
+                "Biome #17 (entropica:astral_skerries) forms rare polar island chains beneath a deep starlight-indigo sky (#1C1A38), glowing purple volumetric mist (#32245C), drifting stardust motes, and starlight-parallax channels (#1B2854)—with zero trees, leaves, grass blocks, or environmental hazards.\n\n" +
+                "Astral, Glacial & Aurora Materia Ecology:\n" +
+                "▪ Primary Astral & Secondary Glacial Materia: Favors Astral (60%), Glacial (30%), and Aurora (10%) Grots alongside Aurora Jellies, Luminoths, and night Glacial Frost-Cores.\n" +
+                "▪ Tall Spires & Stardust Crystals: Slender 12-28 block Starlight Ice Pillars and 10-20 block Stardust Spikes (built of Stardust Crystal Blocks and directional Stardust Crystal Clusters) soar from rocky Astral Impactite shelves. Mining clusters yields 2-4 Stardust Fragments (Fortune scaling).\n" +
+                "▪ Rime-Star Tussock: Frost-silver coastal sedge thriving directly on ice and stone; brushing through it eases frost buildup and puffs stardust that outlines invisible creatures.",
+                "env_biomes", 1, resolveBiome11Icon("starlight_ice", Items.BLUE_ICE),
+                505f, 0.0f, a_env - 3.34f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_stardust_skerry_orrery", "Stardust Skerry Orrery, Orrery Lantern & Tuning Chisel", "ENVIRONMENT & NATURE",
+                "Core-free Astral Glass & Mirror observatory with Celestial Orrery Lanterns, Starlight Tuning Chisels, and Starlight Draught Ampoules.",
+                "Overview & Description:\n" +
+                "Rising from a Starlight Ice and Astral Impactite skerry ringed by natural Stardust Spikes, the Stardust Skerry Orrery (20x20x22) aligns a sunken Astral Mirror floor dish directly beneath an open sighting slit in its Astral Glass and Astral Marble dome—built with zero Life-Force Cores or Anchors.\n\n" +
+                "Observatory Beacons, Tools & Tonics:\n" +
+                "▪ Celestial Orrery Lantern: A sculpted 3D Engraved Astral Slate and Astral Glass beacon (Light 15, standing or hanging, waterloggable) that clears Darkness and Blindness across 18 blocks, grants Starlight Grace, outlines invisible foes, and accelerates nearby budding Astral crystals at night.\n" +
+                "▪ Starlight Tuning Chisel: A 256-durability Resonite-and-Stardust tool that self-repairs under night starlight, harvests crystal clusters for +1 bonus shard (or intact cluster while sneaking), cleanly harvests Starlight Ice, and chimes on Right-Click to ping nearby geodes and invisible creatures.\n" +
+                "▪ Starlight Draught Ampoule & Starlight Grace: Restores 2 Hearts, clears Darkness, Blindness, Slowness, and frost buildup, and grants 60s of Starlight Grace (flicker-free Night Vision, +0.5 step height, -60% fall damage, and +12% movement speed; also brewed from Awkward Potion + Stardust Fragment).",
+                "env_astral_skerries", 1, resolveBiome11Icon("celestial_orrery_lantern", Items.LANTERN),
+                600f, 0.0f, a_env - 3.30f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_starlight_nautilus", "Starlight Nautilus, Barding & Astral Star-Fishing", "ENVIRONMENT & NATURE",
+                "36 HP tameable 3D-flying & swimming Nautilus mount fed by 7 biome-exclusive cosmic fish species, supporting Saddles and Mount Armors.",
+                "Overview & Description:\n" +
+                "Pods of peaceful Starlight Nautiluses (36 HP) glide through the starry air and swim icy channels using the base Nautilus silhouette and jet-propulsion animations, clad in coiled Starlight spiral chambers and Engraved Astral Slate rims.\n\n" +
+                "Biome-Only Star-Fishing, Saddle Flight & Barding:\n" +
+                "▪ 7 Astral Skerries Star Fish: Fishing exclusively in Astral Skerries catches Nebula Darters, Starwing Flying-Fish, Starfall Rays, Comet Ribbonfish, Zenith Moonfish, Supernova Puffers, and rare nighttime Astral Lanternfish. Every raw fish tames, heals, breeds, or buffs the Starlight Nautilus (while 5 species cook into Starlight-infused meals).\n" +
+                "▪ Saddle 3D Flight & Star-Jet Dash: Equip a Saddle on a tamed Starlight Nautilus for full 3D air flight and underwater swimming (with rider Water Breathing underwater and a chargeable Spacebar Star-Jet Dash).\n" +
+                "▪ Mount Armors & Shears: Supports Leather, Copper, Iron, Gold, Diamond, and Netherite mount armors plus craftable Astral Slate Nautilus Armor (+12 Armor, +3.5 Toughness, +35% Knockback Resistance, and night shell regen). Right-click with Shears to remove armor first, then the saddle.",
+                "env_astral_skerries", 1, resolveBiome11Icon("astral_nautilus_armor", Items.NAUTILUS_SHELL),
+                600f, 0.0f, a_env - 3.38f, false
         ));
 
         ALL_NODES.add(new CodexNode(
@@ -612,15 +1303,15 @@ public class CodexCategoryRegistry {
         ));
 
         ALL_NODES.add(new CodexNode(
-                "env_glacial_heart_root", "Glacial Heart-Root", "ENVIRONMENT & NATURE",
-                "Deep glacier-blue hanging roots clinging beneath coastal Blue-Ice shelves and basalt archways.",
+                "env_glacial_heart_root", "Glacial Heart-Root & Cryo-Grenades", "ENVIRONMENT & NATURE",
+                "Water-freezing hanging roots harvested carefully with Shears or Axes and crafted into throwable Cryo-Grenades.",
                 "Overview & Description:\n" +
-                "Dense, deep-blue hanging root tendrils saturated with pure Glacial Materia that anchor themselves upside-down beneath frozen coastal overhangs.\n\n" +
-                "Origin & Obtaining:\n" +
-                "Found hanging beneath projecting Blue Ice shelves, basalt ceilings, and the ground archway of the Frost-Veiled Glacial Runic Spire (also discovered in Spire treasure chests). Harvest cleanly with Shears.\n\n" +
-                "Crafting & Materia Uses:\n" +
-                "Extracted in Crucibles as a concentrated source of Glacial Materia and hung under ice, packed ice, blue ice, or sturdy stone ceilings as polar architectural drapery.",
-                "env_flora", 0, new ItemStack(ModBlocks.GLACIAL_HEART_ROOT.get()),
+                "Dense, deep-blue hanging root tendrils saturated with pure Glacial Materia that cling beneath Blue-Glacier Shelf overhangs, Silent Fjord basalt cliffs, and Runic Spire archways—gradually freezing open surface water directly below into ice and chilling anything that brushes against them (Slowness IV + frostbite).\n\n" +
+                "Harvesting Hazard & Drops:\n" +
+                "▪ Shears, Silk Touch, or Axe: Safely harvests Glacial Heart-Roots (breaking bare-handed shatters the sub-zero tendrils for 3 hearts of freezing damage!).\n\n" +
+                "Throwable Cryo-Grenades:\n" +
+                "▪ Crafted from Glacial Heart-Root / Frost-Core reagents, Snowballs, Frozen Moss Clumps, and Gunpowder (yields 4x Cryo-Grenades). Right-click to hurl a cryo-sphere that freezes nearby surface water into Ice, douses flames, and blasts foes within 3.5 blocks with frost damage, Slowness III, and deep freeze buildup.",
+                "env_flora", 0, new ItemStack(ModItems.CRYO_GRENADE.get()),
                 420f, 0.0f, a_env + 0.08f, false
         ));
 
@@ -636,6 +1327,45 @@ public class CodexCategoryRegistry {
                 "▪ Spiked Armor Lining: Stitched from 4 Shielding Thorn-Fibers and Leather; deals automatic 2.0 thorns retaliation damage back to melee attackers while carried.",
                 "env_flora", 1, new ItemStack(ModBlocks.SHIELDING_BRAMBLE.get()),
                 420f, 0.0f, a_env - 0.04f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_auroral_feather_moss", "Auroral Feather-Moss & Auroral Lanterns", "ENVIRONMENT & NATURE",
+                "Color-shifting bioluminescent moss carpets and Light Level 15 monster-warding Auroral Lanterns.",
+                "Overview & Description:\n" +
+                "Feathery bioluminescent moss carpets (Light Level 9) that drape Coarse Gravel islets and Glimmer-Ice banks across the Auroral Skerries, shimmering in emerald, magenta, and cyan Aurora Materia hues.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Harvest intact with Shears, or break by hand to gather 1-2x Glowing Auroral Fibers.\n\n" +
+                "Crafting Uses:\n" +
+                "▪ Auroral Lantern (Light Level 15): Framed from 8 Iron Nuggets around a Glowing Auroral Fiber. Casts full aurora radiance (standing or hanging) and establishes a 16-block warding aura that blocks natural hostile monster spawns.",
+                "env_flora", 1, new ItemStack(ModBlocks.AURORAL_FEATHER_MOSS.get()),
+                495f, 0.0f, a_env - 0.14f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_mist_veil_fern", "Mist-Veil Fern & Camouflage Cloak", "ENVIRONMENT & NATURE",
+                "Silver-fronded geothermal ferns with warm peach hearts woven into stealth-granting Camouflage Cloaks.",
+                "Overview & Description:\n" +
+                "Translucent silver ferns (Light Level 4) with a warm glowing peach heart that flourish amid rising geothermal steam vents on Coarse Gravel, Basalt, and Glimmer-Ice.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Harvest intact with Shears (also displayable in Flower Pots), or break normally for 1x Mist-Veil Frond.\n\n" +
+                "Crafting Uses:\n" +
+                "▪ Camouflage Cloak: Woven from 4 Mist-Veil Fronds, 2 Leather, and String. When worn on the chest or held in the offhand, it cuts hostile monster detection range in half (-50%) and wraps you in warm mist Invisibility while sneaking.",
+                "env_flora", 1, new ItemStack(ModBlocks.MIST_VEIL_FERN.get()),
+                475f, 0.0f, a_env + 0.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_auroral_lily_pad", "Auroral Lily-Pad & Thermal Heat Lamp", "ENVIRONMENT & NATURE",
+                "Warm glowing water lilies that keep channels ice-free and fuel 10-block snow-melting Thermal Heat Lamps.",
+                "Overview & Description:\n" +
+                "Floating geothermal water lilies (Light Level 11) native to the steaming channels of the Auroral Skerries that gently warm the water beneath them, melting surface ice within a 3-block radius.\n\n" +
+                "Origin & Obtaining:\n" +
+                "Collect intact with Shears, or harvest without Shears for 1x Warm Aurora Petal.\n\n" +
+                "Crafting Uses:\n" +
+                "▪ Thermal Heat Lamp (Light Level 14): Built from Copper Ingots, Glass, Redstone, and a Warm Aurora Petal. Passively (and on right-click thermal pulses) melts snow layers and surface ice into water across a 10-block radius while clearing freezing chill on nearby players.",
+                "env_flora", 1, new ItemStack(ModBlocks.AURORAL_LILY_PAD.get()),
+                475f, 0.0f, a_env + 0.14f, false
         ));
 
         ALL_NODES.add(new CodexNode(
@@ -813,15 +1543,15 @@ public class CodexCategoryRegistry {
 
         ALL_NODES.add(new CodexNode(
                 "env_rimebloom", "Frostbite Blossom (Rimebloom)", "ENVIRONMENT & NATURE",
-                "Crystalline 3-petaled ice tulip flowers pulsing ambient cold luminescence.",
+                "Crystalline 3-petaled ice tulip flowers pulsing ambient cold luminescence across glacial shelves and decaying floes.",
                 "Overview & Description:\n" +
                 "A rare glacial wildflower forming a 3-petaled ice tulip cup with a glowing central crystal core.\n\n" +
                 "Origin & Obtaining:\n" +
-                "Found growing on Blue-Glacier Shelves and Crystalline Pack-Ice, or harvested with shears.\n\n" +
+                "Found growing in Blue-Glacier Shelf crevasses, Crystalline Pack-Ice, and as stunted clusters atop the decaying ice packs of Frost-Bite Floes. Harvest intact with Shears.\n\n" +
                 "Crafting Uses:\n" +
                 "Harvested without Shears for Rimebloom Petals—used to craft 2x Rimebloom Dye (convertible to Light Blue Dye), brew Potions of Frost Resistance, and extract Glacial Materia in Crucibles.\n\n" +
                 "Special Properties:\n" +
-                "Thrives directly on Blue Ice, Packed Ice, Ice, and Snow Blocks in crevasses; emits Light Level 3 and ambient frost mist particles that slow intruders.",
+                "Thrives directly on Blue Ice, Packed Ice, Ice, Snow Blocks, Rotten Ice, and Blighted Packed Ice; emits Light Level 3 and ambient frost mist particles that slow intruders.",
                 "env_flora", 0, new ItemStack(ModBlocks.RIMEBLOOM.get()),
                 380f, 0.0f, a_env + 0.10f, false
         ));
@@ -904,17 +1634,15 @@ public class CodexCategoryRegistry {
 
         ALL_NODES.add(new CodexNode(
                 "env_cryo_static_shrub", "Cryo-Static Shrub", "ENVIRONMENT & NATURE",
-                "Glacial frost shrub with a dark wood trunk base and dense electric cyan static leaf canopy.",
+                "Low charcoal-wood polar shrub covered in glowing cyan static-ice needles that shear for Charged Static Needles.",
                 "Overview & Description:\n" +
-                "An alpine frost shrub structured with several distinct woody stems reaching up into a dense full-width cyan static leaf canopy.\n\n" +
+                "A low, gnarled shrub of charcoal-black wood bristling with fine needles of glowing cyan static ice that crackle across wind-swept polar plains.\n\n" +
                 "Origin & Obtaining:\n" +
-                "Spawns naturally on dirt, grass, clay, mud, snow, and packed ice in Glacial Peaks and Frozen Fjords.\n\n" +
+                "Spawns naturally on Snow, Packed Ice, Blue Ice, Fulgurite Ice, and copper-rich stone in Static Ice-Plains, and spreads onto nearby snow/ice when lightning strikes within 6 blocks.\n\n" +
                 "Crafting Uses:\n" +
-                "Harvested for Cryo-Static Twigs, Cryo-Static Leaves, and living Cryo-Static Rootlings to craft Glacial Spectral Dye, frost resistance potions, and cryo catalysts.\n\n" +
-
+                "Sheared for 1-2 Charged Static Needles to build adjustable-delay Biomass Capacitors, or harvested for Cryo-Static Twigs and Leaves for Cryo-Static Spectral Dye.\n\n" +
                 "Special Properties:\n" +
-                "Emits Light Level 5 and radiates dual Glacial Cyan & Plasma Violet static sparkles. Entities stepping inside receive freezing ticks and static Slowness I stun. Right-clicking triggers an electric static discharge.",
-
+                "Emits Light Level 5 and static sparkles. Stepping inside inflicts chill, Slowness I, and a light 0.5-heart shock (unless grounded) while charging your next melee swing for +2 bonus lightning damage; breaking without Shears or Silk Touch discharges for 2 hearts of shock.",
                 "env_flora", 0, new ItemStack(ModBlocks.CRYO_STATIC_SHRUB.get()),
                 380f, 0.0f, a_env + 0.40f, false
         ));
@@ -1060,15 +1788,15 @@ public class CodexCategoryRegistry {
 
         ALL_NODES.add(new CodexNode(
                 "env_aegis_spire_orchid", "Aegis-Spire Orchid", "ENVIRONMENT & NATURE",
-                "2-tall crystalline orchid with azure-blue layered petal spires granting Resistance I aura.",
+                "Crystalline azure-and-silver orchid blooming on Crystalline Pack-Ice snowfields and granting a 4-block Resistance I aura.",
                 "Overview & Description:\n" +
-                "A tall 2-block crystalline orchid featuring layered azure petals with metallic silver rims.\n\n" +
+                "A crystalline orchid featuring layered azure petals with metallic silver rims, occurring in both standard and 2-block tall spires.\n\n" +
                 "Origin & Obtaining:\n" +
-                "Spawns naturally in Crystal Crags and Metallic Mountain Peaks.\n\n" +
+                "Spawns naturally across snowfields and ice in Crystalline Pack-Ice, as well as Crystal Crags and Metallic Mountain Peaks.\n\n" +
                 "Crafting Uses:\n" +
-                "Harvested for Aegis-Spire Petals used in Resistance II brewing and protective warding.\n\n" +
+                "Harvested for Aegis-Spire Petals used to craft lifesaving Aegis Shielding Charms, brew Potions of Iron Skin, and extract Aegis Materia.\n\n" +
                 "Special Properties:\n" +
-                "Emits Light Level 7 and grants Resistance I aura to non-hostile entities within 4 blocks.",
+                "Thrives directly on Snow Blocks, Packed Ice, Blue Ice, Glimmer-Ice, and Aegis Quartz; emits Light Level 7 and grants a passive 4-block Resistance I aura to players and friendly creatures.",
                 "env_flora", 0, new ItemStack(ModBlocks.AEGIS_SPIRE_ORCHID.get()),
                 780f, 0.0f, a_env + 0.80f, false
         ));
@@ -1355,7 +2083,7 @@ public class CodexCategoryRegistry {
                 "Behavior & Mechanics:\n" +
                 "Effortlessly catches thermal updrafts, glides across fjords, and performs bipedal crane steps on ground. Can be sheared for Celestial Plumage.\n\n" +
                 "Harvest & Drops:\n" +
-                "Drops Aurorafowl Feathers and Raw Aurorafowl meat.",
+                "Drops Aurorafowl Feathers, Raw Aurorafowl meat, and 2-3x Average Aurora Essence.",
                 "env_fauna", 1, new ItemStack(ModItems.AURORAFOWL_FEATHER.get()),
                 360f, 0.0f, a_env + 0.12f, false
         ));
@@ -1368,22 +2096,39 @@ public class CodexCategoryRegistry {
                 "Behavior & Mechanics:\n" +
                 "Swims through molten lava and vents pressurized high-temperature steam plumes that generate powerful physical updrafts.\n\n" +
                 "Harvest & Drops:\n" +
-                "Shearing or harvesting during venting yields Vapor Vent Membranes; drops Sulfur Clods upon defeat.",
+                "Shearing or harvesting during venting yields Vapor Vent Membranes; drops Sulfur Clods and 2-4x Average Vapor Essence upon defeat.",
                 "env_fauna", 1, new ItemStack(ModItems.VAPOR_VENT_MEMBRANE.get()),
                 380f, 0.0f, a_env + 0.18f, false
         ));
 
         ALL_NODES.add(new CodexNode(
                 "env_cryo_stalker", "Cryo-Stalker", "ENVIRONMENT & NATURE",
-                "Glacial apex predator that camouflages in snow and leaps from 8 blocks away to inflict freezing hypothermia.",
+                "Glacial apex predator with 90% snow/ice stealth, 8-block pounce leaps, rear tail-swipes, and bright-light/fire weakness.",
                 "Overview & Description:\n" +
-                "A digitigrade quadrupedal hunter sculpted with glassy black ice textures and glowing cyan blue veins.\n\n" +
-                "Behavior & Mechanics:\n" +
-                "Prowls snowy taigas and pack-ice floes, cloaking into snow before launching explosive pounces that slow and freeze prey.\n\n" +
+                "A digitigrade quadrupedal hunter native to Frost-Bite Floes and polar ice packs, sculpted with glassy black-ice armor and glowing cyan Glacial Materia veins.\n\n" +
+                "Behavior, Stealth & Weaknesses:\n" +
+                "▪ 90% Snow/Ice Camouflage: Turns ~90% translucent with silent footsteps (gliding over Rotten Ice without collapsing it) whenever stalking on or beside snow or ice in dim light (block light <= 10).\n" +
+                "▪ Fire & Bright-Light Weakness: Igniting a Cryo-Stalker or luring it into bright torches/lanterns (block light > 10) instantly strips its stealth and inflicts a -30% movement speed penalty.\n" +
+                "▪ 8-Block Pounce, Freezing Bite & Rear Tail-Swipe: Lunges up to 8 blocks to deliver a 4-second freezing hypothermia bite (dealing bonus frost damage to chilled targets), and whips attackers striking from behind with a knockback Rear Tail-Swipe.\n\n" +
                 "Harvest & Drops:\n" +
-                "Yields Cryo-Crystalline Fangs for frost weapons and Frost-Veined Hide for cold-insulated armor.",
+                "Yields Cryo-Crystalline Fangs (for forging the Frost-Bite Dagger), Frost-Veined Hides (for curing into Cryo-Insulated Armor), and 1-2x Average Glacial Essence + 1-2x Average Vapor Essence.",
                 "env_fauna", 1, new ItemStack(ModItems.CRYO_CRYSTALLINE_FANG.get()),
                 400f, 0.0f, a_env + 0.24f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_cryo_stalker_gear", "Frost-Bite Dagger & Cryo-Insulated Armor", "ENVIRONMENT & NATURE",
+                "Swift freezing fang dagger, Sea Salt hide curing, and 4-piece Cryo-Insulated expedition armor.",
+                "Overview & Description:\n" +
+                "Materials hunted from Cryo-Stalkers across Frost-Bite Floes can be preserved with Sea Salt Crystals and forged into fast frostbite weaponry and full-body polar hazard protection.\n\n" +
+                "Hide Curing & Crafting Recipes:\n" +
+                "▪ Sea Salt Crystals: Boiled from a Water Bucket in a furnace, cooked from Kelp on a campfire, or mixed from a Water Bucket (or Ice) and Kelp.\n" +
+                "▪ Cured Frost-Veined Hide & Storage Block: Cure 1 Frost-Veined Hide with 2 Sea Salt Crystals (4 cured hides compact into a Cured Frost-Hide Block and unpack back into 4 hides).\n" +
+                "▪ Frost-Bite Dagger: Forged diagonally from 2 Cryo-Crystalline Fangs, 1 Necrotic Slime, and 1 Stick. Strikes rapidly (-1.8 attack speed) and inflicts deep freeze buildup, Slowness III (-45% speed), and Mining Fatigue II for 3 seconds.\n\n" +
+                "4-Piece Cryo-Insulated Armor (Helmet, Chestplate, Leggings & Boots):\n" +
+                "Crafted in standard armor patterns from Cured Frost-Veined Hide (+18 total Armor, +6.0 total Toughness). Wearing any piece clears freeze buildup (and wards off Runic Spire chill); Cryo-Insulated Boots walk safely across Rotten Ice without collapsing it; and the full 4-piece suit cleanses Frost-Bite Floes swamp-water Slowness and Rotten Ice Poison.",
+                "env_cryo_stalker", 2, new ItemStack(ModItems.FROST_BITE_DAGGER.get()),
+                555f, 0.0f, a_env + 0.22f, false
         ));
 
         ALL_NODES.add(new CodexNode(
@@ -1394,7 +2139,7 @@ public class CodexCategoryRegistry {
                 "Behavior & Mechanics:\n" +
                 "Climbs sheer scree cliffs, braces defensively against frontal damage (-80%), and sheds Aegis Plates when charging into stone walls.\n\n" +
                 "Harvest & Drops:\n" +
-                "Spawns naturally across Blue-Glacier Shelves. Yields Glacial Aegis Plates (for Aegis Shielding Linings & 3-charge Glacial Barricades), Patina Aegis Plates (for projectile-sensing Conductive Aegis Plating), or Mossy Aegis Plates.",
+                "Spawns naturally across Blue-Glacier Shelves. Yields Glacial Aegis Plates, Patina Aegis Plates, or Mossy Aegis Plates alongside 1-2x Average Aegis Essence and 1-2x Average Glacial/Static/Overgrowth Essence.",
                 "env_fauna", 1, new ItemStack(ModItems.GLACIAL_AEGIS_PLATE.get()),
                 420f, 0.0f, a_env + 0.30f, false
         ));
@@ -1407,7 +2152,7 @@ public class CodexCategoryRegistry {
                 "Behavior & Mechanics:\n" +
                 "Uses an undulating 16-segment Catmull-Rom swimming animation, executes biting lunges that inflict Blindness and Slowness, and unleashes sonic void shockwaves that fling attackers away.\n\n" +
                 "Harvest & Drops:\n" +
-                "Drops Serpent Void Scales, utilized in crafting Void-attuned maritime armor and abyssal diving gear.",
+                "Drops Serpent Void Scales and 5-8x Strong Void Essence, utilized in crafting Void-attuned maritime armor and abyssal diving gear.",
                 "env_fauna", 1, new ItemStack(ModItems.SERPENT_VOID_SCALE.get()),
                 440f, 0.0f, a_env + 0.36f, false
         ));
@@ -1420,7 +2165,7 @@ public class CodexCategoryRegistry {
                 "Behavior & Mechanics:\n" +
                 "Roams frozen oceans and glacial taigas. Channels intense Cryo breath that deals freezing damage and slows targets, while rapidly healing whenever standing upon ice, packed ice, blue ice, or snow.\n\n" +
                 "Harvest & Drops:\n" +
-                "Drops Hydra Glacial Horns, essential for forging Cryo-infusion matrices and absolute-zero weaponry.",
+                "Drops Hydra Glacial Horns and 5-8x Strong Glacial Essence, essential for forging Cryo-infusion matrices and absolute-zero weaponry.",
                 "env_fauna", 1, new ItemStack(ModItems.HYDRA_GLACIAL_HORN.get()),
                 460f, 0.0f, a_env + 0.42f, false
         ));
@@ -1433,7 +2178,7 @@ public class CodexCategoryRegistry {
                 "Behavior & Mechanics:\n" +
                 "Attracted to torches, lanterns, and Materia nodes. Emits soft floating motes and confers ambient Night Vision to nearby travelers.\n\n" +
                 "Harvest & Drops:\n" +
-                "Yields Luminoth Dust, used in illuminating alchemical tinctures, glow wands, and spectral pigments.",
+                "Yields Luminoth Dust plus 1-2x Average Radiant Essence and 1x Average Aurora Essence.",
                 "env_fauna", 1, new ItemStack(ModItems.LUMINOTH_DUST.get()),
                 480f, 0.0f, a_env + 0.48f, false
         ));
@@ -1448,7 +2193,7 @@ public class CodexCategoryRegistry {
                 "▪ Frost: Native to sub-zero tundras, immune to freezing, weeps Cryo snow crystals.\n" +
                 "▪ Solar: Native to hot savannas and sunlit peaks, weeps Radiant sparks.\n\n" +
                 "Harvest & Drops:\n" +
-                "Yields Weeping Amber Tears, prized for high-purity alchemical elixirs and crystalline catalyst cores.",
+                "Yields Weeping Amber Tears alongside 2x Strong Vitae Essence and 1-2x Strong Overgrowth Essence.",
                 "env_fauna", 1, new ItemStack(ModItems.WEEPING_AMBER_TEAR.get()),
                 500f, 0.0f, a_env + 0.54f, false
         ));
@@ -1461,36 +2206,350 @@ public class CodexCategoryRegistry {
                 "Behavior & Mechanics:\n" +
                 "Soars at high altitudes. Upon spotting prey, executes dramatic high-speed dive attacks. During thunderstorms, its attacks channel direct lightning discharges.\n\n" +
                 "Harvest & Drops:\n" +
-                "Drops Storm Kite Membranes, utilized in crafting Aer-attuned gliding wings and galvanic capacitors.",
+                "Drops Storm Kite Membranes and 4-6x Strong Storm Essence, utilized in crafting Aer-attuned gliding wings and galvanic capacitors.",
                 "env_fauna", 1, new ItemStack(ModItems.STORM_KITE_MEMBRANE.get()),
                 520f, 0.0f, a_env + 0.60f, false
         ));
 
         ALL_NODES.add(new CodexNode(
                 "env_glacial_frost_core", "Glacial Frost-Core", "ENVIRONMENT & NATURE",
-                "Hovering 20 HP crystalline diamond construct with 4 orbiting ice satellites and a 5-block Freezing Frost Aura.",
+                "Hovering 40 HP crystalline diamond construct with 4 orbiting ice satellites and a 5-block Freezing Frost Aura.",
                 "Overview & Description:\n" +
                 "A silent, hovering elemental construct native to the Blue-Glacier Shelf, formed from a vertical rotating sapphire-cyan diamond core surrounded by 4 orbiting satellite ice cubes.\n\n" +
                 "Behavior & Mechanics:\n" +
                 "Glides ~2 blocks above frozen shelves, phases effortlessly through snow layers, and remains peaceful until provoked—unleashing a 5-block Freezing Frost Aura (Slowness II for 5s + 3.0 frost damage).\n\n" +
                 "Harvest & Crafting Uses:\n" +
-                "Periodically sheds Frost-Core Shards when undisturbed and drops 1x Frost-Core Shard + 1-2x Packed Ice upon defeat. Used to build the automated Glacial Ice-Maker (which turns water buckets or adjacent water sources into Packed Ice) and brew Potions of Freezing.",
+                "Periodically sheds Frost-Core Shards when undisturbed and drops 1x Frost-Core Shard, 1-2x Packed Ice, and 2-4x Average Glacial Essence upon defeat. Used to build the automated Glacial Ice-Maker (which turns water buckets or adjacent water sources into Packed Ice) and brew Potions of Freezing.",
                 "env_fauna", 1, new ItemStack(ModItems.FROST_CORE_SHARD.get()),
                 540f, 0.0f, a_env + 0.66f, false
         ));
 
         ALL_NODES.add(new CodexNode(
                 "env_frost_tusk_mammot", "Frost-Tusk Mammot", "ENVIRONMENT & NATURE",
-                "45 HP woolly glacial quadruped with curved blue-ice tusks, snow-clearing stride, and upward tusk-sweep charges.",
+                "135 HP elephant-sized woolly glacial mammoth with sweeping blue-ice tusks, peaceful snow kneeling, bull-charges, and upward tusk tosses.",
                 "Overview & Description:\n" +
-                "A massive 45 HP slate-grey woolly quadruped roaming the Blue-Glacier Shelf, armed with twin curved translucent glacier-blue tusks and a swaying trunk.\n\n" +
+                "A massive 135 HP snowy-cream-to-taupe woolly mammoth roaming the Blue-Glacier Shelf and the gravel islets of the Auroral Skerries, crowned with shaggy frost bangs, a 5-segment curled trunk, sturdy 3-toenail elephant feet, and twin sweeping glacier-blue ice tusks.\n\n" +
                 "Behavior & Mechanics:\n" +
-                "Plows aside snow layers ahead of its feet as it walks. Neutral unless provoked, charging attackers with a heavy Tusk Sweep Lunge (10.0 damage + 4-block upward launch).\n\n" +
+                "Plows aside snow layers ahead of its feet as it walks and periodically kneels onto its front knees to rest peacefully on the snow. Neutral unless provoked—waking up immediately to stampede-charge attackers with lowered tusks and deliver an upward-launching Tusk Sweep (10.0 damage + 4-block upward toss).\n\n" +
                 "Shearing, Food & Gear:\n" +
                 "▪ Shearing (1-day regrowth): Yields 1-2x Insulated Glacial Wool, woven with String into the Thermal Insulated Blanket (clears freezing buildup and protects against Runic Spire hypothermia).\n" +
-                "▪ Defeat Drops: Yields 2-3x Insulated Glacial Wool and 2-4x Raw Mammot Meat (smelts/smokes/campfire-cooks into hearty Cooked Mammot Meat).",
+                "▪ Defeat Drops: Yields 3-4x Raw Mammot Meat (Cooked Mammot Meat if slain by fire), 2-3x Insulated Glacial Wool, and 3-5x Strong Glacial Essence.",
                 "env_fauna", 1, new ItemStack(ModItems.INSULATED_GLACIAL_WOOL.get()),
                 560f, 0.0f, a_env + 0.72f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_aurora_jelly", "Aurora Jelly, Glow-Gel & Auroral Wand", "ENVIRONMENT & NATURE",
+                "40 HP buoyant magnetic glow-drifter that pulls nearby loot to Aegis-holding players and powers Glow-Gel, Auroral Wands, and Redstone Couplers.",
+                "Overview & Description:\n" +
+                "A passive 40 HP (20 hearts) translucent dome jellyfish native to the Auroral Skerries, Crystalline Pack-Ice, and Blood-Ice Shallows, modeled with a 4-tier neon-green, cyan, and indigo stepped bell dome housing twin spinning mint-emerald magnetic dipole cores, an inner oral manubrium, and 7 flowing two-segment tendrils.\n\n" +
+                "Magnetism & Defense:\n" +
+                "▪ Aegis Magnetism: Drifts gently toward players holding an Aegis-Spire Petal or Aegis Crystal Shard, fanning its tendrils in a magnetic halo to pull dropped items within 6 blocks smoothly toward the player.\n" +
+                "▪ Bioluminescent Flash & Sting: Delivers a 2.0-damage electric tentacle sting if its tentacles are directly touched, and if hurt, releases a 3-second blinding flash before darting rapidly away.\n\n" +
+                "Drops & Crafted Gear:\n" +
+                "▪ Defeat Drops: Yields 1x Auroral Gelatin, 1-2x Charged Glow-Tentacles, 2-4x Average Aurora Essence, and 2x Average Aegis Essence (all scaling with Looting).\n" +
+                "▪ Auroral Gelatin -> Glow-Gel Pathing: Bouncy bioluminescent path blocks compounded with Coarse Gravel that light up underfoot (Light Level 13) and grant a swift movement speed boost.\n" +
+                "▪ Charged Glow-Tentacle -> Auroral Wand & Static Redstone Coupler: Crafts the ranged Auroral Wand (fires a 32-block cold aurora ray that places Light Level 14 Auroral Mote Lights in air or water without melting ice) and directional Static Redstone Coupler relays (collects side/back signals and outputs strength 15 forward).",
+                "env_fauna", 1, new ItemStack(ModItems.CHARGED_GLOW_TENTACLE.get()),
+                500f, 0.0f, a_env + 0.28f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_sandstone_golem", "Sandstone Golem", "ENVIRONMENT & NATURE",
+                "135 HP hovering sandstone sentinel with Pale & Red Canyon variants, a 3-block blinding sandstorm slam, and magnetic sand-vortex self-repair.",
+                "Overview & Description:\n" +
+                "A faceless 135 HP (67.5 hearts, 8 Armor) desert sentinel powered by a fractured crimson redstone heart suspended inside an open sandstone chest archway, flanked by 4 magnetically orbiting hammer-arm and column-leg assemblies. Naturally adapts into Pale Desert Sandstone or Red Canyon Sandstone variants matching local sands and canyons.\n\n" +
+                "Behavior, Combat & Sand-Vortex Repair:\n" +
+                "▪ Neutral Ruin Guardian: Peaceful toward travelers unless provoked, while actively defending desert ruins against undead and raiders.\n" +
+                "▪ Sandstorm Cyclone & Double-Hammer Slam: Spins its floating sandstone limbs in a blinding cyclone before slamming both war-hammers down for 10.0 damage and 3 seconds of Blindness across a 3-block radius.\n" +
+                "▪ Magnetic Compass-Vortex Repair: When damaged near Sand or Sandstone—or when right-clicked with Sand or Sandstone by hand—unlocks all 4 floating limbs into an orbiting compass vortex to vacuum up loose sand, restore health, and attune its Pale or Red masonry.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Feeding Sand or Sandstone by hand coaxes the golem to shed a Hard Sandstone Shard on cooldown, and defeating one drops 1x Hard Sandstone Shard, 2-4x Sandstone blocks, and 3-5x Strong Dust Essence (Large Dust Materia piece; attuned to Dust, Earth, and Arid Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.HARD_SANDSTONE_SHARD.get()),
+                580f, 0.0f, a_env + 0.78f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_peat_mud_kelpie", "Peat-Mud Kelpie", "ENVIRONMENT & NATURE",
+                "40 HP amphibious swamp water-spirit with Peat-Mud & Mangrove variants, storm water-walking, and a blinding mud-splash tail slap.",
+                "Overview & Description:\n" +
+                "A passive 40 HP (20 hearts, 2 Armor) equine swamp water-spirit native to Deep Swamp Trenches and Mangrove Fens, appearing in two natural 64x64 variants: Peat-Mud & Portal-Teal (slick peat hide, bog-kelp mane, glowing portal-teal hooves) and Mangrove Tannin & Wisp-Gold (reddish mangrove-bark hide, olive fen-reeds mane, glowing marsh-lantern amber hooves).\n\n" +
+                "Behavior, Water-Walking & Defense:\n" +
+                "▪ Channel Swimmer & Storm Water-Walker: Glides swiftly through deep swamp channels, trots smoothly over mud without sinking, and walks right atop water blocks during rain, storms, and mirage weather while trailing glowing spirit droplets.\n" +
+                "▪ Mud-Splash Tail Slap: If startled or hurt, whips around to slap mud and water across a 3.5-block radius, inflicting 2 seconds of Blindness before darting away.\n\n" +
+                "Marsh Offering & Materia Affinity:\n" +
+                "Offering Kelp, Seagrass, Mangrove Propagules, or Lily Pads heals the Kelpie, grants 15 seconds of Water Breathing, and coaxes it to peacefully shed a Kelpie Water-Pelt on cooldown. Defeating one yields 1x Kelpie Water-Pelt, 0-2x Kelp, and 2-4x Average Abyss Essence (Medium Abyss Materia piece; attuned to Abyss, Water, and Umbral Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.KELPIE_WATER_PELT.get()),
+                600f, 0.0f, a_env + 0.84f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_silt_sphinx", "Silt-Sphinx", "ENVIRONMENT & NATURE",
+                "120 HP couchant stone sphinx monument with Gilded Pharaoh variant, ancient chest & rune-seal guardianship, and a blinding winged paw slam.",
+                "Overview & Description:\n" +
+                "A 120 HP (60 hearts, 8 Armor) living canyon sphinx native to Dusty Canyons and Petrified Wood ruins, built with a chiseled pharaoh face, royal nemes headdress, uraeus cobra crest, feathered stone wings, and lion limbs in two 64x64 variants: Red Canyon Silt-Stone Monolith and Gilded Pharaoh Gold & Lapis.\n\n" +
+                "Monument Lifecycle, Chest Chambers & Combat:\n" +
+                "▪ Couchant Statue & Awakening: Reclines motionless as a petrified monument (-50% projectile damage) until disturbed—shuddering awake over 2.2 seconds to prowl on four stone lion legs, and reclining smoothly back into its monument pose once intruders leave.\n" +
+                "▪ Ancient Chest & Rune Seal Rule: Guards nearby treasure chests, awakening immediately if an intruder opens a chest without solving local runes. Powering a local rune seal (lit Runed Brazier, Autocast Pedestal, Redstone Lamp, or powered Lectern / Chiseled Bookshelf / Chiseled Sandstone) keeps the Sphinx peacefully dormant while chests are opened.\n" +
+                "▪ Winged Double-Paw Slam: Rears up, flares its feathered stone wings, and slams both front paws down for 8.0 damage plus 3 seconds of Blindness in a 3.5-block silt cloud.\n\n" +
+                "Royal Tribute & Materia Affinity:\n" +
+                "Offering a Gold Ingot or Lapis Lazuli to a rune-appeased dormant Silt-Sphinx gilds it into the Pharaoh variant and coaxes it to shed a Sphinx Sand-Stone on cooldown. Defeating one yields 1x Sphinx Sand-Stone, 1-2x Chiseled Sandstone, and 3-4x Strong Barrow Essence (Large Barrow Materia piece; attuned to Barrow, Earth, and Arid Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.SPHINX_SAND_STONE.get()),
+                620f, 0.0f, a_env + 0.90f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_zephyr_simurgh", "Zephyr-Simurgh", "ENVIRONMENT & NATURE",
+                "105 HP legendary sky-raptor with a full takeoff/soar/airbrake cycle, 6-block gale wing-clap shockwave, and thunderstorm-sentinel tailwind screech.",
+                "Overview & Description:\n" +
+                "A neutral 105 HP (52.5 hearts, 4 Armor) sky-raptor native to Silica Dunes and Windy Ridges, clad in layered sky-blue plumage, bronze armor plates, a 3-plume glowing copper crown crest, giant 3-jointed 10-blade feathered wings, and 3 trailing copper tail streamers. Completely immune to both fall damage and lightning strikes.\n\n" +
+                "Flight Lifecycle, Gale Clap & Weather Sentinel:\n" +
+                "▪ Ridge Launch & Thermal Soaring: Launches off rocky ridges with an updraft wing-thrust, rides high canyon thermals, flares its slotted wingtips in an eagle airbrake landing, and hops agilely on bronze talons when perched.\n" +
+                "▪ 6-Block Gale-Force Windstorm Clap: If provoked on the ground or in mid-air, snaps both giant copper-tipped wings violently forward to deal 8.0 damage (+3.0 static shock in thunderstorms) and hurl attackers 6 blocks backward.\n" +
+                "▪ Weather-Sentinel Sky-Screech: Calls out to the sky whenever rain or thunderstorms gather (or when offered Rabbit, Copper Ingots, or Phantom Membranes), granting nearby peaceful travelers 20s of Slow Falling + 15s of Speed I tailwind.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sheds Simurgh Feathers during storms or when offered Rabbit/Copper/Membrane tribute on cooldown, and drops 1-2x Simurgh Feathers and 3-4x Strong Storm Essence (Large Storm Materia piece) upon defeat (attuned to Storm, Air, and Lightning Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.SIMURGH_FEATHER.get()),
+                640f, 0.0f, a_env + 0.96f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_mirage_fata_sprite", "Mirage Fata-Sprite", "ENVIRONMENT & NATURE",
+                "24 HP hovering sun-stone & neon-cyan desert sylph with duplicate mirror-afterimage twins, parabolic solar dish collector focusing, and mirage evaporation.",
+                "Overview & Description:\n" +
+                "A passive 24 HP (12 hearts) crystalline desert sylph native to Red Silt-Wastes and Void-Charged Flats, built from an incandescent sun-stone core (Light Level 12-15) recessed inside a 12-bar glowing neon-cyan prismatic mirage frame and orbited by 4 double-sided beveled quartz mirror shards.\n\n" +
+                "Solar Dish Focusing & Mirror Afterimages:\n" +
+                "▪ Parabolic Solar Reflector: Under bright daytime skies (or when offered Quartz, Amethyst Shards, Glass Panes, or Glowstone Dust), pitches its 4 mirror-shards 90° upright into a solar dish—focusing sunbeams directly onto nearby solar/optical collectors (such as Astral Collectors, Qilin Light-Refractors, and Daylight Detectors), highlighting nearby monsters with Glowing, and warming nearby peaceful travelers with 15s of Fire Resistance.\n" +
+                "▪ Duplicate Mirror Afterimage: If struck, shears its neon-cyan mirage frame off its sun-stone core to spawn a duplicate Mirage Fata-Sprite afterimage twin (without the afterimage ability or drops) that mirrors the main sprite's flight, heading, and solar-dish poses to pull away hostile monster aggro before evaporating into shimmering motes.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Offering Quartz, Amethyst Shards, Glass Panes, or Glowstone Dust coaxes the Sprite to peacefully condense a Shimmering Mirage Aura on cooldown, and defeating one yields 1x Shimmering Mirage Aura, 0-2x Nether Quartz, and 2-3x Average Mirage Essence (Medium Mirage Materia piece; attuned to Mirage, Radiant, and Arid Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.SHIMMERING_MIRAGE_AURA.get()),
+                660f, 0.0f, a_env + 1.02f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_magma_cherufe", "Magma Cherufe", "ENVIRONMENT & NATURE",
+                "105 HP cliff-climbing volcanic basalt lizard with an 8-damage molten jaw clamp, igniting 5-segment tail whip, and lava regeneration.",
+                "Overview & Description:\n" +
+                "A hostile 105 HP (52.5 hearts, 8 Armor) reptilian lava beast native to Magma Caverns and Basalt Delves, clad in polygonal dark-basalt dorsal and flank plates, 6 glowing molten magma vents, a broad crocodilian skull with 11 jagged ivory fangs, 4 sprawling 3-clawed legs, and a heavy 5-segment basalt tail.\n\n" +
+                "Cliff Scaling, Lava Bathing & Combat:\n" +
+                "▪ Basalt Cliff Climber & Lava Regenerator: Crawls across volcanic rock and effortlessly climbs vertical basalt cliffs near lava rivers. Completely immune to fire and lava, regenerating 2 HP (1 heart) per second whenever submerged in lava.\n" +
+                "▪ Molten Jaw Clamp & Tearing Shake: Coils back roaring wide and lunges forward to clamp prey in its interlocking fangs for 8.0 damage while briefly pinning them.\n" +
+                "▪ Igniting Basalt Tail Whip: Spins to lash flanking or close-range foes across a sweeping arc with all 5 basalt tail segments, dealing 4.0 fire damage and igniting targets for 5 seconds.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Thermally shocking its hot armor with Snowballs, Splash Water Bottles, or Ice cracks loose a fire-resistant Cherufe Basalt Crust on cooldown, and defeating one yields 1x Cherufe Basalt Crust, 2-4x Basalt blocks, and 3-4x Strong Magma Essence (Large Magma Materia piece; attuned to Magma, Nether, and Earth Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.CHERUFE_BASALT_CRUST.get()),
+                680f, 0.0f, a_env + 1.08f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_soulfire_phenex", "Soulfire Phenex", "ENVIRONMENT & NATURE",
+                "44 HP skeletal bird-of-prey with a blazing hollow-ribcage soulfire wisp, 3-block Soul Wither breath cone, and soul-storm flight surge.",
+                "Overview & Description:\n" +
+                "A hostile 44 HP (22 hearts, 4 Armor) demonic skeletal bird-of-prey native to Soulfire Fjords and Ash Canyons, built from bleached ivory bone with twin V-crown horns, a hooked raptor beak, 3-jointed fanned bone wings, a 5-feather skeletal tail fan, and a see-through 360-degree hollow ribcage housing a blazing cyan-blue soulfire wisp.\n\n" +
+                "Flight Lifecycle, Soulfire Breath & Storm Surge:\n" +
+                "▪ Ledge Launch & Cavern Soaring: Hops agilely on skeletal talons when perched, launches off ledges in an explosive burst of blue flame, soars through cavern vaults trailing cyan-blue soulfire particles, and flares its bone wings and tail fan to airbrake onto perches.\n" +
+                "▪ 3-Block Soulfire Breath Cone: Breathes blue soulfire in a 3-block cone either in a diving aerial swoop or a grounded predatory lunge, dealing 6.0 damage, igniting prey, and afflicting targets with Soul Wither.\n" +
+                "▪ Soul Sand Storm Surge & Death Gutter-Out: Flies significantly faster during soul sand storms and in windy nether/soul/ash biomes. Upon defeat, its ribcage soulfire wisp flares brightly once and gutters out completely inside the collapsing bleached skeleton.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Offering Soul Sand, Soul Soil, Soul Torches, or Blaze Powder stokes its ribcage wisp to shed a fire-resistant Phenex Ember-Feather on cooldown, and defeating one drops 1-2x Phenex Ember-Feathers and 2-4x Average Soulfire Essence (Medium Soulfire Materia piece; attuned to Soulfire, Nether, and Undead Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.PHENEX_EMBER_FEATHER.get()),
+                580f, 0.0f, a_env + 1.14f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_void_arachne", "Void Arachne", "ENVIRONMENT & NATURE",
+                "40 HP wall-climbing Void spider-priestess with 3-second rooting silk nets, 6-damage venomous obsidian fangs, and portal-slit blink dodges.",
+                "Overview & Description:\n" +
+                "A hostile 40 HP (20 hearts, 4 Armor) mythological spider-humanoid weaver native to Rift Flats and Basalt Delves, uniting an 8-legged Nether-obsidian arachnid body and jointed front fangs with a midnight-indigo robed Void Priestess upper torso, flared wizard bell-sleeves, and six glowing magenta slit eyes.\n\n" +
+                "Wall Skittering, Silk Nets & Portal Blinking:\n" +
+                "▪ Wall Climber & Ruin Weaver: Skitters across cavern floors, climbs vertical walls effortlessly, ignores cobwebs, and nests near obsidian and Nether portal ruins while weaving Void silk between her hands.\n" +
+                "▪ Rooting Void Silk Net & Fang Clamp: Hurls a taut Void silk net that snares prey in place for 3 seconds, then lunges or blinks in to clamp with her venomous obsidian fangs for 6.0 damage plus Poison.\n" +
+                "▪ Dimensional Portal Blink: Compresses into a thin vertical portal slit (blink_out) and tears back open nearby (blink_in) to dodge incoming projectiles and counter-attacks, unless anchored by a nearby Spatial Phase Anchor.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Offering String, Ender Pearls, or Chorus Fruit barters for a fire-resistant Void Web Spindle on cooldown, and defeating one drops 1-3x Void Web Spindles and 2-4x Average Void Essence (Medium Void Materia piece; attuned to Void, Nether, and Umbral Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.VOID_WEB_SPINDLE.get()),
+                600f, 0.0f, a_env + 1.20f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_ash_barrow_gnome", "Ash Barrow-Gnome", "ENVIRONMENT & NATURE",
+                "30 HP squat slate canyon spirit with above-ground stone-hat cairn disguise, gravel-to-bone-dust grinding, and a 5-damage shovel-claw swipe.",
+                "Overview & Description:\n" +
+                "A neutral 30 HP (15 hearts, 6 Armor) squat humanoid slate spirit native to Ash Canyons and Skeleton Canyons, featuring a braided stone beard, heavy three-clawed excavator shovel pincers, a glowing purple Barrow Rune-Stone recessed into its back, and a wide 12x12 ash-dusted tiered stone slab hat.\n\n" +
+                "Cairn Disguise, Gravel Grinding & Defense:\n" +
+                "▪ Stone-Hat Cairn Disguise: Waddles slowly across canyon floors and tucks its arms and legs beneath its wide stone hat like a slate gravel cairn (halving incoming damage while tucked), strictly staying above ground without burrowing into solid blocks.\n" +
+                "▪ Gravel-to-Bone-Dust Grinding: Scoops up nearby Gravel or Coarse Gravel (or Gravel handed/tossed to it by travelers) and grinds it beneath its stone beard into 1-2x Bone Dust (Bleached Bone Meal).\n" +
+                "▪ Excavator Shovel Swipe: If provoked, pops out of its cairn disguise and swipes with its heavy stone shovel-claw arm for 5.0 damage and strong knockback.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Feeding Gravel, Coarse Gravel, or Flint by hand coaxes the Gnome to grind out bone dust and shed a Barrow Rune-Stone on cooldown, while defeating one yields 1x Barrow Rune-Stone, 1-2x Gravel blocks, and 2-3x Average Barrow Essence (Medium Barrow Materia piece; attuned to Barrow, Earth, and Undead Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.BARROW_RUNE_STONE.get()),
+                620f, 0.0f, a_env + 1.26f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_orthrus_magma_beast", "Orthrus Magma-Beast", "ENVIRONMENT & NATURE",
+                "50 HP dire two-headed magma hound with bounding gallop charges, an 8-fire-damage double-bite pounce, Left-Right snap combos, and magma-block speed.",
+                "Overview & Description:\n" +
+                "A hostile 50 HP (25 hearts, 6 Armor) mount-scale two-headed magma hound native to Magma Caverns and Ash Canyons, built from volcanic charcoal-basalt split by a blazing X-shaped molten chest nexus and crowned with two diverging horned wolf skulls and a flame-shard brush tail.\n\n" +
+                "Bounding Charge, Twin Jaws & Magma Speed:\n" +
+                "▪ Trot, Bounding Gallop & Magma Surge: Trots across volcanic stone and breaks into a ferocious bounding gallop when charging prey. Completely immune to fire and lava, regenerating Speed II and health whenever treading on Magma Blocks or wading in lava.\n" +
+                "▪ Igniting Double-Bite Leap & Snap Combo: Coils low and pounces forward to slam both horned jaws shut for 8.0 fire damage and 5s ignition, or lashes out in close quarters with an alternating Left-then-Right twin-jaw snap combo.\n" +
+                "▪ Subterranean Twin Howl: Throws both heads skyward in a fiery subterranean howl that rallies nearby Orthrus packmates with bounding speed.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Offering Magma Cream or Cooked Meats appeases both heads briefly to shed a fireproof Magma Orthrus Pelt on cooldown, and defeating one drops 1-2x Magma Orthrus Pelts and 2-4x Average Magma Essence (Medium Magma Materia piece; attuned to Magma, Nether, and Earth Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.MAGMA_ORTHRUS_PELT.get()),
+                640f, 0.0f, a_env + 1.32f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_ash_cinder_wisp", "Ash-Cinder Wisp", "ENVIRONMENT & NATURE",
+                "20 HP passive magma-core Will-o'-Wisp orbited by charcoal flakes that dances around torches and lanterns and puffs 2s blinding ash when disturbed.",
+                "Overview & Description:\n" +
+                "A passive 20 HP (10 hearts) hovering Will-o'-Wisp native to Soulfire Fjords and Ash Canyons. Its cracked spherical magma core glows warmly at Light Level 13-15 while three striated charcoal-and-ember flakes and three diamond cinder sparks counter-orbit in midair.\n\n" +
+                "Light Curiosity & Ash Puff Defense:\n" +
+                "▪ Magma & Fissure Drift: Floats peacefully above magma pools, lava seams, and ash fissures, completely immune to fire, lava, and fall damage.\n" +
+                "▪ Torch & Lantern Hover Dance: Curiously drawn to placed or handheld Torches, Lanterns, and Braziers, spiraling around them in a moth-like flutter dance.\n" +
+                "▪ Disturbed Ash Puff Spray: Never deals damage, but if struck or rushed without a calming light, flings its charcoal flakes wide to puff a cloud of ash that blinds disturbers for 2 seconds while drifting away.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Stoking a wisp with Coal, Charcoal, or Blaze Powder heals its spark, clears Darkness/Blindness, grants brief Fire Resistance, and sheds a Cinder Wisp Core on cooldown, while defeating one drops 1x Cinder Wisp Core and 2-3x Average Magma Essence (Medium Magma Materia piece; attuned to Magma, Nether, and Radiant Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.CINDER_WISP_CORE.get()),
+                660f, 0.0f, a_env + 1.38f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_soul_sand_hydra", "Soul-Sand Hydra", "ENVIRONMENT & NATURE",
+                "105 HP three-headed soul-sand draconic Hydra with soul-sand submerge ambushes, cascading 10-damage Wither bites, sweeping soulfire breath, and 3-way spell volleys.",
+                "Overview & Description:\n" +
+                "A hostile 105 HP (52.5 hearts, 8 Armor) four-legged draconic Hydra native to Soulfire Fjords and Ash Canyons, sculpted from spiral-carved soul-sand blocks with a 6-segment barbed tail and three horned S-curved dragon heads glowing with cold blue soulfire.\n\n" +
+                "Soul-Sand Ambush & Triple-Head Combat:\n" +
+                "▪ Soul-Sand Submerge Ambush: Glides effortlessly across Soul Sand without slowing, crouching low into soft soul sand to hide before erupting upward in a blinding sand-and-soulfire lunge when prey approaches.\n" +
+                "▪ Cascading Triple-Head Wither Bite: Snaps Left, Right, and Center jaws in rapid sequence for 3 + 3 + 4 = 10.0 total damage and Wither.\n" +
+                "▪ Sweeping Soulfire Breath & Volley: Sweeps all three maws in a cold-blue soulfire breath cone or charges its throat glands to hurl a 3-way volley of Soulfire Orbs.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sneaking to offer Soul Sand, Soul Soil, or a Ghast Tear to an unaggroed Hydra coaxes it to shed a Hydra Soul-Gland on cooldown, while defeating one drops 1x Hydra Soul-Gland, 1-3x Soul Sand, and 3-4x Strong Soulfire Essence (Large Soulfire Materia piece; attuned to Soulfire, Nether, and Undead Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.HYDRA_SOUL_GLAND.get()),
+                680f, 0.0f, a_env + 1.44f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_void_shadow_gargoyle", "Void Shadow-Gargoyle", "ENVIRONMENT & NATURE",
+                "40 HP crying-obsidian cathedral sentinel that perches on obsidian, dives rapidly, screeches for 4 shock damage, and blinks through purple Void slits.",
+                "Overview & Description:\n" +
+                "A hostile 40 HP (20 hearts, 8 Armor) cathedral-style Rift Sentinel native to Rift Flats and Basalt Delves, carved from crying obsidian veined with glowing portal-purple streaks and winged with neon-magenta scalloped bat membranes.\n\n" +
+                "Obsidian Perching, Screech Dive & Void Blink:\n" +
+                "▪ Obsidian Perch & Rapid Dive: Seeks out elevated Obsidian, Crying Obsidian, and Void Stone blocks to perch on with cloaked wings, launching into rapid diving flight when prey approaches.\n" +
+                "▪ Shockwave Screech & Blink Behind: Unleashes a piercing 4.0-damage shock screech into a diving claw-and-talon swoop, then blinks directly behind its target.\n" +
+                "▪ Damage Rift Blink: Whenever struck (outside a Spatial Phase Anchor field), spirals into a vertical purple Void portal slit (blink_out) and erupts from a new angle (blink_in).\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sneaking to offer Crying Obsidian or an Ender Pearl to an unaggroed perched sentinel sheds an Obsidian Gargoyle Wing on cooldown, while defeating one drops 1x Obsidian Gargoyle Wing and 2-4x Average Void Essence (Medium Void Materia piece; attuned to Void, Earth, and Umbral Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.OBSIDIAN_GARGOYLE_WING.get()),
+                580f, 0.0f, a_env + 1.50f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_barrow_wight_golem", "Barrow Wight Golem", "ENVIRONMENT & NATURE",
+                "120 HP crypt-stone sentinel disguised as a compact stone block until approached within 5 blocks, wielding a 12-damage column slam and 10-damage soulfire burst.",
+                "Overview & Description:\n" +
+                "A hostile 120 HP (60 hearts, 10 Armor) Crypt Sentinel native to Soulfire Fjords and Ash Canyons, built from chiseled dark crypt-stone masonry wrapped in glowing blue lichen around an open chest vault housing a spinning cyan soul-stone core.\n\n" +
+                "Crypt-Stone Block Disguise & Sentinel Strikes:\n" +
+                "▪ 5-Block Crypt-Stone Block Ambush: Folds its head, legs, and runic column arms tightly inward to rest as a sealed crypt-stone block (dormant) until an explorer enters its 5-block range, then roars awake (awaken).\n" +
+                "▪ Crushing Double-Fist Column Slam: Swings both massive stone column fists overhead and smashes the ground for 12.0 damage and heavy knockback.\n" +
+                "▪ Open-Chest Soulfire Shockwave: Compresses its spinning chest core and flings its arms wide to unleash a 10.0-damage radial soulfire shockwave.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sneaking to offer Stone Bricks or Soul Sand to an unaggroed sentinel repairs its masonry and sheds a Runic Crypt Stone on cooldown, while defeating one drops 1x Runic Crypt Stone, 2-4x Stone Bricks, and 3-4x Strong Soulfire Essence (Large Soulfire Materia piece; attuned to Soulfire, Barrow, and Earth Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.RUNIC_CRYPT_STONE.get()),
+                600f, 0.0f, a_env + 1.56f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_obsidian_scorpioid", "Obsidian Scorpioid", "ENVIRONMENT & NATURE",
+                "60 HP basalt-climbing crying-obsidian scorpion with 6-damage pincer clamps, 4-fire-damage igniting magma tail stings, and full lava immunity.",
+                "Overview & Description:\n" +
+                "A hostile 60 HP (30 hearts, 10 Armor) Lava Beast native to Magma Caverns and Basalt Delves, built from chipped crying-obsidian plates veined with violet fissures, six columnar-basalt legs, massive serrated pincer claws, and an arched 6-segment molten magma stinger.\n\n" +
+                "Basalt Wall Scaling, Pincer Clamp & Molten Sting:\n" +
+                "▪ Basalt Climbing & Lava Immunity: Crawls in an alternating hexapod tripod gait, scales vertical basalt and obsidian cliffs effortlessly, and wades unharmed through lava pools.\n" +
+                "▪ Serrated Pincer Clamp: Sweeps both pedipalps wide and slams its serrated pincer jaws shut for 6.0 damage, briefly clamping prey in place.\n" +
+                "▪ Overhead Magma Tail Sting: Whips its 6-segment tail overhead like a spear to drive its white-hot magma stinger forward for 4.0 fire damage and 5s ignition.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sneaking to offer Magma Cream or Crying Obsidian to an unaggroed Scorpioid sheds a Scorpioid Tail-Spike on cooldown, while defeating one drops 1x Scorpioid Tail-Spike and 2-4x Average Magma Essence (Medium Magma Materia piece; attuned to Magma, Void, and Nether Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.SCORPIOID_TAIL_SPIKE.get()),
+                620f, 0.0f, a_env + 1.62f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_brimstone_wyvern", "Brimstone Wyvern", "ENVIRONMENT & NATURE",
+                "135 HP lava-swimming and cavern-flying volcanic drake with an 8-damage bite, contact-exploding brimstone fireballs, and magma fire-recharging.",
+                "Overview & Description:\n" +
+                "A hostile 135 HP (67.5 hearts, 8 Armor) Lava Drake native to Magma Caverns and Ash Canyons, built from chiseled dark basalt scales crowned with glowing yellow brimstone dorsal crystals, blue-slate bat wings, digitigrade talons, and a 5-spike brimstone tail-paddle.\n\n" +
+                "Lava Swimming, Cavern Flight & Magma Furnace:\n" +
+                "▪ Lava Swimmer & Cavern Flyer: Glides swiftly through underground lava pools in a serpentine S-wave (swim), stalks on digitigrade talons (walk), and launches from ledges (takeoff -> fly -> landing) to patrol high cavern vaults.\n" +
+                "▪ Magma Jaw Bite & Explosive Fireballs: Snaps its serrated jaws for 8.0 damage on land or in diving swoops, and hurls sulfur-yellow brimstone fireballs that explode on contact.\n" +
+                "▪ Magma Fire Recharge: Completely immune to fire, lava, and fall damage. Swimming in lava or standing on Magma Blocks recharges its internal furnace, boosting its fire damage and fireball blast radius.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sneaking to offer Magma Cream, Blaze Powder, or a Lava Bucket to an unaggroed Wyvern recharges its furnace and sheds a fireproof Wyvern Scale on cooldown, while defeating one drops 1x Wyvern Scale and 3-5x Strong Magma Essence (Large Magma Materia piece; attuned to Magma, Nether, and Air Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.WYVERN_SCALE.get()),
+                640f, 0.0f, a_env + 1.68f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_obsidian_golem", "Obsidian Golem", "ENVIRONMENT & NATURE",
+                "180 HP four-armed Nether sentinel colossus with a 15-damage quad-fist slam, 12-damage chest portal wave, and 4-arm projectile-deflecting shield wall.",
+                "Overview & Description:\n" +
+                "A hostile 180 HP (90 hearts, 12 Armor) four-armed Nether Sentinel native to Rift Flats and Basalt Delves, built from abyssal obsidian and stepped deepslate clamps veined with crying-violet fissures around a hollow 12x12x12 obsidian chest cage housing a swirling purple Nether-portal singularity core.\n\n" +
+                "Portal Ruin Guarding, Quad Slam & 4-Arm Shield Wall:\n" +
+                "▪ Crushing Quad-Fist Column Slam: Raises all four heavy crying-obsidian arms overhead and smashes the ground for 15.0 damage and heavy knockback.\n" +
+                "▪ Open-Chest Spatial Portal Wave: Compresses its chest singularity and flings all four arms into a wide X-spread to release a 12.0-damage radial spatial shockwave.\n" +
+                "▪ 4-Arm Projectile Shield Wall: Snaps all four forearms across its hollow chest cage (shield_block) to completely block and ricochet incoming arrows and projectiles.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sneaking to offer Crying Obsidian or Obsidian to an unaggroed sentinel mends its masonry and sheds a fireproof Obsidian Core on cooldown, while defeating one drops 1x Obsidian Core, 2-4x Obsidian blocks, and 4-6x Strong Void Essence (Large Void Materia piece; attuned to Void, Nether, and Earth Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.OBSIDIAN_CORE.get()),
+                660f, 0.0f, a_env + 1.74f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_soulfire_djinn", "Soulfire Djinn", "ENVIRONMENT & NATURE",
+                "50 HP hovering cobalt soulfire efreet with high-speed soulfire-wake gliding, cupped-palm Soul Wither fireballs, and non-solid fence/iron-bar phasing.",
+                "Overview & Description:\n" +
+                "A hostile 50 HP (25 hearts, 4 Armor) legless Desert Efreet native to Soulfire Fjords and Silica Dunes, built from cobalt-blue soulfire blocks bound in an 8-segment rune-etched antique brass locking collar and bronze wrist cuffs, trailing flickering soulfire flames cupped in both hands.\n\n" +
+                "Aerial Desert Gliding, Cupped-Palm Fireballs & Bar Phasing:\n" +
+                "▪ High-Speed Soulfire Glide: Hovers low over dunes and fjords (walk) or launches into a forward-pitched aerial glide (glide_takeoff -> glide -> glide_landing), trailing blue soulfire embers.\n" +
+                "▪ Cupped-Palm Soulfire Fireball: Cups both hands together in front of its chest to conjure a blazing soulfire orb, then thrusts both palms forward to hurl it for 6.0 damage plus Soul Wither.\n" +
+                "▪ Non-Solid Block Phasing: Compresses its smoke-and-flame ribs and vortex tail laterally (phase_glide) to slip straight through fences, iron bars, glass panes, grates, and walls, while solid blocks still bar its passage.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sneaking to offer Soul Sand, Soul Soil, Gold Ingots, or Copper Ingots to an unaggroed Djinn calms its bindings and sheds a Brass Djinn Collar on cooldown, while defeating one drops 1x Brass Djinn Collar and 2-4x Average Soulfire Essence (Medium Soulfire Materia piece; attuned to Soulfire, Arid, and Nether Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.BRASS_DJINN_COLLAR.get()),
+                680f, 0.0f, a_env + 1.80f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_brimstone_chimera", "Brimstone Chimera", "ENVIRONMENT & NATURE",
+                "135 HP three-headed volcanic beast (lion, shoulder goat, and viper tail) with bounding gallops, 12-damage triple strikes, and twin-maw magma breath.",
+                "Overview & Description:\n" +
+                "A hostile 135 HP (67.5 hearts, 8 Armor) three-headed Lava Beast native to Magma Caverns and Ash Canyons, featuring a tawny-golden lion body with mahogany-russet mane, an ashy-slate basalt-horned goat head on its right shoulder, and an overhead 7-segment olive viper snake tail.\n\n" +
+                "Bounding Gallop, Triple Strike & Twin-Maw Magma Breath:\n" +
+                "▪ Fast Prowl & Bounding Gallop: Patrols near lava lakes in a feline prowl (walk) and charges prey in a bounding quadrupedal gallop (run).\n" +
+                "▪ 12-Damage Triple-Head & Claw Assault: Rears up to slash with its foreclaws (4.0 damage) before its lion, goat, and overhead viper tail strike together (8.0 fire + necrotic venom damage, 12.0 total).\n" +
+                "▪ Sweeping Magma-Ember Breath & Lava Recharge: Immune to fire and lava; wading in lava pools recharges its twin molten lion and goat maws so they sweep wide torrents of magma-ember fire (12.0 total damage).\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sneaking to offer Magma Cream, Blaze Powder, or raw meat to an unaggroed Chimera sates all three heads and sheds a Chimera Venom-Gland on cooldown, while defeating one drops 1x Chimera Venom-Gland and 3-5x Strong Magma Essence (Large Magma Materia piece; attuned to Magma, Chimera, and Blight Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.CHIMERA_VENOM_GLAND.get()),
+                580f, 0.0f, a_env + 1.86f, false
+        ));
+
+        ALL_NODES.add(new CodexNode(
+                "env_obsidian_wendigo", "Obsidian Wendigo", "ENVIRONMENT & NATURE",
+                "105 HP towering skeletal forest fiend that turns completely invisible below Light Level 4, climbs tree trunks, rakes for 8 damage, and freezes prey with Slowness V.",
+                "Overview & Description:\n" +
+                "A hostile 105 HP (52.5 hearts, 6 Armor) towering skeletal Forest Fiend native to Blighted Copse and Petrified Wood, crowned with a weathered bleached deer skull and wide-swept dark obsidian-indigo antlers etched with glowing void-purple and neon-magenta fear runes.\n\n" +
+                "Shadow Invisibility, Trunk Climbing & Terror Howl:\n" +
+                "▪ Shadow Stalking (< Light 4): Turns completely invisible whenever local light drops below Level 4, creeping in a hunched marionette stalk (walk_start -> walk -> walk_stop), bursting into a feral sprint (run_start -> run -> run_stop), and scrambling hand-over-hand up tall tree trunks (climb_start -> climb -> climb_stop).\n" +
+                "▪ 8-Damage Obsidian Claw Rake: Twists its spine to rip and cross-rake targets with its long skeletal bone claws for 8.0 damage.\n" +
+                "▪ Bone-Chilling Terror Howl: Clutches its skull and arches backward in a convulsing howl (screech) that freezes nearby targets in terror with Slowness V for 2 seconds.\n\n" +
+                "Harvest & Materia Affinity:\n" +
+                "Sneaking to offer Bone, Bone Blocks, Rotten Flesh, or Obsidian to an unaggroed Wendigo sheds a Wendigo Skull-Plate on cooldown, while defeating one drops 1x Wendigo Skull-Plate and 3-4x Strong Barrow Essence (Large Barrow Materia piece; attuned to Barrow, Void, and Undead Materia).",
+                "env_fauna", 1, new ItemStack(ModItems.WENDIGO_SKULL_PLATE.get()),
+                600f, 0.0f, a_env + 1.92f, false
         ));
 
         ALL_NODES.add(new CodexNode(
@@ -1610,19 +2669,20 @@ public class CodexCategoryRegistry {
                 "▪ Trigger Logic Ring: Pairs freely with any Flow Modifier—including On-Entity-Hit (with a 75% potency splash fallback if a shot hits terrain), On-Block-Collision (100% power on floors/walls), Timed Fuse (0.5s-3.0s mid-air split or surface detonation), On-Proximity (3m sensor), On-Release (hold-and-release compression up to +15% power), Corpse Bloom (3s death-mark), Self, and Self-Timed (30s/60s/120s).\n" +
                 "▪ Void-Warp Travel Mutation Gate: Selecting Void-Warp Relay on the Flow Ring requires Void Materia or a Materia created with Void (Astral, Null-R, Null-U, Wraith, Penumbra, Abyss, Oblivion, Entropic, Cataclysm, Eschaton, Entropica, or Singularity) infused into the Flow Ring with Mutation: ACTIVE.\n" +
                 "▪ Point-of-Contact Multi-Cast (I-VIII) & 25%/75% Billing: Every payload launched by your Flow Modifier casts all 1 to 8 slotted spells right at that payload's hit spot. Dynamic triggers and relays pay 25% upfront and 75% on trigger, refunding the 25% deposit back into your Orbis Cell after 5 seconds if a shot misses completely.\n" +
-                "▪ Channeled Beams & Next-Hit Touch Priming: Beam spells channel continuously from your hand toward your crosshair while holding Right-Click, billing in Materia/second (ticking 5x/sec with an automatic 3-second Burst Finisher shockwave). Touch/Strike spells never fire as flying payloads—casting always primes your weapon or hand for 30 seconds (sheathable for free via Sneak + Cast, or drinking 10% trickle Materia/sec after 30s) and unleashes all slotted Touch effects on your next melee hit or block punch with 50% sweeping cleave splash.",
+                "▪ Held + Quick-Tap Beams, Held Stream Cones & Next-Hit Touch Priming: Beam spells channel continuously from your hand toward your crosshair while holding Right-Click (billing in Materia/second, ticking 5x/sec with clean multi-ray timers and a 3.0s Burst Finisher on Tier 1-2 beams or a 5.0s-only Cataclysmic Finisher on Tier 3-6 & Catalyst beams) OR fire a clean single ray if quick-tapped and released early; Cone spells support both Instant 60° Fan blasts and continuous Held Stream flamethrower/deluge channeling. Touch/Strike spells prime your weapon or hand for 30 seconds (sheathable for free via Sneak + Cast, reserving the +15% Spellblade potency bonus strictly for Engraved Weapons/Tools, and discharging cleanly on both mob and block hits with 50% sweeping cleave splash); Mobile and Sneak-Anchored Auras pulse 2x/sec across all 63 Materia suites (up to 4 concurrent Auras with +25% escalating fuel drain); and omni-surface Floor/Wall/Ceiling Glyphs support Single-Use or Repeating Sentry (3 pulses, 2s re-arm, 60% potency), Tier 5+ permanent duration, and 50% multi-Materia disarm refunds.",
                 "magic_spellcrafting", 1, new ItemStack(ModItems.SPELL_PARCHMENT.get()),
                 460f, 0.0f, a_magic - 0.08f, false
         ));
 
         ALL_NODES.add(new CodexNode(
                 "spell_multi_materia_mutations", "Multi-Materia & Signature Mutations", "MAGIC",
-                "Per-part Materia assignment, Void-Warp travel mutation unlocking, and independent Signature Mutation switches.",
+                "Per-part Materia assignment across all 63 Materia suites, full Defender Lineage Advantage, and independent Signature Mutation switches.",
                 "Overview & Description:\n" +
-                "Every individual part of a spell—Flow, Form, Primary Effect, and Secondary Effect—can be bound to its own Materia type and has an independent Mutation ON/OFF switch.\n\n" +
-                "Crafting & Casting:\n" +
-                "▪ Mutation ON: Activates that Materia type's unique Signature Mutation on that specific part—including unlocking Void-Warp Relay on the Flow Ring when Void or any Void-created Materia (Astral, Null-R, Null-U, Wraith, Penumbra, Abyss, Oblivion, Entropic, Cataclysm, Eschaton, Entropica, or Singularity) is infused.\n" +
+                "Every individual part of a spell—Flow, Form, Primary Effect, and Secondary Effect—can be bound to any of the 63 registered Materia suites (#1 Air through #57 Entropica, Chimera, Caprine Secrets Radiant-Fire, Umbral-Water & Equinox, plus Aureole & Vesper) and has an independent Mutation ON/OFF switch.\n\n" +
+                "Crafting, Advantage & Casting:\n" +
+                "▪ Mutation ON: Activates that Materia type's unique Signature Mutation on that specific part—including unlocking Void-Warp Relay on the Flow Ring when Void or any Void-created Materia (Astral, Null-R, Null-U, Wraith, Penumbra, Abyss, Oblivion, Entropic, Cataclysm, Eschaton, Entropica, or Singularity) is infused, and sustaining persistent protective rings on Satellite Orbit.\n" +
                 "▪ Mutation OFF: Keeps clean baseline behavior while still using that Materia type for visual color, combat advantage, and fuel cost.\n" +
+                "▪ Full Defender Lineage Advantage: Combat Damage and Restoration evaluate the defender's full parent-tree Materia lineage (+0.5x per point uncapped vs mobs, +1 both ways on mutual volatile clashes, 4.0x Tier 5 Divine Override with Terminus weak to Undead, and Tier 6 0.0x standard-element immunity / 5.0x Mirror Clash & Entropica Singularity supremacy).\n" +
                 "▪ Materia-Specific Lock: Binding specific Materia types grants a 15% fuel efficiency discount across the spell.",
                 "spell_modular_architecture", 2, new ItemStack(ModItems.SPELL_GEM.get()),
                 550f, 0.0f, a_magic - 0.06f, false
@@ -1634,8 +2694,8 @@ public class CodexCategoryRegistry {
                 "Overview & Description:\n" +
                 "Enabling a part's Mutation switch while bound to any of the 12 Primordial Base Materia types transforms how that specific spell part behaves without overriding other parts of the spell.\n\n" +
                 "Primordial Twelve Lineup:\n" +
-                "▪ Air, Water, Nature & Earth: Flying 3D crescent wind-blade slashes, arrow-deflecting spirals, jetstream hover beams, tornado vortices & departure Vacuum Implosion blinks (sucking adjacent foes inward with a sonic pop); arcing 3D Hydro-Cannon Slugs (+0.6 Slow Fluid Mass vs fire/magma), mob-piercing & water-slicing Hydro-Cutters (2x wet knockback), curling Tidal Novas, stunning Crashing Breakers (+50% vs burning/Nether), 40% blast-dampening Oceanic Shrouds, 3s Whirlpool Geysers, 12m Deluge Torrents, 16m Monsoon Cloudbursts, Fluid Dissolution droplet steps, copper-cleaning Elutriation, 2x-Lightning/3x-Frozen Drowning Hexes & tendril/orb/splash-mirage Aqueous Eidolons; spiked 3D Thorned Briar Seeds (2s vine root), crop-growing & ally-mending Verdant Growth Rays, 6m Bramble Bloom spike rings, Toughness-shredding Poison Ivy Slashes, +30% foliage-speed Sylvan Mantles, 4m 3D wooden root-cage Overgrowth Snares, Toxic Pollen Cones, mycelial-canopy Spore Tempests, 5m Entangling Briar Chains, foliage-phasing Tree-Stepping, Botanical Synthesis, 20% Toughness-shredding Silencing Spore Hexes & lunging/thorn-dart/pollen-effigy Sylvan Eidolons; ground-skimming 3D Quake Spires (+0.4 Slow Dense Tectonic Mass vs Void & guaranteed armor shred), inward-reeling Magnetite Tractor Beams (pulling ores, metals & armored mobs), 12-pillar Stone Ring Rampart bunkers, flat-knocking Seismic Impacts, +2 Toughness / 50% KB-resist Earth Defensive Attunements (halving Void & taking 1.5x Air), sky-launching Tectonic Impalement Spikes, 6m dirt-excavating Sand & Gravel Flurries, airborne-slamming Meteorite Shrapnel Barrages, stone-phasing Burrow Steps, Lithic Compaction, 5-armor-shredding 2x-Earth Sundering Hexes & ground-punching/plinth/granite-effigy Tectonic Eidolons.\n" +
-                "▪ Frozen, Nether, Radiant & Umbral: Aerodynamic zero-drop 3D Glacial Ice-Shards (+1 vs Water, -1 vs Nether/Undead, projectile-chilling wake, 60% Slowness & surface Packed Ice freeze), +0.4 Slow Permafrost Creep (skimming water & upgrading Frozen ice into permanent Blue Ice), 3s progressive-freeze Absolute-Zero Cryo-Rays (thick 3-wide walkable ice/obsidian bridges), 6m Frost Nova Bursts (skid-knockback into 2s entity-tracked 3D solid ice block encasement), 1.5s attack-halting Flash-Freeze Stasis strikes (0.75s on sweeping cleave splash), -30% player & mob attack-speed Glacial Spikes Retaliation wards, 3x3x3 collapsing Rime Pitfalls (restoring floor on disarm), 10m Hoarfrost Flash-Freeze causeway cones, cave-viable 2s-falling Colossal Glacial Monolith spires, 3-hit solid-freezing / zero-drop icicle / 4m-nova Glacial Eidolons (#98DCF2), Frostwalker Stasis 3D player ice-statue decoy blinks, Silk Touch & Permafrost harvesting with automatic water/lava leak sealing, Thermal Shock steam-shatter clashes, and sprint-locking +50%-shatter Permafrost Stasis Hexes; molten 3D Netherfire Comets (+1 vs Frozen, -1 vs Water, water-boiling steam flash, 3.2m falloff blast & dropped-item auto-smelt), 6s ground-fire Arcing Fire-Whip Chains, flexible 45°-leash Nether Tendril Tethers (draining heat into caster HP & Orbis Cell Nether Materia), 6m 24-fire Hellfire Ring Shockwaves, weapon-stacking Cauterizing Cleave & Auto-Smelt strikes (6s unquenchable Netherfire, cooking meat & pre-smelting held raw ores on kill), every-tick lava-swimming Immolation Shrouds (100% fire/lava/magma immunity, 0.5x Frozen, 1.5x Water, 5s unquenchable melee ignition & ice/snow melting), contained 3x3 lava-to-obsidian Magma Puddle Traps (restoring floor on disarm), projectile-incinerating & recoiling Combustion Backdraft cones, cave-viable 7.5s Brimstone Meteor Rains, dashing-claw / ballistic magma-mortar / wicker-effigy Infernal Eidolons (#B83C08), Thermal Pop flame-pillar & shockwave blinks, batch-discounted Thermal Pyrolysis (in-transit Logistics ore smelting, aquifer vaporization & organic-to-ash charring), Evaporative Scald suffocation clouds & Molten Slag permanent armor-melt reactions, and underwater-boiling -30%-armor regen-locking Hellfire Sear Hexes; zero-gravity 3D Homing Dawn Stars (+1 vs Undead, -1 vs Umbral, banking every tick onto the lowest-HP undead within 16m & airbursting on impact/expiry), 5s anti-stealth Prismatic Starlight Chains (stripping Invisibility & Umbral shrouds), bloom-rendered Solar Thermal Lances (melting ice/Packed/Blue Ice & igniting swooping Phantoms without chunk light updates), 6m Supernova Flashbangs (4s Blindness & Weakness), weapon-stacking +50%-undead Holy Smite & Daylight Ignition strikes (disintegrating rotting meat & slain monsters into glowing Starlight Flakes), every-tick 64m Enderman-calming Pacification Shrouds (0.5x Undead, 1.5x Umbral, mobile or anchored), 3s 12-beam Single/Repeating Sunburst Confinement Sigils, ally-safe Cleansing Mist Cones (converting overheal into Vitality & Saturation), cave-adaptive 2s-falling Celestial Quartz Daylight Megalith Pillars (with 3 Holy Shockwaves), flying light-arrow / projectile-reflecting / heal-pulsing Solar Seraph Eidolons (#FFE278), 1-effect Luminous Cleanse blinks, batch-discounted Holy Purification (rotten flesh -> leather, Zombie Villager curing, curse stripping, Ore Sonar & every-8-blocks Auto-Torching), Annihilation Burst temporary-armor stripping, and 4-armor-melting regen-locking Sun-Scorched Smite Hexes; silent zero-drop piercing 3D Shadow Snare Missiles (+1 vs Radiant, -1 vs Void, stealth assassination with zero pack alerts & 2s physical floor shadow-tether), invisible-thread i-frame-bypassing 25%-echo Silent Shadow Chains, -30%-all-attack-draining & silencing Abyssal Shadow Lances (rigid or 45° tether), silent 6m aggro-wiping Smoke Veil Shockwaves (4s particle-free Invisibility), weapon-stacking 2s-cloaking Umbral Shroud strikes, 100%-GameEvent-vibration-silent Sculk/Warden-immune -60%-detection Shrouds of Silence & Stealth (mobile or anchored), Single/Repeating 8m aggro-wiping Void-Blind Mines (causing disoriented wandering), exact -50%-speed Shadow Dart Fans, cave-adaptive 6s 16m Black Rains of Obfuscation, silent ceiling-stalking / 16m-spawn-suppressing / live-gear-copying Shadow Stalker Eidolons (#211A21), shadow-to-shadow zero-particle Shadow-Steps, batch-discounted heat-free Nocturnal Darkening, and milk-immune +25%-hostile-damage Sensory Void Hexes.\n" +
+                "▪ Air, Water, Nature & Earth: Corkscrew-weaving 3D Turbulence Spirals (+1 vs Earth, -1 vs Void, deflecting incoming hostile projectiles), +35% Aerodynamic Slipstream Flows (excluding Deliberate Slow), +35% Zephyr Gale Orbits (2.5m wind-shear pulses) & 1.5s lingering Sonic Leap Chain vacuum bridges, 8-pierce Jetstream Propulsion wind tunnels & surface-grounded vertical jetpacks, spherical Gust Shields (+30% speed, 50% projectile DR & Air affinity), primary-target 8m Concussive Uppercuts, +20%-speed Slipstream Shields (0.8s sprint bowling for 28% Materia damage, mobile or Sneak-anchored), 1.5s/step-off circular 3m Geyser Mine Air Trampolines (launching all entity types 14m up while cushioning friendly landings), exact 60° Howling Gales (extinguishing fires/campfires/candles across the full cone & deflecting incoming physical projectiles), 9s-45s scaling 6m-11m Tornado Vortices, golden-buff (#A88654) wind-blade / 6m updraft-gust / 12m-taunt non-damaging-gust Zephyr Eidolons, departure Vacuum Implosion blinks (sucking foes, items & projectiles inward with 1.2s Slowness II), zero-drop cobweb/leaf-clearing & root/mud-drying Aeration & Dehydration, and immediate milk-proof -40% stamina/attack-speed Hypoxia Suffocation Hexes; arcing 3D Hydro-Cannon Slugs (+1 vs Nether & mutual +1 clash vs Arid, -1 vs Frozen & Nature, impact-only circular 3m splash with 30% Harm splash, knockback, fire douse & farmland hydration), +0.6 Slow Viscous Fluid Mass (vs burning or true Nether/Fire/Magma foes) & soaking Riptide Undertow Chains, cobweb/fire/weed-slicing 8-pierce High-Pressure Hydro-Cutters (2x horizontal & vertical knockback on pre-soaked/swimming foes), uncapped circular Tidal Novas (cooling source Lava -> Obsidian & flowing Lava/Magma -> Cobblestone + clearing surface flora), primary-target 1.0s-stunning Crashing Breakers (+50% combat bonus vs burning or true Nether/Fire foes), 100% fire/lava-immune & 40% all-explosion-dampening Oceanic Shrouds (mobile or Sneak-anchored), circular 3s Whirlpool Geysers, exact 60° 12m+ Deluge Torrents (deflecting incoming physical projectiles & hydrating/dousing the full cone), 8s-36s scaling 8m-16m Monsoon Cloudbursts (healing friendly aquatic creatures & drowning true Nether/Fire mobs), deep-azure (#225C7C) tendril / soaking-orb + passive fire-soil-care / first-hit 3.5s-blinding-pop Aqueous Eidolons, 2m/3m-splashing open-water Fluid Dissolution steps, cross-namespace copper-cleaning & dirt/grass->clay / sponge / concrete / magma->cobble Aqueous Elutriation, and immediate fire-quenching milk-proof 2x-Lightning/3x-Frozen Waterlogged Drowning Hexes; spiked 3D Thorned Briar Seeds (+1 vs Water & Earth, -1 vs Nether, Frozen & Umbral, Nature-advantage puncture & non-boss 2.0s vine root), hard-5m CHAIN_LEAP-only Entangling Briar Chains, ally-safe 8-pierce crop-growing & ally-mending Verdant Growth Rays (zero friendly-fire harm/hex on injured allies & peaceful wildlife), circular 6m+ Bramble Bloom Explosions (flinging foes back first, rooting non-bosses for 1.5s after 0.4s & carpeting the full blast in briars), primary-target 8s-Poison-II Toughness-shredding & Undead-corroding Poison Ivy Slashes (light 2.5s Poison I cleave splash), walking-blooming +30% true-foliage-speed Sylvan Mantles (tall grass/flowers while walking, clear-sky sunlight regen, unprovoked wildlife calm & Nature affinity, mobile or Sneak-anchored), circular 4m+ 3D wooden root-cage Overgrowth Snares, exact 60° Toxic Pollen Cones (with active 4.5s Poison II + Nausea lingering clouds), 6s-30s scaling 6m-14m Spore Tempests, lush-green (#1A5923) lunging-briar / 1.0s-root+Poison-I Thorn-Dart / 35%-thorns spore-bursting Sylvan Eidolons, Tier 1-10 canopy/log-phasing Tree-Stepping (boosted range near living foliage & 30s Flowering Azalea departure bush), living-Oak-Wood & 6-sapling Botanical Synthesis, and immediate 0-damage milk-proof 20%/35%/50%-Toughness-shredding Silencing Spore Hexes; terrain-hugging 3D Quake Spires (+1 vs Void, -1 vs Air, temporary 4s Pointed Dripstone spike & 2-2.5 armor shred), Slow-Flow-only +0.4 Dense Tectonic Mass (3.0+0.35*tier armor shred for 8s, with 1.0x unpenalized non-Slow Earth flows), metal-only Magnetite Tractor Beams (pulling metallic items, raw/metallic ores & metal-armored foes + Tier 2+ EntropicaConfig whitelist/blacklist exposed ore mining), 12-pillar Stone Ring Rampart bunkers (around caster or downrange impact center with 4.45m anti-clip push), pure Earth-converting primary-target Seismic Impacts (armor shred & knockdown), exact 0.50x-Void / 1.50x-Air +2-Toughness / 50%-KB-resist Earth Defensive Attunements (mobile or Sneak-anchored), circular underfoot-erupting 4-armor-shredding Tectonic Impalement Spikes, exact 60° 6m-push 1.5s-Blindness loose-dirt/sand/gravel-only Sand & Gravel Flurries, 6.0s-13.2s scaling circular Meteorite Shrapnel Barrages, fortified (#773214, +25% HP, +8 Armor, +2 Toughness) armor-shredding Tectonic Eidolons (melee-only taunt & death shrapnel exclusive to Decoy), Tier 1-10 wall-phasing Burrow Steps (+25% range boost through/onto stone & soil), 4-sand/gravel->1-sandstone & Mossy-Cobble/Cobbled-Deepslate/Red-Sand Lithic Compaction, and immediate 0-damage milk-proof 5/7.5/10-armor-shredding exact 2.0x-Earth Sundering Hexes.\n" +
+                "▪ Frozen, Nether, Radiant & Umbral: Aerodynamic zero-drop 3D Glacial Ice-Shards (+1 vs Water, -1 vs Nether & Undead, exact non-compounded 60% slow for 3s & Water->Packed Ice / Lava->Obsidian freeze), Slow-Flow-only +0.4 Permafrost Creep (vs Water & permanent Blue Ice water freezing), progressive-slow Absolute-Zero Cryo-Rays (3.0s dry / 1.0s-1.5s wet freeze-stasis, 1.0s boss stasis cap & walkable Ice/Obsidian bridges), circular 6m Frost Nova Bursts (exact 2.0s real temporary Ice block world encasement on grounded foes, exact 60% airborne slow & surface water/lava freeze), 1.5s real temporary Ice block world-encasing Flash-Freeze Stasis strikes, exact -30% attack-speed Glacial Spikes Retaliation wards (zero Mining Fatigue compounding, mobile or Sneak-anchored), temporary non-destructive 3x3x3 collapsing Glacial Pitfalls (exact 50% slow + frost chill, cleanly restoring original terrain blocks afterward), 10m Hoarfrost Flash-Freeze cones (freezing source & flowing Water/Lava into Packed/Blue Ice & Obsidian bridges + permanent natural-melting Snow layers & exact 50% slow), full-radius tier-scaled 3D pseudoblock Colossal Glacial Monolith spires (leaving permanent Blue/Packed/Regular Ice monuments), cyan-frost (#98DCF2) 3-hit-freezing Agent / exact-60%-slow icicle Sentry / destruction-only spherical-4m-shatter Decoy Glacial Eidolons, 3x3 water-freezing Frostwalker Stasis blinks (destruction-only shatter statue decoy), universal breakable-block Silk Touch & Permafrost Transmutes (1 Snow Block / 8 Snow layers / 4 Snowballs -> Packed Ice & Lava Bucket -> Obsidian + empty Bucket), and immediate 0-damage milk-proof exact-60%-slow sprint-locking +50%/+75%/+100%-blunt-shatter Permafrost Stasis Hexes; molten 3D Netherfire Comets (+1 vs Frozen, -1 vs Water, all-furnace-recipe item smelting, water/ice melting & ground/low-air temporary fire), CHAIN_LEAP-only 6s crossing-hostile Arcing Fire-Whip Chains, Orbis-Cell-only Nether Tendril Tethers (recharging Nether Materia fuel proportional strictly to actual damage dealt, zero player HP heal, lighting campfires/candles & melting water/ice), hostile-targeted circular 6m Hellfire Ring Shockwaves, weapon-synergy Cauterizing Cleave & Auto-Smelt strikes (6.0s unquenchable Netherfire on primary & cleave targets, cooking meat & pre-smelting held raw ores across full mob/player inventories strictly on kill), exact 0.50x-Frozen / 1.50x-Water lava-swimming Immolation Shrouds (100% fire/lava/magma immunity, 5s melee ignition & ice/snow melting, mobile or Sneak-anchored), contained non-spilling 4s 3x3 real-Lava Magma Puddle Traps (exact 65% slow, permanently solidifying into leg-trapping Obsidian), hostile-targeted recoiling Combustion Backdraft cones, 6.0s-13.2s tier-scaled circular Brimstone Meteor Rains (water vaporization & item auto-smelting), dashing-claw / ballistic magma-mortar / wicker-effigy Infernal Eidolons (#B83C08), 5s 3x3 departure-fire-pool & circular 3.5m arrival-blast Thermal Pop blinks, virtual Fortune I-IV ore-smelting & plank/log-charring Thermal Pyrolysis (sand->glass, clay->bricks, water steam & TNT priming), and immediate milk-proof underwater-burning regen-locking 30%/45%/60%-armor-melting Hellfire Sear Hexes (cleansed strictly via Water/Restoration magic or caster defeat); zero-pierce spherical-16m Homing Dawn Stars (#FFE278, +1 vs Undead, -1 vs Umbral, banking onto the lowest-HP Undead within a 16m sphere & detonating on first impact), CHAIN_LEAP-only 5s anti-stealth Prismatic Starlight Chains (stripping Invisibility & Umbral shrouds), Tier 1+ Blue-Ice-melting bloom-rendered Solar Thermal Lances (melting all Ice/Packed/Blue/Frosted Ice & Snow, igniting Phantoms, smiting Undead, dealing 65% Radiant heat to living hostiles & stripping Invisibility without chunk light updates), circular 6m+ Enemy-blinding Supernova Flashbangs (full Undead smite, 55% living-hostile damage & 4s Blindness + Weakness on all hostile Enemy mobs), weapon-synergy +50%-Undead Holy Smite & Daylight Ignition strikes (7s radiant fire on primary & cleave Undead, disintegrating drops into Starlight Flakes strictly on killing blows), exact 0.50x-Undead / 1.50x-Umbral Enderman-calming Pacification Shrouds (pacifying neutral mobs & refreshing allies in Sneak-Anchored fields), circular 3.0s 12-beam Single/Repeating Sunburst Confinement Sigils (exact 3.0s Blindness, full Undead smite & 45% living-hostile damage), exact 60° Cleansing Mist Cones (ally heal, front friendly debuff cleanse, 55% caster self-heal/cleanse wash & Undead sear), tier-scaled 3D Celestial Quartz pseudoblock Daylight Megalith Pillars (2s drop with touchdown Blindness/Slowness, 3 circular Holy Shockwaves & permanent Celestial Quartz monuments), solar-gold (#FFE278) Solar Seraph Eidolons (zero summon self-heal; flying light-arrow Agent, 7.5m-sphere projectile-reflecting Sentry & 45%-damage-absorbing circular-8m heal/cleanse-pulsing Decoy with zero death smite nova), Enemy/PvP-blinding 1-debuff Luminous Cleanse blinks, 2.5s channeled Holy Purification (Rotten Flesh -> Leather, Zombie Villager cure, curse removal, Soul Sand -> Sand, Netherrack -> Quartz Block, Mycelium/Podzol/Nylium -> Grass Block, Sculk -> Moss Block, Tinted -> Glass, Crying -> Obsidian, Poisonous Potato -> Potato, Spider Eye -> Glow Berries & Wither Rose -> Starlight Flakes, with zero invisible Light blocks on Break), and immediate milk-proof 4/6/8-armor-melting Glowing regen-locking Sun-Scorched Smite Hexes (searing Undead & living hostiles, cleansed via Restoration/Shadow magic or caster defeat); silent zero-drop piercing 3D Shadow Snare Missiles (+1 vs Radiant, -1 vs Void, stealth assassination with zero pack alerts & 2s physical floor shadow-tether), invisible-thread i-frame-bypassing 25%-echo Silent Shadow Chains, -30%-all-attack-draining & silencing Abyssal Shadow Lances (rigid or 45° tether), silent 6m aggro-wiping Smoke Veil Shockwaves (4s particle-free Invisibility), weapon-stacking 2s-cloaking Umbral Shroud strikes, 100%-GameEvent-vibration-silent Sculk/Warden-immune -60%-detection Shrouds of Silence & Stealth (mobile or anchored), Single/Repeating 8m aggro-wiping Void-Blind Mines (causing disoriented wandering), exact -50%-speed Shadow Dart Fans, cave-adaptive 6s 16m Black Rains of Obfuscation, silent ceiling-stalking / 16m-spawn-suppressing / live-gear-copying Shadow Stalker Eidolons (#211A21), shadow-to-shadow zero-particle Shadow-Steps, batch-discounted heat-free Nocturnal Darkening, and milk-immune +25%-hostile-damage Sensory Void Hexes.\n" +
                 "▪ Undead & Void: Shattering 3D Necrotic Bone-Shards & Skull Missiles (+1 vs Frozen, -1 vs Radiant, shattering into bone shrapnel & 4s Wither I on mobs, terrain, or max-range airbursts), +0.4 Slow Creeping Tomb-Dust grave fog (exact -50% wake & impact movement speed), flexible 45°-leash Siphon Life shadow tethers (draining 25% dealt damage into both caster HP & Orbis Cell Undead Materia fuel), weapon-stacking 30%-lifesteal Vampiric Touch bone-claw strikes, 6m Corpse Explosion / Bone Nova ribcage eruptions (4s Wither II & knockback), every-tick undead-befriending Necrotic Shrouds (0.5x Frozen, 1.5x Radiant, mobile or anchored, & 1 HP/s living-hostile drain within 3m), Single/Repeating invisible Corpse Bloom Mines (Wither II skull blast converting slain mobs into 3-5 Bone Meal), jitter-free 2s fear-fleeing Screaming Skull Swarms, cave-adaptive 6s 12m shield-piercing Spectral Soul Swarms (exact -40% speed sap on living foes), health-siphoning / living-seeking skull-totem / 6m-Bone-Nova-effigy Cryptguard Eidolons (#4D6453), 3s lingering departure ribcage-rooting Grave-Phasing blinks, batch-discounted fossil-stone & bone-block Necrotic Fossilization, hunger-to-health Metabolic Transfusion, regen-locking death-spreading Entangling Miasma reactions, and -30%-toughness regen-locking Cadaverous Wither-Blight Hexes (+150% 32m Necrotic Resonance undead spawn-lure on players); slow-drifting thin-obstacle-phasing 3D Singularity Rift Orbs (#41304E, +1 vs Air, -1 vs Earth, collapsing into a 4m black-hole implosion on entities, solid walls, or max range), solid-wall-phasing Void-Warp Phasing Flows (micro-wormhole chains & homing bifurcations), stone-piercing 45°-locking Gravitational Tractor Beams (reeling foes inward or holding them weightlessly suspended in mid-air), 6m Singularity Implosions, weapon-stacking armor-piercing Spatial Destabilization Strikes (10s Void toxicity random warps), 0.5x-Air / 1.5x-Earth Zero-G Levitation Auras (high-float jumps & fall-immune glide, mobile or anchored), Single/Repeating 6m 5s Null-Zone Silencing Mines, buff- & ward-stripping Null-Matter Dispel Sprays, cave-adaptive 6s 12m Singularity Vortex Rifts (lifting mobs skyward before dropping them for vertical fall damage), short-range-phasing claw / 10m gravity-pulsing void-dart pylon / 5m micro-singularity silhouette Void-Stalker Eidolons (#41304E), persistent 5s two-way 3D Wormhole Transit portals, batch-discounted Abyssal Disintegration (plus Void-lineage Direct-to-Inventory mining/harvesting/logistics & Omni-Sponge bucket filling), simultaneous-shock Gravitational Collapse (Void + Lightning) mergers, stationary 3D black-hole Gravity Wells, and milk-immune 10-20s rubber-banding +50%-Void Spacetime Anchoring Curses (2x Void-Stalker & Enderman Spacetime Rift Beacon on players).\n" +
                 "▪ Arid & Lightning: Swirling 3D Dust Devil Missiles (#C2B28F, mutually volatile +1/-1 clash vs Water, launching struck mobs 3 blocks backward with a swirling sand trail), 1.5s-blinding item-sweeping Sirocco Leaping Chains, fire-dousing & repelling Sirocco Sandstreams, 6m Haboob Sandstorm Novas (3s Blindness, fire dousing & drying water pools into packed sand or dry mud), weapon-stacking Desiccating Mummification Strikes (4s Slowness II & Hunger, turning slain mob drops into cured meat & sand), -50%-mob-detection arrow-deflecting Sandstorm Veils (forming temporary dry sandstone crusts over water, mobile or Sneak-Cast anchored), Single/Repeating 4m hunger-draining Desiccation Siphon Sigils, 60° grass-scouring & bark-stripping/log-petrifying Sandblast Blunderbuss Waves, cave-adaptive 6s 12m Haboob Sandstorm Downpours (30% Slowness, Blindness, water drying & leaf-to-stick breaking), sandblade / sandstone-obelisk / exploding heat-mirage Dune-Dervish Eidolons (#C2B28F), mirage-decoy Mirage Steps, batch-discounted Petrofaction & Desiccation, 16-hunger +2-Toughness Mineral Cauterization, and milk-immune 2x-fire regen-locking Desiccation Mummification Hexes (25% armor bypass & +30% knockback Desiccated Fragility on players); near-instant zero-drop 3D Ball-Lightning Plasma Bolts (#FFE600, +1 vs Earth & Water, -1 vs Void & Water, +100% Conductive Overcharge & 8-target double-range arcs on wet foes, 1.0s stun & 3m wet/metal-armor spark discharge), 1->2->4 exponential Supercharged Forked Chains (+50% 18m jump across wet mobs or water surfaces), blinding stagger & water-pool-conducting Continuous Tesla Arcs, 6m 1.5s movement-locking Static EMP Novas (momentary level-15 redstone & battery pulse), weapon-stacking 1.0s-stunning +45% 15s attack-speed Overcharge Discharge Strikes, +30%-sprint 0.5s-retaliation Static Shrouds (Living Lightning Rod absorbing natural lightning strikes into 100% full Orbis Cell Materia fuel, mobile or anchored), Single/Repeating 4-victim 2.0s-paralyzing Tesla Arc Mines (powering redstone wire for 4.0s), +50% rain/water-extended 60° Forked Arc Fans, cave-adaptive 15s 12m Thunderstorm Skyfall Bolt Barrages, spark-trailing / rapid-homing Ball-Lightning Tesla-coil / contact-shocking Volt-Spark Eidolons (#FFE600), line-shocking Thundersteps, batch-discounted Galvanic Electrolysis & Smelting (copper oxidation/wax control, sand->glass & remote Machine Re-Charging), Magnetic Railguns, and milk-immune -40% move/attack-speed shield-disabling Galvanic Overcharge Hexes.",
                 "spell_multi_materia_mutations", 3, new ItemStack(ModItems.SPELL_GRIMOIRE.get()),
@@ -1676,10 +2736,10 @@ public class CodexCategoryRegistry {
 
         ALL_NODES.add(new CodexNode(
                 "spell_ethereal_paradox_mutations", "Ethereal & Paradox Spell Mutations", "MAGIC",
-                "Signature Flow, Form, and Core Effect mutations for Eclipse through Barrow (#25-#38).",
+                "Signature Flow, Form, and Core Effect mutations for Eclipse through Barrow (#25-#38), Aureole, Vesper, and Caprine Secrets (Radiant-Fire, Umbral-Water, Equinox).",
                 "Overview & Description:\n" +
-                "Ethereal & Paradox Fusion Materia types (#25-#38) combine opposing or celestial Materia streams into reality-bending spell parts whenever a part's Mutation switch is toggled ON.\n\n" +
-                "Ethereal & Paradox Lineup:\n" +
+                "Ethereal & Paradox Fusion Materia types (#25-#38 plus Aureole & Vesper) and the Caprine Secret Fusions (Radiant-Fire, Umbral-Water & Equinox) combine opposing or celestial Materia streams into reality-bending spell parts whenever a part's Mutation switch is toggled ON.\n\n" +
+                "Ethereal, Paradox & Caprine Secret Lineup:\n" +
                 "▪ Eclipse (#25 — Ethereal & Paradox Fusion): Shield/cover-curving back-striking 2s-silencing 3D Penumbra Crescent Scythes (#FFEA78 / #211A21, +1 vs Radiant & Nature [or Undead under Radiant dominance], -1 vs Void, 1-pierce, 20% Harm lifesteal, innate Auto-Smelt), 3-bolt obstacle-curving Coronal Flare Bifurcation Split Flows, 2m-aggro-clamping -1-armor/s (up to -4) Umbral Inversion Jets, 6m 4m-knockback 4s-Blindness/Glowing torch-snuffing aggro-resetting Total Eclipse Novas, weapon-stacking -40%-melee-damage (6s) buff-siphoning Umbral Siphon Palms, +6-Armor Blindness/Darkness-immune celestial-fire-retaliating Solar Corona Bastions (mobile or anchored), disarmable Single/Repeating 4m-black-hole 3s-rooting buff-purging 4s-blinding torch-snuffing Total Eclipse Singularity Mines, 60° 6m-knockback 4s-Blindness/Glowing -3-armor (6s) torch/campfire-snuffing Coronal Flare Deluges, tier-scaled cave-safe 10s buff- & armor-enchantment-stripping silencing Penumbral Shadow Monsoons, shield-piercing Eclipse-Knight / 8m blinding Black Sun Corona Spire / 5m pulling-blinding Penumbra Silhouette Effigy Eidolons (#FFEA78 / #211A21), 16m mob-shoving celestial-fire Coronal Flare Dashes, +20%-darkness-yield Umbral Smelting Transmutes, and milk-immune Blindness/Glowing -3-armor mob-regen-locking Coronal Blind-Rot Hexes.\n" +
                 "▪ Blight (#26 — Ethereal & Paradox Fusion): 2.5s-rooting death-contagious 3m-Poison-II-cloud 3D Contagious Necro-Spore Pods (#4D6453 / #34CC48, +1 vs Frozen [or Water & Earth under Nature dominance], -1 vs Radiant, Nether, Frozen & Umbral), 1.5s-rooting -1-armor death-leaping (2 hostiles within 3s) Cadaverous Contagion Chains, inward-pulling -50%-speed 3s-Blight-Bloom (-3 armor & 20% channeled heal) Necrotic Bramble Tether Beams, 6m 2.5s-rooting 4s-Poison-II Wither-Rose-wilting Cadaverous Briar Novas, weapon-stacking 4s-Poison-II -40%-speed -2-armor corpse-snaring (3s) Necrotic Thorn Gouges, +6-Armor Poison/Hunger-immune undead-neutral 30%-thorns Cadaverous Briar-Carapaces (mobile or anchored), disarmable Single/Repeating 4m 3.5s-rooting -3-armor Wither-Rose-blooming Strangling Rot-Briar Snares, 60° 3m-knockback 4s-Poison-II -40%-speed -2-armor bark-decaying flora-wilting Virulent Necro-Spore Flurries, cave-safe 14m+ 10s Poison-II -50%-speed meat-rotting thorn-rooting Cadaverous Rot Tempests, Poison-II armor-shredding Blight-Revenant / 8m -30%-speed 2-pierce Necro-Briar Spire / 5m 3s-rooting Wither-Rose Cadaverous Effigy Eidolons (#4D6453 / #34CC48), 14m+ 3s-rooting Poison-II Cadaverous Root-Steps, +25%-Bone-Meal-yield Necrotic Decomposition Transmutes, and milk-immune regen-blocking -40%-Toughness contagious Virulent Wither-Blight Hexes (Virulent Blood-Tasting monster empowerment).\n" +
                 "▪ Astral (#27 — Ethereal & Paradox Fusion): Arcing 2-pierce 5m-airborne-launching 3s-redstone-powering 3D Celestial Comet Missiles (#41304E / #FFE600, runtime Void+Lightning Astral Materia advantage), wall-phasing micro-wormhole 1->2->4 forked 1s-stunning inward-pulling Supercharged Void-Warp Chains, mid-air lifting & pulling Pulsar Tractor Rays (3s contact -> 2s-stunning 4s-redstone Stellar Supernova Flash), 6m 8m-knockback 4m-airborne 3s-silencing Supernova Gravitational Waves, weapon-stacking 1s-stunning 2-arc 4m-zero-g-launching (+40% attack speed 10s) Cosmic Overcharge Strikes, high-jump Slow-Falling +30%-sprint Lightning/Void-fuel-absorbing Cosmic Starlight Shrouds (mobile or anchored, 0.5s melee stun + 3m knockback), disarmable Single/Repeating 4m 3m-airborne-suspending (3s) 5s-redstone Cosmic Vortex Singularity Mines, 60° 1s-stunning 4m-knockback buff-stripping 3s-redstone Pulsar Arc Sprays, cave-safe 14m+ 10s 0.5s-stunning zero-g-lifting & slamming Celestial Meteor-Storm Cataclysms, obstacle-phasing Astral-Phase Stalker / 8m pulling redstone-powering homing-orb Pulsar Singularity Spire / 5m EMP-imploding Cosmic Silhouette Effigy Eidolons (#41304E / #FFE600), 18m Slow-Falling Astral Comet Dashes, Cosmic Disintegration Transmutes (cobble & dirt -> Astral Impactite void slag & Redstone Dust), and milk-immune -70%-speed sprint/jump-locking mob-colliding Gravitational Singularity Tether Hexes (Cosmic Meteoric Attraction).\n" +
@@ -1693,7 +2753,9 @@ public class CodexCategoryRegistry {
                 "▪ Aurora (#35 — Ethereal & Paradox Fusion): Zero-drop straight-flying 3-pierce shard-refracting 2s-freezing 5s-Glowing 3D Prismatic Aurora Ribbon-Lances (#FFEA78 / #98DCF2, +1 vs Undead, Nether, Earth & Nature, -1 vs Void), item-pulling fire-quenching Slowness-II Glacial Aurora Spiral Flows, Slowness-IV-stacking Glowing Borealis Prismatic Spectrum Rays (3s contact -> 1.5s-stunning Prismatic Flashbang Shatter), 6m 6m-knockback 2s-stasis-freezing 4s-Blindness/Glowing +50%-undead-smiting Borealis Prismatic Curtain Novas, weapon-stacking 1.5s-solid-freezing +50%-undead-smiting 6s-Glowing -2-armor-shattering Prismatic Aurora Polar Cleaves, +4-Armor Frost-Walker freeze/powder-snow-immune Blindness/Darkness-immune level-12-light Borealis Prismatic Veil Mantles (mobile or anchored, melee Blindness + 2s Frostbite retaliation), disarmable Single/Repeating projectile-reflecting 3s-ice-rooting Cryo-Refractive Mirror Traps, 60° 5m-knockback 2s-freezing 3s-Glowing/Blindness +50%-undead-smiting frosted-ice Borealis Prismatic Fan Deluges, 6s 5-meteor 3D-blue-ice-comet -2-armor Cryo-Solar Comet Barrages, ribbon-lance Borealis-Archon / 8m Frost-Walker & projectile-deflecting Prismatic Aurora Spire / 6m Borealis-Curtain-Nova Cryo-Prism Effigy Eidolons (#FFEA78 / #98DCF2), 14m 2s-frozen-hologram Frost-Walker +30%-sprint (4s) Borealis Prism-Flash Steps, flow-free Polar Cryo-Refraction Transmutes (water -> Packed/Blue Ice, lava -> Obsidian/Crying Obsidian, glass -> Tinted Glass & flowers -> Auroral Buttercup), and milk-immune -50%-attack-speed -40%-speed Glowing frostbite Sub-Zero Polar Stasis Hexes.\n" +
                 "▪ Mirage (#36 — Ethereal & Paradox Fusion): 2-decoy-splitting 3s-blinding 3s-traitor-scrambling shifting-sand 3D Shimmering Mirage Sand-Darts (#FFEA78 / #C2B28F, +1 vs Water, Void, Blight & Undead, -1 vs Umbral & Nature), 25%-projectile-deflecting level-12-light melee-blinding Mirror Mirage Spiral Flows, 50%-damage-redirecting blinding Phantasm Mirage Tether Beams (3s contact -> 1.5s-stunning mob-taunting Sensory Overload Flash), 6m 6m-knockback 4s-Blindness/Nausea aggro-wiping 3-clone (5s) Shimmering Fata Morgana Shockwaves, weapon-stacking 3s-air-swinging 5s-friend-foe-inverting caster-hiding Phantasmal Paranoia & Traitor Strikes, 3m-displaced 50%-dodge phantom-double Spatial Displacement Glamour Shrouds (mobile or anchored), disarmable Single/Repeating 12m-mob-luring 3m-quicksand (3.5s) False Oasis Lure Glyphs, 60° 4s-Blindness/Nausea 3s-traitor-swinging Hallucinatory Mirage Shimmer Deluges, 10s 8m+ panic-dodging suffocating Mirage Sand-Storm Tempests, 2-afterimage paranoia-striking Mirage-Duelist / 12m illusion-luring Fata Morgana Obelisk / blinding-traitor-bursting Phantom Mirror Effigy Eidolons (#FFEA78 / #C2B28F), 14m 3s-running-clone 2.5s-invisible Fata Morgana Displacement Steps, Hallucinatory Glazing Transmutes (stone/cobble -> Sandstone, deepslate -> Red Sand, lava -> Glass, terracotta -> Sand & Rotten Flesh -> dried jerky), and milk-immune 50%-miss -40%-Toughness swerving caster-hiding Delusional Phantasm Paranoia Hexes (Paranoid Guard-Fumble +35% mob crit & 40% shield fumble).\n" +
                 "▪ Wraith (#37 — Ethereal & Paradox Fusion): Wall-phasing homing 2-pierce 3s-Wither/Slowness-II 2-heart-leeching 3D Spectral Wraith-Skull Missiles (#41304E / #4D6453, +1 vs Air, Umbral, Aura & Frozen, -1 vs Radiant & Earth, 20% Harm lifesteal), +4-Armor 20%-physical-to-hunger Incorporeal Soul-Shield Flows, wall-phasing 1.5-heart/s-leeching -50%-speed Incorporeal Soul-Siphon Tether Beams (3s contact -> soul-husk-tearing 1.5s-stunning Soul Severance Detonation), 6m 3s-intangible-disarming -3-armor summon-healing Incorporeal Ghost-Storm Shockwaves, weapon-stacking shield/toughness-bypassing 2-heart-stealing -3-armor 1.5s-stunning Spectral Phasing Palm-Gouges, +8-Armor 100%-KB-immune 25%-magic-reflecting suffocation/wither-immune Sculk/Warden-silent Specter Ectoplasm Armors (mobile or anchored), disarmable Single/Repeating 4s-intangible-stasis life-siphoning Incorporeal Grave-Grip Pitfall Glyphs, 60° 6m-knockback shield-bypassing 3.5s-Blindness/Wither-II -3-armor 3s-silencing Banshee Wail Ectoplasm Deluges, 12m+ swirling 3D-skull Wither-II/Slowness-III Spectral Rift Skull-Vortex Cataclysms, wall-phasing siphoning Wraith-Stalker / 8m silencing -40%-speed Banshee Wail Obelisk / 6m Ghost-Storm-Nova Ectoplasmic Soul-Husk Effigy Eidolons (#41304E / #4D6453), 12m silent aggro-dropping 2s-speed/intangible Grave-Slip Blinks, Ghostly Ash Transmutes (dirt/grass -> Soul Soil, leaves/foliage -> Cobweb, cobble -> Mossy Cobblestone & Bone Block -> Soul Sand), and milk-immune -50%-damage -40%-speed regen-locking life-transferring Incorporeal Soul-Hollowing Hexes.\n" +
-                "▪ Barrow (#38 — Ethereal & Paradox Fusion): 6m-knockback 2.5s-mud-rooting burial-earth 3D Tombstone Ossuary Boulder-Slugs (#773214 / #4D6453, +1 vs Frozen, Amber & Void, -1 vs Radiant, Air & Nature), -25%-physical bone-shrapnel Ossuary Bone-Shield Orbit Flows, downward-dragging -60%-speed -1-armor/s Barrow-Tomb Necrotic Tether Beams (3s contact -> 2s stone-sarcophagus Sepulchral Entombment), 6m Wither/Poison-II 5s-blinding undead/summon-healing (+4 caster Armor) Catacomb Miasma Eruptions, weapon-stacking 6m-knockback 1.5s-stunning 3s-Slowness-IV -3-armor (+3 caster Armor 5s) Barrow-Cairn Tombstone Slams, -40%-mob-detection 4m-Wither/Slowness poison/wither-immune Night-Vision Catacomb Miasma Shrouds (mobile or anchored), disarmable Single/Repeating -3-armor 6m-airborne-launching Cairn Collapse Mines, 60° 6m-knockback -3-armor 3.5s-Blindness/Slowness-III torch/fire-smothering coarse-dirt/gravel Ossuary Bone-Grit & Tomb-Dust Deluges, 6s 10m+ 6-megalith 3D-pseudoblock -2-armor Megalithic Ossuary Cataclysm Downpours, shield-&-flail taunting/stunning Barrow Skeleton / 8m -40%-speed +4-summon-Armor Cairn Beacon / 5m bone-shrapnel Hollow Bone Effigy Eidolons (#773214 / #4D6453), 14m taunting-burial-mound (+4 Armor & 50% KB resist 4s) Subterranean Crypt-Tunnel Steps, Megalithic Grave Transmutes (dirt/grass/mud -> Coarse Dirt/Mossy Cobblestone/Cracked Stone Bricks, Rotten Flesh/raw meat -> Bone Block, cobble -> Mossy Cobblestone & wood -> petrified wood), and milk-immune -40%-move/attack-speed jump-locking -40%-Toughness +35%-physical/blunt Petrifying Sepulchral Entombment Hexes (Catacomb Awakening +100% armored skeleton spawn-lure).",
+                "▪ Barrow (#38 — Ethereal & Paradox Fusion): 6m-knockback 2.5s-mud-rooting burial-earth 3D Tombstone Ossuary Boulder-Slugs (#773214 / #4D6453, +1 vs Frozen, Amber & Void, -1 vs Radiant, Air & Nature), -25%-physical bone-shrapnel Ossuary Bone-Shield Orbit Flows, downward-dragging -60%-speed -1-armor/s Barrow-Tomb Necrotic Tether Beams (3s contact -> 2s stone-sarcophagus Sepulchral Entombment), 6m Wither/Poison-II 5s-blinding undead/summon-healing (+4 caster Armor) Catacomb Miasma Eruptions, weapon-stacking 6m-knockback 1.5s-stunning 3s-Slowness-IV -3-armor (+3 caster Armor 5s) Barrow-Cairn Tombstone Slams, -40%-mob-detection 4m-Wither/Slowness poison/wither-immune Night-Vision Catacomb Miasma Shrouds (mobile or anchored), disarmable Single/Repeating -3-armor 6m-airborne-launching Cairn Collapse Mines, 60° 6m-knockback -3-armor 3.5s-Blindness/Slowness-III torch/fire-smothering coarse-dirt/gravel Ossuary Bone-Grit & Tomb-Dust Deluges, 6s 10m+ 6-megalith 3D-pseudoblock -2-armor Megalithic Ossuary Cataclysm Downpours, shield-&-flail taunting/stunning Barrow Skeleton / 8m -40%-speed +4-summon-Armor Cairn Beacon / 5m bone-shrapnel Hollow Bone Effigy Eidolons (#773214 / #4D6453), 14m taunting-burial-mound (+4 Armor & 50% KB resist 4s) Subterranean Crypt-Tunnel Steps, Megalithic Grave Transmutes (dirt/grass/mud -> Coarse Dirt/Mossy Cobblestone/Cracked Stone Bricks, Rotten Flesh/raw meat -> Bone Block, cobble -> Mossy Cobblestone & wood -> petrified wood), and milk-immune -40%-move/attack-speed jump-locking -40%-Toughness +35%-physical/blunt Petrifying Sepulchral Entombment Hexes (Catacomb Awakening +100% armored skeleton spawn-lure).\n" +
+                "▪ Aureole & Vesper (Ethereal Atmospheric Fusions): Shimmering Aureole (#FFF59D / #81D4FA, Radiant + Air, +1 vs Undead, Earth & Void, -1 vs Umbral: stealth-revealing Luminous Halo Chakrams, arrow-deflecting Luminous Halo Orbit Flows, 3.0s-bursting Aureole Zenith Rays, ally-cleansing Solar Halo Sanctification Novas, Slow-Falling Crowned Halo Arc-Slashes & Aureole Nimbus Crowns, dual-purpose Sanctified Halo Ward-Sigils, Refractive Halo Gales, 10s Zenith Aureole Star-Rains, Aureole Halo-Vanguard / Celestial Crown Spire / Luminous Nimbus Effigy Eidolons, Halo Ascent Steps, 2.5s-channeled Sanctified Halo Transmutes & milk-immune Aureole Halo Brand Hexes) and whispering Vesper (#5C6BC0 / #2A3B4C, Umbral + Air, +1 vs Radiant, Water & Earth, -1 vs Void: silent aggro-dropping Eventide Dusk Wind-Blades, footstep-cloaking Eventide Vesper Orbit & Whispering Dusk Chain Flows, 3.0s-pulsing Vesper Twilight Gale Tethers, Invisibility-granting Nocturne Whisper Shockwaves, Sculk-silent Eventide Zephyr-Scythes & Cloaks of the Evening Star, Vesper Hush-Wind Traps, Twilight Gale Shears, 10s Vespera Comet Dusk-Tempests, Eventide Vesper-Wraith / Nocturne Gale Obelisk / Dusk-Whisper Silhouette Eidolons, Eventide Whisper-Steps, 2.5s-channeled Eventide Dusk Weathering Transmutes & milk-immune Vesper Nocturne Silence Hexes).\n" +
+                "▪ Radiant-Fire, Umbral-Water & Equinox (Caprine Secret Fusions): Purging Radiant-Fire (#FFEA78 / #FF3C00, Radiant + Nether, +1 vs Undead, Frozen & Nature, -1 vs Umbral & Water: Radiant Fire Lances, Solar Prominence Jetstreams, Helios Corona Eruptions, -3-armor Caprine Sunfire Cleaves, Solar-Prominence Seraph / Helios Pyre Obelisk / Incandescent Corona Effigy Eidolons & 2.5x Steam-Cavitation shockwaves against drenched foes), pressurized Umbral-Water (#211A21 / #14508C, Umbral + Water, +1 vs Radiant, Nature & Nether, -1 vs Void & Frozen: inward-pulling Umbral Water Vortex Orbs, +0.4 Slow Pressurized Cavitation Undertow Flows, Abyssal Cavitation Torrents, -3-armor Cavitation Undertow Cleaves, Cavitation Trench-Stalker / Umbral Undertow Spire / Submerged Shadow Effigy Eidolons & Abyssal Drench priming), and Apex Equinox (#FFEA78 / #FF5000 / #225C7C, Radiant + Nether + Umbral + Water, +1 vs Undead, Frozen, Nature, Nether & Radiant, -1 vs Void & Umbral: twin-polarity Equinox Phase-Inversion Lance-Orbs, Gemini Duality Convergence Beams, Equinox Steam-Cavitation Novas, -4-armor Gemini Scepter Duality Cleaves, Gemini Equinox Archon / Phase-Inversion Crucible Spire / Twin-Polarity Mirage Effigy Eidolons & 2.5s-channeled Phase-Inversion Transmutes).",
                 "spell_vital_fusion_mutations", 6, new ItemStack(Items.END_CRYSTAL),
                 910f, 0.0f, a_magic + 0.00f, false
         ));
@@ -1702,18 +2764,18 @@ public class CodexCategoryRegistry {
                 "spell_trinity_and_catalyst_mutations", "Trinity & Catalyst Spell Mutations", "MAGIC",
                 "Signature Flow, Form, and Core Effect mutations for Pyre through Oblivion (#39-#47) and Chimera.",
                 "Overview & Description:\n" +
-                "Tier 3 Trinity Fusions (#39-#47) and the failed-fusion Chimera Catalyst unleash high-tier sustained beams (5.0s detonation thresholds), 18-second cataclysmic Skyfall storms, and 45-second refreshing Eidolon constructs.\n\n" +
+                "Tier 3 Trinity Fusions (#39-#47) and the failed-fusion Chimera Catalyst unleash high-tier sustained beams (5.0s detonation thresholds), 2.5-second held Right-Click channeled Transmutations, 18-second cataclysmic Skyfall storms, and 45-second refreshing Eidolon constructs (including Pyre #39 at 70/85 HP).\n\n" +
                 "Trinity & Catalyst Lineup:\n" +
-                "▪ Pyre (#39 — Tier 3 Trinity Fusion): 3.5m-firestorm 5s-wildfire 5m-knockback ice/snow-vaporizing 3D Combustion Hearth Orbs (#773214 / #FF4500, +1 vs Void, Frozen, Nature, Glacial & Rime, -1 vs Air), +3-Armor arrow-melting 4s-attacker-burning dart-launching Cremating Wildfire Orbit Flows, projectile-disintegrating -1-armor/1.5s Cremating Wildfire Jetstream Beams (3s contact -> 4.5m 1.5s-stunning 6s-igniting Cataclysmic Flashover), 6m+ 7m-knockback 6s-wildfire plant-charring (+25% caster melee 8s) Raging Wildfire Pyre Novas, weapon-stacking 6s-wildfire -3-armor 5m-knockback ember-arc Cremating Timber-Pyre Cleaves, +8-Armor +2-Toughness Fire/Lava/Freezing-immune ice-melting Pyre Hearth Hearthstone Shrouds (mobile or anchored, -10% speed), disarmable Single/Repeating 4m 4s-pitfall -3-armor jump-locking Cremation Pyre-Pitfall Glyphs, ice-melting -1-armor/2s meat-cooking sand->Glass Combustion Hearth Flame-Throwers, 10s 8m+ 8-meteor 3D-pseudoblock -2-armor fiery-crater Cremating Pyre Cataclysm Downpours, wildfire-cleaving Pyre-Juggernaut / 8m +4-summon-Armor Cremation Pyre Spire / 6m Wildfire-Nova Smoldering Hearth Effigy Eidolons (#773214 / #FF4500), 14m 3s-burning-decoy Fire-Immune +30%-sprint (4s) Wildfire Flashover Steps, 5.0s-channeled Pyre Ash-Charcoal Transmutes (logs -> Coal Block +20% Charcoal, sand -> Glass, raw food -> cooked, dirt/grass -> Podzol/Rooted Dirt, cobble -> Smooth Stone/Magma Block & saplings/flowers -> Pyre-Ash Cedar/Pyre-Sprout), and milk-immune underwater-burning -40%-Toughness sprint/regen-locking ember-showering Unquenchable Wildfire Cremation Hexes.\n" +
+                "▪ Pyre (#39 — Tier 3 Trinity Fusion): 3.5m-firestorm 5s-wildfire 5m-knockback ice/snow-vaporizing 3D Combustion Hearth Orbs (#773214 / #FF4500, +1 vs Void, Frozen, Nature, Glacial & Rime, -1 vs Air), +3-Armor arrow-melting 4s-attacker-burning dart-launching Cremating Wildfire Orbit Flows, projectile-disintegrating -1-armor/1.5s Cremating Wildfire Jetstream Beams (3s contact -> 4.5m 1.5s-stunning 6s-igniting Cataclysmic Flashover), 6m+ 7m-knockback 6s-wildfire plant-charring (+25% caster melee 8s) Raging Wildfire Pyre Novas, weapon-stacking 6s-wildfire -3-armor 5m-knockback ember-arc Cremating Timber-Pyre Cleaves, +8-Armor +2-Toughness Fire/Lava/Freezing-immune ice-melting Pyre Hearth Hearthstone Shrouds (mobile or anchored, -10% speed), disarmable Single/Repeating 4m 4s-pitfall -3-armor jump-locking Cremation Pyre-Pitfall Glyphs, ice-melting -1-armor/2s meat-cooking sand->Glass Combustion Hearth Flame-Throwers, 10s 8m+ 8-meteor 3D-pseudoblock -2-armor fiery-crater Cremating Pyre Cataclysm Downpours, 45s refreshing 70-HP wildfire-cleaving Pyre-Juggernaut / 85-HP 8m +4-summon-Armor Cremation Pyre Spire / 6m Wildfire-Nova Smoldering Hearth Effigy Eidolons (#773214 / #FF4500), 14m 3s-burning-decoy Fire-Immune +30%-sprint (4s) Wildfire Flashover Steps, 2.5s-channeled Pyre Ash-Charcoal Transmutes (logs -> Coal Block +20% Charcoal, sand -> Glass, raw food -> cooked, dirt/grass -> Podzol/Rooted Dirt, cobble -> Smooth Stone/Magma Block & saplings/flowers -> Pyre-Ash Cedar/Pyre-Sprout), and milk-immune underwater-burning -40%-Toughness sprint/regen-locking ember-showering Unquenchable Wildfire Cremation Hexes.\n" +
                 "▪ Penumbra (#40 — Tier 3 Trinity Fusion): Wall-phasing 3.5s-blinding 3m-pulling 3D Penumbral Twilight Eclipse-Bolts (#FFEA78 / #281E3C, +1 vs Air, Radiant, Nature, Celestial & Aegis [or Undead under Radiant dominance], -1 vs Earth, Void & Undead), 4-sphere +5-Armor +2-Toughness Blindness/Darkness-immune arrow-dissolving melee/spell-hit dart-launching Penumbral Corona-Umbra Binary Orbit Flows, Blindness/Darkness-oscillating Penumbral Event-Lensing Rays (5.0s contact -> 4m-pulling Penumbral Convergence Flash), zero-light-block 6m+ 6m-knockback 4s-Blindness/Glowing undead-smiting (+20% ally Twilight Shimmer dodge 6s) Twilight Corona Novas, weapon-stacking armor-bypassing 3s-blinding -35%-slow-wake (4s) Penumbral Eclipse Cleaves, +6-Armor +2-Toughness Blindness/Darkness-immune 25%-projectile-glancing 30%-attacker-dazzle Penumbral Corona Mantles (mobile or anchored), disarmable Single/Repeating 5m 4s-pulling Penumbral Twilight Trap Glyphs, 60° projectile-vaporizing 3m-knockback 25s-AI-disrupting Penumbral Corona-Twilight Fan Deluges, 18s+8s 12m+ 5m-pulling -5-armor 6s-blinding -60%-speed Penumbral Cataclysmic Eclipse Tempests, 45s refreshing 60-HP twin-scythe Penumbral Void-Bladewarden / 80-HP twin-lance +6-Armor +3-Toughness debuff-cleansing Twilight Corona Citadel / 10m 8s-silencing Volatile Eclipse Singularity Effigy Eidolons (#FFEA78 / #281E3C), 16m 2s-imploding-decoy +30%-sprint +25%-dodge (5s) Penumbral Horizon-Phase Steps, curse-purging Penumbral Eclipse Transmutes (Obsidian/Crying Obsidian <-> End Stone/Sculk, Glowstone <-> Sea Lantern/Shroomlight & Rotten Flesh -> Penumbra Essence), and milk-immune 50%-miss AI-crippling -35%-Toughness regen-locking Penumbral Contrast-Collapse Hexes.\n" +
                 "▪ Rime (#41 — Tier 3 Trinity Fusion): 3-pierce 3s-rooting 3.5m-shattering (-50% speed 4s) 3D Hoarfrost Rime-Spike Javelins (#6395B1 / #DCF0FF, +1 vs Earth, Nature, Magma & Overgrowth [plus Nether & Arid under Water dominance], -1 vs Void & Undead), 4-icicle +5-Armor +2-Toughness Freeze/Powder-Snow/Slowness-immune arrow-shattering -30%-attacker-chill melee/spell-hit 2s-rooting-dart Crystalline Hoarfrost Spiral Flows, Slowness-IV-stacking Glacial Absolute-Zero Jetstream Beams (5.0s contact -> 2.5s solid-freezing Deep Freeze Shatter), zero-light-block 6m+ 6m-knockback 3s-flash-freezing (+4 ally Armor & 50% fire resist 8s Hoarfrost Carapace) Flash-Freeze Rime Frost-Novas, weapon-stacking -3-armor 2.5s-solid-freezing 5m-knockback 2s-rooting-wake Permafrost Rime-Cleaves, +7-Armor +3-Toughness Freeze/Powder-Snow/Slowness/Fire-immune Packed-Ice-underfoot -35%-attack-speed Hoarfrost Glacial Aegis Mantles (mobile or anchored), disarmable Single/Repeating 4m 4s-chasm 3.5s-rooting -3-armor jump-locking Flash-Freeze Rime Pitfall Glyphs, 60° fire/torch-quenching water-freezing 3m-knockback Slowness-IV -50%-attack-speed 25s-AI-disrupting Sub-Zero Blizzarding Rime Cones, 18s+8s 12m+ 10-stalactite 3D-pseudoblock -5-armor 6s-freezing -60%-speed Glacial Rime Cataclysmic Blizzards, 45s refreshing 65-HP 35%-armor-bypassing 2.5s-freezing Glacial Rime-Vanguard / 85-HP 16m-piercing 8m-root-pulsing +6-Armor +3-Toughness Fire/Freeze-immune Hoarfrost Glacial Citadel Spire / 10m 3.5s-freezing -4-armor Brittle Permafrost Effigy Eidolons (#6395B1 / #DCF0FF), 18m packed/blue-ice Frost-Walker +30%-speed (6s) Permafrost Glacial Slides, Glacial Cryo-Crystallization Transmutes (water -> Packed/Blue Ice, lava -> Obsidian/Crying Obsidian, dirt/grass -> Permafrost, mud -> Clay, sand -> Quartz/Calcite & air vapor -> water/ice), and milk-immune enchantment-suppressing -30%-Toughness 0.5s/3s-stunning Sub-Zero Cryo-Numbness Hexes.\n" +
                 "▪ Spring (#42 — Tier 3 Trinity Fusion): Ally-mending (3 hearts + Regen II 4s) / Undead-smiting (+50% damage & 3s root) 5m-knockback vernal-flora 3D Vernal Blossom Aquifer-Orbs (#FF6B9D / #64C8FF, +1 vs Undead, Water, Earth, Soulfire & Blight [plus Nether & Arid under Water dominance], -1 vs Umbral), 4-droplet +5-Armor +2-Toughness Drowning/Poison/Wither-immune projectile-to-1-HP-mist melee-siphoning melee/spell-hit 2s-rooting/ally-healing Vernal Blossom-Aquifer Spiral Flows, 3-HP/s-siphoning Slowness-III / ally-cleansing (+30% attack speed) Photosynthetic Life-Tethers (5.0s contact -> 8m-knockback +4-Absorption-Hearts Vernal Bloom Supercharge), zero-light-block 6m+ 7m-knockback Undead-smiting crop-maturing (+20% speed, +3 Armor & Regen II 8s Vernal Vigor) Vernal Rebirth Blossom-Novas, weapon-stacking +50%-Undead-smite -3-Undead-armor 5m-knockback 2.5s-rooting/2-heart-healing Vernal Blossom-Cleaves (or ally Touch of Spring debuff cleanse + 3 Absorption Hearts), +6-Armor +2-Toughness Drowning/Poison/Wither/Fire-immune Water-Breathing +30%-swim 1-heart/3s-regen 5m-ally-healing/cleansing Vernal Fountainhead Mantles (mobile or anchored), disarmable Single/Repeating dual-purpose Bubbling Vernal Aquifer Well Glyphs (ally 5-heart heal + cleanse + Regen II 6s OR hostile 4m 4s Geyser Chasm -3 armor & Undead holy-water drowning), 60° ally-healing (1.5 hearts/s) 3m-knockback -50%-attack-speed 25s-AI-disrupting Vernal Rejuvenation Torrent Cones, 18s+8s 12m+ -5-armor Undead-smiting 1-heart/s-healing hunger-filling Regen-II/Resistance-I crop-maturing Vernal Miracle Downpours, 45s refreshing 65-HP 35%-armor-bypassing 2-heart-pollen-healing Vernal Bloom-Bladewarden / 85-HP 16m-piercing 8m-3-heart-healing/cleansing +6-Armor +3-Toughness Water-Breathing Aquifer Springwater Font Spire / 10m 8m-knockback -4-armor full-ally-restore Regen-III Blossoming Vernal Nectar Effigy Eidolons (#FF6B9D / #64C8FF), 14m aggro-shedding 4s-Undead-undetectable Petal-Warp Blinks, Vernal Purification & Greening Transmutes (Netherrack/Soul Sand/Sculk -> Grass/Moss/Farmland, 6m Farmland hydration, Zombie Villager curing, Rotten Flesh -> Leather/Beef/Pork, crop maturation & fluid/potion purification), and milk-immune 1s/4s-stunning -50%-speed -40%-attack-speed -35%-Toughness Undead-smiting 1-heart-dew-orb-dropping Uncontrolled Vernal Overgrowth Hexes.\n" +
                 "▪ Static (#43 — Tier 3 Trinity Fusion): 3m-in-flight-zapping armor-magnetizing 5m-EM-burst 5m-knockback -3-armor 3D Dielectric Ball-Lightning Mortars (#FFE600 / #878DA2, +1 vs Earth, Water, Void, Glacial & Vapor, -1 vs Nature [plus Void under Air dominance]), 4-sphere double-helix +5-Armor +2-Toughness Lightning/Fall/Slowness-immune metallic-arrow-vaporizing 1s-attacker-paralyzing melee/spell-hit 2s-rooting 3-target-arcing Galvanic Tesla Orbit Flows, secondary-arcing -1-armor/1.5s item-magnetizing Dielectric Breakdown Arc-Stream Beams (5.0s contact -> 4.5m 3.0s-paralyzing Catastrophic Dielectric Flashover), zero-light-block 6m+ creeper-disabling aggro-clearing 2.5s-paralyzing Ground-Discharge EMP Shockwaves, weapon-stacking creeper-defusing 8m-knockback Dielectric Palm Overloads, +7-Armor +3-Toughness Lightning/Fall/Slowness/Kinetic/Thorns-immune +25%-sprint/attack-speed arrow-vaporizing 1.5s-paralyzing Dielectric Faraday Shrouds (mobile or anchored), disarmable Single/Repeating 8m 5-hostile-tethering -3-armor shared-shock Galvanic Arc-Snare Sigils, 60° arrow-melting 3m-knockback weapon-magnetizing -50%-attack-speed 25s-AI-disrupting High-Voltage Static Arc-Fan Deluges, 18s+8s 12m+ downward-pinning -5-armor 3s-paralyzing creeper-disabling -60%-speed sprint-shocking Galvanic Tesla Cataclysmic Tempests, 45s refreshing 65-HP twin-khopesh dash-striking 35%-armor-bypassing 2s-paralyzing Galvanic Arc-Vanguard / 85-HP 16m-lightning-beam 8m-EMP-pulsing +6-Armor +3-Toughness Lightning/Fall-immune Dielectric Tesla Citadel Spire / 10m 8m-knockback -4-armor 4s-paralyzing Volatile Dielectric Spark Effigy Eidolons (#FFE600 / #878DA2), 14m silent aggro-shedding spark-trail Ionized Slipstream Steps, Dielectric Electrolysis & Vitrification Transmutes (raw iron/copper ores & items -> refined ingots +25% bonus yield, sand -> Glass/Tinted Glass, cobble/gravel -> Deepslate, machinery/battery recharging & water -> dry air), and milk-immune 3s-interrupting -50%-speed -40%-attack-speed -35%-Toughness 4m-secondary-arcing Galvanic Nerve-Spasm Hexes.\n" +
                 "▪ Sylvan (#44 — Tier 3 Trinity Fusion): +50%-Undead-smiting 3s-rooting -3-armor 4s-briar-cluster (-50% speed) 3D Elderwood Sun-Bough Javelins (#1A5923 / #773214 / #FFEA78, +1 vs Water, Earth, Undead, Barrow & Wraith [or Void, Undead, Barrow & Wraith under Earth dominance], -1 vs Nether & Air), 4-prism +20%-spell-damage +5-Armor +2-Toughness Poison/Wither-immune sunlight-Materia-regenerating 1.5s-attacker-rooting melee/spell-hit 2s-rooting-dart Photosynthetic Sun-Canopy Orbit Flows, 2m/s-pulling Undead-combusting 1-heart/s-ally-healing Canopy Solar-Root Tether Beams (5.0s contact -> 8m-knockback 3.0s-root-cage Primeval Arbor Overgrowth), zero-light-block 6m+ 7m-knockback Undead-smiting 3s-rooting crop-maturing (+6 Armor, +2 Toughness & KB resist 8s Ironwood Barkskin) Primeval Sylvan Canopy Novas, weapon-stacking +50%-Undead-smite -3-armor 6m-knockback 2.5s-rooting 2s-root/ally-Regen-I-arc Elderwood Canopy-Cleaves, +7-Armor +3-Toughness Poison/Wither/Blindness-immune 12-hit 50%-damage-to-Materia-fuel Primeval Photosynthetic Aegises (mobile or anchored), disarmable Single/Repeating 3m-proximity 5s-blinding airborne-launching -3-armor Canopy Solar-Mines, 60° ally-Poison/Wither-purging arbor-flame -50%-attack-speed 25s-AI-disrupting Canopy Solar-Flare Breaths, 16s+8s 10m+ 8-boulder 3D-pseudoblock & 0.4s-seed airborne-launching -5-armor Undead-smiting -60%-speed Sun-Canopy Orbital Meteor Barrages, 45s refreshing 70-HP 35%-armor-bypassing 2.5s-rooting Ironwood Juggernaut / 85-HP 16m-boulder 8m-root-wave +6-Armor +3-Toughness KB-resistant Petrified Monolith Sentry / 35%-melee-reflecting 10m -4-armor 4s-root-cage Thorn-Bramble Effigy Eidolons (#1A5923 / #773214 / #FFEA78), 16m upward/forward 6s-Slow-Falling/fall-immune aggro-shedding Canopy Solar-Glide Steps, Petrified Amber-Bark Fusion Transmutes (logs -> Amber-Wood, clay -> floral Terracotta, 6m crop/sapling maturation & Netherrack/Soul Sand -> Moss/Ferns), and milk-immune 1s/3.5s-stunning -60%-speed -40%-attack-speed -35%-Toughness +50%-Undead 1-heart-golden-acorn Petrifying Arbor-Root Entombment Hexes.\n" +
-                "▪ Miasma (#45 — Tier 3 Trinity Fusion): Airborne-knocking -3-armor 4s-blinding-cloud 3D Putrid Swampland Gas-Pods (#1A5923 / #4D6453 / #225C7C, +1 vs Frozen, Earth, Oasis & Taiga [or Nether, Arid, Frozen, Oasis & Taiga under Water dominance], -1 vs Umbral, Radiant & Nether), 4-target 6m 60%-damage Slowness-II -25%-Toughness (5s) Virulent Contagion-Chain Flows, 1.5m/s-dragging 1-heart/1.5s-draining Decomposing Quagmire Siphon Rays (5.0s contact -> downward-dragging 4.0s-root Wither-II Swamp Quagmire Collapse), zero-light-block 6m+ 7m-knockback -3-armor aggro-resetting (10s Poison/Wither/Hunger Septic Immunity) Putrescent Swamp-Blight Novas, weapon-stacking -3-armor 6s-Poison-II 3m-sludge-puddle (2.5s root & +25% incoming damage) Septic Quagmire Palm-Gouges, +7-Armor +3-Toughness Poison/Wither/Hunger/Drowning-immune 35%-melee-reflecting (-2 attacker armor) water/mud-solidifying Putrescent Mire-Carapaces (mobile or anchored), disarmable Single/Repeating 8m-launching buff-purging +50%-fall-vulnerability (6s) Pressurized Septic Gas-Geysers, projectile-repelling 2-hunger-bar-draining 25s-AI-disrupting 3s-interrupting Choking Bog-Gas Fans, 18s+8s 12m+ 8-boulder 3D-pseudoblock flat-knocking -5-armor -60%-speed poisoning Cataclysmic Miasmic Bog-Downpours, 45s refreshing 65-HP mud-ambushing 2-heart-siphoning 3s-blinding Septic Bog-Stalker / 80-HP 3s 6m airborne-launching -2-armor buff-purging Cadaverous Geyser Pylon / 12m-taunt 10m -3-armor 4s-blinding Decomposing Bog-Husk Eidolons (#1A5923 / #4D6453 / #225C7C), 14m enemy- & fence/bar-phasing 3s-coughing aggro-shedding Putrid Miasma Phase-Shifts, 5.0s-channeled Virulent Quagmire & Peat Fusion Transmutes (dirt/grass/mud -> 3x-mushroom/wart double-harvest Bog Peat, water -> Poison-II-bottling Algae Swamp Water & rotten flesh/spider eyes -> +25% slime balls & bone meal), and milk-immune -25%-Max-HP regen-locking -35%-Toughness 3.5s-bile-vomiting Virulent Septic Pestilence Hexes (+120% slime/witch/arthropod Pestilence Pheromone Trail).\n" +
-                "▪ Genesis (#46 — Tier 3 Trinity Fusion): +50%-Undead/Oblivion/Wraith-smiting (-3 armor) 4m-amniotic-splash (3-heart Regen-II ally mend & 2s radiant-water foe root) 3D Primordial Dawn-Tear Globules (#FF6B9D / #FFEA78 / #225C7C, +1 vs Undead, Oblivion & Wraith [or Nether, Arid, Oblivion & Wraith under Water dominance], -1 vs Umbral), 4-lotus projectile-dissolving 1-heart/s +20%-speed ally-mending 5m-knockback 3s-blinding melee/spell-hit-dart Dawn-Tide Lotus Orbit Flows, Undead/Oblivion/Wraith-smiting 2-heart/s + saturation ally-healing Primordial Genesis Creation Rays (5.0s contact -> 8m-knockback -5-armor Cataclysmic Rebirth Pulse + 15s +6-Absorption-Heart Speed-II Aegis of the First Dawn), zero-light-block 6m+ 8m-knockback -3-armor debuff-curing (5s 1-heart/s +4-Armor +2-Toughness Aura of Inception) Dawn-Tide Rebirth Novas, weapon-stacking +50%-smite -3-armor 6m-knockback 3m-Amniotic-Waters-of-Origin (2-heart + Saturation ally mend / 2.5s root & +25% vulnerability) Primordial Inception Palm-Strikes, +7-Armor +3-Toughness Blindness/Darkness/Wither/Poison/Drowning-immune (+50% swim) 40%-damage-absorbing (Regen II + Genesis Materia fuel) 4m-knockback 3s-blinding Amniotic Genesis Shrouds (mobile or anchored), disarmable Single/Repeating dual-purpose Well of Creation & Cleansing Geysers (ally step -> 6-heart curse-curing +4-Absorption-Heart 30s Fountain of Inception; hostile step -> 10m-launching buff-purging -3-armor +50%-fall-vulnerability Cataclysmic Cleansing Geyser), debuff/curse-purging 2-heart/s + hunger ally-mending +50%-smiting (-1 armor/s up to -4) 25s-AI-disrupting -50%-speed Dawn-Tide Rejuvenation Deluges, 18s+8s 12m+ 8-boulder 3D-pseudoblock flat-knocking -5-armor +1-heart/s-ally-healing -60%-speed Cataclysmic Waters of Creation Downpours, 45s refreshing 70-HP 35%-armor-bypassing 3s-blinding Solar-Hydro Templar / 80-HP 3-target 16m golden-water-beam (-2 armor/hit) +6-Armor +3-Toughness Dawn-Glory Spire / 14m-taunt 10m -4-armor 4s-blinding 6-heart-ally-healing Amniotic Water-Phantom Eidolons (#FF6B9D / #FFEA78 / #225C7C), 18m knock-aside 4s-blinding smiting aggro-shedding Dawn-Glory Solar Slipstreams, 5.0s-channeled Primordial Creation & Genesis Rebirth Fusion Transmutes (instant Zombie-Villager cure, Netherrack/Soul Sand/Basalt -> Grass/Clay/Flowering Azalea, Water -> debuff-curing 2x-crop Sacred Dawn Water & gear curse purge), and milk-immune -25%-Max-HP heal-blocking -35%-Toughness attack-staggering 1-heart/3.5s-true-damage opponent-spark-healing Hyper-Cellular Genesis Destabilization Hexes.\n" +
-                "▪ Oblivion (#47 — Tier 3 Trinity Fusion): Underwater-burning 5m-shattering -3-armor 5s-Wither-II + Blindness 3D Stygian Hellfire Annihilation Skulls (#B83C08 / #211A21 / #4D6453, +1 vs Radiant, Nature, Frozen, Genesis & Aura, -1 vs Water & Void), 4-target 6m 60%-damage 4s-ash-fire -30%-Toughness (5s) Entropic Ash-Chain Flows, projectile-vaporizing -1-armor/s 1.5-heart/s-draining Stygian Extinction Erasure Beams (5.0s contact -> 6m 8m-knockback -5-armor Wither-III + Darkness Extinction Flashover), zero-light-block 6m+ 8m-knockback -4-armor 5s-Blindness/Wither-II (5s projectile-vaporizing torch-snuffing -70%-detection 1-heart/s-draining Oblivion Void-Shroud) Stygian Extinction Novas, weapon-stacking -4-armor 4s-shield-disabling 6s-Stygian-Conflagration (1-heart/s burn + hunger drain + healing lock) Stygian Extinction Palm-Cleaves, +8-Armor +3-Toughness Fire/Lava/Wither/Blindness/Darkness-immune -15%-speed 40%-melee-reflecting (-2 attacker armor) lava/water-solidifying Stygian Extinction Armors (mobile or anchored), disarmable Single/Repeating 4m-suction -> 8m-launching buff-purging -4-armor +50%-fall-vulnerability (6s) Oblivion Singularity Mines, 60° projectile-vaporizing 1.5-hunger-draining -1-armor/s (up to -4) 25s-AI-disrupting Crematorium Shadow-Breath Cones, 18s+8s 12m+ 8-meteor 3D-pseudoblock flat-knocking -5-armor -60%-speed Cataclysmic Stygian Meteor Downpours, 45s refreshing 75-HP 35%-armor-bypassing 6m-knockback 5s-stygian-fire Stygian Dread-Juggernaut / 85-HP 16m-skull-mortar 8m -1-armor/s 1-heart/s Extinction-Aura Pyre of Nonexistence Obelisk / 14m-taunt 35%-melee-reflecting 10m -4-armor 5s-Wither-II/Blindness Smoldering Wither-Effigy Eidolons (#B83C08 / #211A21 / #4D6453), 16m phasing 4s-Wither-II/Blindness aggro-shedding Fire/Fall-immune (5s) Abyssal Hell-Rift Steps, 5.0s-channeled Stygian Desolation & Ash-Slag Smelting Transmutes (logs -> Coal Block +25% Charcoal, sand/dirt/grass -> Soul Sand/Soul Soil/Basalt, water -> Obsidian +25%, cobble/stone -> Blackstone/Magma Block & +30% furnace speed), and milk-immune -30%-Max-HP heal-blocking -40%-Toughness -35%-attack 1.5-heart/3.5s-underwater-hellfire Stygian Oblivion-Extinction Hexes (+120% Blaze/Phantom/Wither-Skeleton Stygian Extinction Scent).\n" +
-                "▪ Chimera: Dynamic Air/Earth/Water/Nether roulette spells & Chimera juggernauts.",
+                "▪ Miasma (#45 — Tier 3 Trinity Fusion): Airborne-knocking -3-armor 4s-blinding-cloud 3D Putrid Swampland Gas-Pods (#1A5923 / #4D6453 / #225C7C, +1 vs Frozen, Earth, Oasis & Taiga [or Nether, Arid, Frozen, Oasis & Taiga under Water dominance], -1 vs Umbral, Radiant & Nether), 4-target 6m 60%-damage Slowness-II -25%-Toughness (5s) Virulent Contagion-Chain Flows, 1.5m/s-dragging 1-heart/1.5s-draining Decomposing Quagmire Siphon Rays (5.0s contact -> downward-dragging 4.0s-root Wither-II Swamp Quagmire Collapse), zero-light-block 6m+ 7m-knockback -3-armor aggro-resetting (10s Poison/Wither/Hunger Septic Immunity) Putrescent Swamp-Blight Novas, weapon-stacking -3-armor 6s-Poison-II 3m-sludge-puddle (2.5s root & +25% incoming damage) Septic Quagmire Palm-Gouges, +7-Armor +3-Toughness Poison/Wither/Hunger/Drowning-immune 35%-melee-reflecting (-2 attacker armor) water/mud-solidifying Putrescent Mire-Carapaces (mobile or anchored), disarmable Single/Repeating 8m-launching buff-purging +50%-fall-vulnerability (6s) Pressurized Septic Gas-Geysers, projectile-repelling 2-hunger-bar-draining 25s-AI-disrupting 3s-interrupting Choking Bog-Gas Fans, 18s+8s 12m+ 8-boulder 3D-pseudoblock flat-knocking -5-armor -60%-speed poisoning Cataclysmic Miasmic Bog-Downpours, 45s refreshing 65-HP mud-ambushing 2-heart-siphoning 3s-blinding Septic Bog-Stalker / 80-HP 3s 6m airborne-launching -2-armor buff-purging Cadaverous Geyser Pylon / 12m-taunt 10m -3-armor 4s-blinding Decomposing Bog-Husk Eidolons (#1A5923 / #4D6453 / #225C7C), 14m enemy- & fence/bar-phasing 3s-coughing aggro-shedding Putrid Miasma Phase-Shifts, 2.5s-channeled Virulent Quagmire & Peat Fusion Transmutes (dirt/grass/mud -> 3x-mushroom/wart double-harvest Bog Peat, water -> Poison-II-bottling Algae Swamp Water & rotten flesh/spider eyes -> +25% slime balls & bone meal), and milk-immune -25%-Max-HP regen-locking -35%-Toughness 3.5s-bile-vomiting Virulent Septic Pestilence Hexes (+120% slime/witch/arthropod Pestilence Pheromone Trail).\n" +
+                "▪ Genesis (#46 — Tier 3 Trinity Fusion): +50%-Undead/Oblivion/Wraith-smiting (-3 armor) 4m-amniotic-splash (3-heart Regen-II ally mend & 2s radiant-water foe root) 3D Primordial Dawn-Tear Globules (#FF6B9D / #FFEA78 / #225C7C, +1 vs Undead, Oblivion & Wraith [or Nether, Arid, Oblivion & Wraith under Water dominance], -1 vs Umbral), 4-lotus projectile-dissolving 1-heart/s +20%-speed ally-mending 5m-knockback 3s-blinding melee/spell-hit-dart Dawn-Tide Lotus Orbit Flows, Undead/Oblivion/Wraith-smiting 2-heart/s + saturation ally-healing Primordial Genesis Creation Rays (5.0s contact -> 8m-knockback -5-armor Cataclysmic Rebirth Pulse + 15s +6-Absorption-Heart Speed-II Aegis of the First Dawn), zero-light-block 6m+ 8m-knockback -3-armor debuff-curing (5s 1-heart/s +4-Armor +2-Toughness Aura of Inception) Dawn-Tide Rebirth Novas, weapon-stacking +50%-smite -3-armor 6m-knockback 3m-Amniotic-Waters-of-Origin (2-heart + Saturation ally mend / 2.5s root & +25% vulnerability) Primordial Inception Palm-Strikes, +7-Armor +3-Toughness Blindness/Darkness/Wither/Poison/Drowning-immune (+50% swim) 40%-damage-absorbing (Regen II + Genesis Materia fuel) 4m-knockback 3s-blinding Amniotic Genesis Shrouds (mobile or anchored), disarmable Single/Repeating dual-purpose Well of Creation & Cleansing Geysers (ally step -> 6-heart curse-curing +4-Absorption-Heart 30s Fountain of Inception; hostile step -> 10m-launching buff-purging -3-armor +50%-fall-vulnerability Cataclysmic Cleansing Geyser), debuff/curse-purging 2-heart/s + hunger ally-mending +50%-smiting (-1 armor/s up to -4) 25s-AI-disrupting -50%-speed Dawn-Tide Rejuvenation Deluges, 18s+8s 12m+ 8-boulder 3D-pseudoblock flat-knocking -5-armor +1-heart/s-ally-healing -60%-speed Cataclysmic Waters of Creation Downpours, 45s refreshing 70-HP 35%-armor-bypassing 3s-blinding Solar-Hydro Templar / 80-HP 3-target 16m golden-water-beam (-2 armor/hit) +6-Armor +3-Toughness Dawn-Glory Spire / 14m-taunt 10m -4-armor 4s-blinding 6-heart-ally-healing Amniotic Water-Phantom Eidolons (#FF6B9D / #FFEA78 / #225C7C), 18m knock-aside 4s-blinding smiting aggro-shedding Dawn-Glory Solar Slipstreams, 2.5s-channeled Primordial Creation & Genesis Rebirth Fusion Transmutes (instant Zombie-Villager cure, Netherrack/Soul Sand/Basalt -> Grass/Clay/Flowering Azalea, Water -> debuff-curing 2x-crop Sacred Dawn Water & gear curse purge), and milk-immune -25%-Max-HP heal-blocking -35%-Toughness attack-staggering 1-heart/3.5s-true-damage opponent-spark-healing Hyper-Cellular Genesis Destabilization Hexes.\n" +
+                "▪ Oblivion (#47 — Tier 3 Trinity Fusion): Underwater-burning 5m-shattering -3-armor 5s-Wither-II + Blindness 3D Stygian Hellfire Annihilation Skulls (#B83C08 / #211A21 / #4D6453, +1 vs Radiant, Nature, Frozen, Genesis & Aura, -1 vs Water & Void), 4-target 6m 60%-damage 4s-ash-fire -30%-Toughness (5s) Entropic Ash-Chain Flows, projectile-vaporizing -1-armor/s 1.5-heart/s-draining Stygian Extinction Erasure Beams (5.0s contact -> 6m 8m-knockback -5-armor Wither-III + Darkness Extinction Flashover), zero-light-block 6m+ 8m-knockback -4-armor 5s-Blindness/Wither-II (5s projectile-vaporizing torch-snuffing -70%-detection 1-heart/s-draining Oblivion Void-Shroud) Stygian Extinction Novas, weapon-stacking -4-armor 4s-shield-disabling 6s-Stygian-Conflagration (1-heart/s burn + hunger drain + healing lock) Stygian Extinction Palm-Cleaves, +8-Armor +3-Toughness Fire/Lava/Wither/Blindness/Darkness-immune -15%-speed 40%-melee-reflecting (-2 attacker armor) lava/water-solidifying Stygian Extinction Armors (mobile or anchored), disarmable Single/Repeating 4m-suction -> 8m-launching buff-purging -4-armor +50%-fall-vulnerability (6s) Oblivion Singularity Mines, 60° projectile-vaporizing 1.5-hunger-draining -1-armor/s (up to -4) 25s-AI-disrupting Crematorium Shadow-Breath Cones, 18s+8s 12m+ 8-meteor 3D-pseudoblock flat-knocking -5-armor -60%-speed Cataclysmic Stygian Meteor Downpours, 45s refreshing 75-HP 35%-armor-bypassing 6m-knockback 5s-stygian-fire Stygian Dread-Juggernaut / 85-HP 16m-skull-mortar 8m -1-armor/s 1-heart/s Extinction-Aura Pyre of Nonexistence Obelisk / 14m-taunt 35%-melee-reflecting 10m -4-armor 5s-Wither-II/Blindness Smoldering Wither-Effigy Eidolons (#B83C08 / #211A21 / #4D6453), 16m phasing 4s-Wither-II/Blindness aggro-shedding Fire/Fall-immune (5s) Abyssal Hell-Rift Steps, 2.5s-channeled Stygian Desolation & Ash-Slag Smelting Transmutes (logs -> Coal Block +25% Charcoal, sand/dirt/grass -> Soul Sand/Soul Soil/Basalt, water -> Obsidian +25%, cobble/stone -> Blackstone/Magma Block & +30% furnace speed), and milk-immune -30%-Max-HP heal-blocking -40%-Toughness -35%-attack 1.5-heart/3.5s-underwater-hellfire Stygian Oblivion-Extinction Hexes (+120% Blaze/Phantom/Wither-Skeleton Stygian Extinction Scent).\n" +
+                "▪ Chimera (Dynamic Base-4 Catalyst): Dynamic Air/Earth/Water/Nether roulette spells (+1 vs Undead, Blight, Soulfire & Blood, -1 vs Umbral), 5.0s Discordant Meltdown beams, 45s refreshing 75-HP Chimeric Juggernaut / 85-HP Chromatic Crucible Spire / Unstable Hybrid Effigy Eidolons, 2.5s-channeled Chimeric Catalytic Metamorphosis Transmutes, and milk-immune Discordant Chimeric Mutation Hexes.",
                 "spell_ethereal_paradox_mutations", 7, new ItemStack(Items.NETHER_STAR),
                 1000f, 0.0f, a_magic + 0.01f, false
         ));
@@ -1722,12 +2784,12 @@ public class CodexCategoryRegistry {
                 "spell_apex_and_prismatic_mutations", "Apex & Prismatic Spell Mutations", "MAGIC",
                 "Signature Flow, Form, and Core Effect mutations for Aether, Entropic, Celestial, and Prismatic (#48-#51).",
                 "Overview & Description:\n" +
-                "Tier 4 Apex Fusions (#48-#50) and the refined Prismatic Catalyst (#51) unlock 50% armor-bypassing strikes, 20-second cataclysmic Skyfalls, 5.0-second channeled area Transmutations, and 45-second refreshing 90-100 HP Eidolon Triads.\n\n" +
+                "Tier 4 Apex Fusions (#48-#50) and the refined Prismatic Catalyst (#51) unlock 50% armor-bypassing strikes, 20-second cataclysmic Skyfalls, 2.5-second held Right-Click channeled area Transmutations, and 45-second refreshing 90-100 HP Eidolon Triads.\n\n" +
                 "Apex & Prismatic Lineup:\n" +
-                "▪ Aether (#48 — Tier 4 Apex Fusion): Gravity-immune wall-phasing 4-pierce 7m-detonating 4-homing-spike (-5 armor & 5s shield disable) 3D Apex Celestial Meteorites (#A88654 / #773214 / #225C7C / #B83C08, +1 vs Earth, Nether, Void, Magma, Dust & Overgrowth, -1 vs Void, Nature, Frozen & Arid), 4-orb wall-phasing projectile-vaporizing homing-dart (-2 armor) Quintessential Quad-Harmonic Orbit Flows, wall-phasing -2-armor/s zero-g Quintessential Firmament Rays (5.0s contact -> 12m-knockback -6-armor buff-purging 5s-Levitation/Stun Cataclysmic Firmament Supernova), zero-light-block 10m+ 10m-airborne-launching -5-armor (12s +10-Armor +5-Toughness fall/drowning/suffocation-immune 3D-flight Transcendent Firmament Aegis) Quintessential Firmament Resonance Novas, weapon-stacking 50%-armor-bypassing -5-armor 5s-shield-disabling 6m-splash 10m-airborne 5m-vacuum-fissure Quintessential Firmament Sunders, +10-Armor +5-Toughness fall/drowning/suffocation-immune -80%-detection 4m-projectile-vaporizing 6m-anti-gravity 3D-flight Transcendent Firmament Quintessence Shrouds (mobile or anchored), disarmable Single/Repeating 4m-trigger -> 8m-pillar 12m-upward-launching -5-armor buff-purging 5s-Levitation/Weakness-III -> hyper-gravity ground-slam Quintessential Firmament Inversion Vortex Sigils, wall-penetrating -5-armor projectile-vaporizing 8m-launching 25s-AI-disrupting -50%-speed Quintessential Firmament Deluges, 20s+10s 14m+ 8-spire 3D-pseudoblock flat-knocking -6-armor (-70% speed, zero-g & 1.5 hearts/s crushing) Cataclysmic Firmament Skyfalls, 45s refreshing 90-HP 50%-armor-bypassing -3-armor 8m-airborne Firmament Archon-Colossus / 100-HP 18m wall-phasing mortar (-2 armor) 10m -1-armor/s ally-cleansing Apex Firmament Spire of Equilibrium / 16m-taunt 40%-damage-reflecting 12m -5-armor 5s-suspending Harmonized Quintessence Effigy Eidolons (#A88654 / #773214 / #225C7C / #B83C08), 20m wall-phasing 6m-departure-vacuum 8m-arrival-knockback (-3 armor) 8s-3D-flight/fall-immune aggro-shedding Firmament Ascension Steps, 5.0s-channeled Quintessential Firmament Genesis Transmutes (Stone/Deepslate/Netherrack/End Stone -> Calcite/Quartz/Amethyst/Gilded Blackstone, curse purge + 35% +1 enchant tier, mob drops -> +25% Aether Distillate + Amethyst Crystals & air -> Purified Aetheric Spring Water), and milk-immune -80%-crawl jump-locking -50%-Toughness 50%-weapon-recoil 1.5-heart/3s-crushing Apex Gravitational Collapse Hexes (+50% aerial/charge mob Positional Crushing Vulnerability).\n" +
-                "▪ Entropic (#49 — Tier 4 Apex Fusion): Wall-phasing 6-pierce 50%-armor-bypassing 7m-Thermodynamic-Singularity-Well (-5 armor, 6s Wither III + Hemorrhage & 30% lifesteal) 3D Entropic Singularity Skull-Orbs (#41304E / #211A21 / #4D6453 / #8A0303, +1 vs Air, Radiant, Nature, Frozen, Celestial, Aegis & Aurora, -1 vs Earth, Void, Radiant, Nether & Umbral), 5-target 8m wall-phasing 70%-damage -3-armor heal-blocking health-siphoning Abyssal Sanguine-Void Chain Flows, wall-phasing -2-armor/s 1-heart/s-siphoning arrow-disintegrating Entropic Oblivion-Siphon Rays (5.0s contact -> 12m-knockback -6-armor buff-purging 5s-Blindness/Wither-III/Slowness-IV Apex Event Horizon Cataclysm), zero-light-block 10m+ vacuum-imploding -> 10m-blasting -5-armor (12s +10-Armor +5-Toughness Wither/Poison/Blindness-immune 40%-reflecting 25%-lifestealing Apex Entropic Shroud) Entropic Singularity Implosion Novas, weapon-stacking 50%-armor-bypassing -5-armor 5s-shield-disabling 35%-lifestealing 5s-rot-fissure (-60% speed & Wither II) Entropic Singularity Cleaves, 6m-torch-snuffing -80%-detection +10-Armor +5-Toughness Wither/Poison/Blindness/Darkness-immune 4m-arrow/trident-vaporizing 6m 1.5-heart/s-draining Abyssal Event Horizon Mantles (mobile or anchored), disarmable Single/Repeating 4m-trigger -> 8m-vacuum 12m-upward-launching -5-armor buff-purging 5s-Wither-III/Hemorrhage/Blindness -> ground-slam Entropic Singularity Collapse Sigils, wall-penetrating -5-armor wood-incinerating water-boiling 25s-Thermodynamic-Rot-Frenzy Entropic Oblivion-Flame Deluges, 20s+10s 14m+ 8-monolith 3D-pseudoblock flat-knocking -6-armor (-70% speed, Wither III & 2.0 hearts/s life-drain) Cataclysmic Entropic Skyfalls, 45s refreshing 90-HP 50%-armor-bypassing -3-armor 35%-siphoning 8m-knockback Entropic Dread-Titan / 100-HP 18m wall-phasing singularity-mortar (-2 armor) 10m 1.5-heart/s -1-armor/s blinding Apex Event Horizon Monolith / 16m-taunt 40%-damage-reflecting 12m -5-armor 5s-Wither-III/Blindness Smoldering Void-Husk Effigy Eidolons (#41304E / #211A21 / #4D6453 / #8A0303), 20m wall-phasing 8m-departure-black-hole (-4 armor & 4s Blindness/Wither-II) 8s-invulnerable aggro-shedding Event Horizon Phase-Slips, 5.0s-channeled Apex Thermodynamic Dissolution & Corruption Transmutes (Stone/Cobble -> Blackstone/Deepslate/Crying Obsidian, Dirt/Grass -> Soul Sand/Sculk, plants -> Wither Roses, mob drops -> +25% Blood/Void Essence & damaged metal gear -> +35% ingots/nuggets + slag), and milk-immune -30%-Max-HP heal-blocking -50%-Toughness 1.5-heart/3s-leeching bone-spasm Apex Thermodynamic Decay & Exsanguination Hexes (32m +200% void-horror Apex Heat-Death Influx).\n" +
-                "▪ Celestial (#50 — Tier 4 Apex Fusion): Wall-phasing shield-piercing 4-pierce 50%-armor-bypassing 3.5x-Undead/Demonic/Abyssal-smiting 6m-Holy-White-Hole-Singularity (-5 armor, 8s Blindness & party health siphon) 3D Holy Solar Singularity Darts (#FFEA78 / #FF6B9D / #1A5923 / #A88654, +1 vs Undead, Water, Earth, Oblivion, Wraith & Barrow, -1 vs Umbral & Void), 4-orb projectile-to-healing-starlight 50%-bypassing blinding-dart 4m 1-heart/3s-healing Holy White-Hole Star-Orbit Flows, wall-penetrating -2-armor/s blinding ally-healing fuel-refilling Holy Pranic Fusion Beams (5.0s contact -> -6-armor 12s-Blindness holy-vortex -> 10m-knockback Celestial-Lily-blooming Cataclysmic Supernova Collapse), zero-light-block 10m+ 8m-knockback projectile/necrotic-summon-vaporizing -5-armor (15s +10-Armor +5-Toughness Wither/Poison/Blindness-immune 40%-holy-retaliation Celestial Ascendance Shroud) Holy Supernova Dawn-Shockwaves, weapon-stacking 50%-armor-bypassing -5-armor 5s-shield-disabling 35%-party-health/fuel-leeching 6m-knockback Holy-Blindness/Brand Holy Supernova Cleaves, zero-light-block +10-Armor +5-Toughness Wither/Poison/Darkness/Blindness-immune -80%-detection 4m-projectile-to-healing-starlight white-hole-retaliating Holy Celestial Supernova Shrouds (mobile or anchored), disarmable Single/Repeating dual-purpose Holy White-Hole Sigils (ally step -> instant 10-heart heal + Regen III + cleanse; 4m hostile step -> 10m-vortex 12m-airborne-launch -5-armor 10s-Blindness -> ground slam), wall-penetrating ally-cleansing 12s-Regen-III 50%-armor-bypassing -5-armor 25s-Divine-Stupefaction Holy Dawn-Deluge Cones, 20s+10s 14m+ 8-spire 3D-pseudoblock 3.5x-Undead/Abyssal -6-armor flat-knocking (10s inward-pulling holy-fire & ally health/hunger/fuel Consecrated White-Hole Singularity Zone) Cataclysmic Supernova Starfalls, 45s refreshing 100-HP 50%-armor-bypassing -3-armor undead-smiting 35%-party-healing 8m-knockback Celestial Seraph-Colossus / 100-HP 18m wall-phasing white-hole-mortar (-2 armor) 10m Genesis-Field (-2 armor/s & 6m healing/smiting waves) Apex White-Hole Dawn Spire / 16m-taunt 40%-holy-fire-reflecting 10m -6-armor 8s-Blindness full-party-healing Holy Genesis Effigy Eidolons (#FFEA78 / #FF6B9D / #1A5923 / #A88654), 20m wall-phasing aggro-shedding 6s-3D-flight/Slow-Falling Holy-Dawn-Decoy (6s Blindness + flashbang if struck) Celestial Supernova Ascendance Steps, 5.0s-channeled Celestial Genesis & Consecration Transmutes (max-discount Zombie Villager cure, Netherrack/Soul Sand/Sculk -> Calcite/White Terracotta/Flowering Azalea Moss, Rotten Flesh/Spider Eyes -> +25% Golden Carrots/Glistering Melons & curse purge into +1 divine blessing), and milk-immune 2x-Undead/Demonic/Abyssal holy-burn heal/buff-blocking 50%-fumble -40%-Toughness Divine Genesis Brand / Holy Supernova Overload Hexes.\n" +
-                "▪ Prismatic (#51 — Refined Catalyst): 6-bounce ricocheting light-discs (healing allies 5 hearts on final bounce), 3-way splitting rainbow lasers, 100% projectile-reflecting mirror monoliths & fuel-free ore smelting (10% chance to shift into a random ore up to Diamond).",
+                "▪ Aether (#48 — Tier 4 Apex Fusion): Gravity-immune wall-phasing 4-pierce 7m-detonating 4-homing-spike (-5 armor & 5s shield disable) 3D Apex Celestial Meteorites (#A88654 / #773214 / #225C7C / #B83C08, +1 vs Earth, Nether, Void, Magma, Dust & Overgrowth, -1 vs Void, Nature, Frozen & Arid), 4-orb wall-phasing projectile-vaporizing homing-dart (-2 armor) Quintessential Quad-Harmonic Orbit Flows, wall-phasing -2-armor/s zero-g Quintessential Firmament Rays (5.0s contact -> 12m-knockback -6-armor buff-purging 5s-Levitation/Stun Cataclysmic Firmament Supernova), zero-light-block 10m+ 10m-airborne-launching -5-armor (12s +10-Armor +5-Toughness fall/drowning/suffocation-immune 3D-flight Transcendent Firmament Aegis) Quintessential Firmament Resonance Novas, weapon-stacking 50%-armor-bypassing -5-armor 5s-shield-disabling 6m-splash 10m-airborne 5m-vacuum-fissure Quintessential Firmament Sunders, +10-Armor +5-Toughness fall/drowning/suffocation-immune -80%-detection 4m-projectile-vaporizing 6m-anti-gravity 3D-flight Transcendent Firmament Quintessence Shrouds (mobile or anchored), disarmable Single/Repeating 4m-trigger -> 8m-pillar 12m-upward-launching -5-armor buff-purging 5s-Levitation/Weakness-III -> hyper-gravity ground-slam Quintessential Firmament Inversion Vortex Sigils, wall-penetrating -5-armor projectile-vaporizing 8m-launching 25s-AI-disrupting -50%-speed Quintessential Firmament Deluges, 20s+10s 14m+ 8-spire 3D-pseudoblock flat-knocking -6-armor (-70% speed, zero-g & 1.5 hearts/s crushing) Cataclysmic Firmament Skyfalls, 45s refreshing 90-HP 50%-armor-bypassing -3-armor 8m-airborne Firmament Archon-Colossus / 100-HP 18m wall-phasing mortar (-2 armor) 10m -1-armor/s ally-cleansing Apex Firmament Spire of Equilibrium / 16m-taunt 40%-damage-reflecting 12m -5-armor 5s-suspending Harmonized Quintessence Effigy Eidolons (#A88654 / #773214 / #225C7C / #B83C08), 20m wall-phasing 6m-departure-vacuum 8m-arrival-knockback (-3 armor) 8s-3D-flight/fall-immune aggro-shedding Firmament Ascension Steps, 2.5s-channeled Quintessential Firmament Genesis Transmutes (Stone/Deepslate/Netherrack/End Stone -> Calcite/Quartz/Amethyst/Gilded Blackstone, curse purge + 35% +1 enchant tier, mob drops -> +25% Aether Distillate + Amethyst Crystals & air -> Purified Aetheric Spring Water), and milk-immune -80%-crawl jump-locking -50%-Toughness 50%-weapon-recoil 1.5-heart/3s-crushing Apex Gravitational Collapse Hexes (+50% aerial/charge mob Positional Crushing Vulnerability).\n" +
+                "▪ Entropic (#49 — Tier 4 Apex Fusion): Wall-phasing 6-pierce 50%-armor-bypassing 7m-Thermodynamic-Singularity-Well (-5 armor, 6s Wither III + Hemorrhage & 30% lifesteal) 3D Entropic Singularity Skull-Orbs (#41304E / #211A21 / #4D6453 / #8A0303, +1 vs Air, Radiant, Nature, Frozen, Celestial, Aegis & Aurora, -1 vs Earth, Void, Radiant, Nether & Umbral), 5-target 8m wall-phasing 70%-damage -3-armor heal-blocking health-siphoning Abyssal Sanguine-Void Chain Flows, wall-phasing -2-armor/s 1-heart/s-siphoning arrow-disintegrating Entropic Oblivion-Siphon Rays (5.0s contact -> 12m-knockback -6-armor buff-purging 5s-Blindness/Wither-III/Slowness-IV Apex Event Horizon Cataclysm), zero-light-block 10m+ vacuum-imploding -> 10m-blasting -5-armor (12s +10-Armor +5-Toughness Wither/Poison/Blindness-immune 40%-reflecting 25%-lifestealing Apex Entropic Shroud) Entropic Singularity Implosion Novas, weapon-stacking 50%-armor-bypassing -5-armor 5s-shield-disabling 35%-lifestealing 5s-rot-fissure (-60% speed & Wither II) Entropic Singularity Cleaves, 6m-torch-snuffing -80%-detection +10-Armor +5-Toughness Wither/Poison/Blindness/Darkness-immune 4m-arrow/trident-vaporizing 6m 1.5-heart/s-draining Abyssal Event Horizon Mantles (mobile or anchored), disarmable Single/Repeating 4m-trigger -> 8m-vacuum 12m-upward-launching -5-armor buff-purging 5s-Wither-III/Hemorrhage/Blindness -> ground-slam Entropic Singularity Collapse Sigils, wall-penetrating -5-armor wood-incinerating water-boiling 25s-Thermodynamic-Rot-Frenzy Entropic Oblivion-Flame Deluges, 20s+10s 14m+ 8-monolith 3D-pseudoblock flat-knocking -6-armor (-70% speed, Wither III & 2.0 hearts/s life-drain) Cataclysmic Entropic Skyfalls, 45s refreshing 90-HP 50%-armor-bypassing -3-armor 35%-siphoning 8m-knockback Entropic Dread-Titan / 100-HP 18m wall-phasing singularity-mortar (-2 armor) 10m 1.5-heart/s -1-armor/s blinding Apex Event Horizon Monolith / 16m-taunt 40%-damage-reflecting 12m -5-armor 5s-Wither-III/Blindness Smoldering Void-Husk Effigy Eidolons (#41304E / #211A21 / #4D6453 / #8A0303), 20m wall-phasing 8m-departure-black-hole (-4 armor & 4s Blindness/Wither-II) 8s-invulnerable aggro-shedding Event Horizon Phase-Slips, 2.5s-channeled Apex Thermodynamic Dissolution & Corruption Transmutes (Stone/Cobble -> Blackstone/Deepslate/Crying Obsidian, Dirt/Grass -> Soul Sand/Sculk, plants -> Wither Roses, mob drops -> +25% Blood/Void Essence & damaged metal gear -> +35% ingots/nuggets + slag), and milk-immune -30%-Max-HP heal-blocking -50%-Toughness 1.5-heart/3s-leeching bone-spasm Apex Thermodynamic Decay & Exsanguination Hexes (32m +200% void-horror Apex Heat-Death Influx).\n" +
+                "▪ Celestial (#50 — Tier 4 Apex Fusion): Wall-phasing shield-piercing 4-pierce 50%-armor-bypassing 3.5x-Undead/Demonic/Abyssal-smiting 6m-Holy-White-Hole-Singularity (-5 armor, 8s Blindness & party health siphon) 3D Holy Solar Singularity Darts (#FFEA78 / #FF6B9D / #1A5923 / #A88654, +1 vs Undead, Water, Earth, Oblivion, Wraith & Barrow, -1 vs Umbral & Void), 4-orb projectile-to-healing-starlight 50%-bypassing blinding-dart 4m 1-heart/3s-healing Holy White-Hole Star-Orbit Flows, wall-penetrating -2-armor/s blinding ally-healing fuel-refilling Holy Pranic Fusion Beams (5.0s contact -> -6-armor 12s-Blindness holy-vortex -> 10m-knockback Celestial-Lily-blooming Cataclysmic Supernova Collapse), zero-light-block 10m+ 8m-knockback projectile/necrotic-summon-vaporizing -5-armor (15s +10-Armor +5-Toughness Wither/Poison/Blindness-immune 40%-holy-retaliation Celestial Ascendance Shroud) Holy Supernova Dawn-Shockwaves, weapon-stacking 50%-armor-bypassing -5-armor 5s-shield-disabling 35%-party-health/fuel-leeching 6m-knockback Holy-Blindness/Brand Holy Supernova Cleaves, zero-light-block +10-Armor +5-Toughness Wither/Poison/Darkness/Blindness-immune -80%-detection 4m-projectile-to-healing-starlight white-hole-retaliating Holy Celestial Supernova Shrouds (mobile or anchored), disarmable Single/Repeating dual-purpose Holy White-Hole Sigils (ally step -> instant 10-heart heal + Regen III + cleanse; 4m hostile step -> 10m-vortex 12m-airborne-launch -5-armor 10s-Blindness -> ground slam), wall-penetrating ally-cleansing 12s-Regen-III 50%-armor-bypassing -5-armor 25s-Divine-Stupefaction Holy Dawn-Deluge Cones, 20s+10s 14m+ 8-spire 3D-pseudoblock 3.5x-Undead/Abyssal -6-armor flat-knocking (10s inward-pulling holy-fire & ally health/hunger/fuel Consecrated White-Hole Singularity Zone) Cataclysmic Supernova Starfalls, 45s refreshing 100-HP 50%-armor-bypassing -3-armor undead-smiting 35%-party-healing 8m-knockback Celestial Seraph-Colossus / 100-HP 18m wall-phasing white-hole-mortar (-2 armor) 10m Genesis-Field (-2 armor/s & 6m healing/smiting waves) Apex White-Hole Dawn Spire / 16m-taunt 40%-holy-fire-reflecting 10m -6-armor 8s-Blindness full-party-healing Holy Genesis Effigy Eidolons (#FFEA78 / #FF6B9D / #1A5923 / #A88654), 20m wall-phasing aggro-shedding 6s-3D-flight/Slow-Falling Holy-Dawn-Decoy (6s Blindness + flashbang if struck) Celestial Supernova Ascendance Steps, 2.5s-channeled Celestial Genesis & Consecration Transmutes (max-discount Zombie Villager cure, Netherrack/Soul Sand/Sculk -> Calcite/White Terracotta/Flowering Azalea Moss, Rotten Flesh/Spider Eyes -> +25% Golden Carrots/Glistering Melons & curse purge into +1 divine blessing), and milk-immune 2x-Undead/Demonic/Abyssal holy-burn heal/buff-blocking 50%-fumble -40%-Toughness Divine Genesis Brand / Holy Supernova Overload Hexes.\n" +
+                "▪ Prismatic (#51 — Refined Catalyst): Zero-drop 6-ricochet projectile-refracting -4-armor/bounce 3D Prismatic Oscillating Light-Discs (Full HSB Spectrum / #72F6FF / #FFFFFF, +1 vs Undead, Blight, Soulfire & Blood, -1 vs Umbral, blinding 5m rainbow nova + 5-heart wounded-party heal on final bounce), 4-lens projectile/magic-refracting (+20% ally attack speed 4m) seeking-rainbow-dart Kaleidoscope Orbit Flows, wall-phasing 3-way-splitting (1.5 hearts/s siphon & -2 armor/s) Bifurcated Rainbow Spectrum Rays (5.0s contact -> -5-armor 4.0s-paralyzing party-absorption-shielding Prismatic Meltdown), zero-light-block 10m+ hazard/cloud-purging -5-armor (8-heart party heal & cleanse) Rainbow Bloom Shockwaves, weapon-stacking 50%-armor-bypassing -5-armor 4s-disarming (-65% attack) 4s-Blindness 10s-Glowing Prismatic Crystalline Palm-Shatters, zero-light-block Fire/Lava/Drowning-immune Slow-Falling-gliding 5m-Undead/Blight-burning Chromatic Dispersion Auras (mobile or anchored), disarmable Single/Repeating 4m-trigger -> 5s stained-glass-encasement weapon-dropping -4-armor Refractive Prism-Vault Glyphs, wall-penetrating ally-cleansing (+30% speed 12s) projectile-deflecting -5-armor 25s-AI-disrupting Chromatic Prismatic Deluge Cones, 20s+10s 14m+ 8-spire foliage/glass-phasing 3D-pseudoblock (permanently materializing Sea Lantern/Amethyst/Quartz/Calcite spires) -6-armor knocking-down Chromatic Star-Showers (10s +100%-ally-attack-speed Jump-Boost-III corrupt-burning Crystalline Resonance Field), 45s refreshing 100-HP flying piercing-javelin Prismatic Valkyrie / 100-HP 12m 100%-projectile/magic-reflecting Refractive Mirror Monolith / 16m-taunt 10m-blinding 15s-complete-party-invulnerability Sacrificial Solar Relic Eidolons, 18m wall-phasing aggro-shedding 2s-invisible flashbang-Prismatic-Mirror-Decoy Refractive Phase-Steps, 2.5s-channeled 8m fuel-free 1x-yield Prismatic Ore Metamorphosis Transmutes (instant ore->ingot smelting + 10% chance to transmute into a random ore up to Diamond), and milk-immune 50%-fumble -40%-Toughness buff-inverting 2x-Undead/Demonic/Blight/Blood-burning Refractive Dyschromia / Chromatic Overload Hexes.",
                 "spell_trinity_and_catalyst_mutations", 8, new ItemStack(Items.AMETHYST_CLUSTER),
                 1090f, 0.0f, a_magic + 0.02f, false
         ));
@@ -1738,18 +2800,23 @@ public class CodexCategoryRegistry {
                 "Overview & Description:\n" +
                 "The pinnacle of Spellcrafting across Empyrean, Cataclysm, and Terminus (Tier 5 Eschaton: 60% armor bypass, 24s Skyfalls, 60s / 110-120 HP Eidolons) and Eschaton, Apotheosis, and Entropica (Tier 6 Singularity: 75% armor bypass, 30s Skyfalls, 90s / 140-150 HP Eidolons).\n\n" +
                 "Eschaton, Singularity & Bottled Elixirs:\n" +
-                "▪ Empyrean, Cataclysm & Terminus (#52-#54): Party-shielding World-Tree root webs & bottled Dew of the World-Tree; 10-pierce volcanic railgun slugs & +35% ore vitrification; 8-pierce absolute-zero permafrost lances & bottled Glacial Frost Elixirs.\n" +
-                "▪ Eschaton, Apotheosis & Entropica (#55-#57): Block-to-fuel Omega event horizons, 24m enemy-swapping Spacetime Fold Slips & 50/50 bottled Gravitational Stasis Elixirs or Essence of the Omega Horizon; 10-bounce Seeking Crowns of Dawn, Level-15 Alpha Genesis mantles & bottled Nectar of the Alpha Genesis; universal +1 Grand Cosmic Equilibrium lances, dual Spawn-Lure + Monster-Empowerment Paradox Hexes, and 5.0s Grand Cosmic Equilibrium Transmutation (+5 permanent tiers to all worn enchantments).",
+                "▪ Empyrean (#52 — Tier 5 Eschaton Fusion): Wall-phasing 8-pierce 60%-armor-bypassing 8m-Siphoning-Solar-Root-Web (3.5s briar root, -6 armor & 35% damage->party absorption) 3D World-Tree Siphoning Seed-Pods (#FFEA78 / #FF6B9D / #1A5923, +1 vs Undead, Water, Earth, Nether, Void, Oblivion, Wraith, Barrow & Blight, -1 vs Umbral), 4-pod wall-phasing projectile/spell-vaporizing seeking-tendril (2.0s root, -3 armor & party absorption siphon) World-Tree Siphoning Root-Web Orbit Flows, wall-phasing -2-armor/s aerial-grounding party-health/saturation-siphoning Sustained Root-Lance Sunbeams (5.0s channel -> 12m-knockback -7-armor buff-purging 5.0s-root 10m-azalea-blooming 4-heart-ally-healing Canopy Cataclysm), zero-light-block 12m+ 10m-knockback +60%-Undead/Dark-smiting -6-armor 4.0s-rooting World-Tree Heartwood Bastion Novas (16s +12-Armor +6-Toughness Poison/Wither/Drowning/Hunger-immune party-absorption Aegis of the Infinite Life), weapon-stacking 60%-armor-bypassing -6-armor 6.0s-shield-disabling 4.0s-rooting 8m-tendril-siphoning Siphoning World-Tree Root-Cleaves, +12-Armor +6-Toughness Suffocation/Drowning/Poison/Wither/Hunger-immune -85%-detection 5m-arrow/trident-petal-vaporizing 6m 2.0-hearts/s-true-damage->party-absorption Living Titan Bark & Canopy Mantles (mobile or anchored), disarmable Single/Repeating dual-purpose World-Tree Siphoning Root-Vault Sigils (ally step -> 10-heart heal + curse cure + 45s +8-Absorption-Hearts; 5m hostile step -> 8m 5.0s golden-titan-root-cage -6-armor buff-purging 40%-health->golden-healing-dewdrops), wall-penetrating -6-armor projectile-vaporizing 3.0s-rooting 30s-AI-disrupting (-60% speed) Solar-Verdant Spore-Web Deluges, 24s+12s 16m+ 8-megalith 3D-pseudoblock (permanently materializing Materia-Echo Heartwood, Moss, Flowering Azalea & Sacred Loam) -7-armor dark-smiting Cataclysmic World-Tree Canopy Skyfalls (12s -70%-speed 4s-periodic-root +2-hearts/s Saturation +6-Armor World-Tree Consecrated Soil), 60s refreshing 110-HP 60%-armor-bypassing -4-armor 3.0s-rooting 40%-absorption-siphoning Yggdrasil Arboreal Juggernaut / 120-HP 20m seeking-root-seed-mortar (-3 armor) 16m Sanctuary-Field (+8 Armor, +4 Toughness & 10-HP absorption) Heartwood Canopy Obelisk / 16s 16m-taunt 45%-melee-reflecting 14m true-damage (-6 armor, 5.0s root & 8-heart ally heal) Golden Willow Effigy Eidolons (#FFEA78 / #FF6B9D / #1A5923), 22m ceiling-phasing 6m-departure-root-blast (3.0s root) 10s-3D-flight/Slow-Falling ground-dewdrop aggro-shedding Solar Slipstream Ascents, 2.5s-channeled World-Tree Genesis & Vitality Consecration Transmutes (Stone/Deepslate/Netherrack -> Sacred World-Tree Heartwood/Flowering Azalea Moss/Sacred Loam, curse purge + 50% +1 enchant tier, max-discount Zombie Villager cure & 3m standing water -> bottled Dew of the World-Tree), and milk-immune 2x-Undead/Demonic/Abyssal true-holy-burn heal-blocking 50%-fumble -50%-Toughness Radiant Empyrean Brand Hexes (32m +120% Empyrean Starlight Beacon).\n" +
+                "▪ Cataclysm (#53 — Tier 5 Eschaton Fusion): Ultra-high-velocity wall-penetrating 10-pierce 60%-armor-bypassing 3D Catastrophic Hellfire Railgun Slugs (#41304E / #211A21 / #B83C08, +1 vs Air, Radiant, Nature, Frozen, Water, Celestial, Aegis, Aurora & Genesis, -1 vs Vitae, triggering a flat-knocking -35%-Toughness unquenchable-burn volcanic magma eruption on every entity penetrated), 4-core wall-phasing projectile-crushing seeking-railgun-spike (-40% Toughness & true fire) Singularity Orbit Flows, wall-phasing -2-armor/s arrow-disintegrating core-pulling Tectonic Magma Fissure Rays (5.0s channel -> 14m-knockback -7-armor buff-purging Cataclysmic Seismic Eruption & 12m -70%-speed underwater-burning molten caldera), zero-light-block 12m+ 12m-knockback -6-armor 6.0s-shield-disabling molten-obsidian-crack World-Breaker Seismic Novas, weapon-stacking 60%-armor-bypassing -6-armor 6.0s-shield-disabling 10m-inward-pulling (2.0 hearts/s) Tectonic Calamity Sunders, 6m-torch-snuffing +12-Armor +6-Toughness Fire/Lava/Wither/Blindness-immune -85%-detection 5m-arrow/trident-slag-vaporizing 6m 2.0-hearts/s-true-fire-gravity-well Mantles of the World-Breaker (mobile or anchored), disarmable Single/Repeating 5m-trigger -> 8m-caldera 14m-upward-launching -6-armor buff-purging 6.0s-Wither-III/Stygian-Conflagration -> violent ground-slam Abyssal Calamity Caldera Sigils, wall-penetrating -6-armor projectile-vaporizing wood-incinerating water-boiling 30s-Tectonic-Vertigo-Panic (-60% speed & blind terror) Cataclysmic Magma-Ash Deluges, 24s+12s 16m+ 8-meteorite 3D-pseudoblock (permanently materializing Obsidian, Crying Obsidian, Blackstone & Magma Blocks) -7-armor flat-knocking Cataclysmic World-Breaker Skyfalls (12s -70%-speed Wither-III underwater-true-burning Stygian Magma Slag), 60s refreshing 110-HP wall-phasing 60%-armor-bypassing -4-armor 12m-jaw-pulling Stygian Magma-Void Serpent / 120-HP 20m wall-penetrating railgun-magma-spike (-3 armor) 16m Gravitational-Caldera-Field (-1 armor/s & 1.5 hearts/s burn) Volcanic Eruption Spire / 16s 16m-taunt 45%-melee-reflecting 14m true-damage (-6 armor & singularity pull) Molten Core Beacon Eidolons (#41304E / #211A21 / #B83C08), 100%-silent 22m wall-phasing 6m-departure-micro-singularity (arrow-crushing, inward-pulling & 2.5s-stunning) 8.0s-Fire/Fall-immune aggro-shedding Gravitational Void-Warp Collapses, 2.5s-channeled 12m Tectonic Subduction & Magma Vitrification Transmutes (Stone/Deepslate/Cobble -> Obsidian/Crying Obsidian/Blackstone, raw/mineral ores -> +35% bonus yield + nuggets, Sand/Red Sand -> Glass & damaged equipment/tools/metal items -> raw Void Slag + base ingots), and milk-immune underwater-burning -70%-speed jump-locking -50%-Toughness 50%-weapon-recoil Abyssal World-Breaker Singularity Hexes (32m +150% Abyssal World-Breaker Beacon).\n" +
+                "▪ Terminus (#54 — Tier 5 Eschaton Fusion): Wall-phasing 8-pierce 60%-armor-bypassing 8m-Zero-Point-Glacial-Stasis-Field (3.5s solid ice stasis, -6 armor & slippery Blue Ice ground flash-freeze) 3D Absolute-Zero Permafrost Lances (#A88654 / #98DCF2 / #225C7C, +1 vs Nether, Arid, Earth, Water, Magma, Pyre, Blight, Soulfire & Miasma, -1 vs Undead), 4-blade wall-phasing projectile-shattering seeking-ice-shard (-40% Toughness & -40% attack speed) Cryogenic Polar Vortex Orbit Flows, wall-phasing -2-armor/s aerial-grounding fire-dousing Sustained Cryogenic Vortex Rays (5.0s channel -> 12m-knockback -7-armor buff-purging 5.0s-solid-blue-ice Zero-Point Atmospheric Collapse), zero-light-block 12m+ 10m-knockback -6-armor water->Packed-Ice lava->Obsidian 4.0s-ice-encasing Absolute-Zero Cryo-Novas (16s +12-Armor +6-Toughness Freeze/Drowning/Fire-immune +40%-ice-speed Glacial Mantle of Terminus), weapon-stacking 60%-armor-bypassing -6-armor 6.0s-shield-disabling 4.0s-ice-encasing 8m-frost-nova (2.5s surrounding freeze) Absolute-Zero Glacier Cleaves, 6m-fire/torch-snuffing +12-Armor +6-Toughness Fire/Lava/Drowning/Freeze/Wither-immune -85%-detection 5m-arrow/trident-hail-shattering 50%-damage-absorbing 2.0s-melee-ice-encasing (-60% attack speed) Zero-Point Kinetic Stasis Shields (mobile or anchored), disarmable Single/Repeating 5m-trigger -> 8m-cryo-vortex 12m-gale-geyser apex-flash-freeze -> catastrophic crash-impact (-6 armor, buff purge & 4.0s blue-ice encasement) Permafrost Glacial Abyss Sigils, wall-penetrating -6-armor projectile-deflecting water->Packed-Ice 30s-Cryogenic-Molecular-Hypothermia (AI disruption & -60% speed) Cryogenic Blizzard Deluges, 24s+12s 16m+ 8-monolith 3D-pseudoblock (permanently materializing Blue Ice, Packed Ice, Runic Blue Ice & Zephyr Ice) suspended-animation -7-armor Continuous Cryo-Stasis Hailstorms (12s mob-freezing +6-Armor Frost-Walker Absolute Zero Permafrost), 60s refreshing 110-HP wall-phasing 60%-armor-bypassing -4-armor 3.0s-ice-encasing Titanic Glacial Elemental / 120-HP 20m wall-penetrating cryogenic-lance (-3 armor) 16m Polar-Freeze-Field (-50% speed & continuous water freezing) Anchored Permafrost Elemental Spire / 16s 16m-taunt 45%-melee-reflecting 14m true-damage (-6 armor & 5.0s solid ice encasement) Unstable Cryogenic Elemental Effigy Eidolons (#A88654 / #98DCF2 / #225C7C), 22m wall-phasing 6m-departure-frost-nova (3.0s ice root) 10s-Frost-Walker/Fall-immune/+40%-ice-speed aggro-shedding Glacial Slipstream Flash-Slides, 2.5s-channeled 12m Zero-Point Crystallization & Permafrost Synthesis Transmutes (water/rainfall -> Blue Ice, lava -> Obsidian, stone/deepslate -> Permafrost/Packed Ice & 3m standing water -> bottled Glacial Frost Elixirs), and milk-immune true-frostbite -80%-speed -60%-attack-speed -50%-Toughness jump-disabling Absolute Zero Molecular Cessation Hexes (+40% monster crushing damage & melee Freezing Absolute Zero Vulnerability).\n" +
+                "▪ Eschaton (#55 — Tier 6 Singularity Fusion): Ultra-dense wall-phasing 12-pierce 75%-armor-bypassing wake-dragging 10m-Omega-Event-Horizon (inward vacuum, loose-obstacle->fuel vaporization, -8 armor, true void collapse & raw Eschaton Materia droplets) 3D Black-Hole Railgun Darts (#0B0813 / #7012A5 / #D4C2FC, +1 vs all lower-tier elements, -1 vs Apotheosis), 4-core wall-phasing 100%-projectile->fuel-vaporizing seeking-mini-black-hole (-50% Toughness & true void damage) Event Horizon Orbit Flows, wall-phasing -3-armor/s block->fuel-vaporizing Dimensional Void-Fissure Beams (5.0s channel -> 16m-knockback -8-armor buff-purging Omega Event Horizon Implosion & 6.0s 14m inward gravitational tear), zero-light-block 16m+ 14m-flat-knockback -8-armor projectile->fuel Cosmic Event-Horizon Novas (20.0s +14-Armor +8-Toughness debuff/fall/void-immune 8m-vacuum Mantle of the Omega Singularity), weapon-stacking shield/wall-cleaving 75%-armor-bypassing -8-armor 8.0s-shield-disabling buff-severing 4.0s-stasis-locking 8m-arc-pulling Reality-Cleaving Scythes, 10m-light-snuffing +14-Armor +8-Toughness Fire/Lava/Drowning/Freeze/Wither/Debuff/Fall/Void-immune -90%-detection 6m-projectile->fuel 8m 3.0-hearts/s-true-damage Mantles of the Omega Singularity (mobile or anchored), disarmable Single/Repeating 6m-trigger -> 6.0s unbreakable-gravity-tether (-8 armor, buff purge & 12m projectile-into-victim magnet) Singularity Anchor Sigils, wall-penetrating -8-armor projectile->fuel non-bedrock-tunnel-carving 35.0s-Omega-Spacetime-Disorientation (AI disruption, -75% speed & helpless spinning) Accretion Singularity Torrents, 30s+15s 20m+ 8-singularity 3D-pseudoblock (permanently materializing Crying Obsidian, Astral Impactite, Obsidian & Chiseled Eclipse Basalt) zero-g-stasis/flat-pulverizing -8-armor block->fuel Dimensional Inversion Starfalls (15s -80%-speed inward-dragging true-damage Collapsed Reality Slag), 90s refreshing 140-HP wall-phasing 75%-armor-bypassing -5-armor 14m-jaw/matter-pulling Event-Horizon Leviathan / 150-HP 24m wall-penetrating singularity-lance (-4 armor) 20m Gravitational-Accretion-Field (-1.5 armor/s & projectile/hostile pull) Accretion Disk Singularity Spire / 20s 20m-taunt 50%-damage-reflecting 20m reality-tear (block->fuel, massive true damage, -8 armor & singularity pull) Collapsing Micro-Nova Effigy Eidolons (#0B0813 / #7012A5 / #D4C2FC), 100%-silent 24m wall-phasing furthest-enemy-swapping (4.0s stasis bubble & buff purge) cloaked 4.0s-invulnerable aggro-shedding Spacetime Fold Slips, 2.5s-channeled 16m Dimensional Event Horizon Transmutation & Accretion Compression (non-bedrock->fuel, Stone/Deepslate/Netherrack -> Crying Obsidian/Blackstone/Void Slag, Cobble/Stone/Gravel -> condensed raw mineral blocks, mob drops -> pure Eschaton essence, curse purge + up to 2 enchants +2, and 4m standing water -> 50/50 bottled Gravitational Stasis Elixirs or Brewing-Stand Essence of the Omega Horizon), and milk-immune true-void-collapse -85%-speed jump/teleport-blocking -60%-Toughness 60%-weapon-recoil 6m-contagious Omega Event Horizon Dissolution Hexes (36m +200% Cosmic Reality Tear).\n" +
+                "▪ Apotheosis (#56 — Tier 6 Singularity Fusion): Wall-phasing 10-hostile-bouncing 75%-armor-bypassing blinding party-absorption-siphoning 10m-White-Hole-Genesis-Nova (-8 armor, smites hostiles, radiant essence orbs & 100% full ally heal) 3D Seeking Crowns of Dawn (#FFFFFF / #FFE484 / #72F6FF, +1 vs all lower-tier elements, +2 smite vs dark/void/nether/undead, -1 vs Eschaton), 4-starcore wall-phasing 100%-projectile->radiant-essence/healing-dew seeking-holy-star-dart (-50% Toughness & true holy fire) White-Hole Star-Orbit Flows, wall-phasing -3-armor/s undead-smiting ally-healing Sustained Holy White-Hole Rays (5.0s channel -> 16m-knockback -8-armor buff-purging Cataclysmic Genesis Bloom & 14m flora-blooming 6-heart/Saturation sanctuary), zero-light-block 16m+ 14m-flat-knockback -8-armor 2x-Undead/Demonic/Void Supernova Genesis Novas (party debuff purge, 12-heart ally heal & 20.0s Mantle of the Alpha Singularity), weapon-stacking wall-cleaving 75%-armor-bypassing -8-armor 8.0s-shield-disabling dark-smiting 4.0s-starlight-briar-rooting 10m-golden-crown-siphoning Ascendant Solar Genesis Cleaves, Level-15-light +14-Armor +8-Toughness Fire/Lava/Drowning/Freeze/Wither/Blindness/Void-immune -90%-detection 6m-projectile->petal/radiant-droplet 3D-flight/Slow-Falling 8m (+3 hearts/s + Saturation for allies; 3.0 hearts/s true holy burn to dark/void/nether hostiles) Mantles of the Alpha Singularity (mobile or anchored), disarmable Single/Repeating 6m-trigger White-Hole Genesis Sanctuary Sigils (ally step -> full HP + curse cure + +12 Absorption hearts + 60.0s Regeneration IV; hostile step -> 12m 6.0s golden hard-light pillar cage, -8 armor, buff strip, dark smite & 50% total HP -> radiant essence orbs), wall-penetrating -8-armor blinding undead-igniting sand->Glass flower/crop-blooming netherrack->Moss wither-foliage-purging 35.0s-Divine-Reverence (AI disruption & -75% speed) Prismatic Solar Fans, 30s+15s 20m+ 8-megalith 3D-pseudoblock (permanently materializing Quartz Pillar, Sea Lantern, Calcite & Moss) flat-knocking -8-armor dark-smiting Cataclysmic White-Hole Genesis Starfalls (15s 3.0s-periodic-root -80%-speed radiant-orb +3-hearts/s Saturation Regeneration-IV +8-Armor Consecrated Genesis Ground), 90s refreshing 140-HP 6-winged wall-phasing 75%-armor-bypassing -5-armor holy-fire 25%-ally-healing Celestial Seraph-Titan / 150-HP 24m wall-penetrating holy-supernova-lance (-4 armor) 20m Sanctuary-Field (+10 Armor, +6 Toughness & 15-HP absorption) White-Hole Dawn Obelisk / 20s 20m-taunt 50%-damage-reflecting 20m supernova (massive true holy damage, -8 armor, 12-heart ally heal & radiant essence) Radiant Ascendance Mirage Eidolons (#FFFFFF / #FFE484 / #72F6FF), 24m wall/ceiling-phasing 8m-departure-flashbang (6.0s Blindness + 3.0s golden briar root) 12.0s-3D-flight/Slow-Falling/Fall&Void-immune ground-dewdrop aggro-shedding Ascendant Solar Genesis Steps, 2.5s-channeled 16m Alpha Genesis Transmutation & Universal Consecration (Netherrack/Soul Sand/Sculk/Deepslate -> Calcite/Flowering Azalea Moss/Lush Loam/Amethyst/Quartz, brick repair, cursed blocks -> Radiant Raw Essence & droplets, curse purge + up to 2 enchants +2, max-discount Zombie Villager cure & 4m standing water -> 90s bottled Nectar of the Alpha Genesis), and milk-immune 2x-Undead/Demonic/Abyssal true-holy-burn heal-blocking 60%-fumble -60%-Toughness dark-magic-backfire 6m-contagious Divine Genesis Brand Hexes (+150% monster attack speed & 100% crit Blinding Overexposure).\n" +
+                "▪ Entropica (#57 — Tier 6 Singularity Fusion): Wall-phasing 12-pierce 75%-armor-bypassing trajectory-pulling 10m-creation/dissolution-nova (-8 armor, knocks mobs flat & spawns collectible Essence Orbs) 3D Singularity Equilibrium Lances (#E0E5EC / #1A153B / #FAD02C, \"§b\", +1 vs EVERYTHING including Eschaton & Apotheosis, 0 weaknesses), 4-core wall-phasing End-portal-parallax 100%-projectile->fuel seeking-balance-dart (-50% Toughness & true damage) Cosmic Parallax Singularity Orbit Flows, wall-phasing -3-armor/s beam-center-pulling Twin Helix Singularity Streams (5.0s channel -> 16m-knockback -8-armor buff-purging Singularity Annihilation Blast), zero-light-block 16m+ 16m-flat-knockback -8-armor Cosmic Equilibrium Novas (party debuff purge, 12-heart ally heal & 20.0s Mantle of Entropica), weapon-stacking wall-cleaving 75%-armor-bypassing -8-armor 8.0s-shield-disabling 50%-damage->party-absorption 8m-mini-vortex Blades of the Grand Paradox, zero-light-block +14-Armor +8-Toughness Fire/Lava/Drowning/Freeze/Wither/Blindness/Void-immune -90%-detection 3D-flight/Slow-Falling 6m-projectile->fuel 8m (3.0 hearts/s true damage to hostiles & +3 hearts/s ally heal) Mantles of Entropica (mobile or anchored), disarmable omni-surface Single/Repeating Singularity Horizon Mandalas (hostile trigger -> 8m 6.0s stasis cage, -8 armor, buff strip & projectile-into-target magnet; ally step -> full HP & hunger + curse cure + +12 Absorption hearts + 3D flight), wall-penetrating -8-armor water->Blue-Ice sand->Glass fire-extinguishing 5.0s-stunning 35.0s-Cosmic-Equilibrium-Stupor (AI disruption & -75% speed) Thermodynamic Heat-Death Waves, 30s+15s 20m+ crimson-void-red-parallax 8-lance/starcore 3D-pseudoblock (permanently materializing Runed Astral Marble, Quartz Pillars, Calcite & Aeterium Crystal Blocks) -8-armor flat-knocking periodic-zero-g-stasis +3-hearts/s-ally-healing Cataclysmic Singularity Equilibrium Starfalls (15s -80%-speed party-Materia-fuel-regenerating Equilibrium Ground), 90s refreshing 140-HP wall-phasing 75%-armor-bypassing -5-armor 14m-aura-pulling alternating-void/radiant-orb Avatar of Entropica / 150-HP 24m wall-penetrating balance-ray (-4 armor) 20m Equilibrium-Field (2 hearts/s true damage & +2 hearts/s ally heal) Altar of the Horizon / 20s 20m-taunt 50%-damage-reflecting 20m reality-rupture (inward pull, 5.0s stun, -8 armor & massive true damage) Fractured Paradox Core Eidolons (#E0E5EC / #1A153B / #FAD02C), 24m wall/ceiling-phasing 4.0s-departure-parallax-decoy (taunt/pull -> stasis nova) 12.0s-3D-flight/Slow-Falling 4.0s-invulnerable aggro-shedding Parallax Event-Horizon Folds, 2.5s-channeled 16m Grand Cosmic Equilibrium Transmutation (strictly no fluids/air; cobble/dirt/gravel -> collectible Essence Orbs, stone/deepslate/netherrack -> Iridescent Primordial Runestone/Calcite/Harmonic Crystal Blocks, curse purge & +5 permanent tiers to ALL worn & dropped enchantments), and milk-immune true-damage -85%-speed heal-blocking -60%-Toughness 60%-weapon-recoil 6m-contagious Grand Equilibrium Paradox Hexes (dual 36m +200% Spawn-Lure Beacon + +100% monster attack speed / +50% crit Cosmic Paradox Distortion).",
                 "spell_apex_and_prismatic_mutations", 9, new ItemStack(Items.DRAGON_BREATH),
                 1180f, 0.0f, a_magic + 0.03f, false
         ));
 
         ALL_NODES.add(new CodexNode(
                 "spell_eidolon_summon_triad", "Eidolon Summon Forms", "MAGIC",
-                "Three separate Summon creation forms (Autonomous Agent, Anchored Sentry, Phantom Decoy — choose one per spell) across all 58 Materia suites.",
+                "Three separate Summon creation forms (Autonomous Agent, Anchored Sentry, Phantom Decoy — up to 8 concurrent at Tiers 8-10) across all 63 Materia suites.",
                 "Overview & Description:\n" +
-                "During spell creation, Autonomous Agent (summon_agent), Anchored Sentry (summon_sentry), and Phantom Decoy (summon_decoy) are three separate Delivery Form choices—you pick one summon type per spell to manifest across all 58 canonical Materia suites: Autonomous Agents (mobile companions up to 140 HP Avatar of Entropica, Event-Horizon Leviathan, Celestial Seraph-Titan, and flying Prismatic Valkyries), Anchored Sentries (stationary turrets & field spires up to 150 HP, including 16-block Umbral/Eclipse/Null_U/Penumbra dark-spawn blocking, Overgrowth/Spore/Oasis/Spring/Sylvan crop growth, Vitae heartbeat cleansing, Aura -20% spell fuel spires, Prismatic 12-block 100% projectile/magic reflect domes, and 20-block Singularity fields), or Phantom Decoys (taunt effigies with 4m-20m death bursts, including Prismatic's 15s party invulnerability burst). Tier 3-6 & Catalyst constructs run automated 45s / 60s / 90s Lifecycle Refresh Engines.\n\n" +
-                "Field Controls:\n" +
+                "During spell creation, Autonomous Agent (summon_agent), Anchored Sentry (summon_sentry), and Phantom Decoy (summon_decoy) are three separate Delivery Form choices—you pick one summon type per spell to manifest across all 63 registered Materia suites (including Caprine Secrets Radiant-Fire, Umbral-Water & Equinox plus Aureole & Vesper): Autonomous Agents (mobile companions up to 140 HP Avatar of Entropica, Event-Horizon Leviathan, Celestial Seraph-Titan, and flying Prismatic Valkyries), Anchored Sentries (stationary turrets & field spires up to 150 HP, including 16-block Umbral/Eclipse/Null_U/Penumbra dark-spawn blocking, Overgrowth/Spore/Oasis/Spring/Sylvan crop growth, Vitae heartbeat cleansing, Aura -20% spell fuel spires, Prismatic 12-block 100% projectile/magic reflect domes, and 20-block Singularity fields), or Phantom Decoys (taunt effigies with 4m-20m death bursts, including Prismatic's 15s party invulnerability burst). Concurrent active summons scale from 1 (Tier 1) up to 8 simultaneously at Tiers 8-10, and Tier 3-6 & Catalyst constructs (starting at Pyre #39 at 70/85 HP) run automated 45s / 60s / 90s Lifecycle Refresh Engines.\n\n" +
+                "15s Orbis Cell Upkeep & Field Controls:\n" +
+                "▪ 15-Second Orbis Cell Upkeep & Auto-Heal: Initial casting covers the first 15 seconds; every 15 seconds thereafter, each active Eidolon drains Materia from your equipped Orbis Cell first -> inventory Orbis Cells at 25% cast cost when healthy (50%+ HP) or 100% full cast cost + 100% full HP restore when below 50% HP.\n" +
                 "▪ Orbis Cell Healing: Sneak + Right-Click an owned Eidolon with a matching Orbis Cell to repair its health directly.\n" +
                 "▪ Zero-Cost Safe Dismissal: Hold Sneak while casting a Summon spell to safely dismiss active Eidolons matching that spell's chosen summon type at 0 Materia cost.",
                 "spell_primordial_base_mutations", 3, new ItemStack(Items.TOTEM_OF_UNDYING),
@@ -1758,28 +2825,28 @@ public class CodexCategoryRegistry {
 
         ALL_NODES.add(new CodexNode(
                 "spell_wards_hexes_and_verbs", "Wards, Hexes & Core Verbs", "MAGIC",
-                "Shield gates, Level I-III persistent hexes, kinetic modes, and conjured bridges.",
+                "Shield gates, Milk-proof Level I-III boss-stacking hexes, kinetic modes, and conjured bridges.",
                 "Overview & Description:\n" +
                 "All 19 Core Effect verbs scale across Tiers 1-10 across Combat, Utility, and Miscellaneous disciplines.\n\n" +
                 "Key Mechanics:\n" +
                 "▪ Arcane Ward & Aegis Shells (1.5x Base Damage): Remains continuously visible as a shimmering 3D barrier dome with rotating runic hoops and orbiting hexagonal plates for its full active duration, flares brightly in opacity with directional impact ripples whenever it absorbs a hit, intercepts combat hits only, blocks all overflow damage on the hit that shatters the shield, and converts 25% of matching-element hits back into Materia fuel.\n" +
-                "▪ Persistent Hexes: Last indefinitely on non-boss foes (stacking Levels I-III), lock natural health regeneration on burning/blight curses, dispel if the caster dies, and can be cleansed by opposing Materia.\n" +
-                "▪ Harm, Kinetic, Grapple, Blink, Restoration & Conjure: Tier 4+ Harm pierces physical armor and ruptures overkill targets into Raw Essence; Kinetic supports Push, Pull, Launch, Slam, and rocket-jumps; Grapple reels foes or zip-lines the caster to walls and ledges; Blink steps instantly up to 16+ blocks along your crosshair (wall-phasing at Tier 4+ or Void infusion, snapping safely onto solid non-lava ground or refunding 100% Materia fuel if blocked, converting freefall into forward speed, staying silent by default, and right-click toggling between Self-Blink and Position Swap); Restoration heals allies/Eidolons or harms Undead; Conjure dials light (7-15) or forms 15s stepping bridges.",
+                "▪ Persistent Hexes (Milk-Proof & Boss Level I-III Stacking): Cannot be cleared by drinking Milk (which strips normal potion effects while preserving active Materia Hexes), last indefinitely on standard foes (stacking Levels I-III), stack from Level I up to Level III on Bosses during their 30-second curse window (stamping a 10-second per-Hex immunity window only after the 30s Hex ends or is cleansed), cleanly remove Max-HP cuts on overwrite/cleanse, spread strictly Level I on death only during the initial window or while actively channeled, dispel if the caster dies, and require dedicated Cleanse/Purify sub-runes or opposing Materia to cure.\n" +
+                "▪ Harm, Kinetic, Grapple, Blink, Restoration & Conjure: Tier 4+ Harm pierces physical armor and ruptures overkill targets into Raw Essence; Kinetic supports Push, Pull, Launch, Slam, and rocket-jumps; Grapple reels foes or zip-lines the caster to walls and ledges; Blink steps instantly up to 16+ blocks along your crosshair (wall-phasing at Tier 4+ or Void infusion, snapping safely onto solid non-lava ground or refunding 100% Materia fuel if blocked, converting freefall into forward speed, staying silent by default, and right-click toggling between Self-Blink and Position Swap); Restoration heals allies/Eidolons or harms Undead via unified Defender Lineage Advantage; Conjure dials light (7-15) or forms 15s stepping bridges.",
                 "spell_modular_architecture", 2, new ItemStack(Items.SHIELD),
                 550f, 0.0f, a_magic - 0.01f, false
         ));
 
         ALL_NODES.add(new CodexNode(
                 "spell_arcane_flight_and_utility_verbs", "Arcane Flight, Materia Wings & Field Utility", "MAGIC",
-                "Timed 3D flight with Materia-colored Arcane Wings, plus Harvest, Transmute, Logistics, Sonar, Atmosphere, Acoustic, Diagnostic, and Gravity.",
+                "Timed 3D flight with Materia-colored Arcane Wings, plus 2.5s Held Transmute, Break, Harvest, Logistics, Sonar, Atmosphere, Acoustic, Diagnostic, and Gravity.",
                 "Overview & Description:\n" +
                 "Utility and Miscellaneous Core Effects empower exploration, farming, weather control, sensory scanning, and true 3D aerial flight.\n\n" +
                 "Arcane Flight & 3D Materia Wings:\n" +
                 "▪ Casting Arcane Flight (in any Delivery Form or Flow) grants timed 3D flight (15s at Tier 1 up to 60s+ at Tier 10), an immediate upward wing-stroke launch, and a gentle Slow Falling cushion when flight ends.\n" +
-                "▪ Articulated 3D glowing Arcane Wings unfurl from the caster's back, dynamically colored by whichever of the 58 Materia types powers the spell—including two-tone feather tips on dual-Materia spells and live shifting spectrums for Prismatic, Chimera, Aurora, and Entropica!\n\n" +
+                "▪ Articulated 3D glowing Arcane Wings unfurl from the caster's back, dynamically colored by whichever of the 63 Materia types powers the spell—including two-tone feather tips on dual-Materia spells and live shifting spectrums for Prismatic, Chimera, Aurora, and Entropica!\n\n" +
                 "Field Utility & Sensory Verbs:\n" +
-                "▪ Break, Harvest & Construct: Excavate stone/ores (never breaking chests/machines), harvest & replant crops/berries/wart/cane/melons, or place offhand/conjured blocks.\n" +
-                "▪ Transmute & Logistics: Transform blocks or dropped item stacks (with 30% bulk fuel refunds), vacuum nearby items & XP orbs, or route items between linked chests on Autocast Pedestals.\n" +
+                "▪ Break, Harvest & Construct: Cleanly excavate stone/ores without misrouting into Transmute (never breaking chests/machines), harvest & replant crops/berries/wart/cane/melons, or place offhand/conjured blocks.\n" +
+                "▪ 2.5s Held Transmute & Logistics: Hold Right-Click continuously for 2.5 seconds to transform placed world blocks or dropped item stacks (with Autocast Pedestals charging the 2.5s channel automatically in-zone and 30% bulk fuel discounts), vacuum nearby items & XP orbs, or route items between linked chests on Autocast Pedestals.\n" +
                 "▪ Sonar, Diagnostic, Atmosphere, Acoustic & Gravity: Highlight nearby creatures & ping valuable ore veins, inspect exact entity HP/Wards or block crop/honey/redstone states, shift weather between Clear Skies, Rain, and Thunderstorms, emit sonic shockwaves or stealth hush veils, and deploy Lunar, Zero-G, Grav-Lift, Repulsor, or Singularity gravity domes.",
                 "spell_wards_hexes_and_verbs", 3, new ItemStack(Items.ELYTRA),
                 640f, 0.0f, a_magic - 0.005f, false
@@ -2358,6 +3425,14 @@ public class CodexCategoryRegistry {
         ));
     }
 
+
+    private static ItemStack resolveBiome11Icon(String itemPath, Item fallback) {
+        var itemOpt = BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath("entropica", itemPath));
+        if (itemOpt.isPresent() && itemOpt.get() != Items.AIR) {
+            return new ItemStack(itemOpt.get());
+        }
+        return new ItemStack(fallback);
+    }
 
     public static CodexNode getNodeById(String id) {
         for (CodexNode node : ALL_NODES) {

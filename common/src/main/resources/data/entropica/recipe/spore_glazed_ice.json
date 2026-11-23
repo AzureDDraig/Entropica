@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " P ",
+    "PSP",
+    " P "
+  ],
+  "key": {
+    "P": "minecraft:packed_ice",
+    "S": "entropica:living_spores"
+  },
+  "result": {
+    "id": "entropica:spore_glazed_ice",
+    "count": 4
+  }
+}

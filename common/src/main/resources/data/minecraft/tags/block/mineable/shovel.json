@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:coarse_gravel",
+    "entropica:necrotic_soil",
+    "entropica:void_sand",
+    "entropica:void_sand_turf",
+    "entropica:radiant_snow_block",
+    "entropica:glass_sand",
+    "entropica:grey_sand",
+    "entropica:dust_crusted_ice",
+    "entropica:red_clay_sand"
+  ]
+}

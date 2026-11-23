@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "minecraft:dirt",
+    "minecraft:dirt",
+    "entropica:crypt_grave_fibers",
+    "entropica:bleached_bone_meal"
+  ],
+  "result": {
+    "id": "entropica:necrotic_soil",
+    "count": 4
+  }
+}

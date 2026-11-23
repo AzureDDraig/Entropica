@@ -1,8 +1,20 @@
 package ddraig.net.entropica.config;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -114,6 +126,8 @@ public class EntropicaConfig {
     public static final Supplier<Integer> MAX_DELAY_TICKS = EntropicaConfig::getMaxDelayTicks;
     public static final Supplier<Integer> SPELL_MUTATION_UNLOCK_MODE = EntropicaConfig::getSpellMutationUnlockMode;
     public static final Supplier<Boolean> ENABLE_SPELL_MUTATION_OP_JOIN_NOTICE = EntropicaConfig::getEnableSpellMutationOpJoinNotice;
+    public static final Supplier<List<String>> MAGNETITE_BEAM_ORE_WHITELIST = EntropicaConfig::safeGetMagnetiteBeamOreWhitelist;
+    public static final Supplier<List<String>> MAGNETITE_BEAM_ORE_BLACKLIST = EntropicaConfig::safeGetMagnetiteBeamOreBlacklist;
 
     // Biome Generation Settings (Master Switch + Injector Controls + All 108 Biomes)
     public static final Supplier<Boolean> ENABLE_ALL_BIOMES = EntropicaConfig::getEnableAllBiomes;
@@ -124,6 +138,10 @@ public class EntropicaConfig {
     public static final Supplier<Boolean> ENABLE_BIOME_CUSTOM_FOG = EntropicaConfig::getEnableBiomeCustomFog;
     public static final Supplier<Boolean> ENABLE_BIOME_CUSTOM_SKY = EntropicaConfig::getEnableBiomeCustomSky;
     public static final Supplier<Boolean> ENABLE_BIOME_ENVIRONMENTAL_EFFECTS = EntropicaConfig::getEnableBiomeEnvironmentalEffects;
+    public static final Supplier<Boolean> ENABLE_ENHANCED_BIOME_FOG_AND_WATER = EntropicaConfig::safeGetEnableEnhancedBiomeFogAndWater;
+    public static final Supplier<Boolean> ENABLE_BIOME_VOLUMETRIC_FOG = EntropicaConfig::safeGetEnableBiomeVolumetricFog;
+    public static final Supplier<Boolean> ENABLE_BIOME_WATER_EFFECTS = EntropicaConfig::safeGetEnableBiomeWaterEffects;
+    public static final Supplier<Boolean> ENABLE_SHADERPACK_ADAPTIVE_ATTENUATION = EntropicaConfig::safeGetEnableShaderpackAdaptiveAttenuation;
     public static final Map<EntropicaBiome, Supplier<Boolean>> BIOME_ENABLED;
 
     static {
@@ -243,8 +261,243 @@ public class EntropicaConfig {
     @ExpectPlatform public static boolean getEnableAstralMirrorNebulae() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getEnableAstralMirrorConstellationLines() { throw new AssertionError(); }
     @ExpectPlatform public static int getAstralCollectorTransferRate() { throw new AssertionError(); }
+    private static volatile @Nullable List<String> testMagnetiteOreWhitelistOverride = null;
+    private static volatile @Nullable List<String> testMagnetiteOreBlacklistOverride = null;
+    private static volatile @Nullable Boolean testEnhancedBiomeFogAndWaterOverride = null;
+
+    public static void setEnhancedBiomeFogAndWaterTestOverride(@Nullable Boolean enabledOverride) {
+        testEnhancedBiomeFogAndWaterOverride = enabledOverride;
+    }
+
+    public static void clearEnhancedBiomeFogAndWaterTestOverride() {
+        testEnhancedBiomeFogAndWaterOverride = null;
+    }
+
+    public static boolean safeGetEnableEnhancedBiomeFogAndWater() {
+        Boolean override = testEnhancedBiomeFogAndWaterOverride;
+        if (override != null) {
+            return override;
+        }
+        try {
+            return getEnableEnhancedBiomeFogAndWater();
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
+    public static boolean safeGetEnableBiomeVolumetricFog() {
+        if (!safeGetEnableEnhancedBiomeFogAndWater()) {
+            return false;
+        }
+        try {
+            return getEnableBiomeVolumetricFog();
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
+    public static boolean safeGetEnableBiomeWaterEffects() {
+        if (!safeGetEnableEnhancedBiomeFogAndWater()) {
+            return false;
+        }
+        try {
+            return getEnableBiomeWaterEffects();
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
+    public static boolean safeGetEnableShaderpackAdaptiveAttenuation() {
+        try {
+            return getEnableShaderpackAdaptiveAttenuation();
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
+    public static void setMagnetiteBeamOreFilterTestOverride(
+            @Nullable List<String> whitelistOverride,
+            @Nullable List<String> blacklistOverride
+    ) {
+        testMagnetiteOreWhitelistOverride = whitelistOverride == null ? null : List.copyOf(whitelistOverride);
+        testMagnetiteOreBlacklistOverride = blacklistOverride == null ? null : List.copyOf(blacklistOverride);
+    }
+
+    public static void clearMagnetiteBeamOreFilterTestOverride() {
+        testMagnetiteOreWhitelistOverride = null;
+        testMagnetiteOreBlacklistOverride = null;
+    }
+
+    public static List<String> safeGetMagnetiteBeamOreWhitelist() {
+        List<String> override = testMagnetiteOreWhitelistOverride;
+        if (override != null) {
+            return override;
+        }
+        try {
+            List<String> list = getMagnetiteBeamOreWhitelist();
+            return list != null ? list : List.of();
+        } catch (Throwable ignored) {
+            return List.of();
+        }
+    }
+
+    public static List<String> safeGetMagnetiteBeamOreBlacklist() {
+        List<String> override = testMagnetiteOreBlacklistOverride;
+        if (override != null) {
+            return override;
+        }
+        try {
+            List<String> list = getMagnetiteBeamOreBlacklist();
+            return list != null ? list : List.of();
+        } catch (Throwable ignored) {
+            return List.of();
+        }
+    }
+
+    /**
+     * Checks whether an exposed block may be mined by Earth's Tier 2+ {@code Magnetite Tractor Beam}.
+     * Supports block IDs ({@code "minecraft:iron_ore"}) and {@code #tag} entries ({@code "#c:ores/iron"}):
+     * <ul>
+     *     <li>If whitelist is empty, allows all detected ore blocks UNLESS matched by blacklist.</li>
+     *     <li>If whitelist is non-empty, allows ONLY blocks matching whitelist AND NOT matching blacklist.</li>
+     * </ul>
+     */
+    public static boolean isOreAllowedForMagnetiteBeam(@Nullable BlockState state) {
+        return isOreAllowedForMagnetiteBeam(
+                state,
+                safeGetMagnetiteBeamOreWhitelist(),
+                safeGetMagnetiteBeamOreBlacklist()
+        );
+    }
+
+    public static boolean isOreAllowedForMagnetiteBeam(
+            @Nullable BlockState state,
+            @Nullable List<String> whitelist,
+            @Nullable List<String> blacklist
+    ) {
+        if (state == null || state.isAir()) {
+            return false;
+        }
+        if (matchesMagnetiteOreRuleList(state, blacklist)) {
+            return false;
+        }
+        if (hasNonBlankEntries(whitelist)) {
+            return matchesMagnetiteOreRuleList(state, whitelist);
+        }
+        return isDetectedOreBlock(state);
+    }
+
+    public static boolean isDetectedOreBlock(@Nullable BlockState state) {
+        if (state == null || state.isAir()) {
+            return false;
+        }
+        if (state.is(BlockTags.COAL_ORES) || state.is(BlockTags.IRON_ORES)
+                || state.is(BlockTags.COPPER_ORES) || state.is(BlockTags.GOLD_ORES)
+                || state.is(BlockTags.REDSTONE_ORES) || state.is(BlockTags.LAPIS_ORES)
+                || state.is(BlockTags.DIAMOND_ORES) || state.is(BlockTags.EMERALD_ORES)
+                || state.is(Blocks.NETHER_QUARTZ_ORE) || state.is(Blocks.GILDED_BLACKSTONE)
+                || state.is(Blocks.ANCIENT_DEBRIS)) {
+            return true;
+        }
+        ResourceLocation key = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        String path = key.getPath().toLowerCase(Locale.ROOT);
+        return path.endsWith("_ore") || (path.startsWith("raw_") && path.endsWith("_block"));
+    }
+
+    private static boolean hasNonBlankEntries(@Nullable List<String> rules) {
+        if (rules == null || rules.isEmpty()) {
+            return false;
+        }
+        for (String rule : rules) {
+            if (rule != null && !rule.isBlank()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean matchesMagnetiteOreRuleList(BlockState state, @Nullable List<String> rules) {
+        if (rules == null || rules.isEmpty()) {
+            return false;
+        }
+        for (String raw : rules) {
+            if (raw != null && matchesSingleMagnetiteOreRule(state, raw)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean matchesSingleMagnetiteOreRule(BlockState state, String rawRule) {
+        String rule = rawRule.trim().toLowerCase(Locale.ROOT);
+        if (rule.isEmpty()) {
+            return false;
+        }
+        if (rule.startsWith("#")) {
+            String tagStr = rule.substring(1).trim();
+            ResourceLocation tagLoc = ResourceLocation.tryParse(tagStr);
+            if (tagLoc == null) {
+                return false;
+            }
+            TagKey<Block> tagKey = TagKey.create(Registries.BLOCK, tagLoc);
+            if (state.is(tagKey)) {
+                return true;
+            }
+            return matchesUnboundHeadlessOreTagFallback(state, tagLoc);
+        }
+        ResourceLocation targetId = ResourceLocation.tryParse(rule);
+        if (targetId == null) {
+            return false;
+        }
+        return BuiltInRegistries.BLOCK.getKey(state.getBlock()).equals(targetId);
+    }
+
+    private static boolean matchesUnboundHeadlessOreTagFallback(BlockState state, ResourceLocation tagLoc) {
+        String ns = tagLoc.getNamespace();
+        String tagPath = tagLoc.getPath();
+        String blockPath = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath().toLowerCase(Locale.ROOT);
+
+        if ("c".equals(ns) || "forge".equals(ns)) {
+            TagKey<Block> probeCommonIron = TagKey.create(
+                    Registries.BLOCK,
+                    ResourceLocation.fromNamespaceAndPath(ns, "ores/iron")
+            );
+            if (Blocks.IRON_ORE.defaultBlockState().is(probeCommonIron)) {
+                return false;
+            }
+            if ("ores".equals(tagPath)) {
+                return isDetectedOreBlock(state);
+            }
+            if (tagPath.startsWith("ores/")) {
+                String oreName = tagPath.substring("ores/".length());
+                if (oreName.isEmpty()) {
+                    return false;
+                }
+                return blockPath.equals(oreName + "_ore")
+                        || blockPath.equals("deepslate_" + oreName + "_ore")
+                        || blockPath.equals("nether_" + oreName + "_ore")
+                        || ("quartz".equals(oreName) && state.is(Blocks.NETHER_QUARTZ_ORE))
+                        || ("netherite_scrap".equals(oreName) && state.is(Blocks.ANCIENT_DEBRIS))
+                        || ("gold".equals(oreName) && state.is(Blocks.GILDED_BLACKSTONE));
+            }
+            return false;
+        }
+
+        if (ResourceLocation.DEFAULT_NAMESPACE.equals(ns) && !Blocks.IRON_ORE.defaultBlockState().is(BlockTags.IRON_ORES)) {
+            if (tagPath.endsWith("_ores")) {
+                String oreName = tagPath.substring(0, tagPath.length() - "_ores".length());
+                return blockPath.equals(oreName + "_ore")
+                        || blockPath.equals("deepslate_" + oreName + "_ore")
+                        || ("gold".equals(oreName) && state.is(Blocks.NETHER_GOLD_ORE));
+            }
+        }
+        return false;
+    }
+
     @ExpectPlatform public static int getSpellMutationUnlockMode() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getEnableSpellMutationOpJoinNotice() { throw new AssertionError(); }
+    @ExpectPlatform public static List<String> getMagnetiteBeamOreWhitelist() { throw new AssertionError(); }
+    @ExpectPlatform public static List<String> getMagnetiteBeamOreBlacklist() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getEnableAllBiomes() { throw new AssertionError(); }
     @ExpectPlatform public static int getTerraBlenderCompatMode() { throw new AssertionError(); }
     @ExpectPlatform public static int getEntropicaBiomeRegionWeight() { throw new AssertionError(); }
@@ -253,5 +506,9 @@ public class EntropicaConfig {
     @ExpectPlatform public static boolean getEnableBiomeCustomFog() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getEnableBiomeCustomSky() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getEnableBiomeEnvironmentalEffects() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableEnhancedBiomeFogAndWater() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableBiomeVolumetricFog() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableBiomeWaterEffects() { throw new AssertionError(); }
+    @ExpectPlatform public static boolean getEnableShaderpackAdaptiveAttenuation() { throw new AssertionError(); }
     @ExpectPlatform public static boolean getBiomeEnabled(EntropicaBiome biome) { throw new AssertionError(); }
 }

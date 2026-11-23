@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "": [
+      { "model": "entropica:block/coarse_gravel" },
+      { "model": "entropica:block/coarse_gravel", "y": 90 },
+      { "model": "entropica:block/coarse_gravel", "y": 180 },
+      { "model": "entropica:block/coarse_gravel", "y": 270 }
+    ]
+  }
+}

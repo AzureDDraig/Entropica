@@ -87,12 +87,14 @@ public final class GenesisSpellMutationHandler implements MateriaPartMutationHan
 
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Dawn-Tide Lotus Orbit Flow";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE ? "Dawn-Tide Lotus Orbit Flow" : null;
     }
 
     @Override
     public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "4 floating crystalline lotus blossoms and radiant water droplets (#FF6B9D / #FFEA78 / #225C7C) orbit the caster, dissolving incoming enemy projectiles, healing nearby allies for 1 heart/s with +20% movement speed, knocking melee attackers 5m back with 3.0s Blindness, and firing smiting lotus darts on melee or spell hit.";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE
+                ? "4 floating crystalline lotus blossoms and radiant water droplets (#FF6B9D / #FFEA78 / #225C7C) orbit the caster, dissolving incoming enemy projectiles, healing nearby allies for 1 heart/s with +20% movement speed, knocking melee attackers 5m back with 3.0s Blindness, and firing smiting lotus darts on melee or spell hit."
+                : null;
     }
 
     @Override
@@ -297,10 +299,23 @@ public final class GenesisSpellMutationHandler implements MateriaPartMutationHan
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Section 6.47 Primordial Genesis Creation Ray & Rebirth Pulse:
-        // Smites Undead/Oblivion/Wraith while continuously healing allies for 2 hearts/s (4.0 HP) & restoring saturation;
-        // REQUIRES 5.0s (100 contact ticks) continuous channeling to trigger Cataclysmic Rebirth Pulse
-        // (8m knockback, melts 5 armor points, and grants Aegis of the First Dawn: +6 Absorption Hearts & Speed II for 15.0s / 300t)!
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         int tier = spell.getEffectiveTier();
         boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
         long now = level.getGameTime();
@@ -328,13 +343,17 @@ public final class GenesisSpellMutationHandler implements MateriaPartMutationHan
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_GENESIS_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) {
+                continue;
+            }
             long delta = now - last;
-            int stepTicks = (delta > 0L && delta <= 8L) ? (int) Math.max(4L, delta) : 20;
-            int contactTicks = (delta <= 45L) ? data.getInt(TAG_GENESIS_BEAM_TICKS).orElse(0) + stepTicks : stepTicks;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt(TAG_GENESIS_BEAM_TICKS).orElse(0) + (int) delta : 4);
             data.putLong(TAG_GENESIS_BEAM_LAST_TICK, now);
             data.putInt(TAG_GENESIS_BEAM_TICKS, contactTicks);
 
-            if (contactTicks >= 100) {
+            if (heldTicks > 0 && contactTicks >= 100) {
                 data.putInt(TAG_GENESIS_BEAM_TICKS, 0);
                 SpellWorldVfxManager.broadcastRadialNova(level, hit.position(), 4.8D, EssenceType.GENESIS, EssenceType.RADIANT, tier);
                 float pulseDmg = (10.50F + tier * 2.50F) * Math.max(0.5F, apparatusPotency);
@@ -794,16 +813,21 @@ public final class GenesisSpellMutationHandler implements MateriaPartMutationHan
         }
 
         final boolean[] landed = new boolean[boulderCount];
-        Map<BlockPos, BlockState> savedSanctuaryPool = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 520, level.getGameTime(), spell, slot, EssenceType.GENESIS, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedSanctuaryPool.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.PRISMARINE) || cur.is(Blocks.SEA_LANTERN) || cur.is(Blocks.FLOWERING_AZALEA)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
+                                boolean dawnCore = (mIdx % 2 == 0);
+                                BlockState pseudoState = dawnCore
+                                        ? Blocks.SEA_LANTERN.defaultBlockState()
+                                        : Blocks.PRISMARINE.defaultBlockState();
+                                int colHeight = dawnCore ? 2 : 1;
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, boulderTargets[mIdx], pseudoState, colHeight);
                             }
                         }
                         return false;
@@ -824,7 +848,7 @@ public final class GenesisSpellMutationHandler implements MateriaPartMutationHan
                             int colHeight = dawnCore ? 2 : 1;
 
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 360 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -849,9 +873,6 @@ public final class GenesisSpellMutationHandler implements MateriaPartMutationHan
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.AMETHYST_CLUSTER_BREAK, SoundSource.PLAYERS, 0.90F, 1.25F);
                             }
-                            if (landed[mIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, colHeight, false);
-                            }
                         }
 
                         // 2. Heavy radiant dawn droplets & sacred light beams!
@@ -865,26 +886,10 @@ public final class GenesisSpellMutationHandler implements MateriaPartMutationHan
                             );
                             srv.sendParticles(ParticleTypes.SPLASH, strike.x, strike.y + 0.6D, strike.z, 10, 0.7D, 0.5D, 0.7D, 0.06D);
                         }
-                    } else if (elapsed == 360) {
-                        // Downpour complete: materialize real temporary shimmering sanctuary prismarine/azalea turf for 8.0s (160t)!
-                        for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
-                            BlockPos strikePos = boulderTargets[mIdx];
-                            BlockPos ground = strikePos.below();
-                            BlockState gs = srv.getBlockState(ground);
-                            if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE) || gs.is(Blocks.COBBLESTONE))
-                                    && !savedSanctuaryPool.containsKey(ground)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, ground, gs)) {
-                                savedSanctuaryPool.put(ground.immutable(), gs);
-                                srv.setBlockAndUpdate(ground, Blocks.PRISMARINE.defaultBlockState());
-                            }
-                            BlockState above = srv.getBlockState(strikePos);
-                            if (above.isAir()
-                                    && Blocks.FLOWERING_AZALEA.defaultBlockState().canSurvive(srv, strikePos)
-                                    && !savedSanctuaryPool.containsKey(strikePos)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, strikePos, above)) {
-                                savedSanctuaryPool.put(strikePos.immutable(), above);
-                                srv.setBlockAndUpdate(strikePos, Blocks.FLOWERING_AZALEA.defaultBlockState());
-                            }
+                    }
+                    for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
+                        if (landed[mIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, boulderTargets[mIdx], (mIdx % 2 == 0) ? 2 : 1, false);
                         }
                     }
 

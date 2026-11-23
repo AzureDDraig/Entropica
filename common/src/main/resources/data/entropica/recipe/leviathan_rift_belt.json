@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "FSF",
+    "SCS",
+    " F "
+  ],
+  "key": {
+    "F": "entropica:void_weave_fabric",
+    "S": "entropica:serpent_void_scale",
+    "C": "entropica:void_crystal_block"
+  },
+  "result": {
+    "id": "entropica:leviathan_rift_belt",
+    "count": 1
+  }
+}

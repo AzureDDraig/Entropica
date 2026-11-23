@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "entropica:block/frozen_spruce_branch",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "entropica:block/frozen_spruce_branch",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "entropica:block/frozen_spruce_branch",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "entropica:block/frozen_spruce_branch",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "entropica:block/frozen_spruce_branch"
+    },
+    "facing=west": {
+      "model": "entropica:block/frozen_spruce_branch",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

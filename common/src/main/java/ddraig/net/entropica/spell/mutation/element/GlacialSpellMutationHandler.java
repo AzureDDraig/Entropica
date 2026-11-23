@@ -890,6 +890,7 @@ public final class GlacialSpellMutationHandler implements MateriaPartMutationHan
 
         // Build tier-scaled monolith blueprint & broadcast falling->standing 3D Pseudoblock columns
         // (pseudoblocks stand in place during ticks 40..110; actual world blocks materialize when the spell finishes!)
+        int effectiveCataclysmTicks = SpellWorldVfxManager.resolveEffectiveZoneDurationTicks(spell, fallbackMateria, totalCataclysmTicks);
         List<int[]> monumentPlan = buildTierScaledGlacialCataclysmColumns(tier, spireHeight);
         for (int[] col : monumentPlan) {
             BlockPos colBase = baseAir.offset(col[0], 0, col[1]);
@@ -899,7 +900,7 @@ public final class GlacialSpellMutationHandler implements MateriaPartMutationHan
             Vec3 skyOrigin = new Vec3(colBase.getX() + 0.5D, baseAir.getY() + Math.max(3.5D, clearance - colH * 0.45D), colBase.getZ() + 0.5D);
             SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                     level, skyOrigin, colBase, pseudoState, colH,
-                    40, totalCataclysmTicks - 40, EssenceType.GLACIAL, tier
+                    40, Math.max(2, effectiveCataclysmTicks - 40), EssenceType.GLACIAL, tier
             );
         }
 
@@ -1458,7 +1459,7 @@ public final class GlacialSpellMutationHandler implements MateriaPartMutationHan
             for (int y = 0; y < colH; y++) {
                 BlockPos p = colBase.above(y);
                 if (canPlaceMonumentIceAt(level, p)) {
-                    level.setBlockAndUpdate(p, (col[3] == 2 && y == colH - 1) ? Blocks.PACKED_ICE.defaultBlockState() : state);
+                    level.setBlockAndUpdate(p, state);
                 } else if (y > 1) {
                     break;
                 }

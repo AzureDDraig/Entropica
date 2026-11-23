@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "HHH",
+    "H H",
+    "H H"
+  ],
+  "key": {
+    "H": "entropica:cured_frost_veined_hide"
+  },
+  "result": {
+    "id": "entropica:cryo_insulated_leggings",
+    "count": 1
+  }
+}

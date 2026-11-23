@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "MM"
+  ],
+  "key": {
+    "M": "entropica:blue_frozen_moss"
+  },
+  "result": {
+    "id": "entropica:blue_frozen_moss_carpet",
+    "count": 3
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CGC",
+    "GBG",
+    "CPC"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "G": "minecraft:glass",
+    "B": "entropica:vapor_condensate_crystals",
+    "P": "entropica:porous_basalt_shell"
+  },
+  "result": {
+    "id": "entropica:vapor_condenser",
+    "count": 1
+  }
+}

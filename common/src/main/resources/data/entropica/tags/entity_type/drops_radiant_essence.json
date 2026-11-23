@@ -32,6 +32,14 @@
     {
       "id": "mowziesmobs:grottol",
       "required": false
+    },
+    {
+      "id": "entropica:mirage_fata_sprite",
+      "required": false
+    },
+    {
+      "id": "entropica:ash_cinder_wisp",
+      "required": false
     }
   ]
 }

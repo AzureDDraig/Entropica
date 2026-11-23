@@ -86,12 +86,14 @@ public final class OblivionSpellMutationHandler implements MateriaPartMutationHa
 
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Entropic Ash-Chain Flow";
+        return flow == SpellFlowModifier.CHAIN_LEAP ? "Entropic Ash-Chain Flow" : null;
     }
 
     @Override
     public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "Modifies projectile and strike spells so tendrils of black soulfire (#B83C08 / #211A21 / #4D6453) leap to up to 4 nearby hostiles within 6m; each chained target takes 60% initial damage, loses 25% armor toughness, and burns in stygian fire for 5.0s.";
+        return flow == SpellFlowModifier.CHAIN_LEAP
+                ? "Modifies projectile and strike spells so tendrils of black soulfire (#B83C08 / #211A21 / #4D6453) leap to up to 4 nearby hostiles within 6m; each chained target takes 60% initial damage, loses 25% armor toughness, and burns in stygian fire for 5.0s."
+                : null;
     }
 
     @Override
@@ -339,10 +341,23 @@ public final class OblivionSpellMutationHandler implements MateriaPartMutationHa
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Section 6.48 Stygian Oblivion Disintegration Ray & Void-Flare:
-        // Melts 1 armor point per second and vaporizes incoming arrows in mid-air;
-        // REQUIRES 5.0s (100 contact ticks) continuous channeling to trigger Cataclysmic Extinction Burst
-        // (8m knockback, melts 5 armor points, and inflicts Wither III & Blindness for 6.0s / 120t)!
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         int tier = spell.getEffectiveTier();
         boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
         Vec3 eye = caster.getEyePosition();
@@ -367,16 +382,20 @@ public final class OblivionSpellMutationHandler implements MateriaPartMutationHa
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_OBLIVION_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) {
+                continue;
+            }
             long delta = now - last;
-            int stepTicks = (delta > 0L && delta <= 8L) ? (int) Math.max(4L, delta) : 20;
-            int contactTicks = (delta <= 45L) ? data.getInt(TAG_OBLIVION_BEAM_TICKS).orElse(0) + stepTicks : stepTicks;
-            int armorStacks = (delta <= 45L) ? Math.min(6, Math.max(1, contactTicks / 20)) : 1;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt(TAG_OBLIVION_BEAM_TICKS).orElse(0) + (int) delta : 4);
+            int armorStacks = Math.min(6, Math.max(1, contactTicks / 20));
             data.putLong(TAG_OBLIVION_BEAM_LAST_TICK, now);
             data.putInt(TAG_OBLIVION_BEAM_TICKS, contactTicks);
             data.putInt(TAG_OBLIVION_BEAM_ARMOR_STACKS, armorStacks);
             SpellCombatReactionEngine.applyTimedAttributeShred(hit, level, armorStacks, 0.0D, 80L);
 
-            if (contactTicks >= 100) {
+            if (heldTicks > 0 && contactTicks >= 100) {
                 data.putInt(TAG_OBLIVION_BEAM_TICKS, 0);
                 SpellWorldVfxManager.broadcastRadialNova(level, hit.position(), 4.8D, EssenceType.OBLIVION, EssenceType.NETHER, tier);
                 float burstDmg = (11.20F + tier * 2.55F) * Math.max(0.5F, apparatusPotency);
@@ -789,16 +808,21 @@ public final class OblivionSpellMutationHandler implements MateriaPartMutationHa
         }
 
         final boolean[] landed = new boolean[boulderCount];
-        Map<BlockPos, BlockState> savedCraterBlocks = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 520, level.getGameTime(), spell, slot, EssenceType.OBLIVION, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedCraterBlocks.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.CRYING_OBSIDIAN) || cur.is(Blocks.BLACKSTONE) || cur.is(Blocks.MAGMA_BLOCK)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
+                                boolean cryingCore = (mIdx % 2 == 0);
+                                BlockState pseudoState = cryingCore
+                                        ? Blocks.CRYING_OBSIDIAN.defaultBlockState()
+                                        : Blocks.BLACKSTONE.defaultBlockState();
+                                int colHeight = cryingCore ? 2 : 1;
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, boulderTargets[mIdx], pseudoState, colHeight);
                             }
                         }
                         return false;
@@ -819,7 +843,7 @@ public final class OblivionSpellMutationHandler implements MateriaPartMutationHa
                             int colHeight = cryingCore ? 2 : 1;
 
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 360 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -844,9 +868,6 @@ public final class OblivionSpellMutationHandler implements MateriaPartMutationHa
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 0.85F, 0.72F);
                             }
-                            if (landed[mIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, colHeight, false);
-                            }
                         }
 
                         // 2. Black hellfire bolts & necrotic bone-slag impacts!
@@ -860,20 +881,10 @@ public final class OblivionSpellMutationHandler implements MateriaPartMutationHa
                             );
                             srv.sendParticles(ParticleTypes.ASH, strike.x, strike.y + 0.8D, strike.z, 10, 0.7D, 0.6D, 0.7D, 0.04D);
                         }
-                    } else if (elapsed == 360) {
-                        // Bombardment complete: materialize real temporary molten obsidian & blackstone crater for 8.0s (160t)!
-                        for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
-                            BlockPos strikePos = boulderTargets[mIdx];
-                            BlockPos ground = strikePos.below();
-                            BlockState gs = srv.getBlockState(ground);
-                            if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE) || gs.is(Blocks.COBBLESTONE))
-                                    && !savedCraterBlocks.containsKey(ground)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, ground, gs)) {
-                                savedCraterBlocks.put(ground.immutable(), gs);
-                                srv.setBlockAndUpdate(ground, (mIdx % 2 == 0)
-                                        ? Blocks.CRYING_OBSIDIAN.defaultBlockState()
-                                        : Blocks.MAGMA_BLOCK.defaultBlockState());
-                            }
+                    }
+                    for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
+                        if (landed[mIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, boulderTargets[mIdx], (mIdx % 2 == 0) ? 2 : 1, false);
                         }
                     }
 

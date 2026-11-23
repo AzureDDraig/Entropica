@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " P ",
+    "BMB",
+    "BBB"
+  ],
+  "key": {
+    "P": "entropica:barrow_skull_plate",
+    "M": "entropica:bleached_bone_meal",
+    "B": "entropica:barrow_stone_bricks"
+  },
+  "result": {
+    "id": "entropica:barrow_sentinel_totem",
+    "count": 1
+  }
+}

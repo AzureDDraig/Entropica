@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "entropica:blue_glacier_shelf"
+    "entropica:blue_glacier_shelf",
+    "entropica:crystalline_pack_ice"
   ]
 }

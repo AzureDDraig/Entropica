@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "blue_frozen_moss",
+  "ingredients": [
+    "minecraft:moss_block",
+    "minecraft:blue_ice",
+    "minecraft:snowball"
+  ],
+  "result": {
+    "id": "entropica:blue_frozen_moss",
+    "count": 2
+  }
+}

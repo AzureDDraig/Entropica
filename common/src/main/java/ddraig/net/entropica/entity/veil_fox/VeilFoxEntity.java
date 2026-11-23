@@ -121,7 +121,7 @@ public class VeilFoxEntity extends TamableAnimal {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 14.0D)
+                .add(Attributes.MAX_HEALTH, 28.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.ATTACK_DAMAGE, 2.0D);
     }
@@ -571,7 +571,7 @@ public class VeilFoxEntity extends TamableAnimal {
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
         super.dropCustomDeathLoot(level, damageSource, recentlyHit);
         this.spawnAtLocation(level, new ItemStack(ModItems.VEIL_SHARD.get(), 1));
-        ItemStack essenceDrop = new ItemStack(ModItems.AVERAGE_ESSENCE.get(), 1 + this.random.nextInt(2));
+        ItemStack essenceDrop = new ItemStack(ModItems.AVERAGE_ESSENCE.get(), 2 + this.random.nextInt(2));
         EssenceItem.setEssenceType(essenceDrop, this.getEssenceType());
         this.spawnAtLocation(level, essenceDrop);
 

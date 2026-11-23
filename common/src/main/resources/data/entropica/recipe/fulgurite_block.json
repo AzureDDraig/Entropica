@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "GS",
+    "SG"
+  ],
+  "key": {
+    "G": "minecraft:gravel",
+    "S": "entropica:static_frost_powder"
+  },
+  "result": {
+    "id": "entropica:fulgurite_block",
+    "count": 4
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "IR",
+    "RI"
+  ],
+  "key": {
+    "I": "minecraft:ice",
+    "R": "entropica:rot_powder"
+  },
+  "result": {
+    "id": "entropica:rotten_ice",
+    "count": 2
+  }
+}

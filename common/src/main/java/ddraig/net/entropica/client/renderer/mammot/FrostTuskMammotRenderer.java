@@ -17,7 +17,7 @@ public class FrostTuskMammotRenderer extends MobRenderer<FrostTuskMammotEntity, 
     );
 
     public FrostTuskMammotRenderer(EntityRendererProvider.Context context) {
-        super(context, new FrostTuskMammotModel(context.bakeLayer(FrostTuskMammotModel.LAYER_LOCATION)), 1.05F);
+        super(context, new FrostTuskMammotModel(context.bakeLayer(FrostTuskMammotModel.LAYER_LOCATION)), 1.15F);
     }
 
     @Override
@@ -29,10 +29,22 @@ public class FrostTuskMammotRenderer extends MobRenderer<FrostTuskMammotEntity, 
     public void extractRenderState(FrostTuskMammotEntity entity, FrostTuskMammotRenderState state, float partialTick) {
         super.extractRenderState(entity, state, partialTick);
         state.isSheared = entity.isSheared();
+        state.isCharging = entity.isCharging();
         state.isAttacking = entity.isAttacking();
+        state.restPhase = entity.getRestPhase();
         state.idleAnimationState.copyFrom(entity.idleAnimationState);
         state.walkAnimationState.copyFrom(entity.walkAnimationState);
+        state.chargeAnimationState.copyFrom(entity.chargeAnimationState);
+        state.laydownAnimationState.copyFrom(entity.laydownAnimationState);
+        state.layAnimationState.copyFrom(entity.layAnimationState);
+        state.standUpAnimationState.copyFrom(entity.standUpAnimationState);
         state.attackAnimationState.copyFrom(entity.attackAnimationState);
+        state.deathAnimationState.copyFrom(entity.deathAnimationState);
+    }
+
+    @Override
+    protected float getFlipDegrees() {
+        return 0.0F;
     }
 
     @Override
@@ -45,6 +57,6 @@ public class FrostTuskMammotRenderer extends MobRenderer<FrostTuskMammotEntity, 
         if (!bodyVisible && !translucent) {
             return glowing ? RenderType.outline(getTextureLocation(state)) : null;
         }
-        return RenderType.entityTranslucent(getTextureLocation(state));
+        return RenderType.entityCutoutNoCull(getTextureLocation(state));
     }
 }

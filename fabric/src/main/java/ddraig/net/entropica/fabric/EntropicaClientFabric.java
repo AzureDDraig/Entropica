@@ -151,11 +151,50 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntityTypes.STORM_KITE.get(), ddraig.net.entropica.client.renderer.storm_kite.StormKiteRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.GLACIAL_FROST_CORE.get(), ddraig.net.entropica.client.renderer.frost_core.GlacialFrostCoreRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.FROST_TUSK_MAMMOT.get(), ddraig.net.entropica.client.renderer.mammot.FrostTuskMammotRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.AURORA_JELLY.get(), ddraig.net.entropica.client.renderer.aurora_jelly.AuroraJellyRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.VAPOR_BELLOWS_CRAB.get(), ddraig.net.entropica.client.renderer.vapor_bellows_crab.VaporBellowsCrabRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.CRYO_STATIC_HEDGEHOG.get(), ddraig.net.entropica.client.renderer.cryo_static_hedgehog.CryoStaticHedgehogRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.BARROW_HOUND.get(), ddraig.net.entropica.client.renderer.BarrowHoundRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.BARROW_CRYPT_GLOW_OWL.get(), ddraig.net.entropica.client.renderer.BarrowCryptGlowOwlRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.VOID_RIFT_SHADE.get(), ddraig.net.entropica.client.renderer.VoidRiftShadeRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.CRYSTALLINE_QILIN.get(), ddraig.net.entropica.client.renderer.CrystallineQilinRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SANDSTONE_GOLEM.get(), ddraig.net.entropica.client.renderer.SandstoneGolemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.PEAT_MUD_KELPIE.get(), ddraig.net.entropica.client.renderer.PeatMudKelpieRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SILT_SPHINX.get(), ddraig.net.entropica.client.renderer.SiltSphinxRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.ZEPHYR_SIMURGH.get(), ddraig.net.entropica.client.renderer.ZephyrSimurghRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.MIRAGE_FATA_SPRITE.get(), ddraig.net.entropica.client.renderer.MirageFataSpriteRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.MIRAGE_FATA_AFTERIMAGE.get(), ddraig.net.entropica.client.renderer.MirageFataSpriteRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.MAGMA_CHERUFE.get(), ddraig.net.entropica.client.renderer.MagmaCherufeRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SOULFIRE_PHENEX.get(), ddraig.net.entropica.client.renderer.SoulfirePhenexRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.VOID_ARACHNE.get(), ddraig.net.entropica.client.renderer.VoidArachneRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.ASH_BARROW_GNOME.get(), ddraig.net.entropica.client.renderer.AshBarrowGnomeRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.ORTHRUS_MAGMA_BEAST.get(), ddraig.net.entropica.client.renderer.OrthrusMagmaBeastRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.ASH_CINDER_WISP.get(), ddraig.net.entropica.client.renderer.AshCinderWispRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SOUL_SAND_HYDRA.get(), ddraig.net.entropica.client.renderer.SoulSandHydraRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.VOID_SHADOW_GARGOYLE.get(), ddraig.net.entropica.client.renderer.VoidShadowGargoyleRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.BARROW_WIGHT_GOLEM.get(), ddraig.net.entropica.client.renderer.BarrowWightGolemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.OBSIDIAN_SCORPIOID.get(), ddraig.net.entropica.client.renderer.ObsidianScorpioidRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.BRIMSTONE_WYVERN.get(), ddraig.net.entropica.client.renderer.BrimstoneWyvernRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.OBSIDIAN_GOLEM.get(), ddraig.net.entropica.client.renderer.ObsidianGolemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SOULFIRE_DJINN.get(), ddraig.net.entropica.client.renderer.SoulfireDjinnRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.BRIMSTONE_CHIMERA.get(), ddraig.net.entropica.client.renderer.BrimstoneChimeraRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.OBSIDIAN_WENDIGO.get(), ddraig.net.entropica.client.renderer.ObsidianWendigoRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.RADIANT_FIRE_LANCE.get(), ThrownItemRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.SPELL_PROJECTILE.get(), ddraig.net.entropica.client.renderer.SpellProjectileRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.UMBRAL_VORTEX.get(), ThrownItemRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.SPORE_PROJECTILE.get(), ThrownItemRenderer::new);
         EntityRendererRegistry.register(ModEntityTypes.MAGMA_THORN.get(), ThrownItemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.CRYO_GRENADE.get(), ThrownItemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.RADIANT_SNOWBALL.get(), ThrownItemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.MYCELIAL_SPORE_WEAVER.get(), ddraig.net.entropica.client.renderer.mycelial_spore_weaver.MycelialSporeWeaverRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.GLAZED_SPORE_BOMB.get(), ThrownItemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SILICA_GLASS_SCARAB.get(), ddraig.net.entropica.client.renderer.silica_glass_scarab.SilicaGlassScarabRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.MIRAGE_DECOY_PRISM.get(), ThrownItemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.MUD_LURKER_SALAMANDER.get(), ddraig.net.entropica.client.renderer.mud_lurker_salamander.MudLurkerSalamanderRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.DUST_CORE_GOLEM.get(), ddraig.net.entropica.client.renderer.dust_core_golem.DustCoreGolemRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SANGUINE_SEA_ANGEL.get(), ddraig.net.entropica.client.renderer.sanguine_sea_angel.SanguineSeaAngelRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.BLOOD_FROST_DART.get(), ddraig.net.entropica.client.renderer.projectile.BloodFrostDartRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.STARLIGHT_NAUTILUS.get(), ddraig.net.entropica.client.renderer.starlight_nautilus.StarlightNautilusRenderer::new);
 
         dev.architectury.registry.client.particle.ParticleProviderRegistry.register(
             ModParticles.SPECTRUM_SPARKLE.get(),
@@ -210,6 +249,42 @@ public class EntropicaClientFabric implements ClientModInitializer {
         EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.storm_kite.StormKiteModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.frost_core.GlacialFrostCoreModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.frost_core.GlacialFrostCoreModel::createBodyLayer);
         EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.mammot.FrostTuskMammotModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.mammot.FrostTuskMammotModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.aurora_jelly.AuroraJellyModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.aurora_jelly.AuroraJellyModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.vapor_bellows_crab.VaporBellowsCrabModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.vapor_bellows_crab.VaporBellowsCrabModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.cryo_static_hedgehog.CryoStaticHedgehogModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.cryo_static_hedgehog.CryoStaticHedgehogModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.BarrowHoundModel.MODEL_LOCATION, ddraig.net.entropica.client.model.BarrowHoundModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.BarrowCryptGlowOwlModel.MODEL_LOCATION, ddraig.net.entropica.client.model.BarrowCryptGlowOwlModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.VoidRiftShadeModel.MODEL_LOCATION, ddraig.net.entropica.client.model.VoidRiftShadeModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.CrystallineQilinModel.MODEL_LOCATION, ddraig.net.entropica.client.model.CrystallineQilinModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.SandstoneGolemModel.MODEL_LOCATION, ddraig.net.entropica.client.model.SandstoneGolemModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.PeatMudKelpieModel.MODEL_LOCATION, ddraig.net.entropica.client.model.PeatMudKelpieModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.SiltSphinxModel.MODEL_LOCATION, ddraig.net.entropica.client.model.SiltSphinxModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.ZephyrSimurghModel.MODEL_LOCATION, ddraig.net.entropica.client.model.ZephyrSimurghModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.MirageFataSpriteModel.MODEL_LOCATION, ddraig.net.entropica.client.model.MirageFataSpriteModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.MagmaCherufeModel.MODEL_LOCATION, ddraig.net.entropica.client.model.MagmaCherufeModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.SoulfirePhenexModel.MODEL_LOCATION, ddraig.net.entropica.client.model.SoulfirePhenexModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.VoidArachneModel.MODEL_LOCATION, ddraig.net.entropica.client.model.VoidArachneModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.AshBarrowGnomeModel.MODEL_LOCATION, ddraig.net.entropica.client.model.AshBarrowGnomeModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.OrthrusMagmaBeastModel.MODEL_LOCATION, ddraig.net.entropica.client.model.OrthrusMagmaBeastModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.AshCinderWispModel.MODEL_LOCATION, ddraig.net.entropica.client.model.AshCinderWispModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.SoulSandHydraModel.MODEL_LOCATION, ddraig.net.entropica.client.model.SoulSandHydraModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.VoidShadowGargoyleModel.MODEL_LOCATION, ddraig.net.entropica.client.model.VoidShadowGargoyleModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.BarrowWightGolemModel.MODEL_LOCATION, ddraig.net.entropica.client.model.BarrowWightGolemModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.ObsidianScorpioidModel.MODEL_LOCATION, ddraig.net.entropica.client.model.ObsidianScorpioidModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.BrimstoneWyvernModel.MODEL_LOCATION, ddraig.net.entropica.client.model.BrimstoneWyvernModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.ObsidianGolemModel.MODEL_LOCATION, ddraig.net.entropica.client.model.ObsidianGolemModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.SoulfireDjinnModel.MODEL_LOCATION, ddraig.net.entropica.client.model.SoulfireDjinnModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.BrimstoneChimeraModel.MODEL_LOCATION, ddraig.net.entropica.client.model.BrimstoneChimeraModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.model.ObsidianWendigoModel.MODEL_LOCATION, ddraig.net.entropica.client.model.ObsidianWendigoModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.mycelial_spore_weaver.MycelialSporeWeaverModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.mycelial_spore_weaver.MycelialSporeWeaverModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.silica_glass_scarab.SilicaGlassScarabModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.silica_glass_scarab.SilicaGlassScarabModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.mud_lurker_salamander.MudLurkerSalamanderModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.mud_lurker_salamander.MudLurkerSalamanderModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.dust_core_golem.DustCoreGolemModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.dust_core_golem.DustCoreGolemModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.sanguine_sea_angel.SanguineSeaAngelModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.sanguine_sea_angel.SanguineSeaAngelModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.starlight_nautilus.StarlightNautilusModel.LAYER_LOCATION, ddraig.net.entropica.client.renderer.starlight_nautilus.StarlightNautilusModel::createBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.starlight_nautilus.StarlightNautilusModel.BABY_LAYER_LOCATION, ddraig.net.entropica.client.renderer.starlight_nautilus.StarlightNautilusModel::createBabyBodyLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.starlight_nautilus.StarlightNautilusModel.SADDLE_LAYER_LOCATION, ddraig.net.entropica.client.renderer.starlight_nautilus.StarlightNautilusModel::createSaddleLayer);
+        EntityModelLayerRegistry.registerModelLayer(ddraig.net.entropica.client.renderer.starlight_nautilus.StarlightNautilusModel.ARMOR_LAYER_LOCATION, ddraig.net.entropica.client.renderer.starlight_nautilus.StarlightNautilusModel::createArmorLayer);
 
         // --- 4. Menu Screens ---
         MenuScreens.register(ModMenuTypes.SYNTHESIZER_USER_INTERFACE_MENU.get(), SynthesizerUserInterfaceScreen::new);
@@ -302,7 +377,16 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ModBlocks.ATTUNED_DISPLAY_VITRINE.get(),
             ModBlocks.ILLUMINATED_BALUSTRADE.get(),
             ModBlocks.RUNIC_BLUE_ICE.get(),
-            ModBlocks.GLACIAL_BARRICADE.get()
+            ModBlocks.GLACIAL_BARRICADE.get(),
+            ModBlocks.GLIMMER_ICE.get(),
+            ModBlocks.AURORAL_LENS_BLOCK.get(),
+            ModBlocks.GLOW_GEL_PATHING.get(),
+            ModBlocks.ROTTEN_ICE.get(),
+            ModBlocks.NECROTIC_SLIME_BLOCK.get(),
+            ModBlocks.STEAMING_ICE.get(),
+            ModBlocks.FULGURITE_ICE.get(),
+            ModBlocks.RADIANT_GLAZE_ICE.get(),
+            ModBlocks.ZEPHYR_ICE.get()
         );
 
         BlockRenderLayerMap.INSTANCE.putBlocks(
@@ -418,10 +502,134 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ModBlocks.LARGE_MORTISITE_BUD.get(),
             ModBlocks.MORTISITE_CLUSTER.get(),
             ModBlocks.TIDAL_PULSE_RESONATOR.get(),
+            ModBlocks.AEGIS_CRYSTAL_BUD.get(),
             ModBlocks.AEGIS_CRYSTAL_CLUSTER.get(),
             ModBlocks.GLACIAL_HEART_ROOT.get(),
             ModBlocks.SHIELDING_BRAMBLE.get(),
-            ModBlocks.THORNED_WIRE.get()
+            ModBlocks.THORNED_WIRE.get(),
+            ModBlocks.AURORAL_FEATHER_MOSS.get(),
+            ModBlocks.MIST_VEIL_FERN.get(),
+            ModBlocks.POTTED_MIST_VEIL_FERN.get(),
+            ModBlocks.AURORAL_LANTERN.get(),
+            ModBlocks.AURORAL_MOTE_LIGHT.get(),
+            ModBlocks.NECROTIC_SLIME_PATCH.get(),
+            ModBlocks.FROZEN_SPRUCE_BRANCH.get(),
+            ModBlocks.AEGIS_QUARTZ_CLUSTER.get(),
+            ModBlocks.BISMUTH_KEY_PEDESTAL.get(),
+            ModBlocks.BLUE_FROZEN_MOSS_CARPET.get(),
+            ModBlocks.SHADOWED_ECLIPSE_MOSS.get(),
+            ModBlocks.VAPOR_WEAVER_LICHEN.get(),
+            ModBlocks.VAPOR_CONDENSER.get(),
+            ModBlocks.VAPOR_LIFT_MAT.get(),
+            ModBlocks.FULGURITE_PINE_LEAVES.get(),
+            ModBlocks.STATIC_CONDUCTIVE_MAT.get(),
+            ModBlocks.BIOMASS_CAPACITOR.get(),
+            ModBlocks.GRAVE_MOSS.get(),
+            ModBlocks.CRYPT_GRAVE_ROOT.get(),
+            ModBlocks.RIME_CAP_MUSHROOM.get(),
+            ModBlocks.POTTED_RIME_CAP_MUSHROOM.get(),
+            ModBlocks.RUNED_BRAZIER.get(),
+            ModBlocks.CRYPT_SIPHON_LANTERN.get(),
+            ModBlocks.BARROW_SENTINEL_TOTEM.get(),
+            ModBlocks.VOID_CRYSTAL_BUD.get(),
+            ModBlocks.VOID_CRYSTAL_CLUSTER.get(),
+            ModBlocks.NULL_FRINGE_TUSSOCK.get(),
+            ModBlocks.POTTED_NULL_FRINGE_TUSSOCK.get(),
+            ModBlocks.SPATIAL_PHASE_ANCHOR.get(),
+            ModBlocks.GLAZED_AMBER_LEAVES.get(),
+            ModBlocks.GOLDEN_LICHEN.get(),
+            ModBlocks.QILIN_LIGHT_REFRACTOR.get(),
+            ModBlocks.SUN_GLAZED_LANTERN.get(),
+            ModBlocks.ZEPHYR_GLASS_GRASS.get(),
+            ModBlocks.POTTED_ZEPHYR_GLASS_GRASS.get(),
+            ModBlocks.ZEPHYR_UPDRAFT_GRATE.get(),
+            ModBlocks.SIMURGH_WIND_TURBINE.get()
+        );
+
+        net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                .getOptional(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "spore_glazed_ice"))
+                .ifPresent(b -> BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.translucentMovingBlock(), b));
+        for (String cutoutId : new String[]{
+                "frozen_spore_leaves",
+                "frozen_spore_moss_carpet",
+                "spore_bellows",
+                "cryo_spore_censer",
+                "frozen_spore_sapling",
+                "potted_frozen_spore_sapling"
+        }) {
+            net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                    .getOptional(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, cutoutId))
+                    .ifPresent(b -> BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), b));
+        }
+
+        // Biome 13 (2.13 Mirage Glacier) Translucent & Cutout Render Layers
+        net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                .getOptional(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "mirage_ice"))
+                .ifPresent(b -> BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.translucentMovingBlock(), b));
+        for (String cutoutId : new String[]{
+                "mirage_prism_lantern",
+                "mirage_glass_grass",
+                "potted_mirage_glass_grass",
+                "solar_mirage_flora"
+        }) {
+            net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                    .getOptional(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, cutoutId))
+                    .ifPresent(b -> BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), b));
+        }
+
+        // Biome 14 (2.14 Oasis Floes) Translucent & Cutout Render Layers
+        for (String translucentId : new String[]{
+                "amber_resin_block",
+                "oasis_dew_basin"
+        }) {
+            net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                    .getOptional(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, translucentId))
+                    .ifPresent(b -> BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.translucentMovingBlock(), b));
+        }
+        for (String cutoutId : new String[]{
+                "frost_willow_leaves",
+                "frost_willow_vines",
+                "amber_torch",
+                "wall_amber_torch"
+        }) {
+            net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                    .getOptional(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, cutoutId))
+                    .ifPresent(b -> BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), b));
+        }
+
+        // Biome 15 (2.15 Dust-Crusted Bergs) Cutout Render Layers
+        for (String cutoutId : new String[]{
+                "wind_blown_dust_scrub",
+                "tough_fiber_rope",
+                "wind_baffle_lantern"
+        }) {
+            net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                    .getOptional(ResourceLocation.fromNamespaceAndPath(Entropica.MODID, cutoutId))
+                    .ifPresent(b -> BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), b));
+        }
+
+        // Biome 16 (2.16 Crimson Tide-Skerries) Translucent & Cutout Render Layers
+        BlockRenderLayerMap.INSTANCE.putBlocks(
+                RenderType.translucentMovingBlock(),
+                ModBlocks.SANGUINE_ICE.get()
+        );
+        BlockRenderLayerMap.INSTANCE.putBlocks(
+                RenderType.cutout(),
+                ModBlocks.RED_ALGAE.get(),
+                ModBlocks.CRIMSON_TIDE_LANTERN.get()
+        );
+
+        // Biome 17 (2.17 Astral Skerries) Translucent & Cutout Render Layers
+        BlockRenderLayerMap.INSTANCE.putBlocks(
+                RenderType.translucentMovingBlock(),
+                ModBlocks.STARLIGHT_ICE.get()
+        );
+        BlockRenderLayerMap.INSTANCE.putBlocks(
+                RenderType.cutout(),
+                ModBlocks.STARDUST_CRYSTAL_CLUSTER.get(),
+                ModBlocks.RIME_STAR_TUSSOCK.get(),
+                ModBlocks.POTTED_RIME_STAR_TUSSOCK.get(),
+                ModBlocks.CELESTIAL_ORRERY_LANTERN.get()
         );
 
 
@@ -472,6 +680,7 @@ public class EntropicaClientFabric implements ClientModInitializer {
             ddraig.net.entropica.client.gui.BarrierTelemetryHudOverlay.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.renderer.GravityScreenShimmerRenderer.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
             ddraig.net.entropica.client.renderer.GravitationalLensingScreenOverlay.render(guiGraphics, tickCounter.getGameTimeDeltaTicks());
+            ddraig.net.entropica.client.renderer.DoubleVisionClientRenderer.renderHudDoubleVision(guiGraphics, tickCounter.getGameTimeDeltaTicks());
         });
 
         // Register Celestial Sky Renderer
@@ -510,9 +719,26 @@ public class EntropicaClientFabric implements ClientModInitializer {
                 context.camera(),
                 context.tickCounter().getGameTimeDeltaTicks()
             );
+            ddraig.net.entropica.client.worldgen.BiomeWaterSurfaceRenderer.renderWaterOptics(
+                context.matrixStack(),
+                context.projectionMatrix(),
+                context.camera(),
+                context.tickCounter().getGameTimeDeltaTicks()
+            );
+            ddraig.net.entropica.client.worldgen.BiomeVolumetricFogRenderer.renderVolumetricFog(
+                context.matrixStack(),
+                context.projectionMatrix(),
+                context.camera(),
+                context.tickCounter().getGameTimeDeltaTicks()
+            );
             ddraig.net.entropica.client.renderer.forcefield.FirmamentHologramPreviewRenderer.renderPreview(
                 context.matrixStack(),
                 context.projectionMatrix(),
+                context.camera(),
+                context.tickCounter().getGameTimeDeltaTicks()
+            );
+            ddraig.net.entropica.client.renderer.DoubleVisionClientRenderer.renderWorldDoubleVision(
+                context.matrixStack(),
                 context.camera(),
                 context.tickCounter().getGameTimeDeltaTicks()
             );

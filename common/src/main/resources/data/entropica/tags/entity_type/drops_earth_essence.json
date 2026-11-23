@@ -124,6 +124,38 @@
     {
       "id": "biomeswevegone:snapping_turtle",
       "required": false
+    },
+    {
+      "id": "entropica:sandstone_golem",
+      "required": false
+    },
+    {
+      "id": "entropica:silt_sphinx",
+      "required": false
+    },
+    {
+      "id": "entropica:magma_cherufe",
+      "required": false
+    },
+    {
+      "id": "entropica:ash_barrow_gnome",
+      "required": false
+    },
+    {
+      "id": "entropica:orthrus_magma_beast",
+      "required": false
+    },
+    {
+      "id": "entropica:barrow_wight_golem",
+      "required": false
+    },
+    {
+      "id": "entropica:obsidian_scorpioid",
+      "required": false
+    },
+    {
+      "id": "entropica:obsidian_golem",
+      "required": false
     }
   ]
 }

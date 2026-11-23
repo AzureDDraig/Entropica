@@ -5,34 +5,37 @@ import ddraig.net.entropica.client.particle.TimedTintableParticleOption;
 import ddraig.net.entropica.entity.SpellEidolonEntity;
 import ddraig.net.entropica.entity.projectile.SpellProjectileEntity;
 import ddraig.net.entropica.network.SpellVfxEventPayload;
+import ddraig.net.entropica.registry.ModDataComponents;
 import ddraig.net.entropica.registry.ModEffects;
 import ddraig.net.entropica.registry.ModParticles;
 import ddraig.net.entropica.spell.SpellCoreEffect;
 import ddraig.net.entropica.spell.SpellDeliveryForm;
 import ddraig.net.entropica.spell.SpellFlowModifier;
+import ddraig.net.entropica.spell.apparatus.CastingApparatusState;
 import ddraig.net.entropica.spell.assembly.SpellAssembly;
 import ddraig.net.entropica.spell.assembly.SubSpellSlot;
 import ddraig.net.entropica.spell.engine.SpellCombatReactionEngine;
 import ddraig.net.entropica.spell.engine.SpellExecutionEngine;
 import ddraig.net.entropica.spell.engine.SpellLingeringZoneManager;
-import ddraig.net.entropica.spell.fuel.MateriaStageTable;
 import ddraig.net.entropica.spell.mutation.handler.MateriaPartMutationHandler;
 import ddraig.net.entropica.spell.vfx.SpellWorldVfxManager;
 import ddraig.net.entropica.util.EntityHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -50,9 +53,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.FrostedIceBlock;
 import net.minecraft.world.level.block.SnowLayerBlock;
-import net.minecraft.world.level.block.StainedGlassBlock;
-import net.minecraft.world.level.block.StainedGlassPaneBlock;
-import net.minecraft.world.level.block.TransparentBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -61,51 +62,63 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Complete per-part Signature Mutation implementation for <b>Frozen Materia (Base Type #5)</b>
  * (Spellcrafting System Guide Sections 1.2A, 2.2, 2.3, 3.8, 4.1–4.9, 5.1–5.8 &amp; 6.6):
  * <ul>
- *     <li><b>Canonical Advantage</b>: Strong against <b>WATER (+1)</b> | Weak against <b>NETHER (-1)</b> and <b>UNDEAD (-1)</b>.</li>
+ *     <li><b>Canonical Advantage</b>: Strong against <b>WATER (+1)</b> | Weak against <b>NETHER (-1)</b> and <b>UNDEAD (-1)</b>
+ *     (all movement slows apply exact non-compounded speed reductions via {@code applyTimedMovementSpeedSap} alone).</li>
  *     <li><b>Projectile</b>: <i>Glacial Ice-Shard</i> — aerodynamic zero-drop 3D crystalline frost needle that shatters on impact,
- *     dealing Frozen Materia damage (+1 vs Water, -1 vs Nether/Undead), inflicting exact 60% Slowness for 3.0s, and freezing water into packed ice on hit.</li>
- *     <li><b>Beam</b>: <i>Absolute-Zero Cryo-Ray</i> — continuous beam of sub-zero frost stacking progressive slowness up to
- *     complete 3D Solid Ice Block freeze-stasis at 3.0 seconds while freezing water surfaces under the beam into thick walkable ice bridges.</li>
- *     <li><b>Radial Burst</b>: <i>Frost Nova Burst</i> — detonates in a 6-block ring of jagged 3D ice spikes, dealing Frozen Materia damage,
- *     knocking enemies backward across frozen ground, encasing grounded foes in solid 3D ice blocks for 2.0s, and freezing all surface liquids.</li>
- *     <li><b>Touch / Strike</b>: <i>Flash-Freeze Stasis</i> — converts weapon strike to pure Frozen Materia damage and encases the primary target
- *     inside a temporary solid 3D block of ice for 1.5s (0.75s on 50% sweeping cleave splash targets), completely halting movement and attacks.</li>
+ *     dealing Frozen Materia damage (+1 vs Water, -1 vs Nether/Undead), inflicting exact 60% slowness for 3.0s, and freezing water into packed ice and lava into obsidian.</li>
+ *     <li><b>Beam</b>: <i>Absolute-Zero Cryo-Ray</i> — continuous beam of sub-zero frost stacking progressive non-compounded slowness (up to 60%) into
+ *     complete freeze-stasis at 3.0s dry (1.0s–1.5s wet; 1.0s boss cap) while freezing water and lava under the beam into walkable ice and obsidian bridges.</li>
+ *     <li><b>Radial Burst</b>: <i>Frost Nova Burst</i> — detonates in a circular 6.0-block ring of jagged 3D ice spikes, dealing Frozen Materia damage,
+ *     encasing grounded foes inside real temporary {@code Ice} blocks for exact 2.0s (40t; 1.0s boss cap) with clean non-water restoration,
+ *     inflicting exact 60% slow on airborne foes, and freezing surface water and lava.</li>
+ *     <li><b>Touch / Strike</b>: <i>Flash-Freeze Stasis</i> — converts weapon strike to pure Frozen Materia damage and encases struck primary
+ *     and sweeping-cleave targets inside real temporary {@code Ice} blocks for exact 1.5s (30t; 1.0s boss cap) before reverting cleanly.</li>
  *     <li><b>Aura / Self</b>: <i>Glacial Spikes Retaliation</i> — registers defense as Frozen; melee attackers are stabbed by reactive
- *     3D ice spikes, taking retaliatory Frozen damage and getting their attack speed cut by 30% (both players and hostile mobs).</li>
- *     <li><b>Glyph / Trap</b>: <i>Rime Pitfall</i> — turns ground beneath the trap into fragile hollow frosted ice that collapses
- *     when stepped on, dropping mobs into a 3-block-deep pit below (and restoring the floor cleanly if disarmed).</li>
- *     <li><b>Cone / Spray</b>: <i>Hoarfrost Flash-Freeze</i> — freezes all standing and flowing water and lava in a 10-block 60-degree cone into
- *     solid walkable ice and obsidian causeways while coating dry ground in transient rime frost.</li>
- *     <li><b>Rain / Skyfall</b>: <i>Colossal Glacial Monolith</i> — summons a single gigantic 3D spire of blue ice from an overhead sky/cave rift
- *     that plummets after 2.0 seconds, crushing the impact zone and leaving a permanent decorative blue-ice monument.</li>
+ *     3D ice spikes, taking retaliatory Frozen Materia damage and suffering an exact 30% attack speed reduction.</li>
+ *     <li><b>Glyph / Trap</b>: <i>Glacial Pitfall</i> — turns a 3x3 surface patch into fragile frosted ice that collapses when stepped on into a
+ *     temporary non-destructive 3x3x3 pit with Frozen Materia chill damage and exact 50% slow, cleanly restoring original terrain afterward.</li>
+ *     <li><b>Cone / Spray</b>: <i>Hoarfrost Flash-Freeze</i> — freezes source and flowing water and lava in a 10-block cone into walkable
+ *     packed/blue ice and obsidian causeways, blankets dry ground in permanent natural-melting snow layers, and inflicts frost damage + exact 50% slow.</li>
+ *     <li><b>Rain / Skyfall</b>: <i>Colossal Glacial Monolith</i> — summons a tier-scaled 3D pseudoblock glacial spire that plummets after 2.0s,
+ *     crushing and stasis-locking across the full tier-scaled circular Skyfall radius before materializing into a permanent layered ice monument.</li>
  *     <li><b>Summon / Eidolon</b>: <i>Glacial Eidolon Suite</i> — cyan/frost (#98DCF2) triad: 3-hit solid-freezing Agent,
- *     rapid icicle-dart frost crystal Sentry, and 4m Frost-Nova-shattering Ice Effigy Decoy.</li>
- *     <li><b>Flow (Slow)</b>: <i>Permafrost Creep</i> — creeping wave of heavy frost that permanently freezes water into Blue Ice
+ *     exact 60%-slow icicle-dart Sentry, and Decoy-only spherical 4m destruction shatter Ice Effigy.</li>
+ *     <li><b>Flow (Slow)</b>: <i>Permafrost Creep</i> — exclusive to Deliberate Slow ({@code SLOW_HEAVY}): permanently freezes water into Blue Ice
  *     and adds +0.4 Materia Advantage score against Water targets.</li>
- *     <li><b>Blink / Step</b>: <i>Frostwalker Stasis</i> — teleports caster safely, leaving a 3D crystalline player ice statue decoy at departure.</li>
- *     <li><b>Transmute &amp; Break</b>: <i>Silk Touch &amp; Permafrost</i> — guaranteed Silk Touch block harvesting, automatic sealing of adjacent
- *     water/lava leaks into ice/obsidian, lava to obsidian, and snow compaction into packed ice.</li>
- *     <li><b>Affliction</b>: <i>Permafrost Stasis Hex</i> — deep cryogenic curse slowing movement by 60%, locking sprinting every tick,
- *     and increasing blunt/physical shatter damage taken by +50% until cleansed by fire reactions or Restoration magic (milk-immune).</li>
+ *     <li><b>Blink / Step</b>: <i>Frostwalker Stasis</i> — teleports caster safely while freezing a 3x3 water platform underfoot into Packed/Blue Ice
+ *     and leaving a 3D Frostwalker Ice Statue decoy at departure that shatters only when destroyed.</li>
+ *     <li><b>Transmute &amp; Break</b>: <i>Silk Touch &amp; Permafrost</i> — guaranteed Silk Touch block harvesting on all breakable non-container blocks,
+ *     sealing of adjacent water/lava leaks, Lava/Lava Bucket to Obsidian (+ empty Bucket), and full Snow Block / 8-layer Snow / 4-Snowball compaction into Packed Ice.</li>
+ *     <li><b>Affliction</b>: <i>Permafrost Stasis Hex</i> — milk-proof cryogenic curse (0 continuous tick damage) inflicting exact 60% slow,
+ *     locking sprinting, and increasing blunt/physical/fall/crush shatter damage taken across Levels I–III.</li>
  * </ul>
  */
 public final class FrozenSpellMutationHandler implements MateriaPartMutationHandler {
 
     public static final int GLACIAL_EIDOLON_HEX_COLOR = 0x98DCF2;
+    /** Marks entities encased inside temporary real {@code Blocks.ICE} so {@code SpellCombatReactionEngine} suppresses vanilla {@code IN_WALL} suffocation. */
+    public static final String TAG_FROZEN_ICE_STASIS_UNTIL = "entropica_frozen_ice_stasis_until";
+
     private static final int DIAMOND_FROST_HEX_COLOR = 0xEBF9FF;
     private static final int PERMAFROST_BLUE_HEX_COLOR = 0x2C82C9;
 
     /** Persistent NBT keys for tracking consecutive 4-tick Absolute-Zero Cryo-Ray stacks (15 pulses = 3.0s). */
     private static final String TAG_CRYO_RAY_STACKS = "FrozenCryoRayStacks";
     private static final String TAG_CRYO_RAY_LAST_TICK = "FrozenCryoRayLastTick";
+
+    /** Tracks true pre-encasement {@link BlockState}s for active temporary stasis {@code Blocks.ICE} blocks across overlapping casts. */
+    private static final Map<GlobalPos, BlockState> ACTIVE_TEMP_STASIS_ICE_ORIGINALS = new ConcurrentHashMap<>();
+    private static final Map<GlobalPos, Long> ACTIVE_TEMP_STASIS_ICE_UNTIL = new ConcurrentHashMap<>();
 
     // Generous 3D VFX durations so players can admire glacial crystal formations in the world
     private static final int VFX_SHARD_SHATTER_TICKS = 56;
@@ -116,6 +129,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     private static final int VFX_PITFALL_COLLAPSE_TICKS = 76;
     private static final int VFX_MONOLITH_TOTAL_TICKS = 110;
     private static final int VFX_SUMMON_PILLAR_TICKS = 60;
+    private static final int PITFALL_HOLD_OPEN_TICKS = 100;
 
     @Override
     public EssenceType materiaType() {
@@ -138,7 +152,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     public @Nullable String resolveFlowDescription(SpellFlowModifier flow) {
         return switch (flow) {
             case SLOW_HEAVY -> "Permafrost Creep: Turns the spell into a creeping wave of heavy frost that permanently freezes water into Blue Ice and adds +0.4 Materia Advantage score against Water targets.";
-            default -> "Cryo-Frost Flow: Channels sub-zero crystalline momentum along glacial currents, leaving a chilling wake that slows nearby projectiles.";
+            default -> null;
         };
     }
 
@@ -150,7 +164,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             case RADIAL_BURST -> "Frost Nova Burst";
             case TOUCH_STRIKE -> "Flash-Freeze Stasis";
             case AURA -> "Glacial Spikes Retaliation";
-            case GLYPH -> "Rime Pitfall";
+            case GLYPH -> "Glacial Pitfall";
             case CONE -> "Hoarfrost Flash-Freeze";
             case SKYFALL -> "Colossal Glacial Monolith";
             case SUMMON_AGENT, SUMMON_SENTRY, SUMMON_DECOY ->
@@ -161,17 +175,17 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     @Override
     public @Nullable String resolveFormDescription(SpellDeliveryForm form) {
         return switch (form) {
-            case PROJECTILE -> "Glacial Ice-Shard: Aerodynamic crystalline frost needle shattering on impact (+1 vs Water, -1 vs Nether/Undead), inflicting 60% Slowness for 3s, and freezing water into Packed Ice.";
-            case BEAM -> "Absolute-Zero Cryo-Ray: Sub-zero frost beam stacking progressive slowness up to complete 3D ice freeze-stasis at 3.0s while freezing water into thick walkable ice bridges.";
-            case RADIAL_BURST -> "Frost Nova Burst: 6m ring of jagged 3D ice spikes knocking foes back across frozen ground, encasing grounded enemies in solid 3D ice blocks for 2.0s, and freezing surface liquids.";
-            case TOUCH_STRIKE -> "Flash-Freeze Stasis: Converts weapon strike to pure Frozen Materia damage and encases the target in a solid 3D ice block for 1.5s, halting movement and attacks.";
-            case AURA -> "Glacial Spikes Retaliation: Registers defense as Frozen; reactive 3D ice spikes stab melee attackers for Frozen damage and cut their attack speed by 30%.";
-            case GLYPH -> "Rime Pitfall: Turns the floor beneath the trap into fragile hollow frosted ice that collapses when stepped on, dropping mobs into a 3-block-deep pit below.";
-            case CONE -> "Hoarfrost Flash-Freeze: Freezes all water and lava blocks in a 10-block 60-degree cone into solid walkable ice and obsidian causeways.";
-            case SKYFALL -> "Colossal Glacial Monolith: Summons a single gigantic spire of blue ice that plummets after 2.0s, crushing the impact zone and leaving a permanent decorative ice monument.";
-            case SUMMON_AGENT -> "Glacial Eidolon (Agent): Cyan-frost melee companion (#98DCF2) whose chilling strikes freeze enemies solid in 3D ice after 3 consecutive hits.";
-            case SUMMON_SENTRY -> "Glacial Eidolon (Sentry): Anchored frost crystal pylon firing rapid zero-drop icicle darts at distant foes.";
-            case SUMMON_DECOY -> "Glacial Eidolon (Decoy): Crystalline ice effigy that taunts mobs and shatters into a 4m Frost Nova upon destruction, freezing attackers solid.";
+            case PROJECTILE -> "Glacial Ice-Shard: Aerodynamic crystalline frost needle shattering on impact (+1 vs Water, -1 vs Nether/Undead), inflicting an exact 60% slow for 3.0s, and freezing water into Packed Ice and lava into Obsidian.";
+            case BEAM -> "Absolute-Zero Cryo-Ray: Sub-zero frost beam stacking progressive non-compounded slowness up to complete freeze-stasis at 3.0s dry (1.0s–1.5s wet; 1.0s boss cap) while freezing water and lava into walkable bridges.";
+            case RADIAL_BURST -> "Frost Nova Burst: Circular 6m ring of jagged ice spikes encasing grounded enemies in real temporary Ice blocks for 2.0s (1.0s boss cap), inflicting an exact 60% slow on airborne foes, and freezing surface water and lava.";
+            case TOUCH_STRIKE -> "Flash-Freeze Stasis: Purely converts the weapon strike to Frozen Materia damage and encases primary and cleave targets inside real temporary Ice blocks for 1.5s (1.0s boss cap), halting movement and attacks.";
+            case AURA -> "Glacial Spikes Retaliation: Registers defense as Frozen; reactive 3D ice spikes stab melee attackers for Frozen Materia damage and cut their attack speed by an exact 30%.";
+            case GLYPH -> "Glacial Pitfall: Disarmable 3x3 Frosted Ice floor trap that collapses into a temporary non-destructive 3x3x3 pit with Frozen Materia chill damage and an exact 50% slow before cleanly restoring original terrain.";
+            case CONE -> "Hoarfrost Flash-Freeze: Freezes source and flowing water and lava in a 10-block cone into walkable Packed/Blue Ice and Obsidian causeways, leaves permanent natural-melting snow layers, and inflicts frost damage + exact 50% slow.";
+            case SKYFALL -> "Colossal Glacial Monolith: Summons a tier-scaled 3D pseudoblock glacial spire that plummets after 2.0s, crushing and stasis-locking across the full tier-scaled Skyfall radius before materializing into a permanent layered ice monument.";
+            case SUMMON_AGENT -> "Glacial Eidolon (Agent): Cyan-frost melee companion (#98DCF2) whose chilling strikes freeze enemies solid after 3 consecutive hits.";
+            case SUMMON_SENTRY -> "Glacial Eidolon (Sentry): Anchored frost crystal pylon firing rapid zero-drop icicle darts inflicting an exact 60% movement slow.";
+            case SUMMON_DECOY -> "Glacial Eidolon (Decoy): Crystalline ice effigy that taunts mobs and shatters into a spherical 4m Frost Nova strictly upon combat destruction, freezing surrounding foes.";
         };
     }
 
@@ -188,15 +202,15 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     @Override
     public @Nullable String resolveEffectDescription(SpellCoreEffect effect) {
         return switch (effect) {
-            case BLINK -> "Frostwalker Stasis: Teleports caster safely while leaving a taunting 3D crystalline player ice statue decoy at the departure point.";
-            case TRANSMUTE, BREAK -> "Silk Touch & Permafrost: Unlocks guaranteed Silk Touch block harvesting, seals exposed water/lava leaks into ice/obsidian, freezes lava to obsidian, and compacts snow into packed ice.";
-            case AFFLICTION -> "Permafrost Stasis Hex: Persistent cryogenic curse slowing movement by 60%, locking sprinting, and increasing blunt impact shatter damage by +50% (cleansed by fire or Restoration; milk-immune).";
+            case BLINK -> "Frostwalker Stasis: Teleports caster safely while freezing a 3x3 water platform underfoot into Packed/Blue Ice and leaving a Frostwalker Ice Statue decoy at departure that shatters strictly when destroyed.";
+            case TRANSMUTE, BREAK -> "Silk Touch & Permafrost: Unlocks guaranteed Silk Touch block harvesting across all breakable non-container blocks, freezes Lava/Lava Buckets into Obsidian (+ empty Bucket), and compacts full Snow Blocks (1:1), 8-layer Snow (8:1), or 4 Snowballs (4:1) into Packed Ice.";
+            case AFFLICTION -> "Permafrost Stasis Hex: Immediate milk-proof cryogenic curse (0 tick damage) inflicting an exact 60% movement slow, locking sprinting, and increasing blunt/physical/fall/crush shatter damage by +50% / +75% / +100% across Levels I–III.";
             default -> null;
         };
     }
 
     // =========================================================================
-    // FLOW MUTATION — PERMAFROST CREEP (SLOW_HEAVY, +0.4 ADVANTAGE VS WATER)
+    // FLOW MUTATION — PERMAFROST CREEP (SLOW_HEAVY ONLY, +0.4 ADVANTAGE VS WATER)
     // =========================================================================
 
     @Override
@@ -220,16 +234,12 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
         if (flow != SpellFlowModifier.SLOW_HEAVY) {
             return;
         }
-        // Permafrost Creep: creeping wave of heavy frost permanently freezing water into Blue Ice along its path!
+        // Permafrost Creep: creeping wave of heavy frost permanently freezing water (water only, never lava!) into Blue Ice along its path
         if (projectile.tickCount % 2 == 0) {
             BlockPos center = projectile.blockPosition();
             for (BlockPos p : BlockPos.betweenClosed(center.offset(-1, -2, -1), center.offset(1, 0, 1))) {
                 BlockState bs = level.getBlockState(p);
-                if (bs.is(Blocks.WATER)) {
-                    level.setBlockAndUpdate(p, Blocks.BLUE_ICE.defaultBlockState());
-                } else if (bs.is(Blocks.LAVA)) {
-                    level.setBlockAndUpdate(p, Blocks.OBSIDIAN.defaultBlockState());
-                } else if (bs.is(Blocks.ICE) || bs.is(Blocks.FROSTED_ICE) || bs.is(Blocks.PACKED_ICE)) {
+                if (bs.is(Blocks.WATER) || bs.is(Blocks.ICE) || bs.is(Blocks.FROSTED_ICE) || bs.is(Blocks.PACKED_ICE)) {
                     level.setBlockAndUpdate(p, Blocks.BLUE_ICE.defaultBlockState());
                 }
             }
@@ -256,32 +266,24 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
         if (spell.flowPart().flow() != SpellFlowModifier.SLOW_HEAVY || !(hit instanceof LivingEntity living)) {
             return;
         }
-        if (caster != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                living, caster, spell.hasWardFriendlyFireSafeguard())) {
+        // Permafrost Creep: permanently freeze nearby water (water only, never lava) into Blue Ice without dealing an extra hit
+        // (+0.4 Materia Advantage score vs Water is applied directly by getFlowBonusAdvantageScore / hurtWithFrozenMateriaAdvantage)
+        freezeWaterOnlyToBlueIceInRadius(level, living.blockPosition(), 2);
+    }
+
+    @Override
+    public void onProjectileImpactOrExpireFromFlow(
+            ServerLevel level,
+            SpellProjectileEntity projectile,
+            @Nullable LivingEntity caster,
+            Vec3 splitOrigin,
+            SpellAssembly spell,
+            SubSpellSlot slot
+    ) {
+        if (spell.flowPart().flow() != SpellFlowModifier.SLOW_HEAVY) {
             return;
         }
-        // Permafrost Creep: +0.4 Materia Advantage score against Water targets (aquatic mobs, soaked targets, Water Shroud, Aqueous Eidolons)
-        boolean isWaterTarget = living instanceof Drowned
-                || living instanceof Guardian
-                || living instanceof WaterAnimal
-                || SpellLingeringZoneManager.isEntityWetOrSoaked(living)
-                || SpellCombatReactionEngine.hasActiveMutatedHexPublic(living, EssenceType.WATER)
-                || level.getGameTime() <= EntityHelper.getPersistentData(living).getLong(SpellLingeringZoneManager.TAG_WATER_SHROUD_UNTIL).orElse(0L)
-                || (living instanceof SpellEidolonEntity eid && eid.getEffectiveMateria() == EssenceType.WATER);
-        if (isWaterTarget) {
-            float bonusDmg = Math.max(2.0F, spell.getEffectiveTier() * 1.15F);
-            SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(level, living, caster, bonusDmg, true, true);
-        }
-        living.setTicksFrozen(Math.min(living.getTicksRequiredToFreeze() + 90, living.getTicksFrozen() + 90));
-        SpellCombatReactionEngine.applyTimedMovementSpeedSap(living, level, 0.60D, 70L);
-        living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 70, 3));
-
-        BlockPos hitPos = living.blockPosition();
-        for (BlockPos p : BlockPos.betweenClosed(hitPos.offset(-2, -1, -2), hitPos.offset(2, 0, 2))) {
-            if (p.distSqr(hitPos) <= 5.0D && level.getBlockState(p).is(Blocks.WATER)) {
-                level.setBlockAndUpdate(p, Blocks.BLUE_ICE.defaultBlockState());
-            }
-        }
+        freezeWaterOnlyToBlueIceInRadius(level, BlockPos.containing(splitOrigin), 2);
     }
 
     // =========================================================================
@@ -326,27 +328,23 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
         boolean permafrost = hasPermafrostCreep(spell, projectile.getVisualEssenceType());
         BlockState iceBlock = permafrost ? Blocks.BLUE_ICE.defaultBlockState() : Blocks.PACKED_ICE.defaultBlockState();
 
-        // Glacial Ice-Shard: Frozen Materia damage (+1 vs Water, -1 vs Nether/Undead) when no Harm verb already billed it
-        if (!slotHasHarmEffect(slot)) {
-            float shardDmg = (2.8F + tier * 0.95F) * spell.flawProfile().getPotencyMultiplier();
-            SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(level, living, caster, shardDmg, permafrost, false);
-        }
-
-        // Exact 60% Slowness for 3.0 seconds (60 ticks) via both real MOVEMENT_SPEED attribute sap AND Slowness IV!
-        SpellCombatReactionEngine.applyTimedMovementSpeedSap(living, level, 0.60D, 60L);
-        living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 3));
-
-        // Water (#2) Soaked / Waterlogged Hex synergy: 3.0x Frozen freeze buildup rate!
-        boolean tripleFreeze = SpellLingeringZoneManager.isEntityWetOrSoaked(living)
-                || SpellCombatReactionEngine.hasActiveMutatedHexPublic(living, EssenceType.WATER);
-        int freezeAdd = (tripleFreeze ? 3 : 1) * (65 + tier * 10);
-        living.setTicksFrozen(Math.min(living.getTicksRequiredToFreeze() + 90, living.getTicksFrozen() + freezeAdd));
-        if (living.isOnFire()) {
-            living.clearFire();
-        }
-
-        // Freeze nearby water into Packed Ice (or Blue Ice with Permafrost Creep) & extinguish surface fire
+        // Freeze nearby water into Packed Ice (or Blue Ice with Permafrost Creep) & lava into Obsidian on impact
         freezeLiquidsInRadius(level, living.blockPosition(), 2, iceBlock, true);
+
+        if (!spell.prefix().enforcesZeroEntityHarm()) {
+            // Glacial Ice-Shard: standalone Frozen Materia damage only when no Harm verb is slotted
+            if (!hasHarmEffect(spell, slot)) {
+                float shardDmg = (2.8F + tier * 0.95F) * spell.flawProfile().getPotencyMultiplier();
+                SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(level, living, caster, shardDmg, permafrost, false);
+            }
+
+            // Exact 60% movement slow for 3.0 seconds (60 ticks) via MOVEMENT_SPEED attribute sap alone (never double-stacked!)
+            SpellCombatReactionEngine.applyTimedMovementSpeedSap(living, level, 0.60D, 60L);
+
+            if (living.isOnFire()) {
+                living.clearFire();
+            }
+        }
 
         Vec3 impactCenter = living.position().add(0.0D, living.getBbHeight() * 0.55D, 0.0D);
         Vec3 normal = projectile.getDeltaMovement().lengthSqr() > 1.0E-4D
@@ -469,7 +467,6 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                     }
                     if (bs.is(Blocks.WATER)) {
                         level.setBlockAndUpdate(check, bridgeIce);
-                        // Reinforce into a thick 2-block walkable ice slab!
                         BlockPos under = check.below();
                         if (level.getBlockState(under).is(Blocks.WATER)) {
                             level.setBlockAndUpdate(under, bridgeIce);
@@ -493,7 +490,11 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             level.playSound(null, caster.blockPosition(), SoundEvents.GLASS_PLACE, SoundSource.PLAYERS, 0.45F, 1.45F);
         }
 
-        // 2. Progressive Slowness stacking up to complete 3D Solid Ice Block Stasis at 3.0 seconds (15 pulses of 4 ticks)!
+        if (spell.prefix().enforcesZeroEntityHarm()) {
+            return;
+        }
+
+        // 2. Progressive non-compounded Slowness (up to 60%) stacking into complete freeze-stasis at 3.0s dry (1.0s wet)!
         for (LivingEntity target : struckTargets) {
             if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
                     target, caster, spell.hasWardFriendlyFireSafeguard())) {
@@ -503,7 +504,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                 target.clearFire();
             }
 
-            if (!slotHasHarmEffect(slot)) {
+            if (!hasHarmEffect(spell, slot)) {
                 float rayDmg = (1.15F + tier * 0.35F) * potencyMult * spell.flawProfile().getPotencyMultiplier();
                 SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(level, target, caster, rayDmg, permafrost, true);
             }
@@ -512,23 +513,21 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             long lastHit = data.getLong(TAG_CRYO_RAY_LAST_TICK).orElse(0L);
             int prevStacks = (now - lastHit <= 16L) ? data.getInt(TAG_CRYO_RAY_STACKS).orElse(0) : 0;
 
-            boolean wetTriple = SpellLingeringZoneManager.isEntityWetOrSoaked(target)
+            boolean wetAccelerated = SpellLingeringZoneManager.isEntityWetOrSoaked(target)
                     || SpellCombatReactionEngine.hasActiveMutatedHexPublic(target, EssenceType.WATER);
-            int stacks = prevStacks + (wetTriple ? 3 : 1);
+            int stacks = prevStacks + (wetAccelerated ? 3 : 1);
             data.putLong(TAG_CRYO_RAY_LAST_TICK, now);
 
-            double progressiveSap = Mth.clamp(0.20D + (stacks * 0.05D), 0.20D, 0.88D);
-            int slowAmp = Math.min(5, stacks / 3);
+            // Smooth pre-stasis slowness scaling up to exact 60% via applyTimedMovementSpeedSap alone (no SLOWNESS double-stack!)
+            double progressiveSap = Mth.clamp((stacks / 15.0D) * 0.60D, 0.10D, 0.60D);
             SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, progressiveSap, 24L);
-            target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 24, slowAmp));
-            target.setTicksFrozen(Math.min(target.getTicksRequiredToFreeze() + 50, target.getTicksFrozen() + (wetTriple ? 48 : 18)));
 
             level.sendParticles(
                     TimedTintableParticleOption.linear(ModParticles.TINTABLE_CRYSTAL.get(), GLACIAL_EIDOLON_HEX_COLOR, 18, 0.95F, 0.05F),
                     target.getX(), target.getY(0.65D), target.getZ(), 4, 0.25D, 0.35D, 0.25D, 0.02D
             );
 
-            // 15 consecutive 4-tick action pulses = 60 ticks = exact 3.0 seconds -> complete freeze-stasis!
+            // 15 stacks = 60 ticks (3.0s dry) or 5 pulses = 20 ticks (1.0s wet) -> complete freeze-stasis (bosses cap at 20t)!
             if (stacks >= 15) {
                 data.putInt(TAG_CRYO_RAY_STACKS, 0);
                 applyIceStasis(level, caster, target, 60, 0, spell, slot);
@@ -555,11 +554,11 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             float potencyMult
     ) {
         int tier = spell.getEffectiveTier();
-        double effectiveRad = Math.max(6.0D, blastRadius); // Canonical 6-block minimum radius!
+        double effectiveRad = Math.max(6.0D, blastRadius); // Canonical circular 6.0-block minimum radius!
         boolean permafrost = hasPermafrostCreep(spell, fallbackMateria);
         BlockState novaIce = permafrost ? Blocks.BLUE_ICE.defaultBlockState() : Blocks.PACKED_ICE.defaultBlockState();
 
-        // 1. Generous 3D jagged ice-spike nova & snowflake floor seal so the ring can be admired!
+        // 1. Generous 3D jagged ice-spike nova & snowflake floor seal
         SpellWorldVfxManager.broadcast(
                 level, SpellVfxEventPayload.VFX_RADIAL_NOVA,
                 center, new Vec3(0.0D, 1.0D, 0.0D),
@@ -571,7 +570,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                 EssenceType.FROZEN, EssenceType.STASIS, (float) (effectiveRad * 0.92D), VFX_NOVA_SEAL_TICKS, tier
         );
 
-        // 2. Freeze all surface liquids (Water -> Packed/Blue Ice, Lava -> Obsidian) & extinguish fires in the 6m+ radius
+        // 2. Freeze all surface liquids (Water -> Packed/Blue Ice, Lava -> Obsidian) & extinguish fires in the circular 6m+ radius
         BlockPos cPos = BlockPos.containing(center);
         int rInt = (int) Math.ceil(effectiveRad);
         double rSq = effectiveRad * effectiveRad;
@@ -591,56 +590,59 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             }
         }
 
-        // 3. Deal Frozen Materia damage, blast foes backward across the ice, and encase grounded foes in solid 3D Ice Blocks for 2.0s!
-        AABB area = new AABB(
-                center.x - effectiveRad, center.y - 2.2D, center.z - effectiveRad,
-                center.x + effectiveRad, center.y + 3.2D, center.z + effectiveRad
-        );
-        for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, area, e -> e.isAlive() && e != caster)) {
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                    foe, caster, spell.hasWardFriendlyFireSafeguard())) {
-                continue;
-            }
-            double dist = Math.sqrt(
-                    Math.pow(foe.getX() - center.x, 2) + Math.pow(foe.getZ() - center.z, 2)
+        // 3. Respect Utility zero-harm rules; deal Frozen Materia damage, encase grounded foes in real temporary Ice blocks for exact 2.0s (40t),
+        //    and inflict exact 60% slow on airborne foes!
+        if (!spell.prefix().enforcesZeroEntityHarm()) {
+            AABB area = new AABB(
+                    center.x - effectiveRad, center.y - 2.2D, center.z - effectiveRad,
+                    center.x + effectiveRad, center.y + 3.2D, center.z + effectiveRad
             );
-            if (dist > effectiveRad + 0.5D) continue;
+            boolean hasHarm = hasHarmEffect(spell, slot);
+            for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, area, e -> e.isAlive() && e != caster)) {
+                if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                        foe, caster, spell.hasWardFriendlyFireSafeguard())) {
+                    continue;
+                }
+                double dx = foe.getX() - center.x;
+                double dz = foe.getZ() - center.z;
+                double horizDistSq = dx * dx + dz * dz;
+                if (horizDistSq > rSq) {
+                    continue;
+                }
+                double dist = Math.sqrt(horizDistSq);
 
-            if (foe.isOnFire()) {
-                foe.clearFire();
-            }
+                if (foe.isOnFire()) {
+                    foe.clearFire();
+                }
 
-            // Linear distance falloff from 100% at epicenter to 33% at outermost perimeter (Section 5.1)
-            float distFactor = (float) Mth.clamp(1.0D - (dist / Math.max(1.0D, effectiveRad)) * 0.67D, 0.33D, 1.0D);
-            if (!slotHasHarmEffect(slot) || dist > blastRadius) {
-                float baseDmg = slotHasHarmEffect(slot)
-                        ? MateriaStageTable.getBaseCombatDamageHp(tier) * distFactor * potencyMult
-                        : (4.0F + tier * 1.35F) * distFactor * potencyMult;
-                SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(
-                        level, foe, caster, baseDmg * spell.flawProfile().getPotencyMultiplier(), permafrost, false
-                );
+                // Linear distance falloff from 100% at epicenter to 33% at outermost perimeter (Section 5.1)
+                float distFactor = (float) Mth.clamp(1.0D - (dist / Math.max(1.0D, effectiveRad)) * 0.67D, 0.33D, 1.0D);
+                if (!hasHarm) {
+                    float baseDmg = (4.0F + tier * 1.35F) * distFactor * potencyMult;
+                    SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(
+                            level, foe, caster, baseDmg * spell.flawProfile().getPotencyMultiplier(), permafrost, false
+                    );
+                }
                 if (dist > blastRadius) {
                     SpellExecutionEngine.deliverSubSpellOnEntity(
                             level, caster, foe, direction, spell, slot, fallbackMateria, potencyMult * distFactor
                     );
                 }
-            }
 
-            boolean grounded = isEntityGroundedForFrostNova(level, foe);
-            if (!SpellCombatReactionEngine.isBossEntity(level, foe)) {
-                Vec3 away = new Vec3(foe.getX() - center.x, 0.0D, foe.getZ() - center.z);
-                Vec3 push = away.lengthSqr() > 1.0E-4D ? away.normalize() : caster.getLookAngle().multiply(1.0D, 0.0D, 1.0D).normalize();
-                double kb = 0.88D + tier * 0.07D;
-                SpellExecutionEngine.applySyncedMotion(foe, new Vec3(push.x * kb, grounded ? 0.22D : 0.32D, push.z * kb));
-            }
-
-            if (grounded) {
-                // 5-tick skid window lets the knockback visibly blast foes across the ice before locking solid for a full 2.0s (40t)!
-                applyIceStasis(level, caster, foe, 40, 5, spell, slot);
-            } else {
-                SpellCombatReactionEngine.applyTimedMovementSpeedSap(foe, level, 0.60D, 60L);
-                foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 3));
-                foe.setTicksFrozen(Math.min(foe.getTicksRequiredToFreeze() + 80, foe.getTicksFrozen() + 80));
+                boolean grounded = isEntityGroundedForFrostNova(level, foe);
+                if (grounded) {
+                    // Exact 2.0s (40 ticks) real temporary Blocks.ICE encasement (0 skid ticks; bosses cap at 20t)!
+                    applyIceStasis(level, caster, foe, 40, 0, spell, slot);
+                } else {
+                    if (!SpellCombatReactionEngine.isBossEntity(level, foe)) {
+                        Vec3 away = new Vec3(dx, 0.0D, dz);
+                        Vec3 push = away.lengthSqr() > 1.0E-4D ? away.normalize() : caster.getLookAngle().multiply(1.0D, 0.0D, 1.0D).normalize();
+                        double kb = 0.88D + tier * 0.07D;
+                        SpellExecutionEngine.applySyncedMotion(foe, new Vec3(push.x * kb, 0.32D, push.z * kb));
+                    }
+                    // Airborne foes: exact 60% slow via applyTimedMovementSpeedSap alone (no SLOWNESS double-stack!)
+                    SpellCombatReactionEngine.applyTimedMovementSpeedSap(foe, level, 0.60D, 60L);
+                }
             }
         }
 
@@ -678,7 +680,6 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             float potencyMult
     ) {
         int tier = spell.getEffectiveTier();
-        boolean permafrost = hasPermafrostCreep(spell, fallbackMateria);
         Vec3 slashOrigin = caster.getEyePosition().subtract(0.0D, 0.28D, 0.0D).add(direction.normalize().scale(0.95D));
 
         SpellWorldVfxManager.broadcast(
@@ -687,26 +688,24 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                 2.55F, VFX_FLASH_SLASH_TICKS, tier
         );
 
-        for (int idx = 0; idx < struckTargets.size(); idx++) {
-            LivingEntity target = struckTargets.get(idx);
+        if (spell.prefix().enforcesZeroEntityHarm()) {
+            return;
+        }
+
+        // SpellCombatReactionEngine converts the melee weapon strike directly to Frozen Materia damage;
+        // encase both primary and sweeping-cleave targets inside real temporary Blocks.ICE for exact 1.5s (30 ticks; bosses cap at 20t)!
+        for (LivingEntity target : struckTargets) {
+            if (target == null || !target.isAlive() || target == caster) {
+                continue;
+            }
             if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
                     target, caster, spell.hasWardFriendlyFireSafeguard())) {
                 continue;
             }
-            boolean isPrimary = (idx == 0);
-            float splashScale = isPrimary ? 1.0F : 0.50F; // Section 4.4: 100% primary, 50% sweeping cleave splash!
-
             if (target.isOnFire()) {
                 target.clearFire();
             }
-            if (!slotHasHarmEffect(slot)) {
-                float strikeDmg = (3.5F + tier * 1.10F) * potencyMult * splashScale * spell.flawProfile().getPotencyMultiplier();
-                SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(level, target, caster, strikeDmg, permafrost, true);
-            }
-
-            // Flash-Freeze Stasis: 1.5s (30 ticks) solid 3D Ice Block on primary target; 0.75s (15 ticks) on 50% cleave targets!
-            int stasisTicks = isPrimary ? 30 : 15;
-            applyIceStasis(level, caster, target, stasisTicks, 0, spell, slot);
+            applyIceStasis(level, caster, target, 30, 0, spell, slot);
         }
     }
 
@@ -729,7 +728,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
         long until = level.getGameTime() + duration;
 
         // Glacial Spikes Retaliation: registers defense as Frozen (+1 vs Water -> 0.50x, -1 vs Nether/Undead -> 1.50x),
-        // stabs melee attackers with reactive 3D ice spikes & cuts player and mob attack speed by 30%!
+        // stabs melee attackers with reactive 3D ice spikes & cuts player and mob attack speed by exact 30%!
         CompoundTag data = EntityHelper.getPersistentData(caster);
         data.putLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL, until);
         data.putInt("SpellFrozenSpikesTier", tier);
@@ -755,7 +754,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     }
 
     // =========================================================================
-    // FORM MUTATION 6 — RIME PITFALL (GLYPH)
+    // FORM MUTATION 6 — GLACIAL PITFALL (GLYPH)
     // =========================================================================
 
     @Override
@@ -774,19 +773,26 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
         BlockPos surfaceCenter = findGroundSurfaceNear(level, BlockPos.containing(glyphCenter));
         Vec3 anchoredCenter = new Vec3(surfaceCenter.getX() + 0.5D, surfaceCenter.getY() + 1.02D, surfaceCenter.getZ() + 0.5D);
 
-        // Snapshot original 3x3 floor blocks so safe disarm (or untripped expiry) restores terrain cleanly,
-        // and place fragile hairline-cracked FROSTED_ICE (AGE = 1) as hollow rime ice!
-        Map<BlockPos, BlockState> originalSurface = new HashMap<>();
+        // Snapshot original 3x3 floor blocks (and later the 3x3x3 pit shaft beneath) for non-destructive restoration,
+        // placing fragile hairline-cracked FROSTED_ICE (AGE = 1) as the hollow Glacial Pitfall crust!
+        Map<BlockPos, BlockState> originalPitBlocks = new LinkedHashMap<>();
         List<BlockPos> crustPositions = new ArrayList<>();
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
                 BlockPos floorPos = surfaceCenter.offset(dx, 0, dz);
                 BlockState orig = level.getBlockState(floorPos);
-                if (SpellExecutionEngine.isProtectedBlockOrContainer(level, floorPos, orig)) continue;
+                if (orig.is(Blocks.BEDROCK) || (!orig.isAir() && SpellExecutionEngine.isProtectedBlockOrContainer(level, floorPos, orig))) {
+                    continue;
+                }
+                if (!orig.getFluidState().isEmpty()) {
+                    continue;
+                }
                 float hardness = orig.getDestroySpeed(level, floorPos);
-                if (hardness < 0.0F || hardness > (6.0F + tier * 5.0F)) continue;
+                if (hardness < 0.0F || hardness > (6.0F + tier * 5.0F)) {
+                    continue;
+                }
                 if (!orig.isAir() || level.getBlockState(floorPos.below()).isSolidRender()) {
-                    originalSurface.put(floorPos.immutable(), orig);
+                    originalPitBlocks.put(floorPos.immutable(), orig);
                     crustPositions.add(floorPos.immutable());
                     level.setBlockAndUpdate(floorPos, Blocks.FROSTED_ICE.defaultBlockState().setValue(FrostedIceBlock.AGE, 1));
                 }
@@ -808,28 +814,23 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
         final int[] chargesUsed = {0};
         final int[] rearmCooldownUntil = {20}; // Section 4.6: 1.0-second (20-tick) arming delay!
         final boolean[] pitExcavated = {false};
-        final boolean silkDropPit = slot.primaryEffect().effect() == SpellCoreEffect.TRANSMUTE
-                || slot.primaryEffect().effect() == SpellCoreEffect.BREAK
-                || slot.secondaryEffect().map(b -> b.effect() == SpellCoreEffect.TRANSMUTE || b.effect() == SpellCoreEffect.BREAK).orElse(false);
+        final int[] pitRestoreAtTick = {-1};
 
         SpellLingeringZoneManager.ActiveSpellZone pitZone = new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, anchoredCenter, trapRad, maxTicks, level.getGameTime(), spell, slot, fallbackMateria, potencyMult,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        // Restore intact crust if trap expired without ever collapsing
-                        if (!pitExcavated[0]) {
-                            restoreOriginalPitSurface(srv, originalSurface);
-                        } else {
-                            for (BlockPos cp : crustPositions) {
-                                if (srv.getBlockState(cp).is(Blocks.FROSTED_ICE)) {
-                                    srv.removeBlock(cp, false);
-                                }
-                            }
-                        }
+                    if (elapsed > zone.maxDurationTicks
+                            || (pitRestoreAtTick[0] >= 0 && elapsed >= pitRestoreAtTick[0])) {
+                        restoreOriginalPitTerrainAndEjectEntities(srv, surfaceCenter, originalPitBlocks);
                         return false;
                     }
 
-                    // Keep hollow Frosted Ice stabilized at hairline crack stage (AGE = 1) so sunlight never melts it into flooding water!
+                    // Once all charges have triggered, hold the 3-block-deep pit open until pitRestoreAtTick elapses
+                    if (pitRestoreAtTick[0] >= 0) {
+                        return true;
+                    }
+
+                    // Keep hollow Frosted Ice stabilized at hairline crack stage (AGE = 1) so sunlight never melts it into water!
                     if (elapsed % 10 == 0 && elapsed >= rearmCooldownUntil[0] - 5) {
                         for (BlockPos cp : crustPositions) {
                             BlockState cur = srv.getBlockState(cp);
@@ -857,27 +858,26 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                         return true;
                     }
 
-                    // COLLAPSE! Shatter the 3x3 hollow rime ice crust and excavate the 3-block-deep pit beneath!
+                    // COLLAPSE! Clear the 3x3 Frosted Ice surface and temporary 3x3x3 pit shaft to Blocks.AIR WITHOUT dropping mined items!
                     for (BlockPos cp : crustPositions) {
                         BlockState cur = srv.getBlockState(cp);
                         if (cur.is(Blocks.FROSTED_ICE)) {
-                            srv.removeBlock(cp, false);
-                            BlockState origFloor = originalSurface.get(cp);
-                            if (!pitExcavated[0] && origFloor != null && !origFloor.isAir()
-                                    && !origFloor.is(Blocks.WATER) && !origFloor.is(Blocks.LAVA)) {
-                                dropExcavatedPitBlock(srv, owner, cp, origFloor, silkDropPit);
-                            }
+                            srv.setBlock(cp, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                         }
                         if (!pitExcavated[0]) {
                             for (int depth = 1; depth <= 3; depth++) {
                                 BlockPos sub = cp.below(depth);
                                 BlockState subState = srv.getBlockState(sub);
-                                if (subState.isAir() || subState.is(Blocks.WATER) || subState.is(Blocks.LAVA)) continue;
-                                if (SpellExecutionEngine.isProtectedBlockOrContainer(srv, sub, subState)) continue;
+                                if (subState.isAir() || subState.is(Blocks.BEDROCK) || !subState.getFluidState().isEmpty()) {
+                                    continue;
+                                }
+                                if (SpellExecutionEngine.isProtectedBlockOrContainer(srv, sub, subState)) {
+                                    continue;
+                                }
                                 float h = subState.getDestroySpeed(srv, sub);
                                 if (h >= 0.0F && h <= (5.0F + tier * 5.0F)) {
-                                    dropExcavatedPitBlock(srv, owner, sub, subState, silkDropPit);
-                                    srv.removeBlock(sub, false);
+                                    originalPitBlocks.putIfAbsent(sub.immutable(), subState);
+                                    srv.setBlock(sub, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                                 }
                             }
                         }
@@ -885,6 +885,8 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                     pitExcavated[0] = true;
 
                     boolean permafrost = zone.spell != null && hasPermafrostCreep(zone.spell, zone.fallbackMateria);
+                    boolean allowHarm = zone.spell == null || !zone.spell.prefix().enforcesZeroEntityHarm();
+                    float flawPot = zone.spell != null ? zone.spell.flawProfile().getPotencyMultiplier() : 1.0F;
                     float effPot = zone.apparatusPotency * chargePotencyScale;
                     for (LivingEntity v : victims) {
                         if (zone.spell != null && zone.slot != null) {
@@ -893,14 +895,15 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                                     zone.spell, zone.slot, zone.fallbackMateria, effPot
                             );
                         }
-                        if (zone.slot == null || !slotHasHarmEffect(zone.slot)) {
-                            SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(
-                                    srv, v, owner, (4.0F + tier * 1.25F) * effPot, permafrost, false
-                            );
+                        if (allowHarm) {
+                            if (!hasHarmEffect(zone.spell, zone.slot)) {
+                                SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(
+                                        srv, v, owner, (3.5F + tier * 1.10F) * effPot * flawPot, permafrost, false
+                                );
+                            }
+                            // Exact 50% movement slow via applyTimedMovementSpeedSap alone (no compounding Slowness III!)
+                            SpellCombatReactionEngine.applyTimedMovementSpeedSap(v, srv, 0.50D, 70L);
                         }
-                        SpellCombatReactionEngine.applyTimedMovementSpeedSap(v, srv, 0.60D, 80L);
-                        v.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 3));
-                        v.setTicksFrozen(Math.min(v.getTicksRequiredToFreeze() + 80, v.getTicksFrozen() + 80));
                         if (!SpellCombatReactionEngine.isBossEntity(srv, v)) {
                             SpellExecutionEngine.applySyncedMotion(v, new Vec3(0.0D, -0.72D, 0.0D));
                         }
@@ -920,7 +923,8 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
 
                     chargesUsed[0]++;
                     if (chargesUsed[0] >= maxCharges) {
-                        return false;
+                        pitRestoreAtTick[0] = elapsed + PITFALL_HOLD_OPEN_TICKS;
+                        return true;
                     }
                     // Repeating Glyphic Sentry: 2.0-second (40-tick) re-arm delay, then re-crusts the pit mouth!
                     rearmCooldownUntil[0] = elapsed + 40;
@@ -932,17 +936,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                     return true;
                 }
         ).markDisarmableGlyph()
-                .withOnDisarm((srv, z) -> {
-                    if (!pitExcavated[0]) {
-                        restoreOriginalPitSurface(srv, originalSurface);
-                    } else {
-                        for (BlockPos cp : crustPositions) {
-                            if (srv.getBlockState(cp).is(Blocks.FROSTED_ICE)) {
-                                srv.removeBlock(cp, false);
-                            }
-                        }
-                    }
-                });
+                .withOnDisarm((srv, z) -> restoreOriginalPitTerrainAndEjectEntities(srv, surfaceCenter, originalPitBlocks));
 
         SpellLingeringZoneManager.registerZone(level, pitZone);
         return true;
@@ -985,12 +979,11 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                 (float) reach, VFX_HOARFROST_CONE_TICKS, tier
         );
 
-        // Sweep full 60-degree horizontal fan (half-angle = 30 deg -> cos(30) = 0.866, with generous edge feathering 0.82)
-        // across dy = +2..-4 so aiming across pools from banks or ledges freezes gap-free walkable causeways!
+        // Sweep 60-degree horizontal fan across dy = +2..-4: freeze source & flowing Water/Lava into solid bridges,
+        // and place permanent Snow layers on dry ground (no temporary timer — melts naturally in warm light/biomes)!
         BlockPos originBlock = caster.blockPosition();
         int rCeil = (int) Math.ceil(reach);
         double rSq = reach * reach;
-        List<BlockPos> transientRimeSnow = new ArrayList<>();
         int frozenBlocks = 0;
 
         for (int dx = -rCeil; dx <= rCeil; dx++) {
@@ -998,7 +991,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                 double horizSq = (double) (dx * dx + dz * dz);
                 if (horizSq < 0.5D || horizSq > rSq) continue;
                 Vec3 horizVec = new Vec3(dx, 0.0D, dz).normalize();
-                if (horizVec.dot(flatForward) < 0.82D) continue; // Authentic 60-degree fan!
+                if (horizVec.dot(flatForward) < 0.82D) continue;
 
                 for (int dy = 2; dy >= -4; dy--) {
                     BlockPos p = originBlock.offset(dx, dy, dz);
@@ -1028,12 +1021,10 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                         frozenBlocks++;
                         break;
                     } else if (bs.isSolidRender() && level.getBlockState(p.above()).isAir()) {
-                        // Section 4.7 Environmental Coating: dust dry ground in transient hoarfrost rime snow!
                         BlockPos snowPos = p.above();
                         BlockState snowState = Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 1);
-                        if (transientRimeSnow.size() < 48 && snowState.canSurvive(level, snowPos) && ( (dx + dz) & 1 ) == 0) {
+                        if (snowState.canSurvive(level, snowPos)) {
                             level.setBlockAndUpdate(snowPos, snowState);
-                            transientRimeSnow.add(snowPos.immutable());
                         }
                         break;
                     }
@@ -1041,41 +1032,23 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             }
         }
 
-        // Sublimate transient rime snow layers cleanly after 7 seconds so player builds stay tidy
-        if (!transientRimeSnow.isEmpty()) {
-            SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                    caster, caster.position(), 1.0D, 140, level.getGameTime(), null, null, EssenceType.FROZEN, 1.0F,
-                    (srv, z, el) -> {
-                        if (el < z.maxDurationTicks) return true;
-                        for (BlockPos sp : transientRimeSnow) {
-                            BlockState cur = srv.getBlockState(sp);
-                            if (cur.is(Blocks.SNOW) && cur.getValue(SnowLayerBlock.LAYERS) == 1) {
-                                srv.removeBlock(sp, false);
-                            }
-                        }
-                        return false;
-                    }
-            ));
-        }
-
-        for (LivingEntity target : struckTargets) {
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                    target, caster, spell.hasWardFriendlyFireSafeguard())) {
-                continue;
+        if (!spell.prefix().enforcesZeroEntityHarm()) {
+            boolean hasHarm = hasHarmEffect(spell, slot);
+            for (LivingEntity target : struckTargets) {
+                if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                        target, caster, spell.hasWardFriendlyFireSafeguard())) {
+                    continue;
+                }
+                if (target.isOnFire()) {
+                    target.clearFire();
+                }
+                if (!hasHarm) {
+                    float coneDmg = (3.2F + tier * 1.05F) * potencyMult * spell.flawProfile().getPotencyMultiplier();
+                    SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(level, target, caster, coneDmg, permafrost, false);
+                }
+                // Exact 50% movement slow via applyTimedMovementSpeedSap alone (no compounding Slowness III!)
+                SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, 0.50D, 75L);
             }
-            if (target.isOnFire()) {
-                target.clearFire();
-            }
-            if (!slotHasHarmEffect(slot)) {
-                float coneDmg = (3.2F + tier * 1.05F) * potencyMult * spell.flawProfile().getPotencyMultiplier();
-                SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(level, target, caster, coneDmg, permafrost, false);
-            }
-            SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, 0.60D, 75L);
-            target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 75, 3));
-            boolean wetTriple = SpellLingeringZoneManager.isEntityWetOrSoaked(target)
-                    || SpellCombatReactionEngine.hasActiveMutatedHexPublic(target, EssenceType.WATER);
-            int addFreeze = (wetTriple ? 3 : 1) * 75;
-            target.setTicksFrozen(Math.min(target.getTicksRequiredToFreeze() + 90, target.getTicksFrozen() + addFreeze));
         }
 
         Vec3 midCone = coneOrigin.add(normDir.scale(reach * 0.50D));
@@ -1107,14 +1080,15 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             float potencyMult
     ) {
         int tier = spell.getEffectiveTier();
-        double impactRad = Math.max(5.5D, radius);
+        double impactRad = Math.max(5.5D, radius); // Full tier-scaled Skyfall zone radius across Tiers 1–10!
         BlockPos groundSurface = findGroundSurfaceNear(level, BlockPos.containing(center));
         BlockPos baseAir = groundSurface.above();
         Vec3 impactCenter = new Vec3(groundSurface.getX() + 0.5D, baseAir.getY(), groundSurface.getZ() + 0.5D);
         double riftClearance = SpellDeliveryForm.probeCaveSafeSkyfallHeight(level, baseAir, tier);
 
         // Build tier-scaled monolith blueprint & broadcast falling->standing 3D Pseudoblock columns
-        // (pseudoblocks stand in place during ticks 40..110; actual world blocks materialize when the spell finishes!)
+        // (pseudoblocks stand in place during ticks 40..110; actual permanent layered ice monument materializes when finished!)
+        int effectiveMonolithTicks = SpellWorldVfxManager.resolveEffectiveZoneDurationTicks(spell, fallbackMateria, VFX_MONOLITH_TOTAL_TICKS);
         int maxSpireH = Math.clamp((int) Math.floor(riftClearance) - 1, 3, 4 + tier);
         List<int[]> monumentPlan = buildTierScaledGlacialColumns(tier, maxSpireH);
         for (int[] col : monumentPlan) {
@@ -1125,7 +1099,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             Vec3 skyOrigin = new Vec3(colBase.getX() + 0.5D, baseAir.getY() + Math.max(3.5D, riftClearance - colH * 0.45D), colBase.getZ() + 0.5D);
             SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                     level, skyOrigin, colBase, pseudoState, colH,
-                    40, VFX_MONOLITH_TOTAL_TICKS - 40, EssenceType.FROZEN, tier
+                    40, Math.max(2, effectiveMonolithTicks - 40), EssenceType.FROZEN, tier
             );
         }
 
@@ -1147,12 +1121,12 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                 caster, impactCenter, impactRad, VFX_MONOLITH_TOTAL_TICKS, level.getGameTime(), spell, slot, fallbackMateria, potencyMult,
                 (srv, zone, elapsed) -> {
                     if (elapsed >= zone.maxDurationTicks) {
-                        // Spell complete! Replace standing pseudoblocks with actual permanent world ice blocks!
+                        // Spell complete! Materialize permanent layered Blue Ice / Packed Ice / Ice monument!
                         materializePlannedGlacialColumns(srv, baseAir, monumentPlan);
                         return false;
                     }
 
-                    // Phase 1 (0..39 ticks = 2.0s warning delay): overhead Snowflake Rift materializes & colossal Blue-Ice Pseudoblock Monolith plummets!
+                    // Phase 1 (0..39 ticks = 2.0s warning delay): overhead Snowflake Rift materializes & colossal Pseudoblock Monolith plummets!
                     if (elapsed < 40) {
                         double dropFrac = elapsed / 40.0D;
                         double spireY = zone.center.y + riftClearance * (1.0D - dropFrac * dropFrac);
@@ -1174,13 +1148,13 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                         return true;
                     }
 
-                    // Phase 2 (Tick 40 = exact 2.0s crash!): crush impact zone, freeze liquids, and lock pseudoblocks in place!
+                    // Phase 2 (Tick 40 = exact 2.0s crash!): crush full tier-scaled impact zone, freeze liquids, and lock pseudoblocks in place!
                     if (!crashed[0]) {
                         crashed[0] = true;
                         LivingEntity owner = zone.resolveCaster(srv);
                         boolean permafrost = zone.spell != null && hasPermafrostCreep(zone.spell, zone.fallbackMateria);
 
-                        // Freeze surface water & lava across impact zone first
+                        // Freeze surface water & lava across full impact zone first
                         int rInt = (int) Math.ceil(zone.radius);
                         double rSq = zone.radius * zone.radius;
                         for (BlockPos p : BlockPos.betweenClosed(baseAir.offset(-rInt, -2, -rInt), baseAir.offset(rInt, 1, rInt))) {
@@ -1205,11 +1179,13 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                             SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, baseAir.offset(col[0], 0, col[1]), col[2], true);
                         }
 
-                        // Crush entities in the impact zone (linear falloff 100% -> 35%)
+                        // Crush & stasis-lock entities across the full tier-scaled circular Skyfall zone radius (respecting Utility zero-harm!)
+                        boolean allowHarm = zone.spell == null || !zone.spell.prefix().enforcesZeroEntityHarm();
                         AABB crushBox = new AABB(
                                 zone.center.x - zone.radius, zone.center.y - 2.0D, zone.center.z - zone.radius,
                                 zone.center.x + zone.radius, zone.center.y + Math.max(5.0D, maxSpireH + 1.5D), zone.center.z + zone.radius
                         );
+                        boolean hasHarm = hasHarmEffect(zone.spell, zone.slot);
                         for (LivingEntity foe : srv.getEntitiesOfClass(LivingEntity.class, crushBox, LivingEntity::isAlive)) {
                             if (foe == owner) continue;
                             if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
@@ -1217,31 +1193,26 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                                 continue;
                             }
 
-                            double dist = Math.sqrt(Math.pow(foe.getX() - zone.center.x, 2) + Math.pow(foe.getZ() - zone.center.z, 2));
-                            if (dist > zone.radius + 0.6D) continue;
+                            double dx = foe.getX() - zone.center.x;
+                            double dz = foe.getZ() - zone.center.z;
+                            double distSq = dx * dx + dz * dz;
+                            if (distSq > rSq) continue;
+                            double dist = Math.sqrt(distSq);
                             float falloff = (float) Mth.clamp(1.0D - (dist / Math.max(1.0D, zone.radius)) * 0.65D, 0.35D, 1.0D);
 
                             if (zone.spell != null && zone.slot != null) {
                                 SpellExecutionEngine.deliverSubSpellOnEntity(
                                         srv, owner, foe, new Vec3(0.0D, -1.0D, 0.0D),
-                                        zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * falloff
+                                        zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * falloff * 2.0F
                                 );
                             }
-                            float flawPot = zone.spell != null ? zone.spell.flawProfile().getPotencyMultiplier() : 1.0F;
-                            float crushDmg = (12.0F + tier * 5.0F) * falloff * zone.apparatusPotency * flawPot;
-                            SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(srv, foe, owner, crushDmg, permafrost, true);
-
-                            if (dist <= zone.radius * 0.65D && zone.spell != null && zone.slot != null) {
-                                applyIceStasis(srv, owner, foe, 50, 0, zone.spell, zone.slot);
-                            } else {
-                                SpellCombatReactionEngine.applyTimedMovementSpeedSap(foe, srv, 0.60D, 80L);
-                                foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 3));
-                                foe.setTicksFrozen(Math.min(foe.getTicksRequiredToFreeze() + 90, foe.getTicksFrozen() + 90));
-                                if (!SpellCombatReactionEngine.isBossEntity(srv, foe)) {
-                                    Vec3 push = new Vec3(foe.getX() - zone.center.x, 0.0D, foe.getZ() - zone.center.z);
-                                    Vec3 pNorm = push.lengthSqr() > 1.0E-4D ? push.normalize() : new Vec3(1.0D, 0.0D, 0.0D);
-                                    SpellExecutionEngine.applySyncedMotion(foe, new Vec3(pNorm.x * 0.85D, 0.30D, pNorm.z * 0.85D));
+                            if (allowHarm) {
+                                if (!hasHarm) {
+                                    float flawPot = zone.spell != null ? zone.spell.flawProfile().getPotencyMultiplier() : 1.0F;
+                                    float crushDmg = (12.0F + tier * 5.0F) * falloff * zone.apparatusPotency * flawPot;
+                                    SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(srv, foe, owner, crushDmg, permafrost, true);
                                 }
+                                applyIceStasis(srv, owner, foe, 50, 0, zone.spell, zone.slot);
                             }
                         }
 
@@ -1326,20 +1297,20 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             Vec3 arrivalPos,
             int potencyTier
     ) {
-        boolean permafrost = SpellExecutionEngine.hasPrimedFrozenPermafrostCreep(caster);
+        boolean permafrost = SpellExecutionEngine.hasPrimedFrozenPermafrostCreep(caster)
+                || hasActiveSlowFlowOnCaster(caster);
         BlockState padIce = permafrost ? Blocks.BLUE_ICE.defaultBlockState() : Blocks.PACKED_ICE.defaultBlockState();
 
-        // Freeze water underfoot at both departure & arrival so blinking onto water forms an instant ice pad!
-        freezeLiquidsInRadius(level, BlockPos.containing(departurePos).below(), 1, padIce, true);
-        freezeLiquidsInRadius(level, BlockPos.containing(arrivalPos).below(), 1, padIce, true);
+        // Freeze a 3x3 platform of WATER ONLY underfoot at both departure & arrival (never lava)!
+        freezeWaterPlatform3x3(level, BlockPos.containing(departurePos).below(), padIce);
+        freezeWaterPlatform3x3(level, BlockPos.containing(arrivalPos).below(), padIce);
 
         if (caster.isOnFire()) {
             caster.clearFire();
         }
 
-        // Frostwalker Stasis: spawn an authentic 3D Crystalline Player Ice Statue Decoy at departurePos!
-        // Mirrors caster armor/held gear inside a 4-slab translucent crystalline ice prism, taunts monsters for 6.0s,
-        // and shatters into a 4-block Frost Nova upon destruction or expiry!
+        // Frostwalker Stasis: spawn a 3D Crystalline Player Ice Statue Decoy at departurePos
+        // (shatters into a spherical 4m Frost Nova strictly when attacked/destroyed, dissolving peacefully on expiry!)
         float statueHp = 16.0F + potencyTier * 4.0F;
         SpellEidolonEntity.spawnShortLivedDecoy(
                 level,
@@ -1380,7 +1351,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             int potencyTier
     ) {
         // Silk Touch & Permafrost (Sections 2.3, 5.5 & 6.6):
-        // 1. Freeze Lava -> Obsidian, Magma Block -> Basalt, Water -> Packed Ice, Snow -> Packed Ice, Ice/Packed Ice -> Blue Ice
+        // 1. Freeze Lava -> Obsidian, Magma Block -> Basalt, Water -> Packed Ice, full Snow Block / 8-layer Snow -> Packed Ice
         if (state.is(Blocks.LAVA)) {
             level.setBlockAndUpdate(pos, Blocks.OBSIDIAN.defaultBlockState());
             level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.85F, 1.25F);
@@ -1395,38 +1366,24 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             level.removeBlock(pos, false);
             return true;
         }
-        if (state.getBlock() instanceof CampfireBlock && state.getValue(CampfireBlock.LIT)) {
-            level.setBlockAndUpdate(pos, state.setValue(CampfireBlock.LIT, false));
-            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.70F, 1.35F);
-            return true;
-        }
-        if (state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.POWDER_SNOW) || state.is(Blocks.SNOW)) {
-            level.setBlockAndUpdate(pos, Blocks.PACKED_ICE.defaultBlockState());
-            level.playSound(null, pos, SoundEvents.GLASS_PLACE, SoundSource.PLAYERS, 0.85F, 1.35F);
-            return true;
-        }
-        if (state.is(Blocks.PACKED_ICE) || state.is(Blocks.ICE) || state.is(Blocks.FROSTED_ICE)) {
-            level.setBlockAndUpdate(pos, Blocks.BLUE_ICE.defaultBlockState());
-            level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.85F, 1.45F);
-            return true;
-        }
         if (state.is(Blocks.WATER)) {
             level.setBlockAndUpdate(pos, Blocks.PACKED_ICE.defaultBlockState());
             level.playSound(null, pos, SoundEvents.GLASS_PLACE, SoundSource.PLAYERS, 0.75F, 1.40F);
             return true;
         }
+        // Only full Snow Block or 8-layer SnowLayerBlock (LAYERS == 8) compacts 1:1 into Packed Ice!
+        if (state.is(Blocks.SNOW_BLOCK)
+                || (state.is(Blocks.SNOW) && state.getValue(SnowLayerBlock.LAYERS) == 8)) {
+            level.setBlockAndUpdate(pos, Blocks.PACKED_ICE.defaultBlockState());
+            level.playSound(null, pos, SoundEvents.GLASS_PLACE, SoundSource.PLAYERS, 0.85F, 1.35F);
+            return true;
+        }
 
-        // 2. Guaranteed Silk Touch block extraction on Silk-Touch-sensitive / crystalline / ore blocks!
-        if (SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
-            return false;
-        }
-        if (isSilkTouchValuableBlock(state)) {
-            float maxHardness = 4.0F + potencyTier * 6.0F;
-            return harvestBlockWithSilkTouchAndSealLiquids(
-                    level, caster, pos, state, maxHardness, true, null, null
-            );
-        }
-        return false;
+        // 2. Guaranteed Silk Touch block harvesting on ALL breakable non-container blocks!
+        float maxHardness = 4.0F + potencyTier * 6.0F;
+        return harvestBlockWithSilkTouchAndSealLiquids(
+                level, caster, pos, state, maxHardness, true, null, null
+        );
     }
 
     @Override
@@ -1438,29 +1395,53 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     ) {
         ItemStack stack = itemEntity.getItem();
         int count = stack.getCount();
+
+        // 4 Snowballs -> 1 Packed Ice (never 1 Snowball -> 1 Ice!)
         if (stack.is(Items.SNOWBALL)) {
             int blocks = count / 4;
-            if (blocks > 0) {
-                itemEntity.setItem(new ItemStack(Items.PACKED_ICE, blocks));
-                return true;
+            if (blocks <= 0) {
+                return false;
             }
-            itemEntity.setItem(new ItemStack(Items.ICE, count));
+            int remainder = count % 4;
+            itemEntity.setItem(new ItemStack(Items.PACKED_ICE, blocks));
+            if (remainder > 0) {
+                level.addFreshEntity(new ItemEntity(
+                        level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(),
+                        new ItemStack(Items.SNOWBALL, remainder)
+                ));
+            }
             return true;
         }
-        if (stack.is(Items.SNOW_BLOCK) || stack.is(Items.SNOW)) {
+        // 1 full Snow Block -> 1 Packed Ice
+        if (stack.is(Items.SNOW_BLOCK)) {
             itemEntity.setItem(new ItemStack(Items.PACKED_ICE, count));
+            return true;
+        }
+        // 8 Snow layer items -> 1 Packed Ice (never 1 thin snow carpet -> 1 Packed Ice!)
+        if (stack.is(Items.SNOW)) {
+            int blocks = count / 8;
+            if (blocks <= 0) {
+                return false;
+            }
+            int remainder = count % 8;
+            itemEntity.setItem(new ItemStack(Items.PACKED_ICE, blocks));
+            if (remainder > 0) {
+                level.addFreshEntity(new ItemEntity(
+                        level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(),
+                        new ItemStack(Items.SNOW, remainder)
+                ));
+            }
             return true;
         }
         if (stack.is(Items.POWDER_SNOW_BUCKET) || stack.is(Items.WATER_BUCKET)) {
             itemEntity.setItem(new ItemStack(Items.PACKED_ICE, count));
-            level.addFreshEntity(new ItemEntity(level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(),
-                    new ItemStack(Items.BUCKET, count)));
+            spawnReturnedEmptyBuckets(level, itemEntity, count);
             return true;
         }
+        // Lava Bucket -> Obsidian + 1 empty Bucket per bucket consumed!
         if (stack.is(Items.LAVA_BUCKET)) {
             itemEntity.setItem(new ItemStack(Items.OBSIDIAN, count));
-            level.addFreshEntity(new ItemEntity(level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(),
-                    new ItemStack(Items.BUCKET, count)));
+            spawnReturnedEmptyBuckets(level, itemEntity, count);
             return true;
         }
         if (stack.is(Items.ICE)) {
@@ -1481,18 +1462,11 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     @Override
     public boolean onPersistentHexTick(ServerLevel level, LivingEntity target, int potencyTier) {
         // Permafrost Stasis Hex (Section 6.6):
-        // Permanently slows movement by 60% (real attribute sap + Slowness IV), locks sprinting (also enforced every tick),
-        // +50% physical/blunt shatter damage amplification, cryogenic Frozen Materia DoT;
-        // immune to milk buckets, cleansed by fire reactions or Restoration magic!
-        float mult = SpellCombatReactionEngine.getHexStackMultiplier(target);
+        // 0 continuous HP tick damage! Applies exact 60% movement slow via applyTimedMovementSpeedSap alone (no SLOWNESS!)
+        // + sprint lock (blunt/physical/fall/crush shatter bonus & milk immunity handled by SpellCombatReactionEngine).
         target.setSprinting(false);
         SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, 0.60D, 45L);
-        target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 45, 3, true, false));
-        target.setTicksFrozen(target.getTicksRequiredToFreeze() + 50);
 
-        SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(
-                level, target, null, (1.25F + potencyTier * 0.50F) * mult, false, true
-        );
         level.sendParticles(
                 TimedTintableParticleOption.linear(ModParticles.TINTABLE_CRYSTAL.get(), GLACIAL_EIDOLON_HEX_COLOR, 28, 1.05F, 0.06F),
                 target.getX(), target.getY(0.65D), target.getZ(), 5, 0.28D, 0.38D, 0.28D, 0.02D
@@ -1507,13 +1481,13 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     }
 
     // =========================================================================
-    // PUBLIC SHARED HELPERS (ENTITY-TRACKED 3D ICE STASIS & SILK TOUCH SEALING)
+    // PUBLIC SHARED HELPERS (REAL TEMPORARY ICE STASIS & SILK TOUCH SEALING)
     // =========================================================================
 
     /**
-     * Harvests {@code pos} with guaranteed <b>Silk Touch</b> AND automatically freezes any exposed adjacent
-     * water/lava pockets into {@code Packed Ice} ({@code Blue Ice} with <i>Permafrost Creep</i>) / {@code Obsidian}
-     * so underwater and sub-lava excavation automatically seals leaks (Sections 2.2, 2.3 &amp; 6.6).
+     * Harvests {@code pos} with guaranteed <b>Silk Touch</b> across all breakable non-container blocks AND automatically
+     * freezes any exposed adjacent water/lava pockets into {@code Packed Ice} ({@code Blue Ice} with <i>Permafrost Creep</i>) /
+     * {@code Obsidian} so underwater and sub-lava excavation automatically seals leaks (Sections 2.2, 2.3 &amp; 6.6).
      */
     public static boolean harvestBlockWithSilkTouchAndSealLiquids(
             ServerLevel level,
@@ -1540,7 +1514,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.80F, 1.25F);
             return true;
         }
-        if (state.isAir() || SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
+        if (isUnbreakableOrProtectedContainer(level, pos, state)) {
             return false;
         }
 
@@ -1549,8 +1523,13 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             return false;
         }
 
-        ItemStack silkTool = createSilkTouchPickaxe(level);
-        Block.dropResources(state, level, pos, level.getBlockEntity(pos), caster, silkTool);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        ItemStack silkTool = createSilkTouchToolForState(level, state);
+        if (state.is(Blocks.FROSTED_ICE)) {
+            Block.popResource(level, pos, new ItemStack(Items.ICE));
+        } else {
+            Block.dropResources(state, level, pos, blockEntity, caster, silkTool);
+        }
         level.removeBlock(pos, false);
 
         // Guide Sections 2.2 & 2.3: automatically seal any exposed adjacent water/lava pockets!
@@ -1579,7 +1558,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     }
 
     /**
-     * Convenience overload with {@code skidTicks = 0} (immediate solid lock).
+     * Convenience overload with {@code skidTicks = 0} (immediate solid lock &amp; temporary {@code Blocks.ICE} encasement).
      */
     public static void applyIceStasis(
             ServerLevel level,
@@ -1593,12 +1572,11 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
     }
 
     /**
-     * Encases {@code target} inside an entity-tracked 3D Solid Crystalline Ice Block
-     * ({@code primary = FROZEN, secondary = STASIS} via {@link SpellCombatReactionEngine#syncEntityBarrierState}),
-     * completely halting movement, rotation, bow/item usage, and outgoing attacks ({@code TAG_FROZEN_STASIS_UNTIL})
-     * without placing suffocating opaque blocks inside the entity's hitbox.
-     *
-     * @param skidTicks optional brief knockback-skid window (e.g. 5 ticks on <i>Frost Nova Burst</i>) before velocity locks to zero.
+     * Encases {@code target} in real temporary {@code Blocks.ICE} blocks occupying replaceable positions around its
+     * bounding box, stamps {@link #TAG_FROZEN_ICE_STASIS_UNTIL} ({@code gameTime + totalTicks}) for {@code IN_WALL}
+     * suffocation immunity, completely halts movement/attacks ({@code TAG_FROZEN_STASIS_UNTIL}; capped at 20 ticks on bosses),
+     * and cleanly reverts all placed {@code Blocks.ICE} blocks back to their exact original {@link BlockState}
+     * (without melting into water) when the stasis timer expires or if broken/cleansed early.
      */
     public static void applyIceStasis(
             ServerLevel level,
@@ -1612,15 +1590,22 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
         if (!target.isAlive()) {
             return;
         }
+        if (spell != null && spell.prefix().enforcesZeroEntityHarm()) {
+            return;
+        }
         boolean isBoss = SpellCombatReactionEngine.isBossEntity(level, target);
         int effectiveStasisTicks = isBoss ? Math.min(ticks, 20) : Math.max(10, ticks);
         int effectiveSkidTicks = isBoss ? 0 : Math.max(0, skidTicks);
         int totalTicks = effectiveStasisTicks + effectiveSkidTicks;
 
         long now = level.getGameTime();
+        long until = now + totalTicks;
         CompoundTag data = EntityHelper.getPersistentData(target);
         data.putLong(SpellLingeringZoneManager.TAG_FROZEN_STASIS_UNTIL,
-                Math.max(now + totalTicks, data.getLong(SpellLingeringZoneManager.TAG_FROZEN_STASIS_UNTIL).orElse(0L)));
+                Math.max(until, data.getLong(SpellLingeringZoneManager.TAG_FROZEN_STASIS_UNTIL).orElse(0L)));
+        data.putLong(TAG_FROZEN_ICE_STASIS_UNTIL,
+                Math.max(until, data.getLong(TAG_FROZEN_ICE_STASIS_UNTIL).orElse(0L)));
+
         if (effectiveSkidTicks > 0) {
             data.putLong(SpellLingeringZoneManager.TAG_FROZEN_STASIS_SKID_UNTIL, now + effectiveSkidTicks);
         } else {
@@ -1650,16 +1635,17 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
 
         target.addEffect(new MobEffectInstance(
                 BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), totalTicks, 0));
-        target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, totalTicks, 6));
-        SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, 0.95D, totalTicks);
-        target.setTicksFrozen(target.getTicksRequiredToFreeze() + totalTicks);
+        // Use applyTimedMovementSpeedSap alone — never stack MobEffects.SLOWNESS or frost-tick speed modifiers!
+        SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, 0.90D, totalTicks);
 
-        // Sync entity-tracked 3D Translucent Solid Ice Block Encasement to all nearby clients!
         Vec3 hitOrigin = caster != null ? caster.getBoundingBox().getCenter() : null;
         SpellCombatReactionEngine.syncEntityBarrierState(level, target, 0.85F, hitOrigin);
 
-        // Freeze any water directly beneath the encased target so they stand on solid Packed Ice
-        freezeLiquidsInRadius(level, target.blockPosition().below(), 1, Blocks.PACKED_ICE.defaultBlockState(), false);
+        // Freeze standing water directly beneath the encased target into Packed Ice (water only)
+        freezeWaterPlatform3x3(level, target.blockPosition().below(), Blocks.PACKED_ICE.defaultBlockState());
+
+        // Place real temporary Blocks.ICE around target's bounding box and revert cleanly without turning into water!
+        scheduleTemporaryStasisIceEncasement(level, caster, target, effectiveSkidTicks, totalTicks, until);
 
         double sx = Math.max(0.30D, target.getBbWidth() * 0.45D);
         double sy = Math.max(0.40D, target.getBbHeight() * 0.45D);
@@ -1683,56 +1669,294 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                 && spell.flowPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.FROZEN;
     }
 
-    private static boolean slotHasHarmEffect(SubSpellSlot slot) {
-        return slot.hasHarmVerb();
+    private static boolean hasHarmEffect(@Nullable SpellAssembly spell, @Nullable SubSpellSlot slot) {
+        if (slot != null) {
+            return slot.hasHarmVerb();
+        }
+        if (spell != null) {
+            for (SubSpellSlot s : spell.subSpells()) {
+                if (s.hasHarmVerb()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
-    private static ItemStack createSilkTouchPickaxe(ServerLevel level) {
-        ItemStack silkTool = new ItemStack(Items.NETHERITE_PICKAXE);
+    private static boolean hasActiveSlowFlowOnCaster(LivingEntity caster) {
+        return stackHasActiveSlowFlow(caster.getMainHandItem())
+                || stackHasActiveSlowFlow(caster.getOffhandItem());
+    }
+
+    private static boolean stackHasActiveSlowFlow(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        try {
+            CastingApparatusState state = stack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+            if (state == null) {
+                return false;
+            }
+            return state.getActiveSpell()
+                    .map(spell -> spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY)
+                    .orElse(false);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static void scheduleTemporaryStasisIceEncasement(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            LivingEntity target,
+            int skidTicks,
+            int totalTicks,
+            long expireTick
+    ) {
+        final UUID targetId = target.getUUID();
+        final List<BlockPos> placedPositions = new ArrayList<>();
+        final boolean[] placed = {false};
+
+        if (skidTicks <= 0) {
+            placeTemporaryStasisIceAroundTarget(level, target, expireTick, placedPositions);
+            placed[0] = true;
+            if (placedPositions.isEmpty()) {
+                return;
+            }
+        }
+
+        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                caster, target.position(), 1.5D, totalTicks, level.getGameTime(), null, null, EssenceType.FROZEN, 1.0F,
+                (srv, zone, elapsed) -> {
+                    long curTime = srv.getGameTime();
+                    Entity ent = srv.getEntity(targetId);
+                    LivingEntity liv = (ent instanceof LivingEntity l && l.isAlive()) ? l : null;
+                    boolean stasisClearedEarly = liv == null
+                            || EntityHelper.getPersistentData(liv).getLong(SpellLingeringZoneManager.TAG_FROZEN_STASIS_UNTIL).orElse(0L) <= curTime;
+
+                    if (!placed[0]) {
+                        if (stasisClearedEarly) {
+                            return false;
+                        }
+                        if (elapsed < skidTicks) {
+                            return true;
+                        }
+                        placeTemporaryStasisIceAroundTarget(srv, liv, expireTick, placedPositions);
+                        placed[0] = true;
+                        if (placedPositions.isEmpty()) {
+                            return false;
+                        }
+                    }
+
+                    boolean anyIceBrokenOrMeltedEarly = false;
+                    for (BlockPos p : placedPositions) {
+                        BlockState curBs = srv.getBlockState(p);
+                        if (!curBs.is(Blocks.ICE)) {
+                            anyIceBrokenOrMeltedEarly = true;
+                            GlobalPos gp = GlobalPos.of(srv.dimension(), p);
+                            BlockState orig = ACTIVE_TEMP_STASIS_ICE_ORIGINALS.get(gp);
+                            if (orig != null && curBs.is(Blocks.WATER) && !orig.is(Blocks.WATER)) {
+                                BlockState restore = orig.canSurvive(srv, p) ? orig : Blocks.AIR.defaultBlockState();
+                                srv.setBlock(p, restore, Block.UPDATE_ALL);
+                            }
+                        }
+                    }
+
+                    if (elapsed < zone.maxDurationTicks && !stasisClearedEarly && !anyIceBrokenOrMeltedEarly) {
+                        CompoundTag lData = EntityHelper.getPersistentData(liv);
+                        lData.putLong(TAG_FROZEN_ICE_STASIS_UNTIL,
+                                Math.max(curTime + 2L, lData.getLong(TAG_FROZEN_ICE_STASIS_UNTIL).orElse(0L)));
+                        return true;
+                    }
+
+                    // Revert temporary Blocks.ICE cleanly back to original BlockState without turning into water!
+                    boolean revertedAny = false;
+                    for (BlockPos p : placedPositions) {
+                        GlobalPos gp = GlobalPos.of(srv.dimension(), p);
+                        long lockUntil = ACTIVE_TEMP_STASIS_ICE_UNTIL.getOrDefault(gp, 0L);
+                        if (!stasisClearedEarly && !anyIceBrokenOrMeltedEarly && lockUntil > curTime) {
+                            continue;
+                        }
+                        BlockState orig = ACTIVE_TEMP_STASIS_ICE_ORIGINALS.remove(gp);
+                        ACTIVE_TEMP_STASIS_ICE_UNTIL.remove(gp);
+                        if (orig == null) {
+                            continue;
+                        }
+                        BlockState curBs = srv.getBlockState(p);
+                        if (curBs.is(Blocks.ICE) || (curBs.is(Blocks.WATER) && !orig.is(Blocks.WATER))) {
+                            BlockState restore = orig.canSurvive(srv, p) ? orig : Blocks.AIR.defaultBlockState();
+                            srv.setBlock(p, restore, Block.UPDATE_ALL);
+                            revertedAny = true;
+                        }
+                    }
+
+                    if (anyIceBrokenOrMeltedEarly && liv != null && !stasisClearedEarly) {
+                        CompoundTag lData = EntityHelper.getPersistentData(liv);
+                        lData.remove(TAG_FROZEN_ICE_STASIS_UNTIL);
+                        SpellLingeringZoneManager.clearFrozenStasisAndShatter(srv, liv, lData, null);
+                    } else if (liv != null) {
+                        CompoundTag lData = EntityHelper.getPersistentData(liv);
+                        if (lData.getLong(SpellLingeringZoneManager.TAG_FROZEN_STASIS_UNTIL).orElse(0L) <= curTime) {
+                            lData.remove(TAG_FROZEN_ICE_STASIS_UNTIL);
+                        }
+                    }
+
+                    if (revertedAny && !placedPositions.isEmpty()) {
+                        BlockPos soundPos = placedPositions.getFirst();
+                        srv.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.ICE.defaultBlockState()),
+                                soundPos.getX() + 0.5D, soundPos.getY() + 0.8D, soundPos.getZ() + 0.5D,
+                                16, 0.35D, 0.45D, 0.35D, 0.12D);
+                        srv.playSound(null, soundPos, SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 0.80F, 1.30F);
+                    }
+                    return false;
+                }
+        ));
+    }
+
+    private static void placeTemporaryStasisIceAroundTarget(
+            ServerLevel level,
+            LivingEntity target,
+            long expireTick,
+            List<BlockPos> placedPositions
+    ) {
+        AABB bb = target.getBoundingBox();
+        BlockPos centerPos = target.blockPosition();
+        int minX = Math.max(centerPos.getX() - 2, Mth.floor(bb.minX + 0.02D));
+        int maxX = Math.min(centerPos.getX() + 2, Mth.floor(bb.maxX - 0.02D));
+        int minY = Math.max(centerPos.getY(), Mth.floor(bb.minY + 0.02D));
+        int maxY = Math.min(centerPos.getY() + 3, Mth.floor(bb.maxY - 0.02D));
+        int minZ = Math.max(centerPos.getZ() - 2, Mth.floor(bb.minZ + 0.02D));
+        int maxZ = Math.min(centerPos.getZ() + 2, Mth.floor(bb.maxZ - 0.02D));
+
+        for (BlockPos p : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
+            BlockPos imm = p.immutable();
+            GlobalPos gp = GlobalPos.of(level.dimension(), imm);
+            BlockState cur = level.getBlockState(imm);
+
+            if (ACTIVE_TEMP_STASIS_ICE_ORIGINALS.containsKey(gp)) {
+                ACTIVE_TEMP_STASIS_ICE_UNTIL.merge(gp, expireTick, Math::max);
+                if (!cur.is(Blocks.ICE) && isReplaceableForTemporaryStasisIce(level, imm, cur)) {
+                    level.setBlock(imm, Blocks.ICE.defaultBlockState(), Block.UPDATE_ALL);
+                }
+                placedPositions.add(imm);
+            } else if (isReplaceableForTemporaryStasisIce(level, imm, cur)) {
+                BlockState snapshot = (cur.getBlock() instanceof BaseFireBlock)
+                        ? Blocks.AIR.defaultBlockState()
+                        : cur;
+                ACTIVE_TEMP_STASIS_ICE_ORIGINALS.put(gp, snapshot);
+                ACTIVE_TEMP_STASIS_ICE_UNTIL.put(gp, expireTick);
+                level.setBlock(imm, Blocks.ICE.defaultBlockState(), Block.UPDATE_ALL);
+                placedPositions.add(imm);
+            }
+        }
+    }
+
+    private static boolean isReplaceableForTemporaryStasisIce(ServerLevel level, BlockPos pos, BlockState cur) {
+        if (cur.hasBlockEntity() || level.getBlockEntity(pos) != null) {
+            return false;
+        }
+        if (!cur.getFluidState().isEmpty()) {
+            return false;
+        }
+        if (cur.isAir() || cur.is(Blocks.SNOW)) {
+            return true;
+        }
+        if (cur.getDestroySpeed(level, pos) < 0.0F) {
+            return false;
+        }
+        return cur.canBeReplaced() || cur.is(BlockTags.REPLACEABLE);
+    }
+
+    private static boolean isUnbreakableOrProtectedContainer(ServerLevel level, BlockPos pos, BlockState state) {
+        if (state.isAir()) {
+            return true;
+        }
+        if (state.getDestroySpeed(level, pos) < 0.0F) {
+            return true;
+        }
+        BlockEntity be = level.getBlockEntity(pos);
+        if (state.hasBlockEntity() || be != null) {
+            if (be instanceof Container) {
+                return true;
+            }
+            ResourceLocation key = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+            if (!"minecraft".equals(key.getNamespace())) {
+                return true;
+            }
+            return !(state.is(BlockTags.CAMPFIRES)
+                    || state.is(BlockTags.BEEHIVES)
+                    || state.is(Blocks.ENDER_CHEST)
+                    || state.is(Blocks.SCULK_CATALYST)
+                    || state.is(Blocks.SCULK_SENSOR)
+                    || state.is(Blocks.CALIBRATED_SCULK_SENSOR)
+                    || state.is(Blocks.SCULK_SHRIEKER));
+        }
+        return false;
+    }
+
+    private static ItemStack createSilkTouchToolForState(ServerLevel level, BlockState state) {
+        ItemStack silkTool;
+        if (state.is(Blocks.COBWEB)
+                || state.is(Blocks.VINE)
+                || state.is(Blocks.GLOW_LICHEN)
+                || state.is(Blocks.SHORT_GRASS)
+                || state.is(Blocks.FERN)
+                || state.is(Blocks.DEAD_BUSH)
+                || state.is(Blocks.SEAGRASS)) {
+            silkTool = new ItemStack(Items.SHEARS);
+        } else if (state.is(BlockTags.MINEABLE_WITH_SHOVEL)) {
+            silkTool = new ItemStack(Items.NETHERITE_SHOVEL);
+        } else if (state.is(BlockTags.MINEABLE_WITH_AXE)) {
+            silkTool = new ItemStack(Items.NETHERITE_AXE);
+        } else if (state.is(BlockTags.MINEABLE_WITH_HOE)) {
+            silkTool = new ItemStack(Items.NETHERITE_HOE);
+        } else {
+            silkTool = new ItemStack(Items.NETHERITE_PICKAXE);
+        }
         level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                 .get(Enchantments.SILK_TOUCH)
                 .ifPresent(holder -> silkTool.enchant(holder, 1));
         return silkTool;
     }
 
-    private static boolean isSilkTouchValuableBlock(BlockState state) {
-        Block b = state.getBlock();
-        return b instanceof TransparentBlock
-                || b instanceof StainedGlassBlock
-                || b instanceof StainedGlassPaneBlock
-                || state.is(Blocks.GLASS_PANE)
-                || state.is(Blocks.TINTED_GLASS)
-                || state.is(Blocks.SEA_LANTERN)
-                || state.is(Blocks.GLOWSTONE)
-                || state.is(Blocks.AMETHYST_CLUSTER)
-                || state.is(Blocks.LARGE_AMETHYST_BUD)
-                || state.is(Blocks.MEDIUM_AMETHYST_BUD)
-                || state.is(Blocks.SMALL_AMETHYST_BUD)
-                || state.is(Blocks.BUDDING_AMETHYST)
-                || state.is(Blocks.GRASS_BLOCK)
-                || state.is(Blocks.MYCELIUM)
-                || state.is(Blocks.PODZOL)
-                || state.is(Blocks.CRIMSON_NYLIUM)
-                || state.is(Blocks.WARPED_NYLIUM)
-                || state.is(Blocks.SCULK)
-                || state.is(Blocks.SCULK_VEIN)
-                || state.is(Blocks.SCULK_CATALYST)
-                || state.is(Blocks.SCULK_SENSOR)
-                || state.is(Blocks.BOOKSHELF)
-                || state.is(Blocks.ENDER_CHEST)
-                || state.is(BlockTags.COAL_ORES)
-                || state.is(BlockTags.IRON_ORES)
-                || state.is(BlockTags.COPPER_ORES)
-                || state.is(BlockTags.GOLD_ORES)
-                || state.is(BlockTags.REDSTONE_ORES)
-                || state.is(BlockTags.LAPIS_ORES)
-                || state.is(BlockTags.DIAMOND_ORES)
-                || state.is(BlockTags.EMERALD_ORES)
-                || state.is(BlockTags.CORALS)
-                || state.is(BlockTags.CORAL_BLOCKS)
-                || state.is(BlockTags.WALL_CORALS)
-                || state.is(BlockTags.LEAVES)
-                || state.is(BlockTags.ICE);
+    private static void spawnReturnedEmptyBuckets(ServerLevel level, ItemEntity origin, int count) {
+        int remaining = count;
+        while (remaining > 0) {
+            int batch = Math.min(16, remaining);
+            level.addFreshEntity(new ItemEntity(
+                    level, origin.getX(), origin.getY(), origin.getZ(),
+                    new ItemStack(Items.BUCKET, batch)
+            ));
+            remaining -= batch;
+        }
+    }
+
+    private static void freezeWaterOnlyToBlueIceInRadius(ServerLevel level, BlockPos center, int radius) {
+        double rSq = (radius + 0.5D) * (radius + 0.5D);
+        for (BlockPos p : BlockPos.betweenClosed(center.offset(-radius, -1, -radius), center.offset(radius, 1, radius))) {
+            if (p.distSqr(center) > rSq) continue;
+            BlockState bs = level.getBlockState(p);
+            if (bs.is(Blocks.WATER) || bs.is(Blocks.ICE) || bs.is(Blocks.FROSTED_ICE) || bs.is(Blocks.PACKED_ICE)) {
+                level.setBlockAndUpdate(p, Blocks.BLUE_ICE.defaultBlockState());
+            }
+        }
+    }
+
+    private static void freezeWaterPlatform3x3(ServerLevel level, BlockPos underCenter, BlockState padIce) {
+        boolean upgradeToBlue = padIce.is(Blocks.BLUE_ICE);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                for (int dy = 0; dy >= -1; dy--) {
+                    BlockPos p = underCenter.offset(dx, dy, dz);
+                    BlockState bs = level.getBlockState(p);
+                    if (bs.is(Blocks.WATER)) {
+                        level.setBlockAndUpdate(p, padIce);
+                    } else if (upgradeToBlue && (bs.is(Blocks.ICE) || bs.is(Blocks.FROSTED_ICE) || bs.is(Blocks.PACKED_ICE))) {
+                        level.setBlockAndUpdate(p, Blocks.BLUE_ICE.defaultBlockState());
+                    }
+                }
+            }
+        }
     }
 
     private static void freezeLiquidsInRadius(
@@ -1781,55 +2005,44 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
         return cursor.below();
     }
 
-    private static double probeOverheadClearance(ServerLevel level, BlockPos groundAir, int maxScan) {
-        for (int dy = 3; dy <= maxScan; dy++) {
-            BlockPos p = groundAir.above(dy);
-            BlockState bs = level.getBlockState(p);
-            if (!bs.isAir() && !bs.getCollisionShape(level, p).isEmpty()) {
-                return Math.max(3.5D, dy - 0.35D);
-            }
-        }
-        return maxScan;
-    }
-
     /**
-     * Builds a tier-scaled monolith blueprint {@code [dx, dz, height, materialKind]} ({@code 2 = BLUE_ICE, 1 = PACKED_ICE, 0 = ICE}):
-     * scales from a compact 3x3 spire at Tier 1–3, to a 5x5 tiered glacial monolith at Tier 4–7,
-     * up to a towering 7x7 cathedral Blue-Ice monolith at Tier 8–10!
+     * Builds a tier-scaled monolith blueprint {@code [dx, dz, height, materialKind]} ({@code 2 = BLUE_ICE, 1 = PACKED_ICE, 0 = ICE})
+     * scaling smoothly in both footprint and height across Tiers 1–10:
+     * 3x3 spire (Tiers 1–2) -> 5x5 spire (Tiers 3–5) -> 7x7 spire (Tiers 6–8) -> 9x9 cathedral monolith (Tiers 9–10).
      */
     private static List<int[]> buildTierScaledGlacialColumns(int tier, int spireHeight) {
         List<int[]> cols = new ArrayList<>();
         int h = Math.max(3, spireHeight);
         cols.add(new int[]{0, 0, h, 2});
 
-        int cardH = Math.max(2, (int) Math.round(h * 0.62D));
+        int cardH = Math.max(2, (int) Math.round(h * 0.65D));
         cols.add(new int[]{1, 0, cardH, 2});
         cols.add(new int[]{-1, 0, cardH, 2});
         cols.add(new int[]{0, 1, cardH, 2});
         cols.add(new int[]{0, -1, cardH, 2});
 
-        int diagH = Math.max(1, (int) Math.round(h * 0.40D));
+        int diagH = Math.max(1, (int) Math.round(h * 0.42D));
         int[][] diags = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
         for (int[] d : diags) {
             cols.add(new int[]{d[0], d[1], diagH, 1});
         }
 
-        if (tier >= 4) {
-            int outerCardH = Math.max(1, (int) Math.round(h * 0.34D));
+        if (tier >= 3) {
+            int outerCardH = Math.max(1, (int) Math.round(h * 0.36D));
             cols.add(new int[]{2, 0, outerCardH, 1});
             cols.add(new int[]{-2, 0, outerCardH, 1});
             cols.add(new int[]{0, 2, outerCardH, 1});
             cols.add(new int[]{0, -2, outerCardH, 1});
-            if (tier >= 6) {
-                int knightH = Math.max(1, (int) Math.round(h * 0.22D));
+            if (tier >= 5) {
+                int knightH = Math.max(1, (int) Math.round(h * 0.25D));
                 int[][] knights = {{2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {-1, 2}, {1, -2}, {-1, -2}};
                 for (int[] k : knights) {
                     cols.add(new int[]{k[0], k[1], knightH, 1});
                 }
             }
         }
-        if (tier >= 8) {
-            int spurH = Math.max(1, (int) Math.round(h * 0.24D));
+        if (tier >= 7) {
+            int spurH = Math.max(1, (int) Math.round(h * 0.26D));
             cols.add(new int[]{3, 0, spurH, 0});
             cols.add(new int[]{-3, 0, spurH, 0});
             cols.add(new int[]{0, 3, spurH, 0});
@@ -1838,6 +2051,13 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
             cols.add(new int[]{-2, 2, Math.max(1, spurH - 1), 0});
             cols.add(new int[]{2, -2, Math.max(1, spurH - 1), 0});
             cols.add(new int[]{-2, -2, Math.max(1, spurH - 1), 0});
+        }
+        if (tier >= 9) {
+            int buttressH = Math.max(1, (int) Math.round(h * 0.18D));
+            cols.add(new int[]{4, 0, buttressH, 0});
+            cols.add(new int[]{-4, 0, buttressH, 0});
+            cols.add(new int[]{0, 4, buttressH, 0});
+            cols.add(new int[]{0, -4, buttressH, 0});
         }
         return cols;
     }
@@ -1863,7 +2083,7 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
 
     private static boolean canPlaceMonumentIceAt(ServerLevel level, BlockPos pos) {
         BlockState cur = level.getBlockState(pos);
-        if (SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, cur)) {
+        if (!cur.isAir() && SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, cur)) {
             return false;
         }
         return cur.isAir()
@@ -1875,23 +2095,41 @@ public final class FrozenSpellMutationHandler implements MateriaPartMutationHand
                 || cur.is(Blocks.FROSTED_ICE);
     }
 
-    private static void restoreOriginalPitSurface(ServerLevel level, Map<BlockPos, BlockState> originalSurface) {
-        for (Map.Entry<BlockPos, BlockState> entry : originalSurface.entrySet()) {
-            BlockPos p = entry.getKey();
-            if (level.getBlockState(p).is(Blocks.FROSTED_ICE)) {
-                level.setBlockAndUpdate(p, entry.getValue());
+    private static void restoreOriginalPitTerrainAndEjectEntities(
+            ServerLevel level,
+            BlockPos surfaceCenter,
+            Map<BlockPos, BlockState> originalBlocks
+    ) {
+        if (originalBlocks.isEmpty()) {
+            return;
+        }
+
+        // Nudge any entities still inside the 3x3x3 pit shaft safely upward onto the restored surface so nothing suffocates!
+        double safeSurfaceY = surfaceCenter.getY() + 1.05D;
+        AABB shaftBox = new AABB(
+                surfaceCenter.getX() - 1.25D, surfaceCenter.getY() - 3.35D, surfaceCenter.getZ() - 1.25D,
+                surfaceCenter.getX() + 2.25D, surfaceCenter.getY() + 1.02D, surfaceCenter.getZ() + 2.25D
+        );
+        List<Entity> trappedEntities = level.getEntitiesOfClass(Entity.class, shaftBox, Entity::isAlive);
+        for (Entity ent : trappedEntities) {
+            ent.teleportTo(ent.getX(), Math.max(ent.getY(), safeSurfaceY), ent.getZ());
+            ent.resetFallDistance();
+            Vec3 vel = ent.getDeltaMovement();
+            if (vel.y < 0.0D) {
+                ent.setDeltaMovement(vel.x, 0.05D, vel.z);
+                ent.hasImpulse = true;
             }
         }
-    }
 
-    private static void dropExcavatedPitBlock(
-            ServerLevel level,
-            @Nullable LivingEntity owner,
-            BlockPos pos,
-            BlockState state,
-            boolean silkTouch
-    ) {
-        ItemStack tool = silkTouch ? createSilkTouchPickaxe(level) : new ItemStack(Items.DIAMOND_PICKAXE);
-        Block.dropResources(state, level, pos, level.getBlockEntity(pos), owner, tool);
+        // Restore all snapshotted shaft & surface BlockStates cleanly without overwriting any player containers/builds placed mid-spell
+        for (Map.Entry<BlockPos, BlockState> entry : originalBlocks.entrySet()) {
+            BlockPos p = entry.getKey();
+            BlockState orig = entry.getValue();
+            BlockState cur = level.getBlockState(p);
+            if (!cur.hasBlockEntity() && level.getBlockEntity(p) == null
+                    && (cur.isAir() || cur.is(Blocks.FROSTED_ICE) || cur.canBeReplaced())) {
+                level.setBlockAndUpdate(p, orig);
+            }
+        }
     }
 }

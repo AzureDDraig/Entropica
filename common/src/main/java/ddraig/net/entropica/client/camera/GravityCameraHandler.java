@@ -1,5 +1,6 @@
 package ddraig.net.entropica.client.camera;
 
+import ddraig.net.entropica.client.renderer.DoubleVisionClientRenderer;
 import ddraig.net.entropica.gravity.GravityApi;
 import ddraig.net.entropica.registry.ModEffects;
 import net.minecraft.client.Minecraft;
@@ -8,8 +9,8 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Handles client-side camera roll (smooth 180-degree flip in inverted gravity)
- * and gravitational singularity slant / optical lensing.
+ * Handles client-side camera roll (smooth 180-degree flip in inverted gravity),
+ * gravitational singularity slant / optical lensing, and Double Vision binocular convergence sway.
  */
 public class GravityCameraHandler {
 
@@ -23,11 +24,15 @@ public class GravityCameraHandler {
     private static float prevWallRoll = 0.0f;
     private static float currentWallRoll = 0.0f;
 
+    private static float prevDoubleVisionBlend = 0.0f;
+    private static float currentDoubleVisionBlend = 0.0f;
+
     public static void clientTick(Minecraft mc) {
         if (mc.player == null || mc.level == null) {
             prevRoll = currentRoll = rollProgress = 0.0f;
             prevSingularityRoll = currentSingularityRoll = 0.0f;
             prevWallRoll = currentWallRoll = 0.0f;
+            prevDoubleVisionBlend = currentDoubleVisionBlend = 0.0f;
             return;
         }
 
@@ -102,20 +107,62 @@ public class GravityCameraHandler {
         prevWallRoll = currentWallRoll;
         currentWallRoll = Mth.lerp(0.18f, currentWallRoll, targetWallRoll);
 
+        // 4. Double Vision smooth blend factor (0.0 -> 1.0)
+        prevDoubleVisionBlend = currentDoubleVisionBlend;
+        float targetDv = DoubleVisionClientRenderer.isDoubleVisionActive(mc.player) ? 1.0f : 0.0f;
+        if (currentDoubleVisionBlend < targetDv) {
+            currentDoubleVisionBlend = Math.min(targetDv, currentDoubleVisionBlend + 0.12f);
+        } else if (currentDoubleVisionBlend > targetDv) {
+            currentDoubleVisionBlend = Math.max(targetDv, currentDoubleVisionBlend - 0.12f);
+        }
+
         // Combine inversion 180° flip with singularity roll slant and wall roll
         prevRoll = currentRoll;
         currentRoll = baseInversionRoll + currentSingularityRoll + currentWallRoll;
     }
 
+    private static float getDoubleVisionBlend(Minecraft mc, float partialTick) {
+        if (mc.player == null || mc.level == null || DoubleVisionClientRenderer.isWearingMirageVeilGoggles(mc.player)) {
+            return 0.0f;
+        }
+        if (!DoubleVisionClientRenderer.isDoubleVisionActive(mc.player) && currentDoubleVisionBlend <= 0.001f) {
+            return 0.0f;
+        }
+        return Mth.lerp(partialTick, prevDoubleVisionBlend, currentDoubleVisionBlend);
+    }
+
+    private static float getDoubleVisionPhase(Minecraft mc, float partialTick) {
+        return ((mc.level.getGameTime() % 72000L) + partialTick) * 0.11f;
+    }
+
     public static float getRoll(float partialTick) {
-        return Mth.lerp(partialTick, prevRoll, currentRoll);
+        float roll = Mth.lerp(partialTick, prevRoll, currentRoll);
+        Minecraft mc = Minecraft.getInstance();
+        float dvBlend = getDoubleVisionBlend(mc, partialTick);
+        if (dvBlend > 0.001f) {
+            float phase = getDoubleVisionPhase(mc, partialTick);
+            roll += dvBlend * 1.6f * Mth.cos(phase * 1.3f);
+        }
+        return roll;
     }
 
     public static float getYawSlant(float partialTick) {
-        return 0.0f; // Preserved for binary parity; pitch/yaw modification disabled
+        Minecraft mc = Minecraft.getInstance();
+        float dvBlend = getDoubleVisionBlend(mc, partialTick);
+        if (dvBlend > 0.001f) {
+            float phase = getDoubleVisionPhase(mc, partialTick);
+            return dvBlend * 1.9f * Mth.sin(phase);
+        }
+        return 0.0f;
     }
 
     public static float getPitchSlant(float partialTick) {
-        return 0.0f; // Preserved for binary parity; pitch/yaw modification disabled
+        Minecraft mc = Minecraft.getInstance();
+        float dvBlend = getDoubleVisionBlend(mc, partialTick);
+        if (dvBlend > 0.001f) {
+            float phase = getDoubleVisionPhase(mc, partialTick);
+            return dvBlend * 0.8f * Mth.sin(phase * 2.0f);
+        }
+        return 0.0f;
     }
 }

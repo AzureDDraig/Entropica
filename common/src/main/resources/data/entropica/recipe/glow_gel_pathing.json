@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "GC",
+    "CG"
+  ],
+  "key": {
+    "G": "entropica:auroral_gelatin",
+    "C": "entropica:coarse_gravel"
+  },
+  "result": {
+    "id": "entropica:glow_gel_pathing",
+    "count": 4
+  }
+}

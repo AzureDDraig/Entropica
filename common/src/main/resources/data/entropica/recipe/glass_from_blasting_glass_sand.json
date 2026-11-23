@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:blasting",
+  "category": "blocks",
+  "group": "glass",
+  "ingredient": "entropica:glass_sand",
+  "result": {
+    "id": "minecraft:glass"
+  },
+  "experience": 0.1,
+  "cookingtime": 100
+}

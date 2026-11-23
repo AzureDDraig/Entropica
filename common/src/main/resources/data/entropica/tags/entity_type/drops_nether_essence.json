@@ -72,6 +72,50 @@
     {
       "id": "enderzoology:wither_cat",
       "required": false
+    },
+    {
+      "id": "entropica:magma_cherufe",
+      "required": false
+    },
+    {
+      "id": "entropica:soulfire_phenex",
+      "required": false
+    },
+    {
+      "id": "entropica:void_arachne",
+      "required": false
+    },
+    {
+      "id": "entropica:orthrus_magma_beast",
+      "required": false
+    },
+    {
+      "id": "entropica:ash_cinder_wisp",
+      "required": false
+    },
+    {
+      "id": "entropica:soul_sand_hydra",
+      "required": false
+    },
+    {
+      "id": "entropica:obsidian_scorpioid",
+      "required": false
+    },
+    {
+      "id": "entropica:brimstone_wyvern",
+      "required": false
+    },
+    {
+      "id": "entropica:obsidian_golem",
+      "required": false
+    },
+    {
+      "id": "entropica:soulfire_djinn",
+      "required": false
+    },
+    {
+      "id": "entropica:brimstone_chimera",
+      "required": false
     }
   ]
 }

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ICI",
+    "BSB",
+    " B "
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "C": "minecraft:coal",
+    "S": "entropica:bleached_bone_meal",
+    "B": "entropica:barrow_stone_bricks"
+  },
+  "result": {
+    "id": "entropica:runed_brazier",
+    "count": 1
+  }
+}

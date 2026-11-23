@@ -118,13 +118,16 @@ public class MultiblockBlueprintWidget {
         }
     }
 
+    private int lastRenderWidth = 160;
+
     public boolean mouseClicked(double mouseX, double mouseY, int x, int y) {
+        int nextBtnX = x + Math.max(115, lastRenderWidth - 45);
         if (mouseY >= y + 18 && mouseY <= y + 32) {
             if (mouseX >= x + 8 && mouseX <= x + 40) {
                 prevLayer();
                 return true;
             }
-            if (mouseX >= x + 115 && mouseX <= x + 152) {
+            if (mouseX >= nextBtnX && mouseX <= nextBtnX + 37) {
                 nextLayer();
                 return true;
             }
@@ -133,33 +136,45 @@ public class MultiblockBlueprintWidget {
     }
 
     public void render(GuiGraphics guiGraphics, int x, int y, int mouseX, int mouseY) {
+        renderAdaptive(guiGraphics, x, y, 160, mouseX, mouseY);
+    }
+
+    public void renderAdaptive(GuiGraphics guiGraphics, int x, int y, int width, int mouseX, int mouseY) {
         if (layers.isEmpty()) return;
+        int boxW = Math.max(145, width);
+        this.lastRenderWidth = boxW;
 
         BlueprintLayer layer = layers.get(currentLayerIndex);
 
         // Render 2D Frame Box
-        guiGraphics.fill(x, y, x + 160, y + 140, 0xDD10121C);
-        guiGraphics.fill(x + 1, y + 1, x + 159, y + 139, 0xFF1B1F33);
+        guiGraphics.fill(x, y, x + boxW, y + 132, 0xDD10121C);
+        guiGraphics.fill(x + 1, y + 1, x + boxW - 1, y + 131, 0xFF1B1F33);
 
         // Header Title
-        guiGraphics.drawString(Minecraft.getInstance().font, "2D Blueprint: " + multiblockName, x + 8, y + 6, 0xFF00FFCC);
+        String hdr = "📐 Blueprint: " + multiblockName;
+        if (Minecraft.getInstance().font.width(hdr) > boxW - 12) {
+            hdr = "📐 2D Layer Blueprint";
+        }
+        guiGraphics.drawString(Minecraft.getInstance().font, hdr, x + 6, y + 6, 0xFF00FFCC, false);
 
-        // Interactive Layer Switcher Bar: [< Prev] Layer X/Y: Name [Next >]
+        int nextBtnX = x + Math.max(102, boxW - 43);
         boolean prevHover = mouseX >= x + 8 && mouseX <= x + 40 && mouseY >= y + 18 && mouseY <= y + 32;
-        boolean nextHover = mouseX >= x + 115 && mouseX <= x + 152 && mouseY >= y + 18 && mouseY <= y + 32;
+        boolean nextHover = mouseX >= nextBtnX && mouseX <= nextBtnX + 37 && mouseY >= y + 18 && mouseY <= y + 32;
 
-        guiGraphics.fill(x + 8, y + 18, x + 35, y + 30, prevHover ? 0xFF00D9FF : 0xFF2A2E47);
-        guiGraphics.drawString(Minecraft.getInstance().font, "< Prev", x + 10, y + 20, prevHover ? 0xFF000000 : 0xFFFFFFFF);
+        guiGraphics.fill(x + 8, y + 18, x + 38, y + 30, prevHover ? 0xFF00D9FF : 0xFF2A2E47);
+        guiGraphics.drawString(Minecraft.getInstance().font, "< Prev", x + 10, y + 20, prevHover ? 0xFF000000 : 0xFFFFFFFF, false);
 
-        guiGraphics.drawString(Minecraft.getInstance().font, "L" + layer.yLevel + "/" + layers.size(), x + 44, y + 20, 0xFFFFFF00);
+        String layerLbl = "L" + layer.yLevel + "/" + layers.size();
+        int lw = Minecraft.getInstance().font.width(layerLbl);
+        guiGraphics.drawString(Minecraft.getInstance().font, layerLbl, x + (boxW - lw) / 2, y + 20, 0xFFFFFF00, false);
 
-        guiGraphics.fill(x + 115, y + 18, x + 152, y + 30, nextHover ? 0xFF00D9FF : 0xFF2A2E47);
-        guiGraphics.drawString(Minecraft.getInstance().font, "Next >", x + 117, y + 20, nextHover ? 0xFF000000 : 0xFFFFFFFF);
+        guiGraphics.fill(nextBtnX, y + 18, nextBtnX + 37, y + 30, nextHover ? 0xFF00D9FF : 0xFF2A2E47);
+        guiGraphics.drawString(Minecraft.getInstance().font, "Next >", nextBtnX + 3, y + 20, nextHover ? 0xFF000000 : 0xFFFFFFFF, false);
 
-        // Render 3x3 Grid
-        int gridStartX = x + 40;
-        int gridStartY = y + 42;
+        // Render 3x3 Grid centered horizontally
         int cellSize = 26;
+        int gridStartX = x + (boxW - (3 * cellSize - 2)) / 2;
+        int gridStartY = y + 38;
 
         for (int r = 0; r < layer.grid.length; r++) {
             for (int c = 0; c < layer.grid[r].length; c++) {

@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "entropica:block/sanguine_clay_brick_slab"
+    },
+    "type=top": {
+      "model": "entropica:block/sanguine_clay_brick_slab_top"
+    },
+    "type=double": {
+      "model": "entropica:block/sanguine_clay_bricks"
+    }
+  }
+}

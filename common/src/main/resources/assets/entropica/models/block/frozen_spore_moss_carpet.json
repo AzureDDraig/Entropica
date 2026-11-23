@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/carpet",
+  "textures": {
+    "wool": "entropica:block/frozen_spore_moss"
+  }
+}

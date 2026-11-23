@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:amber_chunk",
+    "minecraft:honeycomb",
+    "minecraft:redstone"
+  ],
+  "result": {
+    "id": "entropica:amber_adhesive",
+    "count": 2
+  }
+}

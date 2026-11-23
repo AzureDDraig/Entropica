@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:water_bucket",
+    "minecraft:kelp"
+  ],
+  "result": {
+    "id": "entropica:sea_salt_crystals",
+    "count": 4
+  }
+}

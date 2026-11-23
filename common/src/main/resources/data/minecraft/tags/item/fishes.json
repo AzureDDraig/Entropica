@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:nebula_darter",
+    "entropica:cooked_nebula_darter",
+    "entropica:starwing_flying_fish",
+    "entropica:cooked_starwing_flying_fish",
+    "entropica:starfall_ray",
+    "entropica:cooked_starfall_ray",
+    "entropica:comet_ribbonfish",
+    "entropica:cooked_comet_ribbonfish",
+    "entropica:zenith_moonfish",
+    "entropica:cooked_zenith_moonfish",
+    "entropica:supernova_puffer",
+    "entropica:astral_lanternfish"
+  ]
+}

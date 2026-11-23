@@ -86,13 +86,15 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
     // =========================================================================
 
     @Override
-    public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Holy White-Hole Star-Orbit Flow";
+    public @Nullable String resolveFlowTitle(SpellFlowModifier flow) {
+        return flow == SpellFlowModifier.ORBIT_SATELLITE ? "Holy White-Hole Star-Orbit Flow" : null;
     }
 
     @Override
-    public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "Manifests 4 orbiting celestial star-cores in a glowing halo (#FFEA78 / #FF6B9D / #1A5923 / #A88654) around the caster; vaporizes incoming hostile projectiles into motes of healing starlight, fires autonomous retaliatory starlight darts bypassing 50% armor and blinding attackers, and pulses a 4m pranic aura healing adjacent allies for 1 heart every 3.0s.";
+    public @Nullable String resolveFlowDescription(SpellFlowModifier flow) {
+        return flow == SpellFlowModifier.ORBIT_SATELLITE
+                ? "Manifests 4 orbiting celestial star-cores in a glowing halo (#FFEA78 / #FF6B9D / #1A5923 / #A88654) around the caster; vaporizes incoming hostile projectiles into motes of healing starlight, fires autonomous retaliatory starlight darts bypassing 50% armor and blinding attackers, and pulses a 4m pranic aura healing adjacent allies for 1 heart every 3.0s."
+                : null;
     }
 
     @Override
@@ -168,6 +170,9 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
 
     @Override
     public void onProjectileTickFromFlow(ServerLevel level, SpellProjectileEntity projectile, SpellFlowModifier flow) {
+        if (flow != SpellFlowModifier.ORBIT_SATELLITE) {
+            return;
+        }
         LivingEntity owner = projectile.getOwner() instanceof LivingEntity l ? l : null;
         int vaporized = ApexEschatonSingularityHelper.vaporizeHostileProjectiles(
                 level, owner, projectile.getBoundingBox().inflate(2.4D), null, 0L
@@ -331,6 +336,23 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         // Section 6.52 Holy Pranic Fusion Beam & Cataclysmic Supernova:
         // Melts 2 armor/s, blinds hostiles, heals tethered allies, and siphons vitality to refill caster fuel;
         // 5.0 continuous seconds (100t) triggers Cataclysmic Supernova Collapse (-6 armor, 12.0s Blindness,
@@ -346,6 +368,9 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
 
         for (LivingEntity hit : hitEntities) {
             if (isFriendlyTarget(hit, caster)) {
+                CompoundTag fData = EntityHelper.getPersistentData(hit);
+                if (fData.getLong(TAG_CELESTIAL_BEAM_LAST_TICK).orElse(-100L) == now) continue;
+                fData.putLong(TAG_CELESTIAL_BEAM_LAST_TICK, now);
                 SpellCombatReactionEngine.cleanseSingleNegativeEffectOrHex(hit);
                 float tetherHeal = (3.5F + tier * 0.45F) * Math.max(0.5F, apparatusPotency);
                 SpellCombatReactionEngine.notifyMagicalHeal(hit, tetherHeal);
@@ -360,8 +385,13 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_CELESTIAL_BEAM_LAST_TICK).orElse(-100L);
-            long delta = (last >= 0L && now - last <= 45L) ? Math.max(1L, Math.min(24L, now - last)) : 20L;
-            int accumTicks = (now - last <= 45L) ? (data.getInt(TAG_CELESTIAL_BEAM_TICKS).orElse(0) + (int) delta) : 20;
+            if (last == now) continue;
+            int step = heldTicks > 0
+                    ? ((last >= 0L && now - last <= 45L) ? (int) Math.max(1L, Math.min(24L, now - last)) : Math.min(heldTicks, 4))
+                    : 0;
+            int accumTicks = heldTicks > 0
+                    ? ((now - last <= 45L) ? data.getInt(TAG_CELESTIAL_BEAM_TICKS).orElse(0) + step : step)
+                    : 0;
             data.putLong(TAG_CELESTIAL_BEAM_LAST_TICK, now);
 
             hit.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
@@ -383,7 +413,7 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
                 );
             }
 
-            if (accumTicks >= 100) {
+            if (heldTicks >= 100 && accumTicks >= 100) {
                 // 5.0 continuous seconds -> Cataclysmic Supernova Collapse!
                 data.putInt(TAG_CELESTIAL_BEAM_TICKS, 0);
                 data.putInt(TAG_CELESTIAL_BEAM_ARMOR_STACKS, 0);
@@ -880,17 +910,23 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
         }
 
         final boolean[] landed = new boolean[spireCount];
-        Map<BlockPos, BlockState> savedConsecratedBlocks = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 600, level.getGameTime(), spell, slot, EssenceType.CELESTIAL, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedConsecratedBlocks.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.QUARTZ_PILLAR) || cur.is(Blocks.CALCITE)
-                                    || cur.is(Blocks.MOSS_BLOCK) || cur.is(Blocks.AMETHYST_BLOCK)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int mIdx = 0; mIdx < spireCount; mIdx++) {
+                                BlockState pseudoState = switch (mIdx & 3) {
+                                    case 0 -> Blocks.QUARTZ_PILLAR.defaultBlockState();
+                                    case 1 -> Blocks.CALCITE.defaultBlockState();
+                                    case 2 -> Blocks.MOSS_BLOCK.defaultBlockState();
+                                    default -> Blocks.AMETHYST_BLOCK.defaultBlockState();
+                                };
+                                int colHeight = (mIdx % 2 == 0) ? 2 : 1;
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, spireTargets[mIdx], pseudoState, colHeight);
                             }
                         }
                         return false;
@@ -913,7 +949,7 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
                             int colHeight = (mIdx % 2 == 0) ? 2 : 1;
 
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 400 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -944,9 +980,6 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.95F, 1.25F);
                             }
-                            if (landed[mIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, colHeight, false);
-                            }
                         }
 
                         if (elapsed % 8 == 0) {
@@ -958,23 +991,10 @@ public final class CelestialSpellMutationHandler implements MateriaPartMutationH
                                     EssenceType.CELESTIAL, EssenceType.RADIANT, 1.60F, zTier
                             );
                         }
-                    } else if (elapsed == 400) {
-                        // Bombardment finished: materialize temporary consecrated calcite, quartz & moss veins for 10.0s!
-                        for (int mIdx = 0; mIdx < spireCount; mIdx++) {
-                            BlockPos ground = spireTargets[mIdx].below();
-                            BlockState gs = srv.getBlockState(ground);
-                            if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE) || gs.is(Blocks.COBBLESTONE) || gs.is(Blocks.DEEPSLATE))
-                                    && !savedConsecratedBlocks.containsKey(ground)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, ground, gs)) {
-                                savedConsecratedBlocks.put(ground.immutable(), gs);
-                                BlockState vein = switch (mIdx & 3) {
-                                    case 0 -> Blocks.QUARTZ_PILLAR.defaultBlockState();
-                                    case 1 -> Blocks.CALCITE.defaultBlockState();
-                                    case 2 -> Blocks.MOSS_BLOCK.defaultBlockState();
-                                    default -> Blocks.AMETHYST_BLOCK.defaultBlockState();
-                                };
-                                srv.setBlockAndUpdate(ground, vein);
-                            }
+                    }
+                    for (int mIdx = 0; mIdx < spireCount; mIdx++) {
+                        if (landed[mIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, spireTargets[mIdx], (mIdx % 2 == 0) ? 2 : 1, false);
                         }
                     }
 

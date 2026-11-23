@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/cube_bottom_top",
-  "textures": {
-    "top": "entropica:block/glacial_life_force_anchor_top",
-    "bottom": "entropica:block/runed_basalt_pillar_top",
-    "side": "entropica:block/glacial_life_force_anchor"
-  }
-}

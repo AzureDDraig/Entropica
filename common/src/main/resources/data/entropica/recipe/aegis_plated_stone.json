@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "SBS",
+    "BOB",
+    "SBS"
+  ],
+  "key": {
+    "S": "minecraft:stone_bricks",
+    "B": "entropica:bismuth_ingot",
+    "O": "minecraft:obsidian"
+  },
+  "result": {
+    "id": "entropica:aegis_plated_stone",
+    "count": 4
+  }
+}

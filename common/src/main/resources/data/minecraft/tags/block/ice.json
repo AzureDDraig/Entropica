@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:runic_blue_ice",
+    "entropica:glimmer_ice",
+    "entropica:rotten_ice",
+    "entropica:blighted_packed_ice",
+    "entropica:steaming_ice",
+    "entropica:fulgurite_ice",
+    "entropica:radiant_glaze_ice",
+    "entropica:zephyr_ice",
+    "entropica:spore_glazed_ice",
+    "entropica:mirage_ice",
+    "entropica:dust_crusted_ice",
+    "entropica:sanguine_ice",
+    "entropica:starlight_ice"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "phased=false": {
+      "model": "entropica:block/mirage_ice"
+    },
+    "phased=true": {
+      "model": "entropica:block/mirage_ice"
+    }
+  }
+}

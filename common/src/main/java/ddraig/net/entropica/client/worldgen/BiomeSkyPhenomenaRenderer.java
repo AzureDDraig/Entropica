@@ -129,6 +129,7 @@ public final class BiomeSkyPhenomenaRenderer {
             case ECLIPSE_CORONA -> renderEclipseCorona(mat, vc, time, easedAlpha, emerge, pr, pg, pb, sr, sg, sb);
             case VOID_RIFT_FRACTURES -> renderVoidRiftFractures(mat, vc, time, easedAlpha, emerge, pr, pg, pb, sr, sg, sb);
             case MIRAGE_HEAT_SHIMMER -> renderMirageHeatShimmer(mat, vc, time, easedAlpha, emerge, pr, pg, pb, sr, sg, sb);
+            case CLOUD_LIGHTNING_ARCS -> renderCloudLightningArcs(mat, vc, time, easedAlpha, emerge, pr, pg, pb, sr, sg, sb);
             default -> {}
         }
     }
@@ -423,6 +424,174 @@ public final class BiomeSkyPhenomenaRenderer {
                     x1, y1 + halfH, z1, sr, sg, sb, 0.0F,
                     x0, y0 + halfH, z0, sr, sg, sb, 0.0F);
         }
+    }
+
+    /**
+     * Jagged, branching electric cyan-and-pale-gold static lightning arcs jumping intermittently
+     * and horizontally between high charged cloud bands overhead (Static Ice-Plains, Lightning Peak, Storm-Swept).
+     */
+    private static void renderCloudLightningArcs(
+            Matrix4f mat, VertexConsumer vc, double time, float alpha, float emerge,
+            float pr, float pg, float pb, float sr, float sg, float sb) {
+        float altitudeLift = (1.0F - emerge) * 8.0F;
+        float spanScale = Mth.lerp(emerge, 0.45F, 1.0F);
+        float halfRibbonW = 1.65F * Mth.lerp(emerge, 0.40F, 1.0F);
+        float branchRibbonW = halfRibbonW * 0.62F;
+        float jagScale = Mth.lerp(emerge, 0.50F, 1.0F);
+
+        float coreR = Mth.lerp(0.30F, sr, 1.0F);
+        float coreG = Mth.lerp(0.30F, sg, 1.0F);
+        float coreB = Mth.lerp(0.30F, sb, 1.0F);
+
+        int arcCells = 4;
+        for (int arc = 0; arc < arcCells; arc++) {
+            // Staggered intermittent discharge cycle per cloud cell so bolts leap & flicker asynchronously
+            double phaseTime = time * (2.35D + arc * 0.41D) + arc * 1.87D;
+            float wave = Mth.sin((float) phaseTime) + 0.45F * Mth.sin((float) (phaseTime * 2.7D + 0.9D));
+            float burst = Mth.clamp((wave - 0.18F) / 0.85F, 0.0F, 1.0F);
+            if (burst <= 0.01F) {
+                continue;
+            }
+
+            float crackle = 0.62F + 0.38F * Mth.sin((float) (time * 16.5D + arc * 2.9D));
+            float boltAlpha = alpha * emerge * hermiteEase(burst) * crackle * 0.72F;
+            if (boltAlpha <= 0.004F) {
+                continue;
+            }
+
+            // Step bolt seed at discrete strike intervals so each discharge burst snaps to a new jagged path
+            int strikeStep = (int) Math.floor(phaseTime / (Math.PI * 2.0D));
+            int boltSeed = strikeStep * 97 + arc * 37;
+
+            float baseAng = (float) (arc * (Math.PI * 0.5D) + 0.38D + arcHashOffset(boltSeed, 1) * 0.32F);
+            float cellRadius = (46.0F + (arc & 1) * 12.0F) * Mth.lerp(emerge, 0.88F, 1.0F);
+            float cx = Mth.cos(baseAng) * cellRadius;
+            float cz = Mth.sin(baseAng) * cellRadius;
+            float baseY = 74.5F + arc * 2.8F + altitudeLift;
+
+            // Tangent & radial basis vectors in the horizontal cloud plane
+            float dirX = -Mth.sin(baseAng);
+            float dirZ = Mth.cos(baseAng);
+            float radX = Mth.cos(baseAng);
+            float radZ = Mth.sin(baseAng);
+
+            // Soft diffuse sheet-lightning cloud illumination pad around the active discharge cell
+            float glowR = 15.0F * spanScale;
+            float glowAlpha = boltAlpha * 0.24F;
+            emitDoubleSidedQuad(mat, vc,
+                    cx - dirX * glowR, baseY + 1.2F, cz - dirZ * glowR, pr, pg, pb, 0.0F,
+                    cx + radX * (glowR * 0.65F), baseY + 1.0F, cz + radZ * (glowR * 0.65F), pr, pg, pb, glowAlpha,
+                    cx + dirX * glowR, baseY + 1.2F, cz + dirZ * glowR, pr, pg, pb, 0.0F,
+                    cx - radX * (glowR * 0.65F), baseY + 1.0F, cz - radZ * (glowR * 0.65F), sr, sg, sb, glowAlpha * 0.85F);
+
+            float halfLen = (18.0F + (arc % 2) * 5.0F) * spanScale;
+            int segs = 10;
+
+            float prevX = 0.0F, prevY = 0.0F, prevZ = 0.0F;
+            for (int s = 0; s <= segs; s++) {
+                float u = (s / (float) segs) * 2.0F - 1.0F;
+                float endPin = 1.0F - u * u;
+                float latJag = (s == 0 || s == segs) ? 0.0F : arcHashOffset(boltSeed, s * 3 + 5) * 4.4F * jagScale * (0.45F + 0.55F * endPin);
+                float vertJag = (s == 0 || s == segs) ? 0.0F : arcHashOffset(boltSeed, s * 3 + 11) * 2.1F * jagScale;
+
+                float curX = cx + dirX * (u * halfLen) + radX * latJag;
+                float curZ = cz + dirZ * (u * halfLen) + radZ * latJag;
+                float curY = baseY + vertJag;
+
+                if (s > 0) {
+                    float uPrev = ((s - 1) / (float) segs) * 2.0F - 1.0F;
+                    float tip0 = Math.max(0.0F, 1.0F - uPrev * uPrev);
+                    float tip1 = Math.max(0.0F, 1.0F - u * u);
+                    float w0 = halfRibbonW * (0.35F + 0.65F * tip0);
+                    float w1 = halfRibbonW * (0.35F + 0.65F * tip1);
+
+                    emitArcRibbonSegment(mat, vc,
+                            prevX, prevY, prevZ, w0, boltAlpha * tip0,
+                            curX, curY, curZ, w1, boltAlpha * tip1,
+                            radX, radZ, coreR, coreG, coreB, pr, pg, pb);
+                }
+
+                // Forked horizontal sub-branches leaping off intermediate vertices (s == 3 and s == 7)
+                if (s == 3 || s == 7) {
+                    float sideSign = (s == 3) ? 1.0F : -1.0F;
+                    float bDirX = dirX * 0.72F + radX * (0.68F * sideSign);
+                    float bDirZ = dirZ * 0.72F + radZ * (0.68F * sideSign);
+                    float bPerpX = -bDirZ;
+                    float bPerpZ = bDirX;
+                    float branchLen = 9.5F * spanScale;
+                    int bSegs = 4;
+
+                    float bxPrev = curX, byPrev = curY, bzPrev = curZ;
+                    for (int bs = 1; bs <= bSegs; bs++) {
+                        float bt = bs / (float) bSegs;
+                        float btPrev = (bs - 1) / (float) bSegs;
+                        float bJag = arcHashOffset(boltSeed + s * 19, bs * 7) * 2.0F * jagScale;
+                        float bxCur = curX + bDirX * (bt * branchLen) + bPerpX * bJag;
+                        float bzCur = curZ + bDirZ * (bt * branchLen) + bPerpZ * bJag;
+                        float byCur = curY - bt * 1.6F + arcHashOffset(boltSeed + s * 23, bs * 5) * 0.9F * jagScale;
+
+                        float ba0 = boltAlpha * 0.68F * (1.0F - btPrev);
+                        float ba1 = boltAlpha * 0.68F * (1.0F - bt);
+                        float bw0 = branchRibbonW * (1.0F - btPrev * 0.65F);
+                        float bw1 = branchRibbonW * (1.0F - bt * 0.65F);
+
+                        emitArcRibbonSegment(mat, vc,
+                                bxPrev, byPrev, bzPrev, bw0, ba0,
+                                bxCur, byCur, bzCur, bw1, ba1,
+                                bPerpX, bPerpZ, sr, sg, sb, pr, pg, pb);
+
+                        bxPrev = bxCur;
+                        byPrev = byCur;
+                        bzPrev = bzCur;
+                    }
+                }
+
+                prevX = curX;
+                prevY = curY;
+                prevZ = curZ;
+            }
+        }
+    }
+
+    private static void emitArcRibbonSegment(
+            Matrix4f mat, VertexConsumer vc,
+            float x0, float y0, float z0, float w0, float a0,
+            float x1, float y1, float z1, float w1, float a1,
+            float perpX, float perpZ,
+            float cr, float cg, float cb,
+            float er, float eg, float eb) {
+        // Horizontal cloud-plane feathered ribbon (clearly visible looking straight up!)
+        emitDoubleSidedQuad(mat, vc,
+                x0 - perpX * w0, y0, z0 - perpZ * w0, er, eg, eb, 0.0F,
+                x1 - perpX * w1, y1, z1 - perpZ * w1, er, eg, eb, 0.0F,
+                x1, y1, z1, cr, cg, cb, a1,
+                x0, y0, z0, cr, cg, cb, a0);
+        emitDoubleSidedQuad(mat, vc,
+                x0, y0, z0, cr, cg, cb, a0,
+                x1, y1, z1, cr, cg, cb, a1,
+                x1 + perpX * w1, y1, z1 + perpZ * w1, er, eg, eb, 0.0F,
+                x0 + perpX * w0, y0, z0 + perpZ * w0, er, eg, eb, 0.0F);
+
+        // Crossed vertical feather so oblique horizon angles also see full volumetric thickness
+        float vw0 = w0 * 0.75F;
+        float vw1 = w1 * 0.75F;
+        emitDoubleSidedQuad(mat, vc,
+                x0, y0 - vw0, z0, er, eg, eb, 0.0F,
+                x1, y1 - vw1, z1, er, eg, eb, 0.0F,
+                x1, y1, z1, cr, cg, cb, a1 * 0.85F,
+                x0, y0, z0, cr, cg, cb, a0 * 0.85F);
+        emitDoubleSidedQuad(mat, vc,
+                x0, y0, z0, cr, cg, cb, a0 * 0.85F,
+                x1, y1, z1, cr, cg, cb, a1 * 0.85F,
+                x1, y1 + vw1, z1, er, eg, eb, 0.0F,
+                x0, y0 + vw0, z0, er, eg, eb, 0.0F);
+    }
+
+    private static float arcHashOffset(int seed, int index) {
+        int h = seed * 374761393 + index * 668265263;
+        h = (h ^ (h >> 13)) * 1274126177;
+        h = h ^ (h >> 16);
+        return ((h & 0xFFFF) / 32767.5F) - 1.0F;
     }
 
     private static void emitDoubleSidedQuad(

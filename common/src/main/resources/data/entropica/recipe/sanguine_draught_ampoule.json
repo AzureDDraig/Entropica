@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:medium_ampoule",
+    "entropica:sanguine_heart_gel",
+    "entropica:red_algae",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "id": "entropica:sanguine_draught_ampoule",
+    "count": 1
+  }
+}

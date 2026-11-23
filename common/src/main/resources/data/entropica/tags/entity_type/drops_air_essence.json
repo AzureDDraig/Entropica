@@ -112,6 +112,18 @@
     {
       "id": "biomeswevegone:cardinal",
       "required": false
+    },
+    {
+      "id": "entropica:zephyr_simurgh",
+      "required": false
+    },
+    {
+      "id": "entropica:brimstone_wyvern",
+      "required": false
+    },
+    {
+      "id": "entropica:soulfire_djinn",
+      "required": false
     }
   ]
 }

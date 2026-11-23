@@ -4,6 +4,7 @@ import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.client.particle.TimedTintableParticleOption;
 import ddraig.net.entropica.combat.VisInteractionManager;
 import ddraig.net.entropica.component.EssenceCombatStats;
+import ddraig.net.entropica.component.VisWeaponState;
 import ddraig.net.entropica.entity.SpellEidolonEntity;
 import ddraig.net.entropica.item.EssenceItem;
 import ddraig.net.entropica.registry.ModDataComponents;
@@ -12,6 +13,7 @@ import ddraig.net.entropica.registry.ModEntityTags;
 import ddraig.net.entropica.registry.ModItems;
 import ddraig.net.entropica.registry.ModParticles;
 import ddraig.net.entropica.spell.SpellFlowModifier;
+import ddraig.net.entropica.spell.apparatus.CastingApparatusState;
 import ddraig.net.entropica.spell.assembly.SpellAssembly;
 import ddraig.net.entropica.spell.assembly.SpellFlawProfile;
 import ddraig.net.entropica.spell.assembly.SubSpellSlot;
@@ -25,6 +27,7 @@ import ddraig.net.entropica.spell.vfx.SpellWardClientManager;
 import ddraig.net.entropica.spell.vfx.SpellWorldVfxManager;
 import ddraig.net.entropica.util.EntityHelper;
 import dev.architectury.event.EventResult;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -38,6 +41,7 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
@@ -66,8 +70,10 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -80,6 +86,9 @@ import java.util.Set;
 public final class SpellCombatReactionEngine {
 
     public static final long INDEFINITE_HEX_TICKS = 72_000_000L;
+    public static final long BOSS_HEX_TENACITY_CAP_TICKS = 600L;
+    public static final long BOSS_HEX_ACTIVE_TENACITY_CAP_TICKS = 300L;
+    public static final long BOSS_HEX_POST_IMMUNITY_TICKS = 200L;
 
     private static final String TAG_LAST_SPELL_HIT_TICK = "LastSpellHitTick";
     private static final String TAG_ACTIVE_ELEMENT = "ActiveSpellElement";
@@ -90,14 +99,17 @@ public final class SpellCombatReactionEngine {
     private static final String TAG_ATTR_OFFENSE_SHRED_UNTIL = "SpellAttrOffenseShredUntil";
     private static final String TAG_ATTR_DEF_BUFF_UNTIL = "SpellAttrDefBuffUntil";
 
-    private static final String TAG_HEX_TYPE = "SpellHexType";
-    private static final String TAG_HEX_TIER = "SpellHexTier";
-    private static final String TAG_HEX_STACK = "SpellHexStackLevel";
-    private static final String TAG_HEX_MUTATED = "SpellHexMutated";
-    private static final String TAG_HEX_UNTIL = "SpellHexUntil";
-    private static final String TAG_HEX_INITIAL_WINDOW = "SpellHexInitialWindowUntil";
-    private static final String TAG_HEX_BOSS_IMMUNE_UNTIL = "SpellHexBossImmuneUntil";
-    private static final String TAG_HEX_CASTER_UUID = "SpellHexCasterUuid";
+    public static final String TAG_HEX_TYPE = "SpellHexType";
+    public static final String TAG_HEX_TIER = "SpellHexTier";
+    public static final String TAG_HEX_STACK = "SpellHexStackLevel";
+    public static final String TAG_HEX_MUTATED = "SpellHexMutated";
+    public static final String TAG_HEX_UNTIL = "SpellHexUntil";
+    public static final String TAG_HEX_APPLIED_TICK = "SpellHexAppliedTick";
+    public static final String TAG_HEX_INITIAL_WINDOW = "SpellHexInitialWindowUntil";
+    public static final String TAG_HEX_BOSS_IMMUNE_UNTIL = "SpellHexBossImmuneUntil";
+    public static final String TAG_HEX_BOSS_IMMUNE_TYPE = "SpellHexBossImmuneType";
+    public static final String TAG_HEX_BOSS_IMMUNE_PREFIX = "SpellHexBossImmuneUntil_";
+    public static final String TAG_HEX_CASTER_UUID = "SpellHexCasterUuid";
     private static final String TAG_HEX_MAX_ALLOWED_HP = "SpellHexMaxAllowedHp";
 
     private static final String TAG_WARD_HP = "SpellWardShieldHp";
@@ -134,9 +146,11 @@ public final class SpellCombatReactionEngine {
             ResourceLocation.fromNamespaceAndPath("entropica", "spell_move_speed_buff_pct");
     private static final ResourceLocation MOD_HEX_MAX_HEALTH_CUT_PCT =
             ResourceLocation.fromNamespaceAndPath("entropica", "spell_hex_max_health_cut_pct");
+    public static final String TAG_AIR_HYPOXIA_MELEE_CD_UNTIL = "SpellAirHypoxiaMeleeCdUntil";
 
     private static final ThreadLocal<Boolean> REENTRANT_GUST_HURT = ThreadLocal.withInitial(() -> false);
     private static final ThreadLocal<Boolean> REENTRANT_ELEMENTAL_REACTION = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Boolean> IN_ADVANTAGE_HURT = ThreadLocal.withInitial(() -> false);
 
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
@@ -501,6 +515,8 @@ public final class SpellCombatReactionEngine {
             tough.removeModifier(MOD_TOUGHNESS_SHRED_PCT);
         }
         data.remove(TAG_ATTR_SHRED_UNTIL);
+        data.remove(TAG_ARMOR_SHRED);
+        data.remove(TAG_ARMOR_SHRED_UNTIL);
     }
 
     private static void clearOffenseShredModifiers(LivingEntity target, CompoundTag data) {
@@ -607,11 +623,25 @@ public final class SpellCombatReactionEngine {
                 * Math.max(0.25F, apparatusPotencyMult)
                 * flaw.getPotencyMultiplier();
 
-        // 2. Materia Advantage via VisInteractionManager + Mutated Flow Advantage Bonus + Touch Weapon Materia Advantage
+        // 2. Materia Advantage + Mutated Flow Advantage Bonus + Touch Weapon Materia Advantage
         EssenceType safeFallback = fallbackMateria != null ? fallbackMateria : EssenceType.REGULAR;
         EssenceType flowMateria = spell.flowPart().resolveEffectiveMateria(spell.materiaSpecific(), safeFallback);
         MateriaPartMutationHandler flowHandler = SpellMutationHandlerRegistry.resolveActive(flowMateria, spell.flowPart().mutationEnabled());
-        float flowBonusAdv = flowHandler != null ? flowHandler.getFlowBonusAdvantageScore(spell.flowPart().flow(), target) : 0.0F;
+        float flowBonusAdv;
+        if (flowMateria == EssenceType.WATER) {
+            flowBonusAdv = (spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY
+                    && spell.flowPart().mutationEnabled()
+                    && (target.isOnFire()
+                        || ddraig.net.entropica.spell.mutation.element.WaterSpellMutationHandler.isTrueNetherOrFireEntity(target)))
+                    ? 0.6F
+                    : 0.0F;
+        } else {
+            flowBonusAdv = (flowHandler != null
+                    && ddraig.net.entropica.spell.mutation.SpellMutationRegistry.isHandlerFlowMutationApplicable(
+                            flowMateria, spell.flowPart().flow()))
+                    ? flowHandler.getFlowBonusAdvantageScore(spell.flowPart().flow(), target)
+                    : 0.0F;
+        }
 
         SubSpellSlot resolvedSlot = activeSlot != null ? activeSlot : (!spell.subSpells().isEmpty() ? spell.subSpells().getFirst() : null);
         float weaponBonusAdv = 0.0F;
@@ -671,6 +701,12 @@ public final class SpellCombatReactionEngine {
         boolean aetherFirmamentSunderStrike = false;
         boolean entropicSingularityCleaveStrike = false;
         boolean celestialSupernovaCleaveStrike = false;
+        boolean empyreanRootCleaveStrike = false;
+        boolean cataclysmCalamitySunderStrike = false;
+        boolean terminusGlacierCleaveStrike = false;
+        boolean eschatonRealityScytheStrike = false;
+        boolean apotheosisGenesisCleaveStrike = false;
+        boolean entropicaGrandParadoxStrike = false;
         boolean undeadBeamSiphon = false;
         if (resolvedSlot != null && resolvedSlot.formPart().form() == ddraig.net.entropica.spell.SpellDeliveryForm.TOUCH_STRIKE) {
             if (caster != null) {
@@ -678,6 +714,7 @@ public final class SpellCombatReactionEngine {
             }
             if (resolvedSlot.formPart().mutationEnabled()) {
                 EssenceType touchFormMat = resolvedSlot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), safeFallback);
+                effectMateria = resolveConvertedTouchAttackMateria(effectMateria, touchFormMat, true);
                 if (touchFormMat == EssenceType.EARTH) {
                     earthSeismicStrike = true;
                 } else if (touchFormMat == EssenceType.FROZEN) {
@@ -777,6 +814,18 @@ public final class SpellCombatReactionEngine {
                 } else if (touchFormMat == EssenceType.CELESTIAL) {
                     celestialSupernovaCleaveStrike = true;
                     bloodFormLifesteal = Math.max(bloodFormLifesteal, 0.35F);
+                } else if (touchFormMat == EssenceType.EMPYREAN) {
+                    empyreanRootCleaveStrike = true;
+                } else if (touchFormMat == EssenceType.CATACLYSM) {
+                    cataclysmCalamitySunderStrike = true;
+                } else if (touchFormMat == EssenceType.TERMINUS) {
+                    terminusGlacierCleaveStrike = true;
+                } else if (touchFormMat == EssenceType.ESCHATON) {
+                    eschatonRealityScytheStrike = true;
+                } else if (touchFormMat == EssenceType.APOTHEOSIS) {
+                    apotheosisGenesisCleaveStrike = true;
+                } else if (touchFormMat == EssenceType.ENTROPICA) {
+                    entropicaGrandParadoxStrike = true;
                 }
             }
         } else if (resolvedSlot != null
@@ -981,53 +1030,53 @@ public final class SpellCombatReactionEngine {
         float supernovaCleaveCelestialAdv = (celestialSupernovaCleaveStrike && effectMateria != EssenceType.CELESTIAL && !defenderAffinities.isEmpty())
                 ? calculateSpellElementalAdvantageScore(EssenceType.CELESTIAL, defenderAffinities)
                 : 0.0F;
+        float rootCleaveEmpyreanAdv = (empyreanRootCleaveStrike && effectMateria != EssenceType.EMPYREAN && !defenderAffinities.isEmpty())
+                ? calculateSpellElementalAdvantageScore(EssenceType.EMPYREAN, defenderAffinities)
+                : 0.0F;
+        float calamitySunderCataclysmAdv = (cataclysmCalamitySunderStrike && effectMateria != EssenceType.CATACLYSM && !defenderAffinities.isEmpty())
+                ? calculateSpellElementalAdvantageScore(EssenceType.CATACLYSM, defenderAffinities)
+                : 0.0F;
+        float glacierCleaveTerminusAdv = (terminusGlacierCleaveStrike && effectMateria != EssenceType.TERMINUS && !defenderAffinities.isEmpty())
+                ? calculateSpellElementalAdvantageScore(EssenceType.TERMINUS, defenderAffinities)
+                : 0.0F;
+        float realityScytheEschatonAdv = (eschatonRealityScytheStrike && effectMateria != EssenceType.ESCHATON && !defenderAffinities.isEmpty())
+                ? calculateSpellElementalAdvantageScore(EssenceType.ESCHATON, defenderAffinities)
+                : 0.0F;
+        float genesisCleaveApotheosisAdv = (apotheosisGenesisCleaveStrike && effectMateria != EssenceType.APOTHEOSIS && !defenderAffinities.isEmpty())
+                ? calculateSpellElementalAdvantageScore(EssenceType.APOTHEOSIS, defenderAffinities)
+                : 0.0F;
+        float grandParadoxEntropicaAdv = (entropicaGrandParadoxStrike && effectMateria != EssenceType.ENTROPICA)
+                ? (!defenderAffinities.isEmpty()
+                    ? calculateSpellElementalAdvantageScore(EssenceType.ENTROPICA, defenderAffinities)
+                    : 1.0F)
+                : 0.0F;
 
-        if (effectMateria == EssenceType.ENTROPICA) {
-            // Sec 6.59 Entropica: +1 Elemental Advantage against EVERYTHING, 0 weaknesses!
-            float totalScore = 1.0F + flowBonusAdv + weaponBonusAdv + seismicEarthAdv + flashFrozenAdv + cauterizingNetherAdv
-                    + holySmiteRadiantAdv + cloakingUmbralAdv + vampiricUndeadAdv + destabilizeVoidAdv + mummifyAridAdv
-                    + overchargeLightningAdv + volcanicMagmaAdv + squallStormAdv + brittleGlacialAdv + botanicalOvergrowthAdv
-                    + smotherDustAdv + infestationSporeAdv + heatSiphonTaigaAdv + blessingOasisAdv + overchargeVitaeAdv
-                    + exsanguinationBloodAdv + chakraPalmAuraAdv + fossilizingAmberAdv + siphonPalmEclipseAdv + thornGougeBlightAdv
-                    + overchargeAstralAdv + cleaveSoulfireAdv + hydroGougeVaporAdv + eventHorizonNullRAdv + oblivionPalmNullUAdv
-                    + aeroSolarDawnAdv + drowningCleaveAbyssAdv + shieldBashAegisAdv + polarCleaveAuroraAdv + paranoiaMirageAdv
-                    + phasingPalmWraithAdv + tombstoneSlamBarrowAdv + timberCleavePyreAdv + eclipseCleavePenumbraAdv
-                    + permafrostCleaveRimeAdv + blossomCleaveSpringAdv + palmOverloadStaticAdv + canopyCleaveSylvanAdv
-                    + palmGougeMiasmaAdv + inceptionPalmGenesisAdv + extinctionPalmOblivionAdv + firmamentSunderAetherAdv
-                    + singularityCleaveEntropicAdv + supernovaCleaveCelestialAdv;
-            float advMult = Math.clamp(1.0F + (totalScore * 0.25F), 1.25F, 1.85F) + spell.flowPart().flow().getInnateAdvantageBonus();
-            damage *= advMult;
-        } else {
-            int advScore = (effectMateria != null && effectMateria != EssenceType.REGULAR && !defenderAffinities.isEmpty())
-                    ? calculateSpellElementalAdvantageScore(effectMateria, defenderAffinities)
-                    : 0;
-            float totalScore = advScore + flowBonusAdv + weaponBonusAdv + seismicEarthAdv + flashFrozenAdv + cauterizingNetherAdv
-                    + holySmiteRadiantAdv + cloakingUmbralAdv + vampiricUndeadAdv + destabilizeVoidAdv + mummifyAridAdv
-                    + overchargeLightningAdv + volcanicMagmaAdv + squallStormAdv + brittleGlacialAdv + botanicalOvergrowthAdv
-                    + smotherDustAdv + infestationSporeAdv + heatSiphonTaigaAdv + blessingOasisAdv + overchargeVitaeAdv
-                    + exsanguinationBloodAdv + chakraPalmAuraAdv + fossilizingAmberAdv + siphonPalmEclipseAdv + thornGougeBlightAdv
-                    + overchargeAstralAdv + cleaveSoulfireAdv + hydroGougeVaporAdv + eventHorizonNullRAdv + oblivionPalmNullUAdv
-                    + aeroSolarDawnAdv + drowningCleaveAbyssAdv + shieldBashAegisAdv + polarCleaveAuroraAdv + paranoiaMirageAdv
-                    + phasingPalmWraithAdv + tombstoneSlamBarrowAdv + timberCleavePyreAdv + eclipseCleavePenumbraAdv
-                    + permafrostCleaveRimeAdv + blossomCleaveSpringAdv + palmOverloadStaticAdv + canopyCleaveSylvanAdv
-                    + palmGougeMiasmaAdv + inceptionPalmGenesisAdv + extinctionPalmOblivionAdv + firmamentSunderAetherAdv
-                    + singularityCleaveEntropicAdv + supernovaCleaveCelestialAdv;
-            if (totalScore != 0.0F) {
-                float advMult = Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-                if (totalScore > 0 || spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY) {
-                    advMult += spell.flowPart().flow().getInnateAdvantageBonus();
-                }
-                damage *= advMult;
-            } else if (spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY) {
-                damage *= 1.15F;
-            }
+        float touchFormBonusAdv = seismicEarthAdv + flashFrozenAdv + cauterizingNetherAdv
+                + holySmiteRadiantAdv + cloakingUmbralAdv + vampiricUndeadAdv + destabilizeVoidAdv + mummifyAridAdv
+                + overchargeLightningAdv + volcanicMagmaAdv + squallStormAdv + brittleGlacialAdv + botanicalOvergrowthAdv
+                + smotherDustAdv + infestationSporeAdv + heatSiphonTaigaAdv + blessingOasisAdv + overchargeVitaeAdv
+                + exsanguinationBloodAdv + chakraPalmAuraAdv + fossilizingAmberAdv + siphonPalmEclipseAdv + thornGougeBlightAdv
+                + overchargeAstralAdv + cleaveSoulfireAdv + hydroGougeVaporAdv + eventHorizonNullRAdv + oblivionPalmNullUAdv
+                + aeroSolarDawnAdv + drowningCleaveAbyssAdv + shieldBashAegisAdv + polarCleaveAuroraAdv + paranoiaMirageAdv
+                + phasingPalmWraithAdv + tombstoneSlamBarrowAdv + timberCleavePyreAdv + eclipseCleavePenumbraAdv
+                + permafrostCleaveRimeAdv + blossomCleaveSpringAdv + palmOverloadStaticAdv + canopyCleaveSylvanAdv
+                + palmGougeMiasmaAdv + inceptionPalmGenesisAdv + extinctionPalmOblivionAdv + firmamentSunderAetherAdv
+                + singularityCleaveEntropicAdv + supernovaCleaveCelestialAdv + rootCleaveEmpyreanAdv + calamitySunderCataclysmAdv
+                + glacierCleaveTerminusAdv + realityScytheEschatonAdv + genesisCleaveApotheosisAdv + grandParadoxEntropicaAdv;
+        float bonusAdvScore = flowBonusAdv + weaponBonusAdv + touchFormBonusAdv + spell.flowPart().flow().getInnateAdvantageBonus();
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                effectMateria, caster, target, defenderAffinities, bonusAdvScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
+        damage *= advMult;
 
-        // Earth Slow-Heavy ("Dense Tectonic Mass" Section 6.5): guaranteed 2-point Armor Shred on impact
+        // Earth Slow-Heavy ("Dense Tectonic Mass" Section 6.5): unified 3.0 + 0.35 * tier Armor Shred for 160t on impact
         if (spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY
                 && spell.flowPart().mutationEnabled()
                 && flowMateria == EssenceType.EARTH) {
-            applyTimedAttributeShred(target, level, 2.0D, 0.0D, 140L);
+            applyTimedAttributeShred(target, level, 3.0D + tier * 0.35D, 0.0D, 160L);
         }
 
         // 2b. Earth Defensive Attunement, Water Soaked & Active Hex Multipliers
@@ -1107,29 +1156,11 @@ public final class SpellCombatReactionEngine {
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
             damage *= 1.25F; // +25% damage vulnerability puddle (#45 Miasma & #46 Genesis)!
         }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_EARTH_DEFENSE_UNTIL).orElse(0L)) {
-            if (MateriaFamilyTier.isVoidLineage(effectMateria)) {
-                damage *= 0.50F;
-            } else if (isAirLine(effectMateria)) {
-                damage *= 1.50F;
-            }
-        }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL).orElse(0L)) {
-            // Section 6.6 Glacial Spikes Retaliation: registers defense as Frozen (+1 vs Water -> 0.50x, -1 vs Nether/Undead -> 1.50x)!
-            if (isWaterLine(effectMateria)) {
-                damage *= 0.50F;
-            } else if (MateriaFamilyTier.isNetherLineage(effectMateria) || isNecroticLine(effectMateria)) {
-                damage *= 1.50F;
-            }
-        }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL).orElse(0L)) {
-            // Section 6.7 Immolation Shroud: registers defense as Nether (+1 vs Frozen -> 0.50x, -1 vs Water -> 1.50x; Glacial Water+Frozen neutralized)!
-            if (MateriaFamilyTier.isFrozenLineage(effectMateria) && effectMateria != EssenceType.GLACIAL) {
-                damage *= 0.50F;
-                target.setTicksFrozen(0);
-            } else if (isWaterLine(effectMateria)) {
-                damage *= 1.50F;
-            }
+        // Note: TAG_EARTH_DEFENSE_UNTIL, TAG_FROZEN_SPIKES_UNTIL, TAG_NETHER_SHROUD_UNTIL, and TAG_RADIANT_SHROUD_UNTIL already register
+        // EARTH, FROZEN, NETHER, and RADIANT in resolveEntityAffinities(target), so Materia advantage scoring already applies exact 0.50x / 1.50x!
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL).orElse(0L)
+                && MateriaFamilyTier.isFrozenLineage(effectMateria)) {
+            target.setTicksFrozen(0);
         }
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_UNDEAD_SHROUD_UNTIL).orElse(0L)) {
             // Section 6.10 Necrotic Shroud: registers defense as Undead (+1 vs Frozen -> 0.50x, -1 vs Radiant -> 1.50x)!
@@ -1662,10 +1693,16 @@ public final class SpellCombatReactionEngine {
                 && isLightningLine(effectMateria)) {
             damage *= 2.0F;
         }
-        // Earth Sundering Hex (#4): 2.0x incoming Earth spell damage!
-        if (hasActiveMutatedHex(targetData, now, EssenceType.EARTH)
-                && (MateriaFamilyTier.isEarthLineage(effectMateria) || earthSeismicStrike)) {
+        // Earth Sundering Hex (#4): exact 2.0x incoming Earth spell damage (do not double-stack hex's own armor shred)!
+        boolean sunderingEarthHexHit = hasActiveMutatedHex(targetData, now, EssenceType.EARTH)
+                && (MateriaFamilyTier.isEarthLineage(effectMateria) || earthSeismicStrike);
+        if (sunderingEarthHexHit) {
             damage *= 2.0F;
+        }
+        // Frozen Permafrost Stasis Hex (#5): +50% / +75% / +100% shatter bonus on Earth/crush Materia damage!
+        if (hasActiveMutatedHex(targetData, now, EssenceType.FROZEN)
+                && isFrozenHexShatterMateria(effectMateria)) {
+            damage *= resolveFrozenHexShatterMultiplier(getHexStackLevel(target));
         }
         // Void Spacetime Anchoring Curse (#10): +50% incoming Void spell damage!
         if (hasActiveMutatedHex(targetData, now, EssenceType.VOID) && MateriaFamilyTier.isVoidLineage(effectMateria)) {
@@ -1686,8 +1723,8 @@ public final class SpellCombatReactionEngine {
             damage *= Math.clamp(1.0F - materiaResist, 0.20F, 1.50F);
         }
 
-        // 4. Existing Broken Armor Shred bonus (+4% incoming damage per shred point, max 8)
-        if (now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)) {
+        // 4. Existing Broken Armor Shred bonus (+4% incoming damage per shred point, max 8; skipped when Sundering Hex 2.0x applies)
+        if (!sunderingEarthHexHit && now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)) {
             int shredPts = targetData.getInt(TAG_ARMOR_SHRED).orElse(0);
             if (shredPts > 0) {
                 damage *= (1.0F + 0.04F * Math.min(8, shredPts));
@@ -1741,7 +1778,7 @@ public final class SpellCombatReactionEngine {
         }
 
         float preHitHealth = target.getHealth();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, Math.max(0.5F, damage));
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, Math.max(0.5F, damage));
         if (!hurt) {
             return 0.0F;
         }
@@ -1833,7 +1870,12 @@ public final class SpellCombatReactionEngine {
                     || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_SYLVAN_ORBIT_UNTIL).orElse(0L)
                     || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_GENESIS_ORBIT_UNTIL).orElse(0L)
                     || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_AETHER_ORBIT_UNTIL).orElse(0L)
-                    || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_CELESTIAL_ORBIT_UNTIL).orElse(0L)) {
+                    || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_CELESTIAL_ORBIT_UNTIL).orElse(0L)
+                    || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_ORBIT_UNTIL).orElse(0L)
+                    || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_ORBIT_UNTIL).orElse(0L)
+                    || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_ORBIT_UNTIL).orElse(0L)
+                    || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_TERMINUS_ORBIT_UNTIL).orElse(0L)
+                    || now <= cOrbit.getLong(SpellLingeringZoneManager.TAG_ESCHATON_ORBIT_UNTIL).orElse(0L)) {
                 ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, caster, target, 1);
             }
         }
@@ -1998,12 +2040,17 @@ public final class SpellCombatReactionEngine {
             if (now <= data.getLong(SpellLingeringZoneManager.TAG_FROZEN_STASIS_UNTIL).orElse(0L)) {
                 SpellLingeringZoneManager.clearFrozenStasisAndShatter(level, target, data, hitOrig);
             }
-            if (hasActiveMutatedHex(data, now, EssenceType.FROZEN) || hasActiveMutatedHex(data, now, EssenceType.NETHER)) {
+            // Section 6.7 Hellfire Sear Hex is NEVER counter-cleansed by Frozen-lineage magic (only Water, Restoration, or caster defeat)!
+            if (hasActiveMutatedHex(data, now, EssenceType.FROZEN)) {
                 clearHexData(target, data);
             }
-            data.remove(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL);
-        data.remove(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL);
-            target.clearFire();
+            if (!hasActiveMutatedHex(data, now, EssenceType.NETHER)) {
+                data.remove(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL);
+                data.remove(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL);
+                target.clearFire();
+            } else {
+                target.igniteForSeconds(3);
+            }
             target.setTicksFrozen(0);
 
             target.invulnerableTime = 0;
@@ -2029,7 +2076,8 @@ public final class SpellCombatReactionEngine {
                 || (isUmbralLine(previous) && isRadiantLine(incoming))) {
             data.remove(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL);
             data.remove(SpellLingeringZoneManager.TAG_RADIANT_HALO_REVEAL_UNTIL);
-            if (hasActiveMutatedHex(data, now, EssenceType.RADIANT) || hasActiveMutatedHex(data, now, EssenceType.UMBRAL)) {
+            if ((isUmbralLine(incoming) && hasActiveMutatedHex(data, now, EssenceType.RADIANT))
+                    || (isRadiantLine(incoming) && hasActiveMutatedHex(data, now, EssenceType.UMBRAL))) {
                 clearHexData(target, data);
             }
             SpellWorldVfxManager.broadcast(
@@ -2291,33 +2339,84 @@ public final class SpellCombatReactionEngine {
             boolean hasWardSafeguard,
             boolean mutated
     ) {
+        return applyPersistentHexInternal(
+                level, caster, target, hexMateria, potencyTier, requestedTicks, hasWardSafeguard, mutated, true, -1L
+        );
+    }
+
+    /**
+     * Applies Death Contagion (Section 5.6) strictly at <b>Level I</b> without ever incrementing an already-hexed
+     * neighbor to Level II or Level III, and preserving the original activation window rather than resetting it.
+     */
+    public static boolean applyPersistentHexContagionLevelOne(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            LivingEntity target,
+            EssenceType hexMateria,
+            int potencyTier,
+            boolean mutated,
+            long inheritedInitialWindowUntil
+    ) {
+        return applyPersistentHexInternal(
+                level, caster, target, hexMateria, potencyTier, 300, false, mutated, false, inheritedInitialWindowUntil
+        );
+    }
+
+    private static boolean applyPersistentHexInternal(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            LivingEntity target,
+            EssenceType hexMateria,
+            int potencyTier,
+            int requestedTicks,
+            boolean hasWardSafeguard,
+            boolean mutated,
+            boolean allowStackIncrement,
+            long inheritedInitialWindowUntil
+    ) {
         if (isProtectedFromOffensiveSpell(target, caster, hasWardSafeguard)) {
             return false;
         }
 
         CompoundTag data = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
-
         boolean isBoss = isBossEntity(level, target);
-        if (isBoss && now < data.getLong(TAG_HEX_BOSS_IMMUNE_UNTIL).orElse(0L)) {
+        EssenceType resolved = hexMateria == null ? EssenceType.UMBRAL : hexMateria;
+
+        // If an earlier Hex already expired between 5-tick sweeps, finalize its expiry (and stamp boss post-expiry immunity) first!
+        long existingUntil = data.getLong(TAG_HEX_UNTIL).orElse(0L);
+        String existingType = data.getString(TAG_HEX_TYPE).orElse("");
+        if (existingUntil > 0L && now > existingUntil && !existingType.isEmpty()) {
+            clearHexData(target, data);
+            existingUntil = 0L;
+            existingType = "";
+        }
+
+        if (isBoss && isBossImmuneToHex(data, now, resolved)) {
             return false;
         }
 
-        EssenceType resolved = hexMateria == null ? EssenceType.UMBRAL : hexMateria;
-
-        // Hex Stacking (Section 5.6): re-casting the same Hex Materia stacks intensity up to Level III (max 3)
-        int stack = 1;
-        long existingUntil = data.getLong(TAG_HEX_UNTIL).orElse(0L);
-        if (now <= existingUntil && resolved.name().equals(data.getString(TAG_HEX_TYPE).orElse(""))) {
-            stack = Math.min(3, data.getInt(TAG_HEX_STACK).orElse(1) + 1);
+        // Death Contagion strictly applies Level I and never increments an already-hexed neighbor of the same element!
+        if (!allowStackIncrement && now <= existingUntil && resolved.name().equals(existingType)) {
+            return false;
         }
+
+        // If overwriting an active DIFFERENT Hex element (or unmutating), clean up the replaced Hex's modifiers/tags first!
+        boolean hadActiveDifferentHex = now <= existingUntil && !existingType.isEmpty() && !resolved.name().equals(existingType);
+        boolean hadActiveMutatedDowngrade = now <= existingUntil && resolved.name().equals(existingType)
+                && data.getBoolean(TAG_HEX_MUTATED).orElse(false) && !mutated;
+        if (hadActiveDifferentHex || hadActiveMutatedDowngrade) {
+            cleanupHexOverwriteState(target, data, now, isBoss && hadActiveDifferentHex, existingType);
+        }
+
+        // Hex Stacking (Section 5.6): re-casting the same Hex Materia stacks intensity up to Level III (max 3), including on bosses!
+        int stack = computeNextHexStackLevel(data, now, resolved, allowStackIncrement);
 
         long durationTicks;
         if (isBoss) {
-            // Section 2.5.1 / 5.6 Boss Tenacity Cap: 15s (300t) on Dragon/Wither, 30s (600t) on other bosses + 10s (200t) Hex Immunity
-            long bossCap = (target instanceof EnderDragon || target instanceof WitherBoss) ? 300L : 600L;
-            durationTicks = Math.min(bossCap, Math.max(100L, requestedTicks));
-            data.putLong(TAG_HEX_BOSS_IMMUNE_UNTIL, now + durationTicks + 200L);
+            // Section 2.5.1 / 5.6 Boss Tenacity Cap: 30s (600t) active window (or 15s / 300t active tenacity on Dragon/Wither
+            // for non-Tier-5+ Hexes). Post-expiry 10.0s (200t) boss immunity is stamped ONLY when the Hex expires or is cleansed!
+            durationTicks = resolveBossHexDurationCapTicks(target, resolved);
         } else {
             // Section 5.6 Indefinite Persistence on standard mobs and players until purified, counter-cleansed, or caster death!
             durationTicks = INDEFINITE_HEX_TICKS;
@@ -2328,22 +2427,20 @@ public final class SpellCombatReactionEngine {
         data.putInt(TAG_HEX_STACK, stack);
         data.putBoolean(TAG_HEX_MUTATED, mutated);
         data.putLong(TAG_HEX_UNTIL, now + durationTicks);
-        data.putLong(TAG_HEX_INITIAL_WINDOW, now + 200L);
+        data.putLong(TAG_HEX_APPLIED_TICK, now);
+        data.putLong(TAG_HEX_INITIAL_WINDOW, inheritedInitialWindowUntil >= 0L ? inheritedInitialWindowUntil : (now + 200L));
         if (caster != null) {
             data.putString(TAG_HEX_CASTER_UUID, caster.getUUID().toString());
         } else {
             data.remove(TAG_HEX_CASTER_UUID);
         }
 
-        if (mutated && (resolved == EssenceType.MIASMA
-                || resolved == EssenceType.GENESIS
-                || resolved == EssenceType.OBLIVION
-                || resolved == EssenceType.CHIMERA
-                || resolved == EssenceType.ENTROPIC)) {
-            double maxHpCut = resolved == EssenceType.ENTROPIC ? -0.30D : -0.25D;
-            AttributeInstance maxHp = target.getAttribute(Attributes.MAX_HEALTH);
-            if (maxHp != null) {
-                maxHp.removeModifier(MOD_HEX_MAX_HEALTH_CUT_PCT);
+        // Always strip MOD_HEX_MAX_HEALTH_CUT_PCT first so overwriting Miasma/Genesis/Oblivion/Chimera/Entropic never leaks!
+        AttributeInstance maxHp = target.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHp != null) {
+            maxHp.removeModifier(MOD_HEX_MAX_HEALTH_CUT_PCT);
+            if (usesHexMaxHealthCut(resolved, mutated)) {
+                double maxHpCut = resolved == EssenceType.ENTROPIC ? -0.30D : -0.25D;
                 maxHp.addTransientModifier(new AttributeModifier(
                         MOD_HEX_MAX_HEALTH_CUT_PCT,
                         maxHpCut,
@@ -2374,16 +2471,97 @@ public final class SpellCombatReactionEngine {
             data.putLong("SpellVoidLastRubberbandTick", now);
         }
 
-        if (mutated && resolved == EssenceType.NATURE) {
-            // Section 6.4 Silencing Spore Hex: immediately silence spellcasting & mob special abilities and shred 20% Armor Toughness!
-            data.putLong("SpellSilencedUntil", now + 45L);
-            applyPercentageArmorShred(target, level, 0.0D, Math.min(0.85D, 0.20D * getHexStackMultiplier(target)), 45L);
+        if (mutated && resolved == EssenceType.AIR) {
+            // Section 6.2 Hypoxia Suffocation Hex: immediate on-cast -40% attack speed, -40% stamina movement drag,
+            // Mining Fatigue II, sprint exhaustion, and immediate air-supply / dry-land suffocation with zero 1.0s delay!
+            float mult = getHexStackMultiplier(target);
+            int mfAmp = Math.max(1, stack - 1);
+            applyTimedAttackDebuff(target, level, 0.0D, Math.min(0.85D, 0.40D * mult), 45L);
+            applyTimedMovementSpeedSap(target, level, Math.min(0.75D, 0.40D * mult), 45L);
+            target.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 45, mfAmp, true, false));
+            target.setAirSupply(Math.max(0, target.getAirSupply() - Math.round(55.0F * mult)));
+            if (target instanceof Player hypPlayer && !hypPlayer.isCreative() && !hypPlayer.isSpectator() && hypPlayer.isSprinting()) {
+                hypPlayer.causeFoodExhaustion(0.85F * mult);
+            }
+            if (!target.isInWater()) {
+                float initHypoxiaDmg = Math.max(1.5F, ddraig.net.entropica.spell.fuel.MateriaStageTable.getBaseCombatDamageHp(potencyTier) * 0.12F) * mult;
+                boolean prevReentrant = REENTRANT_GUST_HURT.get();
+                REENTRANT_GUST_HURT.set(true);
+                try {
+                    target.hurtServer(level, level.damageSources().drown(), initHypoxiaDmg);
+                } finally {
+                    REENTRANT_GUST_HURT.set(prevReentrant);
+                }
+            }
+        } else if (resolved == EssenceType.WATER) {
+            // Section 6.3 Waterlogged Drowning Hex: immediately douse pre-existing flames (preventing tick-1 evaporation),
+            // stamp soaking wetness, reduce air supply, and deal the initial land-drowning tick with zero delay!
+            data.remove(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL);
+            data.remove(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL);
+            target.clearFire();
+            if (mutated) {
+                float mult = getHexStackMultiplier(target);
+                SpellLingeringZoneManager.applySoaked(target, 60);
+                target.setAirSupply(Math.max(-20, target.getAirSupply() - Math.round(25.0F * mult)));
+                if (!target.isInWater()) {
+                    float initDrownDmg = (1.5F + potencyTier * 0.5F) * mult;
+                    boolean prevReentrant = REENTRANT_GUST_HURT.get();
+                    REENTRANT_GUST_HURT.set(true);
+                    try {
+                        target.hurtServer(level, level.damageSources().drown(), initDrownDmg);
+                    } finally {
+                        REENTRANT_GUST_HURT.set(prevReentrant);
+                    }
+                    level.sendParticles(ParticleTypes.SPLASH, target.getX(), target.getY(0.85D), target.getZ(),
+                            6, 0.25D, 0.3D, 0.25D, 0.05D);
+                }
+            }
+        } else if (mutated && resolved == EssenceType.NATURE) {
+            // Section 6.4 Silencing Spore Hex (A5): immediate 0s-delay setup stamping Arcane Silence and shredding
+            // 20% (Level I), 35% (Level II), or 50% (Level III) Armor Toughness with 0 HP tick damage!
+            SpellLingeringZoneManager.applyArcaneSilence(target, 45);
+            data.putLong("SpellSilencedUntil", Math.max(now + 45L, data.getLong("SpellSilencedUntil").orElse(0L)));
+            if (target.isUsingItem()) {
+                target.stopUsingItem();
+            }
+            if (target instanceof Mob mob) {
+                mob.setAggressive(false);
+            }
+            double toughnessShredPct = switch (stack) {
+                case 1 -> 0.20D;
+                case 2 -> 0.35D;
+                default -> 0.50D;
+            };
+            applyPercentageArmorShred(target, level, 0.0D, toughnessShredPct, 45L);
+            level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPORE.get(), 0xB8FF52, 28, 1.0F, 0.05F),
+                    target.getX(), target.getY(0.85D), target.getZ(), 6, 0.28D, 0.35D, 0.28D, 0.015D);
+            level.sendParticles(ParticleTypes.SPORE_BLOSSOM_AIR,
+                    target.getX(), target.getY(0.95D), target.getZ(), 4, 0.25D, 0.30D, 0.25D, 0.015D);
         } else if (mutated && resolved == EssenceType.EARTH) {
-            // Section 6.5 Sundering Hex: immediately fracture physical armor by 5 points (scaling I–III) on cast!
-            applyTimedAttributeShred(target, level, 5.0D * getHexStackMultiplier(target), 0.0D, 65L);
+            // Section 6.5 Sundering Hex: immediate 0s-delay setup fracturing physical armor by 5.0 / 7.5 / 10.0 across Levels I–III (0 tick damage)!
+            applyTimedAttributeShred(target, level, resolveSunderingHexArmorShred(stack), 0.0D, 65L);
+        } else if (mutated && resolved == EssenceType.FROZEN) {
+            // Section 6.6 Permafrost Stasis Hex: immediate 0s-delay exact 60% movement slow + sprint lock (0 tick damage, no compounding Slowness)!
+            target.setSprinting(false);
+            applyTimedMovementSpeedSap(target, level, 0.60D, 65L);
+        } else if (mutated && resolved == EssenceType.NETHER) {
+            // Section 6.7 Hellfire Sear Hex: immediate 0s-delay 30% / 45% / 60% physical armor melt + underwater unquenchable burn + natural regen lock!
+            target.removeEffect(MobEffects.REGENERATION);
+            target.igniteForSeconds(5);
+            data.putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL,
+                    Math.max(now + 65L, data.getLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL).orElse(0L)));
+            applyPercentageArmorShred(target, level, resolveHellfireSearArmorMeltFraction(stack), 0.0D, 65L);
         } else if (mutated && resolved == EssenceType.RADIANT) {
-            // Section 6.8 Sun-Scorched Smite Hex: immediately melt away 4 armor points (scaling I–III) on cast!
-            applyTimedAttributeShred(target, level, 4.0D * getHexStackMultiplier(target), 0.0D, 65L);
+            // Section 6.8 Sun-Scorched Smite Hex: immediate 0s-delay 4.0 / 6.0 / 8.0 physical armor melt across Levels I–III,
+            // Glowing + Invisibility/Umbral Shroud strip, and natural health regeneration lock right on cast!
+            target.removeEffect(MobEffects.REGENERATION);
+            target.removeEffect(MobEffects.INVISIBILITY);
+            data.remove(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL);
+            target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 65, 0, true, false));
+            applyTimedAttributeShred(target, level, resolveSunScorchedHexArmorMelt(stack), 0.0D, 65L);
+            if (target.getType().is(EntityTypeTags.UNDEAD) || target instanceof Phantom) {
+                target.igniteForSeconds(3);
+            }
         } else if (mutated && resolved == EssenceType.ARID) {
             // Section 6.12 Desiccation Mummification Hex: immediately parch the victim with Hunger III & Slowness II!
             target.addEffect(new MobEffectInstance(MobEffects.HUNGER, 45, 2, true, true));
@@ -2682,11 +2860,83 @@ public final class SpellCombatReactionEngine {
                             ddraig.net.entropica.registry.ModParticles.TINTABLE_SPARKLE.get(), 0xFFEA78, 24, 1.0F, 0.05F),
                     target.getX(), target.getY(0.85D), target.getZ(), 12, 0.35D, 0.4D, 0.35D, 0.03D
             );
+        } else if (mutated && resolved == EssenceType.EMPYREAN) {
+            // Section 6.54 Radiant Empyrean Brand Hex: immediately shatter 50% armor toughness, disable potion/natural recovery & starlight blind!
+            float mult = getHexStackMultiplier(target);
+            applyPercentageArmorShred(target, level, 0.0D, Math.min(0.90D, 0.50D * mult), 80L);
+            target.removeEffect(MobEffects.REGENERATION);
+            target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0, true, true));
+            target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 80, 0, true, true));
+            level.sendParticles(
+                    ddraig.net.entropica.client.particle.TimedTintableParticleOption.linear(
+                            ddraig.net.entropica.registry.ModParticles.TINTABLE_SPARKLE.get(), 0xFFEA78, 26, 1.05F, 0.05F),
+                    target.getX(), target.getY(0.85D), target.getZ(), 14, 0.38D, 0.42D, 0.38D, 0.03D
+            );
+        } else if (mutated && resolved == EssenceType.CATACLYSM) {
+            // Section 6.55 Abyssal World-Breaker Singularity Hex: immediately shred 50% armor toughness, cut movement speed by exact 70%,
+            // block jumping, crush downward with inward gravity, & ignite unquenchable void-nether fire!
+            float mult = getHexStackMultiplier(target);
+            applyPercentageArmorShred(target, level, 0.0D, Math.min(0.90D, 0.50D * mult), 80L);
+            applyTimedMovementSpeedSap(target, level, Math.min(0.90D, 0.70D * mult), 80L);
+            data.putLong(SpellLingeringZoneManager.TAG_NO_JUMP_UNTIL, now + 80L);
+            data.putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, now + 80L);
+            target.igniteForSeconds(5);
+            target.setDeltaMovement(target.getDeltaMovement().x * 0.2D, Math.min(0.0D, target.getDeltaMovement().y - 0.50D), target.getDeltaMovement().z * 0.2D);
+            target.hasImpulse = true;
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, target.getX(), target.getY(0.85D), target.getZ(), 14, 0.38D, 0.42D, 0.38D, 0.04D);
+            level.sendParticles(ParticleTypes.LAVA, target.getX(), target.getY(0.65D), target.getZ(), 8, 0.30D, 0.30D, 0.30D, 0.03D);
+        } else if (mutated && resolved == EssenceType.TERMINUS) {
+            // Section 6.56 Absolute Zero Molecular Cessation Hex: immediately shred 50% armor toughness, slow movement by exact 80%,
+            // cut attack speed by exact 60%, disable all jumping, & deep-freeze molecular motion!
+            float mult = getHexStackMultiplier(target);
+            applyPercentageArmorShred(target, level, 0.0D, Math.min(0.90D, 0.50D * mult), 80L);
+            applyTimedMovementSpeedSap(target, level, Math.min(0.92D, 0.80D * mult), 80L);
+            applyTimedAttackDebuff(target, level, 0.0D, Math.min(0.85D, 0.60D * mult), 80L);
+            data.putLong(SpellLingeringZoneManager.TAG_NO_JUMP_UNTIL, now + 80L);
+            target.clearFire();
+            target.setTicksFrozen(Math.max(target.getTicksFrozen(), target.getTicksRequiredToFreeze() + 80));
+            level.sendParticles(ParticleTypes.SNOWFLAKE, target.getX(), target.getY(0.85D), target.getZ(), 16, 0.38D, 0.42D, 0.38D, 0.03D);
+        } else if (mutated && resolved == EssenceType.ESCHATON) {
+            // Section 6.57 Omega Event Horizon Dissolution Hex: immediately shred 60% armor toughness, slow movement by exact 85%,
+            // block jumping & teleportation, and crush downward into the collapsing event horizon!
+            float mult = getHexStackMultiplier(target);
+            applyPercentageArmorShred(target, level, 0.0D, Math.min(0.92D, 0.60D * mult), 80L);
+            applyTimedMovementSpeedSap(target, level, Math.min(0.94D, 0.85D * mult), 80L);
+            data.putLong(SpellLingeringZoneManager.TAG_NO_JUMP_UNTIL, now + 80L);
+            target.setDeltaMovement(target.getDeltaMovement().x * 0.15D, Math.min(0.0D, target.getDeltaMovement().y - 0.55D), target.getDeltaMovement().z * 0.15D);
+            target.hasImpulse = true;
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, target.getX(), target.getY(0.85D), target.getZ(), 18, 0.40D, 0.45D, 0.40D, 0.05D);
+        } else if (mutated && resolved == EssenceType.APOTHEOSIS) {
+            // Section 6.58 Divine Genesis Brand Hex: immediately shred 60% armor toughness, purge regeneration,
+            // sear with blinding white-hole cosmic life-fire, and lock health recovery!
+            float mult = getHexStackMultiplier(target);
+            applyPercentageArmorShred(target, level, 0.0D, Math.min(0.92D, 0.60D * mult), 80L);
+            target.removeEffect(MobEffects.REGENERATION);
+            target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0, true, false));
+            target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 0, true, false));
+            target.igniteForSeconds(5);
+            level.sendParticles(ParticleTypes.END_ROD, target.getX(), target.getY(0.85D), target.getZ(), 20, 0.40D, 0.45D, 0.40D, 0.05D);
+        } else if (mutated && resolved == EssenceType.ENTROPICA) {
+            // Section 6.59 Grand Equilibrium Paradox Hex: immediately shred 60% armor toughness, slow movement by exact 85%,
+            // purge regeneration, and lock victim in absolute thermodynamic collapse!
+            float mult = getHexStackMultiplier(target);
+            applyPercentageArmorShred(target, level, 0.0D, Math.min(0.92D, 0.60D * mult), 80L);
+            applyTimedMovementSpeedSap(target, level, Math.min(0.94D, 0.85D * mult), 80L);
+            target.removeEffect(MobEffects.REGENERATION);
+            target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 3, true, false));
+            target.setDeltaMovement(target.getDeltaMovement().x * 0.15D, Math.min(0.0D, target.getDeltaMovement().y - 0.50D), target.getDeltaMovement().z * 0.15D);
+            target.hasImpulse = true;
+            level.sendParticles(ParticleTypes.END_ROD, target.getX(), target.getY(0.85D), target.getZ(), 14, 0.38D, 0.42D, 0.38D, 0.04D);
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, target.getX(), target.getY(0.85D), target.getZ(), 14, 0.38D, 0.42D, 0.38D, 0.04D);
         }
+
+        // Ensure baseline signature potion debuffs are immediately present on tick 0 so Anti-Milk preservation holds before the first 20-tick pulse!
+        reapplyCanonicalHexPotionDebuffs(target, resolved, mutated, stack);
 
         if (mutated && MateriaFamilyTier.isMonsterEmpowermentHex(resolved) && !(target instanceof Player) && !isBoss) {
             if (resolved != EssenceType.ARID && resolved != EssenceType.TAIGA
-                    && resolved != EssenceType.ABYSS && resolved != EssenceType.AEGIS) {
+                    && resolved != EssenceType.ABYSS && resolved != EssenceType.AEGIS
+                    && resolved != EssenceType.TERMINUS) {
                 target.addEffect(new MobEffectInstance(MobEffects.SPEED, 600, stack - 1));
             }
             target.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 600, stack - 1));
@@ -2694,6 +2944,390 @@ public final class SpellCombatReactionEngine {
         }
 
         return true;
+    }
+
+    public static boolean usesHexMaxHealthCut(@Nullable EssenceType hexMateria, boolean mutated) {
+        return mutated && (hexMateria == EssenceType.MIASMA
+                || hexMateria == EssenceType.GENESIS
+                || hexMateria == EssenceType.OBLIVION
+                || hexMateria == EssenceType.CHIMERA
+                || hexMateria == EssenceType.ENTROPIC);
+    }
+
+    public static long resolveBossHexDurationCapTicks(@Nullable LivingEntity target, EssenceType resolved) {
+        boolean thirtySecEschatonBossCap = resolved == EssenceType.EMPYREAN
+                || resolved == EssenceType.CATACLYSM
+                || resolved == EssenceType.TERMINUS
+                || resolved == EssenceType.ESCHATON
+                || resolved == EssenceType.APOTHEOSIS
+                || resolved == EssenceType.ENTROPICA;
+        return (!thirtySecEschatonBossCap && (target instanceof EnderDragon || target instanceof WitherBoss))
+                ? BOSS_HEX_ACTIVE_TENACITY_CAP_TICKS
+                : BOSS_HEX_TENACITY_CAP_TICKS;
+    }
+
+    public static boolean isBossImmuneToHex(CompoundTag data, long now, @Nullable EssenceType incomingHex) {
+        if (incomingHex != null && now < data.getLong(TAG_HEX_BOSS_IMMUNE_PREFIX + incomingHex.name()).orElse(0L)) {
+            return true;
+        }
+        long legacyImmuneUntil = data.getLong(TAG_HEX_BOSS_IMMUNE_UNTIL).orElse(0L);
+        if (now < legacyImmuneUntil) {
+            String scopedType = data.getString(TAG_HEX_BOSS_IMMUNE_TYPE).orElse("");
+            return scopedType.isEmpty() || (incomingHex != null && scopedType.equals(incomingHex.name()));
+        }
+        return false;
+    }
+
+    public static void stampBossPostHexImmunity(CompoundTag data, long now, String expiredOrCleansedHexType, long previousUntil) {
+        if (expiredOrCleansedHexType == null || expiredOrCleansedHexType.isEmpty()) {
+            return;
+        }
+        long baseExpiry = (previousUntil > 0L && now > previousUntil) ? previousUntil : now;
+        long immuneUntil = baseExpiry + BOSS_HEX_POST_IMMUNITY_TICKS;
+        if (immuneUntil > now) {
+            data.putLong(TAG_HEX_BOSS_IMMUNE_PREFIX + expiredOrCleansedHexType, immuneUntil);
+            data.putLong(TAG_HEX_BOSS_IMMUNE_UNTIL, immuneUntil);
+            data.putString(TAG_HEX_BOSS_IMMUNE_TYPE, expiredOrCleansedHexType);
+        }
+    }
+
+    public static int computeNextHexStackLevel(CompoundTag data, long now, EssenceType resolved, boolean allowStackIncrement) {
+        if (!allowStackIncrement) {
+            return 1;
+        }
+        long existingUntil = data.getLong(TAG_HEX_UNTIL).orElse(0L);
+        if (now <= existingUntil && resolved.name().equals(data.getString(TAG_HEX_TYPE).orElse(""))) {
+            return Math.min(3, data.getInt(TAG_HEX_STACK).orElse(1) + 1);
+        }
+        return 1;
+    }
+
+    public static boolean hasAnyActivePersistentHex(CompoundTag data, long now) {
+        String hexType = data.getString(TAG_HEX_TYPE).orElse("");
+        long until = data.getLong(TAG_HEX_UNTIL).orElse(0L);
+        return !hexType.isEmpty() && until > 0L && now <= until;
+    }
+
+    public static boolean hasAnyActivePersistentHex(LivingEntity target) {
+        if (target == null || target.level() == null) {
+            return false;
+        }
+        return hasAnyActivePersistentHex(EntityHelper.getPersistentData(target), target.level().getGameTime());
+    }
+
+    private static void cleanupHexOverwriteState(
+            LivingEntity target,
+            CompoundTag data,
+            long now,
+            boolean stampReplacedBossImmunity,
+            String replacedHexType
+    ) {
+        if (stampReplacedBossImmunity && !replacedHexType.isEmpty()) {
+            stampBossPostHexImmunity(data, now, replacedHexType, now);
+        }
+        data.remove("VaporHexDissolveSteps");
+        data.remove("NullRHexMeltSteps");
+        data.remove("SpellSilencedUntil");
+        data.remove(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL);
+        data.remove(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL);
+        data.remove(SpellLingeringZoneManager.TAG_VOID_ANCHOR_X);
+        data.remove(SpellLingeringZoneManager.TAG_VOID_ANCHOR_Y);
+        data.remove(SpellLingeringZoneManager.TAG_VOID_ANCHOR_Z);
+        data.remove(SpellLingeringZoneManager.TAG_VOID_LAST_POS_X);
+        data.remove(SpellLingeringZoneManager.TAG_VOID_LAST_POS_Y);
+        data.remove(SpellLingeringZoneManager.TAG_VOID_LAST_POS_Z);
+        data.remove("SpellVoidLastRubberbandTick");
+        data.remove(TAG_AIR_HYPOXIA_MELEE_CD_UNTIL);
+        removeHexMaxHealthCutModifier(target);
+        clearShredModifiers(target, data);
+        clearOffenseShredModifiers(target, data);
+    }
+
+    private static void removeHexMaxHealthCutModifier(LivingEntity target) {
+        AttributeInstance maxHp = target.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHp != null) {
+            maxHp.removeModifier(MOD_HEX_MAX_HEALTH_CUT_PCT);
+        }
+    }
+
+    /**
+     * Snapshots potion effects owned by an active Persistent Materia Hex immediately before {@code removeAllEffects()}
+     * or Milk Bucket consumption so normal non-hex potion effects are cured while Hex debuffs remain intact.
+     */
+    public static List<MobEffectInstance> captureHexEffectsBeforeClear(LivingEntity target) {
+        if (!hasAnyActivePersistentHex(target)) {
+            return List.of();
+        }
+        CompoundTag data = EntityHelper.getPersistentData(target);
+        String typeStr = data.getString(TAG_HEX_TYPE).orElse("");
+        EssenceType hexType;
+        try {
+            hexType = EssenceType.valueOf(typeStr);
+        } catch (IllegalArgumentException e) {
+            return List.of();
+        }
+        boolean hexMutated = data.getBoolean(TAG_HEX_MUTATED).orElse(true);
+        List<MobEffectInstance> captured = new ArrayList<>();
+        for (MobEffectInstance inst : target.getActiveEffects()) {
+            if (doesHexOwnPotionEffect(target, inst.getEffect(), hexType, hexMutated)) {
+                captured.add(new MobEffectInstance(inst));
+            }
+        }
+        return captured;
+    }
+
+    /**
+     * Immediately restores snapshotted Hex potion debuffs (and guarantees baseline Hex potion debuffs) on the same tick
+     * before {@code removeAllEffects()} or Milk Bucket consumption returns.
+     */
+    public static void restoreHexEffectsAfterClear(LivingEntity target, List<MobEffectInstance> snapshot) {
+        if (!hasAnyActivePersistentHex(target)) {
+            return;
+        }
+        for (MobEffectInstance inst : snapshot) {
+            target.addEffect(new MobEffectInstance(inst));
+        }
+        CompoundTag data = EntityHelper.getPersistentData(target);
+        String typeStr = data.getString(TAG_HEX_TYPE).orElse("");
+        try {
+            EssenceType hexType = EssenceType.valueOf(typeStr);
+            boolean hexMutated = data.getBoolean(TAG_HEX_MUTATED).orElse(true);
+            int stack = Math.clamp(data.getInt(TAG_HEX_STACK).orElse(1), 1, 3);
+            reapplyCanonicalHexPotionDebuffs(target, hexType, hexMutated, stack);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public static boolean doesHexOwnPotionEffect(
+            LivingEntity target,
+            Holder<MobEffect> effect,
+            EssenceType hexType,
+            boolean hexMutated
+    ) {
+        boolean isBoss = target.level() instanceof ServerLevel srv && isBossEntity(srv, target);
+        if (effect.value().isBeneficial()) {
+            if (hexMutated && MateriaFamilyTier.isMonsterEmpowermentHex(hexType) && !(target instanceof Player) && !isBoss) {
+                if (effect.equals(MobEffects.STRENGTH)) {
+                    return true;
+                }
+                return effect.equals(MobEffects.SPEED)
+                        && hexType != EssenceType.ARID
+                        && hexType != EssenceType.TAIGA
+                        && hexType != EssenceType.ABYSS
+                        && hexType != EssenceType.AEGIS
+                        && hexType != EssenceType.TERMINUS;
+            }
+            return false;
+        }
+
+        if (!hexMutated) {
+            return effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS);
+        }
+
+        MobEffect raw = effect.value();
+        boolean isModBleed = raw == ModEffects.BLEEDING.get();
+        boolean isModParalyzed = raw == ModEffects.PARALYZED.get();
+        boolean isModErosion = raw == ModEffects.ARMOR_EROSION.get();
+        boolean isModCrush = raw == ModEffects.GRAVITATIONAL_CRUSH.get();
+        boolean isModAnchor = raw == ModEffects.INERTIAL_ANCHOR.get();
+        boolean isModVoidTear = raw == ModEffects.VOID_TEAR.get();
+        boolean isModHaze = raw == ModEffects.HAZE.get() || raw == ModEffects.DOUBLE_VISION.get();
+        boolean isModDampening = raw == ModEffects.DAMPENING.get();
+        boolean isModWeightless = raw == ModEffects.WEIGHTLESSNESS.get();
+        boolean isModToxicity = raw == ModEffects.MATERIA_TOXICITY.get();
+
+        return switch (hexType) {
+            case AIR -> effect.equals(MobEffects.MINING_FATIGUE) || raw == MobEffects.MINING_FATIGUE.value()
+                    || effect.equals(MobEffects.SLOWNESS) || raw == MobEffects.SLOWNESS.value()
+                    || effect.equals(MobEffects.LEVITATION) || raw == MobEffects.LEVITATION.value()
+                    || isModWeightless;
+            case WATER -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.MINING_FATIGUE)
+                    || effect.equals(MobEffects.WEAKNESS);
+            case NATURE, OVERGROWTH -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.POISON)
+                    || effect.equals(MobEffects.WEAKNESS) || isModAnchor;
+            case EARTH -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.MINING_FATIGUE)
+                    || isModCrush || isModAnchor;
+            case FROZEN, GLACIAL, TAIGA -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.MINING_FATIGUE)
+                    || effect.equals(MobEffects.WEAKNESS);
+            case NETHER, PYRE -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS)
+                    || effect.equals(MobEffects.HUNGER);
+            case RADIANT, DAWN, CELESTIAL, AUREOLE, RADIANT_FIRE -> effect.equals(MobEffects.BLINDNESS)
+                    || effect.equals(MobEffects.GLOWING) || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.SLOWNESS);
+            case UMBRAL, PENUMBRA, VESPER, UMBRAL_WATER -> effect.equals(MobEffects.BLINDNESS)
+                    || effect.equals(MobEffects.DARKNESS) || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.SLOWNESS);
+            case EQUINOX -> effect.equals(MobEffects.BLINDNESS) || effect.equals(MobEffects.GLOWING)
+                    || effect.equals(MobEffects.DARKNESS) || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS);
+            case UNDEAD -> effect.equals(MobEffects.WITHER) || effect.equals(MobEffects.SLOWNESS)
+                    || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.HUNGER);
+            case VOID -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS)
+                    || isModVoidTear || isModCrush || isModAnchor;
+            case ARID, OASIS -> effect.equals(MobEffects.HUNGER) || effect.equals(MobEffects.SLOWNESS)
+                    || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.MINING_FATIGUE) || effect.equals(MobEffects.NAUSEA);
+            case LIGHTNING, STATIC -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS) || isModParalyzed;
+            case MAGMA -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.MINING_FATIGUE);
+            case STORM -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS)
+                    || effect.equals(MobEffects.BLINDNESS) || isModParalyzed;
+            case DUST -> effect.equals(MobEffects.BLINDNESS) || effect.equals(MobEffects.SLOWNESS)
+                    || effect.equals(MobEffects.WEAKNESS) || isModErosion;
+            case SPORE -> effect.equals(MobEffects.NAUSEA) || effect.equals(MobEffects.POISON)
+                    || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS) || isModHaze;
+            case VITAE -> effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.HUNGER)
+                    || effect.equals(MobEffects.NAUSEA) || effect.equals(MobEffects.SLOWNESS);
+            case BLOOD -> isModBleed || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.SLOWNESS)
+                    || effect.equals(MobEffects.NAUSEA);
+            case AURA -> effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.SLOWNESS)
+                    || effect.equals(MobEffects.MINING_FATIGUE) || isModDampening;
+            case AMBER -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.MINING_FATIGUE)
+                    || isModAnchor || isModParalyzed;
+            case ECLIPSE -> effect.equals(MobEffects.BLINDNESS) || effect.equals(MobEffects.GLOWING)
+                    || effect.equals(MobEffects.DARKNESS) || effect.equals(MobEffects.WEAKNESS);
+            case BLIGHT -> effect.equals(MobEffects.POISON) || effect.equals(MobEffects.WITHER)
+                    || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.NAUSEA);
+            case ASTRAL, AETHER -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.GLOWING)
+                    || effect.equals(MobEffects.WEAKNESS) || isModCrush || isModAnchor;
+            case SOULFIRE -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS)
+                    || effect.equals(MobEffects.HUNGER) || effect.equals(MobEffects.WITHER);
+            case VAPOR -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.BLINDNESS)
+                    || effect.equals(MobEffects.WEAKNESS) || isModHaze;
+            case NULL_R -> effect.equals(MobEffects.GLOWING) || effect.equals(MobEffects.BLINDNESS)
+                    || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.SLOWNESS);
+            case NULL_U -> effect.equals(MobEffects.BLINDNESS) || effect.equals(MobEffects.DARKNESS)
+                    || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS) || isModDampening;
+            case ABYSS -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.BLINDNESS)
+                    || effect.equals(MobEffects.DARKNESS) || effect.equals(MobEffects.MINING_FATIGUE)
+                    || effect.equals(MobEffects.WEAKNESS) || isModCrush;
+            case AEGIS -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.MINING_FATIGUE)
+                    || effect.equals(MobEffects.WEAKNESS) || isModAnchor;
+            case AURORA -> effect.equals(MobEffects.GLOWING) || effect.equals(MobEffects.SLOWNESS)
+                    || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.MINING_FATIGUE);
+            case MIRAGE -> effect.equals(MobEffects.NAUSEA) || effect.equals(MobEffects.BLINDNESS)
+                    || effect.equals(MobEffects.WEAKNESS) || isModHaze;
+            case WRAITH -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS)
+                    || effect.equals(MobEffects.DARKNESS) || effect.equals(MobEffects.WITHER);
+            case BARROW -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.MINING_FATIGUE)
+                    || effect.equals(MobEffects.WEAKNESS) || effect.equals(MobEffects.WITHER) || isModAnchor;
+            case RIME, TERMINUS -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.MINING_FATIGUE)
+                    || effect.equals(MobEffects.WEAKNESS) || isModParalyzed || isModAnchor;
+            case SPRING, SYLVAN -> effect.equals(MobEffects.SLOWNESS) || isModParalyzed || isModAnchor;
+            case MIASMA -> effect.equals(MobEffects.POISON) || effect.equals(MobEffects.WITHER)
+                    || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.NAUSEA)
+                    || effect.equals(MobEffects.WEAKNESS) || isModToxicity;
+            case GENESIS -> isModParalyzed || effect.equals(MobEffects.GLOWING)
+                    || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS);
+            case OBLIVION -> effect.equals(MobEffects.WITHER) || effect.equals(MobEffects.BLINDNESS)
+                    || effect.equals(MobEffects.DARKNESS) || effect.equals(MobEffects.SLOWNESS)
+                    || effect.equals(MobEffects.WEAKNESS) || isModVoidTear;
+            case CHIMERA -> effect.equals(MobEffects.POISON) || effect.equals(MobEffects.WITHER)
+                    || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS)
+                    || effect.equals(MobEffects.NAUSEA) || isModBleed;
+            case ENTROPIC -> isModBleed || effect.equals(MobEffects.WITHER)
+                    || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS);
+            case PRISMATIC, EMPYREAN -> effect.equals(MobEffects.BLINDNESS) || effect.equals(MobEffects.GLOWING)
+                    || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS)
+                    || isModParalyzed || isModAnchor;
+            case CATACLYSM -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WITHER)
+                    || effect.equals(MobEffects.DARKNESS) || isModCrush || isModAnchor;
+            case ESCHATON -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WITHER)
+                    || effect.equals(MobEffects.DARKNESS) || effect.equals(MobEffects.BLINDNESS)
+                    || isModVoidTear || isModCrush || isModAnchor;
+            case APOTHEOSIS -> effect.equals(MobEffects.BLINDNESS) || effect.equals(MobEffects.GLOWING)
+                    || effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WEAKNESS);
+            case ENTROPICA -> effect.equals(MobEffects.SLOWNESS) || effect.equals(MobEffects.WITHER)
+                    || effect.equals(MobEffects.BLINDNESS) || effect.equals(MobEffects.GLOWING)
+                    || effect.equals(MobEffects.DARKNESS) || effect.equals(MobEffects.WEAKNESS)
+                    || isModBleed || isModCrush || isModAnchor;
+            default -> false;
+        };
+    }
+
+    private static void reapplyCanonicalHexPotionDebuffs(
+            LivingEntity target,
+            EssenceType hexType,
+            boolean hexMutated,
+            int stack
+    ) {
+        int amp = Math.max(0, stack - 1);
+        if (!hexMutated) {
+            if (MateriaFamilyTier.isFrozenLineage(hexType) && !target.hasEffect(MobEffects.SLOWNESS)) {
+                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 45, 1, true, false));
+            } else if ((MateriaFamilyTier.isVoidLineage(hexType) || isUmbralLine(hexType)) && !target.hasEffect(MobEffects.WEAKNESS)) {
+                target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 45, 0, true, false));
+            }
+            return;
+        }
+        switch (hexType) {
+            case AIR -> {
+                if (!target.hasEffect(MobEffects.MINING_FATIGUE)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 45, Math.max(1, amp), true, false));
+                }
+            }
+            case WATER, STORM -> {
+                if (!target.hasEffect(MobEffects.SLOWNESS)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 45, amp, true, true));
+                }
+            }
+            case GLACIAL -> {
+                if (!target.hasEffect(MobEffects.SLOWNESS)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 45, Math.min(3, 1 + amp), true, true));
+                }
+            }
+            case OVERGROWTH -> {
+                if (!target.hasEffect(MobEffects.SLOWNESS)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 45, Math.min(3, 1 + amp), true, true));
+                }
+            }
+            case NETHER -> {
+                if (!target.hasEffect(MobEffects.WEAKNESS)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 45, amp, true, true));
+                }
+            }
+            case UMBRAL, VESPER, UMBRAL_WATER -> {
+                if (!target.hasEffect(MobEffects.DARKNESS)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 50, 0, true, true));
+                }
+                if (!target.hasEffect(MobEffects.WEAKNESS)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 45, amp, true, true));
+                }
+            }
+            case RADIANT, RADIANT_FIRE, AUREOLE -> {
+                if (!target.hasEffect(MobEffects.GLOWING)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 50, 0, true, true));
+                }
+            }
+            case EQUINOX -> {
+                if (!target.hasEffect(MobEffects.GLOWING)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 50, 0, true, true));
+                }
+                if (!target.hasEffect(MobEffects.DARKNESS)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 50, 0, true, true));
+                }
+            }
+            case UNDEAD -> {
+                if (!target.hasEffect(MobEffects.WITHER)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.WITHER, 45, Math.max(1, amp), true, false));
+                }
+            }
+            case VOID -> {
+                if (!target.hasEffect(MobEffects.SLOWNESS)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 45, amp, true, true));
+                }
+            }
+            case CHIMERA -> {
+                if (!target.hasEffect(MobEffects.POISON)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.POISON, 50, amp, true, true));
+                }
+            }
+            case PRISMATIC -> {
+                if (!target.hasEffect(MobEffects.GLOWING)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, true, true));
+                }
+                if (!target.hasEffect(MobEffects.BLINDNESS)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 45, 0, true, true));
+                }
+            }
+            default -> {
+            }
+        }
     }
 
     public static int getHexStackLevel(LivingEntity target) {
@@ -2808,11 +3442,13 @@ public final class SpellCombatReactionEngine {
         if (hexStr.isEmpty()) return false;
 
         boolean counterMatched = switch (hexStr) {
-            case "WATER", "STORM" -> MateriaFamilyTier.isNetherLineage(incomingElement)
+            case "WATER" -> MateriaFamilyTier.isNetherLineage(incomingElement);
+            case "STORM" -> MateriaFamilyTier.isNetherLineage(incomingElement)
                     || incomingElement == EssenceType.ARID
                     || incomingElement == EssenceType.VAPOR
                     || incomingElement == EssenceType.DAWN;
-            case "NETHER", "ARID", "MAGMA", "OASIS", "PYRE" -> isWaterLine(incomingElement) || MateriaFamilyTier.isFrozenLineage(incomingElement);
+            case "NETHER" -> isWaterLine(incomingElement) || incomingElement == EssenceType.VITAE; // Section 6.7: cleansed strictly via Water-lineage magic, Restoration magic, or caster defeat!
+            case "ARID", "MAGMA", "OASIS", "PYRE" -> isWaterLine(incomingElement) || MateriaFamilyTier.isFrozenLineage(incomingElement);
             case "SOULFIRE" -> isWaterLine(incomingElement); // Section 6.29: quenched strictly via Water/Restoration magic or caster defeat!
             case "FROZEN", "GLACIAL", "NATURE", "OVERGROWTH", "SPORE", "TAIGA", "AMBER", "TERMINUS" -> MateriaFamilyTier.isNetherLineage(incomingElement);
             case "AURORA", "RIME" -> MateriaFamilyTier.isNetherLineage(incomingElement) || incomingElement == EssenceType.VITAE; // Section 6.36 & 6.42: Vitae magic or Pyre/Nether fire!
@@ -2832,7 +3468,8 @@ public final class SpellCombatReactionEngine {
             case "AEGIS" -> isUmbralLine(incomingElement) || incomingElement == EssenceType.VITAE; // Section 6.35: Vitae magic or Umbral darkness!
             case "MIRAGE" -> isUmbralLine(incomingElement) || incomingElement == EssenceType.VITAE; // Section 6.37: Vitae magic or Umbral shadow reactions!
             case "SPRING" -> incomingElement == EssenceType.VITAE || isUmbralLine(incomingElement) || incomingElement == EssenceType.BLIGHT || MateriaFamilyTier.isVoidLineage(incomingElement); // Section 6.43: Vitae magic or Umbral/Blight wither rot!
-            case "RADIANT", "CELESTIAL", "PRISMATIC", "EMPYREAN" ->
+            case "RADIANT" -> isUmbralLine(incomingElement) || incomingElement == EssenceType.VITAE; // Section 6.8: cleansed strictly via Restoration/Vitae magic, Shadow (Umbral-lineage) magic, or caster defeat!
+            case "CELESTIAL", "PRISMATIC", "EMPYREAN" ->
                     isUmbralLine(incomingElement) || incomingElement == EssenceType.BLIGHT || MateriaFamilyTier.isVoidLineage(incomingElement);
             case "GENESIS" -> incomingElement == EssenceType.VITAE || isUmbralLine(incomingElement) || MateriaFamilyTier.isVoidLineage(incomingElement); // Section 6.47: Vitae magic or Umbral/Void corruption!
             case "ESCHATON" -> incomingElement == EssenceType.APOTHEOSIS || incomingElement == EssenceType.ENTROPICA;
@@ -2873,16 +3510,23 @@ public final class SpellCombatReactionEngine {
     }
 
     private static void clearHexData(LivingEntity target, CompoundTag data) {
+        String oldHexType = data.getString(TAG_HEX_TYPE).orElse("");
+        long oldUntil = data.getLong(TAG_HEX_UNTIL).orElse(0L);
+        if (!oldHexType.isEmpty() && target.level() instanceof ServerLevel srv && isBossEntity(srv, target)) {
+            stampBossPostHexImmunity(data, srv.getGameTime(), oldHexType, oldUntil);
+        }
         data.remove(TAG_HEX_TYPE);
         data.remove(TAG_HEX_TIER);
         data.remove(TAG_HEX_STACK);
         data.remove(TAG_HEX_MUTATED);
         data.remove(TAG_HEX_UNTIL);
+        data.remove(TAG_HEX_APPLIED_TICK);
         data.remove(TAG_HEX_INITIAL_WINDOW);
         data.remove(TAG_HEX_CASTER_UUID);
         data.remove(TAG_HEX_MAX_ALLOWED_HP);
         data.remove("VaporHexDissolveSteps");
         data.remove("NullRHexMeltSteps");
+        data.remove("SpellSilencedUntil");
         data.remove(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL);
         data.remove(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL);
         data.remove(SpellLingeringZoneManager.TAG_VOID_ANCHOR_X);
@@ -2892,10 +3536,8 @@ public final class SpellCombatReactionEngine {
         data.remove(SpellLingeringZoneManager.TAG_VOID_LAST_POS_Y);
         data.remove(SpellLingeringZoneManager.TAG_VOID_LAST_POS_Z);
         data.remove("SpellVoidLastRubberbandTick");
-        AttributeInstance maxHp = target.getAttribute(Attributes.MAX_HEALTH);
-        if (maxHp != null) {
-            maxHp.removeModifier(MOD_HEX_MAX_HEALTH_CUT_PCT);
-        }
+        data.remove(TAG_AIR_HYPOXIA_MELEE_CD_UNTIL);
+        removeHexMaxHealthCutModifier(target);
         clearShredModifiers(target, data);
         clearOffenseShredModifiers(target, data);
     }
@@ -2907,10 +3549,12 @@ public final class SpellCombatReactionEngine {
             clearHexData(target, data);
             cleansed++;
         } else {
+            removeHexMaxHealthCutModifier(target);
             clearShredModifiers(target, data);
             clearOffenseShredModifiers(target, data);
+            data.remove("SpellSilencedUntil");
             data.remove(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL);
-        data.remove(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL);
+            data.remove(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL);
         }
         List<MobEffectInstance> active = new ArrayList<>(target.getActiveEffects());
         for (MobEffectInstance inst : active) {
@@ -2942,8 +3586,9 @@ public final class SpellCombatReactionEngine {
             return true;
         }
         if (target.isOnFire() || data.contains(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL)) {
+            data.remove("SpellSilencedUntil");
             data.remove(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL);
-        data.remove(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL);
+            data.remove(SpellLingeringZoneManager.TAG_SOULFIRE_BURN_UNTIL);
             target.clearFire();
             return true;
         }
@@ -3000,7 +3645,10 @@ public final class SpellCombatReactionEngine {
             }
 
             long until = data.getLong(TAG_HEX_UNTIL).orElse(0L);
-            if (until <= 0L) continue;
+            if (until <= 0L) {
+                removeHexMaxHealthCutModifier(living);
+                continue;
+            }
 
             if (now > until) {
                 clearHexData(living, data);
@@ -3016,15 +3664,50 @@ public final class SpellCombatReactionEngine {
             } catch (IllegalArgumentException ignored) {
             }
 
-            // 2. Enforce Natural Health Regeneration Lock & Permafrost / Glacial Cryo-Hex Speed Sap every 5 ticks
-            if (hexMutated && hexType == EssenceType.FROZEN) {
+            // 2. Enforce Natural Health Regeneration Lock, Hypoxia Stamina Drag & Permafrost / Glacial Cryo-Hex Speed Sap every 5 ticks
+            if (hexMutated && hexType == EssenceType.AIR) {
+                float mult = getHexStackMultiplier(living);
+                applyTimedMovementSpeedSap(living, level, Math.min(0.75D, 0.40D * mult), 35L);
+                applyTimedAttackDebuff(living, level, 0.0D, Math.min(0.85D, 0.40D * mult), 35L);
+                if (living instanceof Player hypPlayer && !hypPlayer.isCreative() && !hypPlayer.isSpectator() && hypPlayer.isSprinting()) {
+                    hypPlayer.causeFoodExhaustion(0.40F * mult);
+                }
+            } else if (hexMutated && hexType == EssenceType.EARTH) {
+                int eStack = Math.clamp(data.getInt(TAG_HEX_STACK).orElse(1), 1, 3);
+                applyTimedAttributeShred(living, level, resolveSunderingHexArmorShred(eStack), 0.0D, 45L);
+            } else if (hexMutated && hexType == EssenceType.FROZEN) {
                 living.setSprinting(false);
                 applyTimedMovementSpeedSap(living, level, 0.60D, 35L);
+            } else if (hexMutated && hexType == EssenceType.NETHER) {
+                int nStack = Math.clamp(data.getInt(TAG_HEX_STACK).orElse(1), 1, 3);
+                living.removeEffect(MobEffects.REGENERATION);
+                living.igniteForSeconds(3);
+                data.putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL,
+                        Math.max(now + 45L, data.getLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL).orElse(0L)));
+                applyPercentageArmorShred(living, level, resolveHellfireSearArmorMeltFraction(nStack), 0.0D, 45L);
+            } else if (hexMutated && hexType == EssenceType.RADIANT) {
+                int rStack = Math.clamp(data.getInt(TAG_HEX_STACK).orElse(1), 1, 3);
+                living.removeEffect(MobEffects.REGENERATION);
+                living.removeEffect(MobEffects.INVISIBILITY);
+                data.remove(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL);
+                if (!living.hasEffect(MobEffects.GLOWING)) {
+                    living.addEffect(new MobEffectInstance(MobEffects.GLOWING, 45, 0, true, false));
+                }
+                applyTimedAttributeShred(living, level, resolveSunScorchedHexArmorMelt(rStack), 0.0D, 45L);
             } else if (hexMutated && hexType == EssenceType.GLACIAL) {
                 living.setSprinting(false);
                 applyTimedMovementSpeedSap(living, level, Math.min(0.85D, 0.50D * getHexStackMultiplier(living)), 35L);
             } else if (hexMutated && (hexType == EssenceType.NATURE || hexType == EssenceType.OVERGROWTH)) {
                 SpellLingeringZoneManager.applyArcaneSilence(living, 35);
+                if (hexType == EssenceType.NATURE) {
+                    int nStack = Math.clamp(data.getInt(TAG_HEX_STACK).orElse(1), 1, 3);
+                    double nShred = switch (nStack) {
+                        case 1 -> 0.20D;
+                        case 2 -> 0.35D;
+                        default -> 0.50D;
+                    };
+                    applyPercentageArmorShred(living, level, 0.0D, nShred, 45L);
+                }
             }
             if (hexMutated && hexType == EssenceType.UNDEAD && living.hasEffect(MobEffects.REGENERATION)) {
                 living.removeEffect(MobEffects.REGENERATION);
@@ -3371,7 +4054,7 @@ public final class SpellCombatReactionEngine {
                         }
                     }
                 } else if (hexType == EssenceType.EMPYREAN) {
-                    // Section 6.54 Empyrean Radiant Beacon (32m, +120% hostile spawn lure):
+                    // Section 6.54 Empyrean Starlight Beacon (32m, +120% hostile monster spawn rate around afflicted player):
                     hexedPlayer.addEffect(new MobEffectInstance(MobEffects.GLOWING, 50, 0, true, true));
                     int nearbyHostiles = 0;
                     for (Mob mob : level.getEntitiesOfClass(Mob.class, hexedPlayer.getBoundingBox().inflate(32.0D))) {
@@ -3380,56 +4063,162 @@ public final class SpellCombatReactionEngine {
                             if (mob.getTarget() == null) mob.setTarget(hexedPlayer);
                         }
                     }
-                    if (nearbyHostiles < 3 && now % 200L == 0L && level.random.nextFloat() < 0.35F) {
-                        Zombie z = EntityType.ZOMBIE.create(level, EntitySpawnReason.MOB_SUMMONED);
-                        if (z != null) {
+                    if (nearbyHostiles < 8 && now % 80L == 0L) {
+                        for (int attempt = 0; attempt < 4; attempt++) {
+                            double dist = 10.0D + level.random.nextDouble() * 19.0D;
                             double ang = level.random.nextDouble() * Math.PI * 2.0D;
-                            z.setPos(hexedPlayer.getX() + Math.cos(ang) * 6.0D, hexedPlayer.getY(), hexedPlayer.getZ() + Math.sin(ang) * 6.0D);
-                            z.setTarget(hexedPlayer);
-                            level.addFreshEntity(z);
+                            int sx = Mth.floor(hexedPlayer.getX() + Math.cos(ang) * dist);
+                            int sz = Mth.floor(hexedPlayer.getZ() + Math.sin(ang) * dist);
+                            int baseY = hexedPlayer.getBlockY();
+                            net.minecraft.core.BlockPos foundPos = null;
+                            for (int dy = 4; dy >= -4; dy--) {
+                                net.minecraft.core.BlockPos cand = new net.minecraft.core.BlockPos(sx, baseY + dy, sz);
+                                if (level.getBlockState(cand).isAir()
+                                        && level.getBlockState(cand.above()).isAir()
+                                        && level.getBlockState(cand.below()).isSolidRender()) {
+                                    foundPos = cand;
+                                    break;
+                                }
+                            }
+                            if (foundPos != null && level.random.nextFloat() < 0.65F) {
+                                Mob spawned;
+                                int roll = level.random.nextInt(4);
+                                if (roll == 0) {
+                                    Skeleton sk = EntityType.SKELETON.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                    if (sk != null) sk.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+                                    spawned = sk;
+                                } else if (roll == 1) {
+                                    spawned = EntityType.SPIDER.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                } else {
+                                    spawned = EntityType.ZOMBIE.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                }
+                                if (spawned != null) {
+                                    spawned.setPos(foundPos.getX() + 0.5D, foundPos.getY(), foundPos.getZ() + 0.5D);
+                                    spawned.setTarget(hexedPlayer);
+                                    level.addFreshEntity(spawned);
+                                    level.sendParticles(ParticleTypes.END_ROD, spawned.getX(), spawned.getY(0.8D), spawned.getZ(),
+                                            10, 0.3D, 0.4D, 0.3D, 0.04D);
+                                    break;
+                                }
+                            }
                         }
                     }
                 } else if (hexType == EssenceType.CATACLYSM) {
-                    // Section 6.55 Cataclysm Abyssal Beacon (32m, +150% nether/wither predator lure):
-                    int nearbyNether = 0;
+                    // Section 6.55 Abyssal World-Breaker Beacon (32m, +150% nether beasts, wither skeletons & void horrors):
+                    int nearbyAbyssal = 0;
                     for (Mob mob : level.getEntitiesOfClass(Mob.class, hexedPlayer.getBoundingBox().inflate(32.0D))) {
                         if (!mob.isAlive()) continue;
-                        if (mob instanceof WitherSkeleton || mob instanceof MagmaCube || mob instanceof Blaze) nearbyNether++;
+                        if (mob instanceof WitherSkeleton || mob instanceof MagmaCube || mob instanceof Blaze
+                                || mob instanceof Endermite || mob instanceof EnderMan
+                                || mob instanceof net.minecraft.world.entity.monster.hoglin.Hoglin) {
+                            nearbyAbyssal++;
+                        }
                         if (mob instanceof Monster && mob.getTarget() == null) mob.setTarget(hexedPlayer);
                     }
-                    if (nearbyNether < 3 && now % 180L == 0L && level.random.nextFloat() < 0.40F) {
-                        WitherSkeleton ws = EntityType.WITHER_SKELETON.create(level, EntitySpawnReason.MOB_SUMMONED);
-                        if (ws != null) {
+                    if (nearbyAbyssal < 8 && now % 70L == 0L) {
+                        for (int attempt = 0; attempt < 4; attempt++) {
+                            double dist = 10.0D + level.random.nextDouble() * 19.0D;
                             double ang = level.random.nextDouble() * Math.PI * 2.0D;
-                            ws.setPos(hexedPlayer.getX() + Math.cos(ang) * 6.0D, hexedPlayer.getY(), hexedPlayer.getZ() + Math.sin(ang) * 6.0D);
-                            ws.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(net.minecraft.world.item.Items.STONE_SWORD));
-                            ws.setTarget(hexedPlayer);
-                            level.addFreshEntity(ws);
+                            int sx = Mth.floor(hexedPlayer.getX() + Math.cos(ang) * dist);
+                            int sz = Mth.floor(hexedPlayer.getZ() + Math.sin(ang) * dist);
+                            int baseY = hexedPlayer.getBlockY();
+                            net.minecraft.core.BlockPos foundPos = null;
+                            for (int dy = 4; dy >= -4; dy--) {
+                                net.minecraft.core.BlockPos cand = new net.minecraft.core.BlockPos(sx, baseY + dy, sz);
+                                if (level.getBlockState(cand).isAir()
+                                        && level.getBlockState(cand.above()).isAir()
+                                        && level.getBlockState(cand.below()).isSolidRender()) {
+                                    foundPos = cand;
+                                    break;
+                                }
+                            }
+                            if (foundPos != null && level.random.nextFloat() < 0.72F) {
+                                Mob spawned = switch (level.random.nextInt(5)) {
+                                    case 0 -> {
+                                        WitherSkeleton ws = EntityType.WITHER_SKELETON.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                        if (ws != null) ws.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
+                                        yield ws;
+                                    }
+                                    case 1 -> EntityType.BLAZE.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                    case 2 -> EntityType.MAGMA_CUBE.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                    case 3 -> EntityType.ENDERMITE.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                    default -> EntityType.ENDERMAN.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                };
+                                if (spawned != null) {
+                                    spawned.setPos(foundPos.getX() + 0.5D, foundPos.getY(), foundPos.getZ() + 0.5D);
+                                    spawned.setTarget(hexedPlayer);
+                                    level.addFreshEntity(spawned);
+                                    level.sendParticles(ParticleTypes.REVERSE_PORTAL, spawned.getX(), spawned.getY(0.8D), spawned.getZ(),
+                                            14, 0.35D, 0.45D, 0.35D, 0.05D);
+                                    level.sendParticles(ParticleTypes.LAVA, spawned.getX(), spawned.getY(0.5D), spawned.getZ(),
+                                            6, 0.25D, 0.25D, 0.25D, 0.03D);
+                                    break;
+                                }
+                            }
                         }
                     }
                 } else if (hexType == EssenceType.ESCHATON || hexType == EssenceType.ENTROPICA) {
-                    // Sections 6.57 & 6.59 Omega / Cosmic Spawn-Lure (36m, +200% influx with immediate aggro!):
+                    // Sections 6.57 & 6.59 Cosmic Reality Tear / Omega Spawn-Lure (36m, +200% hostile monster & void horror influx with immediate aggro!):
                     int nearbyHorrors = 0;
                     for (Mob mob : level.getEntitiesOfClass(Mob.class, hexedPlayer.getBoundingBox().inflate(36.0D))) {
                         if (!mob.isAlive()) continue;
-                        if (mob instanceof Endermite || mob instanceof EnderMan || mob instanceof WitherSkeleton) nearbyHorrors++;
-                        if (mob instanceof Monster && mob.getTarget() == null) mob.setTarget(hexedPlayer);
+                        if (mob instanceof Monster) {
+                            nearbyHorrors++;
+                            if (mob.getTarget() == null) mob.setTarget(hexedPlayer);
+                        }
                     }
-                    if (nearbyHorrors < 3 && now % 160L == 0L && level.random.nextFloat() < 0.45F) {
-                        Endermite horror = EntityType.ENDERMITE.create(level, EntitySpawnReason.MOB_SUMMONED);
-                        if (horror != null) {
+                    if (nearbyHorrors < 10 && now % 55L == 0L) {
+                        for (int attempt = 0; attempt < 4; attempt++) {
+                            double dist = 10.0D + level.random.nextDouble() * 22.0D;
                             double ang = level.random.nextDouble() * Math.PI * 2.0D;
-                            horror.setPos(hexedPlayer.getX() + Math.cos(ang) * 5.5D, hexedPlayer.getY(), hexedPlayer.getZ() + Math.sin(ang) * 5.5D);
-                            horror.setTarget(hexedPlayer);
-                            level.addFreshEntity(horror);
-                            level.sendParticles(ParticleTypes.REVERSE_PORTAL, horror.getX(), horror.getY(0.5D), horror.getZ(), 14, 0.25D, 0.3D, 0.25D, 0.05D);
+                            int sx = Mth.floor(hexedPlayer.getX() + Math.cos(ang) * dist);
+                            int sz = Mth.floor(hexedPlayer.getZ() + Math.sin(ang) * dist);
+                            int baseY = hexedPlayer.getBlockY();
+                            net.minecraft.core.BlockPos foundPos = null;
+                            for (int dy = 4; dy >= -4; dy--) {
+                                net.minecraft.core.BlockPos cand = new net.minecraft.core.BlockPos(sx, baseY + dy, sz);
+                                if (level.getBlockState(cand).isAir()
+                                        && level.getBlockState(cand.above()).isAir()
+                                        && level.getBlockState(cand.below()).isSolidRender()) {
+                                    foundPos = cand;
+                                    break;
+                                }
+                            }
+                            if (foundPos != null && level.random.nextFloat() < 0.80F) {
+                                Mob spawned = switch (level.random.nextInt(5)) {
+                                    case 0 -> EntityType.ENDERMAN.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                    case 1 -> EntityType.ENDERMITE.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                    case 2 -> {
+                                        WitherSkeleton ws = EntityType.WITHER_SKELETON.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                        if (ws != null) ws.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
+                                        yield ws;
+                                    }
+                                    case 3 -> {
+                                        net.minecraft.world.entity.monster.Skeleton sk = EntityType.SKELETON.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                        if (sk != null) sk.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+                                        yield sk;
+                                    }
+                                    default -> EntityType.ZOMBIE.create(level, EntitySpawnReason.MOB_SUMMONED);
+                                };
+                                if (spawned != null) {
+                                    spawned.setPos(foundPos.getX() + 0.5D, foundPos.getY(), foundPos.getZ() + 0.5D);
+                                    spawned.setTarget(hexedPlayer);
+                                    level.addFreshEntity(spawned);
+                                    level.sendParticles(ParticleTypes.REVERSE_PORTAL, spawned.getX(), spawned.getY(0.8D), spawned.getZ(),
+                                            16, 0.35D, 0.45D, 0.35D, 0.05D);
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
             }
 
             // Section 6.3 Waterlogged Drowning Hex: fire/heat reactions immediately evaporate & cleanse the soaking curse!
-            if (hexType == EssenceType.WATER && (living.isInLava() || living.isOnFire())) {
+            long hexAppliedTick = data.getLong(TAG_HEX_APPLIED_TICK).orElse(0L);
+            if (hexType == EssenceType.WATER
+                    && (now - hexAppliedTick > 2L)
+                    && (living.isInLava() || living.isOnFire())) {
                 clearHexData(living, data);
                 living.clearFire();
                 level.sendParticles(ParticleTypes.CLOUD, living.getX(), living.getY(0.8D), living.getZ(),
@@ -3473,6 +4262,12 @@ public final class SpellCombatReactionEngine {
 
             MateriaPartMutationHandler hexHandler = SpellMutationHandlerRegistry.resolveActive(hexType, hexMutated);
             if (hexHandler != null && hexHandler.onPersistentHexTick(level, living, tier)) {
+                if (hexMutated && hexType == EssenceType.RADIANT && living.isAlive()) {
+                    applyTimedAttributeShred(living, level, resolveSunScorchedHexArmorMelt(getHexStackLevel(living)), 0.0D, 45L);
+                }
+                continue;
+            }
+            if (hexMutated && (hexType == EssenceType.EARTH || hexType == EssenceType.FROZEN || hexType == EssenceType.NATURE)) {
                 continue;
             }
 
@@ -3484,7 +4279,7 @@ public final class SpellCombatReactionEngine {
             level.sendParticles(ParticleTypes.WITCH, living.getX(), living.getY(0.7), living.getZ(),
                     5, 0.25, 0.35, 0.25, 0.02);
 
-            if (hexMutated && MateriaFamilyTier.isFrozenLineage(hexType)) {
+            if (hexMutated && MateriaFamilyTier.isFrozenLineage(hexType) && hexType != EssenceType.FROZEN) {
                 living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, 1, true, false));
             } else if (hexMutated && (MateriaFamilyTier.isVoidLineage(hexType) || isUmbralLine(hexType))) {
                 living.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 30, 0, true, false));
@@ -3516,18 +4311,17 @@ public final class SpellCombatReactionEngine {
 
         // Spore (#18) Mycelial Infestation Strike: dying host bursts into infectious Poison/Nausea spore pop + mushrooms!
         if (now <= data.getLong(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL).orElse(0L)) {
-            // Section 6.7 Cauterizing Cleave & Auto-Smelt: all meat drops spawn cooked & held raw ores drop pre-smelted!
+            // Section 6.7 Cauterizing Cleave & Auto-Smelt: strictly cook fresh meat drops & pre-smelt raw ores from the killing blow!
+            data.remove(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL);
             Vec3 deathPos = deceased.position();
             ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.dropHeldRawOresPreSmelted(level, deceased);
-            ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.autoSmeltDroppedItems(
-                    level, deceased.getBoundingBox().inflate(3.5D)
-            );
+            cookFreshCauterizingDeathDrops(level, deceased.getBoundingBox().inflate(2.6D));
             SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                    null, deathPos, 3.5D, 8, now, null, null, EssenceType.NETHER, 1.0F,
+                    null, deathPos, 2.6D, 2, now, null, null, EssenceType.NETHER, 1.0F,
                     (srv, z, el) -> {
-                        ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.autoSmeltDroppedItems(
-                                srv, new AABB(z.center.x - 3.5D, z.center.y - 2.0D, z.center.z - 3.5D,
-                                        z.center.x + 3.5D, z.center.y + 3.0D, z.center.z + 3.5D)
+                        cookFreshCauterizingDeathDrops(
+                                srv, new AABB(z.center.x - 2.6D, z.center.y - 1.8D, z.center.z - 2.6D,
+                                        z.center.x + 2.6D, z.center.y + 2.6D, z.center.z + 2.6D)
                         );
                         return el < z.maxDurationTicks;
                     }
@@ -3536,6 +4330,7 @@ public final class SpellCombatReactionEngine {
         if (now <= data.getLong(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL).orElse(0L)) {
             // Section 6.8 Holy Smite & Daylight Ignition: lethal kill disintegrates the target into glowing stardust
             // rather than dropping standard rotting meat!
+            data.remove(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL);
             Vec3 deathPos = deceased.position().add(0.0D, deceased.getBbHeight() * 0.55D, 0.0D);
             SpellWorldVfxManager.broadcast(
                     level, ddraig.net.entropica.network.SpellVfxEventPayload.VFX_PROJECTILE_IMPACT,
@@ -3549,15 +4344,15 @@ public final class SpellCombatReactionEngine {
                     32, 0.45D, 0.55D, 0.45D, 0.14D);
             level.playSound(null, deceased.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.1F, 1.45F);
             int convertedNow = ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.purifyRottingDropsToStardust(
-                    level, deceased.getBoundingBox().inflate(3.5D), deathPos
+                    level, deceased.getBoundingBox().inflate(2.6D), deathPos
             );
             final boolean[] spawnedStardust = {convertedNow > 0};
             SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                    null, deathPos, 3.5D, 8, now, null, null, EssenceType.RADIANT, 1.0F,
+                    null, deathPos, 2.6D, 2, now, null, null, EssenceType.RADIANT, 1.0F,
                     (srv, z, el) -> {
                         int c = ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.purifyRottingDropsToStardust(
-                                srv, new AABB(z.center.x - 3.5D, z.center.y - 2.5D, z.center.z - 3.5D,
-                                        z.center.x + 3.5D, z.center.y + 2.5D, z.center.z + 3.5D),
+                                srv, new AABB(z.center.x - 2.6D, z.center.y - 1.8D, z.center.z - 2.6D,
+                                        z.center.x + 2.6D, z.center.y + 2.6D, z.center.z + 2.6D),
                                 z.center
                         );
                         if (c > 0) spawnedStardust[0] = true;
@@ -3903,28 +4698,71 @@ public final class SpellCombatReactionEngine {
         }
 
         boolean hexMutated = data.getBoolean(TAG_HEX_MUTATED).orElse(true);
-        long window = data.getLong(TAG_HEX_INITIAL_WINDOW).orElse(0L);
-        boolean tier6Contagion = hexMutated && (hexType == EssenceType.ESCHATON
-                || hexType == EssenceType.APOTHEOSIS
-                || hexType == EssenceType.ENTROPICA);
-        boolean undeadPlagueSpread = hexMutated && (hexType == EssenceType.UNDEAD || hexType == EssenceType.BLIGHT);
-        if (!undeadPlagueSpread && !tier6Contagion && now > window) {
+        LivingEntity origHexCaster = resolveHexCaster(level, deceased);
+        CompoundTag casterData = origHexCaster != null ? EntityHelper.getPersistentData(origHexCaster) : null;
+        if (!canSpreadHexOnDeath(data, casterData, now)) {
             return;
         }
 
+        long window = data.getLong(TAG_HEX_INITIAL_WINDOW).orElse(0L);
+        long activeChannelUntil = resolveActiveHexChannelUntil(data, casterData);
+        long inheritedContagionWindow = Math.max(window, activeChannelUntil);
         int tier = data.getInt(TAG_HEX_TIER).orElse(1);
-        LivingEntity origHexCaster = resolveHexCaster(level, deceased);
+        boolean tier6Contagion = hexMutated && (hexType == EssenceType.ESCHATON
+                || hexType == EssenceType.APOTHEOSIS
+                || hexType == EssenceType.ENTROPICA);
         double spreadRadius = tier6Contagion ? 6.0D : 5.0D;
         AABB box = deceased.getBoundingBox().inflate(spreadRadius);
         for (LivingEntity nearby : level.getEntitiesOfClass(LivingEntity.class, box)) {
             if (nearby == deceased || !nearby.isAlive() || nearby instanceof Player || nearby instanceof SpellEidolonEntity) continue;
             if (hexType == EssenceType.UNDEAD && nearby.getType().is(EntityTypeTags.UNDEAD)) continue;
             if (nearby instanceof Enemy || (nearby instanceof Mob mob && mob.getTarget() != null)) {
-                applyPersistentHex(level, origHexCaster, nearby, hexType, tier, 300, false, hexMutated);
-                level.sendParticles(ParticleTypes.SOUL, nearby.getX(), nearby.getY(0.6), nearby.getZ(),
-                        8, 0.25, 0.3, 0.25, 0.04);
+                if (applyPersistentHexContagionLevelOne(
+                        level, origHexCaster, nearby, hexType, tier, hexMutated, inheritedContagionWindow
+                )) {
+                    level.sendParticles(ParticleTypes.SOUL, nearby.getX(), nearby.getY(0.6), nearby.getZ(),
+                            8, 0.25, 0.3, 0.25, 0.04);
+                }
             }
         }
+    }
+
+    /**
+     * Section 5.6 Death Contagion Gate: ALL Persistent Hexes (including Undead &amp; Blight) spread on death
+     * ONLY within the initial affliction activation window or while the caster's spell is actively channeled.
+     */
+    public static boolean canSpreadHexOnDeath(CompoundTag deceasedData, @Nullable CompoundTag casterData, long now) {
+        long window = deceasedData.getLong(TAG_HEX_INITIAL_WINDOW).orElse(0L);
+        long activelyChanneledUntil = resolveActiveHexChannelUntil(deceasedData, casterData);
+        return now <= window || now <= activelyChanneledUntil;
+    }
+
+    public static long resolveActiveHexChannelUntil(CompoundTag deceasedData, @Nullable CompoundTag casterData) {
+        long beamTickMax = Math.max(
+                Math.max(
+                        Math.max(
+                                deceasedData.getLong("EmpyreanBeamLastTick").orElse(0L),
+                                deceasedData.getLong("CataclysmBeamLastTick").orElse(0L)
+                        ),
+                        Math.max(
+                                deceasedData.getLong("TerminusBeamLastTick").orElse(0L),
+                                deceasedData.getLong("PrismaticBeamLastTick").orElse(0L)
+                        )
+                ),
+                Math.max(
+                        deceasedData.getLong("EschatonBeamLastTick").orElse(0L),
+                        Math.max(
+                                deceasedData.getLong("ApotheosisBeamLastTick").orElse(0L),
+                                deceasedData.getLong("EntropicaBeamLastTick").orElse(0L)
+                        )
+                )
+        );
+        long beamChannelUntil = beamTickMax > 0L ? (beamTickMax + 30L) : 0L;
+        long victimChannelUntil = deceasedData.getLong(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL).orElse(0L);
+        long casterChannelUntil = casterData != null
+                ? casterData.getLong(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL).orElse(0L)
+                : 0L;
+        return Math.max(beamChannelUntil, Math.max(victimChannelUntil, casterChannelUntil));
     }
 
     // --- Ward Blue Arcane Shield Pool (Section 5.3: 1.5x Base Damage Scaling, Combat-Only, Zero-Overflow Shield Gate, 25% Fuel Focus) ---
@@ -4035,10 +4873,30 @@ public final class SpellCombatReactionEngine {
             barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_AEGIS_ORBIT_UNTIL).orElse(0L);
             primary = EssenceType.AEGIS;
             ratio = 0.78F;
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_SHROUD_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_SHROUD_UNTIL).orElse(0L);
+            primary = EssenceType.EMPYREAN;
+            secondary = EssenceType.NATURE;
+            tier = Math.max(tier, 7);
         } else if (data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_AEGIS_UNTIL).orElse(0L) > now) {
             barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_AEGIS_UNTIL).orElse(0L);
             primary = EssenceType.EMPYREAN;
             secondary = EssenceType.AEGIS;
+            tier = Math.max(tier, 7);
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_ORBIT_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_ORBIT_UNTIL).orElse(0L);
+            primary = EssenceType.EMPYREAN;
+            secondary = EssenceType.VITAE;
+            tier = Math.max(tier, 7);
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_SHROUD_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_SHROUD_UNTIL).orElse(0L);
+            primary = EssenceType.CATACLYSM;
+            secondary = EssenceType.VOID;
+            tier = Math.max(tier, 7);
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_ORBIT_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_ORBIT_UNTIL).orElse(0L);
+            primary = EssenceType.CATACLYSM;
+            secondary = EssenceType.NETHER;
             tier = Math.max(tier, 7);
         } else if (data.getLong(SpellLingeringZoneManager.TAG_AETHER_SHROUD_UNTIL).orElse(0L) > now) {
             barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_AETHER_SHROUD_UNTIL).orElse(0L);
@@ -4079,19 +4937,56 @@ public final class SpellCombatReactionEngine {
         } else if (data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_SHROUD_UNTIL).orElse(0L) > now) {
             barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_SHROUD_UNTIL).orElse(0L);
             primary = EssenceType.TERMINUS;
-            secondary = EssenceType.AEGIS;
+            secondary = EssenceType.FROZEN;
+            tier = Math.max(tier, 7);
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_MANTLE_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_MANTLE_UNTIL).orElse(0L);
+            primary = EssenceType.TERMINUS;
+            secondary = EssenceType.WATER;
+            tier = Math.max(tier, 7);
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_ORBIT_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_ORBIT_UNTIL).orElse(0L);
+            primary = EssenceType.TERMINUS;
+            secondary = EssenceType.AIR;
+            tier = Math.max(tier, 7);
         } else if (data.getLong(SpellLingeringZoneManager.TAG_ESCHATON_SHROUD_UNTIL).orElse(0L) > now) {
             barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_ESCHATON_SHROUD_UNTIL).orElse(0L);
             primary = EssenceType.ESCHATON;
-            secondary = EssenceType.AEGIS;
+            secondary = EssenceType.VOID;
+            tier = Math.max(tier, 8);
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_ESCHATON_ORBIT_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_ESCHATON_ORBIT_UNTIL).orElse(0L);
+            primary = EssenceType.ESCHATON;
+            secondary = EssenceType.VOID;
+            tier = Math.max(tier, 8);
         } else if (data.getLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_SHROUD_UNTIL).orElse(0L) > now) {
             barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_SHROUD_UNTIL).orElse(0L);
             primary = EssenceType.APOTHEOSIS;
-            secondary = EssenceType.AEGIS;
+            secondary = EssenceType.RADIANT;
+            tier = Math.max(tier, 8);
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_ORBIT_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_ORBIT_UNTIL).orElse(0L);
+            primary = EssenceType.APOTHEOSIS;
+            secondary = EssenceType.RADIANT;
+            tier = Math.max(tier, 8);
         } else if (data.getLong(SpellLingeringZoneManager.TAG_ENTROPICA_SHROUD_UNTIL).orElse(0L) > now) {
             barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_ENTROPICA_SHROUD_UNTIL).orElse(0L);
             primary = EssenceType.ENTROPICA;
-            secondary = EssenceType.AEGIS;
+            secondary = EssenceType.ASTRAL;
+            tier = Math.max(tier, 9);
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_ENTROPICA_ORBIT_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_ENTROPICA_ORBIT_UNTIL).orElse(0L);
+            primary = EssenceType.ENTROPICA;
+            secondary = EssenceType.ASTRAL;
+            tier = Math.max(tier, 9);
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_SHROUD_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_SHROUD_UNTIL).orElse(0L);
+            primary = EssenceType.PRISMATIC;
+            secondary = EssenceType.RADIANT;
+        } else if (data.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_ORBIT_UNTIL).orElse(0L) > now) {
+            barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_ORBIT_UNTIL).orElse(0L);
+            primary = EssenceType.PRISMATIC;
+            secondary = EssenceType.CHIMERA;
         } else if (data.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_DEFLECT_SENTRY_UNTIL).orElse(0L) > now) {
             barrierUntil = data.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_DEFLECT_SENTRY_UNTIL).orElse(0L);
             primary = EssenceType.PRISMATIC;
@@ -4384,7 +5279,7 @@ public final class SpellCombatReactionEngine {
             if (reflectTarget instanceof LivingEntity atk && atk != entity) {
                 REENTRANT_GUST_HURT.set(true);
                 try {
-                    atk.hurtServer(level, level.damageSources().magic(), amount);
+                    hurtWithPrismaticMateriaAdvantage(level, atk, entity, Math.max(2.0F, amount), false, true);
                 } finally {
                     REENTRANT_GUST_HURT.set(false);
                 }
@@ -4400,6 +5295,11 @@ public final class SpellCombatReactionEngine {
             level.sendParticles(ParticleTypes.SNOWFLAKE, entity.getX(), entity.getY(0.9D), entity.getZ(),
                     10, 0.35D, 0.45D, 0.35D, 0.04D);
             level.playSound(null, entity.blockPosition(), SoundEvents.GLASS_HIT, SoundSource.PLAYERS, 0.7F, 1.55F);
+            return EventResult.interruptFalse();
+        }
+        // Section 6.6 Frost Nova Burst & Flash-Freeze Stasis: temporary real Blocks.ICE encasement never causes wall-suffocation ticks!
+        if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)
+                && hasFrozenIceSuffocationImmunity(entity, now)) {
             return EventResult.interruptFalse();
         }
 
@@ -4422,7 +5322,7 @@ public final class SpellCombatReactionEngine {
             return EventResult.interruptFalse();
         }
 
-        // Section 6.6 Glacial Spikes Retaliation: enforce genuine -30% melee swing rate on chilled hostile Mobs!
+        // Section 6.6 Glacial Spikes Retaliation: enforce proportional +30% slower melee swing interval on chilled hostile Mobs!
         if (rawAttacker instanceof Mob chilledMob
                 && chilledMob != entity
                 && !source.is(DamageTypeTags.IS_PROJECTILE)) {
@@ -4432,8 +5332,13 @@ public final class SpellCombatReactionEngine {
                 if (now < nextAllowed) {
                     return EventResult.interruptFalse();
                 }
-                // Vanilla mob melee interval is 20t; 20 / 0.70 = 28.6t (~29 ticks -> true -30% attack speed!)
-                atkTag.putLong(SpellLingeringZoneManager.TAG_CHILLED_SWING_NEXT_ALLOWED, now + 29L);
+                long lastSwing = atkTag.getLong("SpellChilledLastSwingTick").orElse(-100L);
+                long baseInterval = (lastSwing > 0L && now > lastSwing && (now - lastSwing) <= 40L)
+                        ? Math.max(10L, Math.round((now - lastSwing) / 1.30D))
+                        : 20L;
+                atkTag.putLong("SpellChilledLastSwingTick", now);
+                atkTag.putLong(SpellLingeringZoneManager.TAG_CHILLED_SWING_NEXT_ALLOWED,
+                        now + resolveChilledMobSwingCooldownTicks(baseInterval));
             } else if (hasActiveMutatedHex(atkTag, now, EssenceType.LIGHTNING)
                     || hasActiveMutatedHex(atkTag, now, EssenceType.STORM)
                     || hasActiveMutatedHex(atkTag, now, EssenceType.BARROW)
@@ -4518,6 +5423,13 @@ public final class SpellCombatReactionEngine {
             boolean aetherFirmamentSunderConversion = SpellExecutionEngine.hasPrimedAetherFirmamentSunderStrike(meleeAttacker);
             boolean entropicSingularityCleaveConversion = SpellExecutionEngine.hasPrimedEntropicSingularityCleaveStrike(meleeAttacker);
             boolean celestialSupernovaCleaveConversion = SpellExecutionEngine.hasPrimedCelestialSupernovaCleaveStrike(meleeAttacker);
+            boolean prismaticPalmShatterConversion = SpellExecutionEngine.hasPrimedPrismaticPalmShatterStrike(meleeAttacker);
+            boolean empyreanRootCleaveConversion = SpellExecutionEngine.hasPrimedEmpyreanRootCleaveStrike(meleeAttacker);
+            boolean cataclysmCalamitySunderConversion = SpellExecutionEngine.hasPrimedCataclysmCalamitySunderStrike(meleeAttacker);
+            boolean terminusGlacierCleaveConversion = SpellExecutionEngine.hasPrimedTerminusGlacierCleaveStrike(meleeAttacker);
+            boolean eschatonRealityScytheConversion = SpellExecutionEngine.hasPrimedEschatonRealityScytheStrike(meleeAttacker);
+            boolean apotheosisGenesisCleaveConversion = SpellExecutionEngine.hasPrimedApotheosisGenesisCleaveStrike(meleeAttacker);
+            boolean entropicaGrandParadoxConversion = SpellExecutionEngine.hasPrimedEntropicaGrandParadoxStrike(meleeAttacker);
             if (vaporHydroGougeConversion) {
                 EntityHelper.getPersistentData(entity).putLong(
                         SpellLingeringZoneManager.TAG_VAPOR_BOIL_DEATH_UNTIL, level.getGameTime() + 100L);
@@ -4559,6 +5471,7 @@ public final class SpellCombatReactionEngine {
                 EntityHelper.getPersistentData(entity).putLong(
                         SpellLingeringZoneManager.TAG_AMBER_FRAGILE_STATUE_UNTIL, level.getGameTime() + 80L);
             }
+            int primedSpellOrWeaponTier = resolveSpellOrWeaponTier(meleeAttacker, 2);
             REENTRANT_GUST_HURT.set(true);
             try {
                 SpellExecutionEngine.tryDischargePrimedTouchStrike(level, meleeAttacker, entity);
@@ -4574,13 +5487,22 @@ public final class SpellCombatReactionEngine {
                 }
                 // Section 6.7 Cauterizing Cleave & Auto-Smelt: converts the physical melee strike into pure Nether Materia damage (+1 vs Frozen, -1 vs Water)!
                 if (cauterizingConversion && !SpellExecutionEngine.hasPrimedNetherCauterizingStrike(meleeAttacker) && entity.isAlive()) {
-                    hurtWithNetherMateriaAdvantage(level, entity, meleeAttacker, amount, true);
+                    CompoundTag entTag = EntityHelper.getPersistentData(entity);
+                    entTag.putLong(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL, level.getGameTime() + 2L);
+                    hurtWithNetherMateriaAdvantage(level, entity, meleeAttacker, amount, true, true);
+                    if (entity.isAlive() && !entity.isDeadOrDying()) {
+                        entTag.remove(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL);
+                    }
                     return EventResult.interruptFalse();
                 }
                 // Section 6.8 Holy Smite & Daylight Ignition: converts the physical melee strike into pure Radiant Materia damage (+1 vs Undead, -1 vs Umbral)!
                 if (holySmiteConversion && !SpellExecutionEngine.hasPrimedRadiantHolySmiteStrike(meleeAttacker) && entity.isAlive()) {
-                    EntityHelper.getPersistentData(entity).putLong(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL, level.getGameTime() + 40L);
-                    hurtWithRadiantMateriaAdvantage(level, entity, meleeAttacker, amount, true);
+                    CompoundTag entTag = EntityHelper.getPersistentData(entity);
+                    entTag.putLong(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL, level.getGameTime() + 2L);
+                    hurtWithRadiantMateriaAdvantage(level, entity, meleeAttacker, amount, true, true);
+                    if (entity.isAlive() && !entity.isDeadOrDying()) {
+                        entTag.remove(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL);
+                    }
                     return EventResult.interruptFalse();
                 }
                 // Section 6.9 Umbral Shroud Cloaking: converts the physical melee strike into pure Umbral Materia damage (+1 vs Radiant, -1 vs Void)!
@@ -4705,7 +5627,9 @@ public final class SpellCombatReactionEngine {
                     if (entity.isAlive()) {
                         float dealt = hurtWithAuraMateriaAdvantage(level, entity, meleeAttacker, amount, true, false);
                         if (dealt > 0.0F && meleeAttacker instanceof Player palmPlayer && palmPlayer.isAlive()) {
-                            siphonCasterMateriaFuelFromDamage(palmPlayer, EssenceType.AURA, 2, dealt, 0.30F);
+                            siphonCasterMateriaFuelFromDamage(
+                                    palmPlayer, EssenceType.AURA, resolveSpellOrWeaponTier(palmPlayer, primedSpellOrWeaponTier), dealt, 0.30F
+                            );
                         }
                         return EventResult.interruptFalse();
                     }
@@ -5165,9 +6089,246 @@ public final class SpellCombatReactionEngine {
                                 }
                             }
                             if (meleeAttacker instanceof Player celPlayer) {
-                                siphonCasterMateriaFuelFromDamage(celPlayer, EssenceType.CELESTIAL, 4, dealt, 0.35F);
+                                siphonCasterMateriaFuelFromDamage(
+                                        celPlayer, EssenceType.CELESTIAL, resolveSpellOrWeaponTier(celPlayer, 4), dealt, 0.35F
+                                );
                             }
                         }
+                        return EventResult.interruptFalse();
+                    }
+                }
+                // Section 6.53 Prismatic Crystalline Palm-Shatter: strikes through physical armor (50% bypass), concussive blinding
+                // flashbang disarming target 4.0s (80t), shattering 5 armor points, 10.0s (200t) radiant chromatic Glowing & Prismatic damage!
+                if (prismaticPalmShatterConversion && !SpellExecutionEngine.hasPrimedPrismaticPalmShatterStrike(meleeAttacker)) {
+                    if (entity.isAlive()) {
+                        applyTimedAttributeShred(entity, level, 5.0D, 0.0D, 160L);
+                        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.disableShield(entity, 80);
+                        if (entity.isUsingItem()) {
+                            entity.stopUsingItem();
+                        }
+                        applyTimedAttackDebuff(entity, level, 0.65D, 0.0D, 80L);
+                        entity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 3)); // 4.0s disarm!
+                        entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0)); // 4.0s blinding flashbang!
+                        entity.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0)); // 10.0s radiant chromatic outline!
+                        hurtWithPrismaticMateriaAdvantage(level, entity, meleeAttacker, amount, true, true);
+                        return EventResult.interruptFalse();
+                    }
+                }
+                // Section 6.54 Siphoning World-Tree Root-Cleave: 60% armor bypass, shatters 6 armor points, disables shields 6.0s (120t),
+                // roots victim 4.0s (80t), and releases seeking golden seed tendrils within 8m siphoning health into party absorption!
+                if (empyreanRootCleaveConversion && !SpellExecutionEngine.hasPrimedEmpyreanRootCleaveStrike(meleeAttacker)) {
+                    if (entity.isAlive()) {
+                        applyTimedAttributeShred(entity, level, 6.0D, 0.0D, 180L);
+                        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.disableShield(entity, 120);
+                        entity.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 6));
+                        entity.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 80, 0));
+                        float dealt = hurtWithEmpyreanMateriaAdvantage(level, entity, meleeAttacker, amount, true, false, false, false);
+                        float siphoned = Math.max(2.5F, dealt * 0.40F);
+                        for (LivingEntity adj : level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(8.0D),
+                                e -> e.isAlive() && e != entity && e != meleeAttacker
+                                        && !ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isFriendly(e, meleeAttacker)
+                                        && !isProtectedFromOffensiveSpell(e, meleeAttacker, true))) {
+                            SpellWorldVfxManager.broadcastChainArc(level, entity.getEyePosition(), adj.getEyePosition(), EssenceType.EMPYREAN, EssenceType.VITAE, 7);
+                            adj.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 4));
+                            adj.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 50, 0));
+                            float adjDmg = hurtWithEmpyreanMateriaAdvantage(level, adj, meleeAttacker, 4.5F, true, false, false, false);
+                            siphoned += Math.max(1.5F, adjDmg * 0.45F);
+                        }
+                        SpellLingeringZoneManager.grantPartyAbsorption(level, meleeAttacker, siphoned, 32.0F, 16.0D);
+                        return EventResult.interruptFalse();
+                    }
+                }
+                // Section 6.55 Tectonic Calamity Sunder: 60% armor bypass, shatters 6 armor points, disables shields 6.0s (120t),
+                // and opens a 10m fissure of light-devouring void fire dragging pursuing hostiles inward & burning 2.0 hearts/sec!
+                if (cataclysmCalamitySunderConversion && !SpellExecutionEngine.hasPrimedCataclysmCalamitySunderStrike(meleeAttacker)) {
+                    Vec3 fissureOrigin = entity.position();
+                    SpellWorldVfxManager.broadcastArcaneSeal(
+                            level, fissureOrigin.add(0.0D, 0.04D, 0.0D), 10.0D, EssenceType.CATACLYSM, EssenceType.VOID, 120, 8
+                    );
+                    SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                            meleeAttacker, fissureOrigin, 10.0D, 120, level.getGameTime(), null, null, EssenceType.CATACLYSM, 1.0F,
+                            (srv, zone, elapsed) -> {
+                                if (elapsed > zone.maxDurationTicks) return false;
+                                if (elapsed % 20 == 0) {
+                                    LivingEntity owner = zone.resolveCaster(srv);
+                                    AABB fis = new AABB(
+                                            zone.center.x - 10.0D, zone.center.y - 2.0D, zone.center.z - 10.0D,
+                                            zone.center.x + 10.0D, zone.center.y + 3.5D, zone.center.z + 10.0D
+                                    );
+                                    for (LivingEntity foe : srv.getEntitiesOfClass(LivingEntity.class, fis, e -> e.isAlive() && e != owner)) {
+                                        if (owner != null && ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isFriendly(foe, owner)) continue;
+                                        if (owner != null && isProtectedFromOffensiveSpell(foe, owner, true)) continue;
+                                        Vec3 in = zone.center.subtract(foe.position());
+                                        if (in.horizontalDistanceSqr() > 0.25D && !isBossEntity(srv, foe)) {
+                                            Vec3 pull = new Vec3(in.x, 0.0D, in.z).normalize().scale(0.42D);
+                                            foe.setDeltaMovement(foe.getDeltaMovement().add(pull.x, 0.05D, pull.z));
+                                            foe.hasImpulse = true;
+                                        }
+                                        foe.igniteForSeconds(4);
+                                        EntityHelper.getPersistentData(foe).putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, srv.getGameTime() + 50L);
+                                        hurtWithCataclysmMateriaAdvantage(srv, foe, owner, 4.0F, false, false, true);
+                                    }
+                                    srv.sendParticles(ParticleTypes.LAVA, zone.center.x, zone.center.y + 0.3D, zone.center.z, 14, 3.5D, 0.2D, 3.5D, 0.04D);
+                                    srv.sendParticles(ParticleTypes.REVERSE_PORTAL, zone.center.x, zone.center.y + 0.4D, zone.center.z, 12, 3.5D, 0.25D, 3.5D, 0.04D);
+                                }
+                                return true;
+                            }
+                    ));
+                    if (entity.isAlive()) {
+                        applyTimedAttributeShred(entity, level, 6.0D, 0.0D, 180L);
+                        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.disableShield(entity, 120);
+                        hurtWithCataclysmMateriaAdvantage(level, entity, meleeAttacker, amount, true, true, false);
+                        return EventResult.interruptFalse();
+                    }
+                }
+                // Section 6.56 Absolute-Zero Glacier Cleave (#54): 60% armor bypass, -6 armor shred, 6.0s shield disable,
+                // 4.0s solid blue-ice encasement on victim, & 8-block atmospheric frost-nova freezing surrounding hostiles for 2.5s!
+                if (terminusGlacierCleaveConversion && !SpellExecutionEngine.hasPrimedTerminusGlacierCleaveStrike(meleeAttacker)) {
+                    Vec3 cleaveCenter = entity.position();
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                            level, meleeAttacker.getEyePosition().add(meleeAttacker.getLookAngle().scale(1.4D)),
+                            meleeAttacker.getLookAngle(), 5.2D, EssenceType.TERMINUS, EssenceType.FROZEN, 5
+                    );
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                            level, cleaveCenter, 8.0D, EssenceType.TERMINUS, EssenceType.FROZEN, 5
+                    );
+                    level.playSound(null, entity.blockPosition(), SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1.15F, 0.68F);
+                    level.playSound(null, entity.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 0.55F, 1.55F);
+                    for (LivingEntity sur : level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(8.0D), e -> e.isAlive() && e != meleeAttacker && e != entity)) {
+                        if (ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isFriendly(sur, meleeAttacker)) continue;
+                        if (isProtectedFromOffensiveSpell(sur, meleeAttacker, true)) continue;
+                        applyTimedAttributeShred(sur, level, 4.0D, 0.0D, 120L);
+                        ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(level, meleeAttacker, sur, 50, 0, null, null);
+                    }
+                    if (entity.isAlive()) {
+                        applyTimedAttributeShred(entity, level, 6.0D, 0.0D, 180L);
+                        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.disableShield(entity, 120);
+                        hurtWithTerminusMateriaAdvantage(level, entity, meleeAttacker, amount, true, true, false);
+                        if (entity.isAlive()) {
+                            ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(level, meleeAttacker, entity, 80, 0, null, null);
+                        }
+                        return EventResult.interruptFalse();
+                    }
+                }
+                // Section 6.57 Reality-Cleaving Scythe (#55): 75% armor bypass, -8 armor shred, cleaves shields (8.0s),
+                // severs all positive buffs, locks primary victim in 4.0s (80t) event-horizon stasis, & pulls adjacent enemies into the slash arc!
+                if (eschatonRealityScytheConversion && !SpellExecutionEngine.hasPrimedEschatonRealityScytheStrike(meleeAttacker)) {
+                    Vec3 arcCenter = entity.position();
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                            level, meleeAttacker.getEyePosition().add(meleeAttacker.getLookAngle().scale(1.5D)),
+                            meleeAttacker.getLookAngle(), 5.8D, EssenceType.ESCHATON, EssenceType.VOID, 6
+                    );
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVacuumSphere(
+                            level, arcCenter.add(0.0D, 0.8D, 0.0D), 8.0D, true, EssenceType.ESCHATON, EssenceType.VOID, 32, 6
+                    );
+                    level.playSound(null, entity.blockPosition(), SoundEvents.TRIDENT_RETURN, SoundSource.PLAYERS, 1.15F, 0.55F);
+                    for (LivingEntity adj : level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(8.0D), e -> e.isAlive() && e != meleeAttacker && e != entity)) {
+                        if (ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isFriendly(adj, meleeAttacker)) continue;
+                        if (isProtectedFromOffensiveSpell(adj, meleeAttacker, true)) continue;
+                        if (!isBossEntity(level, adj)) {
+                            Vec3 in = arcCenter.subtract(adj.position());
+                            if (in.lengthSqr() > 1.0E-4D) {
+                                Vec3 pull = in.normalize().scale(0.85D);
+                                adj.setDeltaMovement(pull.x, 0.20D, pull.z);
+                                adj.hasImpulse = true;
+                            }
+                        }
+                        applyTimedAttributeShred(adj, level, 4.0D, 0.0D, 140L);
+                    }
+                    if (entity.isAlive()) {
+                        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.disableShield(entity, 160);
+                        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.purgeBeneficialBuffs(entity);
+                        applyTimedAttributeShred(entity, level, 8.0D, 0.0D, 240L);
+                        hurtWithEschatonMateriaAdvantage(level, entity, meleeAttacker, amount, true, true, false);
+                        if (entity.isAlive()) {
+                            entity.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 80, 0));
+                            entity.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 80, 0));
+                            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVacuumSphere(
+                                    level, entity.position().add(0.0D, entity.getBbHeight() * 0.55D, 0.0D),
+                                    Math.max(1.2D, entity.getBbWidth() * 1.35D), true, EssenceType.ESCHATON, EssenceType.VOID, 80, 6
+                            );
+                        }
+                        return EventResult.interruptFalse();
+                    }
+                }
+                // Section 6.58 Ascendant Solar Genesis Cleave (#56): 75% armor bypass, shatters 8 armor points,
+                // disables shields for 8.0s (160t), smites dark entities with catastrophic holy damage, roots foes in
+                // starlight briars for 4.0s (80t), and releases seeking golden crowns within 10m siphoning health into party absorption!
+                if (apotheosisGenesisCleaveConversion && !SpellExecutionEngine.hasPrimedApotheosisGenesisCleaveStrike(meleeAttacker)) {
+                    Vec3 cleaveCenter = entity.position();
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                            level, meleeAttacker.getEyePosition().add(meleeAttacker.getLookAngle().scale(1.5D)),
+                            meleeAttacker.getLookAngle(), 5.8D, EssenceType.APOTHEOSIS, EssenceType.RADIANT, 6
+                    );
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                            level, cleaveCenter, 4.0D, EssenceType.APOTHEOSIS, EssenceType.RADIANT, 6
+                    );
+                    level.playSound(null, entity.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 0.85F, 1.55F);
+                    level.playSound(null, entity.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.15F, 1.35F);
+                    if (entity.isAlive()) {
+                        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.disableShield(entity, 160);
+                        applyTimedAttributeShred(entity, level, 8.0D, 0.0D, 240L);
+                        float dealt = hurtWithApotheosisMateriaAdvantage(level, entity, meleeAttacker, amount, true, true, true, false);
+                        if (entity.isAlive()) {
+                            entity.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 6));
+                            entity.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 80, 0));
+                            entity.addEffect(new MobEffectInstance(MobEffects.GLOWING, 120, 0));
+                            if (ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isDarkUndeadOrAbyssal(entity)) {
+                                entity.igniteForSeconds(5);
+                            }
+                        }
+                        float siphoned = Math.max(3.5F, dealt * 0.45F);
+                        for (LivingEntity adj : level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(10.0D),
+                                e -> e.isAlive() && e != entity && e != meleeAttacker
+                                        && !ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isFriendly(e, meleeAttacker)
+                                        && !isProtectedFromOffensiveSpell(e, meleeAttacker, true))) {
+                            SpellWorldVfxManager.broadcastChainArc(
+                                    level, entity.getEyePosition(), adj.getEyePosition(), EssenceType.APOTHEOSIS, EssenceType.RADIANT, 8
+                            );
+                            adj.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 5));
+                            adj.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 60, 0));
+                            applyTimedAttributeShred(adj, level, 4.0D, 0.0D, 160L);
+                            float adjDmg = hurtWithApotheosisMateriaAdvantage(level, adj, meleeAttacker, 5.5F, true, true, true, false);
+                            siphoned += Math.max(2.0F, adjDmg * 0.50F);
+                        }
+                        SpellLingeringZoneManager.grantPartyAbsorption(level, meleeAttacker, siphoned, 36.0F, 16.0D);
+                        return EventResult.interruptFalse();
+                    }
+                }
+                // Section 6.59 Blade of the Grand Paradox (#57): 75% armor bypass, shatters 8 armor points,
+                // disables shields for 8.0s (160t), drains 50% of damage dealt into party absorption shields,
+                // and casts a mini-vortex that draws adjacent hostiles into the slash arc!
+                if (entropicaGrandParadoxConversion && !SpellExecutionEngine.hasPrimedEntropicaGrandParadoxStrike(meleeAttacker)) {
+                    Vec3 slashCenter = entity.position();
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                            level, meleeAttacker.getEyePosition().add(meleeAttacker.getLookAngle().scale(1.5D)),
+                            meleeAttacker.getLookAngle(), 5.8D, EssenceType.ENTROPICA, EssenceType.ASTRAL, 9
+                    );
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVacuumSphere(
+                            level, slashCenter.add(0.0D, 0.7D, 0.0D), 3.6D, true, EssenceType.ENTROPICA, EssenceType.ASTRAL, 26, 9
+                    );
+                    level.playSound(null, entity.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 0.85F, 1.48F);
+                    level.playSound(null, entity.blockPosition(), SoundEvents.RESPAWN_ANCHOR_DEPLETE.value(), SoundSource.PLAYERS, 0.80F, 1.32F);
+                    if (entity.isAlive()) {
+                        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.disableShield(entity, 160);
+                        applyTimedAttributeShred(entity, level, 8.0D, 0.0D, 240L);
+                        float dealt = hurtWithEntropicaMateriaAdvantage(level, entity, meleeAttacker, amount, true, true, false);
+                        float drained = Math.max(4.0F, dealt * 0.50F);
+                        for (LivingEntity adj : level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(8.0D),
+                                e -> e.isAlive() && e != entity && e != meleeAttacker
+                                        && !ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isFriendly(e, meleeAttacker)
+                                        && !isProtectedFromOffensiveSpell(e, meleeAttacker, true))) {
+                            Vec3 in = slashCenter.subtract(adj.position());
+                            if (in.lengthSqr() > 1.0E-4D) {
+                                Vec3 pull = in.normalize().scale(0.68D);
+                                adj.setDeltaMovement(adj.getDeltaMovement().scale(0.30D).add(pull.x, 0.18D, pull.z));
+                                adj.hasImpulse = true;
+                            }
+                            applyTimedAttributeShred(adj, level, 8.0D, 0.0D, 200L);
+                            float adjDealt = hurtWithEntropicaMateriaAdvantage(level, adj, meleeAttacker, 5.5F, true, true, false);
+                            drained += Math.max(2.0F, adjDealt * 0.50F);
+                        }
+                        SpellLingeringZoneManager.grantPartyAbsorption(level, meleeAttacker, drained, 36.0F, 20.0D);
                         return EventResult.interruptFalse();
                     }
                 }
@@ -5179,12 +6340,11 @@ public final class SpellCombatReactionEngine {
         // Earth Defensive Attunement (#4): hexagonal bastion hit-flare + non-spell Void resistance (+1 -> 0.50x) & Air vulnerability (-1 -> 1.50x)!
         if (!REENTRANT_GUST_HURT.get() && now <= data.getLong(SpellLingeringZoneManager.TAG_EARTH_DEFENSE_UNTIL).orElse(0L)) {
             syncEntityBarrierState(level, entity, hitFlare, hitOrigin);
-            if (!source.is(DamageTypeTags.WITCH_RESISTANT_TO)) {
+            if (!source.is(DamageTypeTags.WITCH_RESISTANT_TO)
+                    && !source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)) {
                 Entity atkEnt = source.getEntity() != null ? source.getEntity() : source.getDirectEntity();
                 float earthWardMult = 1.0F;
-                if (source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)) {
-                    earthWardMult = 0.50F;
-                } else if (atkEnt instanceof LivingEntity atkLiv && atkLiv != entity) {
+                if (atkEnt instanceof LivingEntity atkLiv && atkLiv != entity) {
                     Set<EssenceType> atkAffs = resolveEntityAffinities(atkLiv);
                     if (atkAffs.contains(EssenceType.VOID)) {
                         earthWardMult = 0.50F;
@@ -5226,20 +6386,27 @@ public final class SpellCombatReactionEngine {
                 level.sendParticles(ParticleTypes.LAVA, attacker.getX(), attacker.getY(0.65D), attacker.getZ(),
                         5, 0.20D, 0.25D, 0.20D, 0.03D);
             }
-            if (!source.is(DamageTypeTags.WITCH_RESISTANT_TO)) {
+            if (!IN_ADVANTAGE_HURT.get() && !REENTRANT_ELEMENTAL_REACTION.get()) {
                 Entity atkEnt = source.getEntity() != null ? source.getEntity() : source.getDirectEntity();
                 float netherWardMult = 1.0F;
                 if (source.is(DamageTypeTags.IS_FREEZING)) {
                     netherWardMult = 0.50F;
                     entity.setTicksFrozen(0);
+                } else if (source.is(DamageTypeTags.IS_DROWNING)) {
+                    netherWardMult = 1.50F;
                 } else if (atkEnt instanceof LivingEntity atkLiv && atkLiv != entity) {
                     Set<EssenceType> atkAffs = resolveEntityAffinities(atkLiv);
-                    if (atkAffs.contains(EssenceType.FROZEN)) {
+                    if (atkAffs.contains(EssenceType.FROZEN) && !atkAffs.contains(EssenceType.WATER)) {
                         netherWardMult = 0.50F;
                         entity.setTicksFrozen(0);
-                    } else if (atkAffs.contains(EssenceType.WATER)) {
+                    } else if (atkAffs.contains(EssenceType.WATER) && !atkAffs.contains(EssenceType.FROZEN)) {
                         netherWardMult = 1.50F;
                     }
+                }
+                if (netherWardMult == 1.0F
+                        && source.is(DamageTypeTags.WITCH_RESISTANT_TO)
+                        && data.getLong(SpellLingeringZoneManager.TAG_SOAKED_APPLIED_TICK).orElse(-10L) == now) {
+                    netherWardMult = 1.50F;
                 }
                 if (netherWardMult != 1.0F) {
                     REENTRANT_GUST_HURT.set(true);
@@ -5275,15 +6442,32 @@ public final class SpellCombatReactionEngine {
                 }
             }
             syncEntityBarrierState(level, entity, hitFlare, hitOrigin);
-            if (!source.is(DamageTypeTags.WITCH_RESISTANT_TO)) {
+            if (!IN_ADVANTAGE_HURT.get()
+                    && !REENTRANT_ELEMENTAL_REACTION.get()
+                    && !source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)
+                    && !source.is(net.minecraft.world.damagesource.DamageTypes.GENERIC_KILL)) {
                 float radiantWardMult = 1.0F;
                 if (atkRaw instanceof LivingEntity atkLiv && atkLiv != entity) {
                     Set<EssenceType> atkAffs = resolveEntityAffinities(atkLiv);
-                    if (atkAffs.contains(EssenceType.UNDEAD)) {
+                    boolean hasUndead = atkAffs.contains(EssenceType.UNDEAD);
+                    boolean hasUmbral = atkAffs.contains(EssenceType.UMBRAL);
+                    if (hasUndead && !hasUmbral) {
                         radiantWardMult = 0.50F;
-                    } else if (atkAffs.contains(EssenceType.UMBRAL)) {
+                    } else if (hasUmbral && !hasUndead) {
                         radiantWardMult = 1.50F;
+                    } else if (!hasUndead && !hasUmbral && !source.is(DamageTypeTags.IS_PROJECTILE)) {
+                        float weapScore = resolveHeldWeaponAdvantageScore(atkLiv, entity);
+                        if (weapScore < 0.0F) {
+                            radiantWardMult = 0.50F;
+                        } else if (weapScore > 0.0F) {
+                            radiantWardMult = 1.50F;
+                        }
                     }
+                } else if (source.is(net.minecraft.world.damagesource.DamageTypes.WITHER)
+                        || source.is(net.minecraft.world.damagesource.DamageTypes.WITHER_SKULL)) {
+                    radiantWardMult = 0.50F;
+                } else if (source.is(net.minecraft.world.damagesource.DamageTypes.SONIC_BOOM)) {
+                    radiantWardMult = 1.50F;
                 }
                 if (radiantWardMult != 1.0F) {
                     REENTRANT_GUST_HURT.set(true);
@@ -5505,10 +6689,10 @@ public final class SpellCombatReactionEngine {
                     16, 0.4D, 0.45D, 0.4D, 0.05D);
             level.playSound(null, entity.blockPosition(), SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.70F, 1.35F);
         } else if (!REENTRANT_GUST_HURT.get()
+                && !IN_ADVANTAGE_HURT.get()
                 && hasActiveMutatedHex(data, now, EssenceType.FROZEN)
-                && !source.is(DamageTypeTags.IS_FIRE)
-                && !source.is(DamageTypeTags.WITCH_RESISTANT_TO)) {
-            float mult = 1.0F + 0.50F * getHexStackMultiplier(entity);
+                && isFrozenHexShatterDamage(source)) {
+            float mult = resolveFrozenHexShatterMultiplier(getHexStackLevel(entity));
             REENTRANT_GUST_HURT.set(true);
             try {
                 level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.PACKED_ICE.defaultBlockState()),
@@ -5610,12 +6794,12 @@ public final class SpellCombatReactionEngine {
                 try {
                     int spikeTier = Math.clamp(data.getInt("SpellFrozenSpikesTier").orElse(2), 1, 10);
                     hurtWithFrozenMateriaAdvantage(level, attacker, entity, 2.5F + spikeTier * 0.65F, false, true);
-                    applyTimedAttackDebuff(attacker, level, 0.0D, 0.30D, 100L); // True -30% Attack Speed on Players!
+                    applyTimedAttackDebuff(attacker, level, 0.0D, 0.30D, 100L); // Exact -30% Attack Speed (no compounding Mining Fatigue)!
                     CompoundTag atkData = EntityHelper.getPersistentData(attacker);
-                    atkData.putLong(SpellLingeringZoneManager.TAG_CHILLED_SWING_UNTIL, now + 100L); // True -30% Attack Speed on Mobs!
-                    atkData.putLong(SpellLingeringZoneManager.TAG_CHILLED_SWING_NEXT_ALLOWED, now + 29L);
-                    attacker.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 100, 0));
-                    attacker.setTicksFrozen(Math.min(attacker.getTicksRequiredToFreeze() + 60, attacker.getTicksFrozen() + 60));
+                    atkData.putLong(SpellLingeringZoneManager.TAG_CHILLED_SWING_UNTIL, now + 100L);
+                    atkData.putLong("SpellChilledLastSwingTick", now);
+                    atkData.putLong(SpellLingeringZoneManager.TAG_CHILLED_SWING_NEXT_ALLOWED,
+                            now + resolveChilledMobSwingCooldownTicks(20L));
                     Vec3 outDir = attacker.position().subtract(entity.position());
                     Vec3 nDir = outDir.lengthSqr() > 1.0E-4D ? outDir.normalize() : new Vec3(0.0D, 1.0D, 0.0D);
                     ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastProjectileImpact(
@@ -7351,9 +8535,12 @@ public final class SpellCombatReactionEngine {
             genAtk.hasImpulse = true;
         }
 
-        // #47 Oblivion Extinction Armor (Fire/Lava/Wither immunity + 40% melee reflection) & Ash-Warp Fire/Fall Immunity
+        // #47 Oblivion Extinction Armor (Fire/Lava/Wither immunity + 40% melee reflection) & Ash-Warp / Cataclysm Void-Warp Fire/Fall Immunity
         if (now <= data.getLong(SpellLingeringZoneManager.TAG_OBLIVION_FIRE_FALL_IMMUNE_UNTIL).orElse(0L)) {
-            if (source.is(DamageTypeTags.IS_FIRE) || source.is(DamageTypeTags.IS_FALL)) {
+            if (source.is(DamageTypeTags.IS_FIRE)
+                    || source.is(net.minecraft.world.damagesource.DamageTypes.LAVA)
+                    || source.is(net.minecraft.world.damagesource.DamageTypes.HOT_FLOOR)
+                    || source.is(DamageTypeTags.IS_FALL)) {
                 entity.clearFire();
                 entity.resetFallDistance();
                 return EventResult.interruptFalse();
@@ -7735,10 +8922,34 @@ public final class SpellCombatReactionEngine {
                 || now <= data.getLong(SpellLingeringZoneManager.TAG_CELESTIAL_ASCENDANCE_UNTIL).orElse(0L)) {
             set.add(EssenceType.CELESTIAL);
         }
+        if (now <= data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_SHROUD_UNTIL).orElse(0L)
+                || now <= data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_AEGIS_UNTIL).orElse(0L)) {
+            set.add(EssenceType.EMPYREAN);
+        }
+        if (now <= data.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_SHROUD_UNTIL).orElse(0L)) {
+            set.add(EssenceType.CATACLYSM);
+        }
+        if (now <= data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_SHROUD_UNTIL).orElse(0L)
+                || now <= data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_MANTLE_UNTIL).orElse(0L)) {
+            set.add(EssenceType.TERMINUS);
+        }
+        if (now <= data.getLong(SpellLingeringZoneManager.TAG_ESCHATON_SHROUD_UNTIL).orElse(0L)) {
+            set.add(EssenceType.ESCHATON);
+        }
+        if (now <= data.getLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_SHROUD_UNTIL).orElse(0L)) {
+            set.add(EssenceType.APOTHEOSIS);
+        }
+        if (now <= data.getLong(SpellLingeringZoneManager.TAG_ENTROPICA_SHROUD_UNTIL).orElse(0L)) {
+            set.add(EssenceType.ENTROPICA);
+        }
         return set;
     }
 
     public static boolean isBossEntity(ServerLevel level, LivingEntity entity) {
+        return isBossEntity(entity);
+    }
+
+    public static boolean isBossEntity(LivingEntity entity) {
         return entity instanceof EnderDragon
                 || entity instanceof WitherBoss
                 || entity instanceof ElderGuardian
@@ -7755,8 +8966,8 @@ public final class SpellCombatReactionEngine {
 
     private static boolean isUmbralLine(EssenceType t) {
         return t == EssenceType.UMBRAL || t == EssenceType.ECLIPSE || t == EssenceType.NULL_U
-                || t == EssenceType.ABYSS || t == EssenceType.PENUMBRA
-                || t == EssenceType.OBLIVION || t == EssenceType.TERMINUS || t == EssenceType.ESCHATON;
+                || t == EssenceType.VESPER || t == EssenceType.ABYSS || t == EssenceType.UMBRAL_WATER
+                || t == EssenceType.PENUMBRA || t == EssenceType.OBLIVION || t == EssenceType.ESCHATON;
     }
 
     private static boolean isAirLine(EssenceType t) {
@@ -7779,57 +8990,109 @@ public final class SpellCombatReactionEngine {
                 || t == EssenceType.SPRING || t == EssenceType.SYLVAN || t == EssenceType.MIASMA;
     }
 
-    private static int calculateSpellElementalAdvantageScore(EssenceType attackMateria, Set<EssenceType> defenderAffinities) {
-        if (attackMateria == EssenceType.APOTHEOSIS) {
-            for (EssenceType aff : defenderAffinities) {
-                if (aff == EssenceType.UNDEAD || aff == EssenceType.VOID || aff == EssenceType.UMBRAL || aff == EssenceType.NETHER) {
-                    return 2;
-                }
-            }
-            return 1;
-        }
-        if (attackMateria == EssenceType.ESCHATON) {
-            for (EssenceType aff : defenderAffinities) {
-                if (aff == EssenceType.EARTH || aff == EssenceType.NATURE || aff == EssenceType.RADIANT) {
-                    return 2;
-                }
-            }
-            return 1;
-        }
-        if (attackMateria == EssenceType.TERMINUS) {
-            for (EssenceType aff : defenderAffinities) {
-                if (aff == EssenceType.NETHER || aff == EssenceType.WATER || aff == EssenceType.AIR) {
-                    return 2;
-                }
-                if (aff == EssenceType.EARTH) {
-                    return -1;
-                }
-            }
-        }
-        int rawScore = VisInteractionManager.getInstance().calculateTotalVisScore(
-                List.of(attackMateria.getSerializedName()),
-                defenderAffinities
+    /**
+     * Routes spell elemental advantage scoring directly through {@link VisInteractionManager}'s canonical
+     * Defender-Lineage &amp; Offensive/Defensive Clash engine so combat spells and Restoration share one exact matrix.
+     */
+    public static int calculateSpellElementalAdvantageScore(
+            @Nullable EssenceType attackMateria,
+            Collection<EssenceType> defenderAffinities
+    ) {
+        return VisInteractionManager.getInstance().calculateLineageAdvantageScore(attackMateria, defenderAffinities);
+    }
+
+    /**
+     * Routes spell damage multipliers through {@link VisInteractionManager}'s Universal Linear Scale
+     * ({@code 1.0 + 0.5 * score} positive, {@code 0.5^|score|} negative), Mob-to-Player survival bounds
+     * ({@code 0.10x} floor / {@code 3.2x} cap, or {@code 0.0x} Alpha / {@code 2.5x} Omega), Tier 5 Divine Override
+     * ({@code 4.0x}), and Tier 6 Singularity Absolute Override ({@code 0.0x} immunity / {@code 5.0x} Mirror &amp; Entropica clash).
+     */
+    public static float calculateSpellAdvantageDamageMultiplier(
+            @Nullable EssenceType attackMateria,
+            @Nullable LivingEntity caster,
+            @Nullable LivingEntity target,
+            Collection<EssenceType> defenderAffinities,
+            float bonusAdvantageScore
+    ) {
+        boolean fromPlayer = (caster instanceof Player)
+                || (caster instanceof SpellEidolonEntity eid
+                    && eid.level() instanceof ServerLevel eidSrv
+                    && eid.resolveSummoner(eidSrv) instanceof Player);
+        boolean mobToPlayer = (target instanceof Player) && !fromPlayer;
+        boolean alphaLeaning = isAlphaLeaningEntity(target);
+        boolean omegaLeaning = isOmegaLeaningEntity(target);
+        return VisInteractionManager.getInstance().calculateDamageMultiplier(
+                attackMateria,
+                defenderAffinities,
+                mobToPlayer,
+                bonusAdvantageScore,
+                alphaLeaning,
+                omegaLeaning
         );
-        // Section 6.12, 6.13, 6.18 & 6.3 Mutually Volatile Clashes (Arid <-> Water, Lightning <-> Water, Dust <-> Water/Void):
-        // Both sides deal +1 offensive volatile clash damage when attacking the other instead of cancelling (+1 - 1 = 0)!
-        if ((attackMateria == EssenceType.ARID || attackMateria == EssenceType.LIGHTNING)
-                && defenderAffinities.contains(EssenceType.WATER)) {
-            rawScore += 1;
-        } else if (attackMateria == EssenceType.DUST
-                && (defenderAffinities.contains(EssenceType.WATER) || defenderAffinities.contains(EssenceType.VOID))) {
-            rawScore += 1;
-        } else if (attackMateria == EssenceType.WATER
-                && (defenderAffinities.contains(EssenceType.ARID)
-                    || defenderAffinities.contains(EssenceType.LIGHTNING)
-                    || defenderAffinities.contains(EssenceType.DUST))) {
-            rawScore += 1;
-        } else if (attackMateria == EssenceType.VOID && defenderAffinities.contains(EssenceType.DUST)) {
-            rawScore += 1;
-        } else if ((attackMateria == EssenceType.AURA && defenderAffinities.contains(EssenceType.WRAITH))
-                || (attackMateria == EssenceType.WRAITH && defenderAffinities.contains(EssenceType.AURA))) {
-            rawScore += 1;
+    }
+
+    private static boolean isAlphaLeaningEntity(@Nullable LivingEntity entity) {
+        if (entity == null) return false;
+        CompoundTag data = EntityHelper.getPersistentData(entity);
+        if (data.getBoolean("AlphaLeaning").orElse(false) || data.getBoolean("SpellAlphaLeaning").orElse(false)) {
+            return true;
         }
-        return rawScore;
+        return hasWeaponCoreKeyword(entity.getMainHandItem(), "alpha")
+                || hasWeaponCoreKeyword(entity.getOffhandItem(), "alpha");
+    }
+
+    private static boolean isOmegaLeaningEntity(@Nullable LivingEntity entity) {
+        if (entity == null) return false;
+        CompoundTag data = EntityHelper.getPersistentData(entity);
+        if (data.getBoolean("OmegaLeaning").orElse(false) || data.getBoolean("SpellOmegaLeaning").orElse(false)) {
+            return true;
+        }
+        return hasWeaponCoreKeyword(entity.getMainHandItem(), "omega")
+                || hasWeaponCoreKeyword(entity.getOffhandItem(), "omega");
+    }
+
+    private static boolean hasWeaponCoreKeyword(ItemStack stack, String keyword) {
+        if (stack == null || stack.isEmpty()) return false;
+        VisWeaponState ws = stack.get(ModDataComponents.VIS_WEAPON_STATE.get());
+        return ws != null && ws.coreType() != null && ws.coreType().toLowerCase(Locale.ROOT).contains(keyword);
+    }
+
+    /**
+     * Resolves the active spell or weapon potency tier for melee conversion fuel siphons, checking persistent primed/cast
+     * tier data first, then equipped Casting Apparatus active socket, Inscribed Spellgem assembly, and Materia weapon tier,
+     * falling back to {@code fallbackTier} only when no tier metadata is present.
+     */
+    public static int resolveSpellOrWeaponTier(@Nullable LivingEntity attacker, int fallbackTier) {
+        int safeFallback = Math.clamp(fallbackTier, 1, 10);
+        if (attacker == null) {
+            return safeFallback;
+        }
+        CompoundTag data = EntityHelper.getPersistentData(attacker);
+        int primedTier = data.getInt("SpellPrimedTouchTier").orElse(0);
+        if (primedTier > 0) {
+            return Math.clamp(primedTier, 1, 10);
+        }
+        int lastCastTier = data.getInt("SpellLastCastTier").orElse(0);
+        if (lastCastTier > 0) {
+            return Math.clamp(lastCastTier, 1, 10);
+        }
+        for (ItemStack held : List.of(attacker.getMainHandItem(), attacker.getOffhandItem())) {
+            if (held.isEmpty()) continue;
+            CastingApparatusState app = held.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+            if (app != null && app.getActiveSpell().isPresent()) {
+                return app.getActiveSpell().get().getEffectiveTier();
+            }
+            SpellAssembly asm = held.get(ModDataComponents.SPELL_ASSEMBLY.get());
+            if (asm != null && asm.potencyTier() > 0) {
+                return asm.getEffectiveTier();
+            }
+            VisWeaponState ws = held.get(ModDataComponents.VIS_WEAPON_STATE.get());
+            if (ws != null && ws.baseType() != EssenceType.REGULAR) {
+                int familyMinTier = Math.max(1, MateriaFamilyTier.classify(ws.baseType()).getFusionTier());
+                return Math.clamp(Math.max(familyMinTier, 1 + ws.slottedFragments().size()), 1, 10);
+            }
+        }
+        return safeFallback;
     }
 
     private static EventResult interceptApexEschatonSingularityDamage(
@@ -7840,9 +9103,25 @@ public final class SpellCombatReactionEngine {
             float amount,
             long now
     ) {
-        // 1. Attacker Hex Fumble Miss (50% Celestial/Prismatic/Empyrean, 60% Apotheosis), Weapon Recoil (50% Aether/Cataclysm, 60% Eschaton/Entropica) & Entropic Shroud Lifesteal
+        // 1. Attacker Hex Stamina Winded Cadence (#1 Air Hypoxia +40% mob melee interval), Fumble Miss & Weapon Recoil
         if (!REENTRANT_GUST_HURT.get() && source.getEntity() instanceof LivingEntity atk && atk != entity) {
             CompoundTag atkData = EntityHelper.getPersistentData(atk);
+            if (atk instanceof Mob mobAtk
+                    && hasActiveMutatedHex(atkData, now, EssenceType.AIR)
+                    && !source.is(DamageTypeTags.IS_PROJECTILE)
+                    && (source.getDirectEntity() == mobAtk || source.getDirectEntity() == null)) {
+                long meleeCdUntil = atkData.getLong(TAG_AIR_HYPOXIA_MELEE_CD_UNTIL).orElse(0L);
+                if (now < meleeCdUntil) {
+                    level.sendParticles(ParticleTypes.CLOUD,
+                            mobAtk.getX(), mobAtk.getEyeY() - 0.1D, mobAtk.getZ(),
+                            4, 0.2D, 0.15D, 0.2D, 0.02D);
+                    return EventResult.interruptFalse();
+                }
+                // Enforce +40% longer melee attack interval (28t base vs vanilla 20t, scaling with Hex stack)!
+                long windedInterval = Math.max(14L, Math.round(28.0F * getHexStackMultiplier(mobAtk)));
+                atkData.putLong(TAG_AIR_HYPOXIA_MELEE_CD_UNTIL, now + windedInterval);
+            }
+
             float fumbleChance = 0.0F;
             if (hasActiveMutatedHex(atkData, now, EssenceType.APOTHEOSIS)) {
                 fumbleChance = 0.60F;
@@ -7959,46 +9238,109 @@ public final class SpellCombatReactionEngine {
             }
         }
 
-        // 5. #51 Prismatic Shroud (Fire/Lava/Drowning Immunity)
+        // 5. #51 Prismatic Shroud (Fire/Lava/Drowning Immunity) & Kaleidoscope Orbit Retaliation
         if (now <= data.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_SHROUD_UNTIL).orElse(0L)
                 && (source.is(DamageTypeTags.IS_FIRE) || source.is(DamageTypeTags.IS_DROWNING))) {
             entity.clearFire();
+            syncEntityBarrierState(level, entity, computeHitFlare(entity, amount), resolveHitOrigin(entity, source));
             return EventResult.interruptFalse();
         }
+        if (!REENTRANT_GUST_HURT.get() && now <= data.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_ORBIT_UNTIL).orElse(0L)) {
+            Entity orbitAtk = source.getEntity() != null ? source.getEntity() : source.getDirectEntity();
+            if (orbitAtk instanceof LivingEntity prismAtk && prismAtk != entity && prismAtk.isAlive()) {
+                prismAtk.addEffect(new MobEffectInstance(MobEffects.GLOWING, 80, 0));
+                ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, entity, prismAtk, 1);
+                REENTRANT_GUST_HURT.set(true);
+                try {
+                    hurtWithPrismaticMateriaAdvantage(level, prismAtk, entity, 3.5F, false, true);
+                } finally {
+                    REENTRANT_GUST_HURT.set(false);
+                }
+            }
+        }
 
-        // 6. #52 Empyrean Shroud, Aegis & Orbit (Suffocation/Drowning/Wither Immunity + 2s Orbit Root)
+        // 6. #52 Empyrean Shroud, Aegis & Orbit (Suffocation/Drowning/Poison/Wither Immunity + 2s Orbit Root, -3 Armor & Siphon)
         if ((now <= data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_SHROUD_UNTIL).orElse(0L)
                 || now <= data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_AEGIS_UNTIL).orElse(0L))
                 && (source.is(DamageTypeTags.IS_DROWNING)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)
-                || source.is(net.minecraft.world.damagesource.DamageTypes.WITHER))) {
+                || source.is(net.minecraft.world.damagesource.DamageTypes.WITHER)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.MAGIC) && entity.hasEffect(MobEffects.POISON))) {
+            entity.removeEffect(MobEffects.POISON);
+            entity.removeEffect(MobEffects.WITHER);
+            entity.removeEffect(MobEffects.HUNGER);
             syncEntityBarrierState(level, entity, computeHitFlare(entity, amount), resolveHitOrigin(entity, source));
             return EventResult.interruptFalse();
         }
-        if (now <= data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_ORBIT_UNTIL).orElse(0L)
-                && source.getDirectEntity() instanceof LivingEntity empAtk && empAtk != entity) {
-            empAtk.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 5));
-            empAtk.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 40, 0));
+        if (!REENTRANT_GUST_HURT.get() && now <= data.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_ORBIT_UNTIL).orElse(0L)) {
+            Entity orbitAtk = source.getEntity() != null ? source.getEntity() : source.getDirectEntity();
+            if (orbitAtk instanceof LivingEntity empAtk && empAtk != entity && empAtk.isAlive()) {
+                empAtk.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 5));
+                empAtk.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 40, 0));
+                applyTimedAttributeShred(empAtk, level, 3.0D, 0.0D, 120L);
+                ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, entity, empAtk, 1);
+                REENTRANT_GUST_HURT.set(true);
+                try {
+                    float dealt = hurtWithEmpyreanMateriaAdvantage(level, empAtk, entity, 3.8F, false, true, false, false);
+                    if (dealt > 0.0F) {
+                        SpellLingeringZoneManager.grantPartyAbsorption(level, entity, Math.max(2.0F, dealt * 0.50F), 32.0F, 12.0D);
+                    }
+                } finally {
+                    REENTRANT_GUST_HURT.set(false);
+                }
+            }
         }
 
-        // 7. #53 Cataclysm Shroud (Fire/Lava/Wither Immunity)
-        if (now <= data.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_SHROUD_UNTIL).orElse(0L)
-                && (source.is(DamageTypeTags.IS_FIRE) || source.is(net.minecraft.world.damagesource.DamageTypes.WITHER))) {
-            entity.clearFire();
+        // 7. #53 Cataclysm Shroud (Fire/Lava/Hot-Floor/Wither Immunity) & Singularity Orbit Retaliation
+        if (now <= data.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_SHROUD_UNTIL).orElse(0L)) {
+            entity.removeEffect(MobEffects.BLINDNESS);
+            entity.removeEffect(MobEffects.WITHER);
+            if (source.is(DamageTypeTags.IS_FIRE)
+                    || source.is(net.minecraft.world.damagesource.DamageTypes.LAVA)
+                    || source.is(net.minecraft.world.damagesource.DamageTypes.HOT_FLOOR)
+                    || source.is(net.minecraft.world.damagesource.DamageTypes.WITHER)) {
+                entity.clearFire();
+                syncEntityBarrierState(level, entity, computeHitFlare(entity, amount), resolveHitOrigin(entity, source));
+                return EventResult.interruptFalse();
+            }
+            syncEntityBarrierState(level, entity, computeHitFlare(entity, amount), resolveHitOrigin(entity, source));
+        }
+        if (!REENTRANT_GUST_HURT.get() && now <= data.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_ORBIT_UNTIL).orElse(0L)) {
+            Entity orbitAtk = source.getEntity() != null ? source.getEntity() : source.getDirectEntity();
+            if (orbitAtk instanceof LivingEntity catAtk && catAtk != entity && catAtk.isAlive()) {
+                applyPercentageArmorShred(catAtk, level, 0.0D, 0.40D, 120L);
+                catAtk.igniteForSeconds(4);
+                EntityHelper.getPersistentData(catAtk).putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, now + 80L);
+                ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, entity, catAtk, 1);
+                REENTRANT_GUST_HURT.set(true);
+                try {
+                    hurtWithCataclysmMateriaAdvantage(level, catAtk, entity, 3.8F, false, false, true);
+                } finally {
+                    REENTRANT_GUST_HURT.set(false);
+                }
+            }
+        }
+
+        // 8. #54 Terminus Shroud, Glacial Mantle, Flash-Slide Fall Immunity & Polar Vortex Orbit
+        if (now <= data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_FLASH_SLIDE_FALL_IMMUNE_UNTIL).orElse(0L)
+                && source.is(DamageTypeTags.IS_FALL)) {
+            entity.resetFallDistance();
             return EventResult.interruptFalse();
         }
-
-        // 8. #54 Terminus Shroud & Mantle (50% Absorption + 2s Melee Freeze & -60% Attack Speed)
         if (now <= data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_SHROUD_UNTIL).orElse(0L)) {
-            if (source.is(DamageTypeTags.IS_FIRE) || source.is(DamageTypeTags.IS_DROWNING)
-                    || source.is(DamageTypeTags.IS_FREEZING) || source.is(net.minecraft.world.damagesource.DamageTypes.WITHER)) {
+            if (source.is(DamageTypeTags.IS_FIRE)
+                    || source.is(net.minecraft.world.damagesource.DamageTypes.LAVA)
+                    || source.is(net.minecraft.world.damagesource.DamageTypes.HOT_FLOOR)
+                    || source.is(DamageTypeTags.IS_DROWNING)
+                    || source.is(DamageTypeTags.IS_FREEZING)
+                    || source.is(net.minecraft.world.damagesource.DamageTypes.WITHER)) {
                 entity.clearFire();
                 entity.setTicksFrozen(0);
                 syncEntityBarrierState(level, entity, computeHitFlare(entity, amount), resolveHitOrigin(entity, source));
                 return EventResult.interruptFalse();
             }
-            if (source.getDirectEntity() instanceof LivingEntity termAtk && termAtk != entity) {
-                termAtk.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 40, 0));
+            if (source.getDirectEntity() instanceof LivingEntity termAtk && termAtk != entity && !source.is(DamageTypeTags.IS_PROJECTILE)) {
+                ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(level, entity, termAtk, 40, 0, null, null);
                 applyTimedAttackDebuff(termAtk, level, 0.0D, 0.60D, 80L);
             }
             if (!REENTRANT_GUST_HURT.get() && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
@@ -8012,17 +9354,39 @@ public final class SpellCombatReactionEngine {
                 return EventResult.interruptFalse();
             }
         } else if (now <= data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_MANTLE_UNTIL).orElse(0L)
-                && (source.is(DamageTypeTags.IS_FIRE) || source.is(DamageTypeTags.IS_DROWNING) || source.is(DamageTypeTags.IS_FREEZING))) {
+                && (source.is(DamageTypeTags.IS_FIRE)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.LAVA)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.HOT_FLOOR)
+                || source.is(DamageTypeTags.IS_DROWNING)
+                || source.is(DamageTypeTags.IS_FREEZING))) {
             entity.clearFire();
             entity.setTicksFrozen(0);
+            syncEntityBarrierState(level, entity, computeHitFlare(entity, amount), resolveHitOrigin(entity, source));
             return EventResult.interruptFalse();
         }
+        if (!REENTRANT_GUST_HURT.get() && now <= data.getLong(SpellLingeringZoneManager.TAG_TERMINUS_ORBIT_UNTIL).orElse(0L)) {
+            Entity orbitAtk = source.getEntity() != null ? source.getEntity() : source.getDirectEntity();
+            if (orbitAtk instanceof LivingEntity termOrbitAtk && termOrbitAtk != entity && termOrbitAtk.isAlive()) {
+                applyPercentageArmorShred(termOrbitAtk, level, 0.0D, 0.40D, 120L);
+                applyTimedAttackDebuff(termOrbitAtk, level, 0.0D, 0.40D, 80L);
+                termOrbitAtk.setTicksFrozen(Math.min(termOrbitAtk.getTicksRequiredToFreeze() + 80, termOrbitAtk.getTicksFrozen() + 60));
+                ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, entity, termOrbitAtk, 1);
+                REENTRANT_GUST_HURT.set(true);
+                try {
+                    hurtWithTerminusMateriaAdvantage(level, termOrbitAtk, entity, 3.8F, false, true, false);
+                } finally {
+                    REENTRANT_GUST_HURT.set(false);
+                }
+            }
+        }
 
-        // 9. #55 Eschaton, #56 Apotheosis & #57 Entropica Singularity Mantles (Environmental & Void Immunity)
+        // 9. #55 Eschaton, #56 Apotheosis & #57 Entropica Singularity Mantles (Environmental & Void Immunity) + #55 Event Horizon Orbit Retaliation
         if ((now <= data.getLong(SpellLingeringZoneManager.TAG_ESCHATON_SHROUD_UNTIL).orElse(0L)
                 || now <= data.getLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_SHROUD_UNTIL).orElse(0L)
                 || now <= data.getLong(SpellLingeringZoneManager.TAG_ENTROPICA_SHROUD_UNTIL).orElse(0L))
                 && (source.is(DamageTypeTags.IS_FIRE)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.LAVA)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.HOT_FLOOR)
                 || source.is(DamageTypeTags.IS_DROWNING)
                 || source.is(DamageTypeTags.IS_FREEZING)
                 || source.is(DamageTypeTags.IS_FALL)
@@ -8033,6 +9397,51 @@ public final class SpellCombatReactionEngine {
             entity.resetFallDistance();
             syncEntityBarrierState(level, entity, computeHitFlare(entity, amount), resolveHitOrigin(entity, source));
             return EventResult.interruptFalse();
+        }
+        if (now <= data.getLong(SpellLingeringZoneManager.TAG_ESCHATON_SHROUD_UNTIL).orElse(0L)
+                || now <= data.getLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_SHROUD_UNTIL).orElse(0L)
+                || now <= data.getLong(SpellLingeringZoneManager.TAG_ENTROPICA_SHROUD_UNTIL).orElse(0L)) {
+            syncEntityBarrierState(level, entity, computeHitFlare(entity, amount), resolveHitOrigin(entity, source));
+        }
+        if (!REENTRANT_GUST_HURT.get() && now <= data.getLong(SpellLingeringZoneManager.TAG_ESCHATON_ORBIT_UNTIL).orElse(0L)) {
+            Entity orbitAtk = source.getEntity() != null ? source.getEntity() : source.getDirectEntity();
+            if (orbitAtk instanceof LivingEntity eschAtk && eschAtk != entity && eschAtk.isAlive()) {
+                applyPercentageArmorShred(eschAtk, level, 0.0D, 0.50D, 140L);
+                ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, entity, eschAtk, 1);
+                REENTRANT_GUST_HURT.set(true);
+                try {
+                    hurtWithEschatonMateriaAdvantage(level, eschAtk, entity, 4.5F, false, false, true);
+                } finally {
+                    REENTRANT_GUST_HURT.set(false);
+                }
+            }
+        }
+        if (!REENTRANT_GUST_HURT.get() && now <= data.getLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_ORBIT_UNTIL).orElse(0L)) {
+            Entity orbitAtk = source.getEntity() != null ? source.getEntity() : source.getDirectEntity();
+            if (orbitAtk instanceof LivingEntity apoAtk && apoAtk != entity && apoAtk.isAlive()) {
+                applyPercentageArmorShred(apoAtk, level, 0.0D, 0.50D, 140L);
+                apoAtk.igniteForSeconds(4);
+                ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, entity, apoAtk, 1);
+                REENTRANT_GUST_HURT.set(true);
+                try {
+                    hurtWithApotheosisMateriaAdvantage(level, apoAtk, entity, 4.5F, false, false, true, true);
+                } finally {
+                    REENTRANT_GUST_HURT.set(false);
+                }
+            }
+        }
+        if (!REENTRANT_GUST_HURT.get() && now <= data.getLong(SpellLingeringZoneManager.TAG_ENTROPICA_ORBIT_UNTIL).orElse(0L)) {
+            Entity orbitAtk = source.getEntity() != null ? source.getEntity() : source.getDirectEntity();
+            if (orbitAtk instanceof LivingEntity entAtk && entAtk != entity && entAtk.isAlive()) {
+                applyPercentageArmorShred(entAtk, level, 0.0D, 0.50D, 140L);
+                ddraig.net.entropica.entity.projectile.SpellProjectileEntity.releaseOrbitingProjectilesToward(level, entity, entAtk, 1);
+                REENTRANT_GUST_HURT.set(true);
+                try {
+                    hurtWithEntropicaMateriaAdvantage(level, entAtk, entity, 4.8F, false, false, true);
+                } finally {
+                    REENTRANT_GUST_HURT.set(false);
+                }
+            }
         }
 
         // 10. Player Hex Vectors (Monster Empowerment: #48 Aether, #54 Terminus, #56 Apotheosis, #57 Entropica)
@@ -8055,8 +9464,12 @@ public final class SpellCombatReactionEngine {
                 return EventResult.interruptFalse();
             }
             if (hasActiveMutatedHex(data, now, EssenceType.TERMINUS)) {
-                hexedPlayer.setTicksFrozen(Math.min(hexedPlayer.getTicksRequiredToFreeze() + 80, hexedPlayer.getTicksFrozen() + 80));
-                hexedPlayer.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
+                if (source.getDirectEntity() == mob && !source.is(DamageTypeTags.IS_PROJECTILE)) {
+                    hexedPlayer.setTicksFrozen(Math.max(hexedPlayer.getTicksRequiredToFreeze() + 60, hexedPlayer.getTicksFrozen() + 80));
+                    level.sendParticles(ParticleTypes.SNOWFLAKE, hexedPlayer.getX(), hexedPlayer.getY(0.8D), hexedPlayer.getZ(), 10, 0.3D, 0.35D, 0.3D, 0.03D);
+                } else {
+                    hexedPlayer.setTicksFrozen(Math.min(hexedPlayer.getTicksRequiredToFreeze() + 80, hexedPlayer.getTicksFrozen() + 60));
+                }
                 REENTRANT_GUST_HURT.set(true);
                 try {
                     hexedPlayer.hurtServer(level, source, amount * (1.0F + 0.40F * getHexStackMultiplier(hexedPlayer)));
@@ -8093,6 +9506,176 @@ public final class SpellCombatReactionEngine {
         return EventResult.pass();
     }
 
+    private static boolean hurtWithAdvantageTracked(
+            ServerLevel level,
+            LivingEntity target,
+            DamageSource magicSrc,
+            float spellDamage
+    ) {
+        boolean prev = IN_ADVANTAGE_HURT.get();
+        IN_ADVANTAGE_HURT.set(true);
+        try {
+            return hurtWithPureMateria(level, target, magicSrc, spellDamage);
+        } finally {
+            IN_ADVANTAGE_HURT.set(prev);
+        }
+    }
+
+    private static void cookFreshCauterizingDeathDrops(ServerLevel level, AABB box) {
+        for (ItemEntity itemEntity : level.getEntitiesOfClass(ItemEntity.class, box)) {
+            if (!itemEntity.isAlive() || itemEntity.getAge() > 4) {
+                continue;
+            }
+            ItemStack in = itemEntity.getItem();
+            if (in.isEmpty()) {
+                continue;
+            }
+            ItemStack oreSmelted = ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.trySmeltRawOreInTransit(level, in);
+            if (oreSmelted != in) {
+                itemEntity.setItem(oreSmelted);
+                level.sendParticles(ParticleTypes.FLAME, itemEntity.getX(), itemEntity.getY() + 0.2D, itemEntity.getZ(),
+                        6, 0.12D, 0.12D, 0.12D, 0.02D);
+                continue;
+            }
+            ItemStack smelted = ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.trySmeltStack(level, in);
+            if (smelted != in && (in.has(net.minecraft.core.component.DataComponents.FOOD)
+                    || smelted.has(net.minecraft.core.component.DataComponents.FOOD))) {
+                itemEntity.setItem(smelted);
+                level.sendParticles(ParticleTypes.FLAME, itemEntity.getX(), itemEntity.getY() + 0.2D, itemEntity.getZ(),
+                        6, 0.12D, 0.12D, 0.12D, 0.02D);
+            }
+        }
+    }
+
+    /**
+     * Converts a Touch/Strike spell hit's attacking Materia cleanly to {@code EARTH}, {@code FROZEN}, {@code NETHER},
+     * or {@code RADIANT} when the Touch form is mutated with one of those elements (without stacking a second element's advantage).
+     */
+    @Nullable
+    public static EssenceType resolveConvertedTouchAttackMateria(
+            @Nullable EssenceType baseEffectMateria,
+            @Nullable EssenceType touchFormMateria,
+            boolean touchFormMutated
+    ) {
+        if (touchFormMutated && (touchFormMateria == EssenceType.EARTH
+                || touchFormMateria == EssenceType.FROZEN
+                || touchFormMateria == EssenceType.NETHER
+                || touchFormMateria == EssenceType.RADIANT)) {
+            return touchFormMateria;
+        }
+        return baseEffectMateria;
+    }
+
+    /**
+     * Section 6.8 <i>Sun-Scorched Smite Hex</i> physical armor melt across Hex Levels I–III ({@code 4.0 / 6.0 / 8.0}).
+     */
+    public static double resolveSunScorchedHexArmorMelt(int stack) {
+        return switch (Math.clamp(stack, 1, 3)) {
+            case 1 -> 4.0D;
+            case 2 -> 6.0D;
+            default -> 8.0D;
+        };
+    }
+
+    /**
+     * Section 6.5 <i>Sundering Hex</i> physical armor shred across Hex Levels I–III ({@code 5.0 / 7.5 / 10.0}).
+     */
+    public static double resolveSunderingHexArmorShred(int stack) {
+        return switch (Math.clamp(stack, 1, 3)) {
+            case 1 -> 5.0D;
+            case 2 -> 7.5D;
+            default -> 10.0D;
+        };
+    }
+
+    /**
+     * Section 6.7 <i>Hellfire Sear Hex</i> physical armor reduction fraction across Hex Levels I–III ({@code 0.30 / 0.45 / 0.60}).
+     */
+    public static double resolveHellfireSearArmorMeltFraction(int stack) {
+        return switch (Math.clamp(stack, 1, 3)) {
+            case 1 -> 0.30D;
+            case 2 -> 0.45D;
+            default -> 0.60D;
+        };
+    }
+
+    /**
+     * Returns {@code true} if {@code target} currently has active Frozen Ice Stasis encasement immunity against {@code IN_WALL} suffocation.
+     */
+    public static boolean hasFrozenIceSuffocationImmunity(LivingEntity target, long now) {
+        CompoundTag data = EntityHelper.getPersistentData(target);
+        return now <= data.getLong(SpellLingeringZoneManager.TAG_FROZEN_ICE_STASIS_UNTIL).orElse(0L)
+                || now <= data.getLong(SpellLingeringZoneManager.TAG_FROZEN_STASIS_UNTIL).orElse(0L);
+    }
+
+    /**
+     * Section 6.6 <i>Glacial Spikes Retaliation</i> proportional {@code +30%} slower melee swing interval for chilled Mobs.
+     */
+    public static long resolveChilledMobSwingCooldownTicks(long baseIntervalTicks) {
+        return Math.max(1L, Math.round(Math.max(1L, baseIntervalTicks) * 1.30D));
+    }
+
+    /**
+     * Section 6.6 <i>Permafrost Stasis Hex</i> shatter damage multiplier across Hex Levels I–III ({@code 1.50x / 1.75x / 2.00x}).
+     */
+    public static float resolveFrozenHexShatterMultiplier(int stack) {
+        return switch (Math.clamp(stack, 1, 3)) {
+            case 1 -> 1.50F;
+            case 2 -> 1.75F;
+            default -> 2.00F;
+        };
+    }
+
+    /**
+     * Returns {@code true} if {@code key} is a blunt/physical melee, Mace smash, or kinetic fall/collision damage type
+     * eligible for the <i>Permafrost Stasis Hex</i> shatter bonus.
+     */
+    public static boolean isFrozenHexShatterDamageType(
+            @Nullable net.minecraft.resources.ResourceKey<net.minecraft.world.damagesource.DamageType> key
+    ) {
+        if (key == null) {
+            return false;
+        }
+        return key == net.minecraft.world.damagesource.DamageTypes.PLAYER_ATTACK
+                || key == net.minecraft.world.damagesource.DamageTypes.MOB_ATTACK
+                || key == net.minecraft.world.damagesource.DamageTypes.MOB_ATTACK_NO_AGGRO
+                || key == net.minecraft.world.damagesource.DamageTypes.MACE_SMASH
+                || key == net.minecraft.world.damagesource.DamageTypes.FALL
+                || key == net.minecraft.world.damagesource.DamageTypes.FLY_INTO_WALL
+                || key == net.minecraft.world.damagesource.DamageTypes.STALAGMITE
+                || key == net.minecraft.world.damagesource.DamageTypes.FALLING_BLOCK
+                || key == net.minecraft.world.damagesource.DamageTypes.FALLING_ANVIL
+                || key == net.minecraft.world.damagesource.DamageTypes.FALLING_STALACTITE;
+    }
+
+    /**
+     * Returns {@code true} if {@code source} triggers the <i>Permafrost Stasis Hex</i> shatter bonus
+     * (strictly blunt/physical melee, Mace smash, or fall/kinetic collision—excluding projectiles, drowning, poison, starvation, etc.).
+     */
+    public static boolean isFrozenHexShatterDamage(DamageSource source) {
+        if (source.is(DamageTypeTags.IS_PROJECTILE)
+                || source.is(DamageTypeTags.WITCH_RESISTANT_TO)
+                || source.is(DamageTypeTags.IS_FIRE)
+                || source.is(DamageTypeTags.IS_LIGHTNING)
+                || source.is(DamageTypeTags.IS_EXPLOSION)
+                || source.is(DamageTypeTags.IS_FREEZING)
+                || source.is(DamageTypeTags.IS_DROWNING)) {
+            return false;
+        }
+        var keyOpt = source.typeHolder().unwrapKey();
+        if (keyOpt.isPresent()) {
+            return isFrozenHexShatterDamageType(keyOpt.get());
+        }
+        return source.getDirectEntity() instanceof LivingEntity;
+    }
+
+    /**
+     * Returns {@code true} if incoming Materia spell damage counts as Earth/crush damage for <i>Permafrost Stasis Hex</i> shatter.
+     */
+    public static boolean isFrozenHexShatterMateria(@Nullable EssenceType attackMateria) {
+        return attackMateria != null && MateriaFamilyTier.isEarthLineage(attackMateria);
+    }
+
     /**
      * Applies pure Materia spell damage via {@link LivingEntity#hurtServer}, compensating for vanilla
      * {@link net.minecraft.world.entity.monster.Witch} 85% potion-splash magic absorption ({@code * 0.15F})
@@ -8111,10 +9694,92 @@ public final class SpellCombatReactionEngine {
     }
 
     /**
+     * Section 6.4 Pure Nature Materia Damage Helper:
+     * Applies true Nature Materia spell damage routing through canonical Nature Materia Advantage
+     * ({@code +1 vs Water & Earth}, {@code -1 vs Nether, Frozen & Umbral}), Armor Shred amplification,
+     * Elemental Reactions, and Elemental Hex Counter-Cleansing. Returns actual damage dealt ({@code 0.0F} if negated).
+     */
+    public static float hurtWithNatureMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage
+    ) {
+        return hurtWithNatureMateriaAdvantage(level, target, caster, baseDamage, true);
+    }
+
+    public static float hurtWithNatureMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage,
+            boolean bypassSpellHitWindow
+    ) {
+        if (!target.isAlive() || baseDamage <= 0.0F) {
+            return 0.0F;
+        }
+        if (bypassSpellHitWindow) {
+            target.invulnerableTime = 0;
+        } else if (!acquireMultiHitWindow(level, target)) {
+            return 0.0F;
+        }
+
+        float damage = baseDamage;
+        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.NATURE, caster, target, defenderAffs, 0.0F
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
+        }
+        damage *= advMult;
+
+        CompoundTag targetData = EntityHelper.getPersistentData(target);
+        long now = level.getGameTime();
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
+            damage *= 1.25F;
+        }
+
+        float materiaResist = getTargetMateriaResistance(target, EssenceType.NATURE);
+        if (materiaResist != 0.0F) {
+            damage *= Math.clamp(1.0F - materiaResist, 0.20F, 1.50F);
+        }
+
+        if (now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)) {
+            int shredPts = targetData.getInt(TAG_ARMOR_SHRED).orElse(0);
+            if (shredPts > 0) {
+                damage *= (1.0F + 0.04F * Math.min(8, shredPts));
+            }
+        }
+
+        float finalDamage = Math.max(0.5F, damage);
+        DamageSource magicSrc = caster != null
+                ? level.damageSources().indirectMagic(caster, caster)
+                : level.damageSources().magic();
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, finalDamage);
+        if (hurt) {
+            if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
+                float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(TAG_HEX_MAX_ALLOWED_HP, Math.min(prevCeil, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP)) {
+                float prevMiasma = targetData.getFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP, Math.min(prevMiasma, target.getHealth()));
+            }
+            if (target.isAlive()) {
+                evaluateElementalReaction(level, caster, target, EssenceType.NATURE, finalDamage, true);
+            }
+            checkElementalHexCounterCleanse(target, EssenceType.NATURE);
+            return finalDamage;
+        }
+        return 0.0F;
+    }
+
+    /**
      * Section 6.5 Pure Earth Materia Damage Helper:
      * Applies true Earth Materia spell damage including canonical Earth Advantage ({@code +1 vs Void}, {@code -1 vs Air}),
-     * optional <i>Dense Tectonic Mass</i> ({@code +0.4} advantage), <i>Sundering Hex</i> {@code 2.0x} Earth damage doubling,
-     * Armor Shred amplification, and Elemental Hex Counter-Cleansing.
+     * optional <i>Dense Tectonic Mass</i> ({@code +0.4} advantage &amp; {@code 3.0 + 0.35 * tier} armor shred for {@code 160t}),
+     * <i>Sundering Hex</i> exact {@code 2.0x} Earth damage doubling, Armor Shred amplification, and Elemental Hex Counter-Cleansing.
      */
     public static boolean hurtWithEarthMateriaAdvantage(
             ServerLevel level,
@@ -8135,22 +9800,26 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        int advScore = defenderAffs.isEmpty() ? 0 : calculateSpellElementalAdvantageScore(EssenceType.EARTH, defenderAffs);
-        float totalScore = advScore + (denseTectonicMass ? 0.40F : 0.0F);
-        if (totalScore != 0.0F) {
-            float advMult = Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F) + (denseTectonicMass ? 0.15F : 0.0F);
-            damage *= advMult;
-        } else if (denseTectonicMass) {
-            damage *= 1.15F;
+        float bonusScore = denseTectonicMass ? 0.40F : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.EARTH, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return false;
         }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
             damage *= 1.25F;
         }
-        if (hasActiveMutatedHex(targetData, now, EssenceType.EARTH)) {
-            damage *= 2.0F; // Section 6.5 Sundering Hex: doubles (2.0x) all incoming Earth Materia damage!
+        boolean sunderingHexActive = hasActiveMutatedHex(targetData, now, EssenceType.EARTH);
+        if (sunderingHexActive) {
+            damage *= 2.0F; // Section 6.5 Sundering Hex: exact 2.0x incoming Earth Materia damage (no extra 1.20x shred stack)!
+        }
+        if (hasActiveMutatedHex(targetData, now, EssenceType.FROZEN)) {
+            damage *= resolveFrozenHexShatterMultiplier(getHexStackLevel(target));
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.EARTH);
@@ -8158,7 +9827,7 @@ public final class SpellCombatReactionEngine {
             damage *= Math.clamp(1.0F - materiaResist, 0.20F, 1.50F);
         }
 
-        if (now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)) {
+        if (!sunderingHexActive && now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)) {
             int shredPts = targetData.getInt(TAG_ARMOR_SHRED).orElse(0);
             if (shredPts > 0) {
                 damage *= (1.0F + 0.04F * Math.min(8, shredPts));
@@ -8166,13 +9835,14 @@ public final class SpellCombatReactionEngine {
         }
 
         if (denseTectonicMass) {
-            applyTimedAttributeShred(target, level, 2.0D, 0.0D, 140L);
+            int shredTier = resolveSpellOrWeaponTier(caster, 1);
+            applyTimedAttributeShred(target, level, 3.0D + shredTier * 0.35D, 0.0D, 160L);
         }
 
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, Math.max(0.5F, damage));
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, Math.max(0.5F, damage));
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -8186,7 +9856,7 @@ public final class SpellCombatReactionEngine {
     /**
      * Section 6.6 Pure Frozen Materia Damage Helper:
      * Applies true Frozen Materia spell damage including canonical Frozen Advantage ({@code +1 vs Water},
-     * {@code -1 vs Nether & Undead}), optional <i>Permafrost Creep</i> ({@code +0.4} advantage against Water targets),
+     * {@code -1 vs Nether & Undead}), optional <i>Permafrost Creep</i> ({@code +0.4} advantage strictly against Water targets),
      * Armor Shred amplification, and Elemental Hex Counter-Cleansing.
      */
     public static boolean hurtWithFrozenMateriaAdvantage(
@@ -8207,28 +9877,29 @@ public final class SpellCombatReactionEngine {
         }
 
         float damage = baseDamage;
-        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        int advScore = defenderAffs.isEmpty() ? 0 : calculateSpellElementalAdvantageScore(EssenceType.FROZEN, defenderAffs);
-        boolean isWaterTarget = defenderAffs.contains(EssenceType.WATER)
-                || SpellLingeringZoneManager.isEntityWetOrSoaked(target)
-                || level.getGameTime() <= EntityHelper.getPersistentData(target).getLong(SpellLingeringZoneManager.TAG_WATER_SHROUD_UNTIL).orElse(0L)
-                || (target instanceof ddraig.net.entropica.entity.SpellEidolonEntity eid && eid.getEffectiveMateria() == EssenceType.WATER);
-        float totalScore = advScore + ((permafrostCreep && isWaterTarget) ? 0.40F : 0.0F);
-        if (totalScore != 0.0F) {
-            float advMult = Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F) + (permafrostCreep ? 0.15F : 0.0F);
-            damage *= advMult;
-        } else if (permafrostCreep) {
-            damage *= 1.15F;
-        }
-
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
+        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
+        boolean isWaterTarget = defenderAffs.contains(EssenceType.WATER)
+                || SpellLingeringZoneManager.isEntityWetOrSoaked(target)
+                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_WATER_SHROUD_UNTIL).orElse(0L)
+                || hasActiveMutatedHex(targetData, now, EssenceType.WATER)
+                || (target instanceof ddraig.net.entropica.entity.SpellEidolonEntity eid && eid.getEffectiveMateria() == EssenceType.WATER);
+        float bonusScore = (permafrostCreep && isWaterTarget) ? 0.40F : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.FROZEN, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return false;
+        }
+        damage *= advMult;
+
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
             damage *= 1.25F;
         }
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL).orElse(0L)) {
-            // Section 6.7 Immolation Shroud: +1 resistance vs incoming Frozen attacks (0.75 * 0.67 = 0.50x)!
-            damage *= 0.67F;
+            // Section 6.7 Immolation Shroud already registers NETHER in defenderAffs (exact 0.50x); clear any frost ticks!
+            target.setTicksFrozen(0);
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.FROZEN);
@@ -8246,7 +9917,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, Math.max(0.5F, damage));
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, Math.max(0.5F, damage));
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -8293,24 +9964,21 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.NETHER, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.NETHER, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return false;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
             damage *= 1.25F;
-        }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL).orElse(0L)) {
-            damage *= 1.50F;
-        }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_WATER_SHROUD_UNTIL).orElse(0L)) {
-            damage *= 0.67F; // Combined with -1 Water affinity (0.75 * 0.67 = 0.50x)!
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.NETHER);
@@ -8328,7 +9996,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, Math.max(0.5F, damage));
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, Math.max(0.5F, damage));
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -8376,13 +10044,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.RADIANT, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.RADIANT, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return false;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -8411,7 +10082,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, Math.max(0.5F, damage));
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, Math.max(0.5F, damage));
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -8471,21 +10142,21 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.UMBRAL, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.UMBRAL, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return false;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
             damage *= 1.25F;
-        }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)) {
-            damage *= 1.50F;
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.UMBRAL);
@@ -8503,7 +10174,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, Math.max(0.5F, damage));
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, Math.max(0.5F, damage));
         if (hurt) {
             if (targetWasUnaware && !unawarePackMates.isEmpty()) {
                 for (Mob packMate : unawarePackMates) {
@@ -8586,33 +10257,20 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.UNDEAD, defenderAffs);
-        if (creepingTombDust) {
-            totalScore += 0.4F;
+        float bonusScore = (creepingTombDust ? 0.40F : 0.0F)
+                + ((includeHeldWeaponSynergy && caster != null) ? resolveHeldWeaponAdvantageScore(caster, target) : 0.0F);
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.UNDEAD, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
-        }
-        if (totalScore != 0.0F) {
-            float advMult = Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-            if (creepingTombDust) {
-                advMult += SpellFlowModifier.SLOW_HEAVY.getInnateAdvantageBonus();
-            }
-            damage *= advMult;
-        } else if (creepingTombDust) {
-            damage *= 1.15F;
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
             damage *= 1.25F;
-        }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL).orElse(0L)) {
-            damage *= 1.50F;
-        }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)) {
-            damage *= 0.50F;
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.UNDEAD);
@@ -8631,7 +10289,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, finalDamage);
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -8678,13 +10336,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.VOID, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.VOID, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         // Armor-ignoring spatial tear bonus against heavily armored enemies!
         if (armorPierceFraction > 0.0F) {
@@ -8772,16 +10433,15 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.ARID, defenderAffs);
-        if (!defenderAffs.contains(EssenceType.WATER) && SpellLingeringZoneManager.isEntityWetOrSoaked(target)) {
-            totalScore += 1.0F; // Volatile desiccation bonus against soaked/wet targets!
+        float bonusScore = (!defenderAffs.contains(EssenceType.WATER) && SpellLingeringZoneManager.isEntityWetOrSoaked(target) ? 1.0F : 0.0F)
+                + ((includeHeldWeaponSynergy && caster != null) ? resolveHeldWeaponAdvantageScore(caster, target) : 0.0F);
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.ARID, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
-        }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -8862,13 +10522,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.LIGHTNING, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.LIGHTNING, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -8953,13 +10616,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.MAGMA, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.MAGMA, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9047,13 +10713,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.STORM, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.STORM, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9142,19 +10811,15 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.GLACIAL, defenderAffs);
-        if (permafrostCreep) {
-            totalScore += 0.40F;
+        float bonusScore = (permafrostCreep ? 0.40F : 0.0F)
+                + ((includeHeldWeaponSynergy && caster != null) ? resolveHeldWeaponAdvantageScore(caster, target) : 0.0F);
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.GLACIAL, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
-        }
-        if (totalScore != 0.0F) {
-            float advMult = Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F) + (permafrostCreep ? 0.15F : 0.0F);
-            damage *= advMult;
-        } else if (permafrostCreep) {
-            damage *= 1.15F;
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9241,13 +10906,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.OVERGROWTH, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.OVERGROWTH, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9338,13 +11006,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.DUST, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.DUST, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9426,13 +11097,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.SPORE, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.SPORE, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9519,13 +11193,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.TAIGA, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.TAIGA, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9612,13 +11289,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.OASIS, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.OASIS, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9703,13 +11383,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.VITAE, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.VITAE, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9795,13 +11478,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.BLOOD, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.BLOOD, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9815,11 +11501,9 @@ public final class SpellCombatReactionEngine {
                 || now <= targetData.getLong(SpellLingeringZoneManager.TAG_OVERGROWTH_BASTION_UNTIL).orElse(0L)
                 || now <= targetData.getLong(SpellLingeringZoneManager.TAG_SPORE_MANTLE_UNTIL).orElse(0L)) {
             damage *= 1.50F; // Strong against Frozen & Nature shrouds!
-        } else if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_MAGMA_MANTLE_UNTIL).orElse(0L)
+        } else if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_MAGMA_MANTLE_UNTIL).orElse(0L)
                 || now <= targetData.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L)) {
-            damage *= 0.50F; // Weak against Radiant, Nether & Umbral shrouds!
+            damage *= 0.50F; // Weak against Magma & Umbral shrouds (Radiant & Nether already applied via defenderAffs)!
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.BLOOD);
@@ -9840,7 +11524,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, finalDamage);
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -9890,13 +11574,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.AURA, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.AURA, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -9980,13 +11667,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.AMBER, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.AMBER, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -10068,25 +11758,24 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.ECLIPSE, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.ECLIPSE, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
             damage *= 1.25F;
         }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_NATURE_MANTLE_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_OVERGROWTH_BASTION_UNTIL).orElse(0L)) {
-            damage *= 1.50F; // Strong against Radiant & Nature shrouds!
-        } else if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VOID_ZERO_G_UNTIL).orElse(0L)) {
-            damage *= 0.50F; // Weak against Void shrouds!
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VOID_ZERO_G_UNTIL).orElse(0L)) {
+            damage *= 0.50F; // Weak against Void shrouds (Radiant & Nature already applied via defenderAffs)!
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.ECLIPSE);
@@ -10107,7 +11796,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, finalDamage);
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -10155,23 +11844,24 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.BLIGHT, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.BLIGHT, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
             damage *= 1.25F;
         }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L)) {
-            damage *= 0.50F; // Weak against Radiant, Nether & Umbral shrouds!
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L) && !defenderAffs.contains(EssenceType.UMBRAL)) {
+            damage *= 0.50F; // Radiant, Nether & Umbral already applied via defenderAffs!
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.BLIGHT);
@@ -10192,7 +11882,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, finalDamage);
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -10239,13 +11929,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.ASTRAL, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.ASTRAL, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -10328,13 +12021,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.SOULFIRE, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.SOULFIRE, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -10346,10 +12042,8 @@ public final class SpellCombatReactionEngine {
                 && defenderAffs.isEmpty()) {
             damage *= 1.25F; // Strong against Frozen & Nature shrouds!
         }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_WATER_SHROUD_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL).orElse(0L)) {
-            damage *= 0.50F; // Weak against Water, Arid & Radiant shrouds!
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL).orElse(0L)) {
+            damage *= 0.50F; // Weak against Arid veil (Water & Radiant already applied via defenderAffs)!
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.SOULFIRE);
@@ -10370,7 +12064,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, finalDamage);
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -10417,13 +12111,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.VAPOR, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.VAPOR, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -10503,13 +12200,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.NULL_R, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.NULL_R, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -10589,13 +12289,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.NULL_U, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.NULL_U, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -10671,13 +12374,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.DAWN, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.DAWN, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -10757,13 +12463,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.ABYSS, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.ABYSS, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -10840,13 +12549,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.AEGIS, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.AEGIS, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -10927,13 +12639,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.AURORA, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.AURORA, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11012,13 +12727,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.MIRAGE, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.MIRAGE, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11097,13 +12815,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.WRAITH, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.WRAITH, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11178,13 +12899,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.BARROW, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.BARROW, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11262,13 +12986,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.PYRE, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.PYRE, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11348,27 +13075,21 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.PENUMBRA, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.PENUMBRA, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
         if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
             damage *= 1.25F;
-        }
-        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_AIR_SLIPSTREAM_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_AIR_GUST_SHIELD_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_NATURE_MANTLE_UNTIL).orElse(0L)
-                || now <= targetData.getLong(SpellLingeringZoneManager.TAG_AEGIS_MANTLE_UNTIL).orElse(0L)) {
-            damage *= 1.50F;
-        } else if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_EARTH_DEFENSE_UNTIL).orElse(0L)) {
-            damage *= 0.50F;
         }
 
         float materiaResist = getTargetMateriaResistance(target, EssenceType.PENUMBRA);
@@ -11389,7 +13110,7 @@ public final class SpellCombatReactionEngine {
         DamageSource magicSrc = caster != null
                 ? level.damageSources().indirectMagic(caster, caster)
                 : level.damageSources().magic();
-        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        boolean hurt = hurtWithAdvantageTracked(level, target, magicSrc, finalDamage);
         if (hurt) {
             if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
                 float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
@@ -11436,13 +13157,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.RIME, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.RIME, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11519,13 +13243,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.SPRING, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.SPRING, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11605,13 +13332,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.STATIC, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.STATIC, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11691,13 +13421,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.SYLVAN, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.SYLVAN, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11769,13 +13502,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.MIASMA, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.MIASMA, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11870,13 +13606,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.GENESIS, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.GENESIS, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -11948,13 +13687,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.OBLIVION, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.OBLIVION, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -12031,13 +13773,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.AETHER, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.AETHER, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -12114,13 +13859,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.ENTROPIC, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.ENTROPIC, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         CompoundTag targetData = EntityHelper.getPersistentData(target);
         long now = level.getGameTime();
@@ -12212,13 +13960,16 @@ public final class SpellCombatReactionEngine {
 
         float damage = baseDamage;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
-        float totalScore = defenderAffs.isEmpty() ? 0.0F : calculateSpellElementalAdvantageScore(EssenceType.CELESTIAL, defenderAffs);
-        if (includeHeldWeaponSynergy && caster != null) {
-            totalScore += resolveHeldWeaponAdvantageScore(caster, target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.CELESTIAL, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
         }
-        if (totalScore != 0.0F) {
-            damage *= Math.clamp(1.0F + (totalScore * 0.25F), 0.50F, 1.85F);
-        }
+        damage *= advMult;
 
         if (undeadDemonicAbyssalSmiteMultiplier > 1.0F
                 && (ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isDarkUndeadOrAbyssal(target)
@@ -12277,6 +14028,705 @@ public final class SpellCombatReactionEngine {
     }
 
     /**
+     * Inflicts true Prismatic Materia (#51) spell damage (Strong vs UNDEAD, BLIGHT, SOULFIRE & BLOOD, Weak vs UMBRAL),
+     * optionally bypassing 50% of target physical armor and applying bonus radiant-prismatic smite against corrupt/undead foes.
+     */
+    public static float hurtWithPrismaticMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage,
+            boolean includeHeldWeaponSynergy,
+            boolean bypassFiftyPercentArmor
+    ) {
+        return hurtWithPrismaticMateriaAdvantage(
+                level, target, caster, baseDamage, includeHeldWeaponSynergy, bypassFiftyPercentArmor, 1.50F
+        );
+    }
+
+    public static float hurtWithPrismaticMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage,
+            boolean includeHeldWeaponSynergy,
+            boolean bypassFiftyPercentArmor,
+            float corruptionSmiteMultiplier
+    ) {
+        if (!target.isAlive() || baseDamage <= 0.0F) {
+            return 0.0F;
+        }
+        float damage = baseDamage;
+        if (!bypassFiftyPercentArmor) {
+            damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(
+                    target,
+                    damage,
+                    level.damageSources().magic(),
+                    target.getArmorValue(),
+                    (float) target.getAttributeValue(Attributes.ARMOR_TOUGHNESS)
+            );
+        } else {
+            float halfArmor = target.getArmorValue() * 0.50F;
+            float halfToughness = (float) (target.getAttributeValue(Attributes.ARMOR_TOUGHNESS) * 0.50D);
+            damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(
+                    target,
+                    damage,
+                    level.damageSources().magic(),
+                    halfArmor,
+                    halfToughness
+            );
+        }
+
+        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.PRISMATIC, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
+        }
+        damage *= advMult;
+
+        CompoundTag targetData = EntityHelper.getPersistentData(target);
+        long now = level.getGameTime();
+        boolean corruptTarget = ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isDarkUndeadOrAbyssal(target)
+                || defenderAffs.contains(EssenceType.UNDEAD)
+                || defenderAffs.contains(EssenceType.BLIGHT)
+                || defenderAffs.contains(EssenceType.SOULFIRE)
+                || defenderAffs.contains(EssenceType.BLOOD)
+                || targetData.getLong(SpellLingeringZoneManager.TAG_BLIGHT_CHAIN_MARK_UNTIL).orElse(0L) > now;
+        if (corruptionSmiteMultiplier > 1.0F && corruptTarget) {
+            damage *= corruptionSmiteMultiplier;
+        }
+
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
+            damage *= 1.25F;
+        }
+
+        float materiaResist = getTargetMateriaResistance(target, EssenceType.PRISMATIC);
+        if (materiaResist != 0.0F) {
+            damage *= Math.clamp(1.0F - materiaResist, 0.20F, 1.50F);
+        }
+
+        int currentShred = now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)
+                ? targetData.getInt(TAG_ARMOR_SHRED).orElse(0) : 0;
+        int nextShred = Math.min(8, Math.max(currentShred, 4));
+        targetData.putInt(TAG_ARMOR_SHRED, nextShred);
+        targetData.putLong(TAG_ARMOR_SHRED_UNTIL, now + 140L);
+        if (currentShred > 0) {
+            damage *= (1.0F + 0.04F * Math.min(8, currentShred));
+        }
+
+        float finalDamage = Math.max(0.5F, damage);
+        DamageSource magicSrc = caster != null
+                ? level.damageSources().indirectMagic(caster, caster)
+                : level.damageSources().magic();
+        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        if (hurt) {
+            if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
+                float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(TAG_HEX_MAX_ALLOWED_HP, Math.min(prevCeil, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP)) {
+                float prevMiasma = targetData.getFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP, Math.min(prevMiasma, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP)) {
+                float prevConf = targetData.getFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP, Math.min(prevConf, target.getHealth()));
+            }
+            if (target.isAlive()) {
+                evaluateElementalReaction(level, caster, target, EssenceType.PRISMATIC, finalDamage, true);
+            }
+            checkElementalHexCounterCleanse(target, EssenceType.PRISMATIC);
+            return finalDamage;
+        }
+        return 0.0F;
+    }
+
+    @Nullable
+    public static LivingEntity resolveHexCasterPublic(ServerLevel level, LivingEntity afflictedTarget) {
+        return resolveHexCaster(level, afflictedTarget);
+    }
+
+    /**
+     * Section 6.54 Empyrean Materia (#52 — Tier 5 Eschaton: Radiant + Vitae + Nature, "The Infinite Life") spell damage:
+     * +1 vs UNDEAD, WATER, EARTH, NETHER, VOID, OBLIVION, WRAITH, BARROW, BLIGHT | -1 vs UMBRAL.
+     * Supports Tier 5 60% armor bypass, optional 100% true damage bypass, and optional +60% Undead/Dark smite!
+     */
+    public static float hurtWithEmpyreanMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage,
+            boolean includeHeldWeaponSynergy,
+            boolean bypassSixtyPercentArmor,
+            boolean trueDamageBypassAllArmor,
+            boolean smiteUndeadAndDark
+    ) {
+        if (!target.isAlive() || baseDamage <= 0.0F) {
+            return 0.0F;
+        }
+        float damage = baseDamage;
+        if (!trueDamageBypassAllArmor) {
+            float armorFrac = bypassSixtyPercentArmor ? 0.40F : 1.0F;
+            damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(
+                    target,
+                    damage,
+                    level.damageSources().magic(),
+                    target.getArmorValue() * armorFrac,
+                    (float) (target.getAttributeValue(Attributes.ARMOR_TOUGHNESS) * armorFrac)
+            );
+        }
+
+        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.EMPYREAN, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
+        }
+        damage *= advMult;
+
+        CompoundTag targetData = EntityHelper.getPersistentData(target);
+        long now = level.getGameTime();
+        if (smiteUndeadAndDark && (ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isDarkUndeadOrAbyssal(target)
+                || defenderAffs.contains(EssenceType.UNDEAD)
+                || defenderAffs.contains(EssenceType.VOID)
+                || defenderAffs.contains(EssenceType.UMBRAL)
+                || defenderAffs.contains(EssenceType.OBLIVION)
+                || defenderAffs.contains(EssenceType.WRAITH)
+                || defenderAffs.contains(EssenceType.BARROW)
+                || defenderAffs.contains(EssenceType.BLIGHT))) {
+            damage *= 1.60F; // Section 6.54: +60% bonus smite vs Undead & Dark entities!
+        }
+
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
+            damage *= 1.25F;
+        }
+
+        float materiaResist = getTargetMateriaResistance(target, EssenceType.EMPYREAN);
+        if (materiaResist != 0.0F) {
+            damage *= Math.clamp(1.0F - materiaResist, 0.20F, 1.50F);
+        }
+
+        int currentShred = now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)
+                ? targetData.getInt(TAG_ARMOR_SHRED).orElse(0) : 0;
+        int nextShred = Math.min(8, Math.max(currentShred, 6));
+        targetData.putInt(TAG_ARMOR_SHRED, nextShred);
+        targetData.putLong(TAG_ARMOR_SHRED_UNTIL, now + 180L);
+        if (currentShred > 0) {
+            damage *= (1.0F + 0.04F * Math.min(8, currentShred));
+        }
+
+        float finalDamage = Math.max(0.5F, damage);
+        DamageSource magicSrc = caster != null
+                ? level.damageSources().indirectMagic(caster, caster)
+                : level.damageSources().magic();
+        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        if (hurt) {
+            if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
+                float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(TAG_HEX_MAX_ALLOWED_HP, Math.min(prevCeil, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP)) {
+                float prevMiasma = targetData.getFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP, Math.min(prevMiasma, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP)) {
+                float prevConf = targetData.getFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP, Math.min(prevConf, target.getHealth()));
+            }
+            if (target.isAlive()) {
+                evaluateElementalReaction(level, caster, target, EssenceType.EMPYREAN, finalDamage, true);
+            }
+            checkElementalHexCounterCleanse(target, EssenceType.EMPYREAN);
+            return finalDamage;
+        }
+        return 0.0F;
+    }
+
+    /**
+     * Guide Section 6.55: Pure <b>Cataclysm Materia (#53)</b> damage helper ("The World Breaker" — Void + Umbral + Nether):
+     * Strong vs {@code AIR (+1)}, {@code RADIANT (+1)}, {@code NATURE (+1)}, {@code FROZEN (+1)}, {@code WATER (+1)},
+     * {@code CELESTIAL (+1)}, {@code AEGIS (+1)}, {@code AURORA (+1)}, and {@code GENESIS (+1)} | Weak vs {@code VITAE (-1)}.
+     */
+    public static float hurtWithCataclysmMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage,
+            boolean includeHeldWeaponSynergy,
+            boolean bypassSixtyPercentArmor,
+            boolean trueDamageBypassAllArmor
+    ) {
+        if (!target.isAlive() || baseDamage <= 0.0F) {
+            return 0.0F;
+        }
+        if (trueDamageBypassAllArmor) {
+            target.invulnerableTime = 0;
+        } else if (!acquireMultiHitWindow(level, target)) {
+            return 0.0F;
+        }
+
+        float damage = baseDamage;
+        if (!trueDamageBypassAllArmor) {
+            float armorFrac = bypassSixtyPercentArmor ? 0.40F : 1.0F;
+            damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(
+                    target,
+                    damage,
+                    level.damageSources().magic(),
+                    target.getArmorValue() * armorFrac,
+                    (float) (target.getAttributeValue(Attributes.ARMOR_TOUGHNESS) * armorFrac)
+            );
+        }
+
+        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.CATACLYSM, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
+        }
+        damage *= advMult;
+
+        CompoundTag targetData = EntityHelper.getPersistentData(target);
+        long now = level.getGameTime();
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
+            damage *= 1.25F;
+        }
+
+        float materiaResist = getTargetMateriaResistance(target, EssenceType.CATACLYSM);
+        if (materiaResist != 0.0F) {
+            damage *= Math.clamp(1.0F - materiaResist, 0.20F, 1.50F);
+        }
+
+        int currentShred = now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)
+                ? targetData.getInt(TAG_ARMOR_SHRED).orElse(0) : 0;
+        int nextShred = Math.min(8, Math.max(currentShred, 6));
+        targetData.putInt(TAG_ARMOR_SHRED, nextShred);
+        targetData.putLong(TAG_ARMOR_SHRED_UNTIL, now + 180L);
+        if (currentShred > 0) {
+            damage *= (1.0F + 0.04F * Math.min(8, currentShred));
+        }
+
+        float finalDamage = Math.max(0.5F, damage);
+        DamageSource magicSrc = caster != null
+                ? level.damageSources().indirectMagic(caster, caster)
+                : level.damageSources().magic();
+        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        if (hurt) {
+            if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
+                float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(TAG_HEX_MAX_ALLOWED_HP, Math.min(prevCeil, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP)) {
+                float prevMiasma = targetData.getFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP, Math.min(prevMiasma, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP)) {
+                float prevConf = targetData.getFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP, Math.min(prevConf, target.getHealth()));
+            }
+            if (target.isAlive()) {
+                evaluateElementalReaction(level, caster, target, EssenceType.CATACLYSM, finalDamage, true);
+            }
+            checkElementalHexCounterCleanse(target, EssenceType.CATACLYSM);
+            return finalDamage;
+        }
+        return 0.0F;
+    }
+
+    /**
+     * Deals pure Terminus Materia damage (#54 Tier 5 Eschaton: +1 vs Nether, Arid, Earth, Water, Magma, Pyre, Blight, Soulfire, Miasma;
+     * -1 vs Undead), supporting 60% armor bypass or 100% true damage bypass, 6-point armor shredding, & held weapon synergy!
+     */
+    public static float hurtWithTerminusMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage,
+            boolean includeHeldWeaponSynergy,
+            boolean bypassSixtyPercentArmor,
+            boolean trueDamageBypassAllArmor
+    ) {
+        if (!target.isAlive() || baseDamage <= 0.0F) {
+            return 0.0F;
+        }
+        if (trueDamageBypassAllArmor) {
+            target.invulnerableTime = 0;
+        } else if (!acquireMultiHitWindow(level, target)) {
+            return 0.0F;
+        }
+
+        float damage = baseDamage;
+        if (!trueDamageBypassAllArmor) {
+            float armorFrac = bypassSixtyPercentArmor ? 0.40F : 1.0F;
+            damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(
+                    target,
+                    damage,
+                    level.damageSources().magic(),
+                    target.getArmorValue() * armorFrac,
+                    (float) (target.getAttributeValue(Attributes.ARMOR_TOUGHNESS) * armorFrac)
+            );
+        }
+
+        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.TERMINUS, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
+        }
+        damage *= advMult;
+
+        CompoundTag targetData = EntityHelper.getPersistentData(target);
+        long now = level.getGameTime();
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
+            damage *= 1.25F;
+        }
+
+        float materiaResist = getTargetMateriaResistance(target, EssenceType.TERMINUS);
+        if (materiaResist != 0.0F) {
+            damage *= Math.clamp(1.0F - materiaResist, 0.20F, 1.50F);
+        }
+
+        int currentShred = now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)
+                ? targetData.getInt(TAG_ARMOR_SHRED).orElse(0) : 0;
+        int nextShred = Math.min(8, Math.max(currentShred, 6));
+        targetData.putInt(TAG_ARMOR_SHRED, nextShred);
+        targetData.putLong(TAG_ARMOR_SHRED_UNTIL, now + 180L);
+        if (currentShred > 0) {
+            damage *= (1.0F + 0.04F * Math.min(8, currentShred));
+        }
+
+        float finalDamage = Math.max(0.5F, damage);
+        DamageSource magicSrc = caster != null
+                ? level.damageSources().indirectMagic(caster, caster)
+                : level.damageSources().magic();
+        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        if (hurt) {
+            if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
+                float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(TAG_HEX_MAX_ALLOWED_HP, Math.min(prevCeil, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP)) {
+                float prevMiasma = targetData.getFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP, Math.min(prevMiasma, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP)) {
+                float prevConf = targetData.getFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP, Math.min(prevConf, target.getHealth()));
+            }
+            if (target.isAlive()) {
+                evaluateElementalReaction(level, caster, target, EssenceType.TERMINUS, finalDamage, true);
+            }
+            checkElementalHexCounterCleanse(target, EssenceType.TERMINUS);
+            return finalDamage;
+        }
+        return 0.0F;
+    }
+
+    /**
+     * Deals pure Eschaton Materia damage (#55 Tier 6 Singularity: +1 vs ALL lower-tier elements; -1 vs Apotheosis),
+     * supporting 75% armor bypass or 100% true damage bypass, 8-point armor shredding, & held weapon synergy!
+     */
+    public static float hurtWithEschatonMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage,
+            boolean includeHeldWeaponSynergy,
+            boolean bypassSeventyFivePercentArmor,
+            boolean trueDamageBypassAllArmor
+    ) {
+        if (!target.isAlive() || baseDamage <= 0.0F) {
+            return 0.0F;
+        }
+        if (trueDamageBypassAllArmor) {
+            target.invulnerableTime = 0;
+        } else if (!acquireMultiHitWindow(level, target)) {
+            return 0.0F;
+        }
+
+        float damage = baseDamage;
+        if (!trueDamageBypassAllArmor) {
+            float armorFrac = bypassSeventyFivePercentArmor ? 0.25F : 1.0F;
+            damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(
+                    target,
+                    damage,
+                    level.damageSources().magic(),
+                    target.getArmorValue() * armorFrac,
+                    (float) (target.getAttributeValue(Attributes.ARMOR_TOUGHNESS) * armorFrac)
+            );
+        }
+
+        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.ESCHATON, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
+        }
+        damage *= advMult;
+
+        CompoundTag targetData = EntityHelper.getPersistentData(target);
+        long now = level.getGameTime();
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
+            damage *= 1.25F;
+        }
+
+        float materiaResist = getTargetMateriaResistance(target, EssenceType.ESCHATON);
+        if (materiaResist != 0.0F) {
+            damage *= Math.clamp(1.0F - materiaResist, 0.20F, 1.50F);
+        }
+
+        int currentShred = now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)
+                ? targetData.getInt(TAG_ARMOR_SHRED).orElse(0) : 0;
+        int nextShred = Math.min(8, Math.max(currentShred, 8));
+        targetData.putInt(TAG_ARMOR_SHRED, nextShred);
+        targetData.putLong(TAG_ARMOR_SHRED_UNTIL, now + 200L);
+        if (currentShred > 0) {
+            damage *= (1.0F + 0.04F * Math.min(8, currentShred));
+        }
+
+        float finalDamage = Math.max(0.5F, damage);
+        DamageSource magicSrc = caster != null
+                ? level.damageSources().indirectMagic(caster, caster)
+                : level.damageSources().magic();
+        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        if (hurt) {
+            if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
+                float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(TAG_HEX_MAX_ALLOWED_HP, Math.min(prevCeil, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP)) {
+                float prevMiasma = targetData.getFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP, Math.min(prevMiasma, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP)) {
+                float prevConf = targetData.getFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP, Math.min(prevConf, target.getHealth()));
+            }
+            if (target.isAlive()) {
+                evaluateElementalReaction(level, caster, target, EssenceType.ESCHATON, finalDamage, true);
+            }
+            checkElementalHexCounterCleanse(target, EssenceType.ESCHATON);
+            return finalDamage;
+        }
+        return 0.0F;
+    }
+
+    /**
+     * Deals pure Apotheosis Materia damage (#56 Tier 6 Singularity: +1 vs ALL lower-tier elements, +2 vs dark/void/nether/undead;
+     * -1 vs Eschaton), supporting 75% armor bypass or 100% true holy damage bypass, optional 2.0x smite multiplier vs
+     * Undead/Demonic/Void/Abyssal entities, 8-point armor shredding, & held weapon synergy!
+     */
+    public static float hurtWithApotheosisMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage,
+            boolean includeHeldWeaponSynergy,
+            boolean bypassSeventyFivePercentArmor,
+            boolean doubleAgainstDarkUndeadVoid,
+            boolean trueDamageBypassAllArmor
+    ) {
+        if (!target.isAlive() || baseDamage <= 0.0F) {
+            return 0.0F;
+        }
+        if (trueDamageBypassAllArmor) {
+            target.invulnerableTime = 0;
+        } else if (!acquireMultiHitWindow(level, target)) {
+            return 0.0F;
+        }
+
+        float damage = baseDamage;
+        if (doubleAgainstDarkUndeadVoid
+                && ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isDarkUndeadOrAbyssal(target)) {
+            damage *= 2.0F;
+        }
+
+        if (!trueDamageBypassAllArmor) {
+            float armorFrac = bypassSeventyFivePercentArmor ? 0.25F : 1.0F;
+            damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(
+                    target,
+                    damage,
+                    level.damageSources().magic(),
+                    target.getArmorValue() * armorFrac,
+                    (float) (target.getAttributeValue(Attributes.ARMOR_TOUGHNESS) * armorFrac)
+            );
+        }
+
+        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.APOTHEOSIS, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
+        }
+        damage *= advMult;
+
+        CompoundTag targetData = EntityHelper.getPersistentData(target);
+        long now = level.getGameTime();
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
+            damage *= 1.25F;
+        }
+
+        float materiaResist = getTargetMateriaResistance(target, EssenceType.APOTHEOSIS);
+        if (materiaResist != 0.0F) {
+            damage *= Math.clamp(1.0F - materiaResist, 0.20F, 1.50F);
+        }
+
+        int currentShred = now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)
+                ? targetData.getInt(TAG_ARMOR_SHRED).orElse(0) : 0;
+        int nextShred = Math.min(8, Math.max(currentShred, 8));
+        targetData.putInt(TAG_ARMOR_SHRED, nextShred);
+        targetData.putLong(TAG_ARMOR_SHRED_UNTIL, now + 200L);
+        if (currentShred > 0) {
+            damage *= (1.0F + 0.04F * Math.min(8, currentShred));
+        }
+
+        float finalDamage = Math.max(0.5F, damage);
+        DamageSource magicSrc = caster != null
+                ? level.damageSources().indirectMagic(caster, caster)
+                : level.damageSources().magic();
+        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        if (hurt) {
+            if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
+                float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(TAG_HEX_MAX_ALLOWED_HP, Math.min(prevCeil, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP)) {
+                float prevMiasma = targetData.getFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP, Math.min(prevMiasma, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP)) {
+                float prevConf = targetData.getFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP, Math.min(prevConf, target.getHealth()));
+            }
+            if (target.isAlive()) {
+                evaluateElementalReaction(level, caster, target, EssenceType.APOTHEOSIS, finalDamage, true);
+            }
+            checkElementalHexCounterCleanse(target, EssenceType.APOTHEOSIS);
+            return finalDamage;
+        }
+        return 0.0F;
+    }
+
+    /**
+     * Section 6.59 Pure Entropica (#57) Materia Damage Helper:
+     * Applies Tier 6 Grand Cosmic Equilibrium Singularity spell damage with universal {@code +1} Elemental Advantage
+     * against EVERYTHING (including Eschaton and Apotheosis), complete immunity to counter-weaknesses,
+     * {@code 75%} armor bypass (or {@code 100%} true damage bypass), {@code 8}-point armor shred, and held weapon synergy.
+     */
+    public static float hurtWithEntropicaMateriaAdvantage(
+            ServerLevel level,
+            LivingEntity target,
+            @Nullable LivingEntity caster,
+            float baseDamage,
+            boolean includeHeldWeaponSynergy,
+            boolean bypassSeventyFivePercentArmor,
+            boolean trueDamageBypassAllArmor
+    ) {
+        if (!target.isAlive() || baseDamage <= 0.0F) {
+            return 0.0F;
+        }
+        if (trueDamageBypassAllArmor) {
+            target.invulnerableTime = 0;
+        } else if (!acquireMultiHitWindow(level, target)) {
+            return 0.0F;
+        }
+
+        float damage = baseDamage;
+        if (!trueDamageBypassAllArmor) {
+            float armorFrac = bypassSeventyFivePercentArmor ? 0.25F : 1.0F;
+            damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(
+                    target,
+                    damage,
+                    level.damageSources().magic(),
+                    target.getArmorValue() * armorFrac,
+                    (float) (target.getAttributeValue(Attributes.ARMOR_TOUGHNESS) * armorFrac)
+            );
+        }
+
+        Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
+        float bonusScore = (includeHeldWeaponSynergy && caster != null)
+                ? resolveHeldWeaponAdvantageScore(caster, target)
+                : 0.0F;
+        float advMult = calculateSpellAdvantageDamageMultiplier(
+                EssenceType.ENTROPICA, caster, target, defenderAffs, bonusScore
+        );
+        if (advMult <= 0.0F) {
+            return 0.0F;
+        }
+        damage *= advMult;
+
+        CompoundTag targetData = EntityHelper.getPersistentData(target);
+        long now = level.getGameTime();
+        if (now <= targetData.getLong(SpellLingeringZoneManager.TAG_VULNERABLE_25_UNTIL).orElse(0L)) {
+            damage *= 1.25F;
+        }
+
+        float materiaResist = getTargetMateriaResistance(target, EssenceType.ENTROPICA);
+        if (materiaResist < 0.0F) {
+            damage *= Math.clamp(1.0F - materiaResist, 1.0F, 1.50F);
+        }
+
+        int currentShred = now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL).orElse(0L)
+                ? targetData.getInt(TAG_ARMOR_SHRED).orElse(0) : 0;
+        int nextShred = Math.min(8, Math.max(currentShred, 8));
+        targetData.putInt(TAG_ARMOR_SHRED, nextShred);
+        targetData.putLong(TAG_ARMOR_SHRED_UNTIL, now + 200L);
+        if (currentShred > 0) {
+            damage *= (1.0F + 0.04F * Math.min(8, currentShred));
+        }
+
+        float finalDamage = Math.max(0.5F, damage);
+        DamageSource magicSrc = caster != null
+                ? level.damageSources().indirectMagic(caster, caster)
+                : level.damageSources().magic();
+        boolean hurt = hurtWithPureMateria(level, target, magicSrc, finalDamage);
+        if (hurt) {
+            if (targetData.contains(TAG_HEX_MAX_ALLOWED_HP)) {
+                float prevCeil = targetData.getFloat(TAG_HEX_MAX_ALLOWED_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(TAG_HEX_MAX_ALLOWED_HP, Math.min(prevCeil, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP)) {
+                float prevMiasma = targetData.getFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_ENTANGLING_MIASMA_MAX_HP, Math.min(prevMiasma, target.getHealth()));
+            }
+            if (targetData.contains(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP)) {
+                float prevConf = targetData.getFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP).orElse(target.getMaxHealth());
+                targetData.putFloat(SpellLingeringZoneManager.TAG_OBLIVION_CONFLAGRATION_MAX_HP, Math.min(prevConf, target.getHealth()));
+            }
+            if (target.isAlive()) {
+                evaluateElementalReaction(level, caster, target, EssenceType.ENTROPICA, finalDamage, true);
+            }
+            checkElementalHexCounterCleanse(target, EssenceType.ENTROPICA);
+            return finalDamage;
+        }
+        return 0.0F;
+    }
+
+    /**
      * Guide Section 4.4 Touch / Melee Strike Weapon Synergy:
      * When a Touch spell is cast through a Materia-attuned weapon ({@code ModDataComponents.ESSENCE_STATS}),
      * the weapon's innate Materia Advantage stacks additively with the spell's Materia!
@@ -12284,17 +14734,28 @@ public final class SpellCombatReactionEngine {
     private static float resolveHeldWeaponAdvantageScore(LivingEntity caster, LivingEntity target) {
         ItemStack held = caster.getMainHandItem();
         if (held.isEmpty()) return 0.0F;
-        EssenceCombatStats stats = held.get(ModDataComponents.ESSENCE_STATS.get());
-        if (stats == null || stats.attackBonuses().isEmpty()) return 0.0F;
         Set<EssenceType> defenderAffs = resolveEntityAffinities(target);
         if (defenderAffs.isEmpty()) return 0.0F;
+        VisWeaponState weaponState = held.get(ModDataComponents.VIS_WEAPON_STATE.get());
+        if (weaponState != null && weaponState.baseType() != EssenceType.REGULAR) {
+            List<String> profiles = new ArrayList<>();
+            profiles.add(weaponState.activeProfile());
+            for (EssenceType frag : weaponState.slottedFragments()) {
+                if (frag != null && frag != EssenceType.REGULAR) {
+                    profiles.add(frag.getSerializedName());
+                }
+            }
+            return VisInteractionManager.getInstance().calculateLineageAdvantageScore(profiles, defenderAffs);
+        }
+        EssenceCombatStats stats = held.get(ModDataComponents.ESSENCE_STATS.get());
+        if (stats == null || stats.attackBonuses().isEmpty()) return 0.0F;
         int score = 0;
         for (EssenceType atkType : stats.attackBonuses().keySet()) {
             if (atkType != null && atkType != EssenceType.REGULAR) {
                 score += calculateSpellElementalAdvantageScore(atkType, defenderAffs);
             }
         }
-        return Math.clamp(score, -2, 2);
+        return score;
     }
 
     private static boolean isNecroticLine(EssenceType t) {

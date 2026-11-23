@@ -92,12 +92,14 @@ public final class SpringSpellMutationHandler implements MateriaPartMutationHand
 
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Vernal Blossom-Aquifer Spiral Flow";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE ? "Vernal Blossom-Aquifer Spiral Flow" : null;
     }
 
     @Override
     public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "4 swirling droplets of pressurized springwater & cherry blossom petals (#FF6B9D / #64C8FF) grant +5 Armor, +2 Toughness, Drowning/Poison/Wither immunity, fire quenching, projectile-to-1-HP healing mist conversion, melee health siphon, and 2.0s-rooting / ally-mending vernal bolts on melee or spell hit.";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE
+                ? "4 swirling droplets of pressurized springwater & cherry blossom petals (#FF6B9D / #64C8FF) grant +5 Armor, +2 Toughness, Drowning/Poison/Wither immunity, fire quenching, projectile-to-1-HP healing mist conversion, melee health siphon, and 2.0s-rooting / ally-mending vernal bolts on melee or spell hit."
+                : null;
     }
 
     @Override
@@ -295,11 +297,23 @@ public final class SpringSpellMutationHandler implements MateriaPartMutationHand
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Section 6.43 Photosynthetic Life-Tether:
-        // Against hostiles: siphons 3 HP/s & inflicts Slowness III;
-        // Against allies: rapidly transfers vitality, cures Poison/Wither/debuffs & grants +30% attack speed;
-        // REQUIRES 5.0s (100t / 5 pulses) sustained channeling to trigger Vernal Bloom Supercharge (8m knockback
-        // on hostiles + +4 Absorption Hearts / 8.0F to caster & all allies)!
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         int tier = spell.getEffectiveTier();
         boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
         long now = level.getGameTime();
@@ -314,12 +328,16 @@ public final class SpringSpellMutationHandler implements MateriaPartMutationHand
 
                 CompoundTag aData = EntityHelper.getPersistentData(hit);
                 long aLast = aData.getLong(TAG_SPRING_BEAM_LAST_TICK).orElse(-100L);
+                if (aLast == now) {
+                    continue;
+                }
                 long aDelta = now - aLast;
-                int aStep = (aDelta > 0L && aDelta <= 8L) ? (int) Math.max(4L, aDelta) : 20;
-                int aTicks = (aDelta <= 45L) ? aData.getInt(TAG_SPRING_BEAM_TICKS).orElse(0) + aStep : aStep;
+                int aTicks = heldTicks <= 0
+                        ? 0
+                        : ((aDelta > 0L && aDelta <= 16L) ? aData.getInt(TAG_SPRING_BEAM_TICKS).orElse(0) + (int) aDelta : 4);
                 aData.putLong(TAG_SPRING_BEAM_LAST_TICK, now);
                 aData.putInt(TAG_SPRING_BEAM_TICKS, aTicks);
-                if (aTicks >= 100) {
+                if (heldTicks > 0 && aTicks >= 100) {
                     aData.putInt(TAG_SPRING_BEAM_TICKS, 0);
                     triggerVernalBloomSupercharge(level, caster, hit.position(), dirNorm, tier, wardSafe, apparatusPotency);
                 }
@@ -342,13 +360,17 @@ public final class SpringSpellMutationHandler implements MateriaPartMutationHand
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_SPRING_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) {
+                continue;
+            }
             long delta = now - last;
-            int stepTicks = (delta > 0L && delta <= 8L) ? (int) Math.max(4L, delta) : 20;
-            int contactTicks = (delta <= 45L) ? data.getInt(TAG_SPRING_BEAM_TICKS).orElse(0) + stepTicks : stepTicks;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt(TAG_SPRING_BEAM_TICKS).orElse(0) + (int) delta : 4);
             data.putLong(TAG_SPRING_BEAM_LAST_TICK, now);
             data.putInt(TAG_SPRING_BEAM_TICKS, contactTicks);
 
-            if (contactTicks >= 100) {
+            if (heldTicks > 0 && contactTicks >= 100) {
                 data.putInt(TAG_SPRING_BEAM_TICKS, 0);
                 triggerVernalBloomSupercharge(level, caster, hit.position(), dirNorm, tier, wardSafe, apparatusPotency);
             }
@@ -945,26 +967,22 @@ public final class SpringSpellMutationHandler implements MateriaPartMutationHand
 
     @Override
     public boolean onTransmuteBlock(ServerLevel level, @Nullable LivingEntity caster, BlockPos pos, BlockState state, int potencyTier) {
-        // Section 6.43 Vernal Purification & Greening Transmutation:
-        // Cures Netherrack/Soul Sand/Sculk -> Grass/Moss/Farmland; hydrates Farmland across 6m; cures Zombie Villagers
-        // into regular Villagers; Rotten Flesh -> Leather or Beef/Pork; matures crops/saplings; purifies toxic fluids!
-        boolean didAny = cureNearbyZombieVillagers(level, pos);
-        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2.5D), ItemEntity::isAlive)) {
-            if (onTransmuteDroppedItem(level, caster, item, potencyTier)) {
-                didAny = true;
-            }
+        // Section 6.43 Vernal Purification & Greening Transmutation [2.5s Continuous Held Right-Click Channel]:
+        if (ApexEschatonSingularityHelper.beginOrExecuteChanneledTransmute(
+                level, caster, pos, 6, potencyTier, EssenceType.SPRING, "Vernal Purification & Greening Transmutation",
+                () -> {
+                    cureNearbyZombieVillagers(level, pos);
+                    matureCropsInRadius(level, pos, 6);
+                })) {
+            return true;
         }
-        for (BlockPos p : BlockPos.betweenClosed(pos.offset(-6, -1, -6), pos.offset(6, 1, 6))) {
-            BlockState fs = level.getBlockState(p);
-            if (fs.is(Blocks.FARMLAND) && fs.getValue(FarmBlock.MOISTURE) < 7) {
-                level.setBlockAndUpdate(p, fs.setValue(FarmBlock.MOISTURE, 7));
-                didAny = true;
-            }
+        boolean didAny = false;
+        if (state.is(Blocks.FARMLAND) && state.getValue(FarmBlock.MOISTURE) < 7) {
+            level.setBlockAndUpdate(pos, state.setValue(FarmBlock.MOISTURE, 7));
+            didAny = true;
         }
-        matureCropsInRadius(level, pos, 3);
 
         if (SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
-            if (didAny) refundBatchDiscount(level, caster, potencyTier);
             return didAny;
         }
         if (state.is(Blocks.NETHERRACK) || state.is(Blocks.SOUL_SAND) || state.is(Blocks.SOUL_SOIL) || state.is(Blocks.SCULK)) {

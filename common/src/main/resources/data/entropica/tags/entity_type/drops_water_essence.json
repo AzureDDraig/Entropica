@@ -84,6 +84,10 @@
     {
       "id": "biomeswevegone:snapping_turtle",
       "required": false
+    },
+    {
+      "id": "entropica:peat_mud_kelpie",
+      "required": false
     }
   ]
 }

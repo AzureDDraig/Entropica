@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "QQQ",
+    "CBC"
+  ],
+  "key": {
+    "Q": "entropica:static_quill",
+    "C": "minecraft:copper_ingot",
+    "B": "minecraft:smooth_basalt"
+  },
+  "result": {
+    "id": "entropica:static_conductive_mat",
+    "count": 2
+  }
+}

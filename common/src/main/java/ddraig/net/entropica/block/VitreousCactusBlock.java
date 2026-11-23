@@ -1,8 +1,11 @@
 package ddraig.net.entropica.block;
 
+import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
@@ -84,13 +87,28 @@ public class VitreousCactusBlock extends EntropicaFlowerBlock {
 
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
-        return state.is(this) 
-            || super.mayPlaceOn(state, level, pos) 
-            || state.is(Blocks.SAND) 
-            || state.is(Blocks.RED_SAND) 
-            || state.is(Blocks.TERRACOTTA) 
-            || state.is(Blocks.GRAVEL) 
-            || state.is(Blocks.CACTUS);
+        if (EntropicaFloraGroundHelper.isIceOrSnowLayer(state)) {
+            return false;
+        }
+        if (state.is(this)
+                || super.mayPlaceOn(state, level, pos)
+                || state.is(Blocks.SAND)
+                || state.is(Blocks.RED_SAND)
+                || state.is(Blocks.TERRACOTTA)
+                || state.is(Blocks.GRAVEL)
+                || state.is(Blocks.CACTUS)) {
+            return true;
+        }
+        if (ModBlocks.GLASS_SAND.isBound() && state.is(ModBlocks.GLASS_SAND.get())) {
+            return true;
+        }
+        if (ModBlocks.GLASS_SANDSTONE.isBound() && state.is(ModBlocks.GLASS_SANDSTONE.get())) {
+            return true;
+        }
+        ResourceLocation key = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        return key != null
+                && "entropica".equals(key.getNamespace())
+                && ("glass_sand".equals(key.getPath()) || "glass_sandstone".equals(key.getPath()));
     }
 
     @Override

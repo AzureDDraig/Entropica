@@ -176,4 +176,8 @@ public enum MateriaFamilyTier {
             default -> false;
         };
     }
+
+    public static boolean isCaprineSecret(EssenceType type) {
+        return type == EssenceType.RADIANT_FIRE || type == EssenceType.UMBRAL_WATER || type == EssenceType.EQUINOX;
+    }
 }

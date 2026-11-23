@@ -31,13 +31,19 @@ public class VoidStalkerOrchidBlock extends EntropicaFlowerBlock {
             || state.is(Blocks.SCULK)
             || state.is(Blocks.SOUL_SAND)
             || state.is(Blocks.SOUL_SOIL)
-            || state.is(Blocks.NETHERRACK);
+            || state.is(Blocks.NETHERRACK)
+            || (ddraig.net.entropica.registry.ModBlocks.VOID_SAND.isBound() && state.is(ddraig.net.entropica.registry.ModBlocks.VOID_SAND.get()))
+            || (ddraig.net.entropica.registry.ModBlocks.VOID_SAND_TURF.isBound() && state.is(ddraig.net.entropica.registry.ModBlocks.VOID_SAND_TURF.get()))
+            || (ddraig.net.entropica.registry.ModBlocks.VOID_STONE.isBound() && state.is(ddraig.net.entropica.registry.ModBlocks.VOID_STONE.get()));
     }
 
     @Override
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
         super.stepOn(level, pos, state, entity);
-        if (!level.isClientSide() && entity instanceof LivingEntity living && level.random.nextInt(20) == 0) {
+        if (!level.isClientSide()
+                && entity instanceof LivingEntity living
+                && !ddraig.net.entropica.item.biome9.NullWeaveMantleItem.hasNullWeaveMantle(living)
+                && level.random.nextInt(20) == 0) {
             double targetX = pos.getX() + (level.random.nextDouble() - 0.5) * 8.0;
             double targetY = pos.getY() + level.random.nextInt(3) - 1;
             double targetZ = pos.getZ() + (level.random.nextDouble() - 0.5) * 8.0;

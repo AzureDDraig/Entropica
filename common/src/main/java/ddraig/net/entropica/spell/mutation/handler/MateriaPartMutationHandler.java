@@ -8,6 +8,7 @@ import ddraig.net.entropica.spell.SpellFlowModifier;
 import ddraig.net.entropica.spell.assembly.SpellAssembly;
 import ddraig.net.entropica.spell.assembly.SubSpellSlot;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -196,6 +197,22 @@ public interface MateriaPartMutationHandler {
     ) {
     }
 
+    default void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency);
+    }
+
     default void onTouchStrikeFormCast(
             ServerLevel level,
             LivingEntity caster,
@@ -344,6 +361,60 @@ public interface MateriaPartMutationHandler {
             LivingEntity target,
             Vec3 direction,
             SpellCoreEffect effect,
+            int potencyTier,
+            SpellAssembly spell
+    ) {
+    }
+
+    /**
+     * Optional block excavation hook for mutated {@link SpellCoreEffect#BREAK} spells.
+     * Must excavate/mine rather than transmuting blocks in place.
+     */
+    default boolean onBreakBlock(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            BlockPos pos,
+            BlockState state,
+            int potencyTier
+    ) {
+        return false;
+    }
+
+    /**
+     * Optional agricultural/botanical block hook for mutated {@link SpellCoreEffect#HARVEST} spells.
+     */
+    default boolean onHarvestBlock(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            BlockPos pos,
+            BlockState state,
+            int potencyTier
+    ) {
+        return false;
+    }
+
+    /**
+     * Optional terrain/anchor block hook for mutated {@link SpellCoreEffect#KINETIC} spells.
+     */
+    default boolean onKineticBlock(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            BlockPos pos,
+            Direction hitFace,
+            BlockState state,
+            int potencyTier,
+            SpellAssembly spell
+    ) {
+        return false;
+    }
+
+    /**
+     * Optional defensive barrier hook fired whenever {@link SpellCoreEffect#WARD} is granted to an entity or self/block target.
+     */
+    default void onWardApplied(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            LivingEntity target,
             int potencyTier,
             SpellAssembly spell
     ) {

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "charged=false,discharging=false": {
+      "model": "entropica:block/biomass_capacitor"
+    },
+    "charged=true,discharging=false": {
+      "model": "entropica:block/biomass_capacitor_charged"
+    },
+    "charged=false,discharging=true": {
+      "model": "entropica:block/biomass_capacitor_charged"
+    },
+    "charged=true,discharging=true": {
+      "model": "entropica:block/biomass_capacitor_charged"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OCO",
+    "VRV",
+    "OOO"
+  ],
+  "key": {
+    "O": "entropica:obsidian_bricks",
+    "C": "entropica:void_crystal_block",
+    "V": "entropica:void_stone",
+    "R": "minecraft:ender_pearl"
+  },
+  "result": {
+    "id": "entropica:spatial_phase_anchor",
+    "count": 1
+  }
+}

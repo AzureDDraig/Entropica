@@ -162,7 +162,9 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
         }
 
         int rgb;
-        if (mat != null && mat != EssenceType.REGULAR && mat.isDynamic()) {
+        if (mat == EssenceType.ENTROPICA) {
+            rgb = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantPrimaryRgb(EssenceType.ENTROPICA, entity.level().getGameTime() + partialTick);
+        } else if (mat != null && mat != EssenceType.REGULAR && mat.isDynamic()) {
             int[] cycleRgb = mat.getCurrentRGB(entity.level().getGameTime() + partialTick);
             rgb = ((cycleRgb[0] & 0xFF) << 16) | ((cycleRgb[1] & 0xFF) << 8) | (cycleRgb[2] & 0xFF);
         } else {
@@ -323,6 +325,20 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                 renderEntropicDreadTitanAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
             } else if (state.materia == EssenceType.CELESTIAL) {
                 renderCelestialSeraphColossusAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.PRISMATIC) {
+                renderPrismaticValkyrieAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.EMPYREAN) {
+                renderYggdrasilArborealJuggernautAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.CATACLYSM) {
+                renderStygianMagmaVoidSerpentAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.TERMINUS) {
+                renderTitanicGlacialElementalAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.ESCHATON) {
+                renderEventHorizonLeviathanAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.APOTHEOSIS) {
+                renderCelestialSeraphTitanAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
+            } else if (state.materia == EssenceType.ENTROPICA) {
+                renderAvatarOfEntropicaAgentOrnaments(m, vc, state.ageInTicks, state.yRot);
             }
         });
 
@@ -1948,6 +1964,244 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                     Vec3 cPos = new Vec3(Mth.cos(cAng) * 0.94D, 1.58D + 0.14D * Mth.sin(age * 0.26F + cIdx), Mth.sin(cAng) * 0.94D);
                     renderOctahedron(m, vc, cPos, 0.18F, 0.25F, cAng, c[0], c[1], c[2], 0.99F);
                 }
+            } else if (state.materia == EssenceType.PRISMATIC) {
+                // Section 6.53 Refractive Mirror Monolith (#FFFFFF / #72F6FF / Full HSB Spectrum):
+                // Multi-tiered diamond crystal obelisk crowned by a white-hot prism apex & 6 orbiting rainbow mirror facets!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                int baseRgb = Mth.hsvToRgb((age * 0.025F) % 1.0F, 0.72F, 1.0F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.048D, 0.0D), flatX, flatZ, 0.74F, 1.32F, 24,
+                        ((baseRgb >> 16) & 0xFF) / 255.0F,
+                        ((baseRgb >> 8) & 0xFF) / 255.0F,
+                        (baseRgb & 0xFF) / 255.0F,
+                        0.96F);
+                renderCylinderFrustum(m, vc, 0.02F, 0.46F, 0.68F, 0.48F, 8, 0.0F,
+                        0.820F, 0.960F, 1.000F, 0.96F);
+                renderCylinderFrustum(m, vc, 0.46F, 1.84F, 0.44F, 0.24F, 6, spin * 0.45F,
+                        1.000F, 1.000F, 1.000F, 0.92F);
+
+                Vec3 prismApex = new Vec3(0.0D, 2.14D + 0.08D * Mth.sin(age * 0.24F), 0.0D);
+                renderOctahedron(m, vc, prismApex, 0.30F, 0.46F, spin * 1.35F,
+                        1.000F, 1.000F, 1.000F, 0.99F);
+                renderLocalRing(m, vc, prismApex, flatX, flatZ, 0.46F, 0.72F, 24,
+                        0.447F, 0.965F, 1.000F, 0.95F);
+
+                for (int pIdx = 0; pIdx < 6; pIdx++) {
+                    float pAng = -spin * 1.30F + (float) (Math.PI * 2.0D * pIdx / 6.0D);
+                    int mRgb = Mth.hsvToRgb(((pIdx / 6.0F) + age * 0.032F) % 1.0F, 0.78F, 1.0F);
+                    float mr = ((mRgb >> 16) & 0xFF) / 255.0F;
+                    float mg = ((mRgb >> 8) & 0xFF) / 255.0F;
+                    float mb = (mRgb & 0xFF) / 255.0F;
+                    Vec3 mPos = new Vec3(Mth.cos(pAng) * 0.96D, 1.48D + 0.16D * Mth.sin(age * 0.28F + pIdx), Mth.sin(pAng) * 0.96D);
+                    renderOctahedron(m, vc, mPos, 0.17F, 0.28F, pAng, mr, mg, mb, 0.98F);
+                }
+            } else if (state.materia == EssenceType.EMPYREAN) {
+                // Section 6.54 Heartwood Canopy Obelisk (#FFEA78 / #FF6B9D / #1A5923):
+                // Monolithic World-Tree heartwood trunk, emerald foliage crown, rose-vitae seed heart & 6 orbiting golden seed-pods!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ, 0.80F, 1.44F, 24,
+                        1.000F, 0.918F, 0.471F, 0.97F);
+                renderCylinderFrustum(m, vc, 0.02F, 0.56F, 0.78F, 0.54F, 8, 0.0F,
+                        0.102F, 0.349F, 0.137F, 0.98F);
+                renderCylinderFrustum(m, vc, 0.56F, 1.96F, 0.50F, 0.30F, 8, 0.39F,
+                        1.000F, 0.918F, 0.471F, 0.95F);
+
+                Vec3 canopyApex = new Vec3(0.0D, 2.24D + 0.08D * Mth.sin(age * 0.20F), 0.0D);
+                renderOctahedron(m, vc, canopyApex, 0.34F, 0.48F, spin * 1.10F,
+                        1.000F, 0.420F, 0.616F, 0.99F);
+                renderLocalRing(m, vc, canopyApex, flatX, flatZ, 0.54F, 0.92F, 24,
+                        0.102F, 0.349F, 0.137F, 0.96F);
+
+                float[][] empRgb = {
+                        {1.000F, 0.918F, 0.471F},
+                        {1.000F, 0.420F, 0.616F},
+                        {0.102F, 0.349F, 0.137F}
+                };
+                for (int sIdx = 0; sIdx < 6; sIdx++) {
+                    float sAng = spin * 1.18F + (float) (Math.PI * 2.0D * sIdx / 6.0D);
+                    float[] c = empRgb[sIdx % 3];
+                    Vec3 sPos = new Vec3(Mth.cos(sAng) * 1.04D, 1.56D + 0.15D * Mth.sin(age * 0.24F + sIdx), Mth.sin(sAng) * 1.04D);
+                    renderOctahedron(m, vc, sPos, 0.18F, 0.28F, sAng, c[0], c[1], c[2], 0.99F);
+                }
+            } else if (state.materia == EssenceType.CATACLYSM) {
+                // Section 6.55 Volcanic Eruption Spire (#41304E / #211A21 / #B83C08):
+                // Monolithic magma-void obsidian spire, inward-pulling 16m caldera gravity rings, roaring magma crater apex & 6 orbiting railgun magma spikes!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float pullWave = 1.0F - ((age * 0.052F) % 1.0F);
+                float pullR = 0.80F + pullWave * 1.85F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ, 0.82F, 1.48F, 24,
+                        0.722F, 0.235F, 0.031F, 0.97F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.072D, 0.0D), flatX, flatZ, pullR * 0.86F, pullR, 24,
+                        0.255F, 0.188F, 0.306F, 0.92F * (1.0F - pullWave * 0.55F));
+
+                renderCylinderFrustum(m, vc, 0.02F, 0.60F, 0.80F, 0.56F, 6, 0.0F,
+                        0.129F, 0.102F, 0.129F, 0.99F);
+                renderCylinderFrustum(m, vc, 0.60F, 2.02F, 0.52F, 0.32F, 6, 0.52F,
+                        0.255F, 0.188F, 0.306F, 0.96F);
+
+                Vec3 calderaApex = new Vec3(0.0D, 2.28D + 0.07D * Mth.sin(age * 0.28F), 0.0D);
+                renderOctahedron(m, vc, calderaApex, 0.35F, 0.50F, spin * 1.25F,
+                        0.722F, 0.235F, 0.031F, 0.99F);
+                renderLocalRing(m, vc, calderaApex, flatX, flatZ, 0.52F, 0.94F, 20,
+                        1.000F, 0.369F, 0.102F, 0.96F);
+
+                float[][] catRgb = {
+                        {0.722F, 0.235F, 0.031F}, // #B83C08 Nether Blazing Rust Crimson
+                        {0.255F, 0.188F, 0.306F}, // #41304E Void Deep Indigo
+                        {0.129F, 0.102F, 0.129F}  // #211A21 Umbral Shadow Charcoal
+                };
+                for (int sIdx = 0; sIdx < 6; sIdx++) {
+                    float sAng = -spin * 1.35F + (float) (Math.PI * 2.0D * sIdx / 6.0D);
+                    float[] c = catRgb[sIdx % 3];
+                    Vec3 sPos = new Vec3(Mth.cos(sAng) * 1.06D, 1.58D + 0.14D * Mth.sin(age * 0.30F + sIdx), Mth.sin(sAng) * 1.06D);
+                    renderOctahedron(m, vc, sPos, 0.13F, 0.34F, sAng, c[0], c[1], c[2], 0.99F);
+                }
+            } else if (state.materia == EssenceType.TERMINUS) {
+                // Section 6.56 Anchored Permafrost Elemental Spire (#A88654 / #98DCF2 / #225C7C):
+                // Monolithic deep-azure & frost-cyan permafrost spire, 16m Polar Freeze Field wave rings,
+                // golden-buff vacuum gale halo & 6 orbiting wall-penetrating cryogenic lances!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float freezeWave = (age * 0.046F) % 1.0F;
+                float freezeR = 0.82F + freezeWave * 2.10F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ, 0.80F, 1.44F, 24,
+                        0.133F, 0.361F, 0.486F, 0.96F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.072D, 0.0D), flatX, flatZ, freezeR * 0.88F, freezeR, 24,
+                        0.596F, 0.863F, 0.949F, 0.92F * (1.0F - freezeWave * 0.58F));
+
+                renderCylinderFrustum(m, vc, 0.02F, 0.64F, 0.78F, 0.54F, 6, 0.0F,
+                        0.133F, 0.361F, 0.486F, 0.97F);
+                renderCylinderFrustum(m, vc, 0.64F, 2.06F, 0.50F, 0.28F, 6, 0.52F,
+                        0.596F, 0.863F, 0.949F, 0.93F);
+
+                Vec3 permafrostApex = new Vec3(0.0D, 2.32D + 0.06D * Mth.sin(age * 0.24F), 0.0D);
+                renderOctahedron(m, vc, permafrostApex, 0.32F, 0.52F, spin * 1.10F,
+                        0.596F, 0.863F, 0.949F, 0.99F);
+                renderLocalRing(m, vc, permafrostApex, flatX, flatZ, 0.50F, 0.90F, 22,
+                        0.659F, 0.525F, 0.329F, 0.95F);
+
+                float[][] termRgb = {
+                        {0.596F, 0.863F, 0.949F}, // #98DCF2 Frozen Cyan/Frost
+                        {0.659F, 0.525F, 0.329F}, // #A88654 Air Golden-Buff
+                        {0.133F, 0.361F, 0.486F}  // #225C7C Water Deep Azure
+                };
+                for (int sIdx = 0; sIdx < 6; sIdx++) {
+                    float sAng = spin * 1.28F + (float) (Math.PI * 2.0D * sIdx / 6.0D);
+                    float[] c = termRgb[sIdx % 3];
+                    Vec3 sPos = new Vec3(Mth.cos(sAng) * 1.06D, 1.58D + 0.14D * Mth.sin(age * 0.26F + sIdx), Mth.sin(sAng) * 1.06D);
+                    renderOctahedron(m, vc, sPos, 0.12F, 0.36F, sAng, c[0], c[1], c[2], 0.98F);
+                }
+            } else if (state.materia == EssenceType.ESCHATON) {
+                // Section 6.57 Accretion Disk Singularity Spire (#0B0813 / #7012A5 / #D4C2FC):
+                // Monolithic dark-matter obelisk, inward-collapsing 20m Gravitational Accretion Field rings,
+                // suspended event-horizon apex core with Chrono-Silver halo & 6 orbiting singularity lances!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float inwardWave = 1.0F - ((age * 0.052F) % 1.0F);
+                float inwardR = 0.85F + inwardWave * 2.35F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ, 0.84F, 1.54F, 26,
+                        0.043F, 0.031F, 0.075F, 0.98F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.072D, 0.0D), flatX, flatZ, inwardR * 0.88F, inwardR, 26,
+                        0.439F, 0.071F, 0.647F, 0.94F * (1.0F - inwardWave * 0.55F));
+
+                renderCylinderFrustum(m, vc, 0.02F, 0.68F, 0.82F, 0.56F, 8, 0.0F,
+                        0.043F, 0.031F, 0.075F, 0.99F);
+                renderCylinderFrustum(m, vc, 0.68F, 2.16F, 0.52F, 0.30F, 8, 0.39F,
+                        0.439F, 0.071F, 0.647F, 0.94F);
+
+                Vec3 singularityApex = new Vec3(0.0D, 2.42D + 0.06D * Mth.sin(age * 0.28F), 0.0D);
+                renderOctahedron(m, vc, singularityApex, 0.34F, 0.54F, -spin * 1.25F,
+                        0.043F, 0.031F, 0.075F, 0.99F);
+                renderLocalRing(m, vc, singularityApex, flatX, flatZ, 0.54F, 0.98F, 24,
+                        0.831F, 0.761F, 0.988F, 0.97F);
+
+                float[][] eschRgb = {
+                        {0.439F, 0.071F, 0.647F}, // #7012A5 Accretion Disk Searing Violet
+                        {0.831F, 0.761F, 0.988F}, // #D4C2FC Event Edge Chrono-Silver
+                        {0.043F, 0.031F, 0.075F}  // #0B0813 Event Horizon Void Black
+                };
+                for (int sIdx = 0; sIdx < 6; sIdx++) {
+                    float sAng = -spin * 1.42F + (float) (Math.PI * 2.0D * sIdx / 6.0D);
+                    float[] c = eschRgb[sIdx % 3];
+                    Vec3 sPos = new Vec3(Mth.cos(sAng) * 1.12D, 1.64D + 0.14D * Mth.sin(age * 0.30F + sIdx), Mth.sin(sAng) * 1.12D);
+                    renderOctahedron(m, vc, sPos, 0.13F, 0.40F, sAng, c[0], c[1], c[2], 0.99F);
+                }
+            } else if (state.materia == EssenceType.APOTHEOSIS) {
+                // Section 6.58 White-Hole Dawn Obelisk (#FFFFFF / #FFE484 / #72F6FF):
+                // Monolithic white-hole obelisk, expanding 20m Sanctuary Field rings, suspended supernova apex starcore
+                // with Astral Gold & Prismatic Cyan halos & 6 orbiting holy supernova lances!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float outWave = (age * 0.052F) % 1.0F;
+                float outR = 0.88F + outWave * 2.40F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ, 0.86F, 1.56F, 28,
+                        1.000F, 0.894F, 0.518F, 0.98F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.072D, 0.0D), flatX, flatZ, outR * 0.88F, outR, 28,
+                        0.447F, 0.965F, 1.000F, 0.94F * (1.0F - outWave * 0.55F));
+
+                renderCylinderFrustum(m, vc, 0.02F, 0.70F, 0.82F, 0.56F, 8, 0.0F,
+                        1.000F, 1.000F, 1.000F, 0.99F);
+                renderCylinderFrustum(m, vc, 0.70F, 2.20F, 0.52F, 0.30F, 8, 0.39F,
+                        1.000F, 0.894F, 0.518F, 0.96F);
+
+                Vec3 dawnApex = new Vec3(0.0D, 2.46D + 0.06D * Mth.sin(age * 0.28F), 0.0D);
+                renderOctahedron(m, vc, dawnApex, 0.36F, 0.56F, spin * 1.25F,
+                        1.000F, 1.000F, 1.000F, 0.99F);
+                renderLocalRing(m, vc, dawnApex, flatX, flatZ, 0.56F, 1.00F, 26,
+                        0.447F, 0.965F, 1.000F, 0.97F);
+
+                float[][] apoRgb = {
+                        {1.000F, 1.000F, 1.000F}, // #FFFFFF Supernova Brilliant White
+                        {1.000F, 0.894F, 0.518F}, // #FFE484 Celestial Astral Gold
+                        {0.447F, 0.965F, 1.000F}  // #72F6FF Ascendant Prismatic Cyan
+                };
+                for (int sIdx = 0; sIdx < 6; sIdx++) {
+                    float sAng = spin * 1.42F + (float) (Math.PI * 2.0D * sIdx / 6.0D);
+                    float[] c = apoRgb[sIdx % 3];
+                    Vec3 sPos = new Vec3(Mth.cos(sAng) * 1.14D, 1.66D + 0.14D * Mth.sin(age * 0.30F + sIdx), Mth.sin(sAng) * 1.14D);
+                    renderOctahedron(m, vc, sPos, 0.14F, 0.42F, sAng, c[0], c[1], c[2], 0.99F);
+                }
+            } else if (state.materia == EssenceType.ENTROPICA) {
+                // Section 6.59 Altar of the Horizon (#E0E5EC / #1A153B / #FAD02C):
+                // Monolithic equilibrium obelisk, balanced inward/outward 20m Equilibrium Field rings,
+                // suspended dual-singularity apex core & 6 orbiting balance-ray lances!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                float outWave = (age * 0.050F) % 1.0F;
+                float inWave = 1.0F - outWave;
+                float outR = 0.88F + outWave * 2.45F;
+                float inR = 0.88F + inWave * 2.45F;
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ, 0.88F, 1.58F, 28,
+                        0.878F, 0.898F, 0.925F, 0.98F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.068D, 0.0D), flatX, flatZ, outR * 0.88F, outR, 28,
+                        0.980F, 0.816F, 0.173F, 0.95F * (1.0F - outWave * 0.55F));
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.082D, 0.0D), flatX, flatZ, inR * 0.88F, inR, 28,
+                        0.102F, 0.082F, 0.231F, 0.95F * (1.0F - inWave * 0.55F));
+
+                renderCylinderFrustum(m, vc, 0.02F, 0.72F, 0.84F, 0.58F, 8, 0.0F,
+                        0.102F, 0.082F, 0.231F, 0.99F);
+                renderCylinderFrustum(m, vc, 0.72F, 2.24F, 0.54F, 0.30F, 8, 0.39F,
+                        0.878F, 0.898F, 0.925F, 0.96F);
+
+                Vec3 horizonApex = new Vec3(0.0D, 2.50D + 0.06D * Mth.sin(age * 0.28F), 0.0D);
+                renderOctahedron(m, vc, horizonApex, 0.36F, 0.58F, spin * 1.28F,
+                        0.980F, 0.816F, 0.173F, 0.99F);
+                renderLocalRing(m, vc, horizonApex, flatX, flatZ, 0.58F, 1.04F, 26,
+                        0.878F, 0.898F, 0.925F, 0.98F);
+
+                float[][] entRgb = {
+                        {0.878F, 0.898F, 0.925F}, // #E0E5EC Shifting Chrono-Silver
+                        {0.980F, 0.816F, 0.173F}, // #FAD02C Transcendent Genesis Gold
+                        {0.102F, 0.082F, 0.231F}  // #1A153B Deep Event-Horizon Indigo
+                };
+                for (int sIdx = 0; sIdx < 6; sIdx++) {
+                    float sAng = spin * 1.44F + (float) (Math.PI * 2.0D * sIdx / 6.0D);
+                    float[] c = entRgb[sIdx % 3];
+                    Vec3 sPos = new Vec3(Mth.cos(sAng) * 1.16D, 1.68D + 0.14D * Mth.sin(age * 0.30F + sIdx), Mth.sin(sAng) * 1.16D);
+                    renderOctahedron(m, vc, sPos, 0.14F, 0.44F, sAng, c[0], c[1], c[2], 0.99F);
+                }
             }
         });
         poseStack.popPose();
@@ -3210,6 +3464,160 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
                     Vec3 nodePos = new Vec3(Mth.cos(cAng) * 0.60D, 0.44D + (c % 4) * 0.34D, Mth.sin(cAng) * 0.60D);
                     renderOctahedron(m, vc, nodePos, 0.14F, 0.24F, cAng, cr, cg, cb, 0.98F * flicker);
                 }
+            } else if (state.materia == EssenceType.PRISMATIC) {
+                // Section 6.53 Sacrificial Solar Relic & Prismatic Mirror Decoy:
+                // Gleaming diamond prism-cage, rainbow taunt rings, blinding white-gold solar relic core & 8 spectrum nodes!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                int rRgb = Mth.hsvToRgb((age * 0.030F) % 1.0F, 0.76F, 1.0F);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                        0.70F, 1.24F, 24,
+                        ((rRgb >> 16) & 0xFF) / 255.0F,
+                        ((rRgb >> 8) & 0xFF) / 255.0F,
+                        (rRgb & 0xFF) / 255.0F,
+                        0.97F * flicker);
+                renderOpenFrustumWall(m, vc, 0.12F, 1.96F, 0.60F, 0.44F, 12, age * 0.14F,
+                        0.447F, 0.965F, 1.000F, 0.52F * flicker);
+                renderOctahedron(m, vc, new Vec3(0.0D, 1.12D, 0.0D), 0.30F, 0.66F, -age * 0.22F,
+                        1.000F, 1.000F, 1.000F, 0.92F * flicker);
+                for (int p = 0; p < 8; p++) {
+                    float pAng = age * 0.22F + (float) (Math.PI * 2.0D * p / 8.0D);
+                    int pRgb = Mth.hsvToRgb(((p / 8.0F) + age * 0.035F) % 1.0F, 0.80F, 1.0F);
+                    float cr = ((pRgb >> 16) & 0xFF) / 255.0F;
+                    float cg = ((pRgb >> 8) & 0xFF) / 255.0F;
+                    float cb = (pRgb & 0xFF) / 255.0F;
+                    Vec3 nodePos = new Vec3(Mth.cos(pAng) * 0.64D, 0.40D + (p % 4) * 0.36D, Mth.sin(pAng) * 0.64D);
+                    renderOctahedron(m, vc, nodePos, 0.14F, 0.25F, pAng, cr, cg, cb, 0.98F * flicker);
+                }
+            } else if (state.materia == EssenceType.EMPYREAN) {
+                // Section 6.54 Golden Willow Effigy (#FFEA78 / #FF6B9D / #1A5923):
+                // Shimmering living timber, golden willow boughs, & rose-lotus dewdrop nodes!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                        0.74F, 1.32F, 24, 1.000F, 0.918F, 0.471F, 0.97F * flicker);
+                renderOpenFrustumWall(m, vc, 0.10F, 2.02F, 0.62F, 0.46F, 10, age * 0.10F,
+                        0.102F, 0.349F, 0.137F, 0.58F * flicker);
+                for (int w = 0; w < 9; w++) {
+                    float wAng = age * 0.16F + (float) (Math.PI * 2.0D * w / 9.0D);
+                    int idx = w % 3;
+                    float cr = idx == 0 ? 1.000F : (idx == 1 ? 1.000F : 0.102F);
+                    float cg = idx == 0 ? 0.918F : (idx == 1 ? 0.420F : 0.349F);
+                    float cb = idx == 0 ? 0.471F : (idx == 1 ? 0.616F : 0.137F);
+                    Vec3 nodePos = new Vec3(Mth.cos(wAng) * 0.66D, 0.38D + (w % 3) * 0.46D, Mth.sin(wAng) * 0.66D);
+                    renderOctahedron(m, vc, nodePos, 0.15F, 0.26F, wAng, cr, cg, cb, 0.98F * flicker);
+                }
+            } else if (state.materia == EssenceType.CATACLYSM) {
+                // Section 6.55 Molten Core Beacon (#41304E / #211A21 / #B83C08):
+                // Smoldering obsidian-and-magma core beacon, collapsing dark-matter singularity heart & 9 magma flare nodes!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                        0.76F, 1.36F, 24, 0.722F, 0.235F, 0.031F, 0.97F * flicker);
+                renderOpenFrustumWall(m, vc, 0.10F, 2.02F, 0.64F, 0.44F, 8, -age * 0.14F,
+                        0.129F, 0.102F, 0.129F, 0.78F * flicker);
+                renderOctahedron(m, vc, new Vec3(0.0D, 1.12D, 0.0D), 0.32F, 0.62F, -age * 0.26F,
+                        0.722F, 0.235F, 0.031F, 0.96F * flicker);
+                for (int w = 0; w < 9; w++) {
+                    float wAng = -age * 0.20F + (float) (Math.PI * 2.0D * w / 9.0D);
+                    int idx = w % 3;
+                    float cr = idx == 0 ? 0.722F : (idx == 1 ? 0.255F : 1.000F);
+                    float cg = idx == 0 ? 0.235F : (idx == 1 ? 0.188F : 0.369F);
+                    float cb = idx == 0 ? 0.031F : (idx == 1 ? 0.306F : 0.102F);
+                    Vec3 nodePos = new Vec3(Mth.cos(wAng) * 0.68D, 0.36D + (w % 3) * 0.48D, Mth.sin(wAng) * 0.68D);
+                    renderOctahedron(m, vc, nodePos, 0.15F, 0.27F, wAng, cr, cg, cb, 0.99F * flicker);
+                }
+            } else if (state.materia == EssenceType.TERMINUS) {
+                // Section 6.56 Unstable Cryogenic Elemental Effigy (#A88654 / #98DCF2 / #225C7C):
+                // Shimmering ice-sculpted prism effigy, deep-azure glacial core, golden-buff gale rings & 9 frost-mirror shards!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                        0.76F, 1.36F, 24, 0.596F, 0.863F, 0.949F, 0.96F * flicker);
+                renderOpenFrustumWall(m, vc, 0.10F, 2.02F, 0.62F, 0.44F, 6, age * 0.10F,
+                        0.133F, 0.361F, 0.486F, 0.64F * flicker);
+                renderOctahedron(m, vc, new Vec3(0.0D, 1.12D, 0.0D), 0.30F, 0.64F, age * 0.22F,
+                        0.596F, 0.863F, 0.949F, 0.95F * flicker);
+                for (int w = 0; w < 9; w++) {
+                    float wAng = age * 0.18F + (float) (Math.PI * 2.0D * w / 9.0D);
+                    int idx = w % 3;
+                    float cr = idx == 0 ? 0.596F : (idx == 1 ? 0.659F : 0.133F);
+                    float cg = idx == 0 ? 0.863F : (idx == 1 ? 0.525F : 0.361F);
+                    float cb = idx == 0 ? 0.949F : (idx == 1 ? 0.329F : 0.486F);
+                    Vec3 nodePos = new Vec3(Mth.cos(wAng) * 0.68D, 0.36D + (w % 3) * 0.48D, Mth.sin(wAng) * 0.68D);
+                    renderOctahedron(m, vc, nodePos, 0.14F, 0.28F, wAng, cr, cg, cb, 0.98F * flicker);
+                }
+            } else if (state.materia == EssenceType.ESCHATON) {
+                // Section 6.57 Collapsing Micro-Nova Effigy (#0B0813 / #7012A5 / #D4C2FC):
+                // Shimmering gravitational effigy, collapsing void-black core, searing violet accretion funnel & 9 chrono-silver distortion shards!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                        0.82F, 1.48F, 26, 0.439F, 0.071F, 0.647F, 0.97F * flicker);
+                renderOpenFrustumWall(m, vc, 0.10F, 2.08F, 0.66F, 0.46F, 8, -age * 0.14F,
+                        0.043F, 0.031F, 0.075F, 0.72F * flicker);
+                renderOctahedron(m, vc, new Vec3(0.0D, 1.14D, 0.0D), 0.32F, 0.66F, -age * 0.26F,
+                        0.043F, 0.031F, 0.075F, 0.99F * flicker);
+                renderLocalRing(m, vc, new Vec3(0.0D, 1.14D, 0.0D), flatX, flatZ,
+                        0.44F, 0.82F, 22, 0.831F, 0.761F, 0.988F, 0.96F * flicker);
+                for (int w = 0; w < 9; w++) {
+                    float wAng = -age * 0.22F + (float) (Math.PI * 2.0D * w / 9.0D);
+                    int idx = w % 3;
+                    float cr = idx == 0 ? 0.439F : (idx == 1 ? 0.831F : 0.043F);
+                    float cg = idx == 0 ? 0.071F : (idx == 1 ? 0.761F : 0.031F);
+                    float cb = idx == 0 ? 0.647F : (idx == 1 ? 0.988F : 0.075F);
+                    Vec3 nodePos = new Vec3(Mth.cos(wAng) * 0.74D, 0.36D + (w % 3) * 0.48D, Mth.sin(wAng) * 0.74D);
+                    renderOctahedron(m, vc, nodePos, 0.15F, 0.30F, wAng, cr, cg, cb, 0.99F * flicker);
+                }
+            } else if (state.materia == EssenceType.APOTHEOSIS) {
+                // Section 6.58 Radiant Ascendance Mirage (#FFFFFF / #FFE484 / #72F6FF):
+                // Shimmering solar-winged avatar effigy, blazing white-hole supernova core, astral-gold halo & 6 hard-light wing blades!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                        0.84F, 1.50F, 28, 1.000F, 0.894F, 0.518F, 0.97F * flicker);
+                renderOpenFrustumWall(m, vc, 0.10F, 2.10F, 0.66F, 0.48F, 8, age * 0.14F,
+                        1.000F, 1.000F, 1.000F, 0.62F * flicker);
+                renderOctahedron(m, vc, new Vec3(0.0D, 1.16D, 0.0D), 0.34F, 0.68F, age * 0.26F,
+                        1.000F, 1.000F, 1.000F, 0.99F * flicker);
+                renderLocalRing(m, vc, new Vec3(0.0D, 1.16D, 0.0D), flatX, flatZ,
+                        0.46F, 0.84F, 24, 0.447F, 0.965F, 1.000F, 0.96F * flicker);
+                for (int w = 0; w < 6; w++) {
+                    int side = (w % 2 == 0) ? -1 : 1;
+                    int tierIdx = w / 2;
+                    double wy = 1.02D + tierIdx * 0.32D + 0.06D * Mth.sin(age * 0.28F + w);
+                    Vec3 root = new Vec3(side * 0.24D, wy, -0.18D);
+                    Vec3 tip = new Vec3(side * (0.98D + tierIdx * 0.18D), wy + 0.28D, -0.44D);
+                    Vec3 low = new Vec3(side * (0.78D + tierIdx * 0.14D), wy - 0.12D, -0.36D);
+                    boolean gold = (tierIdx == 1);
+                    emitDoubleSidedQuad(m, vc, root, tip, low, root,
+                            gold ? 1.000F : (tierIdx == 0 ? 1.000F : 0.447F),
+                            gold ? 0.894F : (tierIdx == 0 ? 1.000F : 0.965F),
+                            gold ? 0.518F : 1.000F,
+                            0.94F * flicker);
+                }
+            } else if (state.materia == EssenceType.ENTROPICA) {
+                // Section 6.59 Fractured Paradox Core (#E0E5EC / #1A153B / #FAD02C):
+                // End-portal parallax effigy with counter-spinning event-horizon indigo core, chrono-silver & genesis-gold halos & 9 fractured paradox shards!
+                Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+                Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+                renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                        0.86F, 1.54F, 28, 0.980F, 0.816F, 0.173F, 0.97F * flicker);
+                renderOpenFrustumWall(m, vc, 0.10F, 2.12F, 0.68F, 0.48F, 8, -age * 0.15F,
+                        0.102F, 0.082F, 0.231F, 0.76F * flicker);
+                renderOctahedron(m, vc, new Vec3(0.0D, 1.16D, 0.0D), 0.35F, 0.68F, age * 0.28F,
+                        0.102F, 0.082F, 0.231F, 0.99F * flicker);
+                renderLocalRing(m, vc, new Vec3(0.0D, 1.16D, 0.0D), flatX, flatZ,
+                        0.48F, 0.88F, 26, 0.878F, 0.898F, 0.925F, 0.97F * flicker);
+                for (int w = 0; w < 9; w++) {
+                    float wAng = age * 0.22F * ((w & 1) == 0 ? 1.0F : -1.0F) + (float) (Math.PI * 2.0D * w / 9.0D);
+                    int idx = w % 3;
+                    float cr = idx == 0 ? 0.878F : (idx == 1 ? 0.980F : 0.102F);
+                    float cg = idx == 0 ? 0.898F : (idx == 1 ? 0.816F : 0.082F);
+                    float cb = idx == 0 ? 0.925F : (idx == 1 ? 0.173F : 0.231F);
+                    Vec3 nodePos = new Vec3(Mth.cos(wAng) * 0.78D, 0.36D + (w % 3) * 0.50D, Mth.sin(wAng) * 0.78D);
+                    renderOctahedron(m, vc, nodePos, 0.16F, 0.32F, wAng, cr, cg, cb, 0.99F * flicker);
+                }
             }
 
             // Pulsing mirage core diamond inside the cyclone eye
@@ -3221,7 +3629,10 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
         poseStack.scale(-0.92F, -0.92F, 0.92F);
         poseStack.translate(0.0F, -1.52F, 0.0F);
         this.model.setupAnim(state);
-        final int decoyAlpha = (state.materia == EssenceType.UMBRAL || state.materia == EssenceType.ECLIPSE || state.materia == EssenceType.NULL_U || state.materia == EssenceType.ABYSS || state.materia == EssenceType.OBLIVION || state.materia == EssenceType.ENTROPIC) ? 0xC8 : 0x72;
+        final int decoyAlpha = (state.materia == EssenceType.UMBRAL || state.materia == EssenceType.ECLIPSE
+                || state.materia == EssenceType.NULL_U || state.materia == EssenceType.ABYSS
+                || state.materia == EssenceType.OBLIVION || state.materia == EssenceType.ENTROPIC
+                || state.materia == EssenceType.CATACLYSM || state.materia == EssenceType.ESCHATON) ? 0xC8 : 0x72;
         final int decoyTint = (decoyAlpha << 24) | (state.primaryRgb & 0xFFFFFF);
         collector.submitCustomGeometry(poseStack, RenderType.entityTranslucentEmissive(EIDOLON_TEXTURE), (pose, vc) -> {
             PoseStack localStack = new PoseStack();
@@ -5467,6 +5878,418 @@ public class SpellEidolonRenderer extends EntityRenderer<SpellEidolonEntity, Spe
         emitDoubleSidedQuad(m, vc, grip.subtract(bladeUp), grip.add(bladeUp), tip.add(bladeUp), tip.subtract(bladeUp),
                 1.000F, 0.918F, 0.471F, 0.99F);
         renderOctahedron(m, vc, tip, 0.15F, 0.26F, yawRad, 1.000F, 0.420F, 0.616F, 0.99F);
+    }
+
+    /**
+     * Section 6.53 Prismatic Valkyrie Agent (#FFFFFF / #72F6FF / Full HSB Spectrum):
+     * Six faceted rainbow prism wings, diamond-starlight crown halo, crystalline prism pauldrons,
+     * and blazing piercing Diamond Light-Javelin!
+     */
+    private static void renderPrismaticValkyrieAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        int ringRgb = Mth.hsvToRgb((age * 0.028F) % 1.0F, 0.75F, 1.0F);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.048D, 0.0D), flatX, flatZ,
+                0.54F, 0.96F, 24,
+                ((ringRgb >> 16) & 0xFF) / 255.0F,
+                ((ringRgb >> 8) & 0xFF) / 255.0F,
+                (ringRgb & 0xFF) / 255.0F,
+                0.96F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+        Vec3 fwdDir = new Vec3(-Mth.sin(yawRad), 0.0D, Mth.cos(yawRad));
+        Vec3 backDir = fwdDir.scale(-1.0D);
+        Vec3 upDir = new Vec3(0.0D, 1.0D, 0.0D);
+        double bob = 0.032D * Mth.sin(age * 0.24F);
+
+        // Diamond-white starlight halo + spectrum refractive outer crown behind the Valkyrie's head
+        Vec3 halo = new Vec3(0.0D, 1.74D + bob, 0.0D).add(backDir.scale(0.24D));
+        renderLocalRing(m, vc, halo, rightDir, upDir, 0.0F, 0.24F, 20, 1.000F, 1.000F, 1.000F, 0.99F);
+        renderLocalRing(m, vc, halo, rightDir, upDir, 0.24F, 0.44F, 24, 0.447F, 0.965F, 1.000F, 0.97F);
+
+        // Six spectrum-cycling crystalline prism wings + faceted diamond pauldrons
+        float flap = 0.20F * Mth.sin(age * 0.26F);
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 shoulder = new Vec3(0.0D, 1.48D + bob, 0.0D).add(rightDir.scale(side * 0.44D));
+            renderOctahedron(m, vc, shoulder, 0.20F, 0.18F, yawRad + side * 0.28F, 0.447F, 0.965F, 1.000F, 0.97F);
+            renderOctahedron(m, vc, shoulder.add(0.0D, 0.14D, 0.0D), 0.11F, 0.24F, -yawRad, 1.000F, 1.000F, 1.000F, 0.99F);
+
+            Vec3 wingAxis = rightDir.scale(side * Mth.cos(flap)).add(backDir.scale(0.36D + 0.16D * Mth.sin(flap))).normalize();
+            for (int tier = 0; tier < 3; tier++) {
+                int wRgb = Mth.hsvToRgb(((tier * 0.22F + (side > 0 ? 0.0F : 0.11F)) + age * 0.032F) % 1.0F, 0.78F, 1.0F);
+                float wr = ((wRgb >> 16) & 0xFF) / 255.0F;
+                float wg = ((wRgb >> 8) & 0xFF) / 255.0F;
+                float wb = (wRgb & 0xFF) / 255.0F;
+                Vec3 wRoot = new Vec3(0.0D, 1.46D - tier * 0.18D + bob, 0.0D).add(backDir.scale(0.18D));
+                Vec3 wTip = wRoot.add(wingAxis.scale(1.02D - tier * 0.14D)).add(0.0D, 0.48D - tier * 0.24D, 0.0D);
+                Vec3 wW = new Vec3(0.0D, 0.072D, 0.0D);
+                emitDoubleSidedQuad(m, vc, wRoot.subtract(wW), wRoot.add(wW), wTip.add(wW.scale(0.30D)), wTip.subtract(wW.scale(0.30D)),
+                        wr, wg, wb, 0.96F);
+            }
+        }
+
+        // Blazing Piercing Diamond Light-Javelin (#FFFFFF core shaft + spectrum prism spearhead)
+        Vec3 grip = new Vec3(0.0D, 0.94D + bob, 0.0D).add(rightDir.scale(0.55D)).add(fwdDir.scale(0.14D));
+        Vec3 butt = grip.subtract(fwdDir.scale(0.42D)).subtract(0.0D, 0.08D, 0.0D);
+        Vec3 tip = grip.add(fwdDir.scale(1.16D)).add(0.0D, 0.22D, 0.0D);
+        Vec3 shaftUp = new Vec3(0.0D, 0.052D, 0.0D);
+        emitDoubleSidedQuad(m, vc, butt.subtract(shaftUp), butt.add(shaftUp), tip.add(shaftUp), tip.subtract(shaftUp),
+                1.000F, 1.000F, 1.000F, 0.99F);
+        renderOctahedron(m, vc, tip, 0.16F, 0.28F, yawRad + age * 0.20F, 0.447F, 0.965F, 1.000F, 0.99F);
+    }
+
+    /**
+     * Section 6.54 Yggdrasil Arboreal Juggernaut Agent (#FFEA78 / #FF6B9D / #1A5923):
+     * Colossal living golden titan barkskin pauldrons, emerald World-Tree canopy antler-boughs,
+     * rose-vitae heart halo, and sweeping Siphoning World-Tree Root-Greatsword!
+     */
+    private static void renderYggdrasilArborealJuggernautAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                0.58F, 1.04F, 24, 1.000F, 0.918F, 0.471F, 0.97F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+        Vec3 fwdDir = new Vec3(-Mth.sin(yawRad), 0.0D, Mth.cos(yawRad));
+        Vec3 backDir = fwdDir.scale(-1.0D);
+        Vec3 upDir = new Vec3(0.0D, 1.0D, 0.0D);
+        double bob = 0.030D * Mth.sin(age * 0.20F);
+
+        // Radiant World-Tree canopy crown halo (#FF6B9D inner vitae bloom + #FFEA78 golden solar ring)
+        Vec3 halo = new Vec3(0.0D, 1.78D + bob, 0.0D).add(backDir.scale(0.24D));
+        renderLocalRing(m, vc, halo, rightDir, upDir, 0.0F, 0.26F, 20, 1.000F, 0.420F, 0.616F, 0.98F);
+        renderLocalRing(m, vc, halo, rightDir, upDir, 0.26F, 0.48F, 24, 1.000F, 0.918F, 0.471F, 0.97F);
+
+        // Living golden titan barkskin pauldrons + 6 overarching World-Tree emerald & gold root-boughs
+        float sway = 0.14F * Mth.sin(age * 0.20F);
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 shoulder = new Vec3(0.0D, 1.50D + bob, 0.0D).add(rightDir.scale(side * 0.48D));
+            renderOctahedron(m, vc, shoulder, 0.24F, 0.20F, yawRad + side * 0.25F, 0.102F, 0.349F, 0.137F, 0.98F);
+            renderOctahedron(m, vc, shoulder.add(0.0D, 0.16D, 0.0D), 0.13F, 0.26F, -yawRad, 1.000F, 0.918F, 0.471F, 0.99F);
+
+            Vec3 boughAxis = rightDir.scale(side * Mth.cos(sway)).add(backDir.scale(0.38D + 0.12D * Mth.sin(sway))).normalize();
+            for (int tier = 0; tier < 3; tier++) {
+                Vec3 bRoot = new Vec3(0.0D, 1.50D - tier * 0.18D + bob, 0.0D).add(backDir.scale(0.20D));
+                Vec3 bTip = bRoot.add(boughAxis.scale(1.06D - tier * 0.12D)).add(0.0D, 0.54D - tier * 0.22D, 0.0D);
+                Vec3 bW = new Vec3(0.0D, 0.078D, 0.0D);
+                float br = tier == 0 ? 1.000F : (tier == 1 ? 0.102F : 1.000F);
+                float bg = tier == 0 ? 0.918F : (tier == 1 ? 0.349F : 0.420F);
+                float bb = tier == 0 ? 0.471F : (tier == 1 ? 0.137F : 0.616F);
+                emitDoubleSidedQuad(m, vc, bRoot.subtract(bW), bRoot.add(bW), bTip.add(bW.scale(0.35D)), bTip.subtract(bW.scale(0.35D)),
+                        br, bg, bb, 0.96F);
+            }
+        }
+
+        // Sweeping Siphoning World-Tree Root-Greatsword (#FFEA78 heartwood blade + #FF6B9D / #1A5923 seed-thorn apex)
+        Vec3 grip = new Vec3(0.0D, 0.92D + bob, 0.0D).add(rightDir.scale(0.58D)).add(fwdDir.scale(0.18D));
+        Vec3 tip = grip.add(fwdDir.scale(1.12D)).add(0.0D, 0.28D, 0.0D);
+        Vec3 bladeUp = new Vec3(0.0D, 0.102D, 0.0D);
+        emitDoubleSidedQuad(m, vc, grip.subtract(bladeUp), grip.add(bladeUp), tip.add(bladeUp), tip.subtract(bladeUp),
+                1.000F, 0.918F, 0.471F, 0.99F);
+        renderOctahedron(m, vc, tip, 0.17F, 0.28F, yawRad, 1.000F, 0.420F, 0.616F, 0.99F);
+    }
+
+    /**
+     * Section 6.55 Stygian Magma-Void Serpent (#41304E / #211A21 / #B83C08):
+     * Colossal abyssal leviathan serpent coiling up from a volcanic void fissure, dorsal dark-matter spines, & gaping molten jaws!
+     */
+    private static void renderStygianMagmaVoidSerpentAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                0.60F, 1.08F, 24, 0.722F, 0.235F, 0.031F, 0.97F);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.068D, 0.0D), flatX, flatZ,
+                0.30F, 0.58F, 20, 0.255F, 0.188F, 0.306F, 0.94F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+        Vec3 fwdDir = new Vec3(-Mth.sin(yawRad), 0.0D, Mth.cos(yawRad));
+
+        // Coiling 14-segment Stygian Magma-Void Leviathan Serpent spiraling upward with dorsal dark-matter spikes!
+        int segs = 14;
+        for (int s = 0; s < segs; s++) {
+            float frac = s / (float) (segs - 1);
+            float coilAng = yawRad + frac * 6.8F - age * 0.22F;
+            double coilR = 0.68D - 0.14D * frac + 0.06D * Mth.sin(age * 0.25F + s);
+            double cy = 0.18D + frac * 1.82D;
+            Vec3 segPos = new Vec3(Mth.cos(coilAng) * coilR, cy, Mth.sin(coilAng) * coilR);
+            boolean magmaSeg = (s % 2 == 0);
+            renderOctahedron(m, vc, segPos, 0.19F * (1.05F - 0.25F * frac), 0.16F, coilAng,
+                    magmaSeg ? 0.722F : 0.129F,
+                    magmaSeg ? 0.235F : 0.102F,
+                    magmaSeg ? 0.031F : 0.129F,
+                    0.98F);
+            // Dorsal Void Deep Indigo (#41304E) & Molten Magma spine ridge
+            if (s % 2 == 1) {
+                Vec3 spinePos = segPos.add(Mth.cos(coilAng) * 0.16D, 0.12D, Mth.sin(coilAng) * 0.16D);
+                renderOctahedron(m, vc, spinePos, 0.085F, 0.22F, -coilAng, 0.255F, 0.188F, 0.306F, 0.96F);
+            }
+        }
+
+        // Gaping molten leviathan serpent jaws & obsidian fangs lunging ahead of the crown!
+        double jawSnap = 0.06D + 0.05D * Mth.abs(Mth.sin(age * 0.28F));
+        Vec3 snout = new Vec3(0.0D, 1.76D, 0.0D).add(fwdDir.scale(0.46D));
+        renderOctahedron(m, vc, snout.add(0.0D, jawSnap, 0.0D), 0.24F, 0.14F, yawRad, 0.129F, 0.102F, 0.129F, 0.99F);
+        renderOctahedron(m, vc, snout.subtract(0.0D, jawSnap, 0.0D), 0.22F, 0.12F, yawRad, 0.722F, 0.235F, 0.031F, 0.99F);
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 fang = snout.add(rightDir.scale(side * 0.16D)).add(fwdDir.scale(0.14D));
+            renderOctahedron(m, vc, fang, 0.055F, 0.16F, yawRad, 1.000F, 0.369F, 0.102F, 0.99F);
+        }
+    }
+
+    /**
+     * Section 6.56 Titanic Glacial Elemental (#A88654 / #98DCF2 / #225C7C):
+     * Colossal frost-and-azure glacier pauldrons, howling golden-buff slipstream ankle vortex,
+     * dorsal permafrost crystal crown & sweeping glacial slam blades!
+     */
+    private static void renderTitanicGlacialElementalAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                0.60F, 1.08F, 24, 0.596F, 0.863F, 0.949F, 0.96F);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.068D, 0.0D), flatX, flatZ,
+                0.32F, 0.58F, 20, 0.659F, 0.525F, 0.329F, 0.92F);
+        renderOpenFrustumWall(m, vc, 0.04F, 0.72F, 0.56F, 0.34F, 12, age * 0.22F,
+                0.133F, 0.361F, 0.486F, 0.54F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+        Vec3 backDir = new Vec3(Mth.sin(yawRad), 0.0D, -Mth.cos(yawRad));
+
+        // Towering frost-cyan & deep-azure glacier shoulder monoliths + dorsal permafrost spires
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 pauldron = new Vec3(0.0D, 1.46D, 0.0D).add(rightDir.scale(side * 0.52D));
+            renderOctahedron(m, vc, pauldron, 0.24F, 0.42F, yawRad + side * 0.35F,
+                    0.596F, 0.863F, 0.949F, 0.96F);
+            renderOctahedron(m, vc, pauldron.add(0.0D, 0.14D, 0.0D), 0.16F, 0.34F, -yawRad,
+                    0.133F, 0.361F, 0.486F, 0.98F);
+        }
+        for (int sp = 0; sp < 5; sp++) {
+            double angOff = (sp - 2) * 0.38D;
+            Vec3 spirePos = new Vec3(0.0D, 1.58D + (2 - Math.abs(sp - 2)) * 0.14D, 0.0D)
+                    .add(backDir.scale(0.32D))
+                    .add(rightDir.scale(angOff * 0.85D));
+            boolean frost = (sp % 2 == 0);
+            renderOctahedron(m, vc, spirePos, 0.11F, 0.36F, yawRad,
+                    frost ? 0.596F : 0.659F,
+                    frost ? 0.863F : 0.525F,
+                    frost ? 0.949F : 0.329F,
+                    0.96F);
+        }
+
+        // 4 sweeping golden-buff & frost-cyan cryo-slam arc blades orbiting the elemental's torso!
+        for (int b = 0; b < 4; b++) {
+            float bAng = age * 0.28F + (float) (Math.PI * 0.5D * b);
+            boolean gold = (b % 2 == 0);
+            renderSweptArcBlade(m, vc, new Vec3(0.0D, 1.12D + 0.08D * (b % 2), 0.0D), 0.86F, bAng, 1.10F, 0.11F,
+                    gold ? 0.659F : 0.596F,
+                    gold ? 0.525F : 0.863F,
+                    gold ? 0.329F : 0.949F,
+                    0.92F);
+        }
+    }
+
+    /**
+     * Section 6.57 Event-Horizon Leviathan (#55 Eschaton — #0B0813 / #7012A5 / #D4C2FC, 90s / 140 HP):
+     * Colossal wall-phasing abyssal leviathan forged of collapsed void-black event horizons,
+     * swirling violet accretion disks, and chrono-silver reality-cleaving scythe arcs!
+     */
+    private static void renderEventHorizonLeviathanAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                0.66F, 1.20F, 26, 0.439F, 0.071F, 0.647F, 0.97F);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.070D, 0.0D), flatX, flatZ,
+                0.34F, 0.64F, 22, 0.831F, 0.761F, 0.988F, 0.95F);
+        renderOpenFrustumWall(m, vc, 0.04F, 0.78F, 0.62F, 0.36F, 12, -age * 0.26F,
+                0.043F, 0.031F, 0.075F, 0.74F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+        Vec3 backDir = new Vec3(Mth.sin(yawRad), 0.0D, -Mth.cos(yawRad));
+
+        // Event-Horizon Void-Black (#0B0813) & Accretion Violet (#7012A5) shoulder pauldrons + Chrono-Silver (#D4C2FC) dorsal spires
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 pauldron = new Vec3(0.0D, 1.50D, 0.0D).add(rightDir.scale(side * 0.56D));
+            renderOctahedron(m, vc, pauldron, 0.26F, 0.46F, yawRad + side * 0.38F,
+                    0.043F, 0.031F, 0.075F, 0.99F);
+            renderOctahedron(m, vc, pauldron.add(0.0D, 0.15D, 0.0D), 0.18F, 0.36F, -yawRad,
+                    0.439F, 0.071F, 0.647F, 0.96F);
+        }
+        for (int sp = 0; sp < 5; sp++) {
+            double angOff = (sp - 2) * 0.40D;
+            Vec3 spirePos = new Vec3(0.0D, 1.62D + (2 - Math.abs(sp - 2)) * 0.16D, 0.0D)
+                    .add(backDir.scale(0.34D))
+                    .add(rightDir.scale(angOff * 0.88D));
+            boolean silver = (sp % 2 == 0);
+            renderOctahedron(m, vc, spirePos, 0.12F, 0.40F, yawRad,
+                    silver ? 0.831F : 0.439F,
+                    silver ? 0.761F : 0.071F,
+                    silver ? 0.988F : 0.647F,
+                    0.98F);
+        }
+
+        // 4 sweeping Violet & Chrono-Silver singularity cleave blades orbiting the leviathan's torso!
+        for (int b = 0; b < 4; b++) {
+            float bAng = -age * 0.34F + (float) (Math.PI * 0.5D * b);
+            boolean silver = (b % 2 == 0);
+            renderSweptArcBlade(m, vc, new Vec3(0.0D, 1.14D + 0.08D * (b % 2), 0.0D), 0.94F, bAng, 1.18F, 0.12F,
+                    silver ? 0.831F : 0.439F,
+                    silver ? 0.761F : 0.071F,
+                    silver ? 0.988F : 0.647F,
+                    0.95F);
+        }
+    }
+
+    /**
+     * Section 6.58 Celestial Seraph-Titan Agent (#FFFFFF / #FFE484 / #72F6FF):
+     * Colossal wall-phasing 6-winged hard-light titan with blazing white-hole solar crown halo,
+     * living astral-gold pauldrons, 6 articulated hard-light seraph wings, and sweeping divine cleave blades!
+     */
+    private static void renderCelestialSeraphTitanAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ,
+                0.76F, 1.38F, 28, 1.000F, 0.894F, 0.518F, 0.96F);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.072D, 0.0D), flatX, flatZ,
+                0.96F, 1.18F, 28, 0.447F, 0.965F, 1.000F, 0.94F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+        Vec3 backDir = new Vec3(Mth.sin(yawRad), 0.0D, -Mth.cos(yawRad));
+        Vec3 upDir = new Vec3(0.0D, 1.0D, 0.0D);
+
+        // Blazing Supernova White (#FFFFFF) & Astral Gold (#FFE484) sovereign crown halo behind head!
+        Vec3 haloCenter = new Vec3(0.0D, 1.88D, 0.0D).add(backDir.scale(0.24D));
+        renderLocalRing(m, vc, haloCenter, rightDir, upDir, 0.28F, 0.48F, 24,
+                1.000F, 0.894F, 0.518F, 0.98F);
+        renderOctahedron(m, vc, new Vec3(0.0D, 2.08D, 0.0D), 0.14F, 0.26F, age * 0.24F,
+                1.000F, 1.000F, 1.000F, 0.99F);
+
+        // Living Gold (#FFE484) & Prismatic Cyan (#72F6FF) shoulder pauldrons
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 pauldron = new Vec3(0.0D, 1.50D, 0.0D).add(rightDir.scale(side * 0.54D));
+            renderOctahedron(m, vc, pauldron, 0.24F, 0.42F, yawRad + side * 0.36F,
+                    1.000F, 0.894F, 0.518F, 0.98F);
+            renderOctahedron(m, vc, pauldron.add(0.0D, 0.14D, 0.0D), 0.16F, 0.32F, -yawRad,
+                    0.447F, 0.965F, 1.000F, 0.95F);
+        }
+
+        // 6 colossal hard-light seraph wings (3 pairs: upper white, middle astral-gold, lower prismatic-cyan)!
+        float[][] wingRgb = {
+                {0.447F, 0.965F, 1.000F}, // Lower pair: #72F6FF Ascendant Prismatic Cyan
+                {1.000F, 0.894F, 0.518F}, // Middle pair: #FFE484 Celestial Astral Gold
+                {1.000F, 1.000F, 1.000F}  // Upper pair: #FFFFFF Supernova Brilliant White
+        };
+        for (int pair = 0; pair < 3; pair++) {
+            float[] wc = wingRgb[pair];
+            double baseH = 1.06D + pair * 0.32D;
+            double spanOut = 1.02D + pair * 0.24D + 0.08D * Mth.sin(age * 0.22F + pair);
+            double lift = 0.16D + pair * 0.18D + 0.06D * Mth.cos(age * 0.22F + pair);
+            for (int side = -1; side <= 1; side += 2) {
+                Vec3 root = new Vec3(0.0D, baseH, 0.0D).add(backDir.scale(0.24D)).add(rightDir.scale(side * 0.16D));
+                Vec3 tip = root.add(rightDir.scale(side * spanOut)).add(backDir.scale(0.36D)).add(0.0D, lift, 0.0D);
+                Vec3 featherLow = root.add(rightDir.scale(side * spanOut * 0.78D)).add(backDir.scale(0.30D)).subtract(0.0D, 0.18D, 0.0D);
+                emitDoubleSidedQuad(m, vc, root, tip, featherLow, root, wc[0], wc[1], wc[2], 0.95F);
+            }
+        }
+
+        // 4 sweeping divine golden-white cleave blades orbiting the Seraph-Titan!
+        for (int b = 0; b < 4; b++) {
+            float bAng = age * 0.34F + (float) (Math.PI * 0.5D * b);
+            boolean white = (b % 2 == 0);
+            renderSweptArcBlade(m, vc, new Vec3(0.0D, 1.14D + 0.08D * (b % 2), 0.0D), 0.94F, bAng, 1.18F, 0.12F,
+                    1.000F,
+                    white ? 1.000F : 0.894F,
+                    white ? 1.000F : 0.518F,
+                    0.96F);
+        }
+    }
+
+    /**
+     * Section 6.59 Avatar of Entropica Agent (#E0E5EC / #1A153B / #FAD02C):
+     * Colossal wall-phasing Demiurge Sovereign crowned with a Chrono-Silver & Genesis-Gold equilibrium halo,
+     * Event-Horizon Indigo parallax chest core, 6 balanced Void/Radiant pinions, and 4 alternating Void/Radiant orbs + dual-elemental cleave blades!
+     */
+    private static void renderAvatarOfEntropicaAgentOrnaments(
+            Matrix4f m, VertexConsumer vc, float age, float bodyYawDeg
+    ) {
+        Vec3 flatX = new Vec3(1.0D, 0.0D, 0.0D);
+        Vec3 flatZ = new Vec3(0.0D, 0.0D, 1.0D);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.050D, 0.0D), flatX, flatZ, 0.68F, 1.24F, 28,
+                0.878F, 0.898F, 0.925F, 0.96F);
+        renderLocalRing(m, vc, new Vec3(0.0D, 0.068D, 0.0D), flatX, flatZ, 0.90F, 1.10F, 28,
+                0.980F, 0.816F, 0.173F, 0.94F);
+
+        float yawRad = (180.0F - bodyYawDeg) * Mth.DEG_TO_RAD;
+        Vec3 fwdDir = new Vec3(-Mth.sin(yawRad), 0.0D, Mth.cos(yawRad));
+        Vec3 backDir = fwdDir.scale(-1.0D);
+        Vec3 rightDir = new Vec3(Mth.cos(yawRad), 0.0D, Mth.sin(yawRad));
+
+        // Event-Horizon Indigo (#1A153B) chest core + Genesis Gold (#FAD02C) & Chrono-Silver (#E0E5EC) halo crown
+        Vec3 chestCore = new Vec3(0.0D, 1.26D, 0.0D).add(fwdDir.scale(0.24D));
+        renderOctahedron(m, vc, chestCore, 0.19F, 0.28F, age * 0.34F, 0.102F, 0.082F, 0.231F, 0.99F);
+        renderOctahedron(m, vc, chestCore, 0.25F, 0.18F, -age * 0.28F, 0.980F, 0.816F, 0.173F, 0.92F);
+        renderLocalRing(m, vc, new Vec3(0.0D, 2.08D, 0.0D), flatX, flatZ, 0.38F, 0.62F, 24,
+                0.980F, 0.816F, 0.173F, 0.98F);
+        renderOctahedron(m, vc, new Vec3(0.0D, 2.12D, 0.0D), 0.15F, 0.28F, age * 0.26F,
+                0.878F, 0.898F, 0.925F, 0.99F);
+
+        // Chrono-Silver & Event-Horizon Indigo shoulder pauldrons
+        for (int side = -1; side <= 1; side += 2) {
+            Vec3 pauldron = new Vec3(0.0D, 1.50D, 0.0D).add(rightDir.scale(side * 0.56D));
+            renderOctahedron(m, vc, pauldron, 0.25F, 0.44F, yawRad + side * 0.36F,
+                    0.878F, 0.898F, 0.925F, 0.98F);
+            renderOctahedron(m, vc, pauldron.add(0.0D, 0.14D, 0.0D), 0.17F, 0.32F, -yawRad,
+                    0.102F, 0.082F, 0.231F, 0.96F);
+        }
+
+        // 6 Demiurge Equilibrium Pinions (left side Event-Horizon Indigo/Silver, right side Genesis Gold/Silver)!
+        for (int pair = 0; pair < 3; pair++) {
+            double baseH = 1.06D + pair * 0.32D;
+            double spanOut = 1.06D + pair * 0.24D + 0.08D * Mth.sin(age * 0.22F + pair);
+            double lift = 0.18D + pair * 0.18D + 0.06D * Mth.cos(age * 0.22F + pair);
+            for (int side = -1; side <= 1; side += 2) {
+                Vec3 root = new Vec3(0.0D, baseH, 0.0D).add(backDir.scale(0.24D)).add(rightDir.scale(side * 0.16D));
+                Vec3 tip = root.add(rightDir.scale(side * spanOut)).add(backDir.scale(0.36D)).add(0.0D, lift, 0.0D);
+                Vec3 featherLow = root.add(rightDir.scale(side * spanOut * 0.78D)).add(backDir.scale(0.30D)).subtract(0.0D, 0.18D, 0.0D);
+                float wr = (pair == 1) ? 0.878F : (side > 0 ? 0.980F : 0.102F);
+                float wg = (pair == 1) ? 0.898F : (side > 0 ? 0.816F : 0.082F);
+                float wb = (pair == 1) ? 0.925F : (side > 0 ? 0.173F : 0.231F);
+                emitDoubleSidedQuad(m, vc, root, tip, featherLow, root, wr, wg, wb, 0.95F);
+            }
+        }
+
+        // 4 orbiting alternating Void/Radiant orbs + dual-elemental sweeping cleave blades!
+        for (int b = 0; b < 4; b++) {
+            float bAng = age * 0.36F + (float) (Math.PI * 0.5D * b);
+            boolean gold = (b % 2 == 0);
+            renderSweptArcBlade(m, vc, new Vec3(0.0D, 1.14D + 0.08D * (b % 2), 0.0D), 0.98F, bAng, 1.20F, 0.12F,
+                    gold ? 0.980F : 0.878F,
+                    gold ? 0.816F : 0.898F,
+                    gold ? 0.173F : 0.925F,
+                    0.96F);
+            Vec3 orbPos = new Vec3(Mth.cos(-bAng) * 1.08D, 1.42D + 0.12D * Mth.sin(age * 0.28F + b), Mth.sin(-bAng) * 1.08D);
+            renderOctahedron(m, vc, orbPos, 0.12F, 0.18F, bAng,
+                    gold ? 0.980F : 0.102F,
+                    gold ? 0.816F : 0.082F,
+                    gold ? 0.173F : 0.231F,
+                    0.98F);
+        }
     }
 
     private static void renderOpenFrustumWall(

@@ -671,37 +671,42 @@ public final class AegisSpellMutationHandler implements MateriaPartMutationHandl
         );
 
         int colHeight = Math.clamp(3 + tier / 3, 3, 6);
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                if (Math.abs(dx) == 1 && Math.abs(dz) == 1) continue;
-                BlockPos colBase = centerPos.offset(dx, 0, dz);
-                BlockState pseudoState = (dx == 0 && dz == 0)
-                        ? Blocks.QUARTZ_PILLAR.defaultBlockState()
-                        : Blocks.POLISHED_GRANITE.defaultBlockState();
-                int h = (dx == 0 && dz == 0) ? colHeight : Math.max(2, colHeight - 1);
-                SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
-                        level,
-                        new Vec3(colBase.getX() + 0.5D, impactCenter.y + skyH, colBase.getZ() + 0.5D),
-                        colBase,
-                        pseudoState,
-                        h,
-                        40,
-                        120,
-                        EssenceType.AEGIS,
-                        tier
-                );
-            }
+        int baseDuration = 160;
+        int effectiveDuration = SpellWorldVfxManager.resolveEffectiveZoneDurationTicks(spell, EssenceType.AEGIS, baseDuration);
+        int[][] cross = {{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        BlockPos[] colBases = new BlockPos[cross.length];
+        BlockState[] colStates = new BlockState[cross.length];
+        int[] colHeights = new int[cross.length];
+        for (int i = 0; i < cross.length; i++) {
+            int dx = cross[i][0];
+            int dz = cross[i][1];
+            colBases[i] = SpellWorldVfxManager.findSkyfallSurfaceBase(level, centerPos.offset(dx, 0, dz));
+            colStates[i] = (dx == 0 && dz == 0)
+                    ? Blocks.QUARTZ_PILLAR.defaultBlockState()
+                    : Blocks.POLISHED_GRANITE.defaultBlockState();
+            colHeights[i] = (dx == 0 && dz == 0) ? colHeight : Math.max(2, colHeight - 1);
+            SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
+                    level,
+                    new Vec3(colBases[i].getX() + 0.5D, colBases[i].getY() + skyH, colBases[i].getZ() + 0.5D),
+                    colBases[i],
+                    colStates[i],
+                    colHeights[i],
+                    40,
+                    Math.max(4, effectiveDuration - 40),
+                    EssenceType.AEGIS,
+                    tier
+            );
         }
 
-        Map<BlockPos, BlockState> savedMonument = new HashMap<>();
+        final boolean[] materialized = {false};
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                caster, impactCenter, r, 160, level.getGameTime(), spell, slot, EssenceType.AEGIS, apparatusPotency,
+                caster, impactCenter, r, baseDuration, level.getGameTime(), spell, slot, EssenceType.AEGIS, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedMonument.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.POLISHED_GRANITE) || cur.is(Blocks.QUARTZ_PILLAR) || cur.is(Blocks.CHISELED_QUARTZ_BLOCK)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int i = 0; i < cross.length; i++) {
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, colBases[i], colStates[i], colHeights[i]);
                             }
                         }
                         return false;
@@ -716,6 +721,9 @@ public final class AegisSpellMutationHandler implements MateriaPartMutationHandl
                                     8, 0.6D, 0.6D, 0.6D, 0.02D);
                         }
                         return true;
+                    }
+                    for (int i = 0; i < cross.length; i++) {
+                        SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, colBases[i], colHeights[i], elapsed == 40);
                     }
                     if (elapsed == 40) {
                         LivingEntity owner = zone.resolveCaster(srv);
@@ -758,23 +766,6 @@ public final class AegisSpellMutationHandler implements MateriaPartMutationHandl
                         }
 
                         BlockPos cPos = BlockPos.containing(zone.center);
-                        int[][] cross = {{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-                        for (int[] c : cross) {
-                            int topH = (c[0] == 0 && c[1] == 0) ? 3 : 2;
-                            for (int y = 0; y < topH; y++) {
-                                BlockPos p = cPos.offset(c[0], y, c[1]);
-                                BlockState cur = srv.getBlockState(p);
-                                if ((cur.isAir() || cur.canBeReplaced())
-                                        && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, p, cur)) {
-                                    savedMonument.put(p.immutable(), cur);
-                                    BlockState monState = (y == topH - 1 && c[0] == 0 && c[1] == 0)
-                                            ? Blocks.CHISELED_QUARTZ_BLOCK.defaultBlockState()
-                                            : ((c[0] == 0 && c[1] == 0) ? Blocks.QUARTZ_PILLAR.defaultBlockState() : Blocks.POLISHED_GRANITE.defaultBlockState());
-                                    srv.setBlockAndUpdate(p, monState);
-                                }
-                            }
-                        }
-
                         srv.sendParticles(ParticleTypes.WAX_ON, zone.center.x, zone.center.y + 1.2D, zone.center.z,
                                 42, 2.2D, 1.2D, 2.2D, 0.08D);
                         srv.playSound(null, cPos, SoundEvents.ANVIL_LAND, SoundSource.PLAYERS, 1.25F, 0.85F);

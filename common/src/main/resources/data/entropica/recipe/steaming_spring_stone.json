@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BBB",
+    "BSB",
+    "BBB"
+  ],
+  "key": {
+    "B": "minecraft:basalt",
+    "S": "entropica:vapor_condenser_spore"
+  },
+  "result": {
+    "id": "entropica:steaming_spring_stone",
+    "count": 4
+  }
+}

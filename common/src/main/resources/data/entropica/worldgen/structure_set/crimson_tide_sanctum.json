@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:crimson_tide_sanctum",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 916204837,
+    "spacing": 24,
+    "separation": 9
+  }
+}

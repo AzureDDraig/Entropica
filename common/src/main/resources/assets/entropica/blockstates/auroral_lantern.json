@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "hanging=false": {
+      "model": "entropica:block/auroral_lantern"
+    },
+    "hanging=true": {
+      "model": "entropica:block/auroral_lantern_hanging"
+    }
+  }
+}

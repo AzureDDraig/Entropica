@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:cured_frost_hide_block"
+  ],
+  "result": {
+    "id": "entropica:cured_frost_veined_hide",
+    "count": 4
+  }
+}

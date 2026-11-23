@@ -54,21 +54,13 @@ public class EssenceOrbEntity extends ItemEntity {
         };
     }
 
+    @Override
+    public boolean fireImmune() {
+        return true;
+    }
+
     public int getEssenceColor() {
-        return switch (getEssenceType()) {
-            case UNDEAD -> 0xFF2B4A2B;
-            case WATER -> 0xFF3366FF;
-            case CHIMERA -> 0xFF8B4513;
-            case ARID -> 0xFFEEDD82;
-            case VOID -> 0xFF220044;
-            case AIR -> 0xFFAADDFF;
-            case EARTH -> 0xFF556B2F;
-            case NATURE -> 0xFF32CD32;
-            case LIGHTNING -> 0xFFEEEE00;
-            case RADIANT -> 0xFFFFFFCC;
-            case UMBRAL -> 0xFF1A1A1A;
-            default -> 0xFFB200FF;
-        };
+        return 0xFF000000 | (getEssenceType().getColorInt() & 0xFFFFFF);
     }
 
     private void rejectOrb() {

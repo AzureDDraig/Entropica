@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "##"
+  ],
+  "key": {
+    "#": "entropica:frozen_spore_moss"
+  },
+  "result": {
+    "id": "entropica:frozen_spore_moss_carpet",
+    "count": 3
+  }
+}

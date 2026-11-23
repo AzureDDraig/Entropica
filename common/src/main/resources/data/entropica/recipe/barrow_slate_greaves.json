@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PPP",
+    "P P",
+    "B B"
+  ],
+  "key": {
+    "P": "entropica:barrow_skull_plate",
+    "B": "entropica:barrow_stone_bricks"
+  },
+  "result": {
+    "id": "entropica:barrow_slate_greaves",
+    "count": 1
+  }
+}

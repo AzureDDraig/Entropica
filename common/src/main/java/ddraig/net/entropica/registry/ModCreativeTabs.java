@@ -155,6 +155,46 @@ public class ModCreativeTabs {
                 output.accept(ModItems.AEGIS_SHIELDING_LINING.get());
                 output.accept(ModItems.THERMAL_INSULATED_BLANKET.get());
                 output.accept(ModItems.GLACIAL_FOCUS_LENS.get());
+                output.accept(ModItems.CAMOUFLAGE_CLOAK.get());
+                output.accept(ModItems.AURORAL_WAND.get());
+                output.accept(ModItems.CRYO_INSULATED_HELMET.get());
+                output.accept(ModItems.CRYO_INSULATED_CHESTPLATE.get());
+                output.accept(ModItems.CRYO_INSULATED_LEGGINGS.get());
+                output.accept(ModItems.CRYO_INSULATED_BOOTS.get());
+                output.accept(ModItems.AEGIS_WARDING_EMBLEM.get());
+                output.accept(ModItems.AEGIS_SHIELDING_CHARM.get());
+                output.accept(ModItems.SILENT_STRIDERS.get());
+                output.accept(ModItems.CRYO_GRENADE.get());
+                output.accept(ModItems.VAPOR_SHROUD_CLOAK.get());
+                output.accept(ModItems.GROUNDING_COIL.get());
+                output.accept(ModItems.BARROW_SLATE_GREAVES.get());
+                output.accept(ModItems.RIME_CAP_SPORES.get());
+                output.accept(ModItems.PHASE_RECALL_STONE.get());
+                output.accept(ModItems.LEVIATHAN_RIFT_BELT.get());
+                output.accept(ModItems.NULL_WEAVE_MANTLE.get());
+                output.accept(ModItems.QILIN_PRISM_CIRCLET.get());
+                output.accept(ModItems.SUN_GLAZED_TALISMAN.get());
+                output.accept(ModItems.RADIANT_SNOWBALL.get());
+                output.accept(ModItems.VITAE_FERTILIZER.get());
+                output.accept(ModItems.STORM_KITE_GLIDER.get());
+                output.accept(ModItems.CRYO_TEMPEST_HORN.get());
+                output.accept(ModItems.TEMPEST_BOTTLE.get());
+                output.accept(ModItems.SPORE_FILTER_MASK.get());
+                output.accept(ModItems.CRYO_SPORE_POULTICE.get());
+                output.accept(ModItems.GLAZED_SPORE_BOMB.get());
+                output.accept(ModItems.MIRAGE_VEIL_GOGGLES.get());
+                output.accept(ModItems.MIRAGE_DECOY_PRISM.get());
+                output.accept(ModItems.SALAMANDER_WADER_HOOD.get());
+                output.accept(ModItems.COPPER_SILT_SIEVE.get());
+                output.accept(ModItems.DUST_DEVIL_AMPOULE.get());
+                output.accept(ModItems.DUST_CORE_GOLEM_SPAWN_EGG.get());
+                output.accept(ModItems.SANGUINE_ICE_LANCET.get());
+                output.accept(ModItems.SANGUINE_DRAUGHT_AMPOULE.get());
+                output.accept(ModItems.SANGUINE_SEA_ANGEL_SPAWN_EGG.get());
+                output.accept(ModItems.STARLIGHT_TUNING_CHISEL.get());
+                output.accept(ModItems.STARLIGHT_DRAUGHT_AMPOULE.get());
+                output.accept(ModItems.ASTRAL_NAUTILUS_ARMOR.get());
+                output.accept(ModItems.STARLIGHT_NAUTILUS_SPAWN_EGG.get());
                 output.accept(ddraig.net.entropica.item.SpellgemItem.createInscribedGem(ddraig.net.entropica.spell.assembly.SpellAssembly.createMagicMissileStarter(1)));
                 output.accept(ddraig.net.entropica.item.SpellgemItem.createInscribedGem(ddraig.net.entropica.spell.assembly.SpellAssembly.createBasicBreakStarter(1)));
                 output.accept(ddraig.net.entropica.item.SpellgemItem.createInscribedGem(ddraig.net.entropica.spell.assembly.SpellAssembly.createBasicWardStarter(1)));
@@ -193,6 +233,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.MATERIA_FLUX_DISTRIBUTOR_ITEM.get());
                 output.accept(ModItems.MORTAR_AND_PESTLE.get());
                 output.accept(ModItems.CRYSTAL_SWORD.get());
+                output.accept(ModItems.FROST_BITE_DAGGER.get());
                 output.accept(ModItems.CRYSTAL_PICKAXE.get());
                 output.accept(ModItems.CRYSTAL_AXE.get());
                 output.accept(ModItems.CRYSTAL_SHOVEL.get());
@@ -292,6 +333,7 @@ public class ModCreativeTabs {
                 output.accept(ModItems.TIDAL_TRIDENT.get());
                 output.accept(ModItems.VOID_SWORD.get());
                 output.accept(ModItems.CRYSTAL_SWORD.get());
+                output.accept(ModItems.FROST_BITE_DAGGER.get());
             }).build());
 
     public static final RegistrySupplier<CreativeModeTab> LOGISTICS_TAB = CREATIVE_MODE_TABS.register("logistics_tab", () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 6)
@@ -678,9 +720,15 @@ public class ModCreativeTabs {
                 output.accept(ModItems.BLOOM_CRAWLER_SPAWN_EGG.get());
                 output.accept(ModItems.GLACIAL_FROST_CORE_SPAWN_EGG.get());
                 output.accept(ModItems.FROST_TUSK_MAMMOT_SPAWN_EGG.get());
+                output.accept(ModItems.AURORA_JELLY_SPAWN_EGG.get());
+                output.accept(ModItems.CRYO_STALKER_SPAWN_EGG.get());
+                output.accept(ModItems.VAPOR_BELLOWS_CRAB_SPAWN_EGG.get());
+                output.accept(ModItems.PATINA_OVIS_SPAWN_EGG.get());
+                output.accept(ModItems.CRYO_STATIC_HEDGEHOG_SPAWN_EGG.get());
 
                 // Biome 1: Blue-Glacier Shelf & Runic Spire Natural Blocks & Drops
                 output.accept(ModItems.AEGIS_CRYSTAL_BLOCK_ITEM.get());
+                output.accept(ModItems.AEGIS_CRYSTAL_BUD_ITEM.get());
                 output.accept(ModItems.AEGIS_CRYSTAL_CLUSTER_ITEM.get());
                 output.accept(ModItems.AEGIS_CRYSTAL_SHARD.get());
                 output.accept(ModItems.RUNIC_BLUE_ICE_ITEM.get());
@@ -694,12 +742,313 @@ public class ModCreativeTabs {
                 output.accept(ModItems.INSULATED_GLACIAL_WOOL.get());
                 output.accept(ModItems.RAW_MAMMOT_MEAT.get());
                 output.accept(ModItems.COOKED_MAMMOT_MEAT.get());
-                output.accept(ModItems.GLACIAL_LIFE_FORCE_ANCHOR_ITEM.get());
                 output.accept(ModItems.GLACIAL_FOCUS_LENS.get());
 
-                // Entropica Potions (Frost Resistance & Freezing)
+                // Biome 2: Auroral Skerries & Auroral Wellspring Blocks & Items
+                output.accept(ModItems.GLIMMER_ICE_ITEM.get());
+                output.accept(ModItems.COARSE_GRAVEL_ITEM.get());
+                output.accept(ModItems.AURORAL_FEATHER_MOSS_ITEM.get());
+                output.accept(ModItems.MIST_VEIL_FERN_ITEM.get());
+                output.accept(ModItems.AURORAL_LANTERN_ITEM.get());
+                output.accept(ModItems.THERMAL_HEAT_LAMP_ITEM.get());
+                output.accept(ModItems.GLOW_GEL_PATHING_ITEM.get());
+                output.accept(ModItems.STATIC_REDSTONE_COUPLER_ITEM.get());
+                output.accept(ModItems.AURORAL_LENS_BLOCK_ITEM.get());
+                output.accept(ModItems.AURORA_DUST.get());
+                output.accept(ModItems.GLOWING_AURORAL_FIBER.get());
+                output.accept(ModItems.MIST_VEIL_FROND.get());
+                output.accept(ModItems.WARM_AURORA_PETAL.get());
+                output.accept(ModItems.CAMOUFLAGE_CLOAK.get());
+                output.accept(ModItems.AURORAL_GELATIN.get());
+                output.accept(ModItems.CHARGED_GLOW_TENTACLE.get());
+                output.accept(ModItems.AURORAL_WAND.get());
+                output.accept(ModItems.VAPOR_CONDENSATE_CRYSTALS.get());
+
+                // Biome 3: Frost-Bite Floes Blocks & Items
+                output.accept(ModItems.ROTTEN_ICE_ITEM.get());
+                output.accept(ModItems.BLIGHTED_PACKED_ICE_ITEM.get());
+                output.accept(ModItems.NECROTIC_SLIME_PATCH_ITEM.get());
+                output.accept(ModItems.NECROTIC_SLIME_BLOCK_ITEM.get());
+                output.accept(ModItems.FROZEN_SPRUCE_BRANCH_ITEM.get());
+                output.accept(ModItems.CURED_FROST_HIDE_BLOCK_ITEM.get());
+                output.accept(ModItems.ROT_POWDER.get());
+                output.accept(ModItems.NECROTIC_SLIME.get());
+                output.accept(ModItems.NECROTIC_SLIME_BUCKET.get());
+                output.accept(ModItems.SEA_SALT_CRYSTALS.get());
+                output.accept(ModItems.CRYO_CRYSTALLINE_FANG.get());
+                output.accept(ModItems.FROST_VEINED_HIDE.get());
+                output.accept(ModItems.CURED_FROST_VEINED_HIDE.get());
+                output.accept(ModItems.FROST_BITE_DAGGER.get());
+                output.accept(ModItems.CRYO_INSULATED_HELMET.get());
+                output.accept(ModItems.CRYO_INSULATED_CHESTPLATE.get());
+                output.accept(ModItems.CRYO_INSULATED_LEGGINGS.get());
+                output.accept(ModItems.CRYO_INSULATED_BOOTS.get());
+
+                // Biome 4: Crystalline Pack-Ice & Aegis Shielding Monolith Blocks & Items
+                output.accept(ModItems.AEGIS_QUARTZ_BLOCK_ITEM.get());
+                output.accept(ModItems.AEGIS_QUARTZ_CLUSTER_ITEM.get());
+                output.accept(ModItems.BISMUTH_ORE_ITEM.get());
+                output.accept(ModItems.BISMUTH_BLOCK_ITEM.get());
+                output.accept(ModItems.AEGIS_PLATED_STONE_ITEM.get());
+                output.accept(ModItems.BISMUTH_KEY_PEDESTAL_ITEM.get());
+                output.accept(ModItems.AEGIS_QUARTZ.get());
+                output.accept(ModItems.RAW_BISMUTH.get());
+                output.accept(ModItems.BISMUTH_INGOT.get());
+                output.accept(ModItems.AEGIS_WARDING_EMBLEM.get());
+                output.accept(ModItems.AEGIS_SHIELDING_CHARM.get());
+
+                // Biome 5: Silent Fjord Blocks & Items
+                output.accept(ModItems.BASALT_COLUMN_ITEM.get());
+                output.accept(ModItems.CHISELED_ECLIPSE_BASALT_ITEM.get());
+                output.accept(ModItems.BLUE_FROZEN_MOSS_ITEM.get());
+                output.accept(ModItems.BLUE_FROZEN_MOSS_CARPET_ITEM.get());
+                output.accept(ModItems.SHADOWED_ECLIPSE_MOSS_ITEM.get());
+                output.accept(ModItems.FROZEN_MOSS_CLUMP.get());
+                output.accept(ModItems.CRYO_GRENADE.get());
+                output.accept(ModItems.SILENT_STRIDERS.get());
+                output.accept(ModItems.BASALT_PICKAXE.get());
+
+                // Biome 6: Steaming Skerries & Vaporous Grotto Blocks & Items
+                output.accept(ModItems.STEAMING_ICE_ITEM.get());
+                output.accept(ModItems.STEAMING_SPRING_STONE_ITEM.get());
+                output.accept(ModItems.VAPOR_WEAVER_LICHEN_ITEM.get());
+                output.accept(ModItems.STEAM_VENT_ITEM.get());
+                output.accept(ModItems.VAPOR_LIFT_MAT_ITEM.get());
+                output.accept(ModItems.VAPOR_CONDENSER_ITEM.get());
+                output.accept(ModItems.VAPOR_CONDENSER_SPORE.get());
+                output.accept(ModItems.VAPOR_SHROUD_CLOAK.get());
+                output.accept(ModItems.POROUS_BASALT_SHELL.get());
+
+                // Biome 7: Static Ice-Plains Blocks & Items
+                output.accept(ModItems.FULGURITE_ICE_ITEM.get());
+                output.accept(ModItems.FULGURITE_PINE_LOG_ITEM.get());
+                output.accept(ModItems.FULGURITE_PINE_LEAVES_ITEM.get());
+                output.accept(ModItems.STATIC_CONDUCTIVE_MAT_ITEM.get());
+                output.accept(ModItems.BIOMASS_CAPACITOR_ITEM.get());
+                output.accept(ModItems.STATIC_FROST_POWDER.get());
+                output.accept(ModItems.CHARGED_STATIC_NEEDLE.get());
+                output.accept(ModItems.STATIC_QUILL.get());
+                output.accept(ModItems.GROUNDING_COIL.get());
+
+                // Biome 8: Barrow-Mound Tundra Blocks, Items & Fauna Eggs
+                output.accept(ModItems.NECROTIC_SOIL_ITEM.get());
+                output.accept(ModItems.BARROW_STONE_BRICKS_ITEM.get());
+                output.accept(ModItems.CRACKED_BARROW_BRICKS_ITEM.get());
+                output.accept(ModItems.MOSSY_BARROW_BRICKS_ITEM.get());
+                output.accept(ModItems.GRAVE_MOSS_ITEM.get());
+                output.accept(ModItems.CRYPT_GRAVE_ROOT_ITEM.get());
+                output.accept(ModItems.RIME_CAP_MUSHROOM_ITEM.get());
+                output.accept(ModItems.RUNED_BRAZIER_ITEM.get());
+                output.accept(ModItems.CRYPT_SIPHON_LANTERN_ITEM.get());
+                output.accept(ModItems.BARROW_SENTINEL_TOTEM_ITEM.get());
+                output.accept(ModItems.RIME_CAP_SPORES.get());
+                output.accept(ModItems.CRYPT_GRAVE_FIBERS.get());
+                output.accept(ModItems.BLEACHED_BONE_MEAL.get());
+                output.accept(ModItems.GRAVE_GLOW_FEATHER.get());
+                output.accept(ModItems.BARROW_SKULL_PLATE.get());
+                output.accept(ModItems.BARROW_SLATE_GREAVES.get());
+                output.accept(ModItems.BARROW_HOUND_SPAWN_EGG.get());
+                output.accept(ModItems.BARROW_CRYPT_GLOW_OWL_SPAWN_EGG.get());
+
+                // Biome 9: Null-Fringe Bay Blocks, Items & Fauna Eggs
+                output.accept(ModItems.VOID_SAND_ITEM.get());
+                output.accept(ModItems.VOID_SAND_TURF_ITEM.get());
+                output.accept(ModItems.VOID_STONE_ITEM.get());
+                output.accept(ModItems.OBSIDIAN_BRICKS_ITEM.get());
+                output.accept(ModItems.VOID_CRYSTAL_BLOCK_ITEM.get());
+                output.accept(ModItems.VOID_CRYSTAL_BUD_ITEM.get());
+                output.accept(ModItems.VOID_CRYSTAL_CLUSTER_ITEM.get());
+                output.accept(ModItems.NULL_FRINGE_TUSSOCK_ITEM.get());
+                output.accept(ModItems.SPATIAL_PHASE_ANCHOR_ITEM.get());
+                output.accept(ModItems.VOID_CRYSTAL_SHARD.get());
+                output.accept(ModItems.VOID_FIBER.get());
+                output.accept(ModItems.VOID_WEAVE_FABRIC.get());
+                output.accept(ModItems.SERPENT_VOID_SCALE.get());
+                output.accept(ModItems.PHASE_RECALL_STONE.get());
+                output.accept(ModItems.LEVIATHAN_RIFT_BELT.get());
+                output.accept(ModItems.NULL_WEAVE_MANTLE.get());
+                output.accept(ModItems.VOID_SEA_SERPENT_SPAWN_EGG.get());
+                output.accept(ModItems.VOID_RIFT_SHADE_SPAWN_EGG.get());
+
+                // Biome 10: Sun-Glazed Sanctuary Blocks, Items & Fauna Eggs
+                output.accept(ModItems.RADIANT_SNOW_BLOCK_ITEM.get());
+                output.accept(ModItems.RADIANT_GLAZE_ICE_ITEM.get());
+                output.accept(ModItems.GLAZED_AMBER_LEAVES_ITEM.get());
+                output.accept(ModItems.GOLDEN_LICHEN_ITEM.get());
+                output.accept(ModItems.VITAE_SPRING_STONE_ITEM.get());
+                output.accept(ModItems.QILIN_LIGHT_REFRACTOR_ITEM.get());
+                output.accept(ModItems.SUN_GLAZED_LANTERN_ITEM.get());
+                output.accept(ModItems.RADIANT_SNOWBALL.get());
+                output.accept(ModItems.JADE_QILIN_SCALE.get());
+                output.accept(ModItems.LIQUID_VITAE_RESIN.get());
+                output.accept(ModItems.VITAE_FERTILIZER.get());
+                output.accept(ModItems.QILIN_PRISM_CIRCLET.get());
+                output.accept(ModItems.SUN_GLAZED_TALISMAN.get());
+                output.accept(ModItems.WEEPING_AMBER_TEAR.get());
+                output.accept(ModItems.LUMINOTH_DUST.get());
+                output.accept(ModItems.AURORAFOWL_FEATHER.get());
+                output.accept(ModItems.RAW_AURORAFOWL.get());
+                output.accept(ModItems.COOKED_AURORAFOWL.get());
+                output.accept(ModItems.CRYSTALLINE_QILIN_SPAWN_EGG.get());
+                output.accept(ModItems.AMBER_WEEPING_STAG_SPAWN_EGG.get());
+                output.accept(ModItems.AURORAFOWL_SPAWN_EGG.get());
+                output.accept(ModItems.LUMINOTH_SPAWN_EGG.get());
+
+                // Biome 11: Storm-Swept Icebergs Blocks, Items & Fauna Eggs
+                output.accept(ModItems.FULGURITE_BLOCK_ITEM.get());
+                output.accept(ModItems.ZEPHYR_ICE_ITEM.get());
+                output.accept(ModItems.ZEPHYR_GLASS_GRASS_ITEM.get());
+                output.accept(ModItems.ZEPHYR_UPDRAFT_GRATE_ITEM.get());
+                output.accept(ModItems.SIMURGH_WIND_TURBINE_ITEM.get());
+                output.accept(ModItems.ZEPHYR_GLASS_FIBER.get());
+                output.accept(ModItems.STORM_KITE_MEMBRANE.get());
+                output.accept(ModItems.HYDRA_GLACIAL_HORN.get());
+                output.accept(ModItems.STORM_KITE_GLIDER.get());
+                output.accept(ModItems.CRYO_TEMPEST_HORN.get());
+                output.accept(ModItems.TEMPEST_BOTTLE.get());
+                output.accept(ModItems.STORM_KITE_SPAWN_EGG.get());
+                output.accept(ModItems.GLACIAL_HYDRA_SPAWN_EGG.get());
+
+                // Biome 12: Spore-Glazed Pack Blocks, Items & Fauna Eggs
+                output.accept(ModItems.FROZEN_SPORE_MOSS_ITEM.get());
+                output.accept(ModItems.FROZEN_SPORE_MOSS_CARPET_ITEM.get());
+                output.accept(ModItems.SPORE_GLAZED_ICE_ITEM.get());
+                output.accept(ModItems.SPORE_WOOD_LOG_ITEM.get());
+                output.accept(ModItems.SPORE_WOOD_ITEM.get());
+                output.accept(ModItems.SPORE_WOOD_PLANKS_ITEM.get());
+                output.accept(ModItems.SPORE_WOOD_STAIRS_ITEM.get());
+                output.accept(ModItems.SPORE_WOOD_SLAB_ITEM.get());
+                output.accept(ModItems.SPORE_WOOD_FENCE_ITEM.get());
+                output.accept(ModItems.FROZEN_SPORE_LEAVES_ITEM.get());
+                output.accept(ModItems.GLAZE_CAP_MUSHROOM_BLOCK_ITEM.get());
+                output.accept(ModItems.SPORE_BELLOWS_ITEM.get());
+                output.accept(ModItems.CRYO_SPORE_CENSER_ITEM.get());
+                output.accept(ModItems.MYCELIAL_SPORE_CAP.get());
+                output.accept(ModItems.SPORE_FILTER_MASK.get());
+                output.accept(ModItems.CRYO_SPORE_POULTICE.get());
+                output.accept(ModItems.GLAZED_SPORE_BOMB.get());
+                output.accept(ModItems.MYCELIAL_SPORE_WEAVER_SPAWN_EGG.get());
+
+                // Biome 13: Mirage Glacier Blocks, Items & Fauna Eggs
+                output.accept(ModItems.GLASS_SAND_ITEM.get());
+                output.accept(ModItems.GLASS_SANDSTONE_ITEM.get());
+                output.accept(ModItems.GLASS_SANDSTONE_STAIRS_ITEM.get());
+                output.accept(ModItems.GLASS_SANDSTONE_SLAB_ITEM.get());
+                output.accept(ModItems.MIRAGE_ICE_ITEM.get());
+                output.accept(ModItems.MIRAGE_PRISM_LANTERN_ITEM.get());
+                output.accept(ModItems.SILICA_GLASS_PLATE.get());
+                output.accept(ModItems.MIRAGE_VEIL_GOGGLES.get());
+                output.accept(ModItems.MIRAGE_DECOY_PRISM.get());
+                output.accept(ModItems.SHIMMERING_FOCUS.get());
+                output.accept(ModItems.SILICA_GLASS_SCARAB_SPAWN_EGG.get());
+
+                // Biome 14: Oasis Floes Blocks, Items & Fauna Eggs
+                output.accept(ModItems.FROST_WILLOW_LEAVES_ITEM.get());
+                output.accept(ModItems.FROST_WILLOW_VINES_ITEM.get());
+                output.accept(ModItems.AMBER_RESIN_BLOCK_ITEM.get());
+                output.accept(ModItems.AMBER_TORCH_ITEM.get());
+                output.accept(ModItems.OASIS_DEW_BASIN_ITEM.get());
+                output.accept(ModItems.AMBER_NECTAR_BOTTLE.get());
+                output.accept(ModItems.AMBER_ADHESIVE.get());
+                output.accept(ModItems.WATERPROOF_SALAMANDER_SKIN.get());
+                output.accept(ModItems.SALAMANDER_WADER_HOOD.get());
+                output.accept(ModItems.MUD_LURKER_SALAMANDER_SPAWN_EGG.get());
+
+                // Biome 15: Dust-Crusted Bergs Blocks & Items
+                output.accept(ModItems.DUST_CRUSTED_ICE_ITEM.get());
+                output.accept(ModItems.GREY_SAND_ITEM.get());
+                output.accept(ModItems.WIND_BLOWN_DUST_SCRUB_ITEM.get());
+                output.accept(ModItems.TOUGH_FIBER_ROPE_ITEM.get());
+                output.accept(ModItems.WIND_BAFFLE_LANTERN_ITEM.get());
+                output.accept(ModItems.DRY_FIBERS.get());
+                output.accept(ModItems.DUST_CORE_SHARD.get());
+                output.accept(ModItems.COPPER_SILT_SIEVE.get());
+                output.accept(ModItems.DUST_DEVIL_AMPOULE.get());
+                output.accept(ModItems.DUST_CORE_GOLEM_SPAWN_EGG.get());
+
+                // Biome 16: Blood-Ice Shallows Blocks, Items & Fauna Eggs
+                output.accept(ModItems.SANGUINE_ICE_ITEM.get());
+                output.accept(ModItems.RED_CLAY_SAND_ITEM.get());
+                output.accept(ModItems.SANGUINE_CLAY_BRICKS_ITEM.get());
+                output.accept(ModItems.SANGUINE_CLAY_BRICK_STAIRS_ITEM.get());
+                output.accept(ModItems.SANGUINE_CLAY_BRICK_SLAB_ITEM.get());
+                output.accept(ModItems.RED_ALGAE_ITEM.get());
+                output.accept(ModItems.CRIMSON_TIDE_LANTERN_ITEM.get());
+                output.accept(ModItems.SANGUINE_DRAUGHT_AMPOULE.get());
+                output.accept(ModItems.SANGUINE_ICE_LANCET.get());
+                output.accept(ModItems.SANGUINE_HEART_GEL.get());
+                output.accept(ModItems.SANGUINE_SEA_ANGEL_SPAWN_EGG.get());
+
+                // Biome 17: Astral Skerries Blocks, Items, Star-Fish & Fauna Eggs
+                output.accept(ModItems.STARLIGHT_ICE_ITEM.get());
+                output.accept(ModItems.STARDUST_CRYSTAL_BLOCK_ITEM.get());
+                output.accept(ModItems.STARDUST_CRYSTAL_CLUSTER_ITEM.get());
+                output.accept(ModItems.RIME_STAR_TUSSOCK_ITEM.get());
+                output.accept(ModItems.CELESTIAL_ORRERY_LANTERN_ITEM.get());
+                output.accept(ModItems.STARDUST_FRAGMENT.get());
+                output.accept(ModItems.STARLIGHT_DRAUGHT_AMPOULE.get());
+                output.accept(ModItems.STARLIGHT_TUNING_CHISEL.get());
+                output.accept(ModItems.ASTRAL_NAUTILUS_NACRE.get());
+                output.accept(ModItems.ASTRAL_NAUTILUS_ARMOR.get());
+                output.accept(ModItems.NEBULA_DARTER.get());
+                output.accept(ModItems.COOKED_NEBULA_DARTER.get());
+                output.accept(ModItems.STARWING_FLYING_FISH.get());
+                output.accept(ModItems.COOKED_STARWING_FLYING_FISH.get());
+                output.accept(ModItems.STARFALL_RAY.get());
+                output.accept(ModItems.COOKED_STARFALL_RAY.get());
+                output.accept(ModItems.COMET_RIBBONFISH.get());
+                output.accept(ModItems.COOKED_COMET_RIBBONFISH.get());
+                output.accept(ModItems.ZENITH_MOONFISH.get());
+                output.accept(ModItems.COOKED_ZENITH_MOONFISH.get());
+                output.accept(ModItems.SUPERNOVA_PUFFER.get());
+                output.accept(ModItems.ASTRAL_LANTERNFISH.get());
+                output.accept(ModItems.STARLIGHT_NAUTILUS_SPAWN_EGG.get());
+
+                // Fauna Bestiary Pass: Drops & Spawn Eggs
+                output.accept(ModItems.HARD_SANDSTONE_SHARD.get());
+                output.accept(ModItems.SANDSTONE_GOLEM_SPAWN_EGG.get());
+                output.accept(ModItems.KELPIE_WATER_PELT.get());
+                output.accept(ModItems.PEAT_MUD_KELPIE_SPAWN_EGG.get());
+                output.accept(ModItems.SPHINX_SAND_STONE.get());
+                output.accept(ModItems.SILT_SPHINX_SPAWN_EGG.get());
+                output.accept(ModItems.SIMURGH_FEATHER.get());
+                output.accept(ModItems.ZEPHYR_SIMURGH_SPAWN_EGG.get());
+                output.accept(ModItems.SHIMMERING_MIRAGE_AURA.get());
+                output.accept(ModItems.MIRAGE_FATA_SPRITE_SPAWN_EGG.get());
+                output.accept(ModItems.CHERUFE_BASALT_CRUST.get());
+                output.accept(ModItems.MAGMA_CHERUFE_SPAWN_EGG.get());
+                output.accept(ModItems.PHENEX_EMBER_FEATHER.get());
+                output.accept(ModItems.SOULFIRE_PHENEX_SPAWN_EGG.get());
+                output.accept(ModItems.VOID_WEB_SPINDLE.get());
+                output.accept(ModItems.VOID_ARACHNE_SPAWN_EGG.get());
+                output.accept(ModItems.BARROW_RUNE_STONE.get());
+                output.accept(ModItems.ASH_BARROW_GNOME_SPAWN_EGG.get());
+                output.accept(ModItems.MAGMA_ORTHRUS_PELT.get());
+                output.accept(ModItems.ORTHRUS_MAGMA_BEAST_SPAWN_EGG.get());
+                output.accept(ModItems.CINDER_WISP_CORE.get());
+                output.accept(ModItems.ASH_CINDER_WISP_SPAWN_EGG.get());
+                output.accept(ModItems.HYDRA_SOUL_GLAND.get());
+                output.accept(ModItems.SOUL_SAND_HYDRA_SPAWN_EGG.get());
+                output.accept(ModItems.OBSIDIAN_GARGOYLE_WING.get());
+                output.accept(ModItems.VOID_SHADOW_GARGOYLE_SPAWN_EGG.get());
+                output.accept(ModItems.RUNIC_CRYPT_STONE.get());
+                output.accept(ModItems.BARROW_WIGHT_GOLEM_SPAWN_EGG.get());
+                output.accept(ModItems.SCORPIOID_TAIL_SPIKE.get());
+                output.accept(ModItems.OBSIDIAN_SCORPIOID_SPAWN_EGG.get());
+                output.accept(ModItems.WYVERN_SCALE.get());
+                output.accept(ModItems.BRIMSTONE_WYVERN_SPAWN_EGG.get());
+                output.accept(ModItems.OBSIDIAN_CORE.get());
+                output.accept(ModItems.OBSIDIAN_GOLEM_SPAWN_EGG.get());
+                output.accept(ModItems.BRASS_DJINN_COLLAR.get());
+                output.accept(ModItems.SOULFIRE_DJINN_SPAWN_EGG.get());
+                output.accept(ModItems.CHIMERA_VENOM_GLAND.get());
+                output.accept(ModItems.BRIMSTONE_CHIMERA_SPAWN_EGG.get());
+                output.accept(ModItems.WENDIGO_SKULL_PLATE.get());
+                output.accept(ModItems.OBSIDIAN_WENDIGO_SPAWN_EGG.get());
+
+                // Entropica Potions (Frost Resistance, Freezing, Decay, Iron Skin, Eclipse Shroud, Dampening, Galvanic Surge, Barrow Ward, Null Buoyancy, & Radiant Vitality)
                 parameters.holders().lookup(Registries.POTION).ifPresent(potionLookup -> {
-                    for (String potionId : new String[]{"frost_resistance", "freezing"}) {
+                    for (String potionId : new String[]{"frost_resistance", "freezing", "decay", "iron_skin", "eclipse_shroud", "dampening", "long_dampening", "galvanic_surge", "long_galvanic_surge", "barrow_ward", "long_barrow_ward", "null_buoyancy", "long_null_buoyancy", "radiant_vitality", "long_radiant_vitality", "strong_radiant_vitality", "tempest_stride", "long_tempest_stride", "spore_clarity", "long_spore_clarity", "mirage_phasing", "long_mirage_phasing", "oasis_renewal", "long_oasis_renewal", "zephyr_weight", "long_zephyr_weight", "sanguine_vigor", "long_sanguine_vigor", "starlight_grace", "long_starlight_grace"}) {
                         potionLookup.get(net.minecraft.resources.ResourceKey.create(
                                 Registries.POTION,
                                 net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Entropica.MODID, potionId)
@@ -707,6 +1056,7 @@ public class ModCreativeTabs {
                             output.accept(net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.POTION, holder));
                             output.accept(net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.SPLASH_POTION, holder));
                             output.accept(net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.LINGERING_POTION, holder));
+                            output.accept(net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.TIPPED_ARROW, holder));
                         });
                     }
                 });
@@ -742,6 +1092,10 @@ public class ModCreativeTabs {
         if (key == null) return false;
         String path = key.getPath();
 
+        if (path.equals("zephyr_glass_grass") || path.equals("glass_sand")) {
+            return true;
+        }
+
         if (path.contains("core") || path.contains("glass") || path.contains("machine") || path.contains("pipe")) {
             return false;
         }
@@ -753,9 +1107,60 @@ public class ModCreativeTabs {
                path.contains("ignisite") ||
                path.contains("mortisite") ||
                path.equals("aegis_crystal_block") ||
+               path.equals("aegis_crystal_bud") ||
                path.equals("aegis_crystal_cluster") ||
                path.equals("glacial_heart_root") ||
                path.equals("shielding_bramble") ||
+               path.equals("glimmer_ice") ||
+               path.equals("coarse_gravel") ||
+               path.equals("mist_veil_fern") ||
+               path.equals("rotten_ice") ||
+               path.equals("blighted_packed_ice") ||
+               path.equals("necrotic_slime_patch") ||
+               path.equals("frozen_spruce_branch") ||
+               path.equals("aegis_quartz_block") ||
+               path.equals("aegis_quartz_cluster") ||
+               path.equals("basalt_column") ||
+               path.equals("steaming_ice") ||
+               path.equals("steaming_spring_stone") ||
+               path.equals("vapor_weaver_lichen") ||
+               path.equals("steam_vent") ||
+               path.equals("fulgurite_ice") ||
+               path.equals("fulgurite_pine_log") ||
+               path.equals("fulgurite_pine_leaves") ||
+               path.equals("necrotic_soil") ||
+               path.equals("crypt_grave_root") ||
+               path.equals("void_sand") ||
+               path.equals("void_sand_turf") ||
+               path.equals("void_stone") ||
+               path.equals("void_crystal_block") ||
+               path.equals("void_crystal_bud") ||
+               path.equals("void_crystal_cluster") ||
+               path.equals("null_fringe_tussock") ||
+               path.equals("radiant_snow_block") ||
+               path.equals("radiant_glaze_ice") ||
+               path.equals("glazed_amber_leaves") ||
+               path.equals("golden_lichen") ||
+               path.equals("vitae_spring_stone") ||
+               path.equals("fulgurite_block") ||
+               path.equals("zephyr_ice") ||
+               path.equals("spore_glazed_ice") ||
+               path.equals("mirage_ice") ||
+               path.equals("spore_wood_log") ||
+               path.equals("spore_wood") ||
+               path.equals("frozen_spore_leaves") ||
+               path.equals("frost_willow_leaves") ||
+               path.equals("frost_willow_vines") ||
+               path.equals("dust_crusted_ice") ||
+               path.equals("grey_sand") ||
+               path.equals("wind_blown_dust_scrub") ||
+               path.equals("sanguine_ice") ||
+               path.equals("red_clay_sand") ||
+               path.equals("red_algae") ||
+               path.equals("starlight_ice") ||
+               path.equals("stardust_crystal_block") ||
+               path.equals("stardust_crystal_cluster") ||
+               path.equals("rime_star_tussock") ||
                path.contains("rubber") ||
                path.contains("silver_pine") ||
                path.contains("amber") ||

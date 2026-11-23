@@ -1,0 +1,7 @@
+{
+  "type": "entropica:auroral_vapor_observatory",
+  "biomes": "#entropica:has_structure/auroral_vapor_observatory",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "none"
+}

@@ -1,6 +1,21 @@
 {
   "replace": false,
   "values": [
-    "entropica:blue_glacier_shelf"
+    "entropica:blue_glacier_shelf",
+    "entropica:auroral_skerries",
+    "entropica:frost_bite_floes",
+    "entropica:crystalline_pack_ice",
+    "entropica:silent_fjord",
+    "entropica:steaming_skerries",
+    "entropica:static_ice_plains",
+    "entropica:barrow_mound_tundra",
+    "entropica:null_fringe_bay",
+    "entropica:radiant_glaze_plains",
+    "entropica:storm_swept_icebergs",
+    "entropica:spore_glazed_pack",
+    "entropica:mirage_glacier",
+    "entropica:oasis_floes",
+    "entropica:dust_crusted_bergs",
+    "entropica:astral_skerries"
   ]
 }

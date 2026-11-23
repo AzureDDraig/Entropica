@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "entropica:block/shadowed_eclipse_moss"
+      },
+      {
+        "model": "entropica:block/shadowed_eclipse_moss",
+        "y": 90
+      },
+      {
+        "model": "entropica:block/shadowed_eclipse_moss",
+        "y": 180
+      },
+      {
+        "model": "entropica:block/shadowed_eclipse_moss",
+        "y": 270
+      }
+    ]
+  }
+}

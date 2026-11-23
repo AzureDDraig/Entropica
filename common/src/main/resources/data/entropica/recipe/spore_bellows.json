@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PSP",
+    "CLC",
+    "PPP"
+  ],
+  "key": {
+    "P": "entropica:spore_wood_planks",
+    "S": "entropica:mycelial_spore_cap",
+    "C": "minecraft:copper_ingot",
+    "L": "minecraft:leather"
+  },
+  "result": {
+    "id": "entropica:spore_bellows",
+    "count": 1
+  }
+}

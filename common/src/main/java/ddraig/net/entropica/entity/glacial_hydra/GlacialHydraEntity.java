@@ -1,15 +1,20 @@
 package ddraig.net.entropica.entity.glacial_hydra;
 
+import ddraig.net.entropica.event.ModEntityEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -25,6 +30,7 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -47,12 +53,36 @@ public class GlacialHydraEntity extends PathfinderMob implements Enemy {
 
     public static AttributeSupplier.Builder createAttributes() {
         return PathfinderMob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 160.0D)
+                .add(Attributes.MAX_HEALTH, 480.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.26D)
                 .add(Attributes.ATTACK_DAMAGE, 12.0D)
                 .add(Attributes.ARMOR, 12.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.9D)
                 .add(Attributes.FOLLOW_RANGE, 28.0D);
+    }
+
+    public static boolean checkGlacialHydraSpawnRules(
+            EntityType<GlacialHydraEntity> type,
+            ServerLevelAccessor level,
+            EntitySpawnReason reason,
+            BlockPos pos,
+            RandomSource random
+    ) {
+        if (EntitySpawnReason.isSpawner(reason)
+                || reason == EntitySpawnReason.SPAWN_ITEM_USE
+                || reason == EntitySpawnReason.COMMAND) {
+            return true;
+        }
+        if (level.getDifficulty() == Difficulty.PEACEFUL) {
+            return false;
+        }
+        BlockPos belowPos = pos.below();
+        BlockState belowState = level.getBlockState(belowPos);
+        if (!belowState.blocksMotion() && level.getBlockState(belowPos.below()).blocksMotion()) {
+            belowPos = belowPos.below();
+            belowState = level.getBlockState(belowPos);
+        }
+        return ModEntityEvents.isColdOrSkerriesSpawnSurface(level, belowPos, belowState);
     }
 
     @Override
@@ -113,7 +143,10 @@ public class GlacialHydraEntity extends PathfinderMob implements Enemy {
             if (this.tickCount % 40 == 0) {
                 BlockPos pos = this.blockPosition().below();
                 BlockState state = this.level().getBlockState(pos);
-                if (state.is(Blocks.ICE) || state.is(Blocks.PACKED_ICE) || state.is(Blocks.BLUE_ICE) || state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.POWDER_SNOW)) {
+                String blockPath = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+                if (state.is(Blocks.ICE) || state.is(Blocks.PACKED_ICE) || state.is(Blocks.BLUE_ICE)
+                        || state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.POWDER_SNOW)
+                        || "zephyr_ice".equals(blockPath) || "fulgurite_ice".equals(blockPath)) {
                     this.heal(3.0F);
                 }
             }

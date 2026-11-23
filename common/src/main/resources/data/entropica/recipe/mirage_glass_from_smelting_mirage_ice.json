@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "blocks",
+  "group": "mirage_glass",
+  "ingredient": "entropica:mirage_ice",
+  "result": {
+    "id": "entropica:mirage_glass"
+  },
+  "experience": 0.35,
+  "cookingtime": 200
+}

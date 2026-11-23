@@ -120,9 +120,11 @@ public class ModItems {
                     .component(ModDataComponents.VIS_WEAPON_STATE.get(), new VisWeaponState.Builder(EssenceType.VOID, 8.5F, 2).build())
     ));
 
-    public static final RegistrySupplier<Item> BASALT_PICKAXE = ITEMS.registerItem("basalt_pickaxe", Item::new);
+    public static final RegistrySupplier<Item> BASALT_PICKAXE = ITEMS.registerItem("basalt_pickaxe",
+            props -> new Item(props.pickaxe(ToolMaterial.STONE, 1.0F, -2.8F).durability(220)));
     public static final RegistrySupplier<Item> WHISPERWOOD_WAND = ITEMS.registerItem("whisperwood_wand", Item::new);
-    public static final RegistrySupplier<Item> SHIMMERING_FOCUS = ITEMS.registerItem("shimmering_focus", Item::new);
+    public static final RegistrySupplier<Item> SHIMMERING_FOCUS = ITEMS.registerItem("shimmering_focus",
+            ddraig.net.entropica.item.biome13.ShimmeringFocusItem::new);
 
     // --- Crafting Components ---
     // Metals & Alloys
@@ -352,11 +354,11 @@ public class ModItems {
     // ==========================================
     // DYNAMIC ESSENCE ORBS & ESSENCE AMPOULES
     // ==========================================
-    public static final RegistrySupplier<EssenceItem> FRAGMENT_ESSENCE = ITEMS.registerItem("fragment_essence", properties -> new EssenceItem(properties, 0));
+    public static final RegistrySupplier<EssenceItem> FRAGMENT_ESSENCE = ITEMS.registerItem("fragment_essence", properties -> new EssenceItem(properties.fireResistant(), 0));
 
-    public static final RegistrySupplier<EssenceItem> WEAK_ESSENCE = ITEMS.registerItem("weak_essence", properties -> new EssenceItem(properties, 1));
-    public static final RegistrySupplier<EssenceItem> AVERAGE_ESSENCE = ITEMS.registerItem("average_essence", properties -> new EssenceItem(properties, 2));
-    public static final RegistrySupplier<EssenceItem> STRONG_ESSENCE = ITEMS.registerItem("strong_essence", properties -> new EssenceItem(properties, 3));
+    public static final RegistrySupplier<EssenceItem> WEAK_ESSENCE = ITEMS.registerItem("weak_essence", properties -> new EssenceItem(properties.fireResistant(), 1));
+    public static final RegistrySupplier<EssenceItem> AVERAGE_ESSENCE = ITEMS.registerItem("average_essence", properties -> new EssenceItem(properties.fireResistant(), 2));
+    public static final RegistrySupplier<EssenceItem> STRONG_ESSENCE = ITEMS.registerItem("strong_essence", properties -> new EssenceItem(properties.fireResistant(), 3));
 
     public static final RegistrySupplier<EssenceAmpouleItem> SMALL_ESSENCE_AMPOULE = ITEMS.registerItem("small_essence_ampoule", properties -> new EssenceAmpouleItem(properties, 1));
     public static final RegistrySupplier<EssenceAmpouleItem> MEDIUM_ESSENCE_AMPOULE = ITEMS.registerItem("medium_essence_ampoule", properties -> new EssenceAmpouleItem(properties, 2));
@@ -718,7 +720,7 @@ public class ModItems {
     public static final RegistrySupplier<BlockItem> SOOT_SHROUD_FUNGI_ITEM = ITEMS.registerItem("soot_shroud_fungi", properties -> new BlockItem(ModBlocks.SOOT_SHROUD_FUNGI.get(), properties));
     public static final RegistrySupplier<Item> SOOT_SHROUD_CAP = ITEMS.registerItem("soot_shroud_cap", Item::new);
         public static final RegistrySupplier<BlockItem> BARROW_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("barrow_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.BARROW_FUNGAL_SHELF_CAP.get(), properties));
-        public static final RegistrySupplier<Item> AMBER_NECTAR_BOTTLE = ITEMS.registerItem("amber_nectar_bottle", properties -> new Item(properties.craftRemainder(Items.GLASS_BOTTLE)));
+        public static final RegistrySupplier<Item> AMBER_NECTAR_BOTTLE = ITEMS.registerItem("amber_nectar_bottle", ddraig.net.entropica.item.biome14.AmberNectarBottleItem::new);
     public static final RegistrySupplier<Item> BARROW_FUNGAL_CAP = ITEMS.registerItem("barrow_fungal_cap", Item::new);
     public static final RegistrySupplier<BlockItem> SPORE_FUNGAL_SHELF_CAP_ITEM = ITEMS.registerItem("spore_fungal_shelf_cap", properties -> new BlockItem(ModBlocks.SPORE_FUNGAL_SHELF_CAP.get(), properties));
     public static final RegistrySupplier<Item> SPORE_FUNGAL_CAP = ITEMS.registerItem("spore_fungal_cap", Item::new);
@@ -1267,6 +1269,8 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
     // BlockItems
     public static final RegistrySupplier<BlockItem> AEGIS_CRYSTAL_BLOCK_ITEM = ITEMS.registerItem("aegis_crystal_block",
             properties -> new BlockItem(ModBlocks.AEGIS_CRYSTAL_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> AEGIS_CRYSTAL_BUD_ITEM = ITEMS.registerItem("aegis_crystal_bud",
+            properties -> new BlockItem(ModBlocks.AEGIS_CRYSTAL_BUD.get(), properties.useBlockDescriptionPrefix()));
     public static final RegistrySupplier<BlockItem> AEGIS_CRYSTAL_CLUSTER_ITEM = ITEMS.registerItem("aegis_crystal_cluster",
             properties -> new BlockItem(ModBlocks.AEGIS_CRYSTAL_CLUSTER.get(), properties.useBlockDescriptionPrefix()));
     public static final RegistrySupplier<BlockItem> RUNIC_BLUE_ICE_ITEM = ITEMS.registerItem("runic_blue_ice",
@@ -1285,8 +1289,6 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
             properties -> new BlockItem(ModBlocks.CONDUCTIVE_AEGIS_PLATING.get(), properties.useBlockDescriptionPrefix()));
     public static final RegistrySupplier<BlockItem> GLACIAL_ICE_MAKER_ITEM = ITEMS.registerItem("glacial_ice_maker",
             properties -> new BlockItem(ModBlocks.GLACIAL_ICE_MAKER.get(), properties.useBlockDescriptionPrefix()));
-    public static final RegistrySupplier<BlockItem> GLACIAL_LIFE_FORCE_ANCHOR_ITEM = ITEMS.registerItem("glacial_life_force_anchor",
-            properties -> new BlockItem(ModBlocks.GLACIAL_LIFE_FORCE_ANCHOR.get(), properties.useBlockDescriptionPrefix()));
 
     // Standalone Biome 1 Items
     public static final RegistrySupplier<Item> AEGIS_CRYSTAL_SHARD = ITEMS.registerItem("aegis_crystal_shard", Item::new);
@@ -1311,6 +1313,650 @@ public static final RegistrySupplier<Item> PYROCYST_VESICLE = ITEMS.registerItem
             properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.GLACIAL_FROST_CORE, properties));
     public static final RegistrySupplier<Item> FROST_TUSK_MAMMOT_SPAWN_EGG = ITEMS.registerItem("frost_tusk_mammot_spawn_egg",
             properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.FROST_TUSK_MAMMOT, properties));
+
+    // ==========================================
+    // BIOME 2: 2.2 AURORAL SKERRIES & AURORAL WELLSPRING ITEMS
+    // ==========================================
+    // BlockItems (10)
+    public static final RegistrySupplier<BlockItem> GLIMMER_ICE_ITEM = ITEMS.registerItem("glimmer_ice",
+            properties -> new BlockItem(ModBlocks.GLIMMER_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> COARSE_GRAVEL_ITEM = ITEMS.registerItem("coarse_gravel",
+            properties -> new BlockItem(ModBlocks.COARSE_GRAVEL.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> AURORAL_FEATHER_MOSS_ITEM = ITEMS.registerItem("auroral_feather_moss",
+            properties -> new BlockItem(ModBlocks.AURORAL_FEATHER_MOSS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> MIST_VEIL_FERN_ITEM = ITEMS.registerItem("mist_veil_fern",
+            properties -> new BlockItem(ModBlocks.MIST_VEIL_FERN.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> AURORAL_LANTERN_ITEM = ITEMS.registerItem("auroral_lantern",
+            properties -> new BlockItem(ModBlocks.AURORAL_LANTERN.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> THERMAL_HEAT_LAMP_ITEM = ITEMS.registerItem("thermal_heat_lamp",
+            properties -> new BlockItem(ModBlocks.THERMAL_HEAT_LAMP.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLOW_GEL_PATHING_ITEM = ITEMS.registerItem("glow_gel_pathing",
+            properties -> new BlockItem(ModBlocks.GLOW_GEL_PATHING.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> STATIC_REDSTONE_COUPLER_ITEM = ITEMS.registerItem("static_redstone_coupler",
+            properties -> new BlockItem(ModBlocks.STATIC_REDSTONE_COUPLER.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> AURORAL_LENS_BLOCK_ITEM = ITEMS.registerItem("auroral_lens_block",
+            properties -> new BlockItem(ModBlocks.AURORAL_LENS_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 2 Items (10)
+    public static final RegistrySupplier<Item> AURORA_DUST = ITEMS.registerItem("aurora_dust", Item::new);
+    public static final RegistrySupplier<Item> GLOWING_AURORAL_FIBER = ITEMS.registerItem("glowing_auroral_fiber", Item::new);
+    public static final RegistrySupplier<Item> MIST_VEIL_FROND = ITEMS.registerItem("mist_veil_frond", Item::new);
+    public static final RegistrySupplier<Item> WARM_AURORA_PETAL = ITEMS.registerItem("warm_aurora_petal", Item::new);
+    public static final RegistrySupplier<Item> CAMOUFLAGE_CLOAK = ITEMS.registerItem("camouflage_cloak",
+            ddraig.net.entropica.item.biome2.CamouflageCloakItem::new);
+    public static final RegistrySupplier<Item> AURORAL_GELATIN = ITEMS.registerItem("auroral_gelatin", Item::new);
+    public static final RegistrySupplier<Item> CHARGED_GLOW_TENTACLE = ITEMS.registerItem("charged_glow_tentacle", Item::new);
+    public static final RegistrySupplier<Item> AURORAL_WAND = ITEMS.registerItem("auroral_wand",
+            ddraig.net.entropica.item.biome2.AuroralWandItem::new);
+    public static final RegistrySupplier<Item> VAPOR_CONDENSATE_CRYSTALS = ITEMS.registerItem("vapor_condensate_crystals",
+            properties -> new Item(properties.rarity(net.minecraft.world.item.Rarity.RARE)));
+    public static final RegistrySupplier<Item> AURORA_JELLY_SPAWN_EGG = ITEMS.registerItem("aurora_jelly_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.AURORA_JELLY, properties));
+
+    // ==========================================
+    // BIOME 3: 2.3 FROST-BITE FLOES ITEMS
+    // ==========================================
+    // BlockItems (6)
+    public static final RegistrySupplier<BlockItem> ROTTEN_ICE_ITEM = ITEMS.registerItem("rotten_ice",
+            properties -> new BlockItem(ModBlocks.ROTTEN_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> BLIGHTED_PACKED_ICE_ITEM = ITEMS.registerItem("blighted_packed_ice",
+            properties -> new BlockItem(ModBlocks.BLIGHTED_PACKED_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> NECROTIC_SLIME_PATCH_ITEM = ITEMS.registerItem("necrotic_slime_patch",
+            properties -> new BlockItem(ModBlocks.NECROTIC_SLIME_PATCH.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> NECROTIC_SLIME_BLOCK_ITEM = ITEMS.registerItem("necrotic_slime_block",
+            properties -> new BlockItem(ModBlocks.NECROTIC_SLIME_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> FROZEN_SPRUCE_BRANCH_ITEM = ITEMS.registerItem("frozen_spruce_branch",
+            properties -> new BlockItem(ModBlocks.FROZEN_SPRUCE_BRANCH.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> CURED_FROST_HIDE_BLOCK_ITEM = ITEMS.registerItem("cured_frost_hide_block",
+            properties -> new BlockItem(ModBlocks.CURED_FROST_HIDE_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 3 Items (10)
+    public static final RegistrySupplier<Item> ROT_POWDER = ITEMS.registerItem("rot_powder", Item::new);
+    public static final RegistrySupplier<Item> NECROTIC_SLIME = ITEMS.registerItem("necrotic_slime", Item::new);
+    public static final RegistrySupplier<Item> NECROTIC_SLIME_BUCKET = ITEMS.registerItem("necrotic_slime_bucket",
+            ddraig.net.entropica.item.biome3.NecroticSlimeBucketItem::new);
+    public static final RegistrySupplier<Item> SEA_SALT_CRYSTALS = ITEMS.registerItem("sea_salt_crystals", Item::new);
+    public static final RegistrySupplier<Item> CURED_FROST_VEINED_HIDE = ITEMS.registerItem("cured_frost_veined_hide", Item::new);
+    public static final RegistrySupplier<Item> FROST_BITE_DAGGER = ITEMS.registerItem("frost_bite_dagger",
+            properties -> new ddraig.net.entropica.item.biome3.FrostBiteDaggerItem(
+                    properties.sword(ToolMaterial.DIAMOND, 2.0F, -1.8F)));
+    public static final RegistrySupplier<Item> CRYO_INSULATED_HELMET = ITEMS.registerItem("cryo_insulated_helmet",
+            properties -> new ddraig.net.entropica.item.biome3.CryoInsulatedArmorItem(
+                    net.minecraft.world.entity.EquipmentSlot.HEAD, 330, 3.0D, 1.5D, properties));
+    public static final RegistrySupplier<Item> CRYO_INSULATED_CHESTPLATE = ITEMS.registerItem("cryo_insulated_chestplate",
+            properties -> new ddraig.net.entropica.item.biome3.CryoInsulatedArmorItem(
+                    net.minecraft.world.entity.EquipmentSlot.CHEST, 480, 7.0D, 1.5D, properties));
+    public static final RegistrySupplier<Item> CRYO_INSULATED_LEGGINGS = ITEMS.registerItem("cryo_insulated_leggings",
+            properties -> new ddraig.net.entropica.item.biome3.CryoInsulatedArmorItem(
+                    net.minecraft.world.entity.EquipmentSlot.LEGS, 450, 5.0D, 1.5D, properties));
+    public static final RegistrySupplier<Item> CRYO_INSULATED_BOOTS = ITEMS.registerItem("cryo_insulated_boots",
+            properties -> new ddraig.net.entropica.item.biome3.CryoInsulatedArmorItem(
+                    net.minecraft.world.entity.EquipmentSlot.FEET, 390, 3.0D, 1.5D, properties));
+
+    // ==========================================
+    // BIOME 4: 2.4 CRYSTALLINE PACK-ICE & AEGIS SHIELDING MONOLITH ITEMS
+    // ==========================================
+    // BlockItems (6)
+    public static final RegistrySupplier<BlockItem> AEGIS_QUARTZ_BLOCK_ITEM = ITEMS.registerItem("aegis_quartz_block",
+            properties -> new BlockItem(ModBlocks.AEGIS_QUARTZ_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> AEGIS_QUARTZ_CLUSTER_ITEM = ITEMS.registerItem("aegis_quartz_cluster",
+            properties -> new BlockItem(ModBlocks.AEGIS_QUARTZ_CLUSTER.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> BISMUTH_ORE_ITEM = ITEMS.registerItem("bismuth_ore",
+            properties -> new BlockItem(ModBlocks.BISMUTH_ORE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> BISMUTH_BLOCK_ITEM = ITEMS.registerItem("bismuth_block",
+            properties -> new BlockItem(ModBlocks.BISMUTH_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> AEGIS_PLATED_STONE_ITEM = ITEMS.registerItem("aegis_plated_stone",
+            properties -> new BlockItem(ModBlocks.AEGIS_PLATED_STONE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> BISMUTH_KEY_PEDESTAL_ITEM = ITEMS.registerItem("bismuth_key_pedestal",
+            properties -> new BlockItem(ModBlocks.BISMUTH_KEY_PEDESTAL.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 4 Items (5)
+    public static final RegistrySupplier<Item> AEGIS_QUARTZ = ITEMS.registerItem("aegis_quartz", Item::new);
+    public static final RegistrySupplier<Item> RAW_BISMUTH = ITEMS.registerItem("raw_bismuth", Item::new);
+    public static final RegistrySupplier<Item> BISMUTH_INGOT = ITEMS.registerItem("bismuth_ingot", Item::new);
+    public static final RegistrySupplier<Item> AEGIS_WARDING_EMBLEM = ITEMS.registerItem("aegis_warding_emblem",
+            ddraig.net.entropica.item.biome4.AegisWardingEmblemItem::new);
+    public static final RegistrySupplier<Item> AEGIS_SHIELDING_CHARM = ITEMS.registerItem("aegis_shielding_charm",
+            ddraig.net.entropica.item.biome4.AegisShieldingCharmItem::new);
+
+    // ==========================================
+    // BIOME 5: 2.5 SILENT FJORD ITEMS
+    // ==========================================
+    // BlockItems (5)
+    public static final RegistrySupplier<BlockItem> BASALT_COLUMN_ITEM = ITEMS.registerItem("basalt_column",
+            properties -> new BlockItem(ModBlocks.BASALT_COLUMN.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> CHISELED_ECLIPSE_BASALT_ITEM = ITEMS.registerItem("chiseled_eclipse_basalt",
+            properties -> new BlockItem(ModBlocks.CHISELED_ECLIPSE_BASALT.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> BLUE_FROZEN_MOSS_ITEM = ITEMS.registerItem("blue_frozen_moss",
+            properties -> new BlockItem(ModBlocks.BLUE_FROZEN_MOSS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> BLUE_FROZEN_MOSS_CARPET_ITEM = ITEMS.registerItem("blue_frozen_moss_carpet",
+            properties -> new BlockItem(ModBlocks.BLUE_FROZEN_MOSS_CARPET.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SHADOWED_ECLIPSE_MOSS_ITEM = ITEMS.registerItem("shadowed_eclipse_moss",
+            properties -> new BlockItem(ModBlocks.SHADOWED_ECLIPSE_MOSS.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 5 Items (+ BASALT_PICKAXE upgraded above)
+    public static final RegistrySupplier<Item> FROZEN_MOSS_CLUMP = ITEMS.registerItem("frozen_moss_clump", Item::new);
+    public static final RegistrySupplier<Item> CRYO_GRENADE = ITEMS.registerItem("cryo_grenade",
+            ddraig.net.entropica.item.biome5.CryoGrenadeItem::new);
+    public static final RegistrySupplier<Item> SILENT_STRIDERS = ITEMS.registerItem("silent_striders",
+            ddraig.net.entropica.item.biome5.SilentStridersItem::new);
+
+    // ==========================================
+    // BIOME 6: 2.6 STEAMING SKERRIES & VAPOROUS GROTTO ITEMS
+    // ==========================================
+    // BlockItems (6)
+    public static final RegistrySupplier<BlockItem> STEAMING_ICE_ITEM = ITEMS.registerItem("steaming_ice",
+            properties -> new BlockItem(ModBlocks.STEAMING_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> STEAMING_SPRING_STONE_ITEM = ITEMS.registerItem("steaming_spring_stone",
+            properties -> new BlockItem(ModBlocks.STEAMING_SPRING_STONE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> VAPOR_WEAVER_LICHEN_ITEM = ITEMS.registerItem("vapor_weaver_lichen",
+            properties -> new BlockItem(ModBlocks.VAPOR_WEAVER_LICHEN.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> STEAM_VENT_ITEM = ITEMS.registerItem("steam_vent",
+            properties -> new BlockItem(ModBlocks.STEAM_VENT.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> VAPOR_LIFT_MAT_ITEM = ITEMS.registerItem("vapor_lift_mat",
+            properties -> new BlockItem(ModBlocks.VAPOR_LIFT_MAT.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> VAPOR_CONDENSER_ITEM = ITEMS.registerItem("vapor_condenser",
+            properties -> new BlockItem(ModBlocks.VAPOR_CONDENSER.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 6 Items (3 + spawn egg hook)
+    public static final RegistrySupplier<Item> VAPOR_CONDENSER_SPORE = ITEMS.registerItem("vapor_condenser_spore", Item::new);
+    public static final RegistrySupplier<Item> VAPOR_SHROUD_CLOAK = ITEMS.registerItem("vapor_shroud_cloak",
+            ddraig.net.entropica.item.biome6.VaporShroudCloakItem::new);
+    public static final RegistrySupplier<Item> POROUS_BASALT_SHELL = ITEMS.registerItem("porous_basalt_shell", Item::new);
+    public static final RegistrySupplier<Item> VAPOR_BELLOWS_CRAB_SPAWN_EGG = ITEMS.registerItem("vapor_bellows_crab_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.VAPOR_BELLOWS_CRAB, properties));
+
+    // ==========================================
+    // BIOME 7: 2.7 STATIC ICE-PLAINS ITEMS
+    // ==========================================
+    // BlockItems (5)
+    public static final RegistrySupplier<BlockItem> FULGURITE_ICE_ITEM = ITEMS.registerItem("fulgurite_ice",
+            properties -> new BlockItem(ModBlocks.FULGURITE_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> FULGURITE_PINE_LOG_ITEM = ITEMS.registerItem("fulgurite_pine_log",
+            properties -> new BlockItem(ModBlocks.FULGURITE_PINE_LOG.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> FULGURITE_PINE_LEAVES_ITEM = ITEMS.registerItem("fulgurite_pine_leaves",
+            properties -> new BlockItem(ModBlocks.FULGURITE_PINE_LEAVES.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> STATIC_CONDUCTIVE_MAT_ITEM = ITEMS.registerItem("static_conductive_mat",
+            properties -> new BlockItem(ModBlocks.STATIC_CONDUCTIVE_MAT.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> BIOMASS_CAPACITOR_ITEM = ITEMS.registerItem("biomass_capacitor",
+            properties -> new BlockItem(ModBlocks.BIOMASS_CAPACITOR.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 7 Items (4)
+    public static final RegistrySupplier<Item> STATIC_FROST_POWDER = ITEMS.registerItem("static_frost_powder", Item::new);
+    public static final RegistrySupplier<Item> CHARGED_STATIC_NEEDLE = ITEMS.registerItem("charged_static_needle", Item::new);
+    public static final RegistrySupplier<Item> STATIC_QUILL = ITEMS.registerItem("static_quill", Item::new);
+    public static final RegistrySupplier<Item> GROUNDING_COIL = ITEMS.registerItem("grounding_coil",
+            properties -> new ddraig.net.entropica.item.GroundingCoilItem(properties.stacksTo(1)));
+    public static final RegistrySupplier<Item> CRYO_STATIC_HEDGEHOG_SPAWN_EGG = ITEMS.registerItem("cryo_static_hedgehog_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.CRYO_STATIC_HEDGEHOG, properties));
+
+    // ==========================================
+    // BIOME 8: 2.8 BARROW-MOUND TUNDRA ITEMS
+    // ==========================================
+    // BlockItems (10)
+    public static final RegistrySupplier<BlockItem> NECROTIC_SOIL_ITEM = ITEMS.registerItem("necrotic_soil",
+            properties -> new BlockItem(ModBlocks.NECROTIC_SOIL.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> BARROW_STONE_BRICKS_ITEM = ITEMS.registerItem("barrow_stone_bricks",
+            properties -> new BlockItem(ModBlocks.BARROW_STONE_BRICKS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> CRACKED_BARROW_BRICKS_ITEM = ITEMS.registerItem("cracked_barrow_bricks",
+            properties -> new BlockItem(ModBlocks.CRACKED_BARROW_BRICKS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> MOSSY_BARROW_BRICKS_ITEM = ITEMS.registerItem("mossy_barrow_bricks",
+            properties -> new BlockItem(ModBlocks.MOSSY_BARROW_BRICKS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GRAVE_MOSS_ITEM = ITEMS.registerItem("grave_moss",
+            properties -> new BlockItem(ModBlocks.GRAVE_MOSS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> CRYPT_GRAVE_ROOT_ITEM = ITEMS.registerItem("crypt_grave_root",
+            properties -> new BlockItem(ModBlocks.CRYPT_GRAVE_ROOT.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> RIME_CAP_MUSHROOM_ITEM = ITEMS.registerItem("rime_cap_mushroom",
+            properties -> new BlockItem(ModBlocks.RIME_CAP_MUSHROOM.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> RUNED_BRAZIER_ITEM = ITEMS.registerItem("runed_brazier",
+            properties -> new BlockItem(ModBlocks.RUNED_BRAZIER.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> CRYPT_SIPHON_LANTERN_ITEM = ITEMS.registerItem("crypt_siphon_lantern",
+            properties -> new BlockItem(ModBlocks.CRYPT_SIPHON_LANTERN.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> BARROW_SENTINEL_TOTEM_ITEM = ITEMS.registerItem("barrow_sentinel_totem",
+            properties -> new BlockItem(ModBlocks.BARROW_SENTINEL_TOTEM.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 8 Items (6 + 2 Spawn Eggs)
+    public static final RegistrySupplier<Item> RIME_CAP_SPORES = ITEMS.registerItem("rime_cap_spores",
+            ddraig.net.entropica.item.biome8.RimeCapSporesItem::new);
+    public static final RegistrySupplier<Item> CRYPT_GRAVE_FIBERS = ITEMS.registerItem("crypt_grave_fibers", Item::new);
+    public static final RegistrySupplier<Item> BLEACHED_BONE_MEAL = ITEMS.registerItem("bleached_bone_meal",
+            ddraig.net.entropica.item.biome8.BleachedBoneMealItem::new);
+    public static final RegistrySupplier<Item> GRAVE_GLOW_FEATHER = ITEMS.registerItem("grave_glow_feather", Item::new);
+    public static final RegistrySupplier<Item> BARROW_SKULL_PLATE = ITEMS.registerItem("barrow_skull_plate", Item::new);
+    public static final RegistrySupplier<Item> BARROW_SLATE_GREAVES = ITEMS.registerItem("barrow_slate_greaves",
+            ddraig.net.entropica.item.biome8.BarrowSlateGreavesItem::new);
+    public static final RegistrySupplier<Item> BARROW_HOUND_SPAWN_EGG = ITEMS.registerItem("barrow_hound_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.BARROW_HOUND, properties));
+    public static final RegistrySupplier<Item> BARROW_CRYPT_GLOW_OWL_SPAWN_EGG = ITEMS.registerItem("barrow_crypt_glow_owl_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.BARROW_CRYPT_GLOW_OWL, properties));
+
+    // ==========================================
+    // BIOME 9: 2.9 NULL-FRINGE BAY ITEMS
+    // ==========================================
+    // BlockItems (10)
+    public static final RegistrySupplier<BlockItem> VOID_SAND_ITEM = ITEMS.registerItem("void_sand",
+            properties -> new BlockItem(ModBlocks.VOID_SAND.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> VOID_SAND_TURF_ITEM = ITEMS.registerItem("void_sand_turf",
+            properties -> new BlockItem(ModBlocks.VOID_SAND_TURF.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> VOID_STONE_ITEM = ITEMS.registerItem("void_stone",
+            properties -> new BlockItem(ModBlocks.VOID_STONE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> OBSIDIAN_BRICKS_ITEM = ITEMS.registerItem("obsidian_bricks",
+            properties -> new BlockItem(ModBlocks.OBSIDIAN_BRICKS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> VOID_CRYSTAL_BLOCK_ITEM = ITEMS.registerItem("void_crystal_block",
+            properties -> new BlockItem(ModBlocks.VOID_CRYSTAL_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> VOID_CRYSTAL_BUD_ITEM = ITEMS.registerItem("void_crystal_bud",
+            properties -> new BlockItem(ModBlocks.VOID_CRYSTAL_BUD.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> VOID_CRYSTAL_CLUSTER_ITEM = ITEMS.registerItem("void_crystal_cluster",
+            properties -> new BlockItem(ModBlocks.VOID_CRYSTAL_CLUSTER.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> NULL_FRINGE_TUSSOCK_ITEM = ITEMS.registerItem("null_fringe_tussock",
+            properties -> new BlockItem(ModBlocks.NULL_FRINGE_TUSSOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SPATIAL_PHASE_ANCHOR_ITEM = ITEMS.registerItem("spatial_phase_anchor",
+            properties -> new BlockItem(ModBlocks.SPATIAL_PHASE_ANCHOR.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 9 Items (7)
+    public static final RegistrySupplier<Item> VOID_CRYSTAL_SHARD = ITEMS.registerItem("void_crystal_shard", Item::new);
+    public static final RegistrySupplier<Item> VOID_FIBER = ITEMS.registerItem("void_fiber", Item::new);
+    public static final RegistrySupplier<Item> VOID_WEAVE_FABRIC = ITEMS.registerItem("void_weave_fabric", Item::new);
+    public static final RegistrySupplier<Item> PHASE_RECALL_STONE = ITEMS.registerItem("phase_recall_stone",
+            ddraig.net.entropica.item.biome9.PhaseRecallStoneItem::new);
+    public static final RegistrySupplier<Item> LEVIATHAN_RIFT_BELT = ITEMS.registerItem("leviathan_rift_belt",
+            ddraig.net.entropica.item.biome9.LeviathanRiftBeltItem::new);
+    public static final RegistrySupplier<Item> NULL_WEAVE_MANTLE = ITEMS.registerItem("null_weave_mantle",
+            ddraig.net.entropica.item.biome9.NullWeaveMantleItem::new);
+    public static final RegistrySupplier<Item> VOID_RIFT_SHADE_SPAWN_EGG = ITEMS.registerItem("void_rift_shade_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.VOID_RIFT_SHADE, properties));
+
+    // ==========================================
+    // BIOME 10: 2.10 SUN-GLAZED SANCTUARY ITEMS
+    // ==========================================
+    // BlockItems (7)
+    public static final RegistrySupplier<BlockItem> RADIANT_SNOW_BLOCK_ITEM = ITEMS.registerItem("radiant_snow_block",
+            properties -> new BlockItem(ModBlocks.RADIANT_SNOW_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> RADIANT_GLAZE_ICE_ITEM = ITEMS.registerItem("radiant_glaze_ice",
+            properties -> new BlockItem(ModBlocks.RADIANT_GLAZE_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLAZED_AMBER_LEAVES_ITEM = ITEMS.registerItem("glazed_amber_leaves",
+            properties -> new BlockItem(ModBlocks.GLAZED_AMBER_LEAVES.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GOLDEN_LICHEN_ITEM = ITEMS.registerItem("golden_lichen",
+            properties -> new BlockItem(ModBlocks.GOLDEN_LICHEN.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> VITAE_SPRING_STONE_ITEM = ITEMS.registerItem("vitae_spring_stone",
+            properties -> new BlockItem(ModBlocks.VITAE_SPRING_STONE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> QILIN_LIGHT_REFRACTOR_ITEM = ITEMS.registerItem("qilin_light_refractor",
+            properties -> new BlockItem(ModBlocks.QILIN_LIGHT_REFRACTOR.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SUN_GLAZED_LANTERN_ITEM = ITEMS.registerItem("sun_glazed_lantern",
+            properties -> new BlockItem(ModBlocks.SUN_GLAZED_LANTERN.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 10 Items (7)
+    public static final RegistrySupplier<Item> RADIANT_SNOWBALL = ITEMS.registerItem("radiant_snowball",
+            ddraig.net.entropica.item.biome10.RadiantSnowballItem::new);
+    public static final RegistrySupplier<Item> JADE_QILIN_SCALE = ITEMS.registerItem("jade_qilin_scale", Item::new);
+    public static final RegistrySupplier<Item> LIQUID_VITAE_RESIN = ITEMS.registerItem("liquid_vitae_resin",
+            ddraig.net.entropica.item.biome10.LiquidVitaeResinItem::new);
+    public static final RegistrySupplier<Item> VITAE_FERTILIZER = ITEMS.registerItem("vitae_fertilizer",
+            ddraig.net.entropica.item.biome10.VitaeFertilizerItem::new);
+    public static final RegistrySupplier<Item> QILIN_PRISM_CIRCLET = ITEMS.registerItem("qilin_prism_circlet",
+            ddraig.net.entropica.item.biome10.QilinPrismCircletItem::new);
+    public static final RegistrySupplier<Item> SUN_GLAZED_TALISMAN = ITEMS.registerItem("sun_glazed_talisman",
+            ddraig.net.entropica.item.biome10.SunGlazedTalismanItem::new);
+    public static final RegistrySupplier<Item> CRYSTALLINE_QILIN_SPAWN_EGG = ITEMS.registerItem("crystalline_qilin_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.CRYSTALLINE_QILIN, properties));
+
+    // ==========================================
+    // BIOME 11: 2.11 STORM-SWEPT ICEBERGS ITEMS
+    // ==========================================
+    // BlockItems (5)
+    public static final RegistrySupplier<BlockItem> FULGURITE_BLOCK_ITEM = ITEMS.registerItem("fulgurite_block",
+            properties -> new BlockItem(ModBlocks.FULGURITE_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> ZEPHYR_ICE_ITEM = ITEMS.registerItem("zephyr_ice",
+            properties -> new ddraig.net.entropica.item.biome11.ZephyrIceBlockItem(ModBlocks.ZEPHYR_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> ZEPHYR_GLASS_GRASS_ITEM = ITEMS.registerItem("zephyr_glass_grass",
+            properties -> new BlockItem(ModBlocks.ZEPHYR_GLASS_GRASS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> ZEPHYR_UPDRAFT_GRATE_ITEM = ITEMS.registerItem("zephyr_updraft_grate",
+            properties -> new BlockItem(ModBlocks.ZEPHYR_UPDRAFT_GRATE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SIMURGH_WIND_TURBINE_ITEM = ITEMS.registerItem("simurgh_wind_turbine",
+            properties -> new BlockItem(ModBlocks.SIMURGH_WIND_TURBINE.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 11 Items (4)
+    public static final RegistrySupplier<Item> ZEPHYR_GLASS_FIBER = ITEMS.registerItem("zephyr_glass_fiber", Item::new);
+    public static final RegistrySupplier<Item> STORM_KITE_GLIDER = ITEMS.registerItem("storm_kite_glider",
+            ddraig.net.entropica.item.biome11.StormKiteGliderItem::new);
+    public static final RegistrySupplier<Item> CRYO_TEMPEST_HORN = ITEMS.registerItem("cryo_tempest_horn",
+            ddraig.net.entropica.item.biome11.CryoTempestHornItem::new);
+    public static final RegistrySupplier<Item> TEMPEST_BOTTLE = ITEMS.registerItem("tempest_bottle",
+            ddraig.net.entropica.item.biome11.TempestBottleItem::new);
+
+    // ==========================================
+    // FAUNA BESTIARY EXPANSION ITEMS & SPAWN EGGS
+    // ==========================================
+    // Fauna 39: Sandstone Golem (Desert Elemental)
+    public static final RegistrySupplier<Item> HARD_SANDSTONE_SHARD = ITEMS.registerItem("hard_sandstone_shard", Item::new);
+    public static final RegistrySupplier<Item> SANDSTONE_GOLEM_SPAWN_EGG = ITEMS.registerItem("sandstone_golem_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.SANDSTONE_GOLEM, properties));
+
+    // Fauna 37: Peat-Mud Kelpie (Swamp Kelpie)
+    public static final RegistrySupplier<Item> KELPIE_WATER_PELT = ITEMS.registerItem("kelpie_water_pelt", Item::new);
+    public static final RegistrySupplier<Item> PEAT_MUD_KELPIE_SPAWN_EGG = ITEMS.registerItem("peat_mud_kelpie_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.PEAT_MUD_KELPIE, properties));
+
+    // Fauna 40: Silt-Sphinx (Canyon Guardian)
+    public static final RegistrySupplier<Item> SPHINX_SAND_STONE = ITEMS.registerItem("sphinx_sand_stone", Item::new);
+    public static final RegistrySupplier<Item> SILT_SPHINX_SPAWN_EGG = ITEMS.registerItem("silt_sphinx_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.SILT_SPHINX, properties));
+
+    // Fauna 41: Zephyr-Simurgh (Wind Lord)
+    public static final RegistrySupplier<Item> SIMURGH_FEATHER = ITEMS.registerItem("simurgh_feather", Item::new);
+    public static final RegistrySupplier<Item> ZEPHYR_SIMURGH_SPAWN_EGG = ITEMS.registerItem("zephyr_simurgh_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.ZEPHYR_SIMURGH, properties));
+
+    // Fauna 43: Mirage Fata-Sprite (Desert Sylph)
+    public static final RegistrySupplier<Item> SHIMMERING_MIRAGE_AURA = ITEMS.registerItem("shimmering_mirage_aura", Item::new);
+    public static final RegistrySupplier<Item> MIRAGE_FATA_SPRITE_SPAWN_EGG = ITEMS.registerItem("mirage_fata_sprite_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.MIRAGE_FATA_SPRITE, properties));
+
+    // Fauna 44: Magma Cherufe (Lava Lizard)
+    public static final RegistrySupplier<Item> CHERUFE_BASALT_CRUST = ITEMS.registerItem("cherufe_basalt_crust",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> MAGMA_CHERUFE_SPAWN_EGG = ITEMS.registerItem("magma_cherufe_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.MAGMA_CHERUFE, properties));
+
+    // Fauna 45: Soulfire Phenex (Goetic Flyer)
+    public static final RegistrySupplier<Item> PHENEX_EMBER_FEATHER = ITEMS.registerItem("phenex_ember_feather",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> SOULFIRE_PHENEX_SPAWN_EGG = ITEMS.registerItem("soulfire_phenex_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.SOULFIRE_PHENEX, properties));
+
+    // Fauna 46: Void Arachne (Nether Spinner)
+    public static final RegistrySupplier<Item> VOID_WEB_SPINDLE = ITEMS.registerItem("void_web_spindle",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> VOID_ARACHNE_SPAWN_EGG = ITEMS.registerItem("void_arachne_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.VOID_ARACHNE, properties));
+
+    // Fauna 47: Ash Barrow-Gnome (Underground Digger)
+    public static final RegistrySupplier<Item> BARROW_RUNE_STONE = ITEMS.registerItem("barrow_rune_stone",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> ASH_BARROW_GNOME_SPAWN_EGG = ITEMS.registerItem("ash_barrow_gnome_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.ASH_BARROW_GNOME, properties));
+
+    // Fauna 48: Orthrus Magma-Beast (Two-Headed Hound)
+    public static final RegistrySupplier<Item> MAGMA_ORTHRUS_PELT = ITEMS.registerItem("magma_orthrus_pelt",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> ORTHRUS_MAGMA_BEAST_SPAWN_EGG = ITEMS.registerItem("orthrus_magma_beast_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.ORTHRUS_MAGMA_BEAST, properties));
+
+    // Fauna 49: Ash-Cinder Wisp (Will-o'-Wisp)
+    public static final RegistrySupplier<Item> CINDER_WISP_CORE = ITEMS.registerItem("cinder_wisp_core",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> ASH_CINDER_WISP_SPAWN_EGG = ITEMS.registerItem("ash_cinder_wisp_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.ASH_CINDER_WISP, properties));
+
+    // Fauna 50: Soul-Sand Hydra (Multi-Headed Serpentine)
+    public static final RegistrySupplier<Item> HYDRA_SOUL_GLAND = ITEMS.registerItem("hydra_soul_gland",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> SOUL_SAND_HYDRA_SPAWN_EGG = ITEMS.registerItem("soul_sand_hydra_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.SOUL_SAND_HYDRA, properties));
+
+    // Fauna 51: Void Shadow-Gargoyle (Rift Sentinel)
+    public static final RegistrySupplier<Item> OBSIDIAN_GARGOYLE_WING = ITEMS.registerItem("obsidian_gargoyle_wing",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> VOID_SHADOW_GARGOYLE_SPAWN_EGG = ITEMS.registerItem("void_shadow_gargoyle_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.VOID_SHADOW_GARGOYLE, properties));
+
+    // Fauna 52: Barrow Wight Golem (Crypt Sentinel)
+    public static final RegistrySupplier<Item> RUNIC_CRYPT_STONE = ITEMS.registerItem("runic_crypt_stone",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> BARROW_WIGHT_GOLEM_SPAWN_EGG = ITEMS.registerItem("barrow_wight_golem_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.BARROW_WIGHT_GOLEM, properties));
+
+    // Fauna 53: Obsidian Scorpioid (Lava Beast)
+    public static final RegistrySupplier<Item> SCORPIOID_TAIL_SPIKE = ITEMS.registerItem("scorpioid_tail_spike",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> OBSIDIAN_SCORPIOID_SPAWN_EGG = ITEMS.registerItem("obsidian_scorpioid_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.OBSIDIAN_SCORPIOID, properties));
+
+    // Fauna 54: Brimstone Wyvern (Lava Drake)
+    public static final RegistrySupplier<Item> WYVERN_SCALE = ITEMS.registerItem("wyvern_scale",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> BRIMSTONE_WYVERN_SPAWN_EGG = ITEMS.registerItem("brimstone_wyvern_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.BRIMSTONE_WYVERN, properties));
+
+    // Fauna 55: Obsidian Golem (Nether Sentinel)
+    public static final RegistrySupplier<Item> OBSIDIAN_CORE = ITEMS.registerItem("obsidian_core",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> OBSIDIAN_GOLEM_SPAWN_EGG = ITEMS.registerItem("obsidian_golem_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.OBSIDIAN_GOLEM, properties));
+
+    // Fauna 57: Soulfire Djinn (Desert Efreet)
+    public static final RegistrySupplier<Item> BRASS_DJINN_COLLAR = ITEMS.registerItem("brass_djinn_collar",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> SOULFIRE_DJINN_SPAWN_EGG = ITEMS.registerItem("soulfire_djinn_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.SOULFIRE_DJINN, properties));
+
+    // Fauna 58: Brimstone Chimera (Lava Beast)
+    public static final RegistrySupplier<Item> CHIMERA_VENOM_GLAND = ITEMS.registerItem("chimera_venom_gland",
+            properties -> new Item(properties.fireResistant()));
+    public static final RegistrySupplier<Item> BRIMSTONE_CHIMERA_SPAWN_EGG = ITEMS.registerItem("brimstone_chimera_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.BRIMSTONE_CHIMERA, properties));
+
+    // Fauna 59: Obsidian Wendigo (Forest Fiend)
+    public static final RegistrySupplier<Item> WENDIGO_SKULL_PLATE = ITEMS.registerItem("wendigo_skull_plate", Item::new);
+    public static final RegistrySupplier<Item> OBSIDIAN_WENDIGO_SPAWN_EGG = ITEMS.registerItem("obsidian_wendigo_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.OBSIDIAN_WENDIGO, properties));
+
+    // ==========================================
+    // BIOME 12: 2.12 SPORE-GLAZED PACK ITEMS
+    // ==========================================
+    // BlockItems (13)
+    public static final RegistrySupplier<BlockItem> FROZEN_SPORE_MOSS_ITEM = ITEMS.registerItem("frozen_spore_moss",
+            properties -> new BlockItem(ModBlocks.FROZEN_SPORE_MOSS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> FROZEN_SPORE_MOSS_CARPET_ITEM = ITEMS.registerItem("frozen_spore_moss_carpet",
+            properties -> new BlockItem(ModBlocks.FROZEN_SPORE_MOSS_CARPET.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SPORE_GLAZED_ICE_ITEM = ITEMS.registerItem("spore_glazed_ice",
+            properties -> new BlockItem(ModBlocks.SPORE_GLAZED_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SPORE_WOOD_LOG_ITEM = ITEMS.registerItem("spore_wood_log",
+            properties -> new BlockItem(ModBlocks.SPORE_WOOD_LOG.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SPORE_WOOD_ITEM = ITEMS.registerItem("spore_wood",
+            properties -> new BlockItem(ModBlocks.SPORE_WOOD.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SPORE_WOOD_PLANKS_ITEM = ITEMS.registerItem("spore_wood_planks",
+            properties -> new BlockItem(ModBlocks.SPORE_WOOD_PLANKS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SPORE_WOOD_STAIRS_ITEM = ITEMS.registerItem("spore_wood_stairs",
+            properties -> new BlockItem(ModBlocks.SPORE_WOOD_STAIRS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SPORE_WOOD_SLAB_ITEM = ITEMS.registerItem("spore_wood_slab",
+            properties -> new BlockItem(ModBlocks.SPORE_WOOD_SLAB.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SPORE_WOOD_FENCE_ITEM = ITEMS.registerItem("spore_wood_fence",
+            properties -> new BlockItem(ModBlocks.SPORE_WOOD_FENCE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> FROZEN_SPORE_LEAVES_ITEM = ITEMS.registerItem("frozen_spore_leaves",
+            properties -> new BlockItem(ModBlocks.FROZEN_SPORE_LEAVES.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLAZE_CAP_MUSHROOM_BLOCK_ITEM = ITEMS.registerItem("glaze_cap_mushroom_block",
+            properties -> new BlockItem(ModBlocks.GLAZE_CAP_MUSHROOM_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SPORE_BELLOWS_ITEM = ITEMS.registerItem("spore_bellows",
+            properties -> new BlockItem(ModBlocks.SPORE_BELLOWS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> CRYO_SPORE_CENSER_ITEM = ITEMS.registerItem("cryo_spore_censer",
+            properties -> new BlockItem(ModBlocks.CRYO_SPORE_CENSER.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 12 Items (5)
+    public static final RegistrySupplier<Item> MYCELIAL_SPORE_CAP = ITEMS.registerItem("mycelial_spore_cap", Item::new);
+    public static final RegistrySupplier<Item> SPORE_FILTER_MASK = ITEMS.registerItem("spore_filter_mask",
+            ddraig.net.entropica.item.biome12.SporeFilterMaskItem::new);
+    public static final RegistrySupplier<Item> CRYO_SPORE_POULTICE = ITEMS.registerItem("cryo_spore_poultice",
+            ddraig.net.entropica.item.biome12.CryoSporePoulticeItem::new);
+    public static final RegistrySupplier<Item> GLAZED_SPORE_BOMB = ITEMS.registerItem("glazed_spore_bomb",
+            ddraig.net.entropica.item.biome12.GlazedSporeBombItem::new);
+    public static final RegistrySupplier<Item> MYCELIAL_SPORE_WEAVER_SPAWN_EGG = ITEMS.registerItem("mycelial_spore_weaver_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.MYCELIAL_SPORE_WEAVER, properties));
+
+    // ==========================================
+    // BIOME 13: 2.13 MIRAGE GLACIER ITEMS
+    // ==========================================
+    // BlockItems (6)
+    public static final RegistrySupplier<BlockItem> GLASS_SAND_ITEM = ITEMS.registerItem("glass_sand",
+            properties -> new BlockItem(ModBlocks.GLASS_SAND.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLASS_SANDSTONE_ITEM = ITEMS.registerItem("glass_sandstone",
+            properties -> new BlockItem(ModBlocks.GLASS_SANDSTONE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLASS_SANDSTONE_STAIRS_ITEM = ITEMS.registerItem("glass_sandstone_stairs",
+            properties -> new BlockItem(ModBlocks.GLASS_SANDSTONE_STAIRS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GLASS_SANDSTONE_SLAB_ITEM = ITEMS.registerItem("glass_sandstone_slab",
+            properties -> new BlockItem(ModBlocks.GLASS_SANDSTONE_SLAB.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> MIRAGE_ICE_ITEM = ITEMS.registerItem("mirage_ice",
+            properties -> new BlockItem(ModBlocks.MIRAGE_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> MIRAGE_PRISM_LANTERN_ITEM = ITEMS.registerItem("mirage_prism_lantern",
+            properties -> new BlockItem(ModBlocks.MIRAGE_PRISM_LANTERN.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 13 Items (4)
+    public static final RegistrySupplier<Item> SILICA_GLASS_PLATE = ITEMS.registerItem("silica_glass_plate", Item::new);
+    public static final RegistrySupplier<Item> MIRAGE_VEIL_GOGGLES = ITEMS.registerItem("mirage_veil_goggles",
+            ddraig.net.entropica.item.biome13.MirageVeilGogglesItem::new);
+    public static final RegistrySupplier<Item> MIRAGE_DECOY_PRISM = ITEMS.registerItem("mirage_decoy_prism",
+            ddraig.net.entropica.item.biome13.MirageDecoyPrismItem::new);
+    public static final RegistrySupplier<Item> SILICA_GLASS_SCARAB_SPAWN_EGG = ITEMS.registerItem("silica_glass_scarab_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.SILICA_GLASS_SCARAB, properties));
+
+    // ==========================================
+    // BIOME 14: 2.14 OASIS FLOES ITEMS
+    // ==========================================
+    // BlockItems (5)
+    public static final RegistrySupplier<BlockItem> FROST_WILLOW_LEAVES_ITEM = ITEMS.registerItem("frost_willow_leaves",
+            properties -> new BlockItem(ModBlocks.FROST_WILLOW_LEAVES.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> FROST_WILLOW_VINES_ITEM = ITEMS.registerItem("frost_willow_vines",
+            properties -> new BlockItem(ModBlocks.FROST_WILLOW_VINES.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> AMBER_RESIN_BLOCK_ITEM = ITEMS.registerItem("amber_resin_block",
+            properties -> new BlockItem(ModBlocks.AMBER_RESIN_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> AMBER_TORCH_ITEM = ITEMS.registerItem("amber_torch",
+            properties -> new net.minecraft.world.item.StandingAndWallBlockItem(
+                    ModBlocks.AMBER_TORCH.get(),
+                    ModBlocks.WALL_AMBER_TORCH.get(),
+                    net.minecraft.core.Direction.DOWN,
+                    properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> OASIS_DEW_BASIN_ITEM = ITEMS.registerItem("oasis_dew_basin",
+            properties -> new BlockItem(ModBlocks.OASIS_DEW_BASIN.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 14 Items (4 new + upgraded AMBER_NECTAR_BOTTLE)
+    public static final RegistrySupplier<Item> AMBER_ADHESIVE = ITEMS.registerItem("amber_adhesive",
+            ddraig.net.entropica.item.biome14.AmberAdhesiveItem::new);
+    public static final RegistrySupplier<Item> WATERPROOF_SALAMANDER_SKIN = ITEMS.registerItem("waterproof_salamander_skin", Item::new);
+    public static final RegistrySupplier<Item> SALAMANDER_WADER_HOOD = ITEMS.registerItem("salamander_wader_hood",
+            ddraig.net.entropica.item.biome14.SalamanderWaderHoodItem::new);
+    public static final RegistrySupplier<Item> MUD_LURKER_SALAMANDER_SPAWN_EGG = ITEMS.registerItem("mud_lurker_salamander_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.MUD_LURKER_SALAMANDER, properties));
+
+    // ==========================================
+    // BIOME 15: 2.15 DUST-CRUSTED BERGS ITEMS
+    // ==========================================
+    // BlockItems (5)
+    public static final RegistrySupplier<BlockItem> DUST_CRUSTED_ICE_ITEM = ITEMS.registerItem("dust_crusted_ice",
+            properties -> new BlockItem(ModBlocks.DUST_CRUSTED_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> GREY_SAND_ITEM = ITEMS.registerItem("grey_sand",
+            properties -> new BlockItem(ModBlocks.GREY_SAND.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> WIND_BLOWN_DUST_SCRUB_ITEM = ITEMS.registerItem("wind_blown_dust_scrub",
+            properties -> new BlockItem(ModBlocks.WIND_BLOWN_DUST_SCRUB.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> TOUGH_FIBER_ROPE_ITEM = ITEMS.registerItem("tough_fiber_rope",
+            properties -> new BlockItem(ModBlocks.TOUGH_FIBER_ROPE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> WIND_BAFFLE_LANTERN_ITEM = ITEMS.registerItem("wind_baffle_lantern",
+            properties -> new BlockItem(ModBlocks.WIND_BAFFLE_LANTERN.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 15 Items (4)
+    public static final RegistrySupplier<Item> DRY_FIBERS = ITEMS.registerItem("dry_fibers", Item::new);
+    public static final RegistrySupplier<Item> DUST_CORE_SHARD = ITEMS.registerItem("dust_core_shard",
+            ddraig.net.entropica.item.biome15.DustCoreShardItem::new);
+    public static final RegistrySupplier<Item> COPPER_SILT_SIEVE = ITEMS.registerItem("copper_silt_sieve",
+            ddraig.net.entropica.item.biome15.CopperSiltSieveItem::new);
+    public static final RegistrySupplier<Item> DUST_DEVIL_AMPOULE = ITEMS.registerItem("dust_devil_ampoule",
+            ddraig.net.entropica.item.biome15.DustDevilAmpouleItem::new);
+    public static final RegistrySupplier<Item> DUST_CORE_GOLEM_SPAWN_EGG = ITEMS.registerItem("dust_core_golem_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.DUST_CORE_GOLEM, properties));
+
+    // ==========================================
+    // BIOME 16: 2.16 BLOOD-ICE SHALLOWS ITEMS
+    // ==========================================
+    // BlockItems (7)
+    public static final RegistrySupplier<BlockItem> SANGUINE_ICE_ITEM = ITEMS.registerItem("sanguine_ice",
+            properties -> new BlockItem(ModBlocks.SANGUINE_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> RED_CLAY_SAND_ITEM = ITEMS.registerItem("red_clay_sand",
+            properties -> new BlockItem(ModBlocks.RED_CLAY_SAND.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SANGUINE_CLAY_BRICKS_ITEM = ITEMS.registerItem("sanguine_clay_bricks",
+            properties -> new BlockItem(ModBlocks.SANGUINE_CLAY_BRICKS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SANGUINE_CLAY_BRICK_STAIRS_ITEM = ITEMS.registerItem("sanguine_clay_brick_stairs",
+            properties -> new BlockItem(ModBlocks.SANGUINE_CLAY_BRICK_STAIRS.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> SANGUINE_CLAY_BRICK_SLAB_ITEM = ITEMS.registerItem("sanguine_clay_brick_slab",
+            properties -> new BlockItem(ModBlocks.SANGUINE_CLAY_BRICK_SLAB.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> RED_ALGAE_ITEM = ITEMS.registerItem("red_algae",
+            properties -> new ddraig.net.entropica.item.biome16.RedAlgaeItem(ModBlocks.RED_ALGAE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> CRIMSON_TIDE_LANTERN_ITEM = ITEMS.registerItem("crimson_tide_lantern",
+            properties -> new BlockItem(ModBlocks.CRIMSON_TIDE_LANTERN.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 16 Items (4)
+    public static final RegistrySupplier<Item> SANGUINE_DRAUGHT_AMPOULE = ITEMS.registerItem("sanguine_draught_ampoule",
+            ddraig.net.entropica.item.biome16.SanguineDraughtAmpouleItem::new);
+    public static final RegistrySupplier<Item> SANGUINE_ICE_LANCET = ITEMS.registerItem("sanguine_ice_lancet",
+            ddraig.net.entropica.item.biome16.SanguineIceLancetItem::new);
+    public static final RegistrySupplier<Item> SANGUINE_HEART_GEL = ITEMS.registerItem("sanguine_heart_gel", Item::new);
+    public static final RegistrySupplier<Item> SANGUINE_SEA_ANGEL_SPAWN_EGG = ITEMS.registerItem("sanguine_sea_angel_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.SANGUINE_SEA_ANGEL, properties));
+
+    // ==========================================
+    // BIOME 17: 2.17 ASTRAL SKERRIES ITEMS
+    // ==========================================
+    // BlockItems (5)
+    public static final RegistrySupplier<BlockItem> STARLIGHT_ICE_ITEM = ITEMS.registerItem("starlight_ice",
+            properties -> new BlockItem(ModBlocks.STARLIGHT_ICE.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> STARDUST_CRYSTAL_BLOCK_ITEM = ITEMS.registerItem("stardust_crystal_block",
+            properties -> new BlockItem(ModBlocks.STARDUST_CRYSTAL_BLOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> STARDUST_CRYSTAL_CLUSTER_ITEM = ITEMS.registerItem("stardust_crystal_cluster",
+            properties -> new BlockItem(ModBlocks.STARDUST_CRYSTAL_CLUSTER.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> RIME_STAR_TUSSOCK_ITEM = ITEMS.registerItem("rime_star_tussock",
+            properties -> new BlockItem(ModBlocks.RIME_STAR_TUSSOCK.get(), properties.useBlockDescriptionPrefix()));
+    public static final RegistrySupplier<BlockItem> CELESTIAL_ORRERY_LANTERN_ITEM = ITEMS.registerItem("celestial_orrery_lantern",
+            properties -> new BlockItem(ModBlocks.CELESTIAL_ORRERY_LANTERN.get(), properties.useBlockDescriptionPrefix()));
+
+    // Standalone Biome 17 Items & Tools (5)
+    public static final RegistrySupplier<Item> STARDUST_FRAGMENT = ITEMS.registerItem("stardust_fragment", Item::new);
+    public static final RegistrySupplier<Item> STARLIGHT_DRAUGHT_AMPOULE = ITEMS.registerItem("starlight_draught_ampoule",
+            ddraig.net.entropica.item.biome17.StarlightDraughtAmpouleItem::new);
+    public static final RegistrySupplier<Item> STARLIGHT_TUNING_CHISEL = ITEMS.registerItem("starlight_tuning_chisel",
+            ddraig.net.entropica.item.biome17.StarlightTuningChiselItem::new);
+    public static final RegistrySupplier<Item> ASTRAL_NAUTILUS_NACRE = ITEMS.registerItem("astral_nautilus_nacre", Item::new);
+    public static final RegistrySupplier<Item> ASTRAL_NAUTILUS_ARMOR = ITEMS.registerItem("astral_nautilus_armor",
+            ddraig.net.entropica.item.biome17.AstralNautilusArmorItem::new);
+
+    // Biome 17 Star-Fishing Catches & Delicacies (12)
+    public static final RegistrySupplier<Item> NEBULA_DARTER = ITEMS.registerItem("nebula_darter",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.NEBULA_DARTER));
+    public static final RegistrySupplier<Item> COOKED_NEBULA_DARTER = ITEMS.registerItem("cooked_nebula_darter",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.COOKED_NEBULA_DARTER));
+    public static final RegistrySupplier<Item> STARWING_FLYING_FISH = ITEMS.registerItem("starwing_flying_fish",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.STARWING_FLYING_FISH));
+    public static final RegistrySupplier<Item> COOKED_STARWING_FLYING_FISH = ITEMS.registerItem("cooked_starwing_flying_fish",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.COOKED_STARWING_FLYING_FISH));
+    public static final RegistrySupplier<Item> STARFALL_RAY = ITEMS.registerItem("starfall_ray",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.STARFALL_RAY));
+    public static final RegistrySupplier<Item> COOKED_STARFALL_RAY = ITEMS.registerItem("cooked_starfall_ray",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.COOKED_STARFALL_RAY));
+    public static final RegistrySupplier<Item> COMET_RIBBONFISH = ITEMS.registerItem("comet_ribbonfish",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.COMET_RIBBONFISH));
+    public static final RegistrySupplier<Item> COOKED_COMET_RIBBONFISH = ITEMS.registerItem("cooked_comet_ribbonfish",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.COOKED_COMET_RIBBONFISH));
+    public static final RegistrySupplier<Item> ZENITH_MOONFISH = ITEMS.registerItem("zenith_moonfish",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.ZENITH_MOONFISH));
+    public static final RegistrySupplier<Item> COOKED_ZENITH_MOONFISH = ITEMS.registerItem("cooked_zenith_moonfish",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.COOKED_ZENITH_MOONFISH));
+    public static final RegistrySupplier<Item> SUPERNOVA_PUFFER = ITEMS.registerItem("supernova_puffer",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.SUPERNOVA_PUFFER));
+    public static final RegistrySupplier<Item> ASTRAL_LANTERNFISH = ITEMS.registerItem("astral_lanternfish",
+            properties -> new ddraig.net.entropica.item.biome17.AstralFishItem(
+                    properties, ddraig.net.entropica.item.biome17.AstralFishItem.FishProfile.ASTRAL_LANTERNFISH));
+
+    // Biome 17 Fauna Spawn Egg
+    public static final RegistrySupplier<Item> STARLIGHT_NAUTILUS_SPAWN_EGG = ITEMS.registerItem("starlight_nautilus_spawn_egg",
+            properties -> new ddraig.net.entropica.item.ModSpawnEggItem(ModEntityTypes.STARLIGHT_NAUTILUS, properties));
 
     public static RegistrySupplier<Item> getCelestialJournal(int volume) {
         return switch (volume) {

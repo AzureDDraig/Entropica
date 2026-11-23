@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "III",
+    "ISI",
+    "III"
+  ],
+  "key": {
+    "I": [
+      "minecraft:blue_ice",
+      "minecraft:packed_ice"
+    ],
+    "S": "entropica:vapor_condenser_spore"
+  },
+  "result": {
+    "id": "entropica:steaming_ice",
+    "count": 4
+  }
+}

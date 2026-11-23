@@ -1,0 +1,6 @@
+{
+  "type": "entropica:fulgurite_cryo_relay",
+  "biomes": "#entropica:has_structure/fulgurite_cryo_relay",
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}

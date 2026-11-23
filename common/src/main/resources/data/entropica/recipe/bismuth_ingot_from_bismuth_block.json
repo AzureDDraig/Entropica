@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "bismuth_ingot",
+  "ingredients": [
+    "entropica:bismuth_block"
+  ],
+  "result": {
+    "id": "entropica:bismuth_ingot",
+    "count": 9
+  }
+}

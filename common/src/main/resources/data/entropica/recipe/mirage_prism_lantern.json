@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "GAG",
+    "CSC"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "G": "entropica:mirage_glass",
+    "A": "entropica:shimmering_mirage_aura",
+    "S": "entropica:glass_sandstone"
+  },
+  "result": {
+    "id": "entropica:mirage_prism_lantern",
+    "count": 1
+  }
+}

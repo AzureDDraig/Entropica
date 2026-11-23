@@ -1,0 +1,117 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "side": "entropica:block/barrow_sentinel_totem_side",
+    "top": "entropica:block/barrow_sentinel_totem_top",
+    "stone": "entropica:block/barrow_stone_bricks",
+    "particle": "entropica:block/barrow_sentinel_totem_side"
+  },
+  "display": {
+    "gui": {
+      "rotation": [30, 135, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.64, 0.64, 0.64]
+    },
+    "ground": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 3, 0],
+      "scale": [0.35, 0.35, 0.35]
+    },
+    "fixed": {
+      "rotation": [0, 180, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [75, 225, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 135, 0],
+      "translation": [0, 0.75, 0],
+      "scale": [0.42, 0.42, 0.42]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 315, 0],
+      "translation": [0, 0.75, 0],
+      "scale": [0.42, 0.42, 0.42]
+    }
+  },
+  "elements": [
+    {
+      "from": [2, 0, 2],
+      "to": [14, 3, 14],
+      "faces": {
+        "north": { "uv": [2, 13, 14, 16], "texture": "#side" },
+        "east":  { "uv": [2, 13, 14, 16], "texture": "#stone" },
+        "south": { "uv": [2, 13, 14, 16], "texture": "#stone" },
+        "west":  { "uv": [2, 13, 14, 16], "texture": "#stone" },
+        "up":    { "uv": [2, 2, 14, 14], "texture": "#stone" },
+        "down":  { "uv": [2, 2, 14, 14], "texture": "#stone", "cullface": "down" }
+      }
+    },
+    {
+      "from": [4, 3, 4],
+      "to": [12, 10, 12],
+      "faces": {
+        "north": { "uv": [4, 9, 12, 15], "texture": "#side" },
+        "east":  { "uv": [4, 9, 12, 15], "texture": "#side" },
+        "south": { "uv": [4, 9, 12, 15], "texture": "#side" },
+        "west":  { "uv": [4, 9, 12, 15], "texture": "#side" }
+      }
+    },
+    {
+      "from": [3, 10, 3],
+      "to": [13, 16, 13],
+      "faces": {
+        "north": { "uv": [3, 2, 13, 9], "texture": "#side" },
+        "east":  { "uv": [3, 0, 13, 4], "texture": "#stone" },
+        "south": { "uv": [3, 9, 13, 15], "texture": "#side" },
+        "west":  { "uv": [3, 0, 13, 4], "texture": "#stone" },
+        "up":    { "uv": [3, 3, 13, 13], "texture": "#top", "cullface": "up" },
+        "down":  { "uv": [3, 3, 13, 13], "texture": "#stone" }
+      }
+    },
+    {
+      "from": [4, 12.25, 2.25],
+      "to": [12, 14.75, 3],
+      "faces": {
+        "north": { "uv": [3, 3, 13, 5], "texture": "#side" },
+        "east":  { "uv": [3, 3, 4, 5], "texture": "#side" },
+        "west":  { "uv": [12, 3, 13, 5], "texture": "#side" },
+        "up":    { "uv": [3, 3, 13, 4], "texture": "#side" },
+        "down":  { "uv": [3, 4, 13, 5], "texture": "#side" }
+      }
+    },
+    {
+      "from": [2, 11.5, 5],
+      "to": [3, 15.5, 11],
+      "faces": {
+        "north": { "uv": [3, 3, 4, 6], "texture": "#side" },
+        "south": { "uv": [3, 3, 4, 6], "texture": "#stone" },
+        "west":  { "uv": [5, 2, 11, 6], "texture": "#stone" },
+        "up":    { "uv": [2, 5, 3, 11], "texture": "#stone" },
+        "down":  { "uv": [2, 5, 3, 11], "texture": "#stone" }
+      }
+    },
+    {
+      "from": [13, 11.5, 5],
+      "to": [14, 15.5, 11],
+      "faces": {
+        "north": { "uv": [12, 3, 13, 6], "texture": "#side" },
+        "east":  { "uv": [5, 2, 11, 6], "texture": "#stone" },
+        "south": { "uv": [12, 3, 13, 6], "texture": "#stone" },
+        "up":    { "uv": [13, 5, 14, 11], "texture": "#stone" },
+        "down":  { "uv": [13, 5, 14, 11], "texture": "#stone" }
+      }
+    }
+  ]
+}

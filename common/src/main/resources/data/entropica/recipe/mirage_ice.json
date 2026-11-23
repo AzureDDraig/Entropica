@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " I ",
+    "IAI",
+    " I "
+  ],
+  "key": {
+    "I": "minecraft:packed_ice",
+    "A": "entropica:shimmering_mirage_aura"
+  },
+  "result": {
+    "id": "entropica:mirage_ice",
+    "count": 4
+  }
+}

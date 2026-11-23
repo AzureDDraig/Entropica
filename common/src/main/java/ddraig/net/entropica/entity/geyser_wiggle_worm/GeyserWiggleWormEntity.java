@@ -3,7 +3,9 @@ package ddraig.net.entropica.entity.geyser_wiggle_worm;
 import com.mojang.serialization.Codec;
 import ddraig.net.entropica.registry.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -11,10 +13,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -26,7 +32,12 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.storage.ValueInput;
@@ -61,10 +72,103 @@ public class GeyserWiggleWormEntity extends PathfinderMob {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 20.0D)
+                .add(Attributes.MAX_HEALTH, 40.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.24D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.6D)
                 .add(Attributes.ATTACK_DAMAGE, 4.0D);
+    }
+
+    private static boolean isThinSurfaceCover(BlockState state) {
+        if (state.is(Blocks.SNOW)) {
+            return true;
+        }
+        String path = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+        return "vapor_weaver_lichen".equals(path)
+                || "mist_veil_fern".equals(path)
+                || "auroral_feather_moss".equals(path)
+                || "blue_frozen_moss_carpet".equals(path)
+                || "shadowed_eclipse_moss".equals(path);
+    }
+
+    public static boolean isGeyserWiggleWormSpawnSurface(BlockGetter level, BlockPos belowPos, BlockState belowState) {
+        if (belowState.isAir()) {
+            return false;
+        }
+        if (belowState.is(Blocks.GRAVEL)
+                || belowState.is(Blocks.BLUE_ICE)
+                || belowState.is(Blocks.PACKED_ICE)
+                || belowState.is(Blocks.ICE)
+                || belowState.is(Blocks.FROSTED_ICE)
+                || belowState.is(Blocks.BASALT)
+                || belowState.is(Blocks.SMOOTH_BASALT)
+                || belowState.is(Blocks.POLISHED_BASALT)
+                || belowState.is(Blocks.MAGMA_BLOCK)
+                || belowState.is(Blocks.BLACKSTONE)
+                || belowState.is(Blocks.NETHERRACK)
+                || belowState.is(Blocks.STONE)
+                || belowState.is(Blocks.SAND)
+                || belowState.is(BlockTags.ICE)
+                || belowState.is(BlockTags.BASE_STONE_OVERWORLD)
+                || belowState.is(BlockTags.ANIMALS_SPAWNABLE_ON)) {
+            return true;
+        }
+        String path = BuiltInRegistries.BLOCK.getKey(belowState.getBlock()).getPath();
+        return "steaming_ice".equals(path)
+                || "steaming_spring_stone".equals(path)
+                || "steam_vent".equals(path)
+                || "coarse_gravel".equals(path)
+                || "basalt_column".equals(path)
+                || (belowState.getFluidState().isEmpty() && belowState.isFaceSturdy(level, belowPos, Direction.UP));
+    }
+
+    public static boolean checkGeyserWiggleWormSpawnRules(
+            EntityType<? extends PathfinderMob> type,
+            ServerLevelAccessor level,
+            EntitySpawnReason spawnReason,
+            BlockPos pos,
+            RandomSource random
+    ) {
+        if (EntitySpawnReason.isSpawner(spawnReason)
+                || spawnReason == EntitySpawnReason.SPAWN_ITEM_USE
+                || spawnReason == EntitySpawnReason.COMMAND) {
+            return true;
+        }
+        BlockPos belowPos = pos.below();
+        BlockState below = level.getBlockState(belowPos);
+        if (isThinSurfaceCover(below) && level.getBlockState(belowPos.below()).blocksMotion()) {
+            belowPos = belowPos.below();
+            below = level.getBlockState(belowPos);
+        }
+        return isGeyserWiggleWormSpawnSurface(level, belowPos, below);
+    }
+
+    @Override
+    public boolean checkSpawnRules(LevelAccessor level, EntitySpawnReason spawnReason) {
+        BlockPos belowPos = this.blockPosition().below();
+        BlockState belowState = level.getBlockState(belowPos);
+        if (isThinSurfaceCover(belowState) && level.getBlockState(belowPos.below()).blocksMotion()) {
+            belowPos = belowPos.below();
+            belowState = level.getBlockState(belowPos);
+        }
+        if (isGeyserWiggleWormSpawnSurface(level, belowPos, belowState)) {
+            return true;
+        }
+        return super.checkSpawnRules(level, spawnReason);
+    }
+
+    @Override
+    public float getWalkTargetValue(BlockPos pos, LevelReader level) {
+        BlockState below = level.getBlockState(pos.below());
+        String path = BuiltInRegistries.BLOCK.getKey(below.getBlock()).getPath();
+        if (below.is(Blocks.MAGMA_BLOCK)
+                || "steam_vent".equals(path)
+                || "steaming_spring_stone".equals(path)) {
+            return 10.0F;
+        }
+        if (isGeyserWiggleWormSpawnSurface(level, pos.below(), below)) {
+            return 2.0F;
+        }
+        return 0.0F;
     }
 
     @Override
@@ -112,6 +216,16 @@ public class GeyserWiggleWormEntity extends PathfinderMob {
     @Override
     public boolean fireImmune() {
         return true;
+    }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        boolean hit = super.doHurtTarget(level, target);
+        if (hit) {
+            this.setAttacking(true);
+            this.attackAnimTimer = 24;
+        }
+        return hit;
     }
 
     @Override
@@ -228,6 +342,9 @@ public class GeyserWiggleWormEntity extends PathfinderMob {
         this.spawnAtLocation(level, new ItemStack(ModItems.VAPOR_VENT_MEMBRANE.get(), 1));
         int sulfur = 2 + this.random.nextInt(2);
         this.spawnAtLocation(level, new ItemStack(ModItems.SULFUR_CLOD.get(), sulfur));
+        ItemStack vaporEssence = new ItemStack(ModItems.AVERAGE_ESSENCE.get(), 2 + this.random.nextInt(3));
+        ddraig.net.entropica.item.EssenceItem.setEssenceType(vaporEssence, ddraig.net.entropica.api.EssenceType.VAPOR);
+        this.spawnAtLocation(level, vaporEssence);
     }
 
     @Override

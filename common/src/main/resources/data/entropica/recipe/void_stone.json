@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "minecraft:deepslate",
+    "minecraft:deepslate",
+    "entropica:void_sand",
+    "entropica:void_sand"
+  ],
+  "result": {
+    "id": "entropica:void_stone",
+    "count": 4
+  }
+}

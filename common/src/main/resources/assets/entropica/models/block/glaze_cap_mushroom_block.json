@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "entropica:block/glaze_cap_mushroom_block"
+  }
+}

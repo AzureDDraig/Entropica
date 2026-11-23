@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "GLG",
+    "CAC",
+    " L "
+  ],
+  "key": {
+    "G": "entropica:spore_glass",
+    "L": "minecraft:leather",
+    "C": "minecraft:copper_ingot",
+    "A": "entropica:mossy_aegis_plate"
+  },
+  "result": {
+    "id": "entropica:spore_filter_mask",
+    "count": 1
+  }
+}

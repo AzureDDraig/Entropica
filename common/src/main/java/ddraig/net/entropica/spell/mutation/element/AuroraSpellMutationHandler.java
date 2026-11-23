@@ -757,15 +757,18 @@ public final class AuroraSpellMutationHandler implements MateriaPartMutationHand
             cometTargets[i] = findGroundSurfaceNear(level, raw).above();
         }
 
-        Map<BlockPos, BlockState> savedBlocks = new HashMap<>();
+        final boolean[] landed = new boolean[5];
+        final boolean[] materialized = {false};
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 150, level.getGameTime(), spell, slot, EssenceType.AURORA, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedBlocks.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.BLUE_ICE) || cur.is(Blocks.SNOW)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int cIdx = 0; cIdx < 5; cIdx++) {
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(
+                                        srv, cometTargets[cIdx], Blocks.BLUE_ICE.defaultBlockState(), 2
+                                );
                             }
                         }
                         return false;
@@ -776,6 +779,7 @@ public final class AuroraSpellMutationHandler implements MateriaPartMutationHand
                         int impactTick = 20 + cIdx * 24;
                         BlockPos strikePos = cometTargets[cIdx];
                         if (elapsed == impactTick - 16) {
+                            int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                             SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                     srv,
                                     new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -783,11 +787,12 @@ public final class AuroraSpellMutationHandler implements MateriaPartMutationHand
                                     Blocks.BLUE_ICE.defaultBlockState(),
                                     2,
                                     16,
-                                    24,
+                                    holdTicks,
                                     EssenceType.AURORA,
                                     tier
                             );
                         } else if (elapsed == impactTick) {
+                            landed[cIdx] = true;
                             Vec3 cometHit = new Vec3(strikePos.getX() + 0.5D, strikePos.getY(), strikePos.getZ() + 0.5D);
                             LivingEntity owner = zone.resolveCaster(srv);
                             boolean wardSafe = zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard();
@@ -823,19 +828,16 @@ public final class AuroraSpellMutationHandler implements MateriaPartMutationHand
                                 );
                             }
 
-                            // Coat the comet crater floor & surface water in temporary BLUE_ICE!
+                            // Freeze surface water & dust surrounding ground in snow around the comet impact!
                             for (BlockPos p : BlockPos.betweenClosed(strikePos.offset(-2, -1, -2), strikePos.offset(2, 0, 2))) {
-                                if (p.distSqr(strikePos) > 5.0D) continue;
+                                if (p.distSqr(strikePos) > 5.0D || p.equals(strikePos)) continue;
                                 BlockState cur = srv.getBlockState(p);
                                 if (SpellExecutionEngine.isProtectedBlockOrContainer(srv, p, cur)) continue;
-                                if (cur.is(Blocks.WATER)
-                                        || (p.getY() == strikePos.getY() - 1 && !cur.isAir() && cur.isSolidRender() && !cur.is(Blocks.BLUE_ICE))) {
-                                    savedBlocks.putIfAbsent(p.immutable(), cur);
-                                    srv.setBlock(p, Blocks.BLUE_ICE.defaultBlockState(), Block.UPDATE_CLIENTS);
+                                if (cur.is(Blocks.WATER)) {
+                                    srv.setBlockAndUpdate(p, Blocks.BLUE_ICE.defaultBlockState());
                                 } else if (p.getY() == strikePos.getY() && cur.isAir()
                                         && srv.getBlockState(p.below()).isSolidRender()
                                         && Blocks.SNOW.defaultBlockState().canSurvive(srv, p)) {
-                                    savedBlocks.putIfAbsent(p.immutable(), cur);
                                     srv.setBlockAndUpdate(p, Blocks.SNOW.defaultBlockState());
                                 }
                             }
@@ -845,6 +847,9 @@ public final class AuroraSpellMutationHandler implements MateriaPartMutationHand
                             srv.sendParticles(ParticleTypes.SNOWFLAKE, cometHit.x, cometHit.y + 0.8D, cometHit.z, 26, 1.4D, 0.5D, 1.4D, 0.08D);
                             srv.sendParticles(ParticleTypes.END_ROD, cometHit.x, cometHit.y + 0.8D, cometHit.z, 20, 1.2D, 0.5D, 1.2D, 0.08D);
                             srv.playSound(null, strikePos, SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1.0F, 1.35F);
+                        }
+                        if (landed[cIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, 2, false);
                         }
                     }
                     return true;

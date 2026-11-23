@@ -89,7 +89,7 @@ public class AshenStalkerEntity extends PathfinderMob {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 55.0D)
+                .add(Attributes.MAX_HEALTH, 165.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.28D)
                 .add(Attributes.ATTACK_DAMAGE, 10.0D)
                 .add(Attributes.ATTACK_KNOCKBACK, 1.0D) // Added to give the bite some force!
@@ -319,12 +319,12 @@ public class AshenStalkerEntity extends PathfinderMob {
         super.dropCustomDeathLoot(level, damageSource, recentlyHit);
 
         // 1. Nether Essence (Strong)
-        ItemStack netherEssence = new ItemStack(ModItems.STRONG_ESSENCE.get(), 1 + this.random.nextInt(2));
+        ItemStack netherEssence = new ItemStack(ModItems.STRONG_ESSENCE.get(), 2 + this.random.nextInt(2));
         EssenceItem.setEssenceType(netherEssence, EssenceType.NETHER);
         this.spawnAtLocation(level, netherEssence);
 
         // 2. Arid Essence (Average)
-        ItemStack aridEssence = new ItemStack(ModItems.AVERAGE_ESSENCE.get(), 1 + this.random.nextInt(2));
+        ItemStack aridEssence = new ItemStack(ModItems.STRONG_ESSENCE.get(), 1 + this.random.nextInt(2));
         EssenceItem.setEssenceType(aridEssence, EssenceType.ARID);
         this.spawnAtLocation(level, aridEssence);
 

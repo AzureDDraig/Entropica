@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "blue_frozen_moss",
+  "pattern": [
+    "FF",
+    "FF"
+  ],
+  "key": {
+    "F": "entropica:frozen_moss_clump"
+  },
+  "result": {
+    "id": "entropica:blue_frozen_moss",
+    "count": 1
+  }
+}

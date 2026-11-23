@@ -22,9 +22,12 @@ public class CodexJoinHandler {
                     player.displayClientMessage(Component.translatable("msg.entropica.you_received_the_entropic_codex_right"), false);
                 }
 
-                // Sync Astral Constellation Progress & Connections
+                // Sync Astral Constellation Progress & Connections + Entropic Codex Progress
                 ddraig.net.entropica.astral.PlayerAstralProgress.loadFromPlayer(player);
                 if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                    ddraig.net.entropica.data.CodexPlayerData.getServerData(serverPlayer).loadFromPlayerEntity(serverPlayer);
+                    ddraig.net.entropica.data.CodexPlayerData.syncToClient(serverPlayer);
+
                     var discovered = new java.util.ArrayList<>(ddraig.net.entropica.astral.PlayerAstralProgress.getDiscovered(player));
                     var charted = new java.util.ArrayList<>(ddraig.net.entropica.astral.PlayerAstralProgress.getChartedConnections(player));
                     dev.architectury.networking.NetworkManager.sendToPlayer(serverPlayer, new ddraig.net.entropica.network.SyncAstralProgressPayload(discovered, charted));

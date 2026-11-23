@@ -1,0 +1,6 @@
+{
+  "type": "entropica:geothermal_vaporous_grotto",
+  "biomes": "#entropica:has_structure/geothermal_vaporous_grotto",
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}

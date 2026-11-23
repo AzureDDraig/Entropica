@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "entropica:block/wall_amber_torch"
+    },
+    "facing=north": {
+      "model": "entropica:block/wall_amber_torch",
+      "y": 270
+    },
+    "facing=south": {
+      "model": "entropica:block/wall_amber_torch",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "entropica:block/wall_amber_torch",
+      "y": 180
+    }
+  }
+}

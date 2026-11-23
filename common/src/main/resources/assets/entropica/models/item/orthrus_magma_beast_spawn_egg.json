@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:item/orthrus_magma_beast_spawn_egg"
+  }
+}

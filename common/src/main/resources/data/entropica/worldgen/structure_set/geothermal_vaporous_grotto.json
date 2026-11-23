@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:geothermal_vaporous_grotto",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 619482731,
+    "spacing": 22,
+    "separation": 8
+  }
+}

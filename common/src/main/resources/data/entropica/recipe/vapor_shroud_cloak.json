@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "F F",
+    "MSM",
+    "FMF"
+  ],
+  "key": {
+    "F": "entropica:mist_veil_frond",
+    "M": "entropica:vapor_vent_membrane",
+    "S": "entropica:vapor_condenser_spore"
+  },
+  "result": {
+    "id": "entropica:vapor_shroud_cloak",
+    "count": 1
+  }
+}

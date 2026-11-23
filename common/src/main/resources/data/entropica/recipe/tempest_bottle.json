@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:glass_bottle",
+    "entropica:zephyr_glass_fiber",
+    "entropica:static_frost_powder",
+    "entropica:storm_kite_membrane"
+  ],
+  "result": {
+    "id": "entropica:tempest_bottle",
+    "count": 2
+  }
+}

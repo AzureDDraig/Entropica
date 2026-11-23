@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NBN",
+    "BFB",
+    "NBN"
+  ],
+  "key": {
+    "N": "minecraft:iron_nugget",
+    "B": "entropica:barrow_stone_bricks",
+    "F": "entropica:grave_glow_feather"
+  },
+  "result": {
+    "id": "entropica:crypt_siphon_lantern",
+    "count": 1
+  }
+}

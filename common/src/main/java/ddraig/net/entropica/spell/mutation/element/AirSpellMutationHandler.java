@@ -3,10 +3,12 @@ package ddraig.net.entropica.spell.mutation.element;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.client.particle.TimedTintableParticleOption;
 import ddraig.net.entropica.entity.projectile.SpellProjectileEntity;
+import ddraig.net.entropica.registry.ModDataComponents;
 import ddraig.net.entropica.registry.ModParticles;
 import ddraig.net.entropica.spell.SpellCoreEffect;
 import ddraig.net.entropica.spell.SpellDeliveryForm;
 import ddraig.net.entropica.spell.SpellFlowModifier;
+import ddraig.net.entropica.spell.apparatus.CastingApparatusState;
 import ddraig.net.entropica.spell.assembly.SpellAssembly;
 import ddraig.net.entropica.spell.assembly.SubSpellSlot;
 import ddraig.net.entropica.spell.engine.SpellCombatReactionEngine;
@@ -25,16 +27,26 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.vehicle.AbstractBoat;
+import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.entity.vehicle.VehicleEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.AbstractCandleBlock;
 import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -42,28 +54,32 @@ import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Complete per-part Signature Mutation implementation for <b>Air Materia (Base Type #1)</b>
  * (Spellcrafting System Guide Section 6.2):
  * <ul>
- *     <li><b>Flow (Chains)</b>: <i>Sonic Leap Chains</i> — instant wind-bridge arcs dragging chained targets forcefully together.</li>
+ *     <li><b>Flow</b>: <i>Sonic Leap Chains</i> (1.5s lingering vacuum wind bridges), <i>Zephyr Gale Orbit</i> (+35% orbit speed),
+ *         and <i>Aerodynamic Slipstream Flow</i> (+35% flight speed on all non-Slow Flows).</li>
  *     <li><b>Projectile</b>: <i>Turbulence Spiral</i> — 3D corkscrew wind-lance deflecting incoming hostile projectiles along flight.</li>
- *     <li><b>Beam</b>: <i>Jetstream Propulsion</i> — wind-tunnel knockback + continuous vertical jetpack lifter when aimed downward.</li>
+ *     <li><b>Beam</b>: <i>Jetstream Propulsion</i> — piercing wind-tunnel knockback + surface-grounded vertical jetpack lifter when aimed downward.</li>
  *     <li><b>Radial Burst</b>: <i>Gust Shield</i> — 3D spherical wind barrier pushing foes back, halving projectile damage, +30% caster speed.</li>
- *     <li><b>Touch / Strike</b>: <i>Concussive Uppercut</i> — launches struck foes 8 blocks straight into the air for full fall impact.</li>
- *     <li><b>Aura / Self</b>: <i>Slipstream Shield</i> — sprinting charges a 3D wind-cone barrier bowling colliding mobs aside with wind-shear.</li>
- *     <li><b>Glyph / Trap</b>: <i>Geyser Mine (Air Trampoline)</i> — 1s arm, 10m/indefinite persistence, 50% disarm refund; launches 14 blocks skyward.</li>
- *     <li><b>Cone / Spray</b>: <i>Howling Gale</i> — 60° hurricane cone pushing mobs 8 blocks back, extinguishing fires/candles, deflecting projectiles.</li>
- *     <li><b>Rain / Skyfall</b>: <i>Tornado Vortex</i> — 5s 3D indoor-viable funnel pulling mobs into its spinning eye before flinging them outward.</li>
- *     <li><b>Summon / Eidolon</b>: <i>Zephyr Eidolon</i> — golden-buff (#A88654) Agent, Sentry, or Decoy construct.</li>
- *     <li><b>Blink / Step</b>: <i>Vacuum Implosion</i> — leaves an inward-collapsing 3D vacuum sphere at the departure spot sucking foes together.</li>
- *     <li><b>Transmute</b>: <i>Aeration & Dehydration</i> — dries wet sponges, turns mud into clay, blows away cobwebs & leaves.</li>
- *     <li><b>Affliction</b>: <i>Hypoxia Suffocation Hex</i> — persistent anti-milk respiratory curse cutting attack speed by 40% & suffocating on land.</li>
+ *     <li><b>Touch / Strike</b>: <i>Concussive Uppercut</i> — launches the primary struck foe 8 blocks straight into the air.</li>
+ *     <li><b>Aura / Self</b>: <i>Slipstream Shield</i> — +20% walk speed; sprinting 0.8s charges a wind-cone barrier bowling mobs aside.</li>
+ *     <li><b>Glyph / Trap</b>: <i>Geyser Mine (Air Trampoline)</i> — 1.5s / step-off arm, circular 3m bounce launching all entities 14 blocks skyward while cushioning friendly landings.</li>
+ *     <li><b>Cone / Spray</b>: <i>Howling Gale</i> — exact 60° hurricane cone pushing mobs back, extinguishing fires/campfires/candles, deflecting incoming physical projectiles.</li>
+ *     <li><b>Rain / Skyfall</b>: <i>Tornado Vortex</i> — 9s–45s scaling 6m–11m 3D indoor-viable funnel pulling foes into its eye before flinging them outward.</li>
+ *     <li><b>Summon / Eidolon</b>: <i>Zephyr Eidolon</i> — golden-buff (#A88654) Agent, Updraft Sentry, or Cyclone Decoy construct.</li>
+ *     <li><b>Blink / Step</b>: <i>Vacuum Implosion</i> — inward-collapsing 3D vacuum sphere at departure sucking foes, items &amp; projectiles together with 1.2s Slowness II pop.</li>
+ *     <li><b>Transmute</b>: <i>Aeration &amp; Dehydration</i> — dries wet sponges, turns mud into clay, dries muddy roots, and cleanly blows away cobwebs &amp; leaves.</li>
+ *     <li><b>Affliction</b>: <i>Hypoxia Suffocation Hex</i> — persistent anti-milk respiratory curse cutting stamina &amp; attack speed by 40% and suffocating on land.</li>
  * </ul>
  */
 public final class AirSpellMutationHandler implements MateriaPartMutationHandler {
@@ -71,6 +87,11 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
     public static final int ZEPHYR_EIDOLON_HEX_COLOR = 0xA88654;
     private static final int AIR_SLIPSTREAM_GOLD_RGB = 0xCFA86E;
     private static final int AIR_SLIPSTREAM_WHITE_RGB = 0xEEF9FF;
+
+    /** Exact 60-degree total cone (30-degree half-angle: cos(30°) = 0.8660254). */
+    private static final double CONE_HALF_ANGLE_COS = 0.8660254D;
+    /** tan(30°) = 1 / sqrt(3) for full 60-degree cone block extinguishing width. */
+    private static final double CONE_HALF_ANGLE_TAN = 0.57735027D;
 
     @Override
     public EssenceType materiaType() {
@@ -82,22 +103,22 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
     // =========================================================================
 
     @Override
-    public String resolveFlowTitle(SpellFlowModifier flow) {
+    public @Nullable String resolveFlowTitle(SpellFlowModifier flow) {
         return switch (flow) {
             case CHAIN_LEAP -> "Sonic Leap Chains";
-            case FAST_DART -> "Supersonic Slipstream Dart";
-            case ORBIT_SATELLITE -> "Cyclone Satellite Ring";
-            default -> "Zephyr Gale " + flow.getDisplayName();
+            case ORBIT_SATELLITE -> "Zephyr Gale Orbit";
+            case SLOW_HEAVY -> null;
+            default -> "Aerodynamic Slipstream Flow";
         };
     }
 
     @Override
     public @Nullable String resolveFlowDescription(SpellFlowModifier flow) {
         return switch (flow) {
-            case CHAIN_LEAP -> "Sonic Leap Chains: Instant vacuum wind-bridges drag chained enemies forcefully toward their midpoint.";
-            case FAST_DART -> "Supersonic Slipstream Dart: Compresses wind around the payload for +30% flight speed and razor-straight stability.";
-            case ORBIT_SATELLITE -> "Cyclone Satellite Ring: Orbits swirling golden-ivory wind blades that slice and repel encroaching foes.";
-            default -> "Zephyr Gale Flow: Accelerates spell transit by +30% along pressurized slipstream currents.";
+            case CHAIN_LEAP -> "Sonic Leap Chains: Spawns 1.5s lingering vacuum wind bridges (+35% leap speed) that continuously tug chained foes toward their midpoint.";
+            case ORBIT_SATELLITE -> "Zephyr Gale Orbit: Accelerates orbital angular speed by +35% and pulses 2.5m wind-shear knockback waves.";
+            case SLOW_HEAVY -> null;
+            default -> "Aerodynamic Slipstream Flow: Accelerates spell projectile transit by +35% along pressurized slipstream currents.";
         };
     }
 
@@ -120,17 +141,17 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
     @Override
     public @Nullable String resolveFormDescription(SpellDeliveryForm form) {
         return switch (form) {
-            case PROJECTILE -> "Turbulence Spiral: 3D corkscrew wind-lance that deflects incoming hostile arrows and projectiles along its path.";
-            case BEAM -> "Jetstream Propulsion: Wind-tunnel beam knocking foes back; aiming downward lifts and hovers you like a vertical jetpack.";
-            case RADIAL_BURST -> "Gust Shield: Spherical wind barrier pushing foes away, halving projectile damage, and granting +30% movement speed.";
-            case TOUCH_STRIKE -> "Concussive Uppercut: Launches struck foes 8 blocks straight into the air so they suffer full fall impact on landing.";
-            case AURA -> "Slipstream Shield: Agile wind veil; sprinting charges a ramming air-barrier that bowls colliding enemies aside.";
-            case GLYPH -> "Geyser Mine: Arms in 1s, lasts 10m (indefinite at Tier 5+); launches entities within 3m 14 blocks skyward.";
-            case CONE -> "Howling Gale: 60° hurricane blast pushing foes 8m back, extinguishing fires/campfires, and blowing projectiles away.";
-            case SKYFALL -> "Tornado Vortex: 5s 3D twisting funnel (works indoors) pulling mobs into its spinning eye before flinging them outward.";
-            case SUMMON_AGENT -> "Zephyr Agent: Swift golden-buff (#A88654) wind-blade hunter that juggles targets upward with cyclone slashes.";
-            case SUMMON_SENTRY -> "Zephyr Sentry: Anchored golden-buff (#A88654) wind pylon pulsing 6m updraft gusts and rapid spiral wind-bolts.";
-            case SUMMON_DECOY -> "Zephyr Decoy: Shimmering golden-buff (#A88654) cyclone effigy taunting foes within 12m before bursting outward.";
+            case PROJECTILE -> "Turbulence Spiral: Corkscrew spiral wind-lance that physically weaves along its aim line and deflects incoming hostile projectiles.";
+            case BEAM -> "Jetstream Propulsion: Piercing wind-tunnel beam repelling lined-up foes; aiming downward near solid or fluid surfaces lifts you like a jetpack.";
+            case RADIAL_BURST -> "Gust Shield: Spherical wind barrier pushing foes away, halving projectile damage, and granting +30% movement speed (with Air affinity).";
+            case TOUCH_STRIKE -> "Concussive Uppercut: Launches the primary struck foe 8 blocks straight into the air while staggering adjacent bystanders.";
+            case AURA -> "Slipstream Shield: Grants +20% passive movement speed (with Air affinity); sprinting 0.8s charges a wind barrier bowling foes aside for 28% Materia damage.";
+            case GLYPH -> "Geyser Mine (Air Trampoline): Arms in 1.5s (or once you step off), lasts 10m (indefinite at Tier 5+); launches all entities within 3m 14 blocks skyward while cushioning friendly landings.";
+            case CONE -> "Howling Gale: 60° hurricane blast pushing foes 8m back, extinguishing fires/campfires/candles across the cone, and blowing incoming physical projectiles away.";
+            case SKYFALL -> "Tornado Vortex: 9s–45s 3D twisting funnel (6m–11m, works indoors) pulling foes into its spinning eye before flinging them outward.";
+            case SUMMON_AGENT -> "Zephyr Agent: Swift golden-buff (#A88654) wind-blade hunter that juggles non-boss targets upward with cyclone slashes.";
+            case SUMMON_SENTRY -> "Zephyr Sentry: Anchored golden-buff (#A88654) wind pylon pulsing 6m updraft gusts every 0.75s to launch encroaching foes skyward.";
+            case SUMMON_DECOY -> "Zephyr Decoy: Shimmering golden-buff (#A88654) cyclone effigy taunting foes within 12m before releasing a non-damaging cyclone gust.";
         };
     }
 
@@ -151,9 +172,9 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
     @Override
     public @Nullable String resolveEffectDescription(SpellCoreEffect effect) {
         return switch (effect) {
-            case BLINK -> "Vacuum Implosion: Blinking leaves a vacuum pop at your departure spot that sucks adjacent foes inward.";
-            case TRANSMUTE, BREAK -> "Aeration & Dehydration: Instantly dries wet sponges, dehydrates mud into clay, and blows away cobwebs and leaves.";
-            case AFFLICTION -> "Hypoxia Suffocation Hex: Anti-milk curse cutting attack speed by 40% and suffocating targets on dry land.";
+            case BLINK -> "Vacuum Implosion: Blinking leaves a 0.5s vacuum sphere at your departure spot that sucks nearby foes, items, and projectiles inward before popping with 1.2s Slowness II.";
+            case TRANSMUTE, BREAK -> "Aeration & Dehydration: Dries wet sponges, dehydrates mud into clay and muddy mangrove roots into mangrove roots, and cleanly blows away cobwebs and leaves.";
+            case AFFLICTION -> "Hypoxia Suffocation Hex: Anti-milk curse cutting stamina and attack speed by 40% while suffocating targets on dry land.";
             case HARM -> "Zephyr Wind-Shear: Pure Air Materia blades (+1 vs Earth, -1 vs Void); triggers Atmospheric Eruption vs Earth-hexed foes.";
             case KINETIC, FLIGHT, GRAPPLE -> "Aerodynamic Updraft: Amplifies vertical lift, aerial glide control, and slipstream displacement velocity.";
             case WARD -> "Slipstream Wind-Wall: Wraps the Arcane Ward in a swirling air cushion that halves incoming projectile damage.";
@@ -175,10 +196,12 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             SpellAssembly spell,
             SubSpellSlot slot
     ) {
-        // Sonic Leap Chains: instant vacuum wind bridge dragging both chained targets forcefully toward their midpoint!
+        // Sonic Leap Chains: instant arc tug + 30-tick (1.5s) lingering vacuum wind bridge continuously tugging both non-boss targets!
+        int tier = spell.getEffectiveTier();
+        boolean safeguard = spell.hasWardFriendlyFireSafeguard();
         Vec3 p1 = fromTarget.getEyePosition();
         Vec3 p2 = toTarget.getEyePosition();
-        SpellWorldVfxManager.broadcastChainArc(level, p1, p2, EssenceType.AIR, null, spell.getEffectiveTier());
+        SpellWorldVfxManager.broadcastChainArc(level, p1, p2, EssenceType.AIR, null, tier);
 
         double dist = p1.distanceTo(p2);
         if (dist > 0.25D) {
@@ -193,13 +216,82 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
         }
 
         Vec3 midpoint = fromTarget.position().add(toTarget.position()).scale(0.5D);
-        if (!SpellCombatReactionEngine.isBossEntity(level, fromTarget)) {
+        if (!SpellCombatReactionEngine.isBossEntity(level, fromTarget)
+                && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(fromTarget, caster, safeguard)) {
             pullEntityToward(fromTarget, midpoint, 0.72D, 0.28D);
         }
-        if (!SpellCombatReactionEngine.isBossEntity(level, toTarget)) {
+        if (!SpellCombatReactionEngine.isBossEntity(level, toTarget)
+                && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(toTarget, caster, safeguard)) {
             pullEntityToward(toTarget, midpoint, 0.72D, 0.28D);
         }
         level.playSound(null, BlockPos.containing(midpoint), SoundEvents.BREEZE_IDLE_AIR, SoundSource.PLAYERS, 0.75F, 1.55F);
+
+        final UUID fromId = fromTarget.getUUID();
+        final UUID toId = toTarget.getUUID();
+        final Vec3[] lastPos1 = new Vec3[]{fromTarget.position()};
+        final Vec3[] lastPos2 = new Vec3[]{toTarget.position()};
+
+        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                caster,
+                midpoint,
+                1.25D,
+                30, // 30-tick (1.5s) lingering vacuum wind bridge
+                level.getGameTime(),
+                null,
+                null,
+                EssenceType.AIR,
+                1.0F,
+                (srv, zone, elapsed) -> {
+                    if (elapsed > zone.maxDurationTicks) {
+                        return false;
+                    }
+                    Entity raw1 = srv.getEntity(fromId);
+                    Entity raw2 = srv.getEntity(toId);
+                    LivingEntity e1 = (raw1 instanceof LivingEntity l1 && l1.isAlive()) ? l1 : null;
+                    LivingEntity e2 = (raw2 instanceof LivingEntity l2 && l2.isAlive()) ? l2 : null;
+                    if (e1 == null && e2 == null) {
+                        return false;
+                    }
+                    if (e1 != null) lastPos1[0] = e1.position();
+                    if (e2 != null) lastPos2[0] = e2.position();
+
+                    Vec3 dynMid = lastPos1[0].add(lastPos2[0]).scale(0.5D);
+                    zone.center = dynMid;
+
+                    if (elapsed > 0 && elapsed % 5 == 0) {
+                        LivingEntity owner = zone.resolveCaster(srv);
+                        Vec3 eye1 = e1 != null ? e1.getEyePosition() : lastPos1[0].add(0.0D, 0.9D, 0.0D);
+                        Vec3 eye2 = e2 != null ? e2.getEyePosition() : lastPos2[0].add(0.0D, 0.9D, 0.0D);
+                        double bridgeLen = eye1.distanceTo(eye2);
+                        if (bridgeLen > 0.25D && bridgeLen <= 32.0D) {
+                            Vec3 bridgeDir = eye2.subtract(eye1).normalize();
+                            TimedTintableParticleOption bridgeOpt = TimedTintableParticleOption.linear(
+                                    ModParticles.TINTABLE_VORTEX.get(),
+                                    (elapsed % 10 == 0) ? AIR_SLIPSTREAM_GOLD_RGB : AIR_SLIPSTREAM_WHITE_RGB,
+                                    12,
+                                    0.62F,
+                                    0.012F
+                            );
+                            for (double d = 0.0D; d <= bridgeLen; d += 0.80D) {
+                                Vec3 pt = eye1.add(bridgeDir.scale(d));
+                                srv.sendParticles(bridgeOpt, pt.x, pt.y, pt.z, 1, 0.03D, 0.03D, 0.03D, 0.008D);
+                            }
+                        }
+
+                        if (e1 != null
+                                && !SpellCombatReactionEngine.isBossEntity(srv, e1)
+                                && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e1, owner, safeguard)) {
+                            pullEntityToward(e1, dynMid, 0.48D, e1.onGround() ? 0.18D : 0.08D);
+                        }
+                        if (e2 != null
+                                && !SpellCombatReactionEngine.isBossEntity(srv, e2)
+                                && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e2, owner, safeguard)) {
+                            pullEntityToward(e2, dynMid, 0.48D, e2.onGround() ? 0.18D : 0.08D);
+                        }
+                    }
+                    return elapsed < zone.maxDurationTicks;
+                }
+        ));
     }
 
     // =========================================================================
@@ -208,7 +300,7 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
 
     @Override
     public void onProjectileTickFromForm(ServerLevel level, SpellProjectileEntity projectile, SubSpellSlot slot) {
-        // Turbulence Spiral: 60fps 3D corkscrew spear rendered by ARCHETYPE_WIND_SPIRAL + live projectile deflection!
+        // Turbulence Spiral: corkscrew wind-lance particle stream + hostile-only incoming projectile deflection!
         Vec3 vel = projectile.getDeltaMovement();
         if (vel.lengthSqr() > 0.0025D) {
             Vec3 dir = vel.normalize();
@@ -235,19 +327,85 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             );
         }
 
-        // Deflect incoming hostile arrows, tridents, fireballs, and bolts along the slipstream!
+        deflectHostileProjectiles(level, projectile);
+    }
+
+    private static void deflectHostileProjectiles(ServerLevel level, SpellProjectileEntity projectile) {
+        Entity boltOwner = projectile.getOwner();
+        LivingEntity shooter = boltOwner instanceof LivingEntity l ? l : null;
+        Vec3 boltVel = projectile.getDeltaMovement();
+        boolean hasBoltDir = boltVel.lengthSqr() > 1.0E-6D;
+        Vec3 boltDir = hasBoltDir ? boltVel.normalize() : Vec3.ZERO;
+
         AABB slipstream = projectile.getBoundingBox().inflate(2.6D);
         for (Projectile other : level.getEntitiesOfClass(Projectile.class, slipstream)) {
-            if (other == projectile || other.getOwner() == projectile.getOwner()) continue;
+            if (other == projectile || !other.isAlive()) continue;
+            if (other instanceof FishingHook) continue;
+            if (isGroundedArrow(other)) continue;
+
+            Entity otherOwner = other.getOwner();
+            if (boltOwner != null && otherOwner == boltOwner) continue;
+            if (shooter != null && otherOwner instanceof LivingEntity livingOwner) {
+                if (ApexEschatonSingularityHelper.isFriendly(livingOwner, shooter)
+                        || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(livingOwner, shooter, true)) {
+                    continue;
+                }
+            }
+
+            Vec3 projVel = other.getDeltaMovement();
+            if (projVel.lengthSqr() <= 1.0E-6D) continue;
+            if (hasBoltDir && projVel.normalize().dot(boltDir) > 0.35D) {
+                // Skip projectiles flying away in the same direction as the Turbulence Spiral bolt!
+                continue;
+            }
+
             Vec3 delta = other.position().subtract(projectile.position());
             Vec3 pushDir = delta.lengthSqr() > 1.0E-4D ? delta.normalize() : new Vec3(0.0D, 1.0D, 0.0D);
-            double deflectSpeed = Math.max(1.25D, other.getDeltaMovement().length() * 1.15D);
+            double deflectSpeed = Math.max(1.25D, projVel.length() * 1.15D);
             SpellExecutionEngine.applySyncedMotion(
                     other,
                     new Vec3(pushDir.x * deflectSpeed, Math.max(0.28D, pushDir.y * deflectSpeed), pushDir.z * deflectSpeed)
             );
             level.sendParticles(ParticleTypes.POOF, other.getX(), other.getY(), other.getZ(), 3, 0.1D, 0.1D, 0.1D, 0.03D);
         }
+    }
+
+    /**
+     * Checks that a solid or fluid surface exists within jetpack thrust reach ({@code <= 8.0 + tier * 1.0} blocks)
+     * either along the aimed downward ray or directly beneath the caster's feet so Jetstream Propulsion cannot
+     * thrust off empty void air at arbitrary altitude.
+     */
+    public static boolean hasJetpackSurfaceWithinReach(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            int tier
+    ) {
+        if (caster.onGround() || caster.isInWater() || caster.isInLava()) {
+            return true;
+        }
+        double jetpackReach = 8.0D + Math.clamp(tier, 1, 10) * 1.0D;
+        Vec3 eye = caster.getEyePosition();
+        Vec3 normDir = direction.lengthSqr() > 1.0E-6D ? direction.normalize() : new Vec3(0.0D, -1.0D, 0.0D);
+        BlockHitResult rayHit = level.clip(new ClipContext(
+                eye,
+                eye.add(normDir.scale(jetpackReach)),
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.ANY,
+                caster
+        ));
+        if (rayHit.getType() == HitResult.Type.BLOCK) {
+            return true;
+        }
+        Vec3 feet = caster.position();
+        BlockHitResult downHit = level.clip(new ClipContext(
+                feet.add(0.0D, 0.1D, 0.0D),
+                feet.subtract(0.0D, jetpackReach, 0.0D),
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.ANY,
+                caster
+        ));
+        return downHit.getType() == HitResult.Type.BLOCK;
     }
 
     @Override
@@ -263,7 +421,7 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Jetstream Propulsion: wind-tunnel knockback on struck foes + vertical jetpack lifter when aimed downward!
+        // Jetstream Propulsion: piercing wind-tunnel knockback on lined-up foes + surface-grounded vertical jetpack lifter!
         int tier = spell.getEffectiveTier();
         boolean channeledPulse = apparatusPotency <= 0.45F;
         double pushStrength = channeledPulse ? (0.36D + tier * 0.055D) : (0.88D + (tier * 0.14D));
@@ -279,13 +437,14 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             );
         }
 
-        if (direction.y < -0.50D) {
+        Vec3 normDir = direction.lengthSqr() > 1.0E-6D ? direction.normalize() : caster.getLookAngle().normalize();
+        if (normDir.y < -0.50D && hasJetpackSurfaceWithinReach(level, caster, normDir, tier)) {
             double liftY = channeledPulse ? (0.50D + tier * 0.045D) : (0.92D + (tier * 0.08D));
             double strafeScale = channeledPulse ? 0.18D : 0.32D;
             Vec3 cur = caster.getDeltaMovement();
             SpellExecutionEngine.applySyncedMotion(
                     caster,
-                    new Vec3(cur.x * 0.85D - direction.x * strafeScale, Math.max(cur.y, liftY), cur.z * 0.85D - direction.z * strafeScale)
+                    new Vec3(cur.x * 0.85D - normDir.x * strafeScale, Math.max(cur.y, liftY), cur.z * 0.85D - normDir.z * strafeScale)
             );
             caster.resetFallDistance();
             if (!channeledPulse || level.getGameTime() % 8L == 0L) {
@@ -310,26 +469,39 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Concussive Uppercut: launch struck targets 8 blocks straight into the air (vy = 1.28 -> ~8.15m peak height)!
+        if (hitEntities == null || hitEntities.isEmpty()) {
+            return;
+        }
+        // Concussive Uppercut: launch ONLY the primary struck target (hitEntities.getFirst()) 8 blocks straight up (vy = 1.28D)!
         int tier = spell.getEffectiveTier();
-        for (LivingEntity hit : hitEntities) {
+        boolean safeguard = spell.hasWardFriendlyFireSafeguard();
+        for (int i = 0; i < hitEntities.size(); i++) {
+            LivingEntity hit = hitEntities.get(i);
+            if (hit == null || !hit.isAlive() || hit == caster) continue;
             if (SpellCombatReactionEngine.isBossEntity(level, hit)) continue;
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, spell.hasWardFriendlyFireSafeguard())) {
+            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, safeguard)) {
                 continue;
             }
             Vec3 cur = hit.getDeltaMovement();
-            SpellExecutionEngine.applySyncedMotion(
-                    hit,
-                    new Vec3(cur.x * 0.30D + direction.x * 0.16D, 1.28D, cur.z * 0.30D + direction.z * 0.16D)
-            );
-            SpellWorldVfxManager.broadcastGeyserPlume(
-                    level, hit.position(), 1.15D, 8.0D, EssenceType.AIR, null, 44, tier
-            );
-            level.sendParticles(ParticleTypes.GUST_EMITTER_SMALL, hit.getX(), hit.getY() + 0.2D, hit.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            if (i == 0) {
+                SpellExecutionEngine.applySyncedMotion(
+                        hit,
+                        new Vec3(cur.x * 0.30D + direction.x * 0.16D, 1.28D, cur.z * 0.30D + direction.z * 0.16D)
+                );
+                SpellWorldVfxManager.broadcastGeyserPlume(
+                        level, hit.position(), 1.15D, 8.0D, EssenceType.AIR, null, 44, tier
+                );
+                level.sendParticles(ParticleTypes.GUST_EMITTER_SMALL, hit.getX(), hit.getY() + 0.2D, hit.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            } else {
+                // Minor stagger only on secondary cleave splash bystanders (index > 0)
+                SpellExecutionEngine.applySyncedMotion(
+                        hit,
+                        new Vec3(cur.x * 0.45D + direction.x * 0.18D, Math.max(cur.y, 0.22D), cur.z * 0.45D + direction.z * 0.18D)
+                );
+                level.sendParticles(ParticleTypes.POOF, hit.getX(), hit.getY() + 0.4D, hit.getZ(), 3, 0.15D, 0.15D, 0.15D, 0.02D);
+            }
         }
-        if (!hitEntities.isEmpty()) {
-            level.playSound(null, caster.blockPosition(), SoundEvents.WIND_CHARGE_BURST.value(), SoundSource.PLAYERS, 0.95F, 1.15F);
-        }
+        level.playSound(null, caster.blockPosition(), SoundEvents.WIND_CHARGE_BURST.value(), SoundSource.PLAYERS, 0.95F, 1.15F);
     }
 
     @Override
@@ -344,25 +516,39 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Gust Shield: outward 3D spherical wind barrier pushing mobs back, 50% projectile DR, and exact +30% caster speed!
+        // Gust Shield: true 3D spherical wind barrier pushing foes back, 50% projectile DR, and exact +30% caster speed!
         int tier = spell.getEffectiveTier();
+        boolean safeguard = spell.hasWardFriendlyFireSafeguard();
         SpellWorldVfxManager.broadcastVacuumSphere(
                 level, center, radius, false, EssenceType.AIR, null, 60, tier
         );
 
-        AABB area = new AABB(center.x - radius, center.y - 2.0D, center.z - radius,
-                center.x + radius, center.y + 2.5D, center.z + radius);
+        double radSq = radius * radius;
+        AABB area = new AABB(
+                center.x - radius, center.y - radius - 1.0D, center.z - radius,
+                center.x + radius, center.y + radius + 1.0D, center.z + radius
+        );
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, area)) {
             if (entity == caster || !entity.isAlive() || SpellCombatReactionEngine.isBossEntity(level, entity)) continue;
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(entity, caster, spell.hasWardFriendlyFireSafeguard())) continue;
-            Vec3 diff = entity.position().subtract(center);
+            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(entity, caster, safeguard)) continue;
+            Vec3 bodyCenter = entity.position().add(0.0D, entity.getBbHeight() * 0.5D, 0.0D);
+            if (bodyCenter.distanceToSqr(center) > radSq) continue;
+            Vec3 diff = bodyCenter.subtract(center);
             Vec3 away = (diff.lengthSqr() > 1.0E-4D ? diff.normalize() : new Vec3(1.0D, 0.0D, 0.0D)).scale(1.45D);
-            SpellExecutionEngine.applySyncedMotion(entity, new Vec3(away.x, 0.45D, away.z));
+            SpellExecutionEngine.applySyncedMotion(entity, new Vec3(away.x, Math.max(0.45D, away.y * 0.65D + 0.30D), away.z));
         }
 
-        // Deflect any mid-air projectiles currently inside the sphere
+        // Deflect hostile mid-air projectiles currently inside the sphere
         for (Projectile proj : level.getEntitiesOfClass(Projectile.class, area)) {
+            if (!proj.isAlive() || proj instanceof FishingHook) continue;
+            if (isGroundedArrow(proj)) continue;
             if (proj.getOwner() == caster) continue;
+            if (proj.getOwner() instanceof LivingEntity pOwner
+                    && (ApexEschatonSingularityHelper.isFriendly(pOwner, caster)
+                            || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(pOwner, caster, true))) {
+                continue;
+            }
+            if (proj.position().distanceToSqr(center) > radSq) continue;
             Vec3 diff = proj.position().subtract(center);
             Vec3 away = (diff.lengthSqr() > 1.0E-4D ? diff.normalize() : new Vec3(0.0D, 1.0D, 0.0D)).scale(1.5D);
             SpellExecutionEngine.applySyncedMotion(proj, new Vec3(away.x, Math.max(0.35D, away.y), away.z));
@@ -388,12 +574,13 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Slipstream Shield: sprinting builds a charging 3D wind-cone barrier that bowls colliding mobs aside!
+        // Slipstream Shield: +20% passive walk speed + sprinting 0.8s builds a 3D wind-cone barrier bowling non-boss mobs aside!
         int tier = spell.getEffectiveTier();
         long durationTicks = 160L + (tier * 30L);
         CompoundTag cData = EntityHelper.getPersistentData(caster);
         cData.putLong(SpellLingeringZoneManager.TAG_AIR_SLIPSTREAM_UNTIL, level.getGameTime() + durationTicks);
         cData.putInt("SpellAirSlipstreamTier", tier);
+        cData.putBoolean(SpellLingeringZoneManager.TAG_AIR_SLIPSTREAM_WARD_SAFE, spell.hasWardFriendlyFireSafeguard());
         SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 0.0D, 0.0D, 0.0D, 0.20D, durationTicks);
 
         SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.55F, null);
@@ -413,10 +600,18 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Geyser Mine (Air Trampoline): 1.0s arming delay, 10m persistence (indefinite at Tier 5+),
-        // 50% Sneak-Right-Click disarm refund, and 14-block skyward geyser launch within 3 blocks!
+        // Geyser Mine (Air Trampoline):
+        // - True circular 3.0m horizontal radius (dx*dx + dz*dz <= 9.0D)
+        // - Arms after 30 ticks (1.5s) OR once caster steps outside 3.0m after planting at their feet
+        // - Launches ALL launchable Entity types (LivingEntity skipping bosses, Boat/AbstractBoat, AbstractMinecart,
+        //   ItemEntity, PrimedTnt, FallingBlockEntity, Projectile) 14 blocks upward (vy = 1.68D)
+        // - Cushions landing fall damage for caster & friendly allies while hostiles take full 14-block fall damage!
         int tier = spell.getEffectiveTier();
-        int maxWaitTicks = tier >= 5 ? 72_000_000 : 12_000;
+        int maxWaitTicks = tier >= 5 ? Integer.MAX_VALUE : 12_000;
+        double initDx = caster.getX() - glyphCenter.x;
+        double initDz = caster.getZ() - glyphCenter.z;
+        final boolean[] casterPlantedInside = new boolean[]{(initDx * initDx + initDz * initDz) <= 9.0D};
+        final boolean[] casterSteppedOutside = new boolean[]{false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster,
@@ -430,8 +625,18 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
                 apparatusPotency,
                 (srv, zone, elapsed) -> {
                     if (elapsed > zone.maxDurationTicks) return false;
-                    // Section 4.6: 1.0-second (20-tick) arming delay!
-                    if (elapsed < 20) {
+
+                    LivingEntity owner = zone.resolveCaster(srv);
+                    if (owner != null && casterPlantedInside[0] && !casterSteppedOutside[0]) {
+                        double cdx = owner.getX() - zone.center.x;
+                        double cdz = owner.getZ() - zone.center.z;
+                        if ((cdx * cdx + cdz * cdz) > 9.0D) {
+                            casterSteppedOutside[0] = true;
+                        }
+                    }
+
+                    // Arms after 30 ticks (1.5s) OR as soon as the caster steps outside the 3.0m radius after planting
+                    if (elapsed < 30 && !casterSteppedOutside[0]) {
                         return true;
                     }
 
@@ -439,42 +644,63 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
                             zone.center.x - 3.0D, zone.center.y - 0.85D, zone.center.z - 3.0D,
                             zone.center.x + 3.0D, zone.center.y + 1.85D, zone.center.z + 3.0D
                     );
-                    List<LivingEntity> stepped = srv.getEntitiesOfClass(LivingEntity.class, triggerBox, LivingEntity::isAlive);
+                    List<Entity> stepped = srv.getEntities((Entity) null, triggerBox, ent -> {
+                        if (!isGeyserLaunchableEntity(ent)) return false;
+                        double dx = ent.getX() - zone.center.x;
+                        double dz = ent.getZ() - zone.center.z;
+                        return (dx * dx + dz * dz) <= 9.0D;
+                    });
                     if (stepped.isEmpty()) {
                         return true;
                     }
 
-                    LivingEntity owner = zone.resolveCaster(srv);
                     SpellWorldVfxManager.broadcastGeyserPlume(
                             srv, zone.center, 2.8D, 14.0D, EssenceType.AIR, null, 60, tier
                     );
 
+                    boolean wardSafeguard = zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard();
                     AABB plumeBox = new AABB(
                             zone.center.x - 3.0D, zone.center.y - 1.0D, zone.center.z - 3.0D,
                             zone.center.x + 3.0D, zone.center.y + 3.5D, zone.center.z + 3.0D
                     );
-                    for (LivingEntity victim : srv.getEntitiesOfClass(LivingEntity.class, plumeBox, LivingEntity::isAlive)) {
-                        boolean friendly = victim == owner
-                                || (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                                        victim, owner, zone.spell.hasWardFriendlyFireSafeguard()));
-                        if (!friendly && SpellCombatReactionEngine.isBossEntity(srv, victim)) {
-                            SpellExecutionEngine.deliverSubSpellOnEntity(
-                                    srv, owner, victim, new Vec3(0.0D, 1.0D, 0.0D),
-                                    zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency
-                            );
-                            continue;
-                        }
+                    for (Entity ent : srv.getEntities((Entity) null, plumeBox, AirSpellMutationHandler::isGeyserLaunchableEntity)) {
+                        double dx = ent.getX() - zone.center.x;
+                        double dz = ent.getZ() - zone.center.z;
+                        if ((dx * dx + dz * dz) > 9.0D) continue;
 
-                        // Launch 14 blocks upward (vy = 1.72D reaches ~14.2 blocks peak height in vanilla gravity!)
-                        Vec3 v = victim.getDeltaMovement();
-                        SpellExecutionEngine.applySyncedMotion(victim, new Vec3(v.x * 0.45D, 1.72D, v.z * 0.45D));
-                        if (friendly) {
-                            victim.resetFallDistance();
+                        if (ent instanceof LivingEntity victim) {
+                            boolean friendly = isFriendlyToGeyserCaster(victim, owner, wardSafeguard);
+                            if (!friendly && SpellCombatReactionEngine.isBossEntity(srv, victim)) {
+                                if (zone.spell != null && zone.slot != null) {
+                                    SpellExecutionEngine.deliverSubSpellOnEntity(
+                                            srv, owner, victim, new Vec3(0.0D, 1.0D, 0.0D),
+                                            zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency
+                                    );
+                                }
+                                continue;
+                            }
+
+                            if (!SpellCombatReactionEngine.isBossEntity(srv, victim)) {
+                                Vec3 v = victim.getDeltaMovement();
+                                SpellExecutionEngine.applySyncedMotion(victim, new Vec3(v.x * 0.45D, 1.68D, v.z * 0.45D));
+                            }
+                            if (friendly) {
+                                SpellLingeringZoneManager.grantAirTrampolineCushion(victim, 140);
+                            } else if (zone.spell != null && zone.slot != null) {
+                                SpellExecutionEngine.deliverSubSpellOnEntity(
+                                        srv, owner, victim, new Vec3(0.0D, 1.0D, 0.0D),
+                                        zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency
+                                );
+                            }
                         } else {
-                            SpellExecutionEngine.deliverSubSpellOnEntity(
-                                    srv, owner, victim, new Vec3(0.0D, 1.0D, 0.0D),
-                                    zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency
-                            );
+                            Vec3 v = ent.getDeltaMovement();
+                            SpellExecutionEngine.applySyncedMotion(ent, new Vec3(v.x * 0.45D, 1.68D, v.z * 0.45D));
+                            for (Entity passenger : ent.getIndirectPassengers()) {
+                                if (passenger instanceof LivingEntity livingPass
+                                        && isFriendlyToGeyserCaster(livingPass, owner, wardSafeguard)) {
+                                    SpellLingeringZoneManager.grantAirTrampolineCushion(livingPass, 140);
+                                }
+                            }
                         }
                     }
 
@@ -490,6 +716,48 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
         return true;
     }
 
+    private static boolean isGeyserLaunchableEntity(Entity ent) {
+        if (ent == null || !ent.isAlive() || ent.isSpectator()) {
+            return false;
+        }
+        if (ent instanceof LivingEntity
+                || ent instanceof AbstractBoat
+                || ent instanceof AbstractMinecart
+                || ent instanceof VehicleEntity
+                || ent instanceof ItemEntity
+                || ent instanceof PrimedTnt
+                || ent instanceof FallingBlockEntity) {
+            return true;
+        }
+        if (ent instanceof Projectile proj) {
+            if (proj instanceof FishingHook) return false;
+            return !isGroundedArrow(proj);
+        }
+        return false;
+    }
+
+    private static boolean isGroundedArrow(Projectile proj) {
+        return proj instanceof AbstractArrow arrow
+                && (arrow.onGround() || arrow.getDeltaMovement().lengthSqr() <= 1.0E-5D);
+    }
+
+    private static boolean isFriendlyToGeyserCaster(
+            LivingEntity victim,
+            @Nullable LivingEntity owner,
+            boolean wardSafeguard
+    ) {
+        if (owner == null) {
+            return false;
+        }
+        if (victim == owner) {
+            return true;
+        }
+        if (ApexEschatonSingularityHelper.isFriendly(victim, owner)) {
+            return true;
+        }
+        return SpellCombatReactionEngine.isProtectedFromOffensiveSpell(victim, owner, wardSafeguard);
+    }
+
     @Override
     public void onConeFormCast(
             ServerLevel level,
@@ -502,63 +770,121 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Howling Gale: 60° hurricane cone pushing mobs 8 blocks back, extinguishing fires/campfires/candles,
-        // and blowing all physical projectiles away!
-        AABB coneBox = caster.getBoundingBox().expandTowards(direction.scale(coneRange)).inflate(coneRange * 0.55D);
+        // Howling Gale: exact 60° hurricane cone (30° half-angle: dot >= 0.8660254D) pushing mobs back,
+        // blowing away incoming physical projectiles, and extinguishing fires/campfires/candles across the full cone!
+        Vec3 dir = direction.lengthSqr() > 1.0E-6D ? direction.normalize() : caster.getLookAngle().normalize();
+        Vec3 eyeOrigin = caster.getEyePosition();
+        double maxConeWidth = coneRange * CONE_HALF_ANGLE_TAN + 1.25D;
+        AABB coneBox = new AABB(eyeOrigin, eyeOrigin.add(dir.scale(coneRange))).inflate(maxConeWidth);
+        double rangeSq = (coneRange + 0.75D) * (coneRange + 0.75D);
+        boolean safeguard = spell.hasWardFriendlyFireSafeguard();
 
         for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, coneBox, LivingEntity::isAlive)) {
             if (target == caster) continue;
-            Vec3 toTarget = target.getEyePosition().subtract(caster.getEyePosition()).normalize();
-            if (toTarget.dot(direction) < 0.50D) continue;
+            Vec3 toBody = target.getBoundingBox().getCenter().subtract(eyeOrigin);
+            Vec3 toEye = target.getEyePosition().subtract(eyeOrigin);
+            if (toBody.lengthSqr() > rangeSq && toEye.lengthSqr() > rangeSq) continue;
+            boolean inCone = (toBody.lengthSqr() > 1.0E-6D && toBody.normalize().dot(dir) >= CONE_HALF_ANGLE_COS)
+                    || (toEye.lengthSqr() > 1.0E-6D && toEye.normalize().dot(dir) >= CONE_HALF_ANGLE_COS);
+            if (!inCone) continue;
+
             target.clearFire();
             if (SpellCombatReactionEngine.isBossEntity(level, target)) continue;
-            if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(target, caster, spell.hasWardFriendlyFireSafeguard())) {
+            if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(target, caster, safeguard)) {
                 SpellExecutionEngine.applySyncedMotion(
                         target,
-                        new Vec3(direction.x * 1.85D, Math.max(0.42D, direction.y * 0.65D + 0.35D), direction.z * 1.85D)
+                        new Vec3(dir.x * 1.85D, Math.max(0.42D, dir.y * 0.65D + 0.35D), dir.z * 1.85D)
                 );
             }
         }
 
-        // Blow away all physical projectiles inside the 60-degree cone
+        // Blow away ONLY incoming physical projectiles inside the 60-degree cone
         for (Projectile proj : level.getEntitiesOfClass(Projectile.class, coneBox)) {
-            if (proj.getOwner() == caster) continue;
-            Vec3 toProj = proj.position().subtract(caster.getEyePosition()).normalize();
-            if (toProj.dot(direction) >= 0.50D) {
-                SpellExecutionEngine.applySyncedMotion(
-                        proj,
-                        new Vec3(direction.x * 1.95D, Math.max(0.38D, direction.y * 1.25D), direction.z * 1.95D)
-                );
+            if (!proj.isAlive()) continue;
+            if (proj instanceof SpellProjectileEntity || proj instanceof FishingHook) continue;
+            if (isGroundedArrow(proj)) continue;
+
+            Entity pOwner = proj.getOwner();
+            if (pOwner == caster) continue;
+            if (pOwner instanceof LivingEntity livingOwner
+                    && (ApexEschatonSingularityHelper.isFriendly(livingOwner, caster)
+                            || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(livingOwner, caster, true))) {
+                continue;
             }
+
+            Vec3 toProj = proj.position().subtract(eyeOrigin);
+            if (toProj.lengthSqr() <= 1.0E-6D || toProj.lengthSqr() > rangeSq) continue;
+            if (toProj.normalize().dot(dir) < CONE_HALF_ANGLE_COS) continue;
+
+            // Incoming check: moving generally toward (or across) the caster rather than flying away downrange
+            Vec3 pVel = proj.getDeltaMovement();
+            if (pVel.lengthSqr() <= 1.0E-6D || pVel.dot(dir) > 0.15D) continue;
+
+            SpellExecutionEngine.applySyncedMotion(
+                    proj,
+                    new Vec3(dir.x * 1.95D, Math.max(0.38D, dir.y * 1.25D), dir.z * 1.95D)
+            );
+            level.sendParticles(ParticleTypes.POOF, proj.getX(), proj.getY(), proj.getZ(), 2, 0.1D, 0.1D, 0.1D, 0.03D);
         }
 
-        // Extinguish fire blocks, soul fire, lit campfires, and lit candles in the cone
-        int sampleSteps = Math.min(12, (int) Math.ceil(coneRange));
-        for (int s = 1; s <= sampleSteps; s++) {
-            BlockPos centerPos = BlockPos.containing(caster.getEyePosition().add(direction.scale(s)));
-            for (BlockPos p : BlockPos.betweenClosed(centerPos.offset(-2, -1, -2), centerPos.offset(2, 1, 2))) {
-                BlockState bs = level.getBlockState(p);
-                if (bs.getBlock() instanceof BaseFireBlock) {
-                    level.removeBlock(p, false);
-                } else if (bs.getBlock() instanceof CampfireBlock && bs.getValue(CampfireBlock.LIT)) {
-                    level.setBlockAndUpdate(p, bs.setValue(CampfireBlock.LIT, false));
-                } else if (bs.getBlock() instanceof AbstractCandleBlock && AbstractCandleBlock.isLit(bs)) {
-                    AbstractCandleBlock.extinguish(null, bs, level, p);
-                }
-            }
-        }
+        // Scan and extinguish fire blocks, soul fire, lit campfires, and lit candles across the FULL 60-degree cone width out to coneRange!
+        extinguishFiresAcrossFullCone(level, caster, eyeOrigin, dir, coneRange);
 
         // Section 4.7 Air Cone Recoil Impulse: pushes caster backward while blasting enemies away!
         Vec3 cVel = caster.getDeltaMovement();
         SpellExecutionEngine.applySyncedMotion(
                 caster,
-                new Vec3(cVel.x - direction.x * 0.58D, Math.max(cVel.y, 0.16D), cVel.z - direction.z * 0.58D)
+                new Vec3(cVel.x - dir.x * 0.58D, Math.max(cVel.y, 0.16D), cVel.z - dir.z * 0.58D)
         );
 
         level.sendParticles(ParticleTypes.GUST_EMITTER_SMALL,
-                caster.getX() + direction.x * 2.5D, caster.getEyeY() + direction.y * 2.5D, caster.getZ() + direction.z * 2.5D,
+                caster.getX() + dir.x * 2.5D, caster.getEyeY() + dir.y * 2.5D, caster.getZ() + dir.z * 2.5D,
                 2, 0.5D, 0.35D, 0.5D, 0.0D);
         level.playSound(null, caster.blockPosition(), SoundEvents.WIND_CHARGE_BURST.value(), SoundSource.PLAYERS, 1.0F, 0.85F);
+    }
+
+    private static void extinguishFiresAcrossFullCone(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 origin,
+            Vec3 dir,
+            double coneRange
+    ) {
+        double cappedRange = Math.min(28.0D, Math.max(1.5D, coneRange));
+        Vec3 tipEnd = origin.add(dir.scale(cappedRange));
+        double endRadius = cappedRange * CONE_HALF_ANGLE_TAN + 0.85D;
+
+        int minX = (int) Math.floor(Math.min(origin.x - 1.0D, tipEnd.x - endRadius));
+        int maxX = (int) Math.ceil(Math.max(origin.x + 1.0D, tipEnd.x + endRadius));
+        int minY = (int) Math.floor(Math.min(origin.y - 1.5D, tipEnd.y - endRadius));
+        int maxY = (int) Math.ceil(Math.max(origin.y + 1.0D, tipEnd.y + endRadius));
+        int minZ = (int) Math.floor(Math.min(origin.z - 1.0D, tipEnd.z - endRadius));
+        int maxZ = (int) Math.ceil(Math.max(origin.z + 1.0D, tipEnd.z + endRadius));
+
+        double maxRangeSq = (cappedRange + 0.75D) * (cappedRange + 0.75D);
+        for (BlockPos p : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
+            Vec3 rel = Vec3.atCenterOf(p).subtract(origin);
+            double distSq = rel.lengthSqr();
+            if (distSq > maxRangeSq) continue;
+            if (distSq > 1.5625D) {
+                double axial = rel.dot(dir);
+                if (axial <= 0.0D) continue;
+                double radialSq = Math.max(0.0D, distSq - axial * axial);
+                double allowedRadial = axial * CONE_HALF_ANGLE_TAN + 0.55D;
+                if (radialSq > allowedRadial * allowedRadial) continue;
+            }
+
+            BlockState bs = level.getBlockState(p);
+            if (bs.isAir()) continue;
+            if (bs.getBlock() instanceof BaseFireBlock) {
+                level.removeBlock(p, false);
+            } else if (bs.getBlock() instanceof CampfireBlock && bs.getValue(CampfireBlock.LIT)) {
+                CampfireBlock.dowse(caster, level, p, bs);
+                level.setBlockAndUpdate(p, bs.setValue(CampfireBlock.LIT, false));
+            } else if (bs.getBlock() instanceof AbstractCandleBlock && AbstractCandleBlock.isLit(bs)) {
+                AbstractCandleBlock.extinguish(null, bs, level, p);
+            }
+        }
     }
 
     @Override
@@ -572,11 +898,10 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Tornado Vortex: lingering 3D twisting atmospheric funnel (works indoors & underground!)
-        // pulling nearby mobs into its spinning eye before violently tossing them outward!
-        final int tier = spell.getEffectiveTier();
-        final int totalTicks = 180 + (tier * 12);
-        final double pullRadius = Math.max(5.5D, radius * 1.25D);
+        // Tornado Vortex: scales BOTH circular size (6.0m at T1 -> 11.0m at T10) AND duration (9.0s/180t at T1 -> 45.0s/900t at T10)!
+        final int tier = Math.clamp(spell.getEffectiveTier(), 1, 10);
+        final int totalTicks = 180 + (tier - 1) * 80;
+        final double pullRadius = Math.max(radius, 6.0D + (tier - 1) * (5.0D / 9.0D));
         final double funnelHeight = 7.5D + (tier * 0.45D);
 
         SpellWorldVfxManager.broadcastTornadoVortex(
@@ -595,16 +920,21 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
                 apparatusPotency,
                 (srv, zone, elapsed) -> {
                     LivingEntity owner = zone.resolveCaster(srv);
+                    double vortexRad = zone.radius;
+                    double vortexRadSq = vortexRad * vortexRad;
                     AABB vortexBox = new AABB(
-                            zone.center.x - zone.radius, zone.center.y - 2.0D, zone.center.z - zone.radius,
-                            zone.center.x + zone.radius, zone.center.y + funnelHeight, zone.center.z + zone.radius
+                            zone.center.x - vortexRad, zone.center.y - 2.0D, zone.center.z - vortexRad,
+                            zone.center.x + vortexRad, zone.center.y + funnelHeight, zone.center.z + vortexRad
                     );
 
-                    if (elapsed < totalTicks - 5) {
-                        // Helical suction phase every 5 ticks
+                    if (elapsed < zone.maxDurationTicks - 1) {
+                        // Helical suction phase every 5 ticks inside true circular horizontal radius
                         if (elapsed % 5 == 0) {
                             for (LivingEntity victim : srv.getEntitiesOfClass(LivingEntity.class, vortexBox, LivingEntity::isAlive)) {
                                 if (victim == owner) continue;
+                                double dx = victim.getX() - zone.center.x;
+                                double dz = victim.getZ() - zone.center.z;
+                                if ((dx * dx + dz * dz) > vortexRadSq) continue;
                                 if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
                                         victim, owner, zone.spell.hasWardFriendlyFireSafeguard())) {
                                     continue;
@@ -634,12 +964,15 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
                         return true;
                     }
 
-                    // Final violent outward toss + full sub-spell payoff!
+                    // Final violent outward toss + full sub-spell payoff on the final tick (elapsed >= zone.maxDurationTicks - 1)!
                     SpellWorldVfxManager.broadcastVacuumSphere(
-                            srv, zone.center.add(0.0D, 1.0D, 0.0D), zone.radius, false, EssenceType.AIR, null, 50, tier
+                            srv, zone.center.add(0.0D, 1.0D, 0.0D), vortexRad, false, EssenceType.AIR, null, 50, tier
                     );
                     for (LivingEntity victim : srv.getEntitiesOfClass(LivingEntity.class, vortexBox, LivingEntity::isAlive)) {
                         if (victim == owner) continue;
+                        double dx = victim.getX() - zone.center.x;
+                        double dz = victim.getZ() - zone.center.z;
+                        if ((dx * dx + dz * dz) > vortexRadSq) continue;
                         if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
                                 victim, owner, zone.spell.hasWardFriendlyFireSafeguard())) {
                             continue;
@@ -686,21 +1019,34 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             livingSummon.addEffect(new MobEffectInstance(MobEffects.SPEED, 1200, 1, false, false));
         }
 
+        boolean safeguard = spell.hasWardFriendlyFireSafeguard();
         double initRad = chosenForm == SpellDeliveryForm.SUMMON_DECOY ? 12.0D
                 : (chosenForm == SpellDeliveryForm.SUMMON_SENTRY ? 6.0D : Math.max(4.0D, radius));
+        double initRadSq = initRad * initRad;
         AABB cycloneArea = summonEntity.getBoundingBox().inflate(initRad);
         for (LivingEntity nearby : level.getEntitiesOfClass(LivingEntity.class, cycloneArea)) {
             if (nearby == caster || nearby == summonEntity || !nearby.isAlive()) continue;
-            if (nearby instanceof Monster && nearby instanceof Mob mob) {
-                if (chosenForm == SpellDeliveryForm.SUMMON_DECOY && summonEntity instanceof LivingEntity livingSummon) {
-                    mob.setTarget(livingSummon);
-                } else if (chosenForm == SpellDeliveryForm.SUMMON_SENTRY
-                        && !SpellCombatReactionEngine.isBossEntity(level, nearby)) {
-                    SpellExecutionEngine.applySyncedMotion(
-                            nearby,
-                            new Vec3(nearby.getDeltaMovement().x, 0.78D, nearby.getDeltaMovement().z)
-                    );
-                }
+            double dx = nearby.getX() - spawnPos.x;
+            double dz = nearby.getZ() - spawnPos.z;
+            if ((dx * dx + dz * dz) > initRadSq) continue;
+            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(nearby, caster, safeguard)) continue;
+            if (ApexEschatonSingularityHelper.isFriendly(nearby, caster)) continue;
+
+            boolean isHostileTarget = nearby instanceof Enemy
+                    || (nearby instanceof Mob m && m.getTarget() == caster)
+                    || (nearby instanceof Player && !safeguard && !nearby.isAlliedTo(caster));
+            if (!isHostileTarget) continue;
+
+            if (chosenForm == SpellDeliveryForm.SUMMON_DECOY
+                    && nearby instanceof Mob mob
+                    && summonEntity instanceof LivingEntity livingSummon) {
+                mob.setTarget(livingSummon);
+            } else if (chosenForm == SpellDeliveryForm.SUMMON_SENTRY
+                    && !SpellCombatReactionEngine.isBossEntity(level, nearby)) {
+                SpellExecutionEngine.applySyncedMotion(
+                        nearby,
+                        new Vec3(nearby.getDeltaMovement().x, 0.78D, nearby.getDeltaMovement().z)
+                );
             }
         }
         SpellParticleHelper.spawnImpactBurst(level, spawnPos.add(0.0D, 1.0D, 0.0D), EssenceType.AIR, null, 1.4D, spell.getEffectiveTier());
@@ -712,8 +1058,10 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
 
     @Override
     public void onBlinkCast(ServerLevel level, LivingEntity caster, Vec3 departurePos, Vec3 arrivalPos, int potencyTier) {
-        // Section 6.2 Vacuum Implosion: Blinking leaves a vacuum pop at the departure spot that sucks adjacent foes inward!
+        // Section 6.2 Vacuum Implosion: Blinking leaves a vacuum pop at the departure spot that sucks adjacent foes,
+        // dropped items, and hostile projectiles inward over 0.5s before popping with 1.2s Slowness II!
         final double pullRad = 4.5D + (potencyTier * 0.35D);
+        final boolean wardSafeguard = resolveActiveCasterWardSafeguard(caster);
 
         // Whisper-thin golden-ivory slipstream wind trace from departure to arrival (no generic purple portals or arrival explosion!)
         Vec3 depMid = departurePos.add(0.0D, 0.90D, 0.0D);
@@ -742,7 +1090,7 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
         SpellWorldVfxManager.broadcastArcaneSeal(level, departurePos, pullRad * 0.68D, EssenceType.AIR, null, 16, potencyTier);
 
         // Immediate tick-0 suction + sustained 10-tick (0.5s) inward collapse culminating in a sonic Vacuum Pop!
-        suckAdjacentIntoDepartureVacuum(level, caster, departurePos, pullRad);
+        suckAdjacentIntoDepartureVacuum(level, caster, departurePos, pullRad, wardSafeguard);
         level.playSound(null, BlockPos.containing(departurePos), SoundEvents.BREEZE_WHIRL, SoundSource.PLAYERS, 0.90F, 1.45F);
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
@@ -759,7 +1107,7 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
                     LivingEntity owner = zone.resolveCaster(srv);
                     if (elapsed < zone.maxDurationTicks) {
                         if (elapsed > 0 && elapsed % 2 == 0) {
-                            suckAdjacentIntoDepartureVacuum(srv, owner, zone.center, zone.radius);
+                            suckAdjacentIntoDepartureVacuum(srv, owner, zone.center, zone.radius, wardSafeguard);
                         }
                         return true;
                     }
@@ -779,12 +1127,14 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
                             zone.center.x - 2.6D, zone.center.y - 1.2D, zone.center.z - 2.6D,
                             zone.center.x + 2.6D, zone.center.y + 2.6D, zone.center.z + 2.6D
                     );
+                    double clusterRadSq = 2.6D * 2.6D;
                     for (LivingEntity clustered : srv.getEntitiesOfClass(LivingEntity.class, centerCluster, LivingEntity::isAlive)) {
                         if (clustered == owner) continue;
-                        if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(clustered, owner, true)) continue;
+                        if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(clustered, owner, wardSafeguard)) continue;
                         if (SpellCombatReactionEngine.isBossEntity(srv, clustered)) continue;
                         Vec3 toCenter = zone.center.subtract(clustered.position());
                         Vec3 h = new Vec3(toCenter.x, 0.0D, toCenter.z);
+                        if (h.lengthSqr() > clusterRadSq) continue;
                         Vec3 snapIn = h.lengthSqr() > 0.04D ? h.normalize().scale(Math.min(0.45D, h.length() * 0.45D)) : Vec3.ZERO;
                         SpellExecutionEngine.applySyncedMotion(clustered, new Vec3(snapIn.x, 0.34D, snapIn.z));
                         clustered.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 24, 1, false, false));
@@ -794,11 +1144,37 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
         ));
     }
 
+    private static boolean resolveActiveCasterWardSafeguard(@Nullable LivingEntity caster) {
+        if (caster == null) {
+            return false;
+        }
+        CompoundTag data = EntityHelper.getPersistentData(caster);
+        if (data.contains(SpellLingeringZoneManager.TAG_AIR_BLINK_WARD_SAFE)) {
+            return data.getBoolean(SpellLingeringZoneManager.TAG_AIR_BLINK_WARD_SAFE).orElse(false);
+        }
+        for (ItemStack held : List.of(caster.getMainHandItem(), caster.getOffhandItem())) {
+            if (held.isEmpty()) continue;
+            CastingApparatusState appState = held.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+            if (appState != null) {
+                Optional<SpellAssembly> active = appState.getActiveSpell();
+                if (active.isPresent()) {
+                    return active.get().hasWardFriendlyFireSafeguard();
+                }
+            }
+            SpellAssembly directSpell = held.get(ModDataComponents.SPELL_ASSEMBLY.get());
+            if (directSpell != null) {
+                return directSpell.hasWardFriendlyFireSafeguard();
+            }
+        }
+        return false;
+    }
+
     private static void suckAdjacentIntoDepartureVacuum(
             ServerLevel level,
             @Nullable LivingEntity caster,
             Vec3 departurePos,
-            double pullRad
+            double pullRad,
+            boolean wardSafeguard
     ) {
         AABB departureBox = new AABB(
                 departurePos.x - pullRad, departurePos.y - 2.0D, departurePos.z - pullRad,
@@ -807,7 +1183,7 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
         double radSq = pullRad * pullRad;
         for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, departureBox, LivingEntity::isAlive)) {
             if (foe == caster) continue;
-            if (caster != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, caster, true)) continue;
+            if (caster != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, caster, wardSafeguard)) continue;
             if (SpellCombatReactionEngine.isBossEntity(level, foe)) continue;
             Vec3 diff = departurePos.subtract(foe.position());
             double hDistSq = diff.x * diff.x + diff.z * diff.z;
@@ -825,7 +1201,14 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
 
         // Also suck hostile mid-air projectiles & loose items into the collapsing air pocket!
         for (Projectile proj : level.getEntitiesOfClass(Projectile.class, departureBox)) {
+            if (!proj.isAlive() || proj instanceof FishingHook) continue;
+            if (isGroundedArrow(proj)) continue;
             if (caster != null && proj.getOwner() == caster) continue;
+            if (wardSafeguard && caster != null && proj.getOwner() instanceof LivingEntity pOwner
+                    && (ApexEschatonSingularityHelper.isFriendly(pOwner, caster)
+                            || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(pOwner, caster, true))) {
+                continue;
+            }
             Vec3 toVac = departurePos.add(0.0D, 0.9D, 0.0D).subtract(proj.position());
             if (toVac.lengthSqr() > 0.04D && toVac.lengthSqr() <= radSq) {
                 SpellExecutionEngine.applySyncedMotion(proj, toVac.normalize().scale(0.85D));
@@ -842,7 +1225,7 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
 
     @Override
     public boolean onTransmuteBlock(ServerLevel level, @Nullable LivingEntity caster, BlockPos pos, BlockState state, int potencyTier) {
-        // Aeration & Dehydration: dries wet sponges, turns mud into clay, dries muddy roots, and blows away cobwebs & leaves!
+        // Aeration & Dehydration: dries wet sponges, turns mud into clay, dries muddy roots, and blows away cobwebs & leaves with 0 drops!
         if (state.is(Blocks.WET_SPONGE)) {
             level.setBlockAndUpdate(pos, Blocks.SPONGE.defaultBlockState());
             spawnWindPuff(level, pos, potencyTier);
@@ -859,7 +1242,10 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             return true;
         }
         if (state.is(Blocks.COBWEB) || state.is(BlockTags.LEAVES)) {
-            level.destroyBlock(pos, true, caster);
+            level.removeBlock(pos, false);
+            Vec3 center = Vec3.atCenterOf(pos);
+            level.sendParticles(ParticleTypes.CLOUD, center.x, center.y, center.z, 8, 0.28D, 0.28D, 0.28D, 0.04D);
+            level.sendParticles(ParticleTypes.POOF, center.x, center.y, center.z, 6, 0.25D, 0.25D, 0.25D, 0.03D);
             spawnWindPuff(level, pos, potencyTier);
             return true;
         }
@@ -874,6 +1260,9 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             int potencyTier
     ) {
         ItemStack stack = itemEntity.getItem();
+        if (stack.isEmpty()) {
+            return false;
+        }
         if (stack.is(Items.WET_SPONGE)) {
             itemEntity.setItem(new ItemStack(Items.SPONGE, stack.getCount()));
             spawnWindPuff(level, itemEntity.blockPosition(), potencyTier);
@@ -889,6 +1278,16 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
             spawnWindPuff(level, itemEntity.blockPosition(), potencyTier);
             return true;
         }
+        if (stack.is(ItemTags.LEAVES) || stack.is(Items.COBWEB)) {
+            BlockPos bPos = itemEntity.blockPosition();
+            Vec3 pos = itemEntity.position().add(0.0D, 0.25D, 0.0D);
+            itemEntity.setItem(ItemStack.EMPTY);
+            itemEntity.discard();
+            level.sendParticles(ParticleTypes.CLOUD, pos.x, pos.y, pos.z, 8, 0.22D, 0.22D, 0.22D, 0.04D);
+            level.sendParticles(ParticleTypes.POOF, pos.x, pos.y, pos.z, 6, 0.20D, 0.20D, 0.20D, 0.03D);
+            spawnWindPuff(level, bPos, potencyTier);
+            return true;
+        }
         return false;
     }
 
@@ -897,7 +1296,11 @@ public final class AirSpellMutationHandler implements MateriaPartMutationHandler
         // Hypoxia Suffocation Hex: cuts stamina & attack speed by 40% and deals continuous suffocation damage on dry land!
         float stackMult = SpellCombatReactionEngine.getHexStackMultiplier(target);
         SpellCombatReactionEngine.applyTimedAttackDebuff(target, level, 0.0D, 0.40D * stackMult, 35L);
+        SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, Math.min(0.75D, 0.40D * stackMult), 35L);
         target.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 35, 1, true, false));
+        if (target instanceof Player hexPlayer && hexPlayer.isSprinting()) {
+            hexPlayer.causeFoodExhaustion(1.5F * stackMult);
+        }
 
         if (!target.isInWater()) {
             float hypoxiaDamage = Math.max(1.5F, MateriaStageTable.getBaseCombatDamageHp(potencyTier) * 0.12F) * stackMult;

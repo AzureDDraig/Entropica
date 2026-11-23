@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " P ",
+    "PFP",
+    " P "
+  ],
+  "key": {
+    "P": "minecraft:packed_ice",
+    "F": "entropica:zephyr_glass_fiber"
+  },
+  "result": {
+    "id": "entropica:zephyr_ice",
+    "count": 4
+  }
+}

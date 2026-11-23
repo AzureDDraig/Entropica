@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "chiseled_eclipse_basalt",
+  "pattern": [
+    " C ",
+    "CMC",
+    " C "
+  ],
+  "key": {
+    "C": "entropica:basalt_column",
+    "M": "entropica:shadowed_eclipse_moss"
+  },
+  "result": {
+    "id": "entropica:chiseled_eclipse_basalt",
+    "count": 4
+  }
+}

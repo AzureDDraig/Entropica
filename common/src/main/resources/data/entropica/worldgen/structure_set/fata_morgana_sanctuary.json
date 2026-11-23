@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:fata_morgana_sanctuary",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 751938426,
+    "spacing": 28,
+    "separation": 11
+  }
+}

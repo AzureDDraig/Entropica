@@ -1,0 +1,7 @@
+{
+  "type": "entropica:fata_morgana_sanctuary",
+  "biomes": "#entropica:has_structure/fata_morgana_sanctuary",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin"
+}

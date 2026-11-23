@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "H H",
+    "HHH",
+    "HHH"
+  ],
+  "key": {
+    "H": "entropica:cured_frost_veined_hide"
+  },
+  "result": {
+    "id": "entropica:cryo_insulated_chestplate",
+    "count": 1
+  }
+}

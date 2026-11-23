@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "": [
+      { "model": "entropica:block/auroral_feather_moss" },
+      { "model": "entropica:block/auroral_feather_moss", "y": 90 },
+      { "model": "entropica:block/auroral_feather_moss", "y": 180 },
+      { "model": "entropica:block/auroral_feather_moss", "y": 270 }
+    ]
+  }
+}

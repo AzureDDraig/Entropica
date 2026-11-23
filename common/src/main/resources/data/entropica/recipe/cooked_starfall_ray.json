@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "ingredient": "entropica:starfall_ray",
+  "result": {
+    "id": "entropica:cooked_starfall_ray"
+  },
+  "experience": 0.35,
+  "cookingtime": 200
+}

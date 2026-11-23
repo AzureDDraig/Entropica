@@ -1,0 +1,58 @@
+{
+  "type": "minecraft:random_patch",
+  "config": {
+    "tries": 28,
+    "xz_spread": 6,
+    "y_spread": 2,
+    "feature": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "config": {
+          "to_place": {
+            "type": "minecraft:simple_state_provider",
+            "state": {
+              "Name": "entropica:rime_cap_mushroom"
+            }
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air",
+                  "minecraft:snow"
+                ]
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "entropica:necrotic_soil",
+                  "entropica:barrow_moss",
+                  "entropica:barrow_stone_bricks",
+                  "entropica:mossy_barrow_bricks",
+                  "minecraft:podzol",
+                  "minecraft:coarse_dirt",
+                  "minecraft:dirt",
+                  "minecraft:snow_block",
+                  "minecraft:stone",
+                  "minecraft:deepslate"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

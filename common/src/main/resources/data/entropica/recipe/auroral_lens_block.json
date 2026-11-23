@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "DAD",
+    "AVA",
+    "DAD"
+  ],
+  "key": {
+    "D": "entropica:aurora_dust",
+    "A": "minecraft:amethyst_shard",
+    "V": "entropica:vapor_condensate_crystals"
+  },
+  "result": {
+    "id": "entropica:auroral_lens_block",
+    "count": 1
+  }
+}

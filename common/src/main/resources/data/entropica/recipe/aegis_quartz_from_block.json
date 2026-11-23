@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:aegis_quartz_block"
+  ],
+  "result": {
+    "id": "entropica:aegis_quartz",
+    "count": 4
+  }
+}

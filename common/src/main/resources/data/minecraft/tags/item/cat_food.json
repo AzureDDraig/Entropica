@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "entropica:nebula_darter",
+    "entropica:starwing_flying_fish",
+    "entropica:starfall_ray",
+    "entropica:comet_ribbonfish",
+    "entropica:zenith_moonfish",
+    "entropica:astral_lanternfish"
+  ]
+}

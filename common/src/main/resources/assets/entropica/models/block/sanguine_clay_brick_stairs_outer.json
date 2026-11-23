@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "entropica:block/sanguine_clay_bricks",
+    "top": "entropica:block/sanguine_clay_bricks",
+    "side": "entropica:block/sanguine_clay_bricks"
+  }
+}

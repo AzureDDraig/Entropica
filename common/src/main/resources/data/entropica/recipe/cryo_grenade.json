@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " S ",
+    "MHM",
+    " G "
+  ],
+  "key": {
+    "S": "minecraft:snowball",
+    "M": "entropica:frozen_moss_clump",
+    "H": "entropica:frost_core_shard",
+    "G": "minecraft:gunpowder"
+  },
+  "result": {
+    "id": "entropica:cryo_grenade",
+    "count": 4
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "PAP",
+    "AGA",
+    "PAP"
+  ],
+  "key": {
+    "P": "minecraft:packed_ice",
+    "A": "entropica:red_algae",
+    "G": "entropica:sanguine_heart_gel"
+  },
+  "result": {
+    "id": "entropica:sanguine_ice",
+    "count": 8
+  }
+}

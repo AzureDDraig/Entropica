@@ -83,12 +83,14 @@ public final class StaticSpellMutationHandler implements MateriaPartMutationHand
 
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Galvanic Tesla Orbit Flow";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE ? "Galvanic Tesla Orbit Flow" : null;
     }
 
     @Override
     public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "4 high-voltage ball-lightning spheres and polarized slate fragments (#FFE600 / #878DA2) paired in double-helix orbits grant +5 Armor, +2 Toughness, Lightning/Fall/Slowness immunity, metallic arrow vaporization, 1.0s melee paralyze backlash, and homing arc bolts that root targets for 2.0s and shock 3 nearby foes.";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE
+                ? "4 high-voltage ball-lightning spheres and polarized slate fragments (#FFE600 / #878DA2) paired in double-helix orbits grant +5 Armor, +2 Toughness, Lightning/Fall/Slowness immunity, metallic arrow vaporization, 1.0s melee paralyze backlash, and homing arc bolts that root targets for 2.0s and shock 3 nearby foes."
+                : null;
     }
 
     @Override
@@ -174,12 +176,14 @@ public final class StaticSpellMutationHandler implements MateriaPartMutationHand
                     projectile.getX(), projectile.getY(), projectile.getZ(), 1, 0.06D, 0.06D, 0.06D, 0.01D
             );
         }
-        // Vaporizes incoming metallic arrows in mid-air around the orbiting spheres!
-        Entity owner = projectile.getOwner();
-        for (AbstractArrow arrow : level.getEntitiesOfClass(AbstractArrow.class, projectile.getBoundingBox().inflate(2.2D))) {
-            if (arrow.getOwner() == owner) continue;
-            level.sendParticles(ParticleTypes.ELECTRIC_SPARK, arrow.getX(), arrow.getY(), arrow.getZ(), 8, 0.12D, 0.12D, 0.12D, 0.06D);
-            arrow.discard();
+        // Vaporizes incoming metallic arrows in mid-air around the orbiting spheres ONLY when ORBIT_SATELLITE Flow is active!
+        if (flow == SpellFlowModifier.ORBIT_SATELLITE) {
+            Entity owner = projectile.getOwner();
+            for (AbstractArrow arrow : level.getEntitiesOfClass(AbstractArrow.class, projectile.getBoundingBox().inflate(2.2D))) {
+                if (arrow.getOwner() == owner) continue;
+                level.sendParticles(ParticleTypes.ELECTRIC_SPARK, arrow.getX(), arrow.getY(), arrow.getZ(), 8, 0.12D, 0.12D, 0.12D, 0.06D);
+                arrow.discard();
+            }
         }
     }
 
@@ -292,10 +296,23 @@ public final class StaticSpellMutationHandler implements MateriaPartMutationHand
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Section 6.44 Dielectric Breakdown Arc-Stream Beam:
-        // Rapid Static Materia damage, secondary shocks to adjacent hostiles, -1 armor per 1.5s, magnetizes metallic
-        // items straight into caster's inventory; REQUIRES 5.0s (100 contact ticks) of sustained continuous channeling
-        // to trigger Catastrophic Dielectric Flashover (colossal EM blast + 3.0s / 60t paralyze)!
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         int tier = spell.getEffectiveTier();
         boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
         Vec3 eye = caster.getEyePosition();
@@ -340,9 +357,13 @@ public final class StaticSpellMutationHandler implements MateriaPartMutationHand
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_STATIC_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) {
+                continue;
+            }
             long delta = now - last;
-            int stepTicks = (delta > 0L && delta <= 8L) ? (int) Math.max(4L, delta) : 20;
-            int contactTicks = (delta <= 45L) ? data.getInt(TAG_STATIC_BEAM_TICKS).orElse(0) + stepTicks : stepTicks;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt(TAG_STATIC_BEAM_TICKS).orElse(0) + (int) delta : 4);
             data.putLong(TAG_STATIC_BEAM_LAST_TICK, now);
             data.putInt(TAG_STATIC_BEAM_TICKS, contactTicks);
 
@@ -351,7 +372,7 @@ public final class StaticSpellMutationHandler implements MateriaPartMutationHand
             data.putDouble(TAG_STATIC_BEAM_ARMOR_SHRED, armorShred);
             SpellCombatReactionEngine.applyTimedAttributeShred(hit, level, armorShred, 0.0D, 100L);
 
-            if (contactTicks >= 100) {
+            if (heldTicks > 0 && contactTicks >= 100) {
                 data.putInt(TAG_STATIC_BEAM_TICKS, 0);
                 SpellWorldVfxManager.broadcastRadialNova(level, hit.position(), 4.5D, EssenceType.STATIC, EssenceType.LIGHTNING, tier);
                 float flashoverDmg = (11.0F + tier * 2.65F) * Math.max(0.5F, apparatusPotency);
@@ -887,19 +908,16 @@ public final class StaticSpellMutationHandler implements MateriaPartMutationHand
 
     @Override
     public boolean onTransmuteBlock(ServerLevel level, @Nullable LivingEntity caster, BlockPos pos, BlockState state, int potencyTier) {
-        // Section 6.44 Dielectric Electrolysis & Vitrification Transmute:
-        // Raw iron/copper ores -> refined ingots (+25% bonus yield, dropping extra nuggets on partial fractions);
-        // Sand -> Glass or Tinted Glass (fulgurite); Cobblestone/Gravel -> Deepslate; recharges machinery/batteries;
-        // evaporates standing Water into dry Air!
-        boolean didAny = LightningSpellMutationHandler.tryMachineRecharging(level, pos, EssenceType.STATIC, potencyTier);
-        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2.5D), ItemEntity::isAlive)) {
-            if (onTransmuteDroppedItem(level, caster, item, potencyTier)) {
-                didAny = true;
-            }
+        // Section 6.44 Dielectric Electrolysis & Vitrification Transmute [2.5s Continuous Held Right-Click Channel]:
+        if (ApexEschatonSingularityHelper.beginOrExecuteChanneledTransmute(
+                level, caster, pos, 5, potencyTier, EssenceType.STATIC,
+                "Dielectric Electrolysis & Vitrification Transmute",
+                () -> LightningSpellMutationHandler.tryMachineRecharging(level, pos, EssenceType.STATIC, potencyTier))) {
+            return true;
         }
+        boolean didAny = LightningSpellMutationHandler.tryMachineRecharging(level, pos, EssenceType.STATIC, potencyTier);
 
         if (SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
-            if (didAny) refundBatchDiscount(level, caster, potencyTier);
             return didAny;
         }
 

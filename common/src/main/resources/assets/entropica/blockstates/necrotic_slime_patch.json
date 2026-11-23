@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "": [
+      { "model": "entropica:block/necrotic_slime_patch" },
+      { "model": "entropica:block/necrotic_slime_patch", "y": 90 },
+      { "model": "entropica:block/necrotic_slime_patch", "y": 180 },
+      { "model": "entropica:block/necrotic_slime_patch", "y": 270 }
+    ]
+  }
+}

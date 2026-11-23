@@ -42,6 +42,10 @@ public class EntropicaNeoForgeConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_BIOME_CUSTOM_FOG;
     public static final ModConfigSpec.BooleanValue ENABLE_BIOME_CUSTOM_SKY;
     public static final ModConfigSpec.BooleanValue ENABLE_BIOME_ENVIRONMENTAL_EFFECTS;
+    public static final ModConfigSpec.BooleanValue ENABLE_ENHANCED_BIOME_FOG_AND_WATER;
+    public static final ModConfigSpec.BooleanValue ENABLE_BIOME_VOLUMETRIC_FOG;
+    public static final ModConfigSpec.BooleanValue ENABLE_BIOME_WATER_EFFECTS;
+    public static final ModConfigSpec.BooleanValue ENABLE_SHADERPACK_ADAPTIVE_ATTENUATION;
     public static final EnumMap<EntropicaBiome, ModConfigSpec.BooleanValue> BIOME_TOGGLES = new EnumMap<>(EntropicaBiome.class);
 
     // Materia Vitae Network Configs
@@ -443,6 +447,22 @@ public class EntropicaNeoForgeConfig {
         ENABLE_BIOME_ENVIRONMENTAL_EFFECTS = BUILDER.comment("If true, enables biome environmental physics, ambient drifting particles, and regional hazards/blessings (such as Aegis heavy gravity, Void low-gravity Jump Boost, and Sanctuary regeneration). Default: true")
                 .translation("entropica.configuration.biome_settings.enableBiomeEnvironmentalEffects")
                 .define("enableBiomeEnvironmentalEffects", true);
+
+        ENABLE_ENHANCED_BIOME_FOG_AND_WATER = BUILDER.comment("Master visual toggle: if true, enables enhanced volumetric mist strata and water-surface reflections / sub-surface Starlight Parallax in Entropica biomes. Set to false to revert cleanly to classic distance fog and vanilla water while keeping standard biome sky/fog colors. Default: true")
+                .translation("entropica.configuration.biome_settings.enable_enhanced_biome_fog_and_water")
+                .define("enable_enhanced_biome_fog_and_water", true);
+
+        ENABLE_BIOME_VOLUMETRIC_FOG = BUILDER.comment("If true (and enable_enhanced_biome_fog_and_water is true), enables low-lying undulating volumetric mist strata hovering over water channels, ice shelves, and barrow hollows in Entropica biomes (Sodium & Iris shader compatible). Default: true")
+                .translation("entropica.configuration.biome_settings.enableBiomeVolumetricFog")
+                .define("enableBiomeVolumetricFog", true);
+
+        ENABLE_BIOME_WATER_EFFECTS = BUILDER.comment("If true (and enable_enhanced_biome_fog_and_water is true), enables custom biome water-surface optical reflections and 3D sub-surface Starlight Parallax effects (Sodium & Iris shader compatible). Default: true")
+                .translation("entropica.configuration.biome_settings.enableBiomeWaterEffects")
+                .define("enableBiomeWaterEffects", true);
+
+        ENABLE_SHADERPACK_ADAPTIVE_ATTENUATION = BUILDER.comment("If true, automatically attenuates volumetric mist and water reflection/parallax alpha when an Iris or Oculus shaderpack is active so shader SSR water and HDR bloom never double-brighten. Default: true")
+                .translation("entropica.configuration.biome_settings.enableShaderpackAdaptiveAttenuation")
+                .define("enableShaderpackAdaptiveAttenuation", true);
 
         for (EntropicaBiome.ClimateZone zone : EntropicaBiome.ClimateZone.values()) {
             BUILDER.comment("Enable or disable natural generation for " + zone.getDisplayName())

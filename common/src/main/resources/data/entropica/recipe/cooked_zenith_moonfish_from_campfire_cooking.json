@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:campfire_cooking",
+  "category": "food",
+  "ingredient": "entropica:zenith_moonfish",
+  "result": {
+    "id": "entropica:cooked_zenith_moonfish"
+  },
+  "experience": 0.35,
+  "cookingtime": 600
+}

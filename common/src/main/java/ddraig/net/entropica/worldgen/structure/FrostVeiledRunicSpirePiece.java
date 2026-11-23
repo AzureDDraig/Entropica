@@ -609,8 +609,8 @@ public class FrostVeiledRunicSpirePiece extends StructurePiece {
             }
         }
 
-        // Summit Glacial Life-Force Anchor at exact Y+42 (originX, baseY + 42, originZ)
-        setBlock(level, chunkBox, 0, 42, 0, ModBlocks.GLACIAL_LIFE_FORCE_ANCHOR.get().defaultBlockState());
+        // Summit Aegis Crystal pedestal block at exact Y+42 (originX, baseY + 42, originZ)
+        setBlock(level, chunkBox, 0, 42, 0, ModBlocks.AEGIS_CRYSTAL_BLOCK.get().defaultBlockState());
         setBlock(level, chunkBox, 0, 43, 0, Blocks.AIR.defaultBlockState());
 
         // Floating Aegis Crystal octahedral prism hovering above the summit at dy = 44..46
@@ -644,7 +644,13 @@ public class FrostVeiledRunicSpirePiece extends StructurePiece {
         }
         BlockState chestState = Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, facing);
         level.setBlock(pos, chestState, 2);
-        RandomizableContainer.setBlockEntityLootTable(level, random, pos, ModStructures.STRUCTURE_1_CHEST_LOOT);
+        boolean inSilentFjord = level.getBiome(pos).is(ddraig.net.entropica.config.EntropicaBiome.SILENT_FJORD.resourceKey());
+        RandomizableContainer.setBlockEntityLootTable(
+                level,
+                random,
+                pos,
+                inSilentFjord ? ModStructures.STRUCTURE_1_FJORD_CHEST_LOOT : ModStructures.STRUCTURE_1_CHEST_LOOT
+        );
     }
 
     private void placeAndStockTrapDispenser(

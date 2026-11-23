@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "STS",
+    "GSG"
+  ],
+  "key": {
+    "S": "entropica:jade_qilin_scale",
+    "T": "entropica:weeping_amber_tear",
+    "G": "minecraft:gold_ingot"
+  },
+  "result": {
+    "id": "entropica:qilin_prism_circlet",
+    "count": 1
+  }
+}

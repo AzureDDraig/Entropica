@@ -80,6 +80,22 @@
     {
       "id": "biomeswevegone:roadrunner",
       "required": false
+    },
+    {
+      "id": "entropica:sandstone_golem",
+      "required": false
+    },
+    {
+      "id": "entropica:silt_sphinx",
+      "required": false
+    },
+    {
+      "id": "entropica:mirage_fata_sprite",
+      "required": false
+    },
+    {
+      "id": "entropica:soulfire_djinn",
+      "required": false
     }
   ]
 }

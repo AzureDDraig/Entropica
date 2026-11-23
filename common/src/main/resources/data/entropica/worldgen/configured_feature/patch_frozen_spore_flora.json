@@ -1,0 +1,81 @@
+{
+  "type": "minecraft:random_patch",
+  "config": {
+    "tries": 36,
+    "xz_spread": 6,
+    "y_spread": 2,
+    "feature": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "config": {
+          "to_place": {
+            "type": "minecraft:weighted_state_provider",
+            "entries": [
+              {
+                "data": {
+                  "Name": "entropica:frozen_spore_moss_carpet"
+                },
+                "weight": 5
+              },
+              {
+                "data": {
+                  "Name": "entropica:spore_burst_puffball"
+                },
+                "weight": 2
+              },
+              {
+                "data": {
+                  "Name": "entropica:spore_bearing_pitcher_plump",
+                  "Properties": {
+                    "facing": "up"
+                  }
+                },
+                "weight": 2
+              },
+              {
+                "data": {
+                  "Name": "minecraft:brown_mushroom"
+                },
+                "weight": 2
+              }
+            ]
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air",
+                  "minecraft:snow"
+                ]
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "entropica:frozen_spore_moss",
+                  "minecraft:snow_block",
+                  "minecraft:grass_block",
+                  "minecraft:dirt",
+                  "minecraft:coarse_dirt",
+                  "minecraft:moss_block",
+                  "minecraft:mycelium"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

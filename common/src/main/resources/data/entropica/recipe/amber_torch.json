@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "A",
+    "S"
+  ],
+  "key": {
+    "A": "entropica:amber_chunk",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "entropica:amber_torch",
+    "count": 4
+  }
+}

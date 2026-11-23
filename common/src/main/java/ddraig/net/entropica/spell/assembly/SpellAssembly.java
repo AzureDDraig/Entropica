@@ -175,6 +175,60 @@ public record SpellAssembly(
     }
 
     /**
+     * Returns true if any active sub-spell carries {@link SpellCoreEffect#TRANSMUTE} as Primary or Secondary verb.
+     */
+    public boolean hasTransmuteVerb() {
+        for (SubSpellSlot slot : this.subSpells) {
+            if (slot.primaryEffect().effect() == SpellCoreEffect.TRANSMUTE) {
+                return true;
+            }
+            if (slot.secondaryEffect().map(s -> s.effect() == SpellCoreEffect.TRANSMUTE).orElse(false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if any active sub-spell uses {@link SpellDeliveryForm#CONE} in Held Channeled Stream mode
+     * (explicit {@code "stream"} / {@code "channeled"} sub-mode or stream-capable Pyre Cone unless set to {@code "fan"}/{@code "wave"}).
+     */
+    public boolean hasHeldStreamConeForm() {
+        for (SubSpellSlot slot : this.subSpells) {
+            if (slot.formPart().form() != SpellDeliveryForm.CONE
+                    || slot.primaryEffect().effect() == SpellCoreEffect.BLINK) {
+                continue;
+            }
+            String formSub = slot.formPart().subMode();
+            String effSub = slot.primaryEffect().subMode();
+            if (SpellDeliveryForm.isHeldStreamConeSubMode(formSub)
+                    || SpellDeliveryForm.isHeldStreamConeSubMode(effSub)) {
+                return true;
+            }
+            if (slot.formPart().mutationEnabled()
+                    && slot.formPart().materiaType() == EssenceType.PYRE
+                    && !"fan".equalsIgnoreCase(formSub)
+                    && !"wave".equalsIgnoreCase(formSub)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isChanneledHoldCone() {
+        return hasHeldStreamConeForm() && !this.flowPart.trigger().isSelfCentered();
+    }
+
+    /**
+     * Returns true when casting this spell from a handheld apparatus requires active Right-Click item-use holding:
+     * Held Continuous {@link SpellDeliveryForm#BEAM}, Held Stream {@link SpellDeliveryForm#CONE},
+     * or {@code 2.5s} ({@code 50-tick}) Continuous Held {@link SpellCoreEffect#TRANSMUTE}.
+     */
+    public boolean requiresContinuousHoldUse() {
+        return isChanneledHoldBeam() || isChanneledHoldCone() || hasTransmuteVerb();
+    }
+
+    /**
      * Returns true if any active sub-spell uses {@link SpellDeliveryForm#TOUCH_STRIKE}.
      */
     public boolean hasTouchStrikeForm() {

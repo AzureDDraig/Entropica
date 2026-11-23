@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "entropica:block/chiseled_eclipse_basalt_top",
+    "side": "entropica:block/chiseled_eclipse_basalt"
+  }
+}

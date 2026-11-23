@@ -1,15 +1,18 @@
 package ddraig.net.entropica.spell.mutation.element;
 
 import ddraig.net.entropica.api.EssenceType;
+import ddraig.net.entropica.block.entity.AutocastPedestalBlockEntity;
 import ddraig.net.entropica.client.particle.TimedTintableParticleOption;
 import ddraig.net.entropica.entity.SpellEidolonEntity;
 import ddraig.net.entropica.entity.projectile.SpellProjectileEntity;
 import ddraig.net.entropica.network.SpellVfxEventPayload;
+import ddraig.net.entropica.registry.ModDataComponents;
 import ddraig.net.entropica.registry.ModItems;
 import ddraig.net.entropica.registry.ModParticles;
 import ddraig.net.entropica.spell.SpellCoreEffect;
 import ddraig.net.entropica.spell.SpellDeliveryForm;
 import ddraig.net.entropica.spell.SpellFlowModifier;
+import ddraig.net.entropica.spell.apparatus.CastingApparatusState;
 import ddraig.net.entropica.spell.assembly.SpellAssembly;
 import ddraig.net.entropica.spell.assembly.SubSpellSlot;
 import ddraig.net.entropica.spell.engine.SpellCombatReactionEngine;
@@ -23,7 +26,6 @@ import ddraig.net.entropica.spell.vfx.SpellWorldVfxManager;
 import ddraig.net.entropica.util.EntityHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -35,15 +37,25 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
-import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.NeutralMob;
+import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.ambient.AmbientCreature;
+import net.minecraft.world.entity.animal.AbstractGolem;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -53,12 +65,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.block.BaseFireBlock;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.CandleBlock;
-import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.TntBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -75,6 +86,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -86,45 +98,46 @@ import java.util.UUID;
  *     <li><b>Projectile</b>: <i>Netherfire Comet</i> — roaring molten magma orb wrapped in basalt-slag plates that
  *     flashes water into steam and explodes on impact (or max-range airburst), dealing Nether Materia damage
  *     (+1 vs Frozen, -1 vs Water) with linear distance falloff, igniting entities for 5.0s, alerting dungeon hostiles
- *     (Section 1.7), auto-smelting dropped ores/food, and leaving a temporary pool of fire on hit blocks.</li>
+ *     (Section 1.7), auto-smelting dropped items, and leaving a temporary pool of fire on hit ground.</li>
  *     <li><b>Beam</b>: <i>Nether Tendril Tether</i> — burning braided chain of hellfire that latches onto the target
- *     within a flexible 45-degree leash cone while moving, draining their life force as thermal energy to heal the
- *     caster and recharge Nether Materia in the caster's Orbis Cell.</li>
+ *     within a flexible 45-degree leash cone while moving, draining their life force as thermal energy to recharge
+ *     Nether Materia in the caster's Orbis Cell proportional to actual damage dealt.</li>
  *     <li><b>Radial Burst</b>: <i>Hellfire Ring Shockwave</i> — 6-block 360-degree wave of explosive netherfire,
- *     knocking enemies backward, igniting all hostiles, auto-smelting dropped item stacks on the ground, melting
+ *     knocking hostiles backward, igniting all hostiles, auto-smelting dropped item stacks on the ground, melting
  *     ice/snow, and leaving a dense 24-point perimeter ring of blazing fire blocks.</li>
  *     <li><b>Touch / Strike</b>: <i>Cauterizing Cleave &amp; Auto-Smelt</i> — converts melee strike to pure Nether
- *     Materia damage (stacking held weapon Materia Advantage) with a blazing 3D crescent cleave; ignites the target
- *     with unquenchable Netherfire (cannot be extinguished by water for 6.0s); lethal strikes or burn deaths cook all
- *     meat drops and pre-smelt raw ores held in the creature's inventory/hands.</li>
+ *     Materia damage (stacking held weapon Materia Advantage) with a blazing 3D crescent cleave; ignites primary and
+ *     cleave targets with unquenchable Netherfire for 6.0s; strikes that directly kill the creature cook meat drops
+ *     and pre-smelt raw ores across equipment and inventories.</li>
  *     <li><b>Aura / Self</b>: <i>Immolation Shroud</i> — registers defense as Nether (+1 vs Frozen -> 50% damage,
  *     -1 vs Water -> 150% damage), grants 100% immunity to fire, lava, and magma blocks, enables smooth every-tick
  *     water-like swimming buoyancy in lava, sets melee attackers ablaze with unquenchable fire, and melts nearby
  *     ice and snow automatically (mobile or Sneak-Cast anchored field).</li>
  *     <li><b>Glyph / Trap</b>: <i>Magma Puddle Trap</i> — 1.0s arming delay, visible volcanic caldera seal, 10m
  *     (or Tier 5+ indefinite) persistence, 50% Sneak-Right-Click disarm refund, and Repeating Sentry support; turns
- *     the floor under the trap into a contained 3x3 pool of real Lava for 4.0 seconds, bogging down heavy mobs before
- *     solidifying cleanly into Obsidian.</li>
- *     <li><b>Cone / Spray</b>: <i>Combustion Backdraft</i> — short-range 60-degree explosive cone blasting enemies
+ *     the floor under the trap into a contained non-spilling 3x3 pool of real Lava for 4.0 seconds (65% movement slow)
+ *     before permanently solidifying into Obsidian around trapped mobs' legs.</li>
+ *     <li><b>Cone / Spray</b>: <i>Combustion Backdraft</i> — short-range 60-degree explosive cone blasting hostiles
  *     backward with heavy knockback, incinerating incoming arrows, leaving scorched fire patches, and pushing the
  *     caster safely backward with smooth fall-resetting recoil.</li>
- *     <li><b>Rain / Skyfall</b>: <i>Brimstone Meteor Rain</i> — opens a cave-ceiling-adaptive volcanic sky-rift over
- *     7.5 seconds, raining 3D exploding netherfire meteors that stagger enemies with Nether Materia damage (+1 vs
- *     Frozen), set the area ablaze, auto-smelt ground loot, and vaporize standing water pools into steam.</li>
+ *     <li><b>Rain / Skyfall</b>: <i>Brimstone Meteor Rain</i> — opens a cave-ceiling-adaptive volcanic sky-rift scaling
+ *     from 6.0s (120t) at Tier 1 up to 13.2s (264t) at Tier 10 alongside circular tier-scaled radius, raining 3D
+ *     exploding netherfire meteors that stagger enemies with Nether Materia damage (+1 vs Frozen), set the area ablaze,
+ *     auto-smelt ground loot, and vaporize standing water pools into steam.</li>
  *     <li><b>Summon / Eidolon</b>: <i>Infernal Eidolon Suite</i> — volcanic red-orange (#B83C08) triad: dashing
  *     burning-claw Agent that explodes into fire on death, ballistic Magma Mortar Sentry lobbing explosive fireballs,
  *     and Blazing Wicker Effigy Decoy that sears attackers and detonates in a fiery burst on destruction.</li>
  *     <li><b>Flow (Chains)</b>: <i>Arcing Fire-Whip Chains</i> — roaring 3D flame whips leaving a continuous 6.0s line
- *     of burning fire blocks on the ground between chained victims, igniting any mob crossing the path.</li>
- *     <li><b>Blink / Step</b>: <i>Thermal Pop</i> — roaring 3D pillar of flame at departure and explosive arrival
- *     shockwave pop.</li>
- *     <li><b>Transmute &amp; Break</b>: <i>Thermal Pyrolysis</i> — auto-smelts raw ores (with up to 30% batch fuel
- *     discount), fuses Sand into Glass and Clay into Bricks, solidifies lava rims into Magma Blocks, chars invalid
- *     organic targets into Cinder Ash Flakes, smelts Logistics raw ores in transit, and vaporizes Water into
- *     high-pressure steam.</li>
+ *     of burning fire blocks on the ground between chained victims, igniting and searing hostiles crossing the path.</li>
+ *     <li><b>Blink / Step</b>: <i>Thermal Pop</i> — roaring 3D pillar of flame and 5.0s 3x3 fire pool at departure
+ *     plus circular 3.5-block explosive arrival shockwave pop and ice/snow melting.</li>
+ *     <li><b>Transmute &amp; Break</b>: <i>Thermal Pyrolysis</i> — auto-smelts raw ores (with virtual Fortune I–IV and
+ *     up to 30% batch fuel discount), fuses Sand into Glass and Clay into Bricks, solidifies lava rims into Magma Blocks,
+ *     chars wooden planks and invalid organic targets into Cinder Ash Flakes, primes TNT, smelts Logistics raw ores in
+ *     transit, and vaporizes Water into high-pressure steam.</li>
  *     <li><b>Affliction</b>: <i>Hellfire Sear Hex</i> — unquenchable Nether curse burning perpetually (even boiling
- *     underwater) until extinguished via Water/Restoration magic, Thermal Shock, or caster defeat; permanently melts
- *     30% of target physical armor points and disables natural health regeneration (immune to milk buckets).</li>
+ *     underwater) until extinguished via Water/Restoration magic or caster defeat; melts 30% / 45% / 60% of target
+ *     physical armor points across Hex Levels I–III and disables natural health regeneration (immune to milk buckets).</li>
  * </ul>
  */
 public final class NetherSpellMutationHandler implements MateriaPartMutationHandler {
@@ -133,7 +146,7 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
     private static final int MOLTEN_GOLD_HEX_COLOR = 0xFFD15C;
     private static final int BASALT_SLAG_HEX_COLOR = 0x2A1712;
 
-    /** Persistent guard tag so held raw ores on a dying mob are only pre-smelted once. */
+    /** Persistent guard tag so held raw ores on a dying creature are only pre-smelted once. */
     private static final String TAG_HELD_ORES_SMELTED = "SpellNetherHeldOresSmelted";
 
     // Generous 3D world-space VFX durations so players can admire volcanic & hellfire formations
@@ -144,13 +157,9 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
     private static final int VFX_CAUTERIZING_SLASH_TICKS = 54;
     private static final int VFX_BACKDRAFT_CONE_TICKS = 56;
     private static final int VFX_MAGMA_GEYSER_TICKS = 58;
-    private static final int VFX_BRIMSTONE_STORM_TICKS = 150;
+    private static final int VFX_BRIMSTONE_STORM_TICKS = 120;
     private static final int VFX_SUMMON_PILLAR_TICKS = 60;
     private static final int VFX_THERMAL_POP_TICKS = 60;
-
-    private static final EquipmentSlot[] HAND_SLOTS = new EquipmentSlot[]{
-            EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND
-    };
 
     @Override
     public EssenceType materiaType() {
@@ -172,8 +181,8 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
     @Override
     public @Nullable String resolveFlowDescription(SpellFlowModifier flow) {
         return switch (flow) {
-            case CHAIN_LEAP -> "Arcing Fire-Whip Chains: Leaping chains manifest as roaring 3D flame whips that leave a blazing line of fire blocks on the ground between chained victims, igniting any mob that crosses the path.";
-            default -> "Hellfire Brimstone Flow: Channels roaring volcanic heat and molten cinder wakes along infernal currents.";
+            case CHAIN_LEAP -> "Arcing Fire-Whip Chains: Leaping chains manifest as roaring 3D flame whips that leave a blazing line of fire blocks on the ground between chained victims, igniting and searing hostiles that cross the path.";
+            default -> null;
         };
     }
 
@@ -196,14 +205,14 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
     @Override
     public @Nullable String resolveFormDescription(SpellDeliveryForm form) {
         return switch (form) {
-            case PROJECTILE -> "Netherfire Comet: Fires a roaring molten magma orb that explodes on impact, dealing Nether Materia damage (+1 vs Frozen, -1 vs Water), igniting entities for 5s, auto-smelting dropped ores/food, and leaving a temporary pool of fire.";
-            case BEAM -> "Nether Tendril Tether: Latches a flexible 45° burning chain of hellfire onto the target, draining their life force as thermal energy to heal the caster and recharge their Orbis Cell.";
-            case RADIAL_BURST -> "Hellfire Ring Shockwave: Detonates a 6-block 360° wave of explosive netherfire, knocking enemies back, igniting hostiles, auto-smelting ground item stacks, and leaving a ring of blazing fire blocks.";
-            case TOUCH_STRIKE -> "Cauterizing Cleave & Auto-Smelt: Converts melee strike to Nether Materia damage and ignites foes in unquenchable Netherfire for 6s; lethal kills cook all meat drops and pre-smelt held raw ores.";
+            case PROJECTILE -> "Netherfire Comet: Fires a roaring molten magma orb that explodes on impact, dealing Nether Materia damage (+1 vs Frozen, -1 vs Water), igniting entities for 5s, auto-smelting dropped items, and leaving a temporary pool of fire.";
+            case BEAM -> "Nether Tendril Tether: Latches a flexible 45° burning chain of hellfire onto the target, draining their life force as thermal energy to recharge the caster's Orbis Cell proportional to actual damage dealt.";
+            case RADIAL_BURST -> "Hellfire Ring Shockwave: Detonates a 6-block 360° wave of explosive netherfire, knocking hostiles back, igniting hostiles, auto-smelting ground item stacks, and leaving a ring of blazing fire blocks.";
+            case TOUCH_STRIKE -> "Cauterizing Cleave & Auto-Smelt: Converts melee strike to Nether Materia damage and ignites primary and cleave foes in unquenchable Netherfire for 6s; kills from the strike cook meat drops and pre-smelt held raw ores.";
             case AURA -> "Immolation Shroud: Registers defense as Nether (+1 vs Frozen, -1 vs Water); grants 100% fire/lava immunity, smooth water-like lava swimming buoyancy, melee attacker ignition, and automatic melting of nearby ice and snow.";
-            case GLYPH -> "Magma Puddle Trap: Turns the floor under the trap into a contained 3x3 pool of molten lava for 4 seconds, trapping heavy mobs before solidifying into Obsidian.";
-            case CONE -> "Combustion Backdraft: Unleashes a short-range explosive cone that blasts enemies backward with heavy knockback while pushing the caster safely backward with recoil.";
-            case SKYFALL -> "Brimstone Meteor Rain: Rains exploding netherfire meteors from a cave-viable rift over 7.5s, staggering enemies with Nether Materia damage (+1 vs Frozen), setting the area ablaze, and vaporizing standing water pools.";
+            case GLYPH -> "Magma Puddle Trap: Turns the floor under the trap into a contained non-spilling 3x3 pool of molten lava for 4 seconds (65% slow), permanently solidifying into Obsidian around trapped mobs' legs.";
+            case CONE -> "Combustion Backdraft: Unleashes a short-range explosive cone that blasts hostiles backward with heavy knockback while pushing the caster safely backward with recoil.";
+            case SKYFALL -> "Brimstone Meteor Rain: Rains exploding netherfire meteors from a cave-viable rift over 6.0s–13.2s across Tiers 1–10, staggering enemies with Nether Materia damage (+1 vs Frozen), setting the area ablaze, and vaporizing standing water pools.";
             case SUMMON_AGENT -> "Infernal Eidolon (Agent): Volcanic red-orange (#B83C08) striker dashing at targets with burning claws, igniting them, and exploding into fire upon death.";
             case SUMMON_SENTRY -> "Infernal Magma Mortar (Sentry): Anchored basalt cauldron (#B83C08) lobbing ballistic explosive magma fireballs at distant hostiles.";
             case SUMMON_DECOY -> "Blazing Wicker Effigy (Decoy): Burning wicker effigy (#B83C08) that sears attackers who strike it and detonates into a violent fiery burst upon destruction.";
@@ -223,9 +232,9 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
     @Override
     public @Nullable String resolveEffectDescription(SpellCoreEffect effect) {
         return switch (effect) {
-            case BLINK -> "Thermal Pop: Teleport leaves a roaring 3D pillar of flame at departure and detonates an explosive arrival shockwave pop.";
-            case TRANSMUTE, BREAK -> "Thermal Pyrolysis: Auto-smelts raw ores (with up to 30% batch fuel discount), turns Sand into Glass and Clay into Bricks, solidifies lava rims, chars invalid organics to Ash, and vaporizes Water into high-pressure steam.";
-            case AFFLICTION -> "Hellfire Sear Hex: Unquenchable Nether curse burning perpetually (even underwater) until extinguished via Water/Restoration magic or caster defeat; melts 30% of physical Armor and locks natural health regeneration (milk-immune).";
+            case BLINK -> "Thermal Pop: Teleport leaves a roaring 3D pillar of flame and 5s 3x3 fire pool at departure and detonates a circular 3.5-block explosive arrival shockwave pop.";
+            case TRANSMUTE, BREAK -> "Thermal Pyrolysis: Auto-smelts raw ores (with virtual Fortune I–IV and up to 30% batch fuel discount), turns Sand into Glass and Clay into Bricks, solidifies lava rims, chars wooden planks and invalid organics to Ash, primes TNT, and vaporizes Water into high-pressure steam.";
+            case AFFLICTION -> "Hellfire Sear Hex: Unquenchable Nether curse burning perpetually (even underwater) until extinguished via Water/Restoration magic or caster defeat; melts 30% / 45% / 60% of physical Armor across Hex Levels I–III and locks natural health regeneration (milk-immune).";
             default -> null;
         };
     }
@@ -243,6 +252,10 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
             SpellAssembly spell,
             SubSpellSlot slot
     ) {
+        if (spell.flowPart().flow() != SpellFlowModifier.CHAIN_LEAP) {
+            return;
+        }
+
         int tier = spell.getEffectiveTier();
         Vec3 startEye = fromTarget.position().add(0.0D, fromTarget.getBbHeight() * 0.55D, 0.0D);
         Vec3 endEye = toTarget.position().add(0.0D, toTarget.getBbHeight() * 0.55D, 0.0D);
@@ -254,6 +267,22 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                 1.0F, VFX_FIRE_WHIP_CHAIN_TICKS, tier
         );
 
+        level.sendParticles(
+                TimedTintableParticleOption.linear(ModParticles.TINTABLE_EMBER.get(), MOLTEN_GOLD_HEX_COLOR, 38, 1.08F, 0.08F),
+                endEye.x, endEye.y, endEye.z, 14, 0.32D, 0.32D, 0.32D, 0.05D
+        );
+        level.sendParticles(
+                TimedTintableParticleOption.linear(ModParticles.RUNE_KENAZ.get(), MOLTEN_GOLD_HEX_COLOR, 28, 1.05F, 0.05F),
+                endEye.x, endEye.y + 0.15D, endEye.z, 4, 0.25D, 0.25D, 0.25D, 0.02D
+        );
+        level.playSound(null, toTarget.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.PLAYERS, 0.80F, 1.16F);
+        level.playSound(null, toTarget.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.65F, 1.28F);
+
+        if (spell.prefix().enforcesZeroEntityHarm()) {
+            return;
+        }
+
+        boolean safeWard = spell.hasWardFriendlyFireSafeguard();
         Vec3 start = fromTarget.position();
         Vec3 end = toTarget.position();
         double dist = start.distanceTo(end);
@@ -275,29 +304,21 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
             }
         }
 
-        toTarget.igniteForSeconds(5);
-        EntityHelper.getPersistentData(toTarget).putLong(
-                SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, level.getGameTime() + 100L
-        );
-        level.sendParticles(
-                TimedTintableParticleOption.linear(ModParticles.TINTABLE_EMBER.get(), MOLTEN_GOLD_HEX_COLOR, 38, 1.08F, 0.08F),
-                endEye.x, endEye.y, endEye.z, 14, 0.32D, 0.32D, 0.32D, 0.05D
-        );
-        level.sendParticles(
-                TimedTintableParticleOption.linear(ModParticles.RUNE_KENAZ.get(), MOLTEN_GOLD_HEX_COLOR, 28, 1.05F, 0.05F),
-                endEye.x, endEye.y + 0.15D, endEye.z, 4, 0.25D, 0.25D, 0.25D, 0.02D
-        );
-        level.playSound(null, toTarget.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.PLAYERS, 0.80F, 1.16F);
-        level.playSound(null, toTarget.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.65F, 1.28F);
+        if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(toTarget, caster, safeWard)
+                && !isPassiveOrFriendlyEntity(toTarget, caster)) {
+            toTarget.igniteForSeconds(5);
+            EntityHelper.getPersistentData(toTarget).putLong(
+                    SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, level.getGameTime() + 100L
+            );
+        }
 
-        // Maintain the blazing fire-whip ground trail for 6.0s (120t), igniting & searing any hostile mob crossing the path!
+        // Maintain the blazing fire-whip ground trail for 6.0s (120t), igniting & searing any hostile crossing the path!
         Vec3 midpoint = start.add(end).scale(0.5D);
         double boundRad = Math.max(2.5D, dist * 0.55D + 1.25D);
-        boolean safeWard = spell.hasWardFriendlyFireSafeguard();
         float whipCrossDmg = 1.4F + tier * 0.45F;
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                caster, midpoint, boundRad, 120, level.getGameTime(), null, null, EssenceType.NETHER, 1.0F,
+                caster, midpoint, boundRad, 120, level.getGameTime(), spell, slot, EssenceType.NETHER, 1.0F,
                 (srv, zone, elapsed) -> {
                     if (elapsed >= zone.maxDurationTicks) {
                         for (BlockPos fp : placedFireLine) {
@@ -308,7 +329,11 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                         return false;
                     }
                     if (elapsed % 8 == 0 && !pathCheckpoints.isEmpty()) {
+                        if (zone.spell != null && zone.spell.prefix().enforcesZeroEntityHarm()) {
+                            return true;
+                        }
                         LivingEntity owner = zone.resolveCaster(srv);
+                        boolean zoneWard = (zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard()) || safeWard;
                         Set<UUID> searedThisPulse = new HashSet<>();
                         for (Vec3 cp : pathCheckpoints) {
                             if (srv.random.nextFloat() < 0.28F) {
@@ -319,7 +344,10 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                                     cp.x + 0.88D, cp.y + 1.80D, cp.z + 0.88D);
                             for (LivingEntity crosser : srv.getEntitiesOfClass(LivingEntity.class, segBox, LivingEntity::isAlive)) {
                                 if (crosser == owner || !searedThisPulse.add(crosser.getUUID())) continue;
-                                if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(crosser, owner, safeWard)) {
+                                if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(crosser, owner, zoneWard)) {
+                                    continue;
+                                }
+                                if (isPassiveOrFriendlyEntity(crosser, owner)) {
                                     continue;
                                 }
                                 crosser.igniteForSeconds(5);
@@ -432,29 +460,32 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                 impactPos.x - blastRadius, impactPos.y - 1.8D, impactPos.z - blastRadius,
                 impactPos.x + blastRadius, impactPos.y + 2.5D, impactPos.z + blastRadius
         );
-        boolean hasHarm = slot.hasHarmVerb();
-        float flawPot = spell.flawProfile().getPotencyMultiplier();
-        float cometBaseDmg = Math.max(3.8F + tier * 1.20F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.58F) * flawPot;
 
-        for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, blastBox, LivingEntity::isAlive)) {
-            if (victim == caster) continue;
-            if (caster != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                    victim, caster, spell.hasWardFriendlyFireSafeguard())) {
-                continue;
-            }
-            double dist = victim.position().distanceTo(impactPos);
-            if (dist > blastRadius + 0.45D) continue;
+        if (!spell.prefix().enforcesZeroEntityHarm()) {
+            boolean hasHarm = hasHarmEffect(spell, slot);
+            float flawPot = spell.flawProfile().getPotencyMultiplier();
+            float cometBaseDmg = Math.max(3.8F + tier * 1.20F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.58F) * flawPot;
 
-            // Section 5.1 Linear Distance Falloff: 100% at epicenter -> 33% at outermost perimeter!
-            float distFactor = (victim == directHit)
-                    ? 1.0F
-                    : (float) Mth.clamp(1.0D - (dist / blastRadius) * 0.67D, 0.33D, 1.0D);
+            for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, blastBox, LivingEntity::isAlive)) {
+                if (victim == caster) continue;
+                if (caster != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                        victim, caster, spell.hasWardFriendlyFireSafeguard())) {
+                    continue;
+                }
+                double dist = victim.position().distanceTo(impactPos);
+                if (dist > blastRadius + 0.45D) continue;
 
-            victim.igniteForSeconds(5);
-            if (!hasHarm || victim != directHit) {
-                SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(
-                        level, victim, caster, cometBaseDmg * distFactor, true
-                );
+                // Section 5.1 Linear Distance Falloff: 100% at epicenter -> 33% at outermost perimeter!
+                float distFactor = (victim == directHit)
+                        ? 1.0F
+                        : (float) Mth.clamp(1.0D - (dist / blastRadius) * 0.67D, 0.33D, 1.0D);
+
+                victim.igniteForSeconds(5);
+                if (!hasHarm) {
+                    SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(
+                            level, victim, caster, cometBaseDmg * distFactor, true
+                    );
+                }
                 if (victim != directHit) {
                     SpellExecutionEngine.deliverSubSpellOnEntity(
                             level, caster, victim, victim.position().subtract(impactPos),
@@ -533,9 +564,9 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
     ) {
         int tier = spell.getEffectiveTier();
         long now = level.getGameTime();
-        long fuelPerHit = 16L * MateriaStageTable.getMfumPerNativeUnit(Math.max(1, tier - 1));
-        boolean hasHarm = slot.hasHarmVerb();
-        float tetherDrainDmg = (1.85F + tier * 0.58F) * Math.max(0.4F, apparatusPotency) * spell.flawProfile().getPotencyMultiplier();
+        boolean hasHarm = hasHarmEffect(spell, slot);
+        float flawPot = spell.flawProfile().getPotencyMultiplier();
+        float tetherDrainDmg = (1.85F + tier * 0.58F) * Math.max(0.25F, apparatusPotency) * flawPot;
 
         Vec3 eye = caster.getEyePosition();
         Vec3 normDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
@@ -562,9 +593,13 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
             }
         }
 
+        if (spell.prefix().enforcesZeroEntityHarm()) {
+            return;
+        }
+
         // Refresh or acquire flexible 45° hellfire tether lock on primary struck target!
         List<LivingEntity> tetheredTargets = new ArrayList<>(hitEntities);
-        if (tetheredTargets.isEmpty() && !spell.prefix().enforcesZeroEntityHarm()) {
+        if (tetheredTargets.isEmpty()) {
             LivingEntity latched = resolveLatchedTetherTarget(level, caster, eye, normDir, maxReach);
             if (latched != null) {
                 tetheredTargets.add(latched);
@@ -572,7 +607,11 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
         }
 
         boolean latchedPrimary = false;
+        float baseHp = Math.max(1.0F, MateriaStageTable.getBaseCombatDamageHp(tier));
+        long baseCastCost = MateriaStageTable.getBaseMfumCastCost(tier);
+
         for (LivingEntity hit : tetheredTargets) {
+            if (hit == caster) continue;
             if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, spell.hasWardFriendlyFireSafeguard())) {
                 continue;
             }
@@ -583,10 +622,33 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                 cTag.putLong(SpellLingeringZoneManager.TAG_NETHER_TETHER_UNTIL, now + 18L);
             }
 
-            hit.igniteForSeconds(5);
-            if (!hasHarm) {
-                SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(level, hit, caster, tetherDrainDmg, false);
+            boolean alreadyStruckBySlotHarm = hasHarm && hitEntities.contains(hit);
+            float actualDamageDealt = 0.0F;
+
+            if (!alreadyStruckBySlotHarm) {
+                float prePool = hit.getHealth() + hit.getAbsorptionAmount();
+                float preWard = EntityHelper.getPersistentData(hit).getFloat("SpellWardHp").orElse(0.0F);
+                boolean hurt = SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(level, hit, caster, tetherDrainDmg, false);
+                if (hurt) {
+                    float postPool = hit.isAlive() ? (hit.getHealth() + hit.getAbsorptionAmount()) : 0.0F;
+                    float postWard = EntityHelper.getPersistentData(hit).getFloat("SpellWardHp").orElse(0.0F);
+                    actualDamageDealt = Math.max(0.0F, (prePool - postPool) + Math.max(0.0F, preWard - postWard));
+                }
+            } else {
+                boolean damagedThisTick = (!hit.isAlive() || hit.isDeadOrDying()
+                        || (hit.hurtTime > 0 && hit.hurtTime == hit.hurtDuration))
+                        && !hit.isInvulnerable();
+                if (damagedThisTick) {
+                    float advMult = SpellCombatReactionEngine.calculateSpellAdvantageDamageMultiplier(
+                            EssenceType.NETHER, caster, hit, SpellCombatReactionEngine.resolveEntityAffinities(hit), 0.0F
+                    );
+                    if (advMult > 0.0F) {
+                        actualDamageDealt = Math.max(0.0F, baseHp * Math.max(0.25F, apparatusPotency) * flawPot * advMult);
+                    }
+                }
             }
+
+            hit.igniteForSeconds(5);
 
             // Broadcast coiling 3D hellfire tendril chain latching from target back into caster!
             Vec3 hitChest = hit.position().add(0.0D, hit.getBbHeight() * 0.55D, 0.0D);
@@ -595,26 +657,27 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                     casterHand, hitChest, EssenceType.NETHER, null, 0.95F, 22, tier
             );
 
-            // Stream visible Molten-Gold thermal siphon motes traveling from victim back into the caster!
-            Vec3 backVec = casterHand.subtract(hitChest);
-            for (int m = 1; m <= 3; m++) {
-                Vec3 orbPos = hitChest.add(backVec.scale(m * 0.26D));
+            // Recharge ONLY the caster's Orbis Cell fuel (no direct player HP heal) strictly proportional to > 0 damage dealt!
+            if (actualDamageDealt > 0.0F) {
+                Vec3 backVec = casterHand.subtract(hitChest);
+                for (int m = 1; m <= 3; m++) {
+                    Vec3 orbPos = hitChest.add(backVec.scale(m * 0.26D));
+                    level.sendParticles(
+                            TimedTintableParticleOption.linear(ModParticles.TINTABLE_EMBER.get(), MOLTEN_GOLD_HEX_COLOR, 18, 1.05F, 0.04F),
+                            orbPos.x, orbPos.y, orbPos.z, 2, 0.08D, 0.08D, 0.08D, 0.01D
+                    );
+                }
+
+                if (caster instanceof Player player && player.isAlive()) {
+                    double dmgRatio = Math.min(3.0D, actualDamageDealt / baseHp);
+                    long restoredFuel = Math.max(1L, Math.round(baseCastCost * 0.35D * dmgRatio));
+                    SpellFuelService.restorePlayerMateriaFuel(player, EssenceType.NETHER, restoredFuel);
+                }
                 level.sendParticles(
-                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_EMBER.get(), MOLTEN_GOLD_HEX_COLOR, 18, 1.05F, 0.04F),
-                        orbPos.x, orbPos.y, orbPos.z, 2, 0.08D, 0.08D, 0.08D, 0.01D
+                        TimedTintableParticleOption.linear(ModParticles.TINTABLE_EMBER.get(), MOLTEN_GOLD_HEX_COLOR, 28, 1.0F, 0.06F),
+                        caster.getX(), caster.getY(0.85D), caster.getZ(), 5, 0.25D, 0.30D, 0.25D, 0.03D
                 );
             }
-
-            float healAmt = 1.65F + tier * 0.48F;
-            SpellCombatReactionEngine.notifyMagicalHeal(caster, healAmt);
-            caster.heal(healAmt);
-            if (caster instanceof Player player) {
-                SpellFuelService.restorePlayerMateriaFuel(player, EssenceType.NETHER, fuelPerHit);
-            }
-            level.sendParticles(
-                    TimedTintableParticleOption.linear(ModParticles.TINTABLE_EMBER.get(), MOLTEN_GOLD_HEX_COLOR, 28, 1.0F, 0.06F),
-                    caster.getX(), caster.getY(0.85D), caster.getZ(), 5, 0.25D, 0.30D, 0.25D, 0.03D
-            );
         }
     }
 
@@ -655,40 +718,47 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                 center.x - blastRadius, center.y - 2.2D, center.z - blastRadius,
                 center.x + blastRadius, center.y + 3.0D, center.z + blastRadius
         );
-        boolean hasHarm = slot.hasHarmVerb();
-        float flawPot = spell.flawProfile().getPotencyMultiplier();
 
-        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
-            if (entity == caster) continue;
-            double dist = Math.sqrt(
-                    Math.pow(entity.getX() - center.x, 2) + Math.pow(entity.getZ() - center.z, 2)
-            );
-            if (dist > blastRadius + 0.5D) continue;
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                    entity, caster, spell.hasWardFriendlyFireSafeguard())) {
-                continue;
-            }
+        if (!spell.prefix().enforcesZeroEntityHarm()) {
+            boolean hasHarm = hasHarmEffect(spell, slot);
+            boolean safeWard = spell.hasWardFriendlyFireSafeguard();
+            float flawPot = spell.flawProfile().getPotencyMultiplier();
+            double blastRadiusSq = blastRadius * blastRadius;
 
-            // Section 5.1 Linear Distance Falloff: 100% at epicenter -> 33% at outermost perimeter!
-            float distFactor = (float) Mth.clamp(1.0D - (dist / Math.max(1.0D, blastRadius)) * 0.67D, 0.33D, 1.0D);
+            for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
+                if (entity == caster) continue;
+                double dx = entity.getX() - center.x;
+                double dz = entity.getZ() - center.z;
+                double distSq = dx * dx + dz * dz;
+                if (distSq > blastRadiusSq) continue;
+                if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(entity, caster, safeWard)) {
+                    continue;
+                }
+                if (isPassiveOrFriendlyEntity(entity, caster)) {
+                    continue;
+                }
 
-            entity.igniteForSeconds(5);
-            if (!hasHarm || dist > radius) {
-                float baseDmg = hasHarm
-                        ? MateriaStageTable.getBaseCombatDamageHp(tier) * distFactor * apparatusPotency
-                        : Math.max(4.2F + tier * 1.30F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.58F) * distFactor * apparatusPotency;
-                SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(level, entity, caster, baseDmg * flawPot, true);
+                double dist = Math.sqrt(distSq);
+                // Section 5.1 Linear Distance Falloff: 100% at epicenter -> 33% at outermost perimeter!
+                float distFactor = (float) Mth.clamp(1.0D - (dist / Math.max(1.0D, blastRadius)) * 0.67D, 0.33D, 1.0D);
+
+                entity.igniteForSeconds(5);
+                if (!hasHarm) {
+                    float baseDmg = Math.max(4.2F + tier * 1.30F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.58F)
+                            * distFactor * apparatusPotency;
+                    SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(level, entity, caster, baseDmg * flawPot, true);
+                }
                 if (dist > radius) {
                     SpellExecutionEngine.deliverSubSpellOnEntity(
                             level, caster, entity, direction, spell, slot, fallbackMateria, apparatusPotency * distFactor
                     );
                 }
-            }
-            if (!SpellCombatReactionEngine.isBossEntity(level, entity)) {
-                Vec3 delta = entity.position().subtract(center);
-                Vec3 horiz = new Vec3(delta.x, 0.0D, delta.z);
-                Vec3 push = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : new Vec3(1.0D, 0.0D, 0.0D);
-                SpellExecutionEngine.applySyncedMotion(entity, new Vec3(push.x * 1.32D, 0.40D, push.z * 1.32D));
+                if (!SpellCombatReactionEngine.isBossEntity(level, entity)) {
+                    Vec3 delta = entity.position().subtract(center);
+                    Vec3 horiz = new Vec3(delta.x, 0.0D, delta.z);
+                    Vec3 push = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : new Vec3(1.0D, 0.0D, 0.0D);
+                    SpellExecutionEngine.applySyncedMotion(entity, new Vec3(push.x * 1.32D, 0.40D, push.z * 1.32D));
+                }
             }
         }
 
@@ -757,7 +827,6 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
     ) {
         long now = level.getGameTime();
         int tier = spell.getEffectiveTier();
-        boolean hasHarm = slot.hasHarmVerb();
         Vec3 normDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
         Vec3 slashOrigin = caster.getEyePosition().subtract(0.0D, 0.28D, 0.0D).add(normDir.scale(0.95D));
 
@@ -768,38 +837,52 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                 2.65F, VFX_CAUTERIZING_SLASH_TICKS, tier
         );
 
-        float baseCleaveDmg = Math.max(3.4F + tier * 1.05F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.48F)
-                * apparatusPotency * spell.flawProfile().getPotencyMultiplier();
+        if (spell.prefix().enforcesZeroEntityHarm()) {
+            for (LivingEntity hit : hitEntities) {
+                EntityHelper.getPersistentData(hit).remove(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL);
+            }
+            return;
+        }
 
+        boolean safeWard = spell.hasWardFriendlyFireSafeguard();
         for (int idx = 0; idx < hitEntities.size(); idx++) {
             LivingEntity hit = hitEntities.get(idx);
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                    hit, caster, spell.hasWardFriendlyFireSafeguard())) {
+            CompoundTag data = EntityHelper.getPersistentData(hit);
+            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, safeWard)) {
+                data.remove(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL);
                 continue;
             }
             boolean isPrimary = (idx == 0);
-            float splashScale = isPrimary ? 1.0F : 0.50F; // Section 4.4: 100% primary, 50% sweeping cleave!
-            int burnSeconds = isPrimary ? 6 : 3;
-            long unquenchableTicks = isPrimary ? 120L : 60L;
 
-            CompoundTag data = EntityHelper.getPersistentData(hit);
+            // Both primary and secondary cleave targets receive the full 6.0s (120t) of unquenchable Netherfire!
             data.putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL,
-                    Math.max(now + unquenchableTicks, data.getLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL).orElse(0L)));
-            data.putLong(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL,
-                    Math.max(now + unquenchableTicks + 10L, data.getLong(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL).orElse(0L)));
-            hit.igniteForSeconds(burnSeconds);
+                    Math.max(now + 120L, data.getLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL).orElse(0L)));
+            // Stamp auto-smelt ONLY for the immediate strike resolution (never a 6.5s unrelated-death window)!
+            data.putLong(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL, now + 2L);
+            hit.igniteForSeconds(6);
 
-            if (!hasHarm && hit.isAlive()) {
-                SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(
-                        level, hit, caster, baseCleaveDmg * splashScale, true, true
-                );
-            }
-
-            // If the strike killed the creature outright, guarantee held raw ores drop pre-smelted & meat cooks!
-            if (!hit.isAlive() || hit.getHealth() <= 0.0F) {
+            // Cook meat drops & pre-smelt held/inventory raw ores strictly when the strike itself kills the creature!
+            if (!hit.isAlive() || hit.isDeadOrDying()) {
                 dropHeldRawOresPreSmelted(level, hit);
+                autoSmeltDroppedItems(level, hit.getBoundingBox().inflate(3.2D));
+            } else if (!isPrimary || !(caster instanceof Player)) {
+                data.remove(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL);
+            } else {
+                // Allow SpellCombatReactionEngine's immediate same-tick melee weapon conversion to resolve, then clear if still alive!
+                final LivingEntity trackedTarget = hit;
+                SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                        caster, trackedTarget.position(), 0.5D, 1, now, null, null, EssenceType.NETHER, 1.0F,
+                        (srv, z, el) -> {
+                            if (el >= 1) {
+                                if (trackedTarget.isAlive() && !trackedTarget.isDeadOrDying()) {
+                                    EntityHelper.getPersistentData(trackedTarget).remove(SpellLingeringZoneManager.TAG_NETHER_AUTO_SMELT_UNTIL);
+                                }
+                                return false;
+                            }
+                            return true;
+                        }
+                ));
             }
-            autoSmeltDroppedItems(level, hit.getBoundingBox().inflate(3.2D));
 
             SpellWorldVfxManager.broadcast(
                     level, SpellVfxEventPayload.VFX_PROJECTILE_IMPACT,
@@ -888,8 +971,8 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
         );
         level.playSound(null, surfaceCenter, SoundEvents.BASALT_PLACE, SoundSource.PLAYERS, 0.90F, 0.85F);
 
-        final boolean repeatingSentry = "repeating".equalsIgnoreCase(slot.formPart().subMode())
-                || "sentry".equalsIgnoreCase(slot.formPart().subMode());
+        String formSub = slot.formPart().subMode().toLowerCase(Locale.ROOT);
+        final boolean repeatingSentry = formSub.contains("repeat") || formSub.contains("sentry");
         final int maxCharges = repeatingSentry ? 3 : 1;
         final float chargePotencyScale = repeatingSentry ? 0.60F : 1.0F;
         int glyphLifetime = tier >= 5 ? (Integer.MAX_VALUE / 4) : 12_000;
@@ -905,22 +988,42 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                     if (elapsed % 4 != 0) return true;
 
                     LivingEntity owner = zone.resolveCaster(srv);
+                    boolean safeWard = zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard();
                     AABB box = new AABB(
                             zone.center.x - 1.85D, zone.center.y - 0.85D, zone.center.z - 1.85D,
                             zone.center.x + 1.85D, zone.center.y + 2.15D, zone.center.z + 1.85D
                     );
                     List<LivingEntity> stepped = srv.getEntitiesOfClass(LivingEntity.class, box,
                             e -> e.isAlive() && e != owner
-                                    && !(e instanceof SpellEidolonEntity eid && owner != null && eid.isOwnedBy(owner))
-                                    && (owner == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                                            e, owner, zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard())));
+                                    && !(e instanceof SpellEidolonEntity eid && owner != null && (eid.isOwnedBy(owner) || eid.isFriendlyTo(owner)))
+                                    && (owner == null || !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, owner, safeWard))
+                                    && !isPassiveOrFriendlyEntity(e, owner));
                     if (stepped.isEmpty()) return true;
 
-                    // Erupt contained 3x3 molten Lava pool (with Magma Block containment on open cliff rims so lava never spills!)
+                    // Erupt contained non-spilling 3x3 real Lava pool across the trap floor!
                     Set<BlockPos> puddleCells = new HashSet<>(9);
                     for (int dx = -1; dx <= 1; dx++) {
                         for (int dz = -1; dz <= 1; dz++) {
                             puddleCells.add(surfaceCenter.offset(dx, 0, dz).immutable());
+                        }
+                    }
+
+                    // Snapshot 5x5 outer border & sub-floor neighbors so outward-flowing lava is contained every tick
+                    Map<BlockPos, BlockState> containmentNeighbors = new HashMap<>();
+                    for (int dx = -2; dx <= 2; dx++) {
+                        for (int dz = -2; dz <= 2; dz++) {
+                            BlockPos rim = surfaceCenter.offset(dx, 0, dz).immutable();
+                            if (!puddleCells.contains(rim)) {
+                                BlockState rimState = srv.getBlockState(rim);
+                                if (!rimState.is(Blocks.LAVA)) {
+                                    containmentNeighbors.putIfAbsent(rim, rimState);
+                                }
+                            }
+                            BlockPos under = surfaceCenter.offset(dx, -1, dz).immutable();
+                            BlockState underState = srv.getBlockState(under);
+                            if (!underState.is(Blocks.LAVA)) {
+                                containmentNeighbors.putIfAbsent(under, underState);
+                            }
                         }
                     }
 
@@ -931,17 +1034,13 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                             continue;
                         }
                         originalBasinFloor.putIfAbsent(p, cur);
-                        // Clear snow/carpets/grass directly above the molten pool
+                        // Clear snow/fire directly above the molten pool
                         BlockPos aboveP = p.above();
                         BlockState aboveState = srv.getBlockState(aboveP);
                         if (aboveState.is(Blocks.SNOW) || aboveState.is(Blocks.FIRE)) {
                             srv.removeBlock(aboveP, false);
                         }
-                        if (isContainedBasinCell(srv, p, puddleCells)) {
-                            srv.setBlockAndUpdate(p, Blocks.LAVA.defaultBlockState());
-                        } else {
-                            srv.setBlockAndUpdate(p, Blocks.MAGMA_BLOCK.defaultBlockState());
-                        }
+                        srv.setBlockAndUpdate(p, Blocks.LAVA.defaultBlockState());
                         placedCells.add(p);
                     }
 
@@ -958,10 +1057,13 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                     srv.playSound(null, surfaceCenter, SoundEvents.BUCKET_EMPTY_LAVA, SoundSource.PLAYERS, 1.15F, 0.85F);
 
                     float effPot = zone.apparatusPotency * chargePotencyScale;
+                    boolean zeroHarm = zone.spell != null && zone.spell.prefix().enforcesZeroEntityHarm();
                     for (LivingEntity v : stepped) {
-                        v.igniteForSeconds(5);
-                        v.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 3));
-                        SpellCombatReactionEngine.applyTimedMovementSpeedSap(v, srv, 0.65D, 80L);
+                        if (!zeroHarm) {
+                            v.igniteForSeconds(5);
+                            // Exact 65% movement slow without compounding Slowness IV!
+                            SpellCombatReactionEngine.applyTimedMovementSpeedSap(v, srv, 0.65D, 80L);
+                        }
                         if (zone.spell != null && zone.slot != null) {
                             SpellExecutionEngine.deliverSubSpellOnEntity(
                                     srv, owner, v, Vec3.ZERO, zone.spell, zone.slot, zone.fallbackMateria, effPot
@@ -969,32 +1071,49 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                         }
                     }
 
-                    // Hold the 3x3 molten lava pool for 4.0 seconds (80 ticks), bogging heavy mobs down, then solidify cleanly into Obsidian!
+                    // Hold the contained 3x3 real Lava pool for 4.0s (80t), then permanently solidify into Obsidian around trapped mobs' legs!
                     SpellLingeringZoneManager.registerZone(srv, new SpellLingeringZoneManager.ActiveSpellZone(
                             owner, zone.center, 2.4D, 80, srv.getGameTime(), zone.spell, zone.slot, zone.fallbackMateria, effPot,
                             (msrv, mzone, melapsed) -> {
+                                // Every tick: contain the 3x3 Lava pool so it never spills outward or downward!
+                                for (Map.Entry<BlockPos, BlockState> nb : containmentNeighbors.entrySet()) {
+                                    BlockState curNb = msrv.getBlockState(nb.getKey());
+                                    if (curNb.is(Blocks.LAVA)
+                                            || (curNb.is(Blocks.COBBLESTONE) && !nb.getValue().is(Blocks.COBBLESTONE))) {
+                                        msrv.setBlockAndUpdate(nb.getKey(), nb.getValue());
+                                    }
+                                }
+
                                 if (melapsed < 80) {
                                     if (melapsed % 5 == 0) {
-                                        LivingEntity mOwner = mzone.resolveCaster(msrv);
-                                        AABB poolBox = new AABB(
-                                                mzone.center.x - 1.85D, mzone.center.y - 1.35D, mzone.center.z - 1.85D,
-                                                mzone.center.x + 1.85D, mzone.center.y + 1.50D, mzone.center.z + 1.85D
-                                        );
-                                        for (LivingEntity trapped : msrv.getEntitiesOfClass(LivingEntity.class, poolBox, LivingEntity::isAlive)) {
-                                            if (trapped == mOwner) continue;
-                                            if (mOwner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                                                    trapped, mOwner, mzone.spell != null && mzone.spell.hasWardFriendlyFireSafeguard())) {
-                                                continue;
-                                            }
-                                            trapped.igniteForSeconds(4);
-                                            trapped.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 25, 3));
-                                            Vec3 curVel = trapped.getDeltaMovement();
-                                            trapped.setDeltaMovement(curVel.x * 0.22D, Math.min(curVel.y, -0.06D), curVel.z * 0.22D);
-                                            trapped.hasImpulse = true;
-                                            if (melapsed % 20 == 0) {
-                                                SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(
-                                                        msrv, trapped, mOwner, (2.4F + tier * 0.60F) * chargePotencyScale, false
-                                                );
+                                        boolean mZeroHarm = mzone.spell != null && mzone.spell.prefix().enforcesZeroEntityHarm();
+                                        if (!mZeroHarm) {
+                                            LivingEntity mOwner = mzone.resolveCaster(msrv);
+                                            boolean mWard = mzone.spell != null && mzone.spell.hasWardFriendlyFireSafeguard();
+                                            AABB poolBox = new AABB(
+                                                    mzone.center.x - 1.85D, mzone.center.y - 1.35D, mzone.center.z - 1.85D,
+                                                    mzone.center.x + 1.85D, mzone.center.y + 1.50D, mzone.center.z + 1.85D
+                                            );
+                                            for (LivingEntity trapped : msrv.getEntitiesOfClass(LivingEntity.class, poolBox, LivingEntity::isAlive)) {
+                                                if (trapped == mOwner) continue;
+                                                if (mOwner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(trapped, mOwner, mWard)) {
+                                                    continue;
+                                                }
+                                                if (isPassiveOrFriendlyEntity(trapped, mOwner)) {
+                                                    continue;
+                                                }
+                                                trapped.igniteForSeconds(4);
+                                                SpellCombatReactionEngine.applyTimedMovementSpeedSap(trapped, msrv, 0.65D, 25L);
+                                                if (trapped.getDeltaMovement().y > 0.02D) {
+                                                    Vec3 curVel = trapped.getDeltaMovement();
+                                                    trapped.setDeltaMovement(curVel.x, -0.04D, curVel.z);
+                                                    trapped.hasImpulse = true;
+                                                }
+                                                if (melapsed % 20 == 0) {
+                                                    SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(
+                                                            msrv, trapped, mOwner, (2.4F + tier * 0.60F) * chargePotencyScale, false
+                                                    );
+                                                }
                                             }
                                         }
                                         msrv.sendParticles(ParticleTypes.LAVA, mzone.center.x, mzone.center.y + 0.05D, mzone.center.z,
@@ -1003,24 +1122,16 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                                     return true;
                                 }
 
-                                // Solidify all 3x3 molten lava/magma cells into solid Obsidian, lifting submerged mobs onto the top crust so none suffocate in rock!
-                                AABB liftBox = new AABB(
-                                        mzone.center.x - 1.80D, surfaceCenter.getY() - 0.2D, mzone.center.z - 1.80D,
-                                        mzone.center.x + 1.80D, surfaceCenter.getY() + 1.2D, mzone.center.z + 1.80D
-                                );
-                                for (LivingEntity standing : msrv.getEntitiesOfClass(LivingEntity.class, liftBox, LivingEntity::isAlive)) {
-                                    if (standing.getY() < surfaceCenter.getY() + 1.0D) {
-                                        standing.teleportTo(standing.getX(), surfaceCenter.getY() + 1.02D, standing.getZ());
-                                    }
-                                }
+                                // Permanently solidify the 3x3 Lava pool into Obsidian right around trapped mobs' legs!
                                 for (BlockPos p : placedCells) {
                                     BlockState s = msrv.getBlockState(p);
-                                    if (s.is(Blocks.LAVA) || s.is(Blocks.MAGMA_BLOCK)) {
+                                    if (s.is(Blocks.LAVA) || s.isAir()) {
                                         msrv.setBlockAndUpdate(p, Blocks.OBSIDIAN.defaultBlockState());
                                         msrv.sendParticles(ParticleTypes.LARGE_SMOKE, p.getX() + 0.5D, p.getY() + 1.05D, p.getZ() + 0.5D,
                                                 4, 0.2D, 0.15D, 0.2D, 0.02D);
                                     }
                                 }
+                                originalBasinFloor.keySet().removeAll(placedCells);
                                 msrv.playSound(null, surfaceCenter, SoundEvents.LAVA_EXTINGUISH, SoundSource.PLAYERS, 1.0F, 0.95F);
                                 return false;
                             }
@@ -1038,7 +1149,7 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                 .withOnDisarm((srv, z) -> {
                     for (Map.Entry<BlockPos, BlockState> entry : originalBasinFloor.entrySet()) {
                         BlockState cur = srv.getBlockState(entry.getKey());
-                        if (cur.is(Blocks.LAVA) || cur.is(Blocks.MAGMA_BLOCK)) {
+                        if (cur.is(Blocks.LAVA)) {
                             srv.setBlockAndUpdate(entry.getKey(), entry.getValue());
                         }
                     }
@@ -1067,7 +1178,9 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
         int tier = spell.getEffectiveTier();
         Vec3 normDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
         double effRange = Math.clamp(coneRange, 5.5D, 8.0D);
-        boolean hasHarm = slot.hasHarmVerb();
+        boolean zeroHarm = spell.prefix().enforcesZeroEntityHarm();
+        boolean hasHarm = hasHarmEffect(spell, slot);
+        boolean safeWard = spell.hasWardFriendlyFireSafeguard();
         float flawPot = spell.flawProfile().getPotencyMultiplier();
         float blastDmg = Math.max(4.0F + tier * 1.20F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.52F) * apparatusPotency * flawPot;
 
@@ -1088,29 +1201,37 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
 
         emitInfernalThreatPulse(level, caster, muzzlePos, spell, 24.0D);
 
-        // Sweep full 60-degree fan (cos(30°) = 0.866, using 0.82 for edge forgiveness) for both hitTargets & flanking foes
-        Set<UUID> blasted = new HashSet<>();
-        for (LivingEntity hit : hitTargets) {
-            if (!hit.isAlive() || hit == caster) continue;
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, spell.hasWardFriendlyFireSafeguard())) {
-                continue;
-            }
-            blasted.add(hit.getUUID());
-            applyBackdraftBlastToTarget(level, caster, hit, normDir, blastDmg, !hasHarm);
-        }
-
         AABB coneBox = caster.getBoundingBox().expandTowards(normDir.scale(effRange)).inflate(effRange * 0.58D);
-        for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, coneBox, LivingEntity::isAlive)) {
-            if (cand == caster || blasted.contains(cand.getUUID())) continue;
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(cand, caster, spell.hasWardFriendlyFireSafeguard())) {
-                continue;
+        if (!zeroHarm) {
+            // Sweep full 60-degree fan (cos(30°) = 0.866, using 0.82 for edge forgiveness) for both hitTargets & flanking hostiles
+            Set<UUID> blasted = new HashSet<>();
+            for (LivingEntity hit : hitTargets) {
+                if (!hit.isAlive() || hit == caster) continue;
+                if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, safeWard)) {
+                    continue;
+                }
+                if (isPassiveOrFriendlyEntity(hit, caster)) {
+                    continue;
+                }
+                blasted.add(hit.getUUID());
+                applyBackdraftBlastToTarget(level, caster, hit, normDir, blastDmg, !hasHarm);
             }
-            Vec3 toCand = cand.getBoundingBox().getCenter().subtract(eye);
-            double dist = toCand.length();
-            if (dist > 0.1D && dist <= effRange + 0.65D && toCand.scale(1.0D / dist).dot(normDir) >= 0.82D) {
-                blasted.add(cand.getUUID());
-                SpellExecutionEngine.deliverSubSpellOnEntity(level, caster, cand, normDir, spell, slot, fallbackMateria, apparatusPotency);
-                applyBackdraftBlastToTarget(level, caster, cand, normDir, blastDmg, !hasHarm);
+
+            for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, coneBox, LivingEntity::isAlive)) {
+                if (cand == caster || blasted.contains(cand.getUUID())) continue;
+                if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(cand, caster, safeWard)) {
+                    continue;
+                }
+                if (isPassiveOrFriendlyEntity(cand, caster)) {
+                    continue;
+                }
+                Vec3 toCand = cand.getBoundingBox().getCenter().subtract(eye);
+                double dist = toCand.length();
+                if (dist > 0.1D && dist <= effRange + 0.65D && toCand.scale(1.0D / dist).dot(normDir) >= 0.82D) {
+                    blasted.add(cand.getUUID());
+                    SpellExecutionEngine.deliverSubSpellOnEntity(level, caster, cand, normDir, spell, slot, fallbackMateria, apparatusPotency);
+                    applyBackdraftBlastToTarget(level, caster, cand, normDir, blastDmg, !hasHarm);
+                }
             }
         }
 
@@ -1120,14 +1241,14 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
             Vec3 toProj = proj.position().subtract(eye);
             double pDist = toProj.length();
             if (pDist > 0.1D && pDist <= effRange + 0.5D && toProj.scale(1.0D / pDist).dot(normDir) >= 0.78D) {
-                if (proj instanceof AbstractArrow arrow) {
+                if (!zeroHarm && proj instanceof AbstractArrow arrow) {
                     arrow.igniteForSeconds(5);
                 }
                 SpellExecutionEngine.applySyncedMotion(proj, new Vec3(normDir.x * 1.85D, 0.30D, normDir.z * 1.85D));
             }
         }
 
-        // Safe client-synced caster backward recoil vault!
+        // Safe client-synced caster backward recoil vault (preserved even for Utility-prefixed spells)!
         caster.resetFallDistance();
         SpellExecutionEngine.applySyncedMotion(
                 caster,
@@ -1146,7 +1267,7 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                     level.removeBlock(p, false);
                 } else if (bs.is(Blocks.SNOW) || bs.is(Blocks.POWDER_SNOW) || bs.is(Blocks.FROSTED_ICE)) {
                     level.removeBlock(p, false);
-                } else if (s >= 2 && bs.isAir() && level.getBlockState(p.below()).isSolidRender() && level.random.nextFloat() < 0.26F) {
+                } else if (!zeroHarm && s >= 2 && bs.isAir() && level.getBlockState(p.below()).isSolidRender() && level.random.nextFloat() < 0.26F) {
                     level.setBlockAndUpdate(p, Blocks.FIRE.defaultBlockState());
                     coneFires.add(p.immutable());
                 }
@@ -1202,6 +1323,15 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
     // FORM MUTATION 8 — BRIMSTONE METEOR RAIN (SKYFALL)
     // =========================================================================
 
+    /**
+     * Computes canonical <i>Brimstone Meteor Rain</i> duration across Tiers 1–10:
+     * starts at <b>6.0s (120 ticks) at Tier 1</b> and scales smoothly up to <b>13.2s (264 ticks) at Tier 10</b>.
+     */
+    public static int computeBrimstoneStormDurationTicks(int potencyTier) {
+        int clampedTier = Math.clamp(potencyTier, 1, 10);
+        return VFX_BRIMSTONE_STORM_TICKS + (clampedTier - 1) * 16;
+    }
+
     @Override
     public boolean onSkyfallFormCast(
             ServerLevel level,
@@ -1213,22 +1343,23 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        double r = Math.max(5.5D, radius);
-        int tier = spell.getEffectiveTier();
+        int tier = Math.clamp(spell.getEffectiveTier(), 1, 10);
+        double r = Math.max(radius, 5.5D + (tier - 1) * 0.65D);
+        int stormDurationTicks = computeBrimstoneStormDurationTicks(tier);
         BlockPos surfacePos = findGroundSurfaceNear(level, BlockPos.containing(impactCenter));
         Vec3 anchoredCenter = new Vec3(impactCenter.x, surfacePos.getY() + 1.0D, impactCenter.z);
         double riftClearance = probeOverheadClearance(level, BlockPos.containing(anchoredCenter), 10);
 
-        // Broadcast full 150-tick (7.5s) cave-viable volcanic sky-rift, hurtling 3D brimstone meteors & caldera ground seal!
+        // Broadcast tier-scaled (120t..264t) cave-viable volcanic sky-rift, hurtling 3D brimstone meteors & caldera ground seal!
         SpellWorldVfxManager.broadcast(
                 level, SpellVfxEventPayload.VFX_SKYFALL_PILLAR,
                 anchoredCenter, new Vec3(0.0D, -1.0D, 0.0D),
-                EssenceType.NETHER, null, (float) r, VFX_BRIMSTONE_STORM_TICKS, tier
+                EssenceType.NETHER, null, (float) r, stormDurationTicks, tier
         );
         SpellWorldVfxManager.broadcast(
                 level, SpellVfxEventPayload.VFX_ARCANE_SEAL,
                 anchoredCenter.add(0.0D, 0.03D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D),
-                EssenceType.NETHER, null, (float) r, VFX_BRIMSTONE_STORM_TICKS, tier
+                EssenceType.NETHER, null, (float) r, stormDurationTicks, tier
         );
         level.playSound(null, BlockPos.containing(anchoredCenter), SoundEvents.BLAZE_AMBIENT, SoundSource.PLAYERS, 0.95F, 0.78F);
         emitInfernalThreatPulse(level, caster, anchoredCenter, spell, 30.0D);
@@ -1236,7 +1367,7 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
         List<BlockPos> stormFires = new ArrayList<>();
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                caster, anchoredCenter, r, VFX_BRIMSTONE_STORM_TICKS, level.getGameTime(), spell, slot, fallbackMateria, apparatusPotency,
+                caster, anchoredCenter, r, stormDurationTicks, level.getGameTime(), spell, slot, fallbackMateria, apparatusPotency,
                 (srv, zone, elapsed) -> {
                     if (elapsed > zone.maxDurationTicks) {
                         for (BlockPos fp : stormFires) {
@@ -1261,14 +1392,16 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                     if (elapsed % 16 == 0) {
                         LivingEntity owner = zone.resolveCaster(srv);
                         BlockPos cPos = BlockPos.containing(zone.center);
-                        int br = Math.min(8, (int) Math.ceil(zone.radius));
+                        int br = (int) Math.ceil(zone.radius);
+                        double zRadSq = zone.radius * zone.radius;
+                        boolean zeroHarm = zone.spell != null && zone.spell.prefix().enforcesZeroEntityHarm();
                         boolean evaporatedAny = false;
 
                         // Vaporize standing water pools, bubble columns & waterlogged blocks into steam, melt ice/snow & scatter fire patches
                         for (BlockPos p : BlockPos.betweenClosed(cPos.offset(-br, -2, -br), cPos.offset(br, 2, br))) {
                             double dx = (p.getX() + 0.5D) - zone.center.x;
                             double dz = (p.getZ() + 0.5D) - zone.center.z;
-                            if ((dx * dx + dz * dz) > zone.radius * zone.radius) continue;
+                            if ((dx * dx + dz * dz) > zRadSq) continue;
 
                             BlockState bs = srv.getBlockState(p);
                             if (SpellExecutionEngine.isProtectedBlockOrContainer(srv, p, bs)) continue;
@@ -1283,7 +1416,7 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                             } else if (bs.is(Blocks.ICE) || bs.is(Blocks.FROSTED_ICE) || bs.is(Blocks.SNOW) || bs.is(Blocks.POWDER_SNOW)) {
                                 srv.removeBlock(p, false);
                                 evaporatedAny = true;
-                            } else if (bs.isAir() && srv.getBlockState(p.below()).isSolidRender() && srv.random.nextFloat() < 0.08F) {
+                            } else if (!zeroHarm && bs.isAir() && srv.getBlockState(p.below()).isSolidRender() && srv.random.nextFloat() < 0.08F) {
                                 srv.setBlockAndUpdate(p, Blocks.FIRE.defaultBlockState());
                                 stormFires.add(p.immutable());
                             }
@@ -1306,39 +1439,44 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                         }
                         srv.playSound(null, cPos, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 0.74F, 1.12F);
 
-                        // Repeatedly stagger & burn enemies with Nether Materia damage (+1 vs Frozen, linear distance falloff)
                         AABB area = new AABB(
                                 zone.center.x - zone.radius, zone.center.y - 2.0D, zone.center.z - zone.radius,
                                 zone.center.x + zone.radius, zone.center.y + 5.0D, zone.center.z + zone.radius
                         );
-                        boolean hasHarm = zone.slot != null && zone.slot.hasHarmVerb();
-                        float flawPot = zone.spell != null ? zone.spell.flawProfile().getPotencyMultiplier() : 1.0F;
-                        float meteorBaseDmg = (3.0F + tier * 0.90F) * Math.max(0.4F, zone.apparatusPotency) * flawPot;
+                        if (!zeroHarm) {
+                            // Repeatedly stagger & burn enemies with Nether Materia damage (+1 vs Frozen, linear distance falloff)
+                            boolean hasHarm = hasHarmEffect(zone.spell, zone.slot);
+                            boolean safeWard = zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard();
+                            float flawPot = zone.spell != null ? zone.spell.flawProfile().getPotencyMultiplier() : 1.0F;
+                            float meteorBaseDmg = (3.0F + tier * 0.90F) * Math.max(0.4F, zone.apparatusPotency) * flawPot;
 
-                        for (LivingEntity v : srv.getEntitiesOfClass(LivingEntity.class, area, e -> e.isAlive() && e != owner)) {
-                            if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                                    v, owner, zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard())) {
-                                continue;
-                            }
-                            double hDist = Math.sqrt(Math.pow(v.getX() - zone.center.x, 2) + Math.pow(v.getZ() - zone.center.z, 2));
-                            if (hDist > zone.radius + 0.5D) continue;
-                            float falloff = (float) Mth.clamp(1.0D - (hDist / Math.max(1.0D, zone.radius)) * 0.67D, 0.33D, 1.0D);
+                            for (LivingEntity v : srv.getEntitiesOfClass(LivingEntity.class, area, e -> e.isAlive() && e != owner)) {
+                                if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(v, owner, safeWard)) {
+                                    continue;
+                                }
+                                double dx = v.getX() - zone.center.x;
+                                double dz = v.getZ() - zone.center.z;
+                                double hDistSq = dx * dx + dz * dz;
+                                if (hDistSq > zRadSq) continue;
+                                double hDist = Math.sqrt(hDistSq);
+                                float falloff = (float) Mth.clamp(1.0D - (hDist / Math.max(1.0D, zone.radius)) * 0.67D, 0.33D, 1.0D);
 
-                            v.igniteForSeconds(5);
-                            if (!hasHarm) {
-                                SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(srv, v, owner, meteorBaseDmg * falloff, false);
-                            }
-                            if (zone.spell != null && zone.slot != null) {
-                                SpellExecutionEngine.deliverSubSpellOnEntity(
-                                        srv, owner, v, new Vec3(0.0D, -1.0D, 0.0D),
-                                        zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.42F * falloff
-                                );
-                            }
-                            if (!SpellCombatReactionEngine.isBossEntity(srv, v)) {
-                                double jx = (srv.random.nextDouble() - 0.5D) * 0.58D;
-                                double jz = (srv.random.nextDouble() - 0.5D) * 0.58D;
-                                SpellExecutionEngine.applySyncedMotion(v, new Vec3(jx, 0.25D, jz));
-                                v.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 22, 2));
+                                v.igniteForSeconds(5);
+                                if (!hasHarm) {
+                                    SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(srv, v, owner, meteorBaseDmg * falloff, false);
+                                }
+                                if (zone.spell != null && zone.slot != null) {
+                                    SpellExecutionEngine.deliverSubSpellOnEntity(
+                                            srv, owner, v, new Vec3(0.0D, -1.0D, 0.0D),
+                                            zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.42F * falloff
+                                    );
+                                }
+                                if (!SpellCombatReactionEngine.isBossEntity(srv, v)) {
+                                    double jx = (srv.random.nextDouble() - 0.5D) * 0.58D;
+                                    double jz = (srv.random.nextDouble() - 0.5D) * 0.58D;
+                                    SpellExecutionEngine.applySyncedMotion(v, new Vec3(jx, 0.25D, jz));
+                                    SpellCombatReactionEngine.applyTimedMovementSpeedSap(v, srv, 0.35D, 22L);
+                                }
                             }
                         }
                         autoSmeltDroppedItems(srv, area);
@@ -1402,24 +1540,34 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
             caster.clearFire();
         }
 
-        // 1. Departure Pillar of Flame: roaring 3D hellfire column + scorching departure chasers!
+        SpellAssembly activeSpell = resolveActiveCasterSpell(level, caster, departurePos);
+        boolean zeroHarm = activeSpell != null && activeSpell.prefix().enforcesZeroEntityHarm();
+        boolean safeWard = resolveActiveCasterWardSafeguard(caster, activeSpell);
+
+        // 1. Departure Pillar of Flame + 5.0s (100t) 3x3 temporary departure fire pool!
         SpellWorldVfxManager.broadcastGeyserPlume(
                 level, departurePos, 1.40D, 4.4D, EssenceType.NETHER, null, VFX_THERMAL_POP_TICKS, potencyTier
         );
         spawnTemporaryFirePool(level, caster, BlockPos.containing(departurePos), 1, 100, 0.78F);
-        float depDmg = 2.4F + potencyTier * 0.75F;
-        for (LivingEntity chaser : level.getEntitiesOfClass(LivingEntity.class, new AABB(departurePos, departurePos).inflate(2.2D), LivingEntity::isAlive)) {
-            if (chaser == caster || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(chaser, caster, true)) continue;
-            chaser.igniteForSeconds(5);
-            SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(level, chaser, caster, depDmg, true);
+        if (!zeroHarm) {
+            float depDmg = 2.4F + potencyTier * 0.75F;
+            double depRadSq = 2.2D * 2.2D;
+            for (LivingEntity chaser : level.getEntitiesOfClass(LivingEntity.class, new AABB(departurePos, departurePos).inflate(2.2D), LivingEntity::isAlive)) {
+                if (chaser == caster || chaser.position().distanceToSqr(departurePos) > depRadSq) continue;
+                if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(chaser, caster, safeWard)) continue;
+                if (isPassiveOrFriendlyEntity(chaser, caster)) continue;
+                chaser.igniteForSeconds(5);
+                SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(level, chaser, caster, depDmg, true);
+            }
         }
         level.sendParticles(ParticleTypes.LAVA, departurePos.x, departurePos.y + 1.0D, departurePos.z,
                 18, 0.35D, 0.9D, 0.35D, 0.06D);
         level.sendParticles(ParticleTypes.FLAME, departurePos.x, departurePos.y + 1.2D, departurePos.z,
                 28, 0.4D, 1.1D, 0.4D, 0.08D);
 
-        // 2. Arrival Explosive Shockwave Pop!
+        // 2. Arrival Explosive Shockwave Pop (exact circular 3.5-block radius + ice/snow melting)!
         double popRadius = 3.5D;
+        double popRadiusSq = popRadius * popRadius;
         meltIceAndSnowInRadius(level, BlockPos.containing(arrivalPos), 2);
         SpellWorldVfxManager.broadcast(
                 level, SpellVfxEventPayload.VFX_RADIAL_NOVA,
@@ -1431,18 +1579,30 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                 arrivalPos.add(0.0D, 0.85D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D),
                 EssenceType.NETHER, null, 2.25F, 54, potencyTier
         );
-        float popDmg = 3.2F + potencyTier * 1.00F;
-        for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, caster.getBoundingBox().inflate(popRadius), LivingEntity::isAlive)) {
-            if (foe == caster || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, caster, true)) {
-                continue;
-            }
-            foe.igniteForSeconds(5);
-            SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(level, foe, caster, popDmg, true);
-            if (!SpellCombatReactionEngine.isBossEntity(level, foe)) {
-                Vec3 delta = foe.position().subtract(arrivalPos);
-                Vec3 horiz = new Vec3(delta.x, 0.0D, delta.z);
-                Vec3 push = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : new Vec3(1.0D, 0.0D, 0.0D);
-                SpellExecutionEngine.applySyncedMotion(foe, new Vec3(push.x * 1.15D, 0.38D, push.z * 1.15D));
+        if (!zeroHarm) {
+            float popDmg = 3.2F + potencyTier * 1.00F;
+            AABB arrivalBox = new AABB(
+                    arrivalPos.x - popRadius, arrivalPos.y - 2.0D, arrivalPos.z - popRadius,
+                    arrivalPos.x + popRadius, arrivalPos.y + 3.0D, arrivalPos.z + popRadius
+            );
+            for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, arrivalBox, LivingEntity::isAlive)) {
+                if (foe == caster || foe.position().distanceToSqr(arrivalPos) > popRadiusSq) {
+                    continue;
+                }
+                if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, caster, safeWard)) {
+                    continue;
+                }
+                if (isPassiveOrFriendlyEntity(foe, caster)) {
+                    continue;
+                }
+                foe.igniteForSeconds(5);
+                SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(level, foe, caster, popDmg, true);
+                if (!SpellCombatReactionEngine.isBossEntity(level, foe)) {
+                    Vec3 delta = foe.position().subtract(arrivalPos);
+                    Vec3 horiz = new Vec3(delta.x, 0.0D, delta.z);
+                    Vec3 push = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : new Vec3(1.0D, 0.0D, 0.0D);
+                    SpellExecutionEngine.applySyncedMotion(foe, new Vec3(push.x * 1.15D, 0.38D, push.z * 1.15D));
+                }
             }
         }
         level.sendParticles(
@@ -1620,16 +1780,32 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
         return false;
     }
 
+    /**
+     * Resolves canonical <i>Hellfire Sear Hex</i> physical armor melt percentage across Hex Levels I–III:
+     * {@code 30%} ({@code Level I}), {@code 45%} ({@code Level II}), {@code 60%} ({@code Level III}).
+     */
+    public static double resolveHellfireSearArmorMeltFraction(int stackCount) {
+        return switch (Math.clamp(stackCount, 1, 3)) {
+            case 2 -> 0.45D;
+            case 3 -> 0.60D;
+            default -> 0.30D;
+        };
+    }
+
     @Override
     public boolean onPersistentHexTick(ServerLevel level, LivingEntity target, int potencyTier) {
         // Hellfire Sear Hex (Section 6.7):
-        // Burns perpetually even underwater, permanently melts 30% of physical Armor points,
+        // Burns perpetually even underwater, melts 30% / 45% / 60% of physical Armor across Hex Levels I–III,
         // and disables natural health regeneration (enforced by SpellCombatReactionEngine.isRegenLockingHex)!
+        int stack = Math.clamp(SpellCombatReactionEngine.getHexStackLevel(target), 1, 3);
+        double armorMeltPct = resolveHellfireSearArmorMeltFraction(stack);
         float mult = SpellCombatReactionEngine.getHexStackMultiplier(target);
+
+        target.removeEffect(MobEffects.REGENERATION);
         target.igniteForSeconds(3);
         CompoundTag data = EntityHelper.getPersistentData(target);
         data.putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, level.getGameTime() + 45L);
-        SpellCombatReactionEngine.applyPercentageArmorShred(target, level, Math.min(0.65D, 0.30D * mult), 0.0D, 45L);
+        SpellCombatReactionEngine.applyPercentageArmorShred(target, level, armorMeltPct, 0.0D, 45L);
         SpellCombatReactionEngine.hurtWithNetherMateriaAdvantage(
                 level, target, null, (1.65F + potencyTier * 0.62F) * mult, false
         );
@@ -1738,7 +1914,8 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
 
     /**
      * Guide Section 6.7 <i>Cauterizing Cleave &amp; Auto-Smelt</i>:
-     * Ensures any raw ores held in the slain creature's hands or inventory drop pre-smelted on death!
+     * Ensures any raw ores held across ALL equipment slots, {@link InventoryCarrier} mob storage slots
+     * (e.g., Piglins, Villagers, Allays), and {@link Player} inventory slots are pre-smelted cleanly on kill!
      */
     public static void dropHeldRawOresPreSmelted(ServerLevel level, LivingEntity deceased) {
         CompoundTag tag = EntityHelper.getPersistentData(deceased);
@@ -1747,17 +1924,91 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
         }
         tag.putBoolean(TAG_HELD_ORES_SMELTED, true);
 
-        if (deceased instanceof Player) {
-            return; // KeepInventory / normal player death loot is already handled via ItemEntity auto-smelt
+        if (deceased instanceof Player player) {
+            boolean keepInv = level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY);
+            Container playerInv = player.getInventory();
+            for (int i = 0; i < playerInv.getContainerSize(); i++) {
+                ItemStack slotStack = playerInv.getItem(i);
+                if (!slotStack.isEmpty() && isRawOreOrOreBlockItem(slotStack)) {
+                    ItemStack smelted = trySmeltStack(level, slotStack);
+                    if (smelted != slotStack && !smelted.isEmpty()) {
+                        if (keepInv) {
+                            playerInv.setItem(i, smelted.copy());
+                        } else {
+                            playerInv.setItem(i, ItemStack.EMPTY);
+                            spawnSmeltedDrops(level, player, smelted);
+                        }
+                    }
+                }
+            }
+            playerInv.setChanged();
+
+            for (EquipmentSlot eqSlot : EquipmentSlot.values()) {
+                ItemStack equipped = player.getItemBySlot(eqSlot);
+                if (!equipped.isEmpty() && isRawOreOrOreBlockItem(equipped)) {
+                    ItemStack smelted = trySmeltStack(level, equipped);
+                    if (smelted != equipped && !smelted.isEmpty()) {
+                        if (keepInv) {
+                            player.setItemSlot(eqSlot, smelted.copy());
+                        } else {
+                            player.setItemSlot(eqSlot, ItemStack.EMPTY);
+                            spawnSmeltedDrops(level, player, smelted);
+                        }
+                    }
+                }
+            }
+            return;
         }
-        for (EquipmentSlot slot : HAND_SLOTS) {
+
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
             ItemStack held = deceased.getItemBySlot(slot);
             if (!held.isEmpty() && isRawOreOrOreBlockItem(held)) {
                 ItemStack smelted = trySmeltStack(level, held);
-                deceased.setItemSlot(slot, ItemStack.EMPTY);
-                ItemEntity drop = new ItemEntity(level, deceased.getX(), deceased.getY() + 0.45D, deceased.getZ(), smelted.copy());
-                level.addFreshEntity(drop);
+                if (smelted != held && !smelted.isEmpty()) {
+                    deceased.setItemSlot(slot, ItemStack.EMPTY);
+                    spawnSmeltedDrops(level, deceased, smelted);
+                }
             }
+        }
+
+        if (deceased instanceof InventoryCarrier carrier) {
+            SimpleContainer mobInv = carrier.getInventory();
+            for (int i = 0; i < mobInv.getContainerSize(); i++) {
+                ItemStack stored = mobInv.getItem(i);
+                if (!stored.isEmpty() && isRawOreOrOreBlockItem(stored)) {
+                    ItemStack smelted = trySmeltStack(level, stored);
+                    if (smelted != stored && !smelted.isEmpty()) {
+                        mobInv.setItem(i, ItemStack.EMPTY);
+                        spawnSmeltedDrops(level, deceased, smelted);
+                    }
+                }
+            }
+            mobInv.setChanged();
+        } else if (deceased instanceof Container extraContainer) {
+            for (int i = 0; i < extraContainer.getContainerSize(); i++) {
+                ItemStack stored = extraContainer.getItem(i);
+                if (!stored.isEmpty() && isRawOreOrOreBlockItem(stored)) {
+                    ItemStack smelted = trySmeltStack(level, stored);
+                    if (smelted != stored && !smelted.isEmpty()) {
+                        extraContainer.setItem(i, ItemStack.EMPTY);
+                        spawnSmeltedDrops(level, deceased, smelted);
+                    }
+                }
+            }
+            extraContainer.setChanged();
+        }
+    }
+
+    private static void spawnSmeltedDrops(ServerLevel level, LivingEntity deceased, ItemStack smelted) {
+        int remaining = smelted.getCount();
+        int maxStack = Math.max(1, smelted.getMaxStackSize());
+        while (remaining > 0) {
+            int batch = Math.min(maxStack, remaining);
+            ItemStack dropStack = smelted.copyWithCount(batch);
+            ItemEntity drop = new ItemEntity(level, deceased.getX(), deceased.getY() + 0.45D, deceased.getZ(), dropStack);
+            drop.setDefaultPickUpDelay();
+            level.addFreshEntity(drop);
+            remaining -= batch;
         }
     }
 
@@ -1862,6 +2113,142 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
     // =========================================================================
     // INTERNAL THERMAL, THREAT & CONTAINMENT HELPERS
     // =========================================================================
+
+    private static boolean hasHarmEffect(@Nullable SpellAssembly spell, @Nullable SubSpellSlot slot) {
+        if (slot != null && slot.hasHarmVerb()) {
+            return true;
+        }
+        if (spell != null) {
+            for (SubSpellSlot s : spell.subSpells()) {
+                if (s.hasHarmVerb()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Identifies passive farm animals, villagers, peaceful golems/helpers, tamed allies, and friendly eidolons
+     * so hostile-targeted Nether fire waves/whips/pops spare peaceful creatures even when Ward is not slotted,
+     * while still striking Monsters/Enemies, angry mobs targeting the caster, and non-allied PvP players (when Ward is off).
+     */
+    public static boolean isPassiveOrFriendlyEntity(LivingEntity ent, @Nullable LivingEntity caster) {
+        if (ent == null || !ent.isAlive()) {
+            return false;
+        }
+        if (ent instanceof SpellEidolonEntity eidolon) {
+            return caster != null && (eidolon.isOwnedBy(caster) || eidolon.isFriendlyTo(caster));
+        }
+        if (ent instanceof Monster || ent instanceof Enemy) {
+            return false;
+        }
+        if (ent instanceof Mob m && m.getTarget() != null
+                && (caster == null
+                    || m.getTarget() == caster
+                    || ApexEschatonSingularityHelper.isFriendly(m.getTarget(), caster)
+                    || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(m.getTarget(), caster, true))) {
+            return false;
+        }
+        if (ent instanceof NeutralMob nm && (nm.isAngry()
+                || (caster != null && caster.getUUID().equals(nm.getPersistentAngerTarget())))) {
+            return false;
+        }
+        if (ent instanceof OwnableEntity ownable) {
+            LivingEntity owner = ownable.getOwner();
+            if (owner != null) {
+                if (caster == null) {
+                    return false;
+                }
+                return owner == caster || owner.isAlliedTo(caster);
+            }
+        }
+        if (caster != null && (ent == caster || ent.isAlliedTo(caster))) {
+            return true;
+        }
+        return ent instanceof Animal
+                || ent instanceof AbstractVillager
+                || ent instanceof AbstractGolem
+                || ent instanceof WaterAnimal
+                || ent instanceof AmbientCreature
+                || ent.getType().getCategory().isFriendly();
+    }
+
+    @Nullable
+    private static SpellAssembly resolveActiveCasterSpell(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            Vec3 origin
+    ) {
+        if (caster != null) {
+            SpellAssembly fallbackFound = null;
+            for (ItemStack held : List.of(caster.getMainHandItem(), caster.getOffhandItem())) {
+                if (held.isEmpty()) continue;
+                CastingApparatusState appState = held.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+                if (appState != null) {
+                    Optional<SpellAssembly> active = appState.getActiveSpell();
+                    if (active.isPresent()) {
+                        SpellAssembly asm = active.get();
+                        if (assemblyHasBlink(asm)) {
+                            return asm;
+                        }
+                        if (fallbackFound == null) {
+                            fallbackFound = asm;
+                        }
+                    }
+                }
+                SpellAssembly directSpell = held.get(ModDataComponents.SPELL_ASSEMBLY.get());
+                if (directSpell != null) {
+                    if (assemblyHasBlink(directSpell)) {
+                        return directSpell;
+                    }
+                    if (fallbackFound == null) {
+                        fallbackFound = directSpell;
+                    }
+                }
+            }
+            if (fallbackFound != null) {
+                return fallbackFound;
+            }
+        }
+        BlockPos originBlock = BlockPos.containing(origin);
+        for (BlockPos check : List.of(originBlock, originBlock.below())) {
+            if (level.getBlockEntity(check) instanceof AutocastPedestalBlockEntity pedestal) {
+                Optional<SpellAssembly> pedSpell = pedestal.getActiveSpellAssembly();
+                if (pedSpell.isPresent()) {
+                    return pedSpell.get();
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean assemblyHasBlink(SpellAssembly spell) {
+        for (SubSpellSlot s : spell.subSpells()) {
+            if (s.primaryEffect().effect() == SpellCoreEffect.BLINK
+                    || s.secondaryEffect().map(e -> e.effect() == SpellCoreEffect.BLINK).orElse(false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean resolveActiveCasterWardSafeguard(
+            @Nullable LivingEntity caster,
+            @Nullable SpellAssembly activeSpell
+    ) {
+        if (activeSpell != null && activeSpell.hasWardFriendlyFireSafeguard()) {
+            return true;
+        }
+        if (caster == null) {
+            return false;
+        }
+        CompoundTag data = EntityHelper.getPersistentData(caster);
+        if (data.contains(SpellLingeringZoneManager.TAG_AIR_BLINK_WARD_SAFE)) {
+            return data.getBoolean(SpellLingeringZoneManager.TAG_AIR_BLINK_WARD_SAFE).orElse(false);
+        }
+        return false;
+    }
 
     private static void emitInfernalThreatPulse(
             ServerLevel level,
@@ -1975,8 +2362,13 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
         return path.startsWith("raw_") || path.endsWith("_ore");
     }
 
-    private static boolean isCharableOrganicBlock(BlockState state) {
-        return state.is(BlockTags.LEAVES)
+    public static boolean isCharableOrganicBlock(BlockState state) {
+        return state.is(BlockTags.PLANKS)
+                || state.is(BlockTags.WOODEN_STAIRS)
+                || state.is(BlockTags.WOODEN_SLABS)
+                || state.is(BlockTags.WOODEN_FENCES)
+                || state.is(BlockTags.FENCE_GATES)
+                || state.is(BlockTags.LEAVES)
                 || state.is(BlockTags.FLOWERS)
                 || state.is(BlockTags.SAPLINGS)
                 || state.is(BlockTags.CROPS)
@@ -1994,12 +2386,14 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                 || state.is(Blocks.DEAD_BUSH);
     }
 
-    private static boolean isCharableOrganicItem(ItemStack stack) {
+    public static boolean isCharableOrganicItem(ItemStack stack) {
         if (stack.is(ModItems.CINDER_ASH_FLAKES.get()) || stack.is(Items.CHARCOAL) || stack.is(Items.COAL)) {
             return false;
         }
         if (stack.is(ItemTags.LEAVES) || stack.is(ItemTags.FLOWERS) || stack.is(ItemTags.SAPLINGS)
-                || stack.is(ItemTags.WOOL) || stack.is(ItemTags.PLANKS)) {
+                || stack.is(ItemTags.WOOL) || stack.is(ItemTags.PLANKS)
+                || stack.is(ItemTags.WOODEN_STAIRS) || stack.is(ItemTags.WOODEN_SLABS)
+                || stack.is(ItemTags.WOODEN_FENCES) || stack.is(ItemTags.FENCE_GATES)) {
             return true;
         }
         return stack.is(Items.ROTTEN_FLESH)
@@ -2062,20 +2456,6 @@ public final class NetherSpellMutationHandler implements MateriaPartMutationHand
                 SpellExecutionEngine.applySyncedMotion(near, new Vec3(push.x * 0.45D, 0.28D, push.z * 0.45D));
             }
         }
-    }
-
-    private static boolean isContainedBasinCell(ServerLevel level, BlockPos cell, Set<BlockPos> basinSet) {
-        BlockPos below = cell.below();
-        if (!level.getBlockState(below).isSolidRender()) {
-            return false;
-        }
-        for (Direction horiz : Direction.Plane.HORIZONTAL) {
-            BlockPos adj = cell.relative(horiz);
-            if (!basinSet.contains(adj) && !level.getBlockState(adj).isSolidRender()) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private static BlockPos findGroundSurfaceNear(ServerLevel level, BlockPos start) {

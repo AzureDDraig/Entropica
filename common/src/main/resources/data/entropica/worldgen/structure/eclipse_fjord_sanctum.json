@@ -1,0 +1,6 @@
+{
+  "type": "entropica:eclipse_fjord_sanctum",
+  "biomes": "#entropica:has_structure/eclipse_fjord_sanctum",
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}

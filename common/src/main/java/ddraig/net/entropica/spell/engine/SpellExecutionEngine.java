@@ -101,6 +101,8 @@ public final class SpellExecutionEngine {
     private static final Map<UUID, ActiveCorpseBloom> ACTIVE_CORPSE_BLOOMS = new java.util.concurrent.ConcurrentHashMap<>();
     private static final ThreadLocal<Boolean> BLINK_CANCELLED_REFUND_FLAG = ThreadLocal.withInitial(() -> false);
     private static final ThreadLocal<String> BLINK_CANCELLED_REASON = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> ACTIVE_BLINK_SLOW_FLOW = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Boolean> ACTIVE_EARTH_BURROW_BOOST = ThreadLocal.withInitial(() -> false);
 
     private SpellExecutionEngine() {
     }
@@ -335,6 +337,20 @@ public final class SpellExecutionEngine {
             float apparatusRange,
             @Nullable SpellCostBreakdown costBreakdown
     ) {
+        primeCasterTouchStrike(level, player, spell, touchSlots, fallbackMateria, apparatusPotency, apparatusRange, costBreakdown, false);
+    }
+
+    public static void primeCasterTouchStrike(
+            ServerLevel level,
+            Player player,
+            SpellAssembly spell,
+            List<SubSpellSlot> touchSlots,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            float apparatusRange,
+            @Nullable SpellCostBreakdown costBreakdown,
+            boolean engravedWeaponBonus
+    ) {
         if (touchSlots.isEmpty()) {
             return;
         }
@@ -345,7 +361,7 @@ public final class SpellExecutionEngine {
             }
         }
 
-        float primedPotency = apparatusPotency == 1.0F ? apparatusPotency * 1.15F : apparatusPotency;
+        float primedPotency = engravedWeaponBonus ? apparatusPotency * 1.15F : apparatusPotency;
         PRIMED_TOUCH_STRIKES.put(
                 player.getUUID(),
                 new PrimedTouchStrike(
@@ -489,10 +505,26 @@ public final class SpellExecutionEngine {
     }
 
     /**
-     * Returns {@code true} if the attacker's primed Frozen {@code TOUCH_STRIKE} also carries mutated Frozen
-     * {@code SLOW_HEAVY} Flow (Section 6.6 <i>Permafrost Creep</i>, +0.4 Materia Advantage vs Water targets).
+     * Returns {@code true} if a Frozen Blink should upgrade its 3x3 water pads into {@code Blue Ice}
+     * (either via direct {@code SLOW_HEAVY} Flow on the Blink spell or a primed Permafrost Creep state).
      */
-    public static boolean hasPrimedFrozenPermafrostCreep(LivingEntity attacker) {
+    public static boolean shouldTriggerFrozenBlinkPermafrostCreep(@Nullable SpellAssembly spell, @Nullable LivingEntity caster) {
+        return (spell != null && spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY)
+                || hasPrimedFrozenPermafrostCreep(caster);
+    }
+
+    /**
+     * Returns {@code true} if the attacker's primed Frozen {@code TOUCH_STRIKE} also carries mutated Frozen
+     * {@code SLOW_HEAVY} Flow (Section 6.6 <i>Permafrost Creep</i>, +0.4 Materia Advantage vs Water targets),
+     * or if the currently executing Blink carries {@code SLOW_HEAVY} Flow.
+     */
+    public static boolean hasPrimedFrozenPermafrostCreep(@Nullable LivingEntity attacker) {
+        if (ACTIVE_BLINK_SLOW_FLOW.get()) {
+            return true;
+        }
+        if (attacker == null) {
+            return false;
+        }
         PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
         if (primed == null) return false;
         SpellAssembly spell = primed.spell();
@@ -528,6 +560,7 @@ public final class SpellExecutionEngine {
         PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
         if (primed == null) return false;
         SpellAssembly spell = primed.spell();
+        if (spell.prefix().enforcesZeroEntityHarm()) return false;
         EssenceType fallback = primed.fallbackMateria();
         for (SubSpellSlot s : primed.touchSlots()) {
             if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
@@ -1280,6 +1313,111 @@ public final class SpellExecutionEngine {
         return false;
     }
 
+    public static boolean hasPrimedPrismaticPalmShatterStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.PRISMATIC) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasPrimedEmpyreanRootCleaveStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.EMPYREAN) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasPrimedCataclysmCalamitySunderStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.CATACLYSM) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasPrimedTerminusGlacierCleaveStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.TERMINUS) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasPrimedEschatonRealityScytheStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
+                    && s.formPart().mutationEnabled()
+                    && s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.ESCHATON) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasPrimedApotheosisGenesisCleaveStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE && s.formPart().mutationEnabled()) {
+                if (s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.APOTHEOSIS) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasPrimedEntropicaGrandParadoxStrike(LivingEntity attacker) {
+        PrimedTouchStrike primed = PRIMED_TOUCH_STRIKES.get(attacker.getUUID());
+        if (primed == null) return false;
+        SpellAssembly spell = primed.spell();
+        EssenceType fallback = primed.fallbackMateria();
+        for (SubSpellSlot s : primed.touchSlots()) {
+            if (s.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE && s.formPart().mutationEnabled()) {
+                if (s.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallback) == EssenceType.ENTROPICA) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Discharges an active primed Touch / Melee Strike spell when the caster lands their next physical melee hit
      * (Spellcrafting System Guide Section 4.4: 100% primary target + 50% cleave splash + weapon Materia Advantage stacking!).
@@ -1317,13 +1455,7 @@ public final class SpellExecutionEngine {
 
         EssenceType fallbackMateria = primed.fallbackMateria();
         SpellFlowModifier flow = spell.flowPart().flow();
-        float flowPotencyMult = switch (flow) {
-            case DOUBLE_BIFURCATE -> 1.50F;
-            case TRIPLE_TRIFURCATE -> 2.00F;
-            case OCTUPLE_DOME -> 2.25F;
-            default -> 1.0F;
-        };
-        float potency = primed.apparatusPotency() * flowPotencyMult;
+        float potency = primed.apparatusPotency();
         int tier = spell.getEffectiveTier();
         float flawRangeMult = spell.flawProfile().getRangeAndRadiusMultiplier();
 
@@ -1362,14 +1494,15 @@ public final class SpellExecutionEngine {
 
             boolean radiantPurifyDrops = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
                     && slot.formPart().mutationEnabled()
-                    && formMat == EssenceType.RADIANT;
+                    && formMat == EssenceType.RADIANT
+                    && !spell.prefix().enforcesZeroEntityHarm();
             boolean netherAutoSmeltDrops = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
                     && slot.formPart().mutationEnabled()
                     && (formMat == EssenceType.NETHER || formMat == EssenceType.MAGMA);
             boolean aridMummifyDrops = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
                     && slot.formPart().mutationEnabled()
                     && formMat == EssenceType.ARID;
-            long radiantPurifyUntil = level.getGameTime() + 40L;
+            long radiantPurifyUntil = level.getGameTime() + 2L;
             long netherAutoSmeltUntil = level.getGameTime() + 130L;
             long aridMummifyUntil = level.getGameTime() + 60L;
             if (radiantPurifyDrops) {
@@ -1436,6 +1569,13 @@ public final class SpellExecutionEngine {
             if (formHandler != null) {
                 formHandler.onTouchStrikeFormCast(level, attacker, direction, allTouchStruck, spell, slot, fallbackMateria, potency);
             }
+            if (radiantPurifyDrops) {
+                for (LivingEntity struckEnt : allTouchStruck) {
+                    if (struckEnt.isAlive() && !struckEnt.isDeadOrDying()) {
+                        EntityHelper.getPersistentData(struckEnt).remove(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL);
+                    }
+                }
+            }
         }
         if (!isSilentStealthSpell(spell, fallbackMateria)) {
             level.playSound(null, primaryTarget.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 0.95F, 1.15F);
@@ -1491,6 +1631,10 @@ public final class SpellExecutionEngine {
             );
             ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, hitCenter, vPrimary, vSecondary, 1.05D, tier);
             deliverSubSpellOnBlock(level, player, pos, face, spell, slot, fallbackMateria, primed.apparatusPotency());
+            MateriaPartMutationHandler formHandler = SpellMutationHandlerRegistry.resolveActive(formMat, slot.formPart().mutationEnabled());
+            if (formHandler != null) {
+                formHandler.onTouchStrikeFormCast(level, player, dir, List.of(), spell, slot, fallbackMateria, primed.apparatusPotency());
+            }
         }
         return true;
     }
@@ -1574,6 +1718,37 @@ public final class SpellExecutionEngine {
                 ? EssenceType.REGULAR
                 : Optional.ofNullable(SpellFuelService.detectPrimaryAvailableMateria(player)).orElse(EssenceType.REGULAR);
 
+        // Pure 2.5s (50-tick) Held Right-Click Transmute Channel (without Beam or Held Stream Cone):
+        // Simulate upfront fuel check on tick 0; defer backfire/fuel drain/execution until tick 50!
+        if (!spell.hasChanneledBeamForm() && !spell.isChanneledHoldCone() && spell.hasTransmuteVerb()) {
+            SpellCostBreakdown checkCost = SpellFuelCalculator.calculateCastCost(
+                    spell, state.apparatusType(), state.materialEfficiencyBonus(), fallbackMateria
+            );
+            SpellFuelService.FuelCheckResult simFuel = SpellFuelService.consumePlayerSpellFuel(
+                    player, spell.getEffectiveTier(), checkCost.upfrontMfumByType(), true
+            );
+            if (!simFuel.success()) {
+                String missingNames = simFuel.missingTypes().stream()
+                        .map(EssenceType::getDisplayName)
+                        .collect(Collectors.joining(", "));
+                player.displayClientMessage(
+                        Component.literal("§cInsufficient Materia Fuel! Missing: §e" + missingNames),
+                        true
+                );
+                level.playSound(null, player.blockPosition(), SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.5F, 1.5F);
+                return false;
+            }
+            EntityHelper.getPersistentData(player).putLong(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL, now + 8L);
+            player.displayClientMessage(
+                    Component.literal("§d✦ Channeling Arcane Transmutation... §7(0.0s / 2.5s — Hold Right-Click!)"),
+                    true
+            );
+            if (!isSilentStealthSpell(spell, fallbackMateria)) {
+                level.playSound(null, player.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 0.70F, 1.25F);
+            }
+            return true;
+        }
+
         // First-Cast Field-Swap 45% Backfire Check
         if (activeSocket.pendingFieldBackfireRoll()) {
             CastingApparatusState cleared = state.withSocket(state.activeSlotIndex(), activeSocket.clearPendingBackfire());
@@ -1610,6 +1785,115 @@ public final class SpellExecutionEngine {
             level.playSound(null, player.blockPosition(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.55F, 1.55F);
         }
         return true;
+    }
+
+    /**
+     * Handles Right-Click release for continuous-hold spells (Channeled Beams, Held Stream Cones, and 2.5s Held Transmute):
+     * <ul>
+     *     <li><b>Held Transmute ({@code heldTicks < 50})</b>: cancels cleanly with zero transmutation.</li>
+     *     <li><b>Quick-Tap Single-Firing Beam / Cone ({@code heldTicks < 4}, non-Transmute)</b>: completes the remaining
+     *         {@code 0.75x} single-cast discharge and normal cast cooldown so Beams and Cones work both as single-shot
+     *         casts and as sustained channels!</li>
+     * </ul>
+     */
+    public static void onContinuousHoldReleased(
+            ServerLevel level,
+            Player player,
+            InteractionHand hand,
+            ItemStack apparatusStack,
+            int heldTicks
+    ) {
+        EntityHelper.getPersistentData(player).remove(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL);
+        CastingApparatusState state = apparatusStack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+        if (state == null) return;
+        SocketedSpellgem activeSocket = state.getActiveSocket();
+        if (activeSocket.isEmpty() || activeSocket.spell().isEmpty()) return;
+        SpellAssembly spell = activeSocket.spell().get();
+        if (!spell.isBoundToTier()) return;
+
+        // 1. Early release of a 2.5s (50-tick) continuous Transmute channel cancels cleanly with zero transmutation!
+        if (!spell.hasChanneledBeamForm() && !spell.isChanneledHoldCone() && spell.hasTransmuteVerb()) {
+            if (heldTicks < ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TRANSMUTE_CHANNEL_DURATION_TICKS) {
+                EntityHelper.getPersistentData(player).remove(
+                        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TAG_TRANSMUTE_CHANNEL_COMPLETED_UNTIL
+                );
+                player.displayClientMessage(
+                        Component.literal("§c✦ Transmutation Interrupted §7— Released before 2.5s continuous channel completed!"),
+                        true
+                );
+                level.playSound(null, player.blockPosition(), SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.55F, 1.35F);
+                player.getCooldowns().addCooldown(apparatusStack, 4);
+            }
+            return;
+        }
+
+        // 2. Quick-tap single-firing Beam or Stream-capable Cone (< 4 ticks held, non-Transmute):
+        //    Tick 0 already delivered 0.25x potency and billed 0.20x fuel; deliver the remaining 0.75x single-shot!
+        if (heldTicks >= 0 && heldTicks < 4 && !spell.hasTransmuteVerb()
+                && (spell.isChanneledHoldBeam() || spell.isChanneledHoldCone())) {
+            EssenceType fallbackMateria = spell.materiaSpecific()
+                    ? EssenceType.REGULAR
+                    : Optional.ofNullable(SpellFuelService.detectPrimaryAvailableMateria(player)).orElse(EssenceType.REGULAR);
+            SpellCostBreakdown fullCost = SpellFuelCalculator.calculateCastCost(
+                    spell, state.apparatusType(), state.materialEfficiencyBonus(), fallbackMateria
+            );
+            long now = level.getGameTime();
+            boolean auraDiscount = now <= EntityHelper.getPersistentData(player)
+                    .getLong(SpellLingeringZoneManager.TAG_AURA_SHROUD_UNTIL).orElse(0L);
+            Map<EssenceType, Long> remCost = new EnumMap<>(EssenceType.class);
+            for (Map.Entry<EssenceType, Long> e : fullCost.totalMfumByType().entrySet()) {
+                double mult = auraDiscount ? 0.64D : 0.80D;
+                remCost.put(e.getKey(), Math.max(1L, Math.round(e.getValue() * mult)));
+            }
+            if (SpellFuelService.consumePlayerSpellFuel(player, spell.getEffectiveTier(), remCost, false).success()) {
+                float remPotency = state.apparatusType().getPotencyMultiplier() * 0.75F;
+                float apparatusRange = state.apparatusType().getRangeMultiplier();
+                if (spell.flowPart().flow() == SpellFlowModifier.FAST_DART) {
+                    apparatusRange *= 1.25F;
+                }
+                List<BeamRaySpec> rays = resolveChanneledBeamRays(level, player, hand, spell, apparatusRange, 0);
+                List<SubSpellSlot> slots = spell.subSpells();
+                for (int slotIdx = 0; slotIdx < slots.size(); slotIdx++) {
+                    SubSpellSlot slot = slots.get(slotIdx);
+                    SpellDeliveryForm form = slot.formPart().form();
+                    if (form == SpellDeliveryForm.BEAM) {
+                        EssenceType formMat = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+                        SpellMutationProfile formMutation = slot.formPart().resolveMutation(spell.materiaSpecific(), fallbackMateria);
+                        MateriaPartMutationHandler formHandler = SpellMutationHandlerRegistry.resolveActive(formMat, slot.formPart().mutationEnabled());
+                        boolean earthReachBonus = formMutation.mutated() && MateriaFamilyTier.isEarthLineage(formMat);
+                        float beamReachMult = (formMutation.mutated() ? formMutation.rangeMultiplier() : 1.0F)
+                                * apparatusRange * spell.flawProfile().getRangeAndRadiusMultiplier();
+                        double maxReach = spell.flowPart().distanceStep().resolveBaseBeamReachBlocks(
+                                spell.getEffectiveTier(), spell.prefix() == SpellPrefix.COMBAT, earthReachBonus
+                        ) * beamReachMult;
+                        for (BeamRaySpec ray : rays) {
+                            castRayOrBeam(level, player, ray.direction(), maxReach, spell, slot, fallbackMateria,
+                                    remPotency * ray.potencyScale(), formMutation, formHandler);
+                        }
+                    } else if (form == SpellDeliveryForm.CONE) {
+                        dispatchSingleSubSpellForm(level, player, player.getLookAngle().normalize(), spell, slotIdx, slot,
+                                fallbackMateria, remPotency, apparatusRange);
+                    }
+                }
+            }
+            int cooldown = Math.max(4, Math.round(spell.getBaseCooldownTicks() * state.apparatusType().getCooldownMultiplier()));
+            player.getCooldowns().addCooldown(apparatusStack, cooldown);
+            return;
+        }
+
+        player.getCooldowns().addCooldown(apparatusStack, 4);
+    }
+
+    private static boolean hasFiveSecondMutatedBeamFinisher(EssenceType formMat, boolean mutated) {
+        if (!mutated || formMat == null) {
+            return false;
+        }
+        return switch (formMat) {
+            case PENUMBRA, RIME, SPRING, STATIC, SYLVAN, MIASMA, GENESIS, OBLIVION,
+                    CHIMERA, AETHER, ENTROPIC, CELESTIAL, PRISMATIC,
+                    EMPYREAN, CATACLYSM, TERMINUS, ESCHATON, APOTHEOSIS, ENTROPICA -> true;
+            default -> false;
+        };
     }
 
     private record BeamRaySpec(Vec3 origin, Vec3 direction, float potencyScale) {
@@ -1684,13 +1968,43 @@ public final class SpellExecutionEngine {
         }
 
         SpellAssembly spell = activeSocket.spell().get();
-        if (!spell.isBoundToTier() || !spell.hasChanneledBeamForm()) {
+        if (!spell.isBoundToTier()) {
             return false;
         }
 
         EssenceType fallbackMateria = spell.materiaSpecific()
                 ? EssenceType.REGULAR
                 : Optional.ofNullable(SpellFuelService.detectPrimaryAvailableMateria(player)).orElse(EssenceType.REGULAR);
+
+        // Mode A: Pure 2.5s (50-tick) Continuous Right-Click Transmute Channel!
+        if (!spell.hasChanneledBeamForm() && !spell.isChanneledHoldCone()) {
+            if (!spell.hasTransmuteVerb()) {
+                return false;
+            }
+            EntityHelper.getPersistentData(player).putLong(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL, now + 8L);
+            int targetTicks = ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TRANSMUTE_CHANNEL_DURATION_TICKS;
+            if (heldTicks < targetTicks) {
+                if (heldTicks % 4 == 0) {
+                    Vec3 muzzle = computeCasterMuzzleOrigin(player, hand);
+                    level.sendParticles(ParticleTypes.ENCHANT, muzzle.x, muzzle.y, muzzle.z, 6, 0.16D, 0.16D, 0.16D, 0.08D);
+                    String secStr = String.format(Locale.ROOT, "%.1f", heldTicks / 20.0F);
+                    player.displayClientMessage(
+                            Component.literal("§d✦ Channeling Arcane Transmutation... §7(" + secStr + "s / 2.5s — Hold Right-Click!)"),
+                            true
+                    );
+                }
+                return true;
+            }
+            EntityHelper.getPersistentData(player).putLong(
+                    ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TAG_TRANSMUTE_CHANNEL_COMPLETED_UNTIL,
+                    now + 200L
+            );
+            castFromApparatus(level, player, hand, apparatusStack);
+            return false; // Complete item use cleanly right at 2.5s!
+        }
+
+        // Stamp active channel marker for Hex contagion & continuous-hold validation!
+        EntityHelper.getPersistentData(player).putLong(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL, now + 8L);
 
         SpellCostBreakdown perSecCost = SpellFuelCalculator.calculateCastCost(
                 spell,
@@ -1701,7 +2015,7 @@ public final class SpellExecutionEngine {
 
         boolean actionPulse = (heldTicks % 4 == 0);
         boolean visualPulse = (heldTicks % 2 == 0);
-        boolean burstFinisher = (heldTicks > 0 && heldTicks % 60 == 0);
+        boolean burstFinisher = spell.hasChanneledBeamForm() && (heldTicks > 0 && heldTicks % 60 == 0);
 
         // 1. Drain 1/5th of per-second Materia cost every 4 ticks (5 pulses = 1.0 second)
         if (actionPulse) {
@@ -1728,7 +2042,7 @@ public final class SpellExecutionEngine {
                     );
                 } else {
                     player.displayClientMessage(
-                            Component.literal("§cMateria Fuel depleted — Beam channel ended!"),
+                            Component.literal("§cMateria Fuel depleted — Channel ended!"),
                             true
                     );
                 }
@@ -1751,6 +2065,50 @@ public final class SpellExecutionEngine {
         float flawRangeMult = spell.flawProfile().getRangeAndRadiusMultiplier();
         boolean silent = isSilentStealthSpell(spell, fallbackMateria);
         boolean voidFlowPhase = spell.flowPart().isVoidWarpAuthorized(spell.materiaSpecific(), fallbackMateria);
+        if (actionPulse && spell.flowPart().mutationEnabled() && spell.flowPart().flow() == SpellFlowModifier.ORBIT_SATELLITE) {
+            applyCasterOrbitFlowPassivesIfApplicable(level, player, spell, fallbackMateria);
+        }
+
+        // Mode B: Held Channeled Stream Cone (when spell has no Beam form)
+        if (!spell.hasChanneledBeamForm() && spell.isChanneledHoldCone()) {
+            Vec3 lookDir = player.getLookAngle().normalize();
+            List<SubSpellSlot> coneSlots = spell.subSpells();
+            for (int slotIdx = 0; slotIdx < coneSlots.size(); slotIdx++) {
+                SubSpellSlot slot = coneSlots.get(slotIdx);
+                boolean slotIsTransmute = slotHasEffect(slot, SpellCoreEffect.TRANSMUTE);
+                if (visualPulse && !silent && slot.formPart().form() == SpellDeliveryForm.CONE) {
+                    EssenceType fm = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+                    SpellMutationProfile fMut = slot.formPart().resolveMutation(spell.materiaSpecific(), fallbackMateria);
+                    double cRange = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.CONE, tier)
+                            * (fMut.mutated() ? fMut.radiusMultiplier() : 1.0F) * apparatusRange * flawRangeMult;
+                    EssenceType ep = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+                    EssenceType vp = fm != EssenceType.REGULAR ? fm : ep;
+                    EssenceType vs = slot.secondaryEffect().map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria)).orElse(null);
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVortexCone(
+                            level, player.getEyePosition().subtract(0.0D, 0.2D, 0.0D), lookDir, cRange, vp, vs, tier
+                    );
+                }
+                if (actionPulse) {
+                    if (slotIsTransmute) {
+                        if (heldTicks < ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TRANSMUTE_CHANNEL_DURATION_TICKS) {
+                            String secStr = String.format(Locale.ROOT, "%.1f", heldTicks / 20.0F);
+                            player.displayClientMessage(
+                                    Component.literal("§d✦ Channeling Transmutation Stream... §7(" + secStr + "s / 2.5s)"),
+                                    true
+                            );
+                            continue;
+                        }
+                        EntityHelper.getPersistentData(player).putLong(
+                                ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TAG_TRANSMUTE_CHANNEL_COMPLETED_UNTIL,
+                                now + 12L
+                        );
+                    }
+                    dispatchSingleSubSpellForm(level, player, lookDir, spell, slotIdx, slot,
+                            fallbackMateria, apparatusPotency * 0.25F, apparatusRange);
+                }
+            }
+            return true;
+        }
 
         List<BeamRaySpec> rays = resolveChanneledBeamRays(level, player, hand, spell, apparatusRange, heldTicks);
         List<SubSpellSlot> touchToPrime = (heldTicks == 0) ? new ArrayList<>() : List.of();
@@ -1801,10 +2159,12 @@ public final class SpellExecutionEngine {
                 Vec3 rayStart = player.getEyePosition();
                 Vec3 rayEnd = rayStart.add(ray.direction().scale(maxReach));
                 boolean cryoBridgeBeam = formMat == EssenceType.FROZEN && formMutation.mutated();
+                boolean hydroCutterBeam = formMat == EssenceType.WATER && formMutation.mutated();
+                ClipContext.Block beamBlockClip = hydroCutterBeam ? ClipContext.Block.COLLIDER : ClipContext.Block.OUTLINE;
                 ClipContext.Fluid beamFluidClip = (formMat == EssenceType.WATER || cryoBridgeBeam || !slotHasEffect(slot, SpellCoreEffect.TRANSMUTE))
                         ? ClipContext.Fluid.NONE
                         : ClipContext.Fluid.ANY;
-                BlockHitResult blockHit = level.clip(new ClipContext(rayStart, rayEnd, ClipContext.Block.OUTLINE, beamFluidClip, player));
+                BlockHitResult blockHit = level.clip(new ClipContext(rayStart, rayEnd, beamBlockClip, beamFluidClip, player));
                 Vec3 effectiveEnd = (!wallPhasing && blockHit.getType() == HitResult.Type.BLOCK) ? blockHit.getLocation() : rayEnd;
                 // Section 6.6 Absolute-Zero Cryo-Ray: when grazing the top surface of newly formed ice bridges across water,
                 // project the ray smoothly across the ice sheet out to full maxReach until hitting a genuine non-ice solid wall!
@@ -1868,16 +2228,40 @@ public final class SpellExecutionEngine {
                     }
                     hitEntities.sort(Comparator.comparingDouble(player::distanceToSqr));
 
+                    boolean slotHasTransmute = slotHasEffect(slot, SpellCoreEffect.TRANSMUTE);
+                    if (slotHasTransmute) {
+                        if (heldTicks < ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TRANSMUTE_CHANNEL_DURATION_TICKS) {
+                            String secStr = String.format(Locale.ROOT, "%.1f", heldTicks / 20.0F);
+                            player.displayClientMessage(
+                                    Component.literal("§d✦ Channeling Beam Transmutation... §7(" + secStr + "s / 2.5s — Hold Right-Click!)"),
+                                    true
+                            );
+                        } else {
+                            EntityHelper.getPersistentData(player).putLong(
+                                    ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TAG_TRANSMUTE_CHANNEL_COMPLETED_UNTIL,
+                                    now + 12L
+                            );
+                        }
+                    }
+
+                    boolean canDeliverSlotEffects = !slotHasTransmute
+                            || heldTicks >= ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TRANSMUTE_CHANNEL_DURATION_TICKS;
+
                     boolean vitaeHeldBeam = formMutation.mutated() && formMat == EssenceType.VITAE;
-                    boolean auraHeldBeam = formMutation.mutated() && formMat == EssenceType.AURA;
+                    boolean natureHeldBeam = formMutation.mutated() && formMat == EssenceType.NATURE;
+                    boolean auraHeldBeam = formMutation.mutated() && (formMat == EssenceType.AURA
+                            || formMat == EssenceType.SPRING
+                            || formMat == EssenceType.GENESIS
+                            || formMat == EssenceType.CELESTIAL);
                     List<LivingEntity> struckTargets = new ArrayList<>();
                     int hitCount = 0;
                     for (LivingEntity target : hitEntities) {
                         struckTargets.add(target);
                         boolean protectBeamAlly = ((vitaeHeldBeam && isFriendlyOrAnimalForVitae(player, target))
+                                || (natureHeldBeam && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(target, player))
                                 || (auraHeldBeam && isFriendlyAllyForOasis(player, target)))
                                 && !isCasterBeneficialVerb(slot.primaryEffect().effect());
-                        if (!protectBeamAlly) {
+                        if (!protectBeamAlly && canDeliverSlotEffects) {
                             deliverSubSpellOnEntity(level, player, target, ray.direction(), spell, slot, fallbackMateria, tickPotency);
                             if (spell.flowPart().flow() == SpellFlowModifier.CHAIN_LEAP) {
                                 chainLeapFrom(level, player, target, spell, slot, fallbackMateria, tickPotency);
@@ -1886,7 +2270,7 @@ public final class SpellExecutionEngine {
                         if (++hitCount >= maxTargets) break;
                     }
 
-                    if (hasItemTargetingVerb(slot)) {
+                    if (canDeliverSlotEffects && hasItemTargetingVerb(slot)) {
                         for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, search)) {
                             if (item.isAlive() && item.getBoundingBox().inflate(0.45D).clip(rayStart, effectiveEnd).isPresent()) {
                                 deliverSubSpellOnEntity(level, player, item, ray.direction(), spell, slot, fallbackMateria, tickPotency);
@@ -1894,23 +2278,26 @@ public final class SpellExecutionEngine {
                         }
                     }
 
-                    if (struckTargets.isEmpty() && slotSelfTargetsCasterWhenNoEntityHit(spell, slot)) {
+                    if (canDeliverSlotEffects && struckTargets.isEmpty() && slotSelfTargetsCasterWhenNoEntityHit(spell, slot)) {
                         deliverSubSpellOnEntity(level, player, player, ray.direction(), spell, slot, fallbackMateria, tickPotency);
                     }
 
-                    if (blockHit.getType() == HitResult.Type.BLOCK) {
-                        deliverSubSpellOnBlock(level, player, blockHit.getBlockPos(), blockHit.getDirection(), spell, slot, fallbackMateria, tickPotency);
-                    } else if (hasOpenAirBlockVerb(slot)) {
-                        deliverSubSpellOnBlock(level, player, BlockPos.containing(effectiveEnd), Direction.UP, spell, slot, fallbackMateria, tickPotency);
+                    if (canDeliverSlotEffects) {
+                        if (blockHit.getType() == HitResult.Type.BLOCK) {
+                            deliverSubSpellOnBlock(level, player, blockHit.getBlockPos(), blockHit.getDirection(), spell, slot, fallbackMateria, tickPotency);
+                        } else if (hasOpenAirBlockVerb(slot)) {
+                            deliverSubSpellOnBlock(level, player, BlockPos.containing(effectiveEnd), Direction.UP, spell, slot, fallbackMateria, tickPotency);
+                        }
                     }
 
                     if (formHandler != null) {
-                        formHandler.onBeamFormCast(level, player, ray.direction(), maxReach, struckTargets, blockHit, spell, slot, fallbackMateria, tickPotency);
+                        formHandler.onBeamFormCast(level, player, ray.direction(), maxReach, struckTargets, blockHit, spell, slot, fallbackMateria, tickPotency, heldTicks);
                     }
                 }
 
-                // Guide Section 4.2 "The Burst Finisher": automatic shockwave pulse every 3.0 seconds (60 ticks) of continuous channel!
-                if (burstFinisher) {
+                // Guide Section 4.2 "The Burst Finisher": automatic shockwave pulse every 3.0 seconds (60 ticks) of continuous channel
+                // (suppressed on Tier 3–6 & Catalyst mutated beams that possess a canonical 5.0s / 100-tick finisher)!
+                if (burstFinisher && !hasFiveSecondMutatedBeamFinisher(formMat, formMutation.mutated())) {
                     double burstRad = 2.4D + tier * 0.22D;
                     if (!silent) {
                         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
@@ -1927,6 +2314,10 @@ public final class SpellExecutionEngine {
                     for (LivingEntity stag : level.getEntitiesOfClass(LivingEntity.class, new AABB(effectiveEnd, effectiveEnd).inflate(burstRad), LivingEntity::isAlive)) {
                         if (stag == player || SpellCombatReactionEngine.isBossEntity(level, stag)) continue;
                         if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(stag, player, spell.hasWardFriendlyFireSafeguard())) continue;
+                        if (formMutation.mutated() && formMat == EssenceType.NATURE
+                                && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(stag, player)) {
+                            continue;
+                        }
                         Vec3 out = stag.position().subtract(effectiveEnd);
                         Vec3 push = out.lengthSqr() > 1.0E-4D ? out.normalize() : ray.direction();
                         applySyncedMotion(stag, new Vec3(push.x * 0.65D, 0.34D, push.z * 0.65D));
@@ -1936,7 +2327,11 @@ public final class SpellExecutionEngine {
         }
 
         if (!touchToPrime.isEmpty()) {
-            primeCasterTouchStrike(level, player, spell, touchToPrime, fallbackMateria, apparatusPotency, apparatusRange, perSecCost);
+            primeCasterTouchStrike(
+                    level, player, spell, touchToPrime, fallbackMateria,
+                    apparatusPotency, apparatusRange, perSecCost,
+                    state.apparatusType() == ApparatusType.ENGRAVED_TOOL
+            );
         }
         return true;
     }
@@ -2090,6 +2485,19 @@ public final class SpellExecutionEngine {
             }
         }
 
+        // Section 4.5 Escalating Active Aura Surcharge: +25% cast cost per extra active Aura (up to 4-Aura cap)!
+        if (containsAuraForm(spell)) {
+            int activeAuras = SpellLingeringZoneManager.countActiveCasterAuras(level, player.getUUID());
+            if (activeAuras > 0) {
+                double auraSurcharge = 1.0D + 0.25D * Math.min(3, activeAuras);
+                Map<EssenceType, Long> surcharged = new EnumMap<>(EssenceType.class);
+                for (Map.Entry<EssenceType, Long> entry : effectiveUpfrontCost.entrySet()) {
+                    surcharged.put(entry.getKey(), Math.max(1L, Math.round(entry.getValue() * auraSurcharge)));
+                }
+                effectiveUpfrontCost = surcharged;
+            }
+        }
+
         // Section 6.24 Aura Chakra Respiration Shroud / Spire: -20% spell Materia fuel cost while active!
         if (now <= EntityHelper.getPersistentData(player).getLong(SpellLingeringZoneManager.TAG_AURA_SHROUD_UNTIL).orElse(0L)) {
             Map<EssenceType, Long> discounted = new EnumMap<>(EssenceType.class);
@@ -2126,7 +2534,7 @@ public final class SpellExecutionEngine {
 
         // Apply Apparatus-modified cast cooldown (smooth 6-tick cadence when hovering downward with Air Jetstream Propulsion!)
         int cooldown = Math.max(4, Math.round(spell.getBaseCooldownTicks() * state.apparatusType().getCooldownMultiplier()));
-        if (isDownwardAirJetstreamCast(player, spell, fallbackMateria)) {
+        if (isDownwardAirJetstreamCast(level, player, spell, fallbackMateria)) {
             cooldown = Math.min(cooldown, 6);
         }
         player.getCooldowns().addCooldown(apparatusStack, cooldown);
@@ -2254,13 +2662,29 @@ public final class SpellExecutionEngine {
                 fallbackMateria
         );
 
+        UUID pedestalUuid = UUID.nameUUIDFromBytes(
+                ("entropica_pedestal:" + pedestalPos.asLong()).getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        );
+        Map<EssenceType, Long> pedestalUpfrontCost = cost.upfrontMfumByType();
+        if (containsAuraForm(spell)) {
+            int activeAuras = SpellLingeringZoneManager.countActiveCasterAuras(level, pedestalUuid);
+            if (activeAuras > 0) {
+                double auraSurcharge = 1.0D + 0.25D * Math.min(3, activeAuras);
+                Map<EssenceType, Long> surcharged = new EnumMap<>(EssenceType.class);
+                for (Map.Entry<EssenceType, Long> entry : pedestalUpfrontCost.entrySet()) {
+                    surcharged.put(entry.getKey(), Math.max(1L, Math.round(entry.getValue() * auraSurcharge)));
+                }
+                pedestalUpfrontCost = surcharged;
+            }
+        }
+
         SpellFuelService.FuelCheckResult upfrontCheck = SpellFuelService.consumePedestalSpellFuel(
                 level,
                 pedestalPos,
                 pedestal.inventory,
                 AutocastPedestalBlockEntity.SLOT_FUEL,
                 spell.getEffectiveTier(),
-                cost.upfrontMfumByType(),
+                pedestalUpfrontCost,
                 false
         );
         if (!upfrontCheck.success()) {
@@ -2316,6 +2740,10 @@ public final class SpellExecutionEngine {
         ).add(look.scale(0.65D));
 
         ArmorStand casterProxy = new ArmorStand(EntityType.ARMOR_STAND, level);
+        casterProxy.setUUID(pedestalUuid);
+        EntityHelper.getPersistentData(casterProxy).putBoolean(
+                ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TAG_PEDESTAL_PROXY, true
+        );
         casterProxy.setYRot(yRot);
         casterProxy.yRotO = yRot;
         casterProxy.setYHeadRot(yRot);
@@ -2343,6 +2771,15 @@ public final class SpellExecutionEngine {
         for (SubSpellSlot slot : spell.subSpells()) {
             if (slot.primaryEffect().effect() == targetEffect) return true;
             if (slot.secondaryEffect().isPresent() && slot.secondaryEffect().get().effect() == targetEffect) return true;
+        }
+        return false;
+    }
+
+    private static boolean containsAuraForm(SpellAssembly spell) {
+        for (SubSpellSlot slot : spell.subSpells()) {
+            if (slot.formPart().form() == SpellDeliveryForm.AURA) {
+                return true;
+            }
         }
         return false;
     }
@@ -2518,7 +2955,11 @@ public final class SpellExecutionEngine {
                     remainingSlots.add(s);
                 }
             }
-            primeCasterTouchStrike(level, player, spell, touchSlots, fallbackMateria, apparatusPotency, apparatusRange, costBreakdown);
+            primeCasterTouchStrike(
+                    level, player, spell, touchSlots, fallbackMateria,
+                    apparatusPotency, apparatusRange, costBreakdown,
+                    apparatusType == ApparatusType.ENGRAVED_TOOL
+            );
             if (remainingSlots.isEmpty()) {
                 return;
             }
@@ -2539,6 +2980,9 @@ public final class SpellExecutionEngine {
         // 1. Self Trigger: immediately execute all 1..8 Multi-Cast sub-spells centered on the caster (or launch Orbit/Dome satellites)!
         if (trigger == SpellTriggerType.SELF) {
             if (flow == SpellFlowModifier.ORBIT_SATELLITE || flow == SpellFlowModifier.OCTUPLE_DOME) {
+                if (flow == SpellFlowModifier.ORBIT_SATELLITE) {
+                    applyCasterOrbitFlowPassivesIfApplicable(level, caster, spell, fallbackMateria);
+                }
                 launchFlowCarrierPayloads(level, caster, flow, flowHandler, spell, fallbackMateria, apparatusPotency, apparatusRange);
             } else {
                 executeSelfMultiCast(level, caster, spell, fallbackMateria, apparatusPotency, apparatusRange, silentCast);
@@ -2592,6 +3036,9 @@ public final class SpellExecutionEngine {
                         }
                         if (consumeDynamicTriggerFeeForPayload(srv, owner, contingencySpell, fallbackMateria)) {
                             if (flow == SpellFlowModifier.ORBIT_SATELLITE || flow == SpellFlowModifier.OCTUPLE_DOME) {
+                                if (flow == SpellFlowModifier.ORBIT_SATELLITE) {
+                                    applyCasterOrbitFlowPassivesIfApplicable(srv, owner, contingencySpell, fallbackMateria);
+                                }
                                 launchFlowCarrierPayloads(srv, owner, flow, flowHandler, contingencySpell, fallbackMateria, apparatusPotency, apparatusRange);
                             } else {
                                 executeSelfMultiCast(srv, owner, contingencySpell, fallbackMateria, apparatusPotency, apparatusRange, silentCast);
@@ -2603,75 +3050,8 @@ public final class SpellExecutionEngine {
             return;
         }
 
-        if (flowBinding.mutationEnabled() && flowMateria == EssenceType.CHIMERA) {
-            String rolled = switch (level.random.nextInt(4)) {
-                case 0 -> "AIR";
-                case 1 -> "EARTH";
-                case 2 -> "WATER";
-                default -> "NETHER";
-            };
-            EntityHelper.getPersistentData(caster).putString(SpellLingeringZoneManager.TAG_CHIMERA_ORBIT_ELEMENT, rolled);
-        }
-        if (flowBinding.mutationEnabled() && (flow == SpellFlowModifier.ORBIT_SATELLITE
-                || flowBinding.usesDynamicTriggerBilling(spell.materiaSpecific(), fallbackMateria))) {
-            long orbitUntil = level.getGameTime() + 160L;
-            CompoundTag cData = EntityHelper.getPersistentData(caster);
-            switch (flowMateria) {
-                case SPORE -> cData.putLong(SpellLingeringZoneManager.TAG_SPORE_ORBIT_UNTIL, orbitUntil);
-                case NULL_R -> cData.putLong(SpellLingeringZoneManager.TAG_NULL_R_ORBIT_UNTIL, orbitUntil);
-                case NULL_U -> cData.putLong(SpellLingeringZoneManager.TAG_NULL_U_ORBIT_UNTIL, orbitUntil);
-                case DAWN -> cData.putLong(SpellLingeringZoneManager.TAG_DAWN_ORBIT_UNTIL, orbitUntil);
-                case ABYSS -> cData.putLong(SpellLingeringZoneManager.TAG_ABYSS_ORBIT_UNTIL, orbitUntil);
-                case AEGIS -> {
-                    cData.putLong(SpellLingeringZoneManager.TAG_AEGIS_ORBIT_UNTIL, orbitUntil);
-                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 4.0D, 0.0D, 0.0D, 0.0D, 160L);
-                }
-                case AURORA -> cData.putLong(SpellLingeringZoneManager.TAG_AURORA_ORBIT_UNTIL, orbitUntil);
-                case MIRAGE -> cData.putLong(SpellLingeringZoneManager.TAG_MIRAGE_ORBIT_UNTIL, orbitUntil);
-                case WRAITH -> {
-                    cData.putLong(SpellLingeringZoneManager.TAG_WRAITH_ORBIT_UNTIL, orbitUntil);
-                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 4.0D, 0.0D, 0.0D, 0.0D, 160L);
-                }
-                case BARROW -> cData.putLong(SpellLingeringZoneManager.TAG_BARROW_ORBIT_UNTIL, orbitUntil);
-                case PYRE -> {
-                    cData.putLong(SpellLingeringZoneManager.TAG_PYRE_ORBIT_UNTIL, orbitUntil);
-                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 3.0D, 0.0D, 0.0D, 0.0D, 160L);
-                }
-                case PENUMBRA -> {
-                    cData.putLong(SpellLingeringZoneManager.TAG_PENUMBRA_ORBIT_UNTIL, orbitUntil);
-                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
-                }
-                case RIME -> {
-                    cData.putLong(SpellLingeringZoneManager.TAG_RIME_ORBIT_UNTIL, orbitUntil);
-                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
-                }
-                case SPRING -> {
-                    cData.putLong(SpellLingeringZoneManager.TAG_SPRING_ORBIT_UNTIL, orbitUntil);
-                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
-                }
-                case STATIC -> {
-                    cData.putLong(SpellLingeringZoneManager.TAG_STATIC_ORBIT_UNTIL, orbitUntil);
-                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
-                }
-                case SYLVAN -> {
-                    cData.putLong(SpellLingeringZoneManager.TAG_SYLVAN_ORBIT_UNTIL, orbitUntil);
-                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
-                }
-                case GENESIS -> cData.putLong(SpellLingeringZoneManager.TAG_GENESIS_ORBIT_UNTIL, orbitUntil);
-                case CHIMERA -> cData.putLong(SpellLingeringZoneManager.TAG_CHIMERA_ORBIT_UNTIL, orbitUntil);
-                case AETHER -> cData.putLong(SpellLingeringZoneManager.TAG_AETHER_ORBIT_UNTIL, orbitUntil);
-                case CELESTIAL -> cData.putLong(SpellLingeringZoneManager.TAG_CELESTIAL_ORBIT_UNTIL, orbitUntil);
-                case PRISMATIC -> cData.putLong(SpellLingeringZoneManager.TAG_PRISMATIC_ORBIT_UNTIL, orbitUntil);
-                case EMPYREAN -> cData.putLong(SpellLingeringZoneManager.TAG_EMPYREAN_ORBIT_UNTIL, orbitUntil);
-                case CATACLYSM -> cData.putLong(SpellLingeringZoneManager.TAG_CATACLYSM_ORBIT_UNTIL, orbitUntil);
-                case TERMINUS -> cData.putLong(SpellLingeringZoneManager.TAG_TERMINUS_ORBIT_UNTIL, orbitUntil);
-                case ESCHATON -> cData.putLong(SpellLingeringZoneManager.TAG_ESCHATON_ORBIT_UNTIL, orbitUntil);
-                case APOTHEOSIS -> cData.putLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_ORBIT_UNTIL, orbitUntil);
-                case ENTROPICA -> cData.putLong(SpellLingeringZoneManager.TAG_ENTROPICA_ORBIT_UNTIL, orbitUntil);
-                default -> {
-                }
-            }
-            SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.50F, null);
+        if (flow == SpellFlowModifier.ORBIT_SATELLITE) {
+            applyCasterOrbitFlowPassivesIfApplicable(level, caster, spell, fallbackMateria);
         }
 
         // 2b. Point-Blank 0m Travel Distance Stop (Outer Rim Distance Circle = 0m):
@@ -2769,6 +3149,86 @@ public final class SpellExecutionEngine {
                 apparatusPotency,
                 apparatusRange
         );
+    }
+
+    private static void applyCasterOrbitFlowPassivesIfApplicable(
+            ServerLevel level,
+            LivingEntity caster,
+            SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria
+    ) {
+        FlowPartBinding flowBinding = spell.flowPart();
+        if (!flowBinding.mutationEnabled() || flowBinding.flow() != SpellFlowModifier.ORBIT_SATELLITE) {
+            return;
+        }
+        EssenceType flowMateria = flowBinding.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        CompoundTag cData = EntityHelper.getPersistentData(caster);
+        if (flowMateria == EssenceType.CHIMERA) {
+            String rolled = switch (level.random.nextInt(4)) {
+                case 0 -> "AIR";
+                case 1 -> "EARTH";
+                case 2 -> "WATER";
+                default -> "NETHER";
+            };
+            cData.putString(SpellLingeringZoneManager.TAG_CHIMERA_ORBIT_ELEMENT, rolled);
+        }
+        long orbitUntil = level.getGameTime() + 160L;
+        switch (flowMateria) {
+            case SPORE -> cData.putLong(SpellLingeringZoneManager.TAG_SPORE_ORBIT_UNTIL, orbitUntil);
+            case NULL_R -> cData.putLong(SpellLingeringZoneManager.TAG_NULL_R_ORBIT_UNTIL, orbitUntil);
+            case NULL_U -> cData.putLong(SpellLingeringZoneManager.TAG_NULL_U_ORBIT_UNTIL, orbitUntil);
+            case DAWN -> cData.putLong(SpellLingeringZoneManager.TAG_DAWN_ORBIT_UNTIL, orbitUntil);
+            case ABYSS -> cData.putLong(SpellLingeringZoneManager.TAG_ABYSS_ORBIT_UNTIL, orbitUntil);
+            case AEGIS -> {
+                cData.putLong(SpellLingeringZoneManager.TAG_AEGIS_ORBIT_UNTIL, orbitUntil);
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 4.0D, 0.0D, 0.0D, 0.0D, 160L);
+            }
+            case AURORA -> cData.putLong(SpellLingeringZoneManager.TAG_AURORA_ORBIT_UNTIL, orbitUntil);
+            case MIRAGE -> cData.putLong(SpellLingeringZoneManager.TAG_MIRAGE_ORBIT_UNTIL, orbitUntil);
+            case WRAITH -> {
+                cData.putLong(SpellLingeringZoneManager.TAG_WRAITH_ORBIT_UNTIL, orbitUntil);
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 4.0D, 0.0D, 0.0D, 0.0D, 160L);
+            }
+            case BARROW -> cData.putLong(SpellLingeringZoneManager.TAG_BARROW_ORBIT_UNTIL, orbitUntil);
+            case PYRE -> {
+                cData.putLong(SpellLingeringZoneManager.TAG_PYRE_ORBIT_UNTIL, orbitUntil);
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 3.0D, 0.0D, 0.0D, 0.0D, 160L);
+            }
+            case PENUMBRA -> {
+                cData.putLong(SpellLingeringZoneManager.TAG_PENUMBRA_ORBIT_UNTIL, orbitUntil);
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
+            }
+            case RIME -> {
+                cData.putLong(SpellLingeringZoneManager.TAG_RIME_ORBIT_UNTIL, orbitUntil);
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
+            }
+            case SPRING -> {
+                cData.putLong(SpellLingeringZoneManager.TAG_SPRING_ORBIT_UNTIL, orbitUntil);
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
+            }
+            case STATIC -> {
+                cData.putLong(SpellLingeringZoneManager.TAG_STATIC_ORBIT_UNTIL, orbitUntil);
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
+            }
+            case SYLVAN -> {
+                cData.putLong(SpellLingeringZoneManager.TAG_SYLVAN_ORBIT_UNTIL, orbitUntil);
+                SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(caster, level, 5.0D, 2.0D, 0.0D, 0.0D, 160L);
+            }
+            case GENESIS -> cData.putLong(SpellLingeringZoneManager.TAG_GENESIS_ORBIT_UNTIL, orbitUntil);
+            case CHIMERA -> cData.putLong(SpellLingeringZoneManager.TAG_CHIMERA_ORBIT_UNTIL, orbitUntil);
+            case AETHER -> cData.putLong(SpellLingeringZoneManager.TAG_AETHER_ORBIT_UNTIL, orbitUntil);
+            case CELESTIAL -> cData.putLong(SpellLingeringZoneManager.TAG_CELESTIAL_ORBIT_UNTIL, orbitUntil);
+            case PRISMATIC -> cData.putLong(SpellLingeringZoneManager.TAG_PRISMATIC_ORBIT_UNTIL, orbitUntil);
+            case EMPYREAN -> cData.putLong(SpellLingeringZoneManager.TAG_EMPYREAN_ORBIT_UNTIL, orbitUntil);
+            case CATACLYSM -> cData.putLong(SpellLingeringZoneManager.TAG_CATACLYSM_ORBIT_UNTIL, orbitUntil);
+            case TERMINUS -> cData.putLong(SpellLingeringZoneManager.TAG_TERMINUS_ORBIT_UNTIL, orbitUntil);
+            case ESCHATON -> cData.putLong(SpellLingeringZoneManager.TAG_ESCHATON_ORBIT_UNTIL, orbitUntil);
+            case APOTHEOSIS -> cData.putLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_ORBIT_UNTIL, orbitUntil);
+            case ENTROPICA -> cData.putLong(SpellLingeringZoneManager.TAG_ENTROPICA_ORBIT_UNTIL, orbitUntil);
+            default -> {
+            }
+        }
+        SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.50F, null);
     }
 
     private static void executeSelfMultiCast(
@@ -3418,7 +3878,8 @@ public final class SpellExecutionEngine {
                         }
                     } else {
                         deliverSubSpellOnBlock(level, caster, effectiveBlockPos, effectiveFace, spell, slot, fallbackMateria, apparatusPotency);
-                        if (formHandler != null && hookProj != null) {
+                        if (formHandler != null && hookProj != null
+                                && !(formMateria == EssenceType.WATER && level.getBlockState(effectiveBlockPos).isAir())) {
                             formHandler.onProjectileHitBlockFromForm(
                                     level, hookProj, caster,
                                     new BlockHitResult(contactPos, effectiveFace, effectiveBlockPos, false),
@@ -3449,10 +3910,12 @@ public final class SpellExecutionEngine {
                             : resolveContactOutwardDirection(level, caster, contactPos, directHit, unitDir, surfaceNormal, maxReach, spell);
                     Vec3 beamEnd = beamOrigin.add(beamDir.scale(maxReach));
                     boolean wallPhasing = formMutation.mutated() && formMutation.wallPhasing() && spell.prefix() != SpellPrefix.UTILITY;
+                    boolean hydroCutterBeam = formMateria == EssenceType.WATER && formMutation.mutated();
+                    ClipContext.Block bBlockClip = hydroCutterBeam ? ClipContext.Block.COLLIDER : ClipContext.Block.OUTLINE;
                     ClipContext.Fluid bFluidClip = (formMateria == EssenceType.WATER || !slotHasEffect(slot, SpellCoreEffect.TRANSMUTE))
                             ? ClipContext.Fluid.NONE
                             : ClipContext.Fluid.ANY;
-                    BlockHitResult bHit = level.clip(new ClipContext(beamOrigin, beamEnd, ClipContext.Block.OUTLINE, bFluidClip,
+                    BlockHitResult bHit = level.clip(new ClipContext(beamOrigin, beamEnd, bBlockClip, bFluidClip,
                             caster != null ? caster : (directHit != null ? directHit : carrierProj)));
                     Vec3 effectiveEnd = (!wallPhasing && bHit.getType() == HitResult.Type.BLOCK) ? bHit.getLocation() : beamEnd;
 
@@ -3463,11 +3926,16 @@ public final class SpellExecutionEngine {
 
                     int maxTargets = 1 + (formMutation.mutated() ? formMutation.bonusPierceTargets() : 0);
                     boolean vitaeLifeTether = formMutation.mutated() && formMateria == EssenceType.VITAE;
-                    boolean auraJetstreamBeam = formMutation.mutated() && formMateria == EssenceType.AURA;
+                    boolean natureGrowthBeam = formMutation.mutated() && formMateria == EssenceType.NATURE;
+                    boolean auraJetstreamBeam = formMutation.mutated() && (formMateria == EssenceType.AURA
+                            || formMateria == EssenceType.SPRING
+                            || formMateria == EssenceType.GENESIS
+                            || formMateria == EssenceType.CELESTIAL);
                     List<LivingEntity> struck = new ArrayList<>();
                     if (directHit instanceof LivingEntity directLiv && directLiv.isAlive()) {
                         struck.add(directLiv);
                         boolean protectBeamAlly = ((vitaeLifeTether && isFriendlyOrAnimalForVitae(caster, directLiv))
+                                || (natureGrowthBeam && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(directLiv, caster))
                                 || (auraJetstreamBeam && isFriendlyAllyForOasis(caster, directLiv)))
                                 && !isCasterBeneficialVerb(slot.primaryEffect().effect());
                         if (!protectBeamAlly) {
@@ -3487,6 +3955,7 @@ public final class SpellExecutionEngine {
                         for (LivingEntity t : candidates) {
                             struck.add(t);
                             boolean protectBeamAlly = ((vitaeLifeTether && isFriendlyOrAnimalForVitae(caster, t))
+                                    || (natureGrowthBeam && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(t, caster))
                                     || (auraJetstreamBeam && isFriendlyAllyForOasis(caster, t)))
                                     && !isCasterBeneficialVerb(slot.primaryEffect().effect());
                             if (!protectBeamAlly) {
@@ -3509,7 +3978,7 @@ public final class SpellExecutionEngine {
                         primeCasterTouchStrike(level, player, spell, List.of(slot), fallbackMateria, apparatusPotency, apparatusRange, null);
                         break;
                     }
-                    float touchPotency = apparatusPotency * 1.15F;
+                    float touchPotency = apparatusPotency;
                     double reach = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.TOUCH_STRIKE, tier) * formRangeMult;
                     Vec3 slashDir = directHit != null ? unitDir : resolveContactOutwardDirection(level, caster, contactPos, null, unitDir, surfaceNormal, reach, spell);
                     if (!silent) {
@@ -3518,8 +3987,10 @@ public final class SpellExecutionEngine {
                         );
                         ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, contactPos, vPrimary, vSecondary, 1.15D, tier);
                     }
-                    boolean radiantPurifyCarrier = slot.formPart().mutationEnabled() && vPrimary == EssenceType.RADIANT;
-                    long radiantPurifyCarrierUntil = level.getGameTime() + 40L;
+                    boolean radiantPurifyCarrier = slot.formPart().mutationEnabled()
+                            && vPrimary == EssenceType.RADIANT
+                            && !spell.prefix().enforcesZeroEntityHarm();
+                    long radiantPurifyCarrierUntil = level.getGameTime() + 2L;
                     List<LivingEntity> struck = new ArrayList<>();
                     if (directHit instanceof LivingEntity directLiv && directLiv.isAlive()) {
                         if (radiantPurifyCarrier) {
@@ -3541,56 +4012,24 @@ public final class SpellExecutionEngine {
                     if (directHit == null) {
                         deliverSubSpellOnBlock(level, caster, effectiveBlockPos, effectiveFace, spell, slot, fallbackMateria, touchPotency);
                     }
-                    if (formHandler != null && caster != null && !struck.isEmpty()) {
+                    if (formHandler != null && caster != null && (!struck.isEmpty() || directHit == null)) {
                         formHandler.onTouchStrikeFormCast(level, caster, slashDir, struck, spell, slot, fallbackMateria, touchPotency);
+                    }
+                    if (radiantPurifyCarrier) {
+                        for (LivingEntity struckEnt : struck) {
+                            if (struckEnt.isAlive() && !struckEnt.isDeadOrDying()) {
+                                EntityHelper.getPersistentData(struckEnt).remove(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL);
+                            }
+                        }
                     }
                 }
                 case RADIAL_BURST -> {
-                    double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.RADIAL_BURST, tier) * formRangeMult;
-                    if (formHandler != null && (vPrimary == EssenceType.NATURE
-                            || vPrimary == EssenceType.FROZEN
-                            || vPrimary == EssenceType.NETHER
-                            || vPrimary == EssenceType.RADIANT
-                            || vPrimary == EssenceType.UMBRAL
-                            || vPrimary == EssenceType.UNDEAD
-                            || vPrimary == EssenceType.DUST
-                            || vPrimary == EssenceType.SPORE
-                            || vPrimary == EssenceType.TAIGA
-                            || vPrimary == EssenceType.OASIS
-                            || vPrimary == EssenceType.VITAE
-                            || vPrimary == EssenceType.BLOOD
-                            || vPrimary == EssenceType.AURA
-                            || vPrimary == EssenceType.AMBER
-                            || vPrimary == EssenceType.ECLIPSE
-                            || vPrimary == EssenceType.BLIGHT
-                            || vPrimary == EssenceType.ASTRAL
-                            || vPrimary == EssenceType.SOULFIRE
-                            || vPrimary == EssenceType.VAPOR
-                            || vPrimary == EssenceType.NULL_R
-                            || vPrimary == EssenceType.NULL_U
-                            || vPrimary == EssenceType.DAWN
-                            || vPrimary == EssenceType.ABYSS
-                            || vPrimary == EssenceType.AEGIS
-                            || vPrimary == EssenceType.AURORA
-                            || vPrimary == EssenceType.MIRAGE
-                            || vPrimary == EssenceType.WRAITH
-                            || vPrimary == EssenceType.BARROW
-                            || vPrimary == EssenceType.PYRE
-                            || vPrimary == EssenceType.PENUMBRA
-                            || vPrimary == EssenceType.RIME
-                            || vPrimary == EssenceType.SPRING
-                            || vPrimary == EssenceType.STATIC
-                            || vPrimary == EssenceType.SYLVAN
-                            || vPrimary == EssenceType.MIASMA
-                            || vPrimary == EssenceType.GENESIS
-                            || vPrimary == EssenceType.OBLIVION)) {
-                        radius = Math.max(radius, 6.0D * formRangeMult);
-                    } else if (formMutation.mutated() && (vPrimary == EssenceType.AETHER
-                            || vPrimary == EssenceType.ENTROPIC
-                            || vPrimary == EssenceType.CELESTIAL
-                            || vPrimary == EssenceType.PRISMATIC)) {
-                        radius = Math.max(radius, 10.0D * formRangeMult);
-                    }
+                    double radius = resolveEffectiveRadialBurstRadius(
+                            SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.RADIAL_BURST, tier) * formRangeMult,
+                            formRangeMult,
+                            vPrimary,
+                            formHandler != null || formMutation.mutated()
+                    );
                     if (!silent) {
                         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(level, contactPos, radius, vPrimary, vSecondary, tier);
                         ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, contactPos, vPrimary, vSecondary, radius, tier);
@@ -3602,64 +4041,35 @@ public final class SpellExecutionEngine {
                 }
                 case AURA -> {
                     double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.AURA, tier) * formRangeMult;
-                    if (!silent) {
-                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(level, contactPos, Math.min(radius, 3.2D), vPrimary, vSecondary, tier);
-                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, contactPos, radius, vPrimary, vSecondary, 36, tier);
-                    }
-                    deliverRadialArea(level, caster, contactPos, radius, unitDir, spell, slot, fallbackMateria, apparatusPotency);
-                    if (formHandler != null && caster != null && directHit == caster) {
-                        formHandler.onAuraFormCast(level, caster, radius, spell, slot, fallbackMateria, apparatusPotency);
-                        SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.55F, null);
-                    }
-                    if (caster != null) {
-                        int anchorDuration = 160 + (tier * 30);
-                        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                                caster,
-                                contactPos,
-                                radius,
-                                anchorDuration,
-                                level.getGameTime(),
-                                spell,
-                                slot,
-                                fallbackMateria,
-                                apparatusPotency,
-                                (srv, zone, elapsed) -> {
-                                    if (elapsed > zone.maxDurationTicks) return false;
-                                    if (elapsed > 0 && elapsed % 20 == 0) {
-                                        LivingEntity owner = zone.resolveCaster(srv);
-                                        if (owner != null) {
-                                            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
-                                                    srv, zone.center, zone.radius, vPrimary, vSecondary, 22, tier
-                                            );
-                                            deliverRadialArea(
-                                                    srv, owner, zone.center, zone.radius, new Vec3(0.0D, 1.0D, 0.0D),
-                                                    zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.35F
-                                            );
-                                        }
-                                    }
-                                    return true;
-                                }
-                        ));
-                    }
+                    boolean forceAnchor = caster == null || caster.isShiftKeyDown() || (directHit != caster && contactPos.distanceToSqr(caster.position()) > 4.0D);
+                    deployAuraField(
+                            level, caster, contactPos, radius, unitDir, vPrimary, vSecondary,
+                            formMateria, formMutation, formHandler, spell, slot, fallbackMateria,
+                            apparatusPotency, silent, forceAnchor
+                    );
                 }
                 case GLYPH -> {
                     double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.GLYPH, tier) * formRangeMult;
+                    Direction glyphFace = directHit != null ? Direction.UP : effectiveFace;
+                    Vec3 glyphNormal = Vec3.atLowerCornerOf(glyphFace.getUnitVec3i());
                     Vec3 glyphCenter = directHit != null
                             ? directHit.position().add(0.0D, 0.05D, 0.0D)
-                            : contactPos.add(surfaceNormal.scale(0.08D));
+                            : contactPos.add(glyphNormal.scale(0.08D));
                     boolean invisibleCorpseBloom = caster != null && formMutation.mutated() && formMateria == EssenceType.UNDEAD;
                     if (!silent && !invisibleCorpseBloom) {
                         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
-                                level, glyphCenter.subtract(0.0D, 0.40D, 0.0D), radius, vPrimary, vSecondary, 28, tier
+                                level, glyphCenter, radius, vPrimary, vSecondary, 28, tier
                         );
                         ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, glyphCenter, vPrimary, vSecondary, radius * 0.55D, tier);
                     }
                     if (caster != null) {
+                        int zonesBefore = SpellLingeringZoneManager.getActiveZoneCount(level.dimension());
                         if (formHandler != null
                                 && formHandler.onGlyphFormCast(level, caster, glyphCenter, radius, spell, slot, fallbackMateria, apparatusPotency)) {
+                            SpellLingeringZoneManager.applySurfaceNormalToNewZones(level, zonesBefore, glyphNormal);
                             break;
                         }
-                        plantStandardGlyphTrap(level, caster, glyphCenter, radius, vPrimary, vSecondary, spell, slot, fallbackMateria, apparatusPotency);
+                        plantStandardGlyphTrap(level, caster, glyphCenter, glyphFace, radius, vPrimary, vSecondary, spell, slot, fallbackMateria, apparatusPotency);
                     } else {
                         deliverRadialArea(level, null, glyphCenter, radius, unitDir, spell, slot, fallbackMateria, apparatusPotency);
                     }
@@ -3725,16 +4135,13 @@ public final class SpellExecutionEngine {
                 }
                 case SKYFALL -> {
                     Vec3 skyImpact = directHit != null ? directHit.position() : contactPos;
-                    double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * formRangeMult;
-                    if (formMutation.mutated() && (formMateria == EssenceType.WATER || formMateria == EssenceType.ABYSS || formMateria == EssenceType.AURORA || formMateria == EssenceType.MIRAGE || formMateria == EssenceType.PYRE)) {
-                        radius = Math.max(8.0D * apparatusRange * flawRangeMult, radius);
-                    } else if (formMutation.mutated() && (formMateria == EssenceType.BARROW || formMateria == EssenceType.SYLVAN)) {
-                        radius = Math.max(10.0D * formRangeMult, radius);
-                    } else if (formMutation.mutated() && (formMateria == EssenceType.WRAITH || formMateria == EssenceType.PENUMBRA || formMateria == EssenceType.RIME || formMateria == EssenceType.SPRING || formMateria == EssenceType.STATIC || formMateria == EssenceType.MIASMA || formMateria == EssenceType.GENESIS || formMateria == EssenceType.OBLIVION)) {
-                        radius = Math.max(12.0D * formRangeMult, radius);
-                    } else if (formMutation.mutated() && (formMateria == EssenceType.ASTRAL || formMateria == EssenceType.SOULFIRE || formMateria == EssenceType.VAPOR || formMateria == EssenceType.NULL_R || formMateria == EssenceType.NULL_U || formMateria == EssenceType.DAWN || formMateria == EssenceType.AEGIS || formMateria == EssenceType.AETHER || formMateria == EssenceType.ENTROPIC || formMateria == EssenceType.CELESTIAL || formMateria == EssenceType.PRISMATIC)) {
-                        radius = Math.max(14.0D * formRangeMult, radius);
-                    }
+                    double radius = resolveEffectiveSkyfallRadius(
+                            SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * formRangeMult,
+                            formRangeMult,
+                            apparatusRange * flawRangeMult,
+                            formMateria,
+                            formMutation.mutated()
+                    );
                     if (!silent) {
                         ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, skyImpact, vPrimary, vSecondary, radius, tier);
                     }
@@ -4001,10 +4408,6 @@ public final class SpellExecutionEngine {
         float flawRangeMult = spell.flawProfile().getRangeAndRadiusMultiplier();
         float formRangeMult = (formMutation.mutated() ? formMutation.radiusMultiplier() : 1.0F) * apparatusRange * flawRangeMult;
 
-        if (apparatusPotency == 1.0F && form == SpellDeliveryForm.TOUCH_STRIKE) {
-            apparatusPotency *= 1.15F;
-        }
-
         if (tryDispatchDirectBlinkSlot(
                 level, caster, direction, spell, slotIndex, slot,
                 fallbackMateria, apparatusPotency, apparatusRange, formRangeMult, formMutation, formHandler, flowMutation)) {
@@ -4057,60 +4460,24 @@ public final class SpellExecutionEngine {
             }
             case RADIAL_BURST, AURA, GLYPH -> {
                 double radius = SpellDeliveryForm.getCombatRadiusBlocks(form, tier) * formRangeMult;
-                if (form == SpellDeliveryForm.RADIAL_BURST && formMutation.mutated()
-                        && (formMateria == EssenceType.NATURE
-                        || formMateria == EssenceType.FROZEN
-                        || formMateria == EssenceType.NETHER
-                        || formMateria == EssenceType.RADIANT
-                        || formMateria == EssenceType.UMBRAL
-                        || formMateria == EssenceType.UNDEAD
-                        || formMateria == EssenceType.DUST
-                        || formMateria == EssenceType.SPORE
-                        || formMateria == EssenceType.TAIGA
-                        || formMateria == EssenceType.OASIS
-                        || formMateria == EssenceType.VITAE
-                        || formMateria == EssenceType.BLOOD
-                        || formMateria == EssenceType.AURA
-                        || formMateria == EssenceType.AMBER
-                        || formMateria == EssenceType.ECLIPSE
-                        || formMateria == EssenceType.BLIGHT
-                        || formMateria == EssenceType.ASTRAL
-                        || formMateria == EssenceType.SOULFIRE
-                        || formMateria == EssenceType.VAPOR
-                        || formMateria == EssenceType.NULL_R
-                        || formMateria == EssenceType.NULL_U
-                        || formMateria == EssenceType.DAWN
-                        || formMateria == EssenceType.ABYSS
-                        || formMateria == EssenceType.AEGIS
-                        || formMateria == EssenceType.AURORA
-                        || formMateria == EssenceType.MIRAGE
-                        || formMateria == EssenceType.WRAITH
-                        || formMateria == EssenceType.BARROW
-                        || formMateria == EssenceType.PYRE
-                        || formMateria == EssenceType.PENUMBRA
-                        || formMateria == EssenceType.RIME
-                        || formMateria == EssenceType.SPRING
-                        || formMateria == EssenceType.STATIC
-                        || formMateria == EssenceType.SYLVAN
-                        || formMateria == EssenceType.MIASMA
-                        || formMateria == EssenceType.GENESIS
-                        || formMateria == EssenceType.OBLIVION)) {
-                    radius = Math.max(radius, 6.0D * formRangeMult);
-                } else if (form == SpellDeliveryForm.RADIAL_BURST && formMutation.mutated() && (formMateria == EssenceType.AETHER
-                        || formMateria == EssenceType.ENTROPIC
-                        || formMateria == EssenceType.CELESTIAL
-                        || formMateria == EssenceType.PRISMATIC)) {
-                    radius = Math.max(radius, 10.0D * formRangeMult);
+                if (form == SpellDeliveryForm.RADIAL_BURST) {
+                    radius = resolveEffectiveRadialBurstRadius(radius, formRangeMult, formMateria, formMutation.mutated());
                 }
                 if (form == SpellDeliveryForm.GLYPH && formMutation.mutated() && formMateria == EssenceType.NATURE) {
                     radius = Math.max(radius, 4.0D * formRangeMult);
                 }
                 Vec3 center = caster.position();
+                Direction glyphFace = Direction.UP;
                 if (spell.flowPart().isVoidWarpAuthorized(spell.materiaSpecific(), fallbackMateria) || form == SpellDeliveryForm.GLYPH) {
                     double glyphReach = Math.max(1.5D, spell.flowPart().travelDistanceMeters()) * apparatusRange * flawRangeMult;
                     BlockHitResult hit = raycastBlocks(level, caster, direction, glyphReach);
                     if (hit.getType() == HitResult.Type.BLOCK) {
-                        center = Vec3.atCenterOf(hit.getBlockPos().relative(hit.getDirection()));
+                        glyphFace = hit.getDirection();
+                        if (form == SpellDeliveryForm.GLYPH) {
+                            center = hit.getLocation().add(Vec3.atLowerCornerOf(glyphFace.getUnitVec3i()).scale(0.08D));
+                        } else {
+                            center = Vec3.atCenterOf(hit.getBlockPos().relative(hit.getDirection()));
+                        }
                     }
                 }
                 EssenceType effPrimary = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
@@ -4119,800 +4486,44 @@ public final class SpellExecutionEngine {
                         .map(s -> s.resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria))
                         .orElse(effPrimary != vPrimary ? effPrimary : null);
 
+                boolean silentAoE = isSilentStealthSpell(spell, fallbackMateria);
+                if (form == SpellDeliveryForm.AURA) {
+                    deployAuraField(
+                            level, caster, center, radius, direction, vPrimary, vSecondary,
+                            formMateria, formMutation, formHandler, spell, slot, fallbackMateria,
+                            apparatusPotency, silentAoE, caster.isShiftKeyDown()
+                    );
+                    break;
+                }
+
                 boolean invisibleCorpseBloom = form == SpellDeliveryForm.GLYPH
                         && formMutation.mutated()
                         && formMateria == EssenceType.UNDEAD;
-                if (!isSilentStealthSpell(spell, fallbackMateria) && !invisibleCorpseBloom) {
+                if (!silentAoE && !invisibleCorpseBloom) {
                     if (form == SpellDeliveryForm.RADIAL_BURST) {
                         ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(level, center, radius, vPrimary, vSecondary, tier);
                         ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, center, vPrimary, vSecondary, radius, tier);
-                    } else if (form == SpellDeliveryForm.AURA) {
-                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(level, center, Math.min(radius, 3.2D), vPrimary, vSecondary, tier);
-                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, center, radius, vPrimary, vSecondary, 36, tier);
                     } else {
-                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, center.subtract(0.0D, 0.45D, 0.0D), radius, vPrimary, vSecondary, 28, tier);
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(level, center, radius, vPrimary, vSecondary, 28, tier);
                         ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, center, vPrimary, vSecondary, radius * 0.55D, tier);
                     }
                 }
 
                 if (form == SpellDeliveryForm.GLYPH) {
+                    Vec3 glyphNormal = Vec3.atLowerCornerOf(glyphFace.getUnitVec3i());
+                    int zonesBefore = SpellLingeringZoneManager.getActiveZoneCount(level.dimension());
                     if (formHandler != null
                             && formHandler.onGlyphFormCast(level, caster, center, radius, spell, slot, fallbackMateria, apparatusPotency)) {
+                        SpellLingeringZoneManager.applySurfaceNormalToNewZones(level, zonesBefore, glyphNormal);
                         break;
                     }
-                    plantStandardGlyphTrap(level, caster, center, radius, vPrimary, vSecondary, spell, slot, fallbackMateria, apparatusPotency);
+                    plantStandardGlyphTrap(level, caster, center, glyphFace, radius, vPrimary, vSecondary, spell, slot, fallbackMateria, apparatusPotency);
                     break;
                 }
 
                 deliverRadialArea(level, caster, center, radius, direction, spell, slot, fallbackMateria, apparatusPotency);
-                if (formHandler != null) {
-                    if (form == SpellDeliveryForm.RADIAL_BURST) {
-                        formHandler.onRadialBurstFormCast(level, caster, center, radius, direction, spell, slot, fallbackMateria, apparatusPotency);
-                    } else if (form == SpellDeliveryForm.AURA) {
-                        formHandler.onAuraFormCast(level, caster, radius, spell, slot, fallbackMateria, apparatusPotency);
-                        SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.55F, null);
-                    }
-                }
-
-                // Section 4.5 Anchored Aura Option: sneaking while casting AURA anchors a stationary pulsing field!
-                if (form == SpellDeliveryForm.AURA && caster.isShiftKeyDown()) {
-                    int anchorDuration = 160 + (tier * 30);
-                    Vec3 anchoredCenter = center;
-                    SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                            caster,
-                            anchoredCenter,
-                            radius,
-                            anchorDuration,
-                            level.getGameTime(),
-                            spell,
-                            slot,
-                            fallbackMateria,
-                            apparatusPotency,
-                            (srv, zone, elapsed) -> {
-                                if (elapsed > zone.maxDurationTicks) return false;
-                                if (elapsed > 0 && elapsed % 20 == 0) {
-                                    LivingEntity owner = zone.resolveCaster(srv);
-                                    if (owner != null) {
-                                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
-                                                srv, zone.center, zone.radius, vPrimary, vSecondary, 22, tier
-                                        );
-                                        deliverRadialArea(
-                                                srv, owner, zone.center, zone.radius, new Vec3(0.0D, 1.0D, 0.0D),
-                                                zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.35F
-                                        );
-                                        if (formMutation.mutated() && formMateria == EssenceType.FROZEN) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL, Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL).orElse(0L)));
-                                                    aTag.putInt("SpellFrozenSpikesTier", tier);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.NETHER) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    ally.clearFire();
-                                                    ally.setTicksFrozen(0);
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                            ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler
-                                                    .meltIceAndSnowInRadius(srv, BlockPos.containing(zone.center), (int) Math.ceil(zone.radius));
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.RADIANT) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.UMBRAL) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
-                                            for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ent == owner || ent.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                                                        ent, owner, zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard())) {
-                                                    ent.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 50, 0, true, false));
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.UNDEAD) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.5D, zone.center.z + zone.radius);
-                                            for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ent == owner || ent.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_UNDEAD_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_UNDEAD_SHROUD_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                } else if (!ent.getType().is(net.minecraft.tags.EntityTypeTags.UNDEAD)
-                                                        && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                                                                ent, owner, zone.spell != null && zone.spell.hasWardFriendlyFireSafeguard())
-                                                        && (ent instanceof net.minecraft.world.entity.monster.Enemy
-                                                            || (ent instanceof Mob m && m.getTarget() == owner))) {
-                                                    SpellCombatReactionEngine.hurtWithPureMateria(
-                                                            srv, ent, srv.damageSources().indirectMagic(owner, owner), 1.0F
-                                                    );
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.VOID) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    ally.resetFallDistance();
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_VOID_ZERO_G_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_VOID_ZERO_G_UNTIL).orElse(0L)));
-                                                    ally.addEffect(new MobEffectInstance(
-                                                            net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(
-                                                                    ddraig.net.entropica.registry.ModEffects.WEIGHTLESSNESS.get()),
-                                                            35, 0, true, false));
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 35, 2, true, false));
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 35, 0, true, false));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.ARID) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.LIGHTNING) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_LIGHTNING_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_LIGHTNING_SHROUD_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.MAGMA) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_MAGMA_MANTLE_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_MAGMA_MANTLE_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.STORM) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_STORM_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_STORM_SHROUD_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.GLACIAL) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_GLACIAL_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_GLACIAL_SHROUD_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.OVERGROWTH) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_OVERGROWTH_BASTION_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_OVERGROWTH_BASTION_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.DUST) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    ally.clearFire();
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_DUST_VEIL_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_DUST_VEIL_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                            ddraig.net.entropica.spell.mutation.element.DustSpellMutationHandler
-                                                    .snuffTorchesAndFiresPublic(srv, BlockPos.containing(zone.center), (int) Math.max(3, Math.ceil(zone.radius)));
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.SPORE) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || ally.isAlliedTo(owner)) {
-                                                    ally.removeEffect(MobEffects.POISON);
-                                                    ally.removeEffect(MobEffects.NAUSEA);
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_SPORE_MANTLE_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_SPORE_MANTLE_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                            ddraig.net.entropica.spell.mutation.element.SporeSpellMutationHandler
-                                                    .sproutMushroomsPublic(srv, BlockPos.containing(zone.center), 2, false);
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.TAIGA) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (ally == owner || (owner != null && ally.isAlliedTo(owner))) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_TAIGA_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_TAIGA_SHROUD_UNTIL).orElse(0L)));
-                                                    aTag.putInt("SpellTaigaShroudTier", tier);
-                                                    ally.clearFire();
-                                                    ally.setTicksFrozen(0);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.OASIS) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_OASIS_CARAPACE_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_OASIS_CARAPACE_UNTIL).orElse(0L)));
-                                                    aTag.putInt("SpellOasisCarapaceTier", tier);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                            ddraig.net.entropica.spell.mutation.element.OasisSpellMutationHandler
-                                                    .hydrateAndGrowFloraPublic(srv, BlockPos.containing(zone.center), 2);
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.VITAE) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_VITAE_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_VITAE_SHROUD_UNTIL).orElse(0L)));
-                                                    aTag.putInt("SpellVitaeShroudTier", tier);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.BLOOD) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_BLOOD_CARAPACE_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_BLOOD_CARAPACE_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, srv, 6.0D, 2.0D, 0.0D, 0.0D, 30L);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.AURA) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_AURA_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_AURA_SHROUD_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.AMBER) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_AMBER_MANTLE_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_AMBER_MANTLE_UNTIL).orElse(0L)));
-                                                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, srv, 8.0D, 3.0D, 0.50D, 0.0D, 30L);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.ECLIPSE) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_ECLIPSE_BASTION_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_ECLIPSE_BASTION_UNTIL).orElse(0L)));
-                                                    ally.removeEffect(MobEffects.BLINDNESS);
-                                                    ally.removeEffect(MobEffects.DARKNESS);
-                                                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, srv, 6.0D, 0.0D, 0.0D, 0.0D, 30L);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.BLIGHT) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 2.8D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_BLIGHT_CARAPACE_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_BLIGHT_CARAPACE_UNTIL).orElse(0L)));
-                                                    ally.removeEffect(MobEffects.POISON);
-                                                    ally.removeEffect(MobEffects.HUNGER);
-                                                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, srv, 6.0D, 0.0D, 0.0D, 0.0D, 30L);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.ASTRAL) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_ASTRAL_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_ASTRAL_SHROUD_UNTIL).orElse(0L)));
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 30, 1, true, false));
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 30, 0, true, false));
-                                                    SpellCombatReactionEngine.applyTimedMovementSpeedBoost(ally, srv, 0.30D, 30L);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.SOULFIRE) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_SOULFIRE_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_SOULFIRE_SHROUD_UNTIL).orElse(0L)));
-                                                    ally.clearFire();
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 30, 0, true, false));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.VAPOR) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_VAPOR_MIST_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_VAPOR_MIST_SHROUD_UNTIL).orElse(0L)));
-                                                    ally.clearFire();
-                                                    SpellCombatReactionEngine.applyTimedMovementSpeedBoost(ally, srv, 0.30D, 30L);
-                                                    if (ally.isInWaterOrRain()) {
-                                                        ally.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 30, 0, true, false));
-                                                        ally.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 30, 0, true, false));
-                                                    }
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.NULL_R) {
-                                            long zNow = srv.getGameTime();
-                                            SpellLingeringZoneManager.pulseTemporaryLight(srv, BlockPos.containing(zone.center).above(), 15, 30);
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_NULL_R_BASTION_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_NULL_R_BASTION_UNTIL).orElse(0L)));
-                                                    ally.removeEffect(MobEffects.BLINDNESS);
-                                                    ally.removeEffect(MobEffects.DARKNESS);
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 30, 1, true, false));
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 30, 0, true, false));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.NULL_U) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_NULL_U_VEIL_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_NULL_U_VEIL_UNTIL).orElse(0L)));
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L)));
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 30, 1, true, false));
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 30, 0, true, false));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.DAWN) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_DAWN_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_DAWN_SHROUD_UNTIL).orElse(0L)));
-                                                    ally.removeEffect(MobEffects.BLINDNESS);
-                                                    ally.removeEffect(MobEffects.DARKNESS);
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 30, 1, true, false));
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 30, 0, true, false));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.ABYSS) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_ABYSS_SHROUD_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_ABYSS_SHROUD_UNTIL).orElse(0L)));
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L)));
-                                                    ally.clearFire();
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 30, 0, true, false));
-                                                    ally.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 30, 1, true, false));
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.AEGIS) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_AEGIS_MANTLE_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_AEGIS_MANTLE_UNTIL).orElse(0L)));
-                                                    ally.removeEffect(MobEffects.BLINDNESS);
-                                                    ally.removeEffect(MobEffects.DARKNESS);
-                                                    SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, srv, 10.0D, 4.0D, 0.75D, -0.10D, 30L);
-                                                    SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                }
-                                            }
-                                        } else if (formMutation.mutated() && formMateria == EssenceType.AURORA) {
-                                            long zNow = srv.getGameTime();
-                                            AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                    zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                            for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                if (isFriendlyAllyForOasis(owner, ally)) {
-                                                    CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_AURORA_MANTLE_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_AURORA_MANTLE_UNTIL).orElse(0L)));
-                                                    aTag.putLong(SpellLingeringZoneManager.TAG_TAIGA_FROST_WALKER_UNTIL,
-                                                            Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_TAIGA_FROST_WALKER_UNTIL).orElse(0L)));
-                                                    ally.setTicksFrozen(0);
-                                                    ally.removeEffect(MobEffects.BLINDNESS);
-                                                    ally.removeEffect(MobEffects.DARKNESS);
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, srv, 4.0D, 1.0D, 0.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.MIRAGE) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ally)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_MIRAGE_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_MIRAGE_SHROUD_UNTIL).orElse(0L)));
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.WRAITH) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ally : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ally)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ally);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_WRAITH_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_WRAITH_SHROUD_UNTIL).orElse(0L)));
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L)));
-                                                      ally.removeEffect(MobEffects.WITHER);
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, srv, 8.0D, 0.0D, 1.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ally, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.BARROW) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_BARROW_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_BARROW_SHROUD_UNTIL).orElse(0L)));
-                                                      ent.removeEffect(MobEffects.POISON);
-                                                      ent.removeEffect(MobEffects.WITHER);
-                                                      ent.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 240, 0, true, false));
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(ent, owner, true)
-                                                          && (ent instanceof Monster || ent == owner.getLastHurtMob())) {
-                                                      ent.addEffect(new MobEffectInstance(MobEffects.WITHER, 45, 0));
-                                                      ent.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 45, 0));
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.PYRE) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_PYRE_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_PYRE_SHROUD_UNTIL).orElse(0L)));
-                                                      ent.clearFire();
-                                                      ent.setTicksFrozen(0);
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 8.0D, 2.0D, 0.0D, -0.10D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                              BlockPos zc = BlockPos.containing(zone.center);
-                                              int ir = Math.max(2, (int) Math.ceil(zone.radius));
-                                              for (BlockPos p : BlockPos.betweenClosed(zc.offset(-ir, -1, -ir), zc.offset(ir, 1, ir))) {
-                                                  BlockState bs = srv.getBlockState(p);
-                                                  if (bs.is(Blocks.ICE) || bs.is(Blocks.FROSTED_ICE) || bs.is(Blocks.PACKED_ICE)) {
-                                                      srv.setBlockAndUpdate(p, Blocks.WATER.defaultBlockState());
-                                                  } else if (bs.is(Blocks.SNOW) || bs.is(Blocks.SNOW_BLOCK) || bs.is(Blocks.POWDER_SNOW)) {
-                                                      srv.removeBlock(p, false);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.PENUMBRA) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_PENUMBRA_MANTLE_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_PENUMBRA_MANTLE_UNTIL).orElse(0L)));
-                                                      ent.removeEffect(MobEffects.BLINDNESS);
-                                                      ent.removeEffect(MobEffects.DARKNESS);
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 6.0D, 2.0D, 0.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.RIME) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_RIME_MANTLE_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_RIME_MANTLE_UNTIL).orElse(0L)));
-                                                      ent.clearFire();
-                                                      ent.setTicksFrozen(0);
-                                                      ent.setIsInPowderSnow(false);
-                                                      ent.removeEffect(MobEffects.SLOWNESS);
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                              BlockPos zc = BlockPos.containing(zone.center).below();
-                                              int ir = Math.max(2, (int) Math.ceil(zone.radius));
-                                              for (BlockPos p : BlockPos.betweenClosed(zc.offset(-ir, 0, -ir), zc.offset(ir, 1, ir))) {
-                                                  if (srv.getBlockState(p).is(Blocks.WATER) && srv.getFluidState(p).isSource() && srv.getBlockState(p.above()).isAir()) {
-                                                      srv.setBlockAndUpdate(p, Blocks.PACKED_ICE.defaultBlockState());
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.SPRING) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_SPRING_MANTLE_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_SPRING_MANTLE_UNTIL).orElse(0L)));
-                                                      ent.clearFire();
-                                                      ent.setAirSupply(ent.getMaxAirSupply());
-                                                      ent.removeEffect(MobEffects.POISON);
-                                                      ent.removeEffect(MobEffects.WITHER);
-                                                      ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 40, 0, true, false));
-                                                      ent.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 40, 0, true, false));
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 6.0D, 2.0D, 0.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                      if (elapsed % 60 == 0) {
-                                                          SpellCombatReactionEngine.notifyMagicalHeal(ent, 2.0F);
-                                                          ent.heal(2.0F);
-                                                          SpellCombatReactionEngine.purifyHexesAndNegativeEffects(ent);
-                                                      }
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.STATIC) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_STATIC_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_STATIC_SHROUD_UNTIL).orElse(0L)));
-                                                      ent.removeEffect(MobEffects.SLOWNESS);
-                                                      ent.resetFallDistance();
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.25D, 30L);
-                                                      SpellCombatReactionEngine.applyTimedAttackSpeedBuff(ent, srv, 0.25D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                              for (net.minecraft.world.entity.projectile.AbstractArrow arrow : srv.getEntitiesOfClass(
-                                                      net.minecraft.world.entity.projectile.AbstractArrow.class, allyBox)) {
-                                                  if (owner != null && arrow.getOwner() == owner) continue;
-                                                  srv.sendParticles(ParticleTypes.ELECTRIC_SPARK, arrow.getX(), arrow.getY(), arrow.getZ(), 6, 0.12D, 0.12D, 0.12D, 0.05D);
-                                                  arrow.discard();
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.SYLVAN) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      boolean fresh = aTag.getLong(SpellLingeringZoneManager.TAG_SYLVAN_AEGIS_UNTIL).orElse(0L) <= zNow;
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_SYLVAN_AEGIS_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_SYLVAN_AEGIS_UNTIL).orElse(0L)));
-                                                      if (fresh) {
-                                                          aTag.putInt(SpellLingeringZoneManager.TAG_SYLVAN_AEGIS_HITS, 12);
-                                                      }
-                                                      ent.removeEffect(MobEffects.POISON);
-                                                      ent.removeEffect(MobEffects.WITHER);
-                                                      ent.removeEffect(MobEffects.BLINDNESS);
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.MIASMA) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_MIASMA_CARAPACE_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_MIASMA_CARAPACE_UNTIL).orElse(0L)));
-                                                      ent.removeEffect(MobEffects.POISON);
-                                                      ent.removeEffect(MobEffects.WITHER);
-                                                      ent.removeEffect(MobEffects.HUNGER);
-                                                      ent.setAirSupply(ent.getMaxAirSupply());
-                                                      ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 45, 0, true, false));
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.GENESIS) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_GENESIS_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_GENESIS_SHROUD_UNTIL).orElse(0L)));
-                                                      ent.removeEffect(MobEffects.BLINDNESS);
-                                                      ent.removeEffect(MobEffects.DARKNESS);
-                                                      ent.removeEffect(MobEffects.WITHER);
-                                                      ent.removeEffect(MobEffects.POISON);
-                                                      ent.setAirSupply(ent.getMaxAirSupply());
-                                                      ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 45, 0, true, false));
-                                                      ent.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 45, 1, true, false));
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.OBLIVION) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.0D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_OBLIVION_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_OBLIVION_SHROUD_UNTIL).orElse(0L)));
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.AETHER) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.5D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_AETHER_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_AETHER_SHROUD_UNTIL).orElse(0L)));
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 10.0D, 5.0D, 0.0D, 0.0D, 30L);
-                                                      SpellLingeringZoneManager.grantArcane3DFlight(ent, 30);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.ENTROPIC) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.5D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_ENTROPIC_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_ENTROPIC_SHROUD_UNTIL).orElse(0L)));
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 10.0D, 5.0D, 0.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                          } else if (formMutation.mutated() && formMateria == EssenceType.CELESTIAL) {
-                                              long zNow = srv.getGameTime();
-                                              AABB allyBox = new AABB(zone.center.x - zone.radius, zone.center.y - 1.5D, zone.center.z - zone.radius,
-                                                      zone.center.x + zone.radius, zone.center.y + 3.5D, zone.center.z + zone.radius);
-                                              for (LivingEntity ent : srv.getEntitiesOfClass(LivingEntity.class, allyBox, LivingEntity::isAlive)) {
-                                                  if (isFriendlyAllyForOasis(owner, ent)) {
-                                                      CompoundTag aTag = EntityHelper.getPersistentData(ent);
-                                                      aTag.putLong(SpellLingeringZoneManager.TAG_CELESTIAL_SHROUD_UNTIL,
-                                                              Math.max(zNow + 30L, aTag.getLong(SpellLingeringZoneManager.TAG_CELESTIAL_SHROUD_UNTIL).orElse(0L)));
-                                                      SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 10.0D, 5.0D, 0.0D, 0.0D, 30L);
-                                                      SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
-                                                  }
-                                              }
-                                          }
-                                    }
-                                }
-                                return true;
-                            }
-                    ));
-                    if (caster instanceof Player player) {
-                        player.displayClientMessage(
-                                Component.literal("§b✦ Aura Anchored §7— Stationary field deployed for §f" + (anchorDuration / 20) + "s§7!"),
-                                true
-                        );
-                    }
+                if (formHandler != null && form == SpellDeliveryForm.RADIAL_BURST) {
+                    formHandler.onRadialBurstFormCast(level, caster, center, radius, direction, spell, slot, fallbackMateria, apparatusPotency);
                 }
             }
             case CONE -> {
@@ -4983,16 +4594,13 @@ public final class SpellExecutionEngine {
                 Vec3 impact = hit.getType() == HitResult.Type.BLOCK
                         ? Vec3.atBottomCenterOf(hit.getBlockPos().above())
                         : caster.position().add(direction.scale(openAirFallback));
-                double radius = SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * formRangeMult;
-                if (formMutation.mutated() && (formMateria == EssenceType.WATER || formMateria == EssenceType.ABYSS || formMateria == EssenceType.AURORA || formMateria == EssenceType.MIRAGE || formMateria == EssenceType.PYRE)) {
-                    radius = Math.max(8.0D * apparatusRange * flawRangeMult, radius);
-                } else if (formMutation.mutated() && (formMateria == EssenceType.BARROW || formMateria == EssenceType.SYLVAN)) {
-                    radius = Math.max(10.0D * formRangeMult, radius);
-                } else if (formMutation.mutated() && (formMateria == EssenceType.WRAITH || formMateria == EssenceType.PENUMBRA || formMateria == EssenceType.RIME || formMateria == EssenceType.SPRING || formMateria == EssenceType.STATIC || formMateria == EssenceType.MIASMA || formMateria == EssenceType.GENESIS || formMateria == EssenceType.OBLIVION)) {
-                    radius = Math.max(12.0D * formRangeMult, radius);
-                } else if (formMutation.mutated() && (formMateria == EssenceType.ASTRAL || formMateria == EssenceType.SOULFIRE || formMateria == EssenceType.VAPOR || formMateria == EssenceType.NULL_R || formMateria == EssenceType.NULL_U || formMateria == EssenceType.DAWN || formMateria == EssenceType.AEGIS || formMateria == EssenceType.AETHER || formMateria == EssenceType.ENTROPIC || formMateria == EssenceType.CELESTIAL || formMateria == EssenceType.PRISMATIC)) {
-                    radius = Math.max(14.0D * formRangeMult, radius);
-                }
+                double radius = resolveEffectiveSkyfallRadius(
+                        SpellDeliveryForm.getCombatRadiusBlocks(SpellDeliveryForm.SKYFALL, tier) * formRangeMult,
+                        formRangeMult,
+                        apparatusRange * flawRangeMult,
+                        formMateria,
+                        formMutation.mutated()
+                );
                 EssenceType effPrimary = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
                 EssenceType vPrimary = formMateria != EssenceType.REGULAR ? formMateria : effPrimary;
                 EssenceType vSecondary = slot.secondaryEffect()
@@ -5072,15 +4680,676 @@ public final class SpellExecutionEngine {
         }
     }
 
+    private static double resolveEffectiveRadialBurstRadius(
+            double baseRadius,
+            double formRangeMult,
+            @Nullable EssenceType mat,
+            boolean mutated
+    ) {
+        if (!mutated || mat == null) {
+            return baseRadius;
+        }
+        return switch (mat) {
+            case NATURE, FROZEN, NETHER, RADIANT, UMBRAL, UNDEAD, DUST, SPORE, TAIGA, OASIS,
+                    VITAE, BLOOD, AURA, AMBER, ECLIPSE, BLIGHT, ASTRAL, SOULFIRE, VAPOR,
+                    NULL_R, NULL_U, DAWN, ABYSS, AEGIS, AURORA, MIRAGE, WRAITH, BARROW,
+                    PYRE, PENUMBRA, RIME, SPRING, STATIC, SYLVAN, MIASMA, GENESIS, OBLIVION,
+                    AUREOLE, VESPER, RADIANT_FIRE, UMBRAL_WATER ->
+                    Math.max(baseRadius, 6.0D * formRangeMult);
+            case CHIMERA -> Math.max(baseRadius, 7.0D * formRangeMult);
+            case AETHER, ENTROPIC, CELESTIAL, PRISMATIC, EQUINOX -> Math.max(baseRadius, 10.0D * formRangeMult);
+            case EMPYREAN, CATACLYSM, TERMINUS -> Math.max(baseRadius, 12.0D * formRangeMult);
+            case ESCHATON, APOTHEOSIS, ENTROPICA -> Math.max(baseRadius, 16.0D * formRangeMult);
+            default -> baseRadius;
+        };
+    }
+
+    private static double resolveEffectiveSkyfallRadius(
+            double baseRadius,
+            double formRangeMult,
+            double apparatusFlawMult,
+            @Nullable EssenceType mat,
+            boolean mutated
+    ) {
+        if (!mutated || mat == null) {
+            return baseRadius;
+        }
+        return switch (mat) {
+            case WATER, ABYSS, AURORA, MIRAGE, PYRE, AUREOLE, VESPER, RADIANT_FIRE, UMBRAL_WATER ->
+                    Math.max(baseRadius, 8.0D * apparatusFlawMult);
+            case BARROW, SYLVAN -> Math.max(baseRadius, 10.0D * formRangeMult);
+            case WRAITH, PENUMBRA, RIME, SPRING, STATIC, MIASMA, GENESIS, OBLIVION, CHIMERA ->
+                    Math.max(baseRadius, 12.0D * formRangeMult);
+            case ASTRAL, SOULFIRE, VAPOR, NULL_R, NULL_U, DAWN, AEGIS, AETHER, ENTROPIC, CELESTIAL, PRISMATIC, EQUINOX ->
+                    Math.max(baseRadius, 14.0D * formRangeMult);
+            case EMPYREAN, CATACLYSM, TERMINUS -> Math.max(baseRadius, 16.0D * formRangeMult);
+            case ESCHATON, APOTHEOSIS, ENTROPICA -> Math.max(baseRadius, 20.0D * formRangeMult);
+            default -> baseRadius;
+        };
+    }
+
+    /**
+     * Unified Section 4.5 Mobile vs Sneak-Anchored Aura Deployment:
+     * <ul>
+     *     <li>Enforces the hard 4-Aura cap per caster (expiring the oldest active Aura when a 5th is deployed).</li>
+     *     <li><b>Mobile Aura ({@code !anchored})</b>: attaches caster Shroud buffs, follows the caster's live position,
+     *         and pulses slotted Core Effects every {@code 10 ticks} ({@code 2x/sec}).</li>
+     *     <li><b>Sneak-Anchored Aura ({@code anchored})</b>: stays stationary in-world without attaching mobile buffs
+     *         to the caster, pulsing slotted Core Effects + elemental Shroud passives every {@code 10 ticks} ({@code 2x/sec})
+     *         across all 58+ Materia types!</li>
+     * </ul>
+     */
+    private static void deployAuraField(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            Vec3 origin,
+            double radius,
+            Vec3 direction,
+            EssenceType vPrimary,
+            @Nullable EssenceType vSecondary,
+            EssenceType formMateria,
+            SpellMutationProfile formMutation,
+            @Nullable MateriaPartMutationHandler formHandler,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            boolean silent,
+            boolean anchored
+    ) {
+        int tier = spell.getEffectiveTier();
+        int auraDuration = (formMateria == EssenceType.PRISMATIC
+                || formMateria == EssenceType.EMPYREAN
+                || formMateria == EssenceType.CATACLYSM
+                || formMateria == EssenceType.TERMINUS
+                || formMateria == EssenceType.ESCHATON
+                || formMateria == EssenceType.APOTHEOSIS
+                || formMateria == EssenceType.ENTROPICA)
+                ? (360 + tier * 40)
+                : (160 + tier * 30);
+
+        if (caster != null) {
+            SpellLingeringZoneManager.enforceFourAuraCap(level, caster.getUUID());
+        }
+
+        if (!silent) {
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastWardShell(
+                    level, origin, Math.min(radius, 3.2D), vPrimary, vSecondary, tier
+            );
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                    level, origin, radius, vPrimary, vSecondary, 36, tier
+            );
+        }
+
+        deliverRadialArea(level, caster, origin, radius, direction, spell, slot, fallbackMateria, apparatusPotency);
+
+        if (!anchored && caster != null) {
+            if (formHandler != null) {
+                formHandler.onAuraFormCast(level, caster, radius, spell, slot, fallbackMateria, apparatusPotency);
+                SpellCombatReactionEngine.syncEntityBarrierState(level, caster, 0.55F, null);
+            }
+            SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                    caster,
+                    caster.position(),
+                    radius,
+                    auraDuration,
+                    level.getGameTime(),
+                    spell,
+                    slot,
+                    fallbackMateria,
+                    apparatusPotency,
+                    (srv, zone, elapsed) -> {
+                        if (elapsed > zone.maxDurationTicks) return false;
+                        LivingEntity owner = zone.resolveCaster(srv);
+                        if (owner == null || !owner.isAlive()) return false;
+                        zone.center = owner.position();
+                        if (elapsed > 0 && elapsed % 10 == 0) {
+                            if (!silent && elapsed % 20 == 0) {
+                                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                                        srv, zone.center, zone.radius, vPrimary, vSecondary, 18, tier
+                                );
+                            }
+                            deliverRadialArea(
+                                    srv, owner, zone.center, zone.radius, owner.getLookAngle(),
+                                    zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.25F
+                            );
+                        }
+                        return true;
+                    }
+            ).markActiveAura());
+            return;
+        }
+
+        // Sneak-Anchored Stationary Aura: apply tick-0 zone shroud pulse, then pulse every 10 ticks (2x/sec) in-world!
+        applyAnchoredAuraShroudPulse(level, caster, origin, radius, tier, formMateria, formMutation.mutated(), spell, 0);
+        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                caster,
+                origin,
+                radius,
+                auraDuration,
+                level.getGameTime(),
+                spell,
+                slot,
+                fallbackMateria,
+                apparatusPotency,
+                (srv, zone, elapsed) -> {
+                    if (elapsed > zone.maxDurationTicks) return false;
+                    LivingEntity owner = zone.resolveCaster(srv);
+                    if (formMutation.mutated() && (formMateria == EssenceType.RADIANT || formMateria == EssenceType.RADIANT_FIRE)) {
+                        SpellLingeringZoneManager.pacifyRadiantSanctuaryField(srv, owner, zone.center, zone.radius);
+                    }
+                    if (elapsed > 0 && elapsed % 10 == 0) {
+                        if (!silent && elapsed % 20 == 0) {
+                            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                                    srv, zone.center, zone.radius, vPrimary, vSecondary, 22, tier
+                            );
+                        }
+                        deliverRadialArea(
+                                srv, owner, zone.center, zone.radius, new Vec3(0.0D, 1.0D, 0.0D),
+                                zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency * 0.25F
+                        );
+                        applyAnchoredAuraShroudPulse(
+                                srv, owner, zone.center, zone.radius, tier,
+                                formMateria, formMutation.mutated(), zone.spell, elapsed
+                        );
+                    }
+                    return true;
+                }
+        ).markActiveAura());
+
+        if (caster instanceof Player player) {
+            player.displayClientMessage(
+                    Component.literal("§b✦ Aura Anchored §7— Stationary field deployed for §f" + (auraDuration / 20) + "s§7!"),
+                    true
+            );
+        }
+    }
+
+    private static void applyAnchoredAuraShroudPulse(
+            ServerLevel srv,
+            @Nullable LivingEntity owner,
+            Vec3 center,
+            double radius,
+            int tier,
+            EssenceType formMateria,
+            boolean mutated,
+            @Nullable SpellAssembly spell,
+            int elapsed
+    ) {
+        if (!mutated || formMateria == null || formMateria == EssenceType.REGULAR) {
+            return;
+        }
+        long zNow = srv.getGameTime();
+        long refreshUntil = zNow + 22L;
+        boolean wardSafeguard = spell != null && spell.hasWardFriendlyFireSafeguard();
+        AABB box = new AABB(
+                center.x - radius, center.y - 1.5D, center.z - radius,
+                center.x + radius, center.y + 3.5D, center.z + radius
+        );
+        List<LivingEntity> entities = srv.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive);
+
+        for (LivingEntity ent : entities) {
+            if (formMateria == EssenceType.NATURE || formMateria == EssenceType.EARTH || formMateria == EssenceType.RADIANT) {
+                double dx = ent.getX() - center.x;
+                double dz = ent.getZ() - center.z;
+                if (dx * dx + dz * dz > radius * radius) {
+                    continue;
+                }
+            }
+            boolean friendly = (owner == null && !(ent instanceof net.minecraft.world.entity.monster.Enemy))
+                    || ent == owner
+                    || (owner != null && ent.isAlliedTo(owner))
+                    || isFriendlyAllyForOasis(owner, ent)
+                    || (formMateria == EssenceType.NATURE
+                            && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(ent, owner));
+            CompoundTag aTag = EntityHelper.getPersistentData(ent);
+
+            if (friendly) {
+                switch (formMateria) {
+                    case AIR -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_AIR_SLIPSTREAM_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_AIR_SLIPSTREAM_UNTIL).orElse(0L)));
+                        aTag.putInt("SpellAirSlipstreamTier", tier);
+                        aTag.putBoolean(SpellLingeringZoneManager.TAG_AIR_SLIPSTREAM_WARD_SAFE, wardSafeguard);
+                        ent.resetFallDistance();
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 0.0D, 0.0D, 0.0D, 0.20D, 25L);
+                    }
+                    case AUREOLE -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_AIR_SLIPSTREAM_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_AIR_SLIPSTREAM_UNTIL).orElse(0L)));
+                        aTag.putLong(SpellLingeringZoneManager.TAG_AIR_GUST_SHIELD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_AIR_GUST_SHIELD_UNTIL).orElse(0L)));
+                        ent.resetFallDistance();
+                        ent.addEffect(new MobEffectInstance(MobEffects.SPEED, 25, 0, true, false));
+                    }
+                    case WATER, UMBRAL_WATER -> {
+                        aTag.remove(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL);
+                        aTag.putLong(SpellLingeringZoneManager.TAG_WATER_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_WATER_SHROUD_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.setAirSupply(ent.getMaxAirSupply());
+                        ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 25, 0, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 25, 0, true, false));
+                        SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.55F, null);
+                        if (formMateria == EssenceType.UMBRAL_WATER) {
+                            aTag.putLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L)));
+                        }
+                    }
+                    case NATURE -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_NATURE_MANTLE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_NATURE_MANTLE_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.65F, null);
+                        if (srv.isBrightOutside() && !srv.isRaining() && !srv.isThundering() && srv.canSeeSky(ent.blockPosition().above())) {
+                            ent.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 25, 0, true, false));
+                        }
+                        if (ent instanceof net.minecraft.world.entity.animal.Animal animal
+                                && !(animal instanceof net.minecraft.world.entity.NeutralMob nm && nm.isAngry())
+                                && animal.getTarget() == null) {
+                            animal.getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.IS_PANICKING);
+                            animal.getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.AVOID_TARGET);
+                            if (animal.isPanicking()) {
+                                animal.getNavigation().stop();
+                            }
+                        }
+                    }
+                    case EARTH -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_EARTH_DEFENSE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_EARTH_DEFENSE_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.applyTimedDefenseBuff(ent, srv, 2.0D, 0.50D, 25L);
+                        SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.60F, null);
+                    }
+                    case FROZEN -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_FROZEN_SPIKES_UNTIL).orElse(0L)));
+                        aTag.putInt("SpellFrozenSpikesTier", tier);
+                    }
+                    case NETHER, RADIANT_FIRE -> {
+                        ent.clearFire();
+                        ent.setTicksFrozen(0);
+                        aTag.putLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_NETHER_SHROUD_UNTIL).orElse(0L)));
+                        if (formMateria == EssenceType.RADIANT_FIRE) {
+                            aTag.putLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)));
+                        }
+                    }
+                    case RADIANT -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_RADIANT_SHROUD_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.55F, null);
+                    }
+                    case UMBRAL, VESPER -> aTag.putLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_UMBRAL_SHROUD_UNTIL).orElse(0L)));
+                    case UNDEAD -> aTag.putLong(SpellLingeringZoneManager.TAG_UNDEAD_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_UNDEAD_SHROUD_UNTIL).orElse(0L)));
+                    case VOID -> {
+                        ent.resetFallDistance();
+                        aTag.putLong(SpellLingeringZoneManager.TAG_VOID_ZERO_G_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_VOID_ZERO_G_UNTIL).orElse(0L)));
+                        ent.addEffect(new MobEffectInstance(net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ddraig.net.entropica.registry.ModEffects.WEIGHTLESSNESS.get()), 25, 0, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 2, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
+                    }
+                    case ARID -> aTag.putLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL).orElse(0L)));
+                    case LIGHTNING -> aTag.putLong(SpellLingeringZoneManager.TAG_LIGHTNING_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_LIGHTNING_SHROUD_UNTIL).orElse(0L)));
+                    case MAGMA -> aTag.putLong(SpellLingeringZoneManager.TAG_MAGMA_MANTLE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_MAGMA_MANTLE_UNTIL).orElse(0L)));
+                    case STORM -> aTag.putLong(SpellLingeringZoneManager.TAG_STORM_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_STORM_SHROUD_UNTIL).orElse(0L)));
+                    case GLACIAL -> aTag.putLong(SpellLingeringZoneManager.TAG_GLACIAL_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_GLACIAL_SHROUD_UNTIL).orElse(0L)));
+                    case OVERGROWTH -> aTag.putLong(SpellLingeringZoneManager.TAG_OVERGROWTH_BASTION_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_OVERGROWTH_BASTION_UNTIL).orElse(0L)));
+                    case DUST -> {
+                        ent.clearFire();
+                        aTag.putLong(SpellLingeringZoneManager.TAG_DUST_VEIL_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_DUST_VEIL_UNTIL).orElse(0L)));
+                    }
+                    case SPORE -> {
+                        ent.removeEffect(MobEffects.POISON);
+                        ent.removeEffect(MobEffects.NAUSEA);
+                        aTag.putLong(SpellLingeringZoneManager.TAG_SPORE_MANTLE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_SPORE_MANTLE_UNTIL).orElse(0L)));
+                    }
+                    case TAIGA -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_TAIGA_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_TAIGA_SHROUD_UNTIL).orElse(0L)));
+                        aTag.putInt("SpellTaigaShroudTier", tier);
+                        ent.clearFire();
+                        ent.setTicksFrozen(0);
+                    }
+                    case OASIS -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_OASIS_CARAPACE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_OASIS_CARAPACE_UNTIL).orElse(0L)));
+                        aTag.putInt("SpellOasisCarapaceTier", tier);
+                    }
+                    case VITAE -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_VITAE_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_VITAE_SHROUD_UNTIL).orElse(0L)));
+                        aTag.putInt("SpellVitaeShroudTier", tier);
+                    }
+                    case BLOOD -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_BLOOD_CARAPACE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_BLOOD_CARAPACE_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 6.0D, 2.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case AURA -> aTag.putLong(SpellLingeringZoneManager.TAG_AURA_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_AURA_SHROUD_UNTIL).orElse(0L)));
+                    case AMBER -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_AMBER_MANTLE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_AMBER_MANTLE_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 8.0D, 3.0D, 0.50D, 0.0D, 25L);
+                    }
+                    case ECLIPSE, EQUINOX -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_ECLIPSE_BASTION_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_ECLIPSE_BASTION_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.BLINDNESS);
+                        ent.removeEffect(MobEffects.DARKNESS);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 6.0D, 2.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case BLIGHT -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_BLIGHT_CARAPACE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_BLIGHT_CARAPACE_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.POISON);
+                        ent.removeEffect(MobEffects.HUNGER);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 6.0D, 0.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case ASTRAL -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_ASTRAL_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_ASTRAL_SHROUD_UNTIL).orElse(0L)));
+                        ent.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
+                        SpellCombatReactionEngine.applyTimedMovementSpeedBoost(ent, srv, 0.30D, 25L);
+                    }
+                    case SOULFIRE -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_SOULFIRE_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_SOULFIRE_SHROUD_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 25, 0, true, false));
+                    }
+                    case VAPOR -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_VAPOR_MIST_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_VAPOR_MIST_SHROUD_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        SpellCombatReactionEngine.applyTimedMovementSpeedBoost(ent, srv, 0.30D, 25L);
+                        if (ent.isInWaterOrRain()) {
+                            ent.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 25, 0, true, false));
+                            ent.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 25, 0, true, false));
+                        }
+                    }
+                    case NULL_R -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_NULL_R_BASTION_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_NULL_R_BASTION_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.BLINDNESS);
+                        ent.removeEffect(MobEffects.DARKNESS);
+                        ent.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
+                    }
+                    case NULL_U -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_NULL_U_VEIL_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_NULL_U_VEIL_UNTIL).orElse(0L)));
+                        aTag.putLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L)));
+                        ent.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
+                    }
+                    case DAWN -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_DAWN_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_DAWN_SHROUD_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.BLINDNESS);
+                        ent.removeEffect(MobEffects.DARKNESS);
+                        ent.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 25, 1, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
+                    }
+                    case ABYSS -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_ABYSS_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_ABYSS_SHROUD_UNTIL).orElse(0L)));
+                        aTag.putLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 25, 0, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 25, 1, true, false));
+                    }
+                    case AEGIS -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_AEGIS_MANTLE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_AEGIS_MANTLE_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.BLINDNESS);
+                        ent.removeEffect(MobEffects.DARKNESS);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 10.0D, 4.0D, 0.75D, -0.10D, 25L);
+                    }
+                    case AURORA -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_AURORA_MANTLE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_AURORA_MANTLE_UNTIL).orElse(0L)));
+                        aTag.putLong(SpellLingeringZoneManager.TAG_TAIGA_FROST_WALKER_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_TAIGA_FROST_WALKER_UNTIL).orElse(0L)));
+                        ent.setTicksFrozen(0);
+                        ent.removeEffect(MobEffects.BLINDNESS);
+                        ent.removeEffect(MobEffects.DARKNESS);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 4.0D, 1.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case MIRAGE -> aTag.putLong(SpellLingeringZoneManager.TAG_MIRAGE_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_MIRAGE_SHROUD_UNTIL).orElse(0L)));
+                    case WRAITH -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_WRAITH_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_WRAITH_SHROUD_UNTIL).orElse(0L)));
+                        aTag.putLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.WITHER);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 8.0D, 0.0D, 1.0D, 0.0D, 25L);
+                    }
+                    case BARROW -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_BARROW_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_BARROW_SHROUD_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.POISON);
+                        ent.removeEffect(MobEffects.WITHER);
+                        ent.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 240, 0, true, false));
+                    }
+                    case PYRE -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_PYRE_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_PYRE_SHROUD_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.setTicksFrozen(0);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 8.0D, 2.0D, 0.0D, -0.10D, 25L);
+                    }
+                    case PENUMBRA -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_PENUMBRA_MANTLE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_PENUMBRA_MANTLE_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.BLINDNESS);
+                        ent.removeEffect(MobEffects.DARKNESS);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 6.0D, 2.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case RIME -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_RIME_MANTLE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_RIME_MANTLE_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.setTicksFrozen(0);
+                        ent.setIsInPowderSnow(false);
+                        ent.removeEffect(MobEffects.SLOWNESS);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case SPRING -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_SPRING_MANTLE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_SPRING_MANTLE_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.setAirSupply(ent.getMaxAirSupply());
+                        ent.removeEffect(MobEffects.POISON);
+                        ent.removeEffect(MobEffects.WITHER);
+                        ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 30, 0, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 30, 0, true, false));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 6.0D, 2.0D, 0.0D, 0.0D, 25L);
+                        if (elapsed > 0 && elapsed % 60 == 0) {
+                            SpellCombatReactionEngine.notifyMagicalHeal(ent, 2.0F);
+                            ent.heal(2.0F);
+                            SpellCombatReactionEngine.purifyHexesAndNegativeEffects(ent);
+                        }
+                    }
+                    case STATIC -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_STATIC_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_STATIC_SHROUD_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.SLOWNESS);
+                        ent.resetFallDistance();
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.25D, 25L);
+                        SpellCombatReactionEngine.applyTimedAttackSpeedBuff(ent, srv, 0.25D, 25L);
+                    }
+                    case SYLVAN -> {
+                        boolean fresh = aTag.getLong(SpellLingeringZoneManager.TAG_SYLVAN_AEGIS_UNTIL).orElse(0L) <= zNow;
+                        aTag.putLong(SpellLingeringZoneManager.TAG_SYLVAN_AEGIS_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_SYLVAN_AEGIS_UNTIL).orElse(0L)));
+                        if (fresh) aTag.putInt(SpellLingeringZoneManager.TAG_SYLVAN_AEGIS_HITS, 12);
+                        ent.removeEffect(MobEffects.POISON);
+                        ent.removeEffect(MobEffects.WITHER);
+                        ent.removeEffect(MobEffects.BLINDNESS);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case MIASMA -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_MIASMA_CARAPACE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_MIASMA_CARAPACE_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.POISON);
+                        ent.removeEffect(MobEffects.WITHER);
+                        ent.removeEffect(MobEffects.HUNGER);
+                        ent.setAirSupply(ent.getMaxAirSupply());
+                        ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 30, 0, true, false));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case GENESIS -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_GENESIS_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_GENESIS_SHROUD_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.BLINDNESS);
+                        ent.removeEffect(MobEffects.DARKNESS);
+                        ent.removeEffect(MobEffects.WITHER);
+                        ent.removeEffect(MobEffects.POISON);
+                        ent.setAirSupply(ent.getMaxAirSupply());
+                        ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 30, 0, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 30, 1, true, false));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 7.0D, 3.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case OBLIVION -> aTag.putLong(SpellLingeringZoneManager.TAG_OBLIVION_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_OBLIVION_SHROUD_UNTIL).orElse(0L)));
+                    case CHIMERA -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_CHIMERA_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_CHIMERA_SHROUD_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.setAirSupply(ent.getMaxAirSupply());
+                        ent.resetFallDistance();
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 8.0D, 3.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case AETHER -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_AETHER_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_AETHER_SHROUD_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 10.0D, 5.0D, 0.0D, 0.0D, 25L);
+                        SpellLingeringZoneManager.grantArcane3DFlight(ent, 25);
+                    }
+                    case ENTROPIC -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_ENTROPIC_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_ENTROPIC_SHROUD_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 10.0D, 5.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case CELESTIAL -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_CELESTIAL_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_CELESTIAL_SHROUD_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 10.0D, 5.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case PRISMATIC -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_PRISMATIC_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_PRISMATIC_SHROUD_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 25, 0, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 25, 0, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 25, 0, true, false));
+                    }
+                    case EMPYREAN -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_EMPYREAN_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_EMPYREAN_SHROUD_UNTIL).orElse(0L)));
+                        ent.removeEffect(MobEffects.POISON);
+                        ent.removeEffect(MobEffects.WITHER);
+                        ent.removeEffect(MobEffects.HUNGER);
+                        ent.setAirSupply(ent.getMaxAirSupply());
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 12.0D, 6.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case CATACLYSM -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_CATACLYSM_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_CATACLYSM_SHROUD_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.removeEffect(MobEffects.WITHER);
+                        ent.removeEffect(MobEffects.BLINDNESS);
+                        ent.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 25, 0, true, false));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 12.0D, 6.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case TERMINUS -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_TERMINUS_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_TERMINUS_SHROUD_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.setTicksFrozen(0);
+                        ent.removeEffect(MobEffects.WITHER);
+                        ent.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 25, 0, true, false));
+                        ent.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 25, 0, true, false));
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 12.0D, 6.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case ESCHATON -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_ESCHATON_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_ESCHATON_SHROUD_UNTIL).orElse(0L)));
+                        aTag.putLong(SpellLingeringZoneManager.TAG_VOID_IMMUNE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_VOID_IMMUNE_UNTIL).orElse(0L)));
+                        ent.clearFire();
+                        ent.setTicksFrozen(0);
+                        ent.resetFallDistance();
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 14.0D, 8.0D, 0.0D, 0.0D, 25L);
+                    }
+                    case APOTHEOSIS -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_APOTHEOSIS_SHROUD_UNTIL).orElse(0L)));
+                        aTag.putLong(SpellLingeringZoneManager.TAG_VOID_IMMUNE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_VOID_IMMUNE_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.purifyHexesAndNegativeEffects(ent);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 14.0D, 8.0D, 0.0D, 0.0D, 25L);
+                        SpellLingeringZoneManager.grantArcane3DFlight(ent, 25);
+                        if (elapsed > 0 && elapsed % 20 == 0) {
+                            SpellCombatReactionEngine.notifyMagicalHeal(ent, 6.0F);
+                            ent.heal(6.0F);
+                            ent.addEffect(new MobEffectInstance(MobEffects.SATURATION, 25, 0, true, false));
+                        }
+                    }
+                    case ENTROPICA -> {
+                        aTag.putLong(SpellLingeringZoneManager.TAG_ENTROPICA_SHROUD_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_ENTROPICA_SHROUD_UNTIL).orElse(0L)));
+                        aTag.putLong(SpellLingeringZoneManager.TAG_VOID_IMMUNE_UNTIL, Math.max(refreshUntil, aTag.getLong(SpellLingeringZoneManager.TAG_VOID_IMMUNE_UNTIL).orElse(0L)));
+                        SpellCombatReactionEngine.purifyHexesAndNegativeEffects(ent);
+                        SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ent, srv, 14.0D, 8.0D, 0.0D, 0.0D, 25L);
+                        SpellLingeringZoneManager.grantArcane3DFlight(ent, 25);
+                        if (elapsed > 0 && elapsed % 20 == 0) {
+                            SpellCombatReactionEngine.notifyMagicalHeal(ent, 6.0F);
+                            ent.heal(6.0F);
+                        }
+                    }
+                    default -> {
+                    }
+                }
+                SpellCombatReactionEngine.syncEntityBarrierState(srv, ent, 0.0F, null);
+            } else if (!SpellCombatReactionEngine.isProtectedFromOffensiveSpell(ent, owner, wardSafeguard)) {
+                if (formMateria == EssenceType.UMBRAL || formMateria == EssenceType.VESPER) {
+                    ent.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 40, 0, true, false));
+                } else if (formMateria == EssenceType.UNDEAD && !ent.getType().is(EntityTypeTags.UNDEAD)
+                        && (ent instanceof net.minecraft.world.entity.monster.Enemy || (ent instanceof Mob m && m.getTarget() == owner))) {
+                    SpellCombatReactionEngine.hurtWithPureMateria(srv, ent, srv.damageSources().indirectMagic(owner, owner), 1.0F);
+                } else if (formMateria == EssenceType.BARROW && (ent instanceof Monster || (owner != null && ent == owner.getLastHurtMob()))) {
+                    ent.addEffect(new MobEffectInstance(MobEffects.WITHER, 35, 0));
+                    ent.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 35, 0));
+                } else if (elapsed > 0 && elapsed % 20 == 0 && (ent instanceof Monster || (owner != null && ent == owner.getLastHurtMob()))) {
+                    switch (formMateria) {
+                        case PRISMATIC -> {
+                            if (ent.getType().is(EntityTypeTags.UNDEAD)) {
+                                SpellCombatReactionEngine.hurtWithPrismaticMateriaAdvantage(srv, ent, owner, 4.0F, false, true);
+                            }
+                        }
+                        case EMPYREAN -> {
+                            ent.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, 3));
+                            float dealt = SpellCombatReactionEngine.hurtWithEmpyreanMateriaAdvantage(srv, ent, owner, 4.0F, false, false, false, true);
+                            if (owner != null && dealt > 0.0F) {
+                                SpellLingeringZoneManager.grantPartyAbsorption(srv, owner, dealt * 0.50F, 32.0F, 12.0D);
+                            }
+                        }
+                        case CATACLYSM -> {
+                            Vec3 pull = center.subtract(ent.position()).scale(0.28D);
+                            ent.setDeltaMovement(ent.getDeltaMovement().add(pull.x, 0.04D, pull.z));
+                            ent.hasImpulse = true;
+                            ent.igniteForSeconds(3);
+                            SpellCombatReactionEngine.hurtWithCataclysmMateriaAdvantage(srv, ent, owner, 4.0F, false, false, true);
+                        }
+                        case ESCHATON -> {
+                            Vec3 pull = center.subtract(ent.position()).scale(0.32D);
+                            ent.setDeltaMovement(ent.getDeltaMovement().add(pull.x, 0.04D, pull.z));
+                            ent.hasImpulse = true;
+                            SpellCombatReactionEngine.hurtWithEschatonMateriaAdvantage(srv, ent, owner, 6.0F, false, false, true);
+                        }
+                        case APOTHEOSIS -> {
+                            if (ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isDarkUndeadOrAbyssal(ent)) {
+                                ent.igniteForSeconds(4);
+                            }
+                            SpellCombatReactionEngine.hurtWithApotheosisMateriaAdvantage(srv, ent, owner, 6.0F, false, false, false, true);
+                        }
+                        case ENTROPICA -> SpellCombatReactionEngine.hurtWithEntropicaMateriaAdvantage(srv, ent, owner, 6.0F, false, false, true);
+                        default -> {
+                        }
+                    }
+                }
+            }
+        }
+
+        // Environmental & projectile interception passives for anchored Auras
+        BlockPos cPos = BlockPos.containing(center);
+        if (formMateria == EssenceType.RADIANT || formMateria == EssenceType.RADIANT_FIRE) {
+            SpellLingeringZoneManager.pacifyRadiantSanctuaryField(srv, owner, center, radius);
+        }
+        if (formMateria == EssenceType.NETHER || formMateria == EssenceType.PYRE || formMateria == EssenceType.RADIANT_FIRE) {
+            ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler
+                    .meltIceAndSnowInRadius(srv, cPos, (int) Math.ceil(radius));
+        } else if (formMateria == EssenceType.DUST) {
+            ddraig.net.entropica.spell.mutation.element.DustSpellMutationHandler
+                    .snuffTorchesAndFiresPublic(srv, cPos, (int) Math.max(3, Math.ceil(radius)));
+        } else if (formMateria == EssenceType.SPORE) {
+            ddraig.net.entropica.spell.mutation.element.SporeSpellMutationHandler
+                    .sproutMushroomsPublic(srv, cPos, 2, false);
+        } else if (formMateria == EssenceType.OASIS) {
+            ddraig.net.entropica.spell.mutation.element.OasisSpellMutationHandler
+                    .hydrateAndGrowFloraPublic(srv, cPos, 2);
+        } else if (formMateria == EssenceType.NULL_R || formMateria == EssenceType.APOTHEOSIS) {
+            SpellLingeringZoneManager.pulseTemporaryLight(srv, cPos.above(), 15, 25);
+        } else if (formMateria == EssenceType.STATIC || formMateria == EssenceType.TERMINUS
+                || formMateria == EssenceType.EMPYREAN || formMateria == EssenceType.CATACLYSM
+                || formMateria == EssenceType.ESCHATON || formMateria == EssenceType.ENTROPICA) {
+            EssenceType fuelType = (formMateria == EssenceType.ESCHATON || formMateria == EssenceType.ENTROPICA) ? formMateria : null;
+            ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.vaporizeHostileProjectiles(
+                    srv, owner, box, fuelType, fuelType != null ? 48L : 0L
+            );
+        }
+    }
+
     /**
      * Section 4.6 Baseline Glyph / Trap Persistence:
-     * Arms after 1.0 second (20t), persists 10 minutes (12,000t) or indefinitely at Tier 5+,
-     * can be safely disarmed via Sneak + Right-Click for a 50% Materia fuel refund, and erupts on proximity!
+     * Arms after 1.0 second (20t), persists 10 minutes (12,000t) or indefinitely at Tier 5+ ({@code Integer.MAX_VALUE}),
+     * supports Floor / Wall / Ceiling placement, Single Detonation OR Repeating Sentry mode (3 pulses, 2.0s re-arm, 60% potency),
+     * and can be safely disarmed via Sneak + Right-Click for a full 50% multi-Materia fuel refund!
      */
     private static void plantStandardGlyphTrap(
             ServerLevel level,
             LivingEntity caster,
             Vec3 glyphCenter,
+            Direction surfaceFace,
             double radius,
             EssenceType vPrimary,
             @Nullable EssenceType vSecondary,
@@ -5090,9 +5359,18 @@ public final class SpellExecutionEngine {
             float apparatusPotency
     ) {
         int tier = spell.getEffectiveTier();
-        int maxWaitTicks = tier >= 5 ? 72_000_000 : 12_000;
+        int maxWaitTicks = tier >= 5 ? Integer.MAX_VALUE : 12_000;
         double triggerRad = Math.max(1.6D, Math.min(3.0D, radius * 0.65D));
         boolean beneficial = isCasterBeneficialVerb(slot.primaryEffect().effect());
+        Vec3 surfaceNormal = Vec3.atLowerCornerOf(surfaceFace.getUnitVec3i());
+
+        String formSub = slot.formPart().subMode().toLowerCase(Locale.ROOT);
+        String effSub = slot.primaryEffect().subMode().toLowerCase(Locale.ROOT);
+        final boolean repeatingSentry = formSub.contains("repeat") || formSub.contains("sentry")
+                || effSub.contains("repeat") || effSub.contains("sentry");
+        final int[] pulsesRemaining = {repeatingSentry ? 3 : 1};
+        final int[] rearmTicks = {0};
+        final float pulsePotency = repeatingSentry ? (apparatusPotency * 0.60F) : apparatusPotency;
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster,
@@ -5105,7 +5383,7 @@ public final class SpellExecutionEngine {
                 fallbackMateria,
                 apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) return false;
+                    if (elapsed > zone.maxDurationTicks || pulsesRemaining[0] <= 0) return false;
                     if (elapsed % 16 == 0) {
                         ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnZonePerimeterParticles(
                                 srv, zone.center, Math.min(1.6D, zone.radius * 0.45D), vPrimary, elapsed
@@ -5115,12 +5393,23 @@ public final class SpellExecutionEngine {
                     if (elapsed < 20) {
                         return true;
                     }
+                    if (rearmTicks[0] > 0) {
+                        rearmTicks[0]--;
+                        return true;
+                    }
 
                     LivingEntity owner = zone.resolveCaster(srv);
-                    AABB triggerBox = new AABB(
-                            zone.center.x - triggerRad, zone.center.y - 0.85D, zone.center.z - triggerRad,
-                            zone.center.x + triggerRad, zone.center.y + 1.85D, zone.center.z + triggerRad
-                    );
+                    AABB triggerBox;
+                    if (surfaceFace == Direction.UP) {
+                        triggerBox = new AABB(
+                                zone.center.x - triggerRad, zone.center.y - 0.85D, zone.center.z - triggerRad,
+                                zone.center.x + triggerRad, zone.center.y + 1.85D, zone.center.z + triggerRad
+                        );
+                    } else {
+                        Vec3 boxCenter = zone.center.add(surfaceNormal.scale(triggerRad * 0.45D));
+                        triggerBox = new AABB(boxCenter, boxCenter).inflate(triggerRad);
+                    }
+
                     List<LivingEntity> stepped = srv.getEntitiesOfClass(LivingEntity.class, triggerBox, ent -> {
                         if (!ent.isAlive()) return false;
                         if (beneficial) return true;
@@ -5134,7 +5423,7 @@ public final class SpellExecutionEngine {
                     }
 
                     ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
-                            srv, zone.center.subtract(0.0D, 0.4D, 0.0D), zone.radius, vPrimary, vSecondary, 34, tier
+                            srv, zone.center, zone.radius, vPrimary, vSecondary, 34, tier
                     );
                     ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
                             srv, zone.center, zone.radius, vPrimary, vSecondary, tier
@@ -5142,17 +5431,20 @@ public final class SpellExecutionEngine {
                     ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(
                             srv, zone.center, vPrimary, vSecondary, zone.radius, tier
                     );
-                    if (owner != null) {
-                        deliverRadialArea(
-                                srv, owner, zone.center, zone.radius, new Vec3(0.0D, 1.0D, 0.0D),
-                                zone.spell, zone.slot, zone.fallbackMateria, zone.apparatusPotency
-                        );
-                    }
+                    deliverRadialArea(
+                            srv, owner, zone.center, zone.radius, surfaceNormal,
+                            zone.spell, zone.slot, zone.fallbackMateria, pulsePotency
+                    );
                     srv.playSound(null, BlockPos.containing(zone.center), SoundEvents.RESPAWN_ANCHOR_DEPLETE.value(),
                             SoundSource.PLAYERS, 0.9F, 1.25F);
+                    pulsesRemaining[0]--;
+                    if (pulsesRemaining[0] > 0) {
+                        rearmTicks[0] = 40; // 2.0-second Repeating Sentry re-arm!
+                        return true;
+                    }
                     return false;
                 }
-        ).markDisarmableGlyph());
+        ).markDisarmableGlyph().withSurfaceNormal(surfaceNormal));
 
         level.playSound(null, BlockPos.containing(glyphCenter), SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.PLAYERS, 0.7F, 1.35F);
     }
@@ -5177,10 +5469,12 @@ public final class SpellExecutionEngine {
                 && spell.prefix() != SpellPrefix.UTILITY;
 
         EssenceType formMat = slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
+        boolean hydroCutterBeam = formMat == EssenceType.WATER && formMutation.mutated();
+        ClipContext.Block rayBlockClip = hydroCutterBeam ? ClipContext.Block.COLLIDER : ClipContext.Block.OUTLINE;
         ClipContext.Fluid rayFluidClip = (formMat == EssenceType.WATER || !slotHasEffect(slot, SpellCoreEffect.TRANSMUTE))
                 ? ClipContext.Fluid.NONE
                 : ClipContext.Fluid.ANY;
-        BlockHitResult blockHit = level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, rayFluidClip, caster));
+        BlockHitResult blockHit = level.clip(new ClipContext(start, end, rayBlockClip, rayFluidClip, caster));
         Vec3 effectiveEnd = (!wallPhasing && blockHit.getType() == HitResult.Type.BLOCK) ? blockHit.getLocation() : end;
 
         // Broadcast custom 3D volumetric Beam or Crescent Slash + Materia-matched custom particles!
@@ -5223,7 +5517,8 @@ public final class SpellExecutionEngine {
                 && (rayFlowMat == EssenceType.MIASMA || rayFlowMat == EssenceType.OBLIVION || rayFlowMat == EssenceType.ENTROPIC);
         boolean radiantRayTouchPurify = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
                 && slot.formPart().mutationEnabled()
-                && slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.RADIANT;
+                && slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.RADIANT
+                && !spell.prefix().enforcesZeroEntityHarm();
         boolean netherRayTouchSmelt = slot.formPart().form() == SpellDeliveryForm.TOUCH_STRIKE
                 && slot.formPart().mutationEnabled()
                 && slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.NETHER;
@@ -5233,7 +5528,7 @@ public final class SpellExecutionEngine {
         boolean vitaeLifeTether = slot.formPart().form() == SpellDeliveryForm.BEAM
                 && slot.formPart().mutationEnabled()
                 && formMat == EssenceType.VITAE;
-        long radiantRayPurifyUntil = level.getGameTime() + 40L;
+        long radiantRayPurifyUntil = level.getGameTime() + 2L;
         long netherRaySmeltUntil = level.getGameTime() + 130L;
         long aridRayMummifyUntil = level.getGameTime() + 60L;
         for (LivingEntity target : hitEntities) {
@@ -5248,6 +5543,9 @@ public final class SpellExecutionEngine {
             }
             struckTargets.add(target);
             boolean skipOffensiveVitaeBeam = ((vitaeLifeTether && isFriendlyOrAnimalForVitae(caster, target))
+                    || (formMutation.mutated() && slot.formPart().form() == SpellDeliveryForm.BEAM
+                        && formMat == EssenceType.NATURE
+                        && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(target, caster))
                     || (formMutation.mutated() && slot.formPart().form() == SpellDeliveryForm.BEAM
                         && (slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.AURA
                             || slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.SPRING
@@ -5331,20 +5629,35 @@ public final class SpellExecutionEngine {
                 formHandler.onTouchStrikeFormCast(level, caster, direction, allRayTouchStruck, spell, slot, fallbackMateria, apparatusPotency);
             }
         }
+        if (radiantRayTouchPurify) {
+            for (LivingEntity struckEnt : allRayTouchStruck) {
+                if (struckEnt.isAlive() && !struckEnt.isDeadOrDying()) {
+                    EntityHelper.getPersistentData(struckEnt).remove(SpellLingeringZoneManager.TAG_RADIANT_PURIFY_DROPS_UNTIL);
+                }
+            }
+        }
     }
 
-    private static boolean isDownwardAirJetstreamCast(Player player, SpellAssembly spell, @Nullable EssenceType fallbackMateria) {
-        if (player.getXRot() < 32.0F) {
+    private static boolean isDownwardAirJetstreamCast(ServerLevel level, Player player, SpellAssembly spell, @Nullable EssenceType fallbackMateria) {
+        Vec3 direction = player.getLookAngle().normalize();
+        if (direction.y >= -0.50D) {
             return false;
         }
+        boolean hasMutatedAirBeam = false;
         for (SubSpellSlot slot : spell.subSpells()) {
             if (slot.formPart().form() == SpellDeliveryForm.BEAM
                     && slot.formPart().mutationEnabled()
                     && slot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.AIR) {
-                return true;
+                hasMutatedAirBeam = true;
+                break;
             }
         }
-        return false;
+        if (!hasMutatedAirBeam) {
+            return false;
+        }
+        return ddraig.net.entropica.spell.mutation.element.AirSpellMutationHandler.hasJetpackSurfaceWithinReach(
+                level, player, direction, spell.getEffectiveTier()
+        );
     }
 
     private static boolean containsBlinkEffect(SpellAssembly spell) {
@@ -5808,13 +6121,18 @@ public final class SpellExecutionEngine {
                     case RESTORATION -> applySpellRestoration(
                             level, caster, living, spell, effectBinding, effectMateria, effectMutation, apparatusPotency, true
                     );
-                    case WARD -> SpellCombatReactionEngine.grantWardShield(
-                            living,
-                            effectMateria,
-                            tier,
-                            effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
-                            160 + tier * 40
-                    );
+                    case WARD -> {
+                        SpellCombatReactionEngine.grantWardShield(
+                                living,
+                                effectMateria,
+                                tier,
+                                effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
+                                160 + tier * 40
+                        );
+                        if (effHandler != null) {
+                            effHandler.onWardApplied(level, caster, living, tier, spell);
+                        }
+                    }
                     case FLIGHT -> {
                         boolean validRecipient = living == caster
                                 || living instanceof Player
@@ -5857,35 +6175,43 @@ public final class SpellExecutionEngine {
                     }
                     case BLINK -> {
                         if (caster != null) {
-                            boolean zeroStep = spell.flowPart().distanceStep().isPointBlankZero();
-                            float flawScale = spell.flawProfile().getRangeAndRadiusMultiplier();
-                            float rangeScale = zeroStep
-                                    ? flawScale
-                                    : flawScale * spell.flowPart().distanceStep().getDistanceScaleFromStandard();
-                            if (subMode.equals("swap") || subMode.equals("transposition")) {
-                                double swapReach = zeroStep
-                                        ? 2.5D * flawScale
-                                        : (tier <= 3 ? 16.0D : 16.0D + (tier - 3) * 2.5D) * rangeScale;
-                                LivingEntity swapTarget = living != caster
-                                        ? living
-                                        : raycastBlinkSwapTarget(level, caster, caster.getLookAngle().normalize(),
-                                                swapReach, tier, effectMateria, effectMutation.mutated());
-                                if (swapTarget == null || !performTranspositionSwap(level, caster, swapTarget, tier, effectMateria, effectMutation.mutated(), rangeScale)) {
-                                    if (spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
-                                        BLINK_CANCELLED_REFUND_FLAG.set(true);
-                                        BLINK_CANCELLED_REASON.set("§e✦ Position Swap Cancelled §7— No valid target in sights (§a100% Materia refunded§7)");
+                            boolean prevSlowBlink = ACTIVE_BLINK_SLOW_FLOW.get();
+                            ACTIVE_BLINK_SLOW_FLOW.set(spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY);
+                            try {
+                                EntityHelper.getPersistentData(caster).putBoolean(
+                                        SpellLingeringZoneManager.TAG_AIR_BLINK_WARD_SAFE, spell.hasWardFriendlyFireSafeguard());
+                                boolean zeroStep = spell.flowPart().distanceStep().isPointBlankZero();
+                                float flawScale = spell.flawProfile().getRangeAndRadiusMultiplier();
+                                float rangeScale = zeroStep
+                                        ? flawScale
+                                        : flawScale * spell.flowPart().distanceStep().getDistanceScaleFromStandard();
+                                if (subMode.equals("swap") || subMode.equals("transposition")) {
+                                    double swapReach = zeroStep
+                                            ? 2.5D * flawScale
+                                            : (tier <= 3 ? 16.0D : 16.0D + (tier - 3) * 2.5D) * rangeScale;
+                                    LivingEntity swapTarget = living != caster
+                                            ? living
+                                            : raycastBlinkSwapTarget(level, caster, caster.getLookAngle().normalize(),
+                                                    swapReach, tier, effectMateria, effectMutation.mutated());
+                                    if (swapTarget == null || !performTranspositionSwap(level, caster, swapTarget, tier, effectMateria, effectMutation.mutated(), rangeScale)) {
+                                        if (spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
+                                            BLINK_CANCELLED_REFUND_FLAG.set(true);
+                                            BLINK_CANCELLED_REASON.set("§e✦ Position Swap Cancelled §7— No valid target in sights (§a100% Materia refunded§7)");
+                                        }
                                     }
+                                } else if (living == caster) {
+                                    boolean blinked = zeroStep
+                                            ? performPointBlankZeroBlink(level, caster, tier, effectMateria, effectMutation.mutated())
+                                            : performAimedSelfBlink(level, caster, caster.getLookAngle(), tier, effectMateria, effectMutation.mutated(), rangeScale);
+                                    if (!blinked && spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
+                                        BLINK_CANCELLED_REFUND_FLAG.set(true);
+                                    }
+                                } else {
+                                    Vec3 stepDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
+                                    performSafeBlink(level, caster, living.position().add(stepDir.scale(1.6D)), tier, effectMateria, effectMutation.mutated(), rangeScale);
                                 }
-                            } else if (living == caster) {
-                                boolean blinked = zeroStep
-                                        ? performPointBlankZeroBlink(level, caster, tier, effectMateria, effectMutation.mutated())
-                                        : performAimedSelfBlink(level, caster, caster.getLookAngle(), tier, effectMateria, effectMutation.mutated(), rangeScale);
-                                if (!blinked && spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
-                                    BLINK_CANCELLED_REFUND_FLAG.set(true);
-                                }
-                            } else {
-                                Vec3 stepDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
-                                performSafeBlink(level, caster, living.position().add(stepDir.scale(1.6D)), tier, effectMateria, effectMutation.mutated(), rangeScale);
+                            } finally {
+                                ACTIVE_BLINK_SLOW_FLOW.set(prevSlowBlink);
                             }
                         }
                     }
@@ -5912,6 +6238,16 @@ public final class SpellExecutionEngine {
         }
 
         if (!(hitEntity instanceof LivingEntity living)) {
+            return;
+        }
+
+        // Section 6.4 Verdant Growth Ray friendly-fire safeguard (covers secondary effects & 3.0s burst finishers too)
+        if (activeSlot != null
+                && activeSlot.formPart().form() == SpellDeliveryForm.BEAM
+                && activeSlot.formPart().mutationEnabled()
+                && !isCasterBeneficialVerb(effect)
+                && activeSlot.formPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.NATURE
+                && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(living, caster)) {
             return;
         }
 
@@ -6008,44 +6344,57 @@ public final class SpellExecutionEngine {
                     applySyncedMotion(living, new Vec3(direction.x * strength, Math.max(0.32D, direction.y * strength + 0.25D), direction.z * strength));
                 }
             }
-            case WARD -> SpellCombatReactionEngine.grantWardShield(
-                    living,
-                    effectMateria,
-                    tier,
-                    effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
-                    160 + tier * 40
-            );
+            case WARD -> {
+                SpellCombatReactionEngine.grantWardShield(
+                        living,
+                        effectMateria,
+                        tier,
+                        effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
+                        160 + tier * 40
+                );
+                if (effHandler != null) {
+                    effHandler.onWardApplied(level, caster, living, tier, spell);
+                }
+            }
             case BLINK -> {
                 if (caster != null) {
-                    boolean zeroStep = spell.flowPart().distanceStep().isPointBlankZero();
-                    float flawScale = spell.flawProfile().getRangeAndRadiusMultiplier();
-                    float rangeScale = zeroStep
-                            ? flawScale
-                            : flawScale * spell.flowPart().distanceStep().getDistanceScaleFromStandard();
-                    if (subMode.equals("swap") || subMode.equals("transposition")) {
-                        double swapReach = zeroStep
-                                ? 2.5D * flawScale
-                                : (tier <= 3 ? 16.0D : 16.0D + (tier - 3) * 2.5D) * rangeScale;
-                        LivingEntity swapTarget = living != caster
-                                ? living
-                                : raycastBlinkSwapTarget(level, caster, caster.getLookAngle().normalize(),
-                                        swapReach, tier, effectMateria, effectMutation.mutated());
-                        if (swapTarget == null || !performTranspositionSwap(level, caster, swapTarget, tier, effectMateria, effectMutation.mutated(), rangeScale)) {
-                            if (spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
-                                BLINK_CANCELLED_REFUND_FLAG.set(true);
-                                BLINK_CANCELLED_REASON.set("§e✦ Position Swap Cancelled §7— No valid target in sights (§a100% Materia refunded§7)");
+                    boolean prevSlowBlink = ACTIVE_BLINK_SLOW_FLOW.get();
+                    ACTIVE_BLINK_SLOW_FLOW.set(spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY);
+                    try {
+                        EntityHelper.getPersistentData(caster).putBoolean(
+                                SpellLingeringZoneManager.TAG_AIR_BLINK_WARD_SAFE, spell.hasWardFriendlyFireSafeguard());
+                        boolean zeroStep = spell.flowPart().distanceStep().isPointBlankZero();
+                        float flawScale = spell.flawProfile().getRangeAndRadiusMultiplier();
+                        float rangeScale = zeroStep
+                                ? flawScale
+                                : flawScale * spell.flowPart().distanceStep().getDistanceScaleFromStandard();
+                        if (subMode.equals("swap") || subMode.equals("transposition")) {
+                            double swapReach = zeroStep
+                                    ? 2.5D * flawScale
+                                    : (tier <= 3 ? 16.0D : 16.0D + (tier - 3) * 2.5D) * rangeScale;
+                            LivingEntity swapTarget = living != caster
+                                    ? living
+                                    : raycastBlinkSwapTarget(level, caster, caster.getLookAngle().normalize(),
+                                            swapReach, tier, effectMateria, effectMutation.mutated());
+                            if (swapTarget == null || !performTranspositionSwap(level, caster, swapTarget, tier, effectMateria, effectMutation.mutated(), rangeScale)) {
+                                if (spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
+                                    BLINK_CANCELLED_REFUND_FLAG.set(true);
+                                    BLINK_CANCELLED_REASON.set("§e✦ Position Swap Cancelled §7— No valid target in sights (§a100% Materia refunded§7)");
+                                }
                             }
+                        } else if (living == caster) {
+                            boolean blinked = zeroStep
+                                    ? performPointBlankZeroBlink(level, caster, tier, effectMateria, effectMutation.mutated())
+                                    : performAimedSelfBlink(level, caster, caster.getLookAngle(), tier, effectMateria, effectMutation.mutated(), rangeScale);
+                            if (!blinked && spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
+                                BLINK_CANCELLED_REFUND_FLAG.set(true);
+                            }
+                        } else {
+                            Vec3 stepDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
+                            performSafeBlink(level, caster, living.position().add(stepDir.scale(1.6D)), tier, effectMateria, effectMutation.mutated(), rangeScale);
                         }
-                    } else if (living == caster) {
-                        boolean blinked = zeroStep
-                                ? performPointBlankZeroBlink(level, caster, tier, effectMateria, effectMutation.mutated())
-                                : performAimedSelfBlink(level, caster, caster.getLookAngle(), tier, effectMateria, effectMutation.mutated(), rangeScale);
-                        if (!blinked && spell.subSpells().size() == 1 && slotType == SpellPartSlotType.CORE_EFFECT) {
-                            BLINK_CANCELLED_REFUND_FLAG.set(true);
-                        }
-                    } else {
-                        Vec3 stepDir = direction.lengthSqr() > 1.0E-4D ? direction.normalize() : caster.getLookAngle().normalize();
-                        performSafeBlink(level, caster, living.position().add(stepDir.scale(1.6D)), tier, effectMateria, effectMutation.mutated(), rangeScale);
+                    } finally {
+                        ACTIVE_BLINK_SLOW_FLOW.set(prevSlowBlink);
                     }
                 }
             }
@@ -6137,6 +6486,12 @@ public final class SpellExecutionEngine {
                             effectMutation.potencyMultiplier() * spell.flawProfile().getPotencyMultiplier(),
                             160 + tier * 40
                     );
+                    if (effHandler != null) {
+                        effHandler.onWardApplied(level, caster, caster, tier, spell);
+                        effHandler.onEffectAppliedToEntity(
+                                level, caster, caster, Vec3.atLowerCornerOf(hitFace.getUnitVec3i()), effect, tier, spell
+                        );
+                    }
                 }
             }
             case RESTORATION -> {
@@ -6148,6 +6503,9 @@ public final class SpellExecutionEngine {
                 }
             }
             case KINETIC -> {
+                if (effHandler != null && effHandler.onKineticBlock(level, caster, pos, hitFace, state, tier, spell)) {
+                    break;
+                }
                 // Section 6.11 Void Gravity Well: aiming a Void-mutated Kinetic spell at terrain spawns a stationary 3D black hole!
                 if (effectMutation.mutated() && effectMateria == EssenceType.VOID) {
                     Vec3 wellPos = state.isAir()
@@ -6208,9 +6566,22 @@ public final class SpellExecutionEngine {
             case BREAK -> {
                 if (isProtectedBlockOrContainer(level, pos, state)) return;
                 float maxHardness = 2.0F + (tier * 5.0F);
-                // Section 2.2 / 2.3 / 6.6 Frozen & Glacial Lineage Excavation: guaranteed Silk Touch drops
-                // AND automatic freezing of exposed adjacent water/lava leaks into Ice / Obsidian!
-                if (MateriaFamilyTier.isFrozenLineage(effectMateria)) {
+                boolean radiantLineageExcavate = effectMateria == EssenceType.RADIANT
+                        || effectMateria == EssenceType.DAWN
+                        || effectMateria == EssenceType.AURORA
+                        || effectMateria == EssenceType.CELESTIAL
+                        || effectMateria == EssenceType.EMPYREAN
+                        || effectMateria == EssenceType.APOTHEOSIS;
+                if (effHandler != null && effHandler.onBreakBlock(level, caster, pos, state, tier)) {
+                    if (radiantLineageExcavate) {
+                        ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler
+                                .onRadiantLineageExcavateBlock(level, caster, pos, tier);
+                    }
+                    return;
+                }
+                // Section 2.2 / 2.3 / 6.6 Frozen & Glacial Lineage OR inherited Silk Touch Excavation:
+                // guaranteed Silk Touch drops AND automatic freezing of exposed adjacent water/lava leaks!
+                if (MateriaFamilyTier.isFrozenLineage(effectMateria) || effectMutation.silkTouchInherited()) {
                     if (ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler
                             .harvestBlockWithSilkTouchAndSealLiquids(
                                     level, caster, pos, state, maxHardness,
@@ -6218,9 +6589,9 @@ public final class SpellExecutionEngine {
                         return;
                     }
                 }
-                // Section 2.2 / 2.3 / 6.7 Nether & Pyre Lineage Excavation: in-world auto-smelting of broken blocks,
-                // batch fuel discount, AND automatic vaporization of exposed water pockets into high-pressure steam!
-                if (MateriaFamilyTier.isNetherLineage(effectMateria)) {
+                // Section 2.2 / 2.3 / 6.7 Nether & Pyre Lineage OR inherited Auto-Smelt Excavation:
+                // in-world auto-smelting of broken blocks, batch fuel discount, AND water pocket vaporization!
+                if (MateriaFamilyTier.isNetherLineage(effectMateria) || effectMutation.autoSmeltInherited()) {
                     if (ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler
                             .harvestBlockWithAutoSmeltAndVaporizeWater(
                                     level, caster, pos, state, maxHardness, tier, effectMateria)) {
@@ -6237,19 +6608,6 @@ public final class SpellExecutionEngine {
                         return;
                     }
                 }
-                boolean radiantLineageExcavate = effectMateria == EssenceType.RADIANT
-                        || effectMateria == EssenceType.DAWN
-                        || effectMateria == EssenceType.AURORA
-                        || effectMateria == EssenceType.CELESTIAL
-                        || effectMateria == EssenceType.EMPYREAN
-                        || effectMateria == EssenceType.APOTHEOSIS;
-                if (effHandler != null && effHandler.onTransmuteBlock(level, caster, pos, state, tier)) {
-                    if (radiantLineageExcavate) {
-                        ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler
-                                .onRadiantLineageExcavateBlock(level, caster, pos, tier);
-                    }
-                    return;
-                }
                 float hardness = state.getDestroySpeed(level, pos);
                 if (hardness >= 0.0F && hardness <= maxHardness) {
                     level.destroyBlock(pos, true, caster);
@@ -6260,17 +6618,35 @@ public final class SpellExecutionEngine {
                 }
             }
             case HARVEST -> {
-                harvestOrGrowPlantBlock(level, caster, pos, state, tier, effectMateria, effectMutation.mutated());
+                if (effHandler == null || !effHandler.onHarvestBlock(level, caster, pos, state, tier)) {
+                    harvestOrGrowPlantBlock(level, caster, pos, state, tier, effectMateria, effectMutation.mutated());
+                }
                 if (MateriaFamilyTier.isVoidLineage(effectMateria) && caster instanceof Player voidHarvester) {
                     ddraig.net.entropica.spell.mutation.element.VoidSpellMutationHandler
                             .collectFreshDropsDirectToInventory(level, voidHarvester, pos, 1.85D);
                 }
             }
             case TRANSMUTE -> {
-                // Also transmute any floating ItemEntities resting directly on this block!
+                // Section 5.5 Unified 2.5-Second (50-tick) Continuous Transmute Channel Gate:
+                // Never execute dropped-item or block transmutation on tick 0 before the 2.5s channel finishes!
+                if (!ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isTransmuteChannelSatisfied(level, caster)) {
+                    if (effHandler != null && isChanneledTransmuteHandler(effectMateria)) {
+                        effHandler.onTransmuteBlock(level, caster, pos, state, tier);
+                        return;
+                    }
+                    ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.beginOrExecuteGenericTransmuteChannel(
+                            level,
+                            caster,
+                            pos,
+                            effectMateria != null && effectMateria != EssenceType.REGULAR ? effectMateria : EssenceType.EARTH,
+                            () -> executeSingleEffectOnBlock(level, caster, pos, hitFace, spell, effectBinding, slotType, fallbackMateria)
+                    );
+                    return;
+                }
+                // Channel satisfied: transmute any floating ItemEntities resting directly on this block!
                 for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1.25D))) {
                     if (item.isAlive()) {
-                        transmuteDroppedItemWithFallback(level, caster, item, tier, effectMateria, effHandler);
+                        transmuteDroppedItemDirectAfterChannel(level, caster, item, tier, effectMateria, effHandler);
                     }
                 }
                 // Section 2.2 Lightning / Static Lineage Machine Re-Charging: recharge placed Orbis Cells & redstone machinery safely before container guard!
@@ -6426,16 +6802,22 @@ public final class SpellExecutionEngine {
                         // A missed Position Swap projectile striking world blocks does NOT self-blink!
                         break;
                     }
-                    BlockPos safeDest = state.isAir() ? pos : pos.relative(hitFace);
-                    performSafeBlink(
-                            level,
-                            caster,
-                            Vec3.atBottomCenterOf(safeDest),
-                            tier,
-                            effectMateria,
-                            effectMutation.mutated(),
-                            spell.flawProfile().getRangeAndRadiusMultiplier()
-                    );
+                    boolean prevSlowBlink = ACTIVE_BLINK_SLOW_FLOW.get();
+                    ACTIVE_BLINK_SLOW_FLOW.set(spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY);
+                    try {
+                        BlockPos safeDest = state.isAir() ? pos : pos.relative(hitFace);
+                        performSafeBlink(
+                                level,
+                                caster,
+                                Vec3.atBottomCenterOf(safeDest),
+                                tier,
+                                effectMateria,
+                                effectMutation.mutated(),
+                                spell.flawProfile().getRangeAndRadiusMultiplier()
+                        );
+                    } finally {
+                        ACTIVE_BLINK_SLOW_FLOW.set(prevSlowBlink);
+                    }
                 }
             }
             case LOGISTICS -> executeLogisticsMagnet(level, caster, Vec3.atCenterOf(pos), tier, effectMateria);
@@ -6476,21 +6858,25 @@ public final class SpellExecutionEngine {
 
         // Section 5.7 Sliding Scale Undead Matchup: Combat Restoration inverts into Materia-scaled magic damage vs hostile Undead!
         if (!zeroEntityHarmSafeguard && !alliedTarget && living.getType().is(EntityTypeTags.UNDEAD)) {
-            int score = (effectMateria != null && effectMateria != EssenceType.REGULAR)
-                    ? VisInteractionManager.getInstance().calculateTotalVisScore(
-                            List.of(effectMateria.getSerializedName()),
-                            Set.of(EssenceType.UNDEAD)
+            Set<EssenceType> undeadAffinities = EnumSet.noneOf(EssenceType.class);
+            undeadAffinities.addAll(SpellCombatReactionEngine.resolveEntityAffinities(living));
+            undeadAffinities.add(EssenceType.UNDEAD);
+            boolean mobToPlayer = !(caster instanceof Player) && living instanceof Player;
+            float undeadMult = (effectMateria != null && effectMateria != EssenceType.REGULAR)
+                    ? VisInteractionManager.getInstance().calculateDamageMultiplier(
+                            effectMateria, undeadAffinities, mobToPlayer, 0.0F
                     )
-                    : 0;
-            float undeadMult = score > 0 ? 1.50F : (score < 0 ? 0.25F : 1.00F);
-            SpellCombatReactionEngine.hurtWithPureMateria(
-                    level,
-                    living,
-                    caster != null ? level.damageSources().indirectMagic(caster, caster) : level.damageSources().magic(),
-                    healAmt * undeadMult
-            );
-            level.sendParticles(ParticleTypes.END_ROD, living.getX(), living.getY(0.85D), living.getZ(),
-                    10, 0.3D, 0.4D, 0.3D, 0.06D);
+                    : 1.00F;
+            if (undeadMult > 0.0F) {
+                SpellCombatReactionEngine.hurtWithPureMateria(
+                        level,
+                        living,
+                        caster != null ? level.damageSources().indirectMagic(caster, caster) : level.damageSources().magic(),
+                        healAmt * undeadMult
+                );
+                level.sendParticles(ParticleTypes.END_ROD, living.getX(), living.getY(0.85D), living.getZ(),
+                        10, 0.3D, 0.4D, 0.3D, 0.06D);
+            }
             return;
         }
 
@@ -6499,10 +6885,12 @@ public final class SpellExecutionEngine {
 
         if (subMode.equals("cleanse")
                 || subMode.equals("purify")
-                || subMode.equals("default")
-                || effectMateria == EssenceType.RADIANT
-                || effectMateria == EssenceType.VITAE) {
+                || isDedicatedCleansingMateria(effectMateria)
+                || SpellCombatReactionEngine.hasActiveMutatedHexPublic(living, EssenceType.RADIANT)
+                || SpellCombatReactionEngine.hasActiveMutatedHexPublic(living, EssenceType.NETHER)) {
             SpellCombatReactionEngine.purifyHexesAndNegativeEffects(living);
+        } else if (effectMateria != null && effectMateria != EssenceType.REGULAR) {
+            SpellCombatReactionEngine.checkElementalHexCounterCleanse(living, effectMateria);
         }
 
         if (subMode.equals("mending") || subMode.equals("flow")) {
@@ -6527,10 +6915,58 @@ public final class SpellExecutionEngine {
         level.sendParticles(ParticleTypes.HEART, living.getX(), living.getY(0.85D), living.getZ(), 5, 0.3D, 0.3D, 0.3D, 0.05D);
     }
 
+    private static boolean isDedicatedCleansingMateria(@Nullable EssenceType materia) {
+        if (materia == null) return false;
+        return switch (materia) {
+            case VITAE, RADIANT, SPRING, SYLVAN, GENESIS, CELESTIAL, PRISMATIC, EMPYREAN, APOTHEOSIS -> true;
+            default -> false;
+        };
+    }
+
+    private static boolean isChanneledTransmuteHandler(@Nullable EssenceType materia) {
+        if (materia == null) return false;
+        return switch (materia) {
+            case PYRE, PENUMBRA, RIME, SPRING, STATIC, SYLVAN, MIASMA, GENESIS, OBLIVION,
+                    CHIMERA, AETHER, ENTROPIC, CELESTIAL, PRISMATIC,
+                    EMPYREAN, CATACLYSM, TERMINUS, ESCHATON, APOTHEOSIS, ENTROPICA -> true;
+            default -> false;
+        };
+    }
+
     /**
-     * Section 5.5 Dropped-Item Transmutation, Invalid Organic Charring Fallback, and 30% Bulk Stack Fuel Discount.
+     * Section 5.5 Dropped-Item Transmutation gated behind the unified 2.5s (50-tick) continuous channel.
      */
     private static void transmuteDroppedItemWithFallback(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            ItemEntity itemEntity,
+            int tier,
+            @Nullable EssenceType effectMateria,
+            @Nullable MateriaPartMutationHandler effHandler
+    ) {
+        if (!itemEntity.isAlive() || itemEntity.getItem().isEmpty()) return;
+        if (!ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isTransmuteChannelSatisfied(level, caster)) {
+            ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.beginOrExecuteGenericTransmuteChannel(
+                    level,
+                    caster,
+                    itemEntity.blockPosition(),
+                    effectMateria != null && effectMateria != EssenceType.REGULAR ? effectMateria : EssenceType.EARTH,
+                    () -> {
+                        if (itemEntity.isAlive()) {
+                            transmuteDroppedItemDirectAfterChannel(level, caster, itemEntity, tier, effectMateria, effHandler);
+                        }
+                    }
+            );
+            return;
+        }
+        transmuteDroppedItemDirectAfterChannel(level, caster, itemEntity, tier, effectMateria, effHandler);
+    }
+
+    /**
+     * Executes Dropped-Item Transmutation, Invalid Organic Charring Fallback, and 30% Bulk Stack Fuel Discount
+     * once the 2.5s (50-tick) continuous Transmute channel has completed.
+     */
+    public static void transmuteDroppedItemDirectAfterChannel(
             ServerLevel level,
             @Nullable LivingEntity caster,
             ItemEntity itemEntity,
@@ -6734,6 +7170,8 @@ public final class SpellExecutionEngine {
         }
 
         int tier = spell.getEffectiveTier();
+        EntityHelper.getPersistentData(caster).putBoolean(
+                SpellLingeringZoneManager.TAG_AIR_BLINK_WARD_SAFE, spell.hasWardFriendlyFireSafeguard());
         EssenceType effPrimary = slot.primaryEffect().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria);
         SpellMutationProfile primMut = slot.primaryEffect().resolveMutation(SpellPartSlotType.CORE_EFFECT, spell.materiaSpecific(), fallbackMateria);
         String subMode = slot.primaryEffect().subMode().toLowerCase(Locale.ROOT);
@@ -6744,6 +7182,9 @@ public final class SpellExecutionEngine {
                 ? formRangeMult
                 : formRangeMult * spell.flowPart().distanceStep().getDistanceScaleFromStandard();
 
+        boolean prevSlowBlink = ACTIVE_BLINK_SLOW_FLOW.get();
+        ACTIVE_BLINK_SLOW_FLOW.set(spell.flowPart().flow() == SpellFlowModifier.SLOW_HEAVY);
+        try {
         if (isSwap) {
             double swapReach = zeroStep
                     ? 2.5D * formRangeMult
@@ -6815,6 +7256,9 @@ public final class SpellExecutionEngine {
                 BLINK_CANCELLED_REFUND_FLAG.set(true);
             }
             return true;
+        }
+        } finally {
+            ACTIVE_BLINK_SLOW_FLOW.set(prevSlowBlink);
         }
 
         Vec3 arrivalCenter = caster.position();
@@ -6937,12 +7381,12 @@ public final class SpellExecutionEngine {
         if (caster.distanceToSqr(target) > (maxDist + 1.5D) * (maxDist + 1.5D)) {
             return false;
         }
-        Vec3 casterOrigin = caster.position();
-        Vec3 targetOrigin = target.position();
+        final Vec3 departurePos = new Vec3(caster.getX(), caster.getY(), caster.getZ());
+        final Vec3 arrivalPos = new Vec3(target.getX(), target.getY(), target.getZ());
 
-        caster.teleportTo(targetOrigin.x, targetOrigin.y, targetOrigin.z);
+        caster.teleportTo(arrivalPos.x, arrivalPos.y, arrivalPos.z);
         caster.resetFallDistance();
-        target.teleportTo(casterOrigin.x, casterOrigin.y, casterOrigin.z);
+        target.teleportTo(departurePos.x, departurePos.y, departurePos.z);
         target.resetFallDistance();
 
         if (mutated && materia != EssenceType.AIR
@@ -6950,13 +7394,14 @@ public final class SpellExecutionEngine {
                 && materia != EssenceType.UMBRAL
                 && materia != EssenceType.ABYSS
                 && materia != EssenceType.NULL_U) {
-            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastBlinkRift(level, casterOrigin, targetOrigin, materia, tier);
-            ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, targetOrigin, materia, null, 1.0D, tier);
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastBlinkRift(level, departurePos, arrivalPos, materia, tier);
+            ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, arrivalPos, materia, null, 1.0D, tier);
         }
 
         MateriaPartMutationHandler effHandler = SpellMutationHandlerRegistry.resolveActive(materia, mutated);
         if (effHandler != null) {
-            effHandler.onBlinkCast(level, caster, casterOrigin, targetOrigin, tier);
+            // Pass caster's pre-swap origin (departurePos) so departure vacuums/decoys spawn where the caster left!
+            effHandler.onBlinkCast(level, caster, departurePos, arrivalPos, tier);
         }
         return true;
     }
@@ -6976,6 +7421,9 @@ public final class SpellExecutionEngine {
         }
 
         Vec3 origin = caster.position();
+        if (mutated && materia == EssenceType.ESCHATON && tryExecuteEschatonSpacetimeFoldSwap(level, caster, origin, tier)) {
+            return true;
+        }
         double freefallSpeed = caster.getDeltaMovement().y < -0.25D ? -caster.getDeltaMovement().y : 0.0D;
         caster.resetFallDistance();
 
@@ -7005,7 +7453,9 @@ public final class SpellExecutionEngine {
                 || materia == EssenceType.WRAITH
                 || materia == EssenceType.STATIC
                 || materia == EssenceType.CATACLYSM
-                || materia == EssenceType.ESCHATON;
+                || materia == EssenceType.ESCHATON
+                || materia == EssenceType.APOTHEOSIS
+                || materia == EssenceType.ENTROPICA;
         if (!suppressGenericRift) {
             ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, origin, materia, null, 1.0D, tier);
         }
@@ -7038,7 +7488,32 @@ public final class SpellExecutionEngine {
         Vec3 dir = lookDirection.lengthSqr() > 1.0E-4D ? lookDirection.normalize() : caster.getLookAngle().normalize();
         Vec3 eye = caster.getEyePosition();
         BlockPos approxEnd = BlockPos.containing(eye.add(dir.scale(16.0D * Math.max(0.25D, rangeScale))));
-        double maxDist = resolveBlinkMaxRange(level, caster.position(), approxEnd, tier, materia, mutated, rangeScale);
+        boolean treePhase = (materia == EssenceType.NATURE && mutated) || (materia == EssenceType.OVERGROWTH && mutated);
+        if (treePhase
+                && !isNearTreeFoliage(level, BlockPos.containing(caster.position()))
+                && !isNearTreeFoliage(level, approxEnd)) {
+            Vec3 treeProbeEnd = eye.add(dir.scale((24.0D + tier * 2.5D) * Math.max(0.25D, rangeScale)));
+            BlockHitResult treeProbeHit = level.clip(new ClipContext(
+                    eye, treeProbeEnd, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, caster
+            ));
+            if (treeProbeHit.getType() == HitResult.Type.BLOCK && isNearTreeFoliage(level, treeProbeHit.getBlockPos())) {
+                approxEnd = treeProbeHit.getBlockPos();
+            }
+        }
+        boolean earthBurrow = mutated && materia == EssenceType.EARTH;
+        boolean prevEarthBoost = ACTIVE_EARTH_BURROW_BOOST.get();
+        if (earthBurrow) {
+            double baseRange = (tier <= 3 ? 16.0D : 16.0D + (tier - 3) * 2.5D) * Math.max(0.25D, rangeScale);
+            ACTIVE_EARTH_BURROW_BOOST.set(probesStoneOrSoilAlongBlink(level, eye, dir, baseRange * 1.25D, approxEnd));
+        }
+        double maxDist;
+        try {
+            maxDist = resolveBlinkMaxRange(level, caster.position(), approxEnd, tier, materia, mutated, rangeScale);
+        } finally {
+            if (earthBurrow) {
+                ACTIVE_EARTH_BURROW_BOOST.set(prevEarthBoost);
+            }
+        }
         boolean phaseWalls = canBlinkPhaseWalls(level, caster.position(), approxEnd, tier, materia, mutated);
         boolean miasmaThinBarrierPhase = mutated && materia == EssenceType.MIASMA;
 
@@ -7061,6 +7536,27 @@ public final class SpellExecutionEngine {
                     || barrier.getBlock() instanceof net.minecraft.world.level.block.CrossCollisionBlock);
             if (thinBarrier) {
                 desiredPos = rayEnd.subtract(0.0D, 0.8D, 0.0D);
+            } else if (!phaseWalls && treePhase && (barrier.is(BlockTags.LOGS) || barrier.is(BlockTags.LEAVES))) {
+                // Section 6.4 Tree-Stepping (A4): phase cleanly through living tree trunks & leaf canopies at Tiers 1–3 without phasing stone walls!
+                desiredPos = rayEnd.subtract(0.0D, 0.8D, 0.0D);
+                Vec3 marchSpan = rayEnd.subtract(eye);
+                double marchLen = marchSpan.length();
+                if (marchLen > 0.25D) {
+                    Vec3 marchDir = marchSpan.scale(1.0D / marchLen);
+                    for (double d = 0.5D; d <= marchLen; d += 0.45D) {
+                        Vec3 probePt = eye.add(marchDir.scale(d));
+                        BlockPos bp = BlockPos.containing(probePt);
+                        BlockState bs = level.getBlockState(bp);
+                        if (!bs.getCollisionShape(level, bp).isEmpty()
+                                && !bs.is(BlockTags.LOGS)
+                                && !bs.is(BlockTags.LEAVES)) {
+                            desiredPos = eye.add(marchDir.scale(Math.max(0.0D, d - 0.55D))).subtract(0.0D, 0.8D, 0.0D);
+                            break;
+                        }
+                    }
+                }
+            } else if (phaseWalls && treePhase && (barrier.is(BlockTags.LOGS) || barrier.is(BlockTags.LEAVES))) {
+                desiredPos = rayEnd.subtract(0.0D, 0.8D, 0.0D);
             } else if (!phaseWalls || (losHit.getDirection() == Direction.UP && dir.y > -0.55D)) {
                 // Visible floor surface ahead (or Tiers 1–3 line-of-sight block): snap onto the visible surface!
                 if (losHit.getDirection() == Direction.UP) {
@@ -7070,7 +7566,7 @@ public final class SpellExecutionEngine {
                 }
             } else {
                 // Tier 4+ / Void / Earth wall-phasing through walls, doors, cliffs, ceilings, or steep floors!
-                desiredPos = rayEnd.subtract(0.0D, 0.8D, 0.0D);
+                desiredPos = clampBeforeUnbreakableBarrier(level, eye, rayEnd, earthBurrow);
             }
         } else {
             desiredPos = rayEnd.subtract(0.0D, 0.8D, 0.0D);
@@ -7090,7 +7586,23 @@ public final class SpellExecutionEngine {
     ) {
         Vec3 eye = caster.getEyePosition();
         BlockPos roughTarget = BlockPos.containing(desiredPos);
-        double maxDist = resolveBlinkMaxRange(level, caster.position(), roughTarget, tier, materia, mutated, rangeScale);
+        boolean earthBurrow = mutated && materia == EssenceType.EARTH;
+        boolean prevEarthBoost = ACTIVE_EARTH_BURROW_BOOST.get();
+        if (earthBurrow) {
+            Vec3 span = desiredPos.add(0.0D, 0.8D, 0.0D).subtract(eye);
+            double spanLen = span.length();
+            Vec3 probeDir = spanLen > 1.0E-4D ? span.scale(1.0D / spanLen) : caster.getLookAngle().normalize();
+            double boostedCap = resolveBurrowStepRangeBlocks(tier, true, rangeScale);
+            ACTIVE_EARTH_BURROW_BOOST.set(probesStoneOrSoilAlongBlink(level, eye, probeDir, Math.min(spanLen + 1.0D, boostedCap), roughTarget));
+        }
+        double maxDist;
+        try {
+            maxDist = resolveBlinkMaxRange(level, caster.position(), roughTarget, tier, materia, mutated, rangeScale);
+        } finally {
+            if (earthBurrow) {
+                ACTIVE_EARTH_BURROW_BOOST.set(prevEarthBoost);
+            }
+        }
         boolean phaseWalls = canBlinkPhaseWalls(level, caster.position(), roughTarget, tier, materia, mutated);
         boolean miasmaThinBarrierPhase = mutated && materia == EssenceType.MIASMA;
 
@@ -7099,7 +7611,9 @@ public final class SpellExecutionEngine {
             desiredPos = caster.position().add(deltaFromFeet.normalize().scale(maxDist));
         }
 
-        if (!phaseWalls) {
+        if (phaseWalls && earthBurrow) {
+            desiredPos = clampBeforeUnbreakableBarrier(level, eye, desiredPos.add(0.0D, 0.8D, 0.0D), true);
+        } else if (!phaseWalls) {
             boolean treePhase = mutated && (materia == EssenceType.NATURE || materia == EssenceType.OVERGROWTH);
             boolean earthBurrowPhase = mutated && materia == EssenceType.EARTH;
             Vec3 clipEnd = desiredPos.add(0.0D, 0.8D, 0.0D);
@@ -7262,12 +7776,32 @@ public final class SpellExecutionEngine {
         if (twentyFourBlockSingularityStep) {
             maxDist = Math.max(maxDist, 24.0D + (tier - 1) * 2.5D);
         }
+        if (mutated && materia == EssenceType.EARTH) {
+            boolean stoneOrSoil = ACTIVE_EARTH_BURROW_BOOST.get()
+                    || (level != null && (isStoneOrSoilStrata(level.getBlockState(roughTarget))
+                    || isStoneOrSoilStrata(level.getBlockState(roughTarget.below()))));
+            if (stoneOrSoil) {
+                maxDist *= 1.25D;
+            }
+        }
 
         return maxDist * Math.max(0.25D, rangeScale);
     }
 
-    private static boolean canBlinkPhaseWalls(
-            ServerLevel level,
+    /**
+     * Resolves the effective max range (in blocks) for {@code #4 Earth} <i>Burrow Step</i> across Tiers 1–10,
+     * applying a {@code +25%} ({@code 1.25x}) range boost when burrowing through or emerging onto stone or soil/dirt.
+     */
+    public static double resolveBurrowStepRangeBlocks(int tier, boolean stoneOrSoilStrata, float rangeScale) {
+        double base = tier <= 3 ? 16.0D : 16.0D + (tier - 3) * 2.5D;
+        if (stoneOrSoilStrata) {
+            base *= 1.25D;
+        }
+        return base * Math.max(0.25D, rangeScale);
+    }
+
+    public static boolean canBlinkPhaseWalls(
+            @Nullable ServerLevel level,
             Vec3 departurePos,
             BlockPos roughTarget,
             int tier,
@@ -7275,13 +7809,15 @@ public final class SpellExecutionEngine {
             boolean mutated
     ) {
         boolean sporeNetworkLinked = mutated && materia == EssenceType.SPORE
+                && level != null
                 && (isNearMyceliumOrMushrooms(level, BlockPos.containing(departurePos))
                 || isNearMyceliumOrMushrooms(level, roughTarget));
         return tier >= 4
                 || sporeNetworkLinked
-                || (mutated && (MateriaFamilyTier.isVoidLineage(materia)
+                || (mutated && (MateriaFamilyTier.classify(materia).hasInnateWallPhasing()
+                        || MateriaFamilyTier.isVoidLineage(materia)
                         || ddraig.net.entropica.spell.mutation.MateriaFamilyTier.isVoidPhasingLineage(materia)
-                        || (MateriaFamilyTier.isEarthLineage(materia) && materia != EssenceType.EARTH)
+                        || MateriaFamilyTier.isEarthLineage(materia)
                         || materia == EssenceType.VAPOR
                         || materia == EssenceType.AETHER
                         || materia == EssenceType.PRISMATIC));
@@ -7310,39 +7846,8 @@ public final class SpellExecutionEngine {
         Vec3 departurePos = caster.position();
 
         // Sec 6.57 Eschaton Spacetime Fold Slip: 24m silent swap with furthest non-boss hostile within 24m through walls!
-        if (mutated && materia == EssenceType.ESCHATON) {
-            LivingEntity furthestFoe = null;
-            double bestDistSq = 0.0D;
-            for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, caster.getBoundingBox().inflate(24.0D), LivingEntity::isAlive)) {
-                if (cand == caster || SpellCombatReactionEngine.isBossEntity(level, cand)
-                        || SpellCombatReactionEngine.isBlinkAnchored(cand, level.getGameTime())
-                        || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(cand, caster, true)) continue;
-                if (!(cand instanceof Monster) && cand != caster.getLastHurtMob()) continue;
-                double dSq = caster.distanceToSqr(cand);
-                if (dSq <= 576.0D && dSq > bestDistSq) {
-                    bestDistSq = dSq;
-                    furthestFoe = cand;
-                }
-            }
-            if (furthestFoe != null) {
-                Vec3 foePos = furthestFoe.position();
-                caster.teleportTo(foePos.x, foePos.y, foePos.z);
-                caster.resetFallDistance();
-                furthestFoe.teleportTo(departurePos.x, departurePos.y, departurePos.z);
-                furthestFoe.resetFallDistance();
-                for (MobEffectInstance eff : new ArrayList<>(furthestFoe.getActiveEffects())) {
-                    if (eff.getEffect().value().isBeneficial()) furthestFoe.removeEffect(eff.getEffect());
-                }
-                furthestFoe.addEffect(new MobEffectInstance(
-                        net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ddraig.net.entropica.registry.ModEffects.PARALYZED.get()), 80, 0));
-                furthestFoe.addEffect(new MobEffectInstance(
-                        net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ddraig.net.entropica.registry.ModEffects.INERTIAL_ANCHOR.get()), 80, 0));
-                MateriaPartMutationHandler effHandler = SpellMutationHandlerRegistry.resolveActive(materia, true);
-                if (effHandler != null) {
-                    effHandler.onBlinkCast(level, caster, departurePos, caster.position(), tier);
-                }
-                return true;
-            }
+        if (mutated && materia == EssenceType.ESCHATON && tryExecuteEschatonSpacetimeFoldSwap(level, caster, departurePos, tier)) {
+            return true;
         }
 
         boolean natureTreeStep = mutated && (materia == EssenceType.NATURE || materia == EssenceType.OVERGROWTH);
@@ -7353,7 +7858,9 @@ public final class SpellExecutionEngine {
 
         // Capture downward freefall speed prior to Blink for Forward Momentum Conversion (Section 5.4)
         double freefallSpeed = caster.getDeltaMovement().y < -0.25D ? -caster.getDeltaMovement().y : 0.0D;
-        boolean allowMidAirExit = freefallSpeed > 0.0D
+        boolean solarSlipstreamAscent = mutated && (materia == EssenceType.EMPYREAN || materia == EssenceType.APOTHEOSIS || materia == EssenceType.ENTROPICA);
+        boolean allowMidAirExit = solarSlipstreamAscent
+                || freefallSpeed > 0.0D
                 || caster.isFallFlying()
                 || (caster instanceof Player player && player.getAbilities().flying);
 
@@ -7366,6 +7873,22 @@ public final class SpellExecutionEngine {
         BlockPos chosenLanding = null;
         if (mutated && materia == EssenceType.SPORE) {
             chosenLanding = findHyphalNetworkNodeNear(level, desiredPos, 5);
+        }
+        // Section 6.54 Solar Slipstream Ascent: launches up to 22 blocks directly into mid-air and through solid ceilings!
+        if (chosenLanding == null && solarSlipstreamAscent && desiredPos.y > departurePos.y + 2.0D) {
+            BlockPos apexAir = BlockPos.containing(desiredPos);
+            if (isSafeBlinkClearance(level, apexAir) && isSafeMidAirExitOverNonLava(level, apexAir)) {
+                chosenLanding = apexAir;
+            } else if (totalLen > 0.65D) {
+                for (double stepBack = 0.65D; stepBack <= totalLen - 0.85D; stepBack += 0.65D) {
+                    BlockPos cand = BlockPos.containing(desiredPos.subtract(transitUnit.scale(stepBack)));
+                    if (cand.getY() <= departurePos.y + 1.5D) break;
+                    if (isSafeBlinkClearance(level, cand) && isSafeMidAirExitOverNonLava(level, cand)) {
+                        chosenLanding = cand;
+                        break;
+                    }
+                }
+            }
         }
         if (chosenLanding == null) {
             chosenLanding = findGroundedBlinkSpotAt(level, desiredPos, natureTreeStep, earthBurrowStep, canPhaseWalls);
@@ -7427,7 +7950,8 @@ public final class SpellExecutionEngine {
             return false;
         }
 
-        if (mutated && (materia == EssenceType.DUST || materia == EssenceType.SPORE || materia == EssenceType.AURA)) {
+        if (mutated && (materia == EssenceType.DUST || materia == EssenceType.SPORE
+                || materia == EssenceType.AURA || materia == EssenceType.CATACLYSM)) {
             EntityHelper.getPersistentData(caster).putLong(
                     SpellLingeringZoneManager.TAG_SILENT_VIBRATION_UNTIL, level.getGameTime() + 100L);
         }
@@ -7469,7 +7993,9 @@ public final class SpellExecutionEngine {
                 || materia == EssenceType.WRAITH
                 || materia == EssenceType.STATIC
                 || materia == EssenceType.CATACLYSM
-                || materia == EssenceType.ESCHATON;
+                || materia == EssenceType.ESCHATON
+                || materia == EssenceType.APOTHEOSIS
+                || materia == EssenceType.ENTROPICA;
         if (!suppressGenericRift) {
             ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastBlinkRift(level, departurePos, caster.position(), materia, tier);
             ddraig.net.entropica.spell.vfx.SpellParticleHelper.spawnImpactBurst(level, caster.position(), materia, null, 1.0D, tier);
@@ -7607,16 +8133,77 @@ public final class SpellExecutionEngine {
     }
 
     private static boolean isNearTreeFoliage(ServerLevel level, BlockPos center) {
-        for (BlockPos p : BlockPos.betweenClosed(center.offset(-3, -2, -3), center.offset(3, 3, 3))) {
+        boolean foundLog = false;
+        for (BlockPos p : BlockPos.betweenClosed(center.offset(-3, -2, -3), center.offset(3, 4, 3))) {
             BlockState bs = level.getBlockState(p);
-            if (bs.is(BlockTags.LOGS) || bs.is(BlockTags.LEAVES)) {
+            if (bs.is(BlockTags.LEAVES)) {
+                return true;
+            }
+            if (bs.is(BlockTags.LOGS)) {
+                foundLog = true;
+            }
+        }
+        if (!foundLog) {
+            return false;
+        }
+        // Require logs to be accompanied by actual leaf foliage within canopy scan range so lone indoor floor/wall logs don't count!
+        for (BlockPos p : BlockPos.betweenClosed(center.offset(-4, -1, -4), center.offset(4, 10, 4))) {
+            if (level.getBlockState(p).is(BlockTags.LEAVES)) {
                 return true;
             }
         }
         return false;
     }
 
-    private static boolean isStoneOrSoilStrata(BlockState bs) {
+    private static Vec3 clampBeforeUnbreakableBarrier(ServerLevel level, Vec3 eye, Vec3 rayEnd, boolean stopAtUnbreakable) {
+        if (!stopAtUnbreakable) {
+            return rayEnd.subtract(0.0D, 0.8D, 0.0D);
+        }
+        Vec3 span = rayEnd.subtract(eye);
+        double len = span.length();
+        if (len > 0.25D) {
+            Vec3 marchDir = span.scale(1.0D / len);
+            for (double d = 0.5D; d <= len; d += 0.45D) {
+                Vec3 pt = eye.add(marchDir.scale(d));
+                BlockPos bp = BlockPos.containing(pt);
+                BlockState bs = level.getBlockState(bp);
+                if (!bs.getCollisionShape(level, bp).isEmpty() && bs.getDestroySpeed(level, bp) < 0.0F) {
+                    return eye.add(marchDir.scale(Math.max(0.0D, d - 0.55D))).subtract(0.0D, 0.8D, 0.0D);
+                }
+            }
+        }
+        return rayEnd.subtract(0.0D, 0.8D, 0.0D);
+    }
+
+    private static boolean probesStoneOrSoilAlongBlink(
+            ServerLevel level,
+            Vec3 eye,
+            Vec3 dir,
+            double boostedDist,
+            BlockPos fallbackTarget
+    ) {
+        if (isStoneOrSoilStrata(level.getBlockState(fallbackTarget))
+                || isStoneOrSoilStrata(level.getBlockState(fallbackTarget.below()))) {
+            return true;
+        }
+        for (double d = 0.6D; d <= boostedDist; d += 0.6D) {
+            BlockPos bp = BlockPos.containing(eye.add(dir.scale(d)));
+            BlockState bs = level.getBlockState(bp);
+            if (!bs.getCollisionShape(level, bp).isEmpty()) {
+                if (bs.getDestroySpeed(level, bp) < 0.0F) {
+                    break;
+                }
+                if (isStoneOrSoilStrata(bs)) {
+                    return true;
+                }
+            }
+        }
+        Vec3 boostedEnd = eye.add(dir.scale(boostedDist)).subtract(0.0D, 0.8D, 0.0D);
+        BlockPos endGrounded = findGroundedBlinkSpotAt(level, boostedEnd, false, true, true);
+        return endGrounded != null && isStoneOrSoilStrata(level.getBlockState(endGrounded.below()));
+    }
+
+    public static boolean isStoneOrSoilStrata(BlockState bs) {
         if (bs.is(Blocks.BEDROCK) || bs.is(Blocks.REINFORCED_DEEPSLATE) || bs.is(Blocks.OBSIDIAN) || bs.is(Blocks.CRYING_OBSIDIAN)) {
             return false;
         }
@@ -7627,6 +8214,8 @@ public final class SpellExecutionEngine {
                 || bs.is(BlockTags.TERRACOTTA)
                 || bs.is(BlockTags.STONE_ORE_REPLACEABLES)
                 || bs.is(BlockTags.DEEPSLATE_ORE_REPLACEABLES)
+                || bs.is(Blocks.FARMLAND)
+                || bs.is(Blocks.DIRT_PATH)
                 || bs.is(Blocks.GRAVEL)
                 || bs.is(Blocks.COBBLESTONE)
                 || bs.is(Blocks.MOSSY_COBBLESTONE)
@@ -8498,5 +9087,69 @@ public final class SpellExecutionEngine {
         Vec3 start = caster.getEyePosition();
         Vec3 end = start.add(direction.scale(distance));
         return level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, caster));
+    }
+
+    /**
+     * Section 6.57 Spacetime Fold Slip (#55 Eschaton):
+     * Instantly and silently swaps positions with the furthest non-boss enemy within 24 blocks through solid walls;
+     * encases the displaced enemy in an event-horizon stasis bubble for 4.0 seconds (80t) with all active buffs purged!
+     */
+    private static boolean tryExecuteEschatonSpacetimeFoldSwap(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 departurePos,
+            int tier
+    ) {
+        LivingEntity furthestFoe = null;
+        double bestDistSq = 0.0D;
+        long now = level.getGameTime();
+        for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, caster.getBoundingBox().inflate(24.0D), LivingEntity::isAlive)) {
+            if (cand == caster
+                    || SpellCombatReactionEngine.isBossEntity(level, cand)
+                    || SpellCombatReactionEngine.isBlinkAnchored(cand, now)
+                    || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(cand, caster, true)) {
+                continue;
+            }
+            if (!(cand instanceof Monster) && cand != caster.getLastHurtMob()) continue;
+            double dSq = caster.distanceToSqr(cand);
+            if (dSq <= 576.0D && dSq > bestDistSq) {
+                bestDistSq = dSq;
+                furthestFoe = cand;
+            }
+        }
+        if (furthestFoe == null) {
+            return false;
+        }
+
+        Vec3 foePos = furthestFoe.position();
+        caster.teleportTo(foePos.x, foePos.y, foePos.z);
+        caster.resetFallDistance();
+        furthestFoe.teleportTo(departurePos.x, departurePos.y, departurePos.z);
+        furthestFoe.resetFallDistance();
+
+        ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.purgeBeneficialBuffs(furthestFoe);
+        furthestFoe.addEffect(new MobEffectInstance(
+                net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ddraig.net.entropica.registry.ModEffects.PARALYZED.get()), 80, 0));
+        furthestFoe.addEffect(new MobEffectInstance(
+                net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ddraig.net.entropica.registry.ModEffects.INERTIAL_ANCHOR.get()), 80, 0));
+        furthestFoe.setDeltaMovement(Vec3.ZERO);
+        furthestFoe.hasImpulse = true;
+        if (furthestFoe instanceof Mob mob) {
+            mob.getNavigation().stop();
+            mob.setAggressive(false);
+        }
+
+        // Visible 3D Event-Horizon Stasis Bubble encasing the displaced enemy for 4.0 seconds (zero sound!)
+        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVacuumSphere(
+                level, departurePos.add(0.0D, furthestFoe.getBbHeight() * 0.55D, 0.0D),
+                Math.max(1.25D, furthestFoe.getBbWidth() * 1.4D), true,
+                EssenceType.ESCHATON, EssenceType.VOID, 80, tier
+        );
+
+        MateriaPartMutationHandler effHandler = SpellMutationHandlerRegistry.resolveActive(EssenceType.ESCHATON, true);
+        if (effHandler != null) {
+            effHandler.onBlinkCast(level, caster, departurePos, caster.position(), tier);
+        }
+        return true;
     }
 }

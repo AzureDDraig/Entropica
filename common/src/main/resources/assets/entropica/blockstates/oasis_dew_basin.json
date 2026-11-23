@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "infused=false": {
+      "model": "entropica:block/oasis_dew_basin"
+    },
+    "infused=true": {
+      "model": "entropica:block/oasis_dew_basin_infused"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "planks",
+  "ingredients": [
+    "entropica:spore_wood"
+  ],
+  "result": {
+    "id": "entropica:spore_wood_planks",
+    "count": 4
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "top": "entropica:block/glow_gel_pathing_top",
+    "bottom": "entropica:block/coarse_gravel",
+    "side": "entropica:block/glow_gel_pathing_side"
+  }
+}

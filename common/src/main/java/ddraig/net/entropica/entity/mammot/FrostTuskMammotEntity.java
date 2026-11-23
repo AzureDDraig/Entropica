@@ -33,7 +33,6 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
@@ -53,37 +52,62 @@ import java.util.Locale;
 
 /**
  * Fauna 20 — Frost-Tusk Mammot (Glacial Excavator).
- * Heavy woolly quadruped native to 2.1 Blue-Glacier Shelf that clears snow layers ahead
- * while walking and delivers an upward-launching tusk sweep lunge when provoked.
+ * Large elephant-esque woolly quadruped native to 2.1 Blue-Glacier Shelf and 2.2 Auroral Skerries.
+ * Clears snow layers ahead while walking, kneels onto the ice to rest peacefully when undisturbed,
+ * stampede-charges attackers with lowered glacier tusks, and launches targets 4 blocks upward with
+ * its tusk sweep. Drops 3–4 Raw Mammot Meat (Cooked when on fire), 2–3 Insulated Glacial Wool,
+ * and 3–5 Strong Glacial Essence via its entity loot table.
  */
 public class FrostTuskMammotEntity extends PathfinderMob {
 
+    public static final int PHASE_STANDING = 0;
+    public static final int PHASE_LAYING_DOWN = 1;
+    public static final int PHASE_RESTING = 2;
+    public static final int PHASE_STANDING_UP = 3;
+
+    public static final int LAYDOWN_DURATION_TICKS = 36;   // 1.80s
+    public static final int STAND_UP_DURATION_TICKS = 36;  // 1.80s
+    public static final int ATTACK_DURATION_TICKS = 25;    // 1.25s
+    public static final int ATTACK_STRIKE_TICK = 11;       // ~0.55s upward tusk launch peak
+    public static final int DEATH_DURATION_TICKS = 36;     // 1.80s
+
     private static final EntityDataAccessor<Boolean> SHEARED =
+            SynchedEntityData.defineId(FrostTuskMammotEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> CHARGING =
             SynchedEntityData.defineId(FrostTuskMammotEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> ATTACKING =
             SynchedEntityData.defineId(FrostTuskMammotEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> REST_PHASE =
+            SynchedEntityData.defineId(FrostTuskMammotEntity.class, EntityDataSerializers.INT);
 
     private static final byte EVENT_TUSK_SWEEP = 4;
     private static final int SHEAR_COOLDOWN_TICKS = 24000;
 
     public final AnimationState idleAnimationState = new AnimationState();
     public final AnimationState walkAnimationState = new AnimationState();
+    public final AnimationState chargeAnimationState = new AnimationState();
+    public final AnimationState laydownAnimationState = new AnimationState();
+    public final AnimationState layAnimationState = new AnimationState();
+    public final AnimationState standUpAnimationState = new AnimationState();
     public final AnimationState attackAnimationState = new AnimationState();
+    public final AnimationState deathAnimationState = new AnimationState();
 
     private int shearCooldown = 0;
-    private int attackAnimTimer = 0;
+    private int restPhaseTimer = 0;
+    private int restCooldown = 500;
 
     public FrostTuskMammotEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
+        this.xpReward = 10;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 45.0D)
+                .add(Attributes.MAX_HEALTH, 135.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.21D)
                 .add(Attributes.ATTACK_DAMAGE, 10.0D)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 0.6D)
-                .add(Attributes.FOLLOW_RANGE, 20.0D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.65D)
+                .add(Attributes.FOLLOW_RANGE, 22.0D)
                 .add(Attributes.STEP_HEIGHT, 1.1D);
     }
 
@@ -129,16 +153,19 @@ public class FrostTuskMammotEntity extends PathfinderMob {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(SHEARED, false);
+        builder.define(CHARGING, false);
         builder.define(ATTACKING, false);
+        builder.define(REST_PHASE, PHASE_STANDING);
     }
 
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MammotTuskSweepGoal(this));
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 7.0F));
-        this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(2, new MammotRestOnIceGoal(this));
+        this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 7.0F));
+        this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
     }
@@ -151,12 +178,41 @@ public class FrostTuskMammotEntity extends PathfinderMob {
         this.entityData.set(SHEARED, sheared);
     }
 
+    public boolean isCharging() {
+        return this.entityData.get(CHARGING);
+    }
+
+    public void setCharging(boolean charging) {
+        this.entityData.set(CHARGING, charging);
+    }
+
     public boolean isAttacking() {
         return this.entityData.get(ATTACKING);
     }
 
     public void setAttacking(boolean attacking) {
         this.entityData.set(ATTACKING, attacking);
+    }
+
+    public int getRestPhase() {
+        return this.entityData.get(REST_PHASE);
+    }
+
+    public void setRestPhase(int phase) {
+        this.entityData.set(REST_PHASE, phase);
+    }
+
+    public boolean isRestingOrTransitioning() {
+        return this.getRestPhase() != PHASE_STANDING;
+    }
+
+    public void triggerStandUp() {
+        int phase = this.getRestPhase();
+        if (phase == PHASE_LAYING_DOWN || phase == PHASE_RESTING) {
+            this.setRestPhase(PHASE_STANDING_UP);
+            this.restPhaseTimer = STAND_UP_DURATION_TICKS;
+            this.restCooldown = 600 + this.random.nextInt(600);
+        }
     }
 
     @Override
@@ -181,7 +237,58 @@ public class FrostTuskMammotEntity extends PathfinderMob {
 
     @Override
     protected void playStepSound(BlockPos pos, BlockState state) {
-        this.playSound(SoundEvents.RAVAGER_STEP, 0.35F, 0.85F);
+        float vol = this.isCharging() ? 0.55F : 0.35F;
+        float pitch = this.isCharging() ? 0.78F : 0.85F;
+        this.playSound(SoundEvents.RAVAGER_STEP, vol, pitch);
+    }
+
+    @Override
+    public boolean hurtServer(ServerLevel serverLevel, DamageSource source, float amount) {
+        boolean hurt = super.hurtServer(serverLevel, source, amount);
+        if (hurt && this.isAlive()) {
+            this.triggerStandUp();
+        }
+        return hurt;
+    }
+
+    @Override
+    protected void tickDeath() {
+        this.deathTime++;
+        this.setCharging(false);
+        this.setAttacking(false);
+
+        Vec3 vel = this.getDeltaMovement();
+        this.setDeltaMovement(vel.x * 0.75D, vel.y, vel.z * 0.75D);
+
+        if (!this.level().isClientSide() && this.deathTime == 22 && this.level() instanceof ServerLevel serverLevel) {
+            // Heavy snow puff when the massive woolly flank slams onto the ice
+            serverLevel.sendParticles(
+                    ParticleTypes.SNOWFLAKE,
+                    this.getX(),
+                    this.getY() + 0.35D,
+                    this.getZ(),
+                    22,
+                    0.9D,
+                    0.2D,
+                    0.9D,
+                    0.04D
+            );
+            serverLevel.playSound(
+                    null,
+                    this.getX(),
+                    this.getY(),
+                    this.getZ(),
+                    SoundEvents.RAVAGER_STEP,
+                    SoundSource.NEUTRAL,
+                    0.9F,
+                    0.65F
+            );
+        }
+
+        if (this.deathTime >= DEATH_DURATION_TICKS && !this.level().isClientSide() && !this.isRemoved()) {
+            this.level().broadcastEntityEvent(this, (byte) 60);
+            this.remove(RemovalReason.KILLED);
+        }
     }
 
     @Override
@@ -198,18 +305,7 @@ public class FrostTuskMammotEntity extends PathfinderMob {
         super.tick();
 
         if (this.level().isClientSide()) {
-            boolean moving = this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4D;
-            if (moving) {
-                this.walkAnimationState.startIfStopped(this.tickCount);
-                this.idleAnimationState.stop();
-            } else {
-                this.walkAnimationState.stop();
-                this.idleAnimationState.startIfStopped(this.tickCount);
-            }
-
-            if (this.isAttacking()) {
-                this.attackAnimationState.startIfStopped(this.tickCount);
-            }
+            this.updateClientAnimations();
         } else if (this.level() instanceof ServerLevel serverLevel) {
             if (this.isSheared()) {
                 this.shearCooldown--;
@@ -218,19 +314,111 @@ public class FrostTuskMammotEntity extends PathfinderMob {
                 }
             }
 
-            if (this.attackAnimTimer > 0) {
-                this.attackAnimTimer--;
-                if (this.attackAnimTimer <= 0) {
-                    this.setAttacking(false);
-                }
+            if (this.restCooldown > 0 && this.getRestPhase() == PHASE_STANDING) {
+                this.restCooldown--;
             }
 
-            // Clear snow layers directly ahead of feet while walking when mobGriefing is enabled
+            // Advance STANDING_UP completion even if woken by combat
+            if (this.getRestPhase() == PHASE_STANDING_UP) {
+                this.getNavigation().stop();
+                this.restPhaseTimer--;
+                if (this.restPhaseTimer <= 0) {
+                    this.setRestPhase(PHASE_STANDING);
+                }
+            } else if (this.getTarget() != null && this.getTarget().isAlive() && this.isRestingOrTransitioning()) {
+                this.triggerStandUp();
+            }
+
+            // Clear snow layers directly ahead of feet while walking or charging when mobGriefing is enabled
             if (this.onGround()
+                    && !this.isRestingOrTransitioning()
                     && this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4D
                     && serverLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
                 clearSnowLayersAhead(serverLevel);
             }
+
+            // Kick up frost spray underfoot while stampede-charging
+            if (this.isCharging() && this.onGround() && this.tickCount % 3 == 0) {
+                serverLevel.sendParticles(
+                        ParticleTypes.SNOWFLAKE,
+                        this.getX(),
+                        this.getY() + 0.15D,
+                        this.getZ(),
+                        5,
+                        0.65D,
+                        0.12D,
+                        0.65D,
+                        0.04D
+                );
+            }
+        }
+    }
+
+    private void updateClientAnimations() {
+        if (this.isDeadOrDying()) {
+            this.idleAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.chargeAnimationState.stop();
+            this.laydownAnimationState.stop();
+            this.layAnimationState.stop();
+            this.standUpAnimationState.stop();
+            this.attackAnimationState.stop();
+            this.deathAnimationState.startIfStopped(this.tickCount);
+            return;
+        }
+
+        if (this.attackAnimationState.isStarted()
+                && this.attackAnimationState.getTimeInMillis(this.tickCount) >= ATTACK_DURATION_TICKS * 50L) {
+            this.attackAnimationState.stop();
+        }
+
+        int phase = this.getRestPhase();
+        if (phase == PHASE_LAYING_DOWN) {
+            this.idleAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.chargeAnimationState.stop();
+            this.layAnimationState.stop();
+            this.standUpAnimationState.stop();
+            this.laydownAnimationState.startIfStopped(this.tickCount);
+            return;
+        }
+        if (phase == PHASE_RESTING) {
+            this.idleAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.chargeAnimationState.stop();
+            this.laydownAnimationState.stop();
+            this.standUpAnimationState.stop();
+            this.layAnimationState.startIfStopped(this.tickCount);
+            return;
+        }
+        if (phase == PHASE_STANDING_UP) {
+            this.idleAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.chargeAnimationState.stop();
+            this.laydownAnimationState.stop();
+            this.layAnimationState.stop();
+            this.standUpAnimationState.startIfStopped(this.tickCount);
+            return;
+        }
+
+        this.laydownAnimationState.stop();
+        this.layAnimationState.stop();
+        this.standUpAnimationState.stop();
+
+        boolean moving = this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4D || this.walkAnimation.speed() > 0.05F;
+        if (moving) {
+            this.idleAnimationState.stop();
+            if (this.isCharging()) {
+                this.walkAnimationState.stop();
+                this.chargeAnimationState.startIfStopped(this.tickCount);
+            } else {
+                this.chargeAnimationState.stop();
+                this.walkAnimationState.startIfStopped(this.tickCount);
+            }
+        } else {
+            this.walkAnimationState.stop();
+            this.chargeAnimationState.stop();
+            this.idleAnimationState.startIfStopped(this.tickCount);
         }
     }
 
@@ -238,15 +426,15 @@ public class FrostTuskMammotEntity extends PathfinderMob {
         Vec3 forward = Vec3.directionFromRotation(0.0F, this.getYRot());
         Vec3 right = new Vec3(-forward.z, 0.0D, forward.x);
 
-        double baseX = this.getX() + forward.x * 1.35D;
+        double baseX = this.getX() + forward.x * 1.45D;
         double baseY = this.getY();
-        double baseZ = this.getZ() + forward.z * 1.35D;
+        double baseZ = this.getZ() + forward.z * 1.45D;
 
         BlockPos[] probePositions = new BlockPos[]{
                 this.blockPosition(),
                 BlockPos.containing(baseX, baseY, baseZ),
-                BlockPos.containing(baseX + right.x * 0.55D, baseY, baseZ + right.z * 0.55D),
-                BlockPos.containing(baseX - right.x * 0.55D, baseY, baseZ - right.z * 0.55D)
+                BlockPos.containing(baseX + right.x * 0.65D, baseY, baseZ + right.z * 0.65D),
+                BlockPos.containing(baseX - right.x * 0.65D, baseY, baseZ - right.z * 0.65D)
         };
 
         for (BlockPos snowPos : probePositions) {
@@ -296,6 +484,7 @@ public class FrostTuskMammotEntity extends PathfinderMob {
                 if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
                     this.setSheared(true);
                     this.shearCooldown = SHEAR_COOLDOWN_TICKS;
+                    this.triggerStandUp();
                     held.hurtAndBreak(1, player, getEquipmentSlotForItem(held));
 
                     int woolCount = 1 + this.random.nextInt(2);
@@ -318,21 +507,13 @@ public class FrostTuskMammotEntity extends PathfinderMob {
     }
 
     @Override
-    protected void dropCustomDeathLoot(ServerLevel serverLevel, DamageSource damageSource, boolean recentlyHit) {
-        super.dropCustomDeathLoot(serverLevel, damageSource, recentlyHit);
-        int woolCount = 2 + this.random.nextInt(2);
-        this.spawnAtLocation(serverLevel, new ItemStack(ModItems.INSULATED_GLACIAL_WOOL.get(), woolCount));
-
-        int meatCount = 2 + this.random.nextInt(3);
-        Item meatItem = this.isOnFire() ? ModItems.COOKED_MAMMOT_MEAT.get() : ModItems.RAW_MAMMOT_MEAT.get();
-        this.spawnAtLocation(serverLevel, new ItemStack(meatItem, meatCount));
-    }
-
-    @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
         this.setSheared(input.read("Sheared", Codec.BOOL).orElse(false));
         this.shearCooldown = input.read("ShearCooldown", Codec.INT).orElse(0);
+        this.setRestPhase(input.read("RestPhase", Codec.INT).orElse(PHASE_STANDING));
+        this.restPhaseTimer = input.read("RestPhaseTimer", Codec.INT).orElse(0);
+        this.restCooldown = input.read("RestCooldown", Codec.INT).orElse(400);
     }
 
     @Override
@@ -340,11 +521,96 @@ public class FrostTuskMammotEntity extends PathfinderMob {
         super.addAdditionalSaveData(output);
         output.store("Sheared", Codec.BOOL, this.isSheared());
         output.store("ShearCooldown", Codec.INT, this.shearCooldown);
+        output.store("RestPhase", Codec.INT, this.getRestPhase());
+        output.store("RestPhaseTimer", Codec.INT, this.restPhaseTimer);
+        output.store("RestCooldown", Codec.INT, this.restCooldown);
     }
 
+    /**
+     * Peaceful glacial resting behavior: kneels onto front knees first (laydown),
+     * rests peacefully on the snow (lay), and rises back onto its feet (stand_up).
+     */
+    static class MammotRestOnIceGoal extends Goal {
+        private final FrostTuskMammotEntity mammot;
+
+        MammotRestOnIceGoal(FrostTuskMammotEntity mammot) {
+            this.mammot = mammot;
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        }
+
+        @Override
+        public boolean canUse() {
+            if (this.mammot.getTarget() != null || this.mammot.isInWater() || !this.mammot.onGround()) {
+                return false;
+            }
+            int phase = this.mammot.getRestPhase();
+            if (phase == PHASE_LAYING_DOWN || phase == PHASE_RESTING || phase == PHASE_STANDING_UP) {
+                return true;
+            }
+            if (this.mammot.restCooldown > 0) {
+                return false;
+            }
+            return this.mammot.getRandom().nextInt(90) == 0;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            if (this.mammot.isInWater()) {
+                this.mammot.setRestPhase(PHASE_STANDING);
+                return false;
+            }
+            return this.mammot.getRestPhase() != PHASE_STANDING;
+        }
+
+        @Override
+        public void start() {
+            this.mammot.getNavigation().stop();
+            if (this.mammot.getRestPhase() == PHASE_STANDING) {
+                this.mammot.setRestPhase(PHASE_LAYING_DOWN);
+                this.mammot.restPhaseTimer = LAYDOWN_DURATION_TICKS;
+            }
+        }
+
+        @Override
+        public void tick() {
+            this.mammot.getNavigation().stop();
+            int phase = this.mammot.getRestPhase();
+
+            if (this.mammot.getTarget() != null && this.mammot.getTarget().isAlive()) {
+                this.mammot.triggerStandUp();
+                return;
+            }
+
+            if (phase == PHASE_LAYING_DOWN) {
+                this.mammot.restPhaseTimer--;
+                if (this.mammot.restPhaseTimer <= 0) {
+                    this.mammot.setRestPhase(PHASE_RESTING);
+                    this.mammot.restPhaseTimer = 240 + this.mammot.getRandom().nextInt(280);
+                }
+            } else if (phase == PHASE_RESTING) {
+                this.mammot.restPhaseTimer--;
+                if (this.mammot.restPhaseTimer <= 0) {
+                    this.mammot.setRestPhase(PHASE_STANDING_UP);
+                    this.mammot.restPhaseTimer = STAND_UP_DURATION_TICKS;
+                }
+            }
+        }
+
+        @Override
+        public void stop() {
+            if (this.mammot.getRestPhase() == PHASE_STANDING) {
+                this.mammot.restCooldown = 700 + this.mammot.getRandom().nextInt(700);
+            }
+        }
+    }
+
+    /**
+     * Bull-mammot stampede charge & timed upward-launching glacier-tusk sweep.
+     */
     static class MammotTuskSweepGoal extends Goal {
         private final FrostTuskMammotEntity mammot;
         private int attackCooldown = 0;
+        private int sweepTick = -1;
 
         MammotTuskSweepGoal(FrostTuskMammotEntity mammot) {
             this.mammot = mammot;
@@ -362,12 +628,25 @@ public class FrostTuskMammotEntity extends PathfinderMob {
 
         @Override
         public boolean canContinueToUse() {
+            if (this.sweepTick >= 0) {
+                return this.mammot.isAlive();
+            }
             LivingEntity target = this.mammot.getTarget();
             return target != null && target.isAlive() && !target.isSpectator();
         }
 
         @Override
+        public void start() {
+            if (this.mammot.isRestingOrTransitioning()) {
+                this.mammot.triggerStandUp();
+            }
+        }
+
+        @Override
         public void stop() {
+            this.sweepTick = -1;
+            this.mammot.setCharging(false);
+            this.mammot.setAttacking(false);
             this.mammot.getNavigation().stop();
         }
 
@@ -376,58 +655,99 @@ public class FrostTuskMammotEntity extends PathfinderMob {
             if (this.attackCooldown > 0) {
                 this.attackCooldown--;
             }
+
+            // Wait cleanly for stand_up animation before charging
+            if (this.mammot.isRestingOrTransitioning()) {
+                this.mammot.setCharging(false);
+                this.mammot.getNavigation().stop();
+                return;
+            }
+
             LivingEntity target = this.mammot.getTarget();
+
+            // Progress active tusk-sweep animation & execute upward toss on launch frame
+            if (this.sweepTick >= 0) {
+                this.sweepTick++;
+                this.mammot.setCharging(false);
+                this.mammot.getNavigation().stop();
+                if (target != null) {
+                    this.mammot.getLookControl().setLookAt(target, 30.0F, 30.0F);
+                }
+
+                if (this.sweepTick == ATTACK_STRIKE_TICK && target != null && target.isAlive()
+                        && this.mammot.level() instanceof ServerLevel serverLevel) {
+                    double strikeReachSqr = 10.24D; // ~3.2 blocks from center of 1.95-wide Mammot
+                    if (this.mammot.distanceToSqr(target) <= strikeReachSqr || this.mammot.isWithinMeleeAttackRange(target)) {
+                        float damage = (float) this.mammot.getAttributeValue(Attributes.ATTACK_DAMAGE);
+                        boolean hit = target.hurtServer(serverLevel, this.mammot.damageSources().mobAttack(this.mammot), damage);
+                        if (hit) {
+                            Vec3 pushDir = target.position().subtract(this.mammot.position());
+                            Vec3 horiz = new Vec3(pushDir.x, 0.0D, pushDir.z);
+                            if (horiz.lengthSqr() > 1.0E-4D) {
+                                horiz = horiz.normalize().scale(0.38D);
+                            }
+                            Vec3 cur = target.getDeltaMovement();
+                            // Launch target ~4 blocks upward (deltaMovement.y = 0.78D)
+                            target.setDeltaMovement(cur.x * 0.2D + horiz.x, 0.78D, cur.z * 0.2D + horiz.z);
+                            target.hurtMarked = true;
+                            target.hasImpulse = true;
+
+                            serverLevel.playSound(
+                                    null,
+                                    this.mammot.getX(),
+                                    this.mammot.getY(),
+                                    this.mammot.getZ(),
+                                    SoundEvents.RAVAGER_ATTACK,
+                                    SoundSource.HOSTILE,
+                                    1.1F,
+                                    0.9F
+                            );
+                            serverLevel.sendParticles(
+                                    ParticleTypes.SNOWFLAKE,
+                                    target.getX(),
+                                    target.getY() + 0.5D,
+                                    target.getZ(),
+                                    18,
+                                    0.5D,
+                                    0.3D,
+                                    0.5D,
+                                    0.08D
+                            );
+                        }
+                    }
+                }
+
+                if (this.sweepTick >= ATTACK_DURATION_TICKS) {
+                    this.sweepTick = -1;
+                    this.mammot.setAttacking(false);
+                }
+                return;
+            }
+
             if (target == null) {
+                this.mammot.setCharging(false);
                 return;
             }
 
             this.mammot.getLookControl().setLookAt(target, 30.0F, 30.0F);
-            this.mammot.getNavigation().moveTo(target, 1.38D);
+            double distSqr = this.mammot.distanceToSqr(target);
+            double triggerReachSqr = 8.41D; // ~2.9 blocks from center
 
-            double reachSqr = 6.76D; // ~2.6 blocks from center of 1.8-wide Mammot
-            if (this.attackCooldown <= 0 && (this.mammot.distanceToSqr(target) <= reachSqr || this.mammot.isWithinMeleeAttackRange(target))) {
-                this.attackCooldown = 32;
-                this.mammot.attackAnimTimer = 18;
+            if (distSqr > triggerReachSqr) {
+                this.mammot.setCharging(true);
+                this.mammot.getNavigation().moveTo(target, 1.48D);
+            } else {
+                this.mammot.setCharging(false);
+                this.mammot.getNavigation().moveTo(target, 1.15D);
+            }
+
+            if (this.attackCooldown <= 0 && (distSqr <= triggerReachSqr || this.mammot.isWithinMeleeAttackRange(target))) {
+                this.attackCooldown = 36;
+                this.sweepTick = 0;
+                this.mammot.setCharging(false);
                 this.mammot.setAttacking(true);
-
                 if (this.mammot.level() instanceof ServerLevel serverLevel) {
                     serverLevel.broadcastEntityEvent(this.mammot, EVENT_TUSK_SWEEP);
-                    float damage = (float) this.mammot.getAttributeValue(Attributes.ATTACK_DAMAGE);
-                    boolean hit = target.hurtServer(serverLevel, this.mammot.damageSources().mobAttack(this.mammot), damage);
-                    if (hit) {
-                        Vec3 pushDir = target.position().subtract(this.mammot.position());
-                        Vec3 horiz = new Vec3(pushDir.x, 0.0D, pushDir.z);
-                        if (horiz.lengthSqr() > 1.0E-4D) {
-                            horiz = horiz.normalize().scale(0.35D);
-                        }
-                        Vec3 cur = target.getDeltaMovement();
-                        // Launch target ~4 blocks upward (deltaMovement.y = 0.78D)
-                        target.setDeltaMovement(cur.x * 0.2D + horiz.x, 0.78D, cur.z * 0.2D + horiz.z);
-                        target.hurtMarked = true;
-                        target.hasImpulse = true;
-
-                        serverLevel.playSound(
-                                null,
-                                this.mammot.getX(),
-                                this.mammot.getY(),
-                                this.mammot.getZ(),
-                                SoundEvents.RAVAGER_ATTACK,
-                                SoundSource.HOSTILE,
-                                1.1F,
-                                0.9F
-                        );
-                        serverLevel.sendParticles(
-                                ParticleTypes.SNOWFLAKE,
-                                target.getX(),
-                                target.getY() + 0.5D,
-                                target.getZ(),
-                                18,
-                                0.5D,
-                                0.3D,
-                                0.5D,
-                                0.08D
-                        );
-                    }
                 }
             }
         }

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:medium_ampoule",
+    "entropica:stardust_fragment",
+    "entropica:astral_nautilus_nacre",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "id": "entropica:starlight_draught_ampoule",
+    "count": 1
+  }
+}

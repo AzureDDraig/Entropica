@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "C C",
+    "VBV",
+    "AAA"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "V": "entropica:vitae_spring_stone",
+    "B": "minecraft:water_bucket",
+    "A": "entropica:amber_planks"
+  },
+  "result": {
+    "id": "entropica:oasis_dew_basin",
+    "count": 1
+  }
+}

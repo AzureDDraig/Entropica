@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": "entropica:amber_chunk"
+  },
+  "result": {
+    "id": "entropica:amber_resin_block",
+    "count": 1
+  }
+}

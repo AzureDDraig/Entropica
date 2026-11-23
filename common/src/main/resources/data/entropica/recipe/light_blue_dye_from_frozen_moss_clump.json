@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "light_blue_dye",
+  "ingredients": [
+    "entropica:frozen_moss_clump"
+  ],
+  "result": {
+    "id": "minecraft:light_blue_dye",
+    "count": 1
+  }
+}

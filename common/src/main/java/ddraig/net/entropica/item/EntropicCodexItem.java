@@ -2,12 +2,15 @@ package ddraig.net.entropica.item;
 
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.client.gui.EntropicCodexScreen;
+import ddraig.net.entropica.data.CodexPlayerData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -19,6 +22,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -44,8 +48,8 @@ public class EntropicCodexItem extends Item {
             if (!level.isClientSide() && player != null) {
                 player.displayClientMessage(Component.literal("§a[Entropic Codex] Paired to Materia Terminal at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ()), true);
 
-                ((ServerLevel) level).sendParticles(ParticleTypes.ENCHANT, 
-                        pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 
+                ((ServerLevel) level).sendParticles(ParticleTypes.ENCHANT,
+                        pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5,
                         25, 0.3, 0.3, 0.3, 0.2);
                 level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.8F, 1.5F);
             }
@@ -60,14 +64,49 @@ public class EntropicCodexItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
 
         if (level.isClientSide()) {
+            CodexPlayerData.CLIENT_DATA.importReadJournalsFromInventory(player);
             EssenceType highestEssence = scanHighestEssence(player);
-            openCodexScreen(highestEssence);
+            BlockPos pairedPos = getPairedPosFromStack(stack);
+            if (pairedPos == null) {
+                pairedPos = findPairedTerminalPos(player);
+            }
+            openCodexScreen(highestEssence, pairedPos);
         } else {
-            level.playSound(null, player.getX(), player.getY(), player.getZ(), 
+            if (player instanceof ServerPlayer serverPlayer) {
+                CodexPlayerData.syncToClient(serverPlayer);
+            }
+            level.playSound(null, player.getX(), player.getY(), player.getZ(),
                     SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1.0F, 1.0F);
         }
 
         return InteractionResult.SUCCESS;
+    }
+
+    @Nullable
+    public static BlockPos getPairedPosFromStack(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return null;
+        CustomData custom = stack.get(DataComponents.CUSTOM_DATA);
+        if (custom == null) return null;
+        CompoundTag tag = custom.copyTag();
+        return tag.getLong("PairedTerminalPos").map(BlockPos::of).orElse(null);
+    }
+
+    @Nullable
+    public static BlockPos findPairedTerminalPos(Player player) {
+        if (player == null) return null;
+        BlockPos main = getPairedPosFromStack(player.getMainHandItem());
+        if (main != null) return main;
+        BlockPos off = getPairedPosFromStack(player.getOffhandItem());
+        if (off != null) return off;
+
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack inv = player.getInventory().getItem(i);
+            if (!inv.isEmpty() && inv.getItem() instanceof EntropicCodexItem) {
+                BlockPos found = getPairedPosFromStack(inv);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     public static EssenceType scanHighestEssence(Player player) {
@@ -111,8 +150,8 @@ public class EntropicCodexItem extends Item {
         };
     }
 
-    private static void openCodexScreen(EssenceType essenceType) {
-        Minecraft.getInstance().setScreen(new EntropicCodexScreen(essenceType));
+    private static void openCodexScreen(EssenceType essenceType, @Nullable BlockPos pairedPos) {
+        Minecraft.getInstance().setScreen(new EntropicCodexScreen(essenceType, pairedPos));
     }
 
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {

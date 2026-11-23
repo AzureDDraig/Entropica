@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:null_fringe_rift_bastion",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 947261839,
+    "spacing": 24,
+    "separation": 9
+  }
+}

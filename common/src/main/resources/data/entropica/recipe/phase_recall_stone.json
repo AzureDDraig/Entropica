@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " S ",
+    "CRC",
+    " O "
+  ],
+  "key": {
+    "S": "entropica:void_stone",
+    "C": "entropica:void_crystal_shard",
+    "R": "minecraft:ender_pearl",
+    "O": "entropica:obsidian_bricks"
+  },
+  "result": {
+    "id": "entropica:phase_recall_stone",
+    "count": 1
+  }
+}

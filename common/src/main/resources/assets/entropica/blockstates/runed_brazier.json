@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "entropica:block/runed_brazier"
+    },
+    "lit=true": {
+      "model": "entropica:block/runed_brazier_lit"
+    }
+  }
+}

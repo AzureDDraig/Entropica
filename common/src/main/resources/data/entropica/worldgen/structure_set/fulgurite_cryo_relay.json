@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:fulgurite_cryo_relay",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 748291563,
+    "spacing": 22,
+    "separation": 8
+  }
+}

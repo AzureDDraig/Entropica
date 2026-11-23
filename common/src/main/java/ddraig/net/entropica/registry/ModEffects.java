@@ -43,4 +43,44 @@ public class ModEffects {
     // Dust Materia (#17) Abrasive Armor Erosion (-5% Armor & Toughness per level, up to Level 20 = -100%)
     public static final RegistrySupplier<MobEffect> ARMOR_EROSION = EFFECTS.register("armor_erosion",
             ddraig.net.entropica.effect.ArmorErosionEffect::new);
+
+    // Biome 6 (2.6 Steaming Skerries): Dampening — silences footsteps and acoustic vibrations
+    public static final RegistrySupplier<MobEffect> DAMPENING = EFFECTS.register("dampening",
+            ddraig.net.entropica.effect.DampeningEffect::new);
+
+    // Biome 7 (2.7 Static Ice-Plains): Galvanic Surge — zaps melee attackers back with static + chill
+    public static final RegistrySupplier<MobEffect> GALVANIC_SURGE = EFFECTS.register("galvanic_surge",
+            ddraig.net.entropica.effect.GalvanicSurgeEffect::new);
+
+    // Biome 8 (2.8 Barrow-Mound Tundra): Barrow Ward — purges Wither and shields against Undead & Barrow Hounds
+    public static final RegistrySupplier<MobEffect> BARROW_WARD = EFFECTS.register("barrow_ward",
+            ddraig.net.entropica.effect.BarrowWardEffect::new);
+
+    // Biome 12 (2.12 Spore-Glazed Pack): Spore Clarity — purges Nausea and Poison and protects against spore haze
+    public static final RegistrySupplier<MobEffect> SPORE_CLARITY = EFFECTS.register("spore_clarity",
+            ddraig.net.entropica.effect.SporeClarityEffect::new);
+
+    // Biome 13 (2.13 Mirage Glacier): Double Vision — refractive Mirage & Glacial disorientation
+    public static final RegistrySupplier<MobEffect> DOUBLE_VISION = EFFECTS.register("double_vision",
+            ddraig.net.entropica.effect.DoubleVisionEffect::new);
+
+    // Biome 13 (2.13 Mirage Glacier): Mirage Phasing — beneficial Mirage & Glacial refraction aura
+    public static final RegistrySupplier<MobEffect> MIRAGE_PHASING = EFFECTS.register("mirage_phasing",
+            ddraig.net.entropica.effect.MiragePhasingEffect::new);
+
+    // Biome 14 (2.14 Oasis Floes): Oasis Renewal — clears freeze buildup and extinguishes Wither chill
+    public static final RegistrySupplier<MobEffect> OASIS_RENEWAL = EFFECTS.register("oasis_renewal",
+            ddraig.net.entropica.effect.OasisRenewalEffect::new);
+
+    // Biome 15 (2.15 Dust-Crusted Bergs): Zephyr Weight — buoyant wind-cushioning & dust blindness immunity
+    public static final RegistrySupplier<MobEffect> ZEPHYR_WEIGHT = EFFECTS.register("zephyr_weight",
+            ddraig.net.entropica.effect.ZephyrWeightEffect::new);
+
+    // Biome 16 (2.16 Blood-Ice Shallows): Sanguine Vigor — +2 Hearts Max Health, frost-thawing & melee life-siphon
+    public static final RegistrySupplier<MobEffect> SANGUINE_VIGOR = EFFECTS.register("sanguine_vigor",
+            ddraig.net.entropica.effect.SanguineVigorEffect::new);
+
+    // Biome 17 (2.17 Astral Skerries): Starlight Grace — +0.5 step height, cushioned falls, +12% speed, frost/darkness purge & steady Night Vision
+    public static final RegistrySupplier<MobEffect> STARLIGHT_GRACE = EFFECTS.register("starlight_grace",
+            ddraig.net.entropica.effect.StarlightGraceEffect::new);
 }

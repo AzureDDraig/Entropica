@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "planks",
+  "ingredients": [
+    "entropica:fulgurite_pine_log"
+  ],
+  "result": {
+    "id": "entropica:silver_pine_planks",
+    "count": 4
+  }
+}

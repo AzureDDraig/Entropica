@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ENE",
+    "ASA",
+    "EGE"
+  ],
+  "key": {
+    "E": "entropica:engraved_astral_slate",
+    "N": "entropica:astral_nautilus_nacre",
+    "A": "entropica:astral_glass",
+    "S": "entropica:stardust_fragment",
+    "G": "minecraft:gold_ingot"
+  },
+  "result": {
+    "id": "entropica:celestial_orrery_lantern",
+    "count": 1
+  }
+}

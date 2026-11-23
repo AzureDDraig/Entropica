@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "  S",
+    " R ",
+    "C  "
+  ],
+  "key": {
+    "S": "entropica:stardust_fragment",
+    "R": "entropica:resonite_ingot",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "entropica:starlight_tuning_chisel",
+    "count": 1
+  }
+}

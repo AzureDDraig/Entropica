@@ -1,0 +1,58 @@
+{
+  "type": "minecraft:random_patch",
+  "config": {
+    "tries": 48,
+    "xz_spread": 6,
+    "y_spread": 2,
+    "feature": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "config": {
+          "to_place": {
+            "type": "minecraft:simple_state_provider",
+            "state": {
+              "Name": "entropica:auroral_feather_moss"
+            }
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air",
+                  "minecraft:snow"
+                ]
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "entropica:coarse_gravel",
+                  "minecraft:gravel",
+                  "entropica:steaming_spring_stone",
+                  "entropica:vitae_spring_stone",
+                  "minecraft:stone",
+                  "minecraft:basalt",
+                  "minecraft:snow_block",
+                  "entropica:radiant_snow_block",
+                  "minecraft:grass_block",
+                  "minecraft:dirt"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

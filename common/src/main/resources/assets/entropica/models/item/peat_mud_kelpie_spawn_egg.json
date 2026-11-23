@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:item/peat_mud_kelpie_spawn_egg"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:eclipse_fjord_sanctum",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 529184637,
+    "spacing": 22,
+    "separation": 8
+  }
+}

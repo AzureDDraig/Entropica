@@ -1,6 +1,18 @@
 package ddraig.net.entropica.config.neoforge;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import ddraig.net.entropica.config.EntropicaBiome;
+import dev.architectury.platform.Platform;
+import net.neoforged.neoforge.common.ModConfigSpec;
+
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class EntropicaConfigImpl {
@@ -104,8 +116,70 @@ public class EntropicaConfigImpl {
     public static boolean getEnableAstralMirrorNebulae() { return EntropicaNeoForgeConfig.ENABLE_ASTRAL_MIRROR_NEBULAE.get(); }
     public static boolean getEnableAstralMirrorConstellationLines() { return EntropicaNeoForgeConfig.ENABLE_ASTRAL_MIRROR_CONSTELLATION_LINES.get(); }
     public static int getAstralCollectorTransferRate() { return EntropicaNeoForgeConfig.ASTRAL_COLLECTOR_TRANSFER_RATE.get(); }
+    private static final Gson MAGNETITE_GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static volatile List<String> cachedMagnetiteOreWhitelist = null;
+    private static volatile List<String> cachedMagnetiteOreBlacklist = null;
+
+    private static final class MagnetiteBeamOreConfigData {
+        public String description = "Earth Magnetite Tractor Beam Tier 2+ ore filter (supports block IDs like 'minecraft:iron_ore' and tags like '#c:ores/iron'). Empty whitelist allows all detected ores unless matched by blacklist.";
+        public List<String> magnetiteBeamOreWhitelist = new ArrayList<>();
+        public List<String> magnetiteBeamOreBlacklist = new ArrayList<>();
+    }
+
+    private static synchronized void ensureMagnetiteBeamOreConfigLoaded() {
+        if (cachedMagnetiteOreWhitelist != null && cachedMagnetiteOreBlacklist != null) {
+            return;
+        }
+        List<String> white = List.of();
+        List<String> black = List.of();
+        try {
+            Path configPath = Platform.getConfigFolder().resolve("entropica-magnetite-beam.json");
+            MagnetiteBeamOreConfigData cfg = new MagnetiteBeamOreConfigData();
+            if (Files.exists(configPath)) {
+                try (Reader reader = Files.newBufferedReader(configPath)) {
+                    MagnetiteBeamOreConfigData loaded = MAGNETITE_GSON.fromJson(reader, MagnetiteBeamOreConfigData.class);
+                    if (loaded != null) {
+                        cfg = loaded;
+                    }
+                }
+            } else {
+                Files.createDirectories(configPath.getParent());
+                try (Writer writer = Files.newBufferedWriter(configPath)) {
+                    MAGNETITE_GSON.toJson(cfg, writer);
+                }
+            }
+            white = sanitizeConfigStringList(cfg.magnetiteBeamOreWhitelist);
+            black = sanitizeConfigStringList(cfg.magnetiteBeamOreBlacklist);
+        } catch (Throwable ignored) {
+            // Uninitialized platform config dir or read-only environment: safely default to empty lists.
+        }
+        cachedMagnetiteOreWhitelist = white;
+        cachedMagnetiteOreBlacklist = black;
+    }
+
+    private static List<String> sanitizeConfigStringList(List<String> raw) {
+        if (raw == null || raw.isEmpty()) {
+            return List.of();
+        }
+        List<String> cleaned = new ArrayList<>();
+        for (String entry : raw) {
+            if (entry != null && !entry.isBlank()) {
+                cleaned.add(entry.trim());
+            }
+        }
+        return Collections.unmodifiableList(cleaned);
+    }
+
     public static int getSpellMutationUnlockMode() { return EntropicaNeoForgeConfig.SPELL_MUTATION_UNLOCK_MODE.get(); }
     public static boolean getEnableSpellMutationOpJoinNotice() { return EntropicaNeoForgeConfig.ENABLE_SPELL_MUTATION_OP_JOIN_NOTICE.get(); }
+    public static List<String> getMagnetiteBeamOreWhitelist() {
+        ensureMagnetiteBeamOreConfigLoaded();
+        return cachedMagnetiteOreWhitelist;
+    }
+    public static List<String> getMagnetiteBeamOreBlacklist() {
+        ensureMagnetiteBeamOreConfigLoaded();
+        return cachedMagnetiteOreBlacklist;
+    }
     public static boolean getEnableAllBiomes() { return EntropicaNeoForgeConfig.ENABLE_ALL_BIOMES.get(); }
     public static int getTerraBlenderCompatMode() { return EntropicaNeoForgeConfig.TERRABLENDER_COMPAT_MODE.get(); }
     public static int getEntropicaBiomeRegionWeight() { return EntropicaNeoForgeConfig.ENTROPICA_BIOME_REGION_WEIGHT.get(); }
@@ -114,6 +188,14 @@ public class EntropicaConfigImpl {
     public static boolean getEnableBiomeCustomFog() { return EntropicaNeoForgeConfig.ENABLE_BIOME_CUSTOM_FOG.get(); }
     public static boolean getEnableBiomeCustomSky() { return EntropicaNeoForgeConfig.ENABLE_BIOME_CUSTOM_SKY.get(); }
     public static boolean getEnableBiomeEnvironmentalEffects() { return EntropicaNeoForgeConfig.ENABLE_BIOME_ENVIRONMENTAL_EFFECTS.get(); }
+    public static boolean getEnableEnhancedBiomeFogAndWater() { return EntropicaNeoForgeConfig.ENABLE_ENHANCED_BIOME_FOG_AND_WATER.get(); }
+    public static boolean getEnableBiomeVolumetricFog() {
+        return getEnableEnhancedBiomeFogAndWater() && EntropicaNeoForgeConfig.ENABLE_BIOME_VOLUMETRIC_FOG.get();
+    }
+    public static boolean getEnableBiomeWaterEffects() {
+        return getEnableEnhancedBiomeFogAndWater() && EntropicaNeoForgeConfig.ENABLE_BIOME_WATER_EFFECTS.get();
+    }
+    public static boolean getEnableShaderpackAdaptiveAttenuation() { return EntropicaNeoForgeConfig.ENABLE_SHADERPACK_ADAPTIVE_ATTENUATION.get(); }
     public static boolean getBiomeEnabled(EntropicaBiome biome) {
         if (biome == null) return false;
         ModConfigSpec.BooleanValue toggle = EntropicaNeoForgeConfig.BIOME_TOGGLES.get(biome);

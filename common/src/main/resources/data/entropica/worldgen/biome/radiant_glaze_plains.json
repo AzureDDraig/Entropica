@@ -1,0 +1,169 @@
+{
+  "has_precipitation": true,
+  "temperature": 0.35,
+  "downfall": 0.5,
+  "creature_spawn_probability": 0.14,
+  "carvers": [
+    "minecraft:cave",
+    "minecraft:cave_extra_underground",
+    "minecraft:canyon"
+  ],
+  "effects": {
+    "sky_color": 10911300,
+    "fog_color": 16639626,
+    "water_color": 6345451,
+    "water_fog_color": 2849664,
+    "grass_color": 16436296,
+    "foliage_color": 16436296,
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "music_volume": 1.0
+  },
+  "features": [
+    [],
+    [
+      "minecraft:lake_lava_underground"
+    ],
+    [
+      "minecraft:amethyst_geode",
+      "entropica:astral_geode"
+    ],
+    [
+      "minecraft:monster_room",
+      "minecraft:monster_room_deep"
+    ],
+    [
+      "entropica:vitae_spring"
+    ],
+    [],
+    [
+      "minecraft:ore_dirt",
+      "minecraft:ore_gravel",
+      "minecraft:ore_granite_upper",
+      "minecraft:ore_granite_lower",
+      "minecraft:ore_diorite_upper",
+      "minecraft:ore_diorite_lower",
+      "minecraft:ore_andesite_upper",
+      "minecraft:ore_andesite_lower",
+      "minecraft:ore_tuff",
+      "minecraft:ore_coal_upper",
+      "minecraft:ore_coal_lower",
+      "minecraft:ore_iron_upper",
+      "minecraft:ore_iron_middle",
+      "minecraft:ore_iron_small",
+      "minecraft:ore_gold",
+      "minecraft:ore_gold_lower",
+      "minecraft:ore_redstone",
+      "minecraft:ore_redstone_lower",
+      "minecraft:ore_diamond",
+      "minecraft:ore_diamond_medium",
+      "minecraft:ore_diamond_large",
+      "minecraft:ore_diamond_buried",
+      "minecraft:ore_lapis",
+      "minecraft:ore_lapis_buried",
+      "minecraft:ore_copper",
+      "minecraft:ore_copper_large",
+      "minecraft:underwater_magma",
+      "minecraft:disk_sand",
+      "minecraft:disk_clay",
+      "minecraft:disk_gravel"
+    ],
+    [],
+    [
+      "minecraft:spring_water",
+      "minecraft:spring_lava"
+    ],
+    [
+      "minecraft:glow_lichen",
+      "entropica:glazed_amber_oak",
+      "entropica:patch_radiant_golden_grass",
+      "entropica:patch_radiant_vitae_orchid"
+    ],
+    []
+  ],
+  "spawn_costs": {},
+  "spawners": {
+    "ambient": [
+      {
+        "type": "entropica:luminoth",
+        "weight": 15,
+        "minCount": 2,
+        "maxCount": 5
+      },
+      {
+        "type": "minecraft:bat",
+        "weight": 6,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ],
+    "axolotls": [],
+    "creature": [
+      {
+        "type": "entropica:crystalline_qilin",
+        "weight": 8,
+        "minCount": 1,
+        "maxCount": 2
+      },
+      {
+        "type": "entropica:amber_weeping_stag",
+        "weight": 14,
+        "minCount": 2,
+        "maxCount": 4
+      },
+      {
+        "type": "entropica:aurorafowl",
+        "weight": 18,
+        "minCount": 3,
+        "maxCount": 5
+      },
+      {
+        "type": "entropica:grot",
+        "weight": 12,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ],
+    "misc": [],
+    "monster": [
+      {
+        "type": "minecraft:skeleton",
+        "weight": 12,
+        "minCount": 1,
+        "maxCount": 2
+      },
+      {
+        "type": "minecraft:spider",
+        "weight": 12,
+        "minCount": 1,
+        "maxCount": 2
+      },
+      {
+        "type": "minecraft:zombie",
+        "weight": 12,
+        "minCount": 1,
+        "maxCount": 2
+      },
+      {
+        "type": "minecraft:enderman",
+        "weight": 5,
+        "minCount": 1,
+        "maxCount": 2
+      }
+    ],
+    "underground_water_creature": [
+      {
+        "type": "minecraft:glow_squid",
+        "weight": 10,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ],
+    "water_ambient": [],
+    "water_creature": []
+  }
+}

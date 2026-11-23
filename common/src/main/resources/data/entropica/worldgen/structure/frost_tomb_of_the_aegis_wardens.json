@@ -1,0 +1,7 @@
+{
+  "type": "entropica:frost_tomb_of_the_aegis_wardens",
+  "biomes": "#entropica:has_structure/frost_tomb_of_the_aegis_wardens",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin"
+}

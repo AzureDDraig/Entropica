@@ -125,6 +125,109 @@ public final class SpellFuelService {
         return new FuelCheckResult(true, List.of(), drained);
     }
 
+    /**
+     * Atomically checks and drains sustained Materia upkeep fuel (e.g. Eidolon 15s lifecycle upkeep)
+     * from the player's <b>equipped Orbis Cell FIRST</b> (mainhand, offhand, and weapon-embedded Orbis Cells),
+     * falling back to other matching {@link OrbisCellItem}s in the player's inventory if needed.
+     * Creative mode players bypass fuel consumption automatically.
+     */
+    public static FuelCheckResult consumeOrbisCellUpkeepFuel(
+            Player player,
+            int spellTier,
+            @Nullable EssenceType requiredType,
+            long neededBaseMfum,
+            boolean simulate
+    ) {
+        EssenceType effectiveKey = requiredType != null ? requiredType : EssenceType.REGULAR;
+        if (player == null) {
+            return new FuelCheckResult(false, List.of(effectiveKey), Map.of());
+        }
+        if (player.isCreative() || neededBaseMfum <= 0L) {
+            return new FuelCheckResult(true, List.of(), neededBaseMfum > 0L ? Map.of(effectiveKey, neededBaseMfum) : Map.of());
+        }
+
+        long simulated = drainOrbisCellsEquippedFirst(player, spellTier, requiredType, neededBaseMfum, true);
+        if (simulated < neededBaseMfum) {
+            return new FuelCheckResult(false, List.of(effectiveKey), Map.of());
+        }
+        if (simulate) {
+            return new FuelCheckResult(true, List.of(), Map.of(effectiveKey, neededBaseMfum));
+        }
+
+        long drained = drainOrbisCellsEquippedFirst(player, spellTier, requiredType, neededBaseMfum, false);
+        return new FuelCheckResult(true, List.of(), Map.of(effectiveKey, drained));
+    }
+
+    private static boolean matchesCellRequirement(ItemStack cellStack, @Nullable EssenceType requiredType) {
+        if (!(cellStack.getItem() instanceof OrbisCellItem)) return false;
+        EssenceType storedType = readOrbisCellType(cellStack);
+        if (storedType == null || getAvailableCellMfum(cellStack) <= 0L) return false;
+        if (requiredType == null || requiredType == EssenceType.REGULAR) {
+            return true;
+        }
+        return storedType == requiredType;
+    }
+
+    private static long drainOrbisCellsEquippedFirst(
+            Player player,
+            int spellTier,
+            @Nullable EssenceType requiredType,
+            long neededSpellMfum,
+            boolean simulate
+    ) {
+        long remaining = neededSpellMfum;
+        Set<ItemStack> visitedStacks = Collections.newSetFromMap(new IdentityHashMap<>());
+
+        // 1. Equipped Orbis Cells FIRST: mainhand & offhand direct OrbisCellItem stacks
+        for (ItemStack equipped : List.of(player.getMainHandItem(), player.getOffhandItem())) {
+            if (equipped.isEmpty() || !visitedStacks.add(equipped)) continue;
+            if (remaining > 0L && matchesCellRequirement(equipped, requiredType)) {
+                remaining -= drainFromOrbisCellStack(equipped, spellTier, remaining, simulate);
+            }
+        }
+
+        // 2. Equipped weapon-embedded Orbis Cells in mainhand & offhand
+        if (remaining > 0L) {
+            Set<ItemStack> visitedHands = Collections.newSetFromMap(new IdentityHashMap<>());
+            for (ItemStack handStack : List.of(player.getMainHandItem(), player.getOffhandItem())) {
+                if (remaining <= 0L || handStack.isEmpty() || !visitedHands.add(handStack)) continue;
+                VisWeaponState weaponState = handStack.get(ModDataComponents.VIS_WEAPON_STATE.get());
+                if (weaponState != null && weaponState.hasOrbisSlot() && !weaponState.orbisCell().isEmpty()) {
+                    ItemStack embedded = weaponState.orbisCell().copy();
+                    if (matchesCellRequirement(embedded, requiredType)) {
+                        long satisfied = drainFromOrbisCellStack(embedded, spellTier, remaining, simulate);
+                        if (satisfied > 0L && !simulate) {
+                            handStack.set(ModDataComponents.VIS_WEAPON_STATE.get(), weaponState.withOrbisCell(embedded));
+                        }
+                        remaining -= satisfied;
+                    }
+                }
+            }
+        }
+
+        // 3. Otherwise drain from other matching Orbis Cells in the player's inventory (highest tier first)
+        if (remaining > 0L) {
+            Inventory inv = player.getInventory();
+            List<Integer> invCellSlots = new ArrayList<>();
+            for (int i = 0; i < inv.getContainerSize(); i++) {
+                ItemStack s = inv.getItem(i);
+                if (s.isEmpty() || visitedStacks.contains(s)) continue;
+                if (matchesCellRequirement(s, requiredType)) {
+                    invCellSlots.add(i);
+                }
+            }
+            invCellSlots.sort((a, b) -> Integer.compare(OrbisCellItem.getTier(inv.getItem(b)), OrbisCellItem.getTier(inv.getItem(a))));
+            for (int slotIdx : invCellSlots) {
+                if (remaining <= 0L) break;
+                ItemStack cellStack = inv.getItem(slotIdx);
+                if (!visitedStacks.add(cellStack)) continue;
+                remaining -= drainFromOrbisCellStack(cellStack, spellTier, remaining, simulate);
+            }
+        }
+
+        return neededSpellMfum - Math.max(0L, remaining);
+    }
+
     private static long drainSingleTypeFromPlayer(
             Player player,
             int spellTier,

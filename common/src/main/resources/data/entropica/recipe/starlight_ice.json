@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BPB",
+    "PSP",
+    "BPB"
+  ],
+  "key": {
+    "B": "minecraft:blue_ice",
+    "P": "minecraft:packed_ice",
+    "S": "entropica:stardust_fragment"
+  },
+  "result": {
+    "id": "entropica:starlight_ice",
+    "count": 8
+  }
+}

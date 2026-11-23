@@ -179,6 +179,20 @@ public class ModNetwork {
         );
 
         NetworkManager.registerReceiver(
+                NetworkManager.Side.S2C,
+                SyncCodexDataPayload.TYPE,
+                SyncCodexDataPayload.STREAM_CODEC,
+                ModNetwork::handleSyncCodexData
+        );
+
+        NetworkManager.registerReceiver(
+                NetworkManager.Side.C2S,
+                UpdateCodexStatePayload.TYPE,
+                UpdateCodexStatePayload.STREAM_CODEC,
+                ModNetwork::handleUpdateCodexState
+        );
+
+        NetworkManager.registerReceiver(
                 NetworkManager.Side.C2S,
                 UpdateAutocastPedestalPayload.TYPE,
                 UpdateAutocastPedestalPayload.STREAM_CODEC,
@@ -617,13 +631,65 @@ public class ModNetwork {
             if (player == null) return;
             int idx = Math.max(0, Math.min(256, data.entryIndex()));
             ItemStack main = player.getMainHandItem();
-            if (main.getItem() instanceof ddraig.net.entropica.item.CelestialJournalItem) {
+            if (main.getItem() instanceof ddraig.net.entropica.item.CelestialJournalItem mainJournal) {
                 ddraig.net.entropica.item.CelestialJournalItem.updateClientBookmark(main, idx);
+                archiveJournalToCodexServer(player, mainJournal.getVolumeNumber(), idx);
                 return;
             }
             ItemStack off = player.getOffhandItem();
-            if (off.getItem() instanceof ddraig.net.entropica.item.CelestialJournalItem) {
+            if (off.getItem() instanceof ddraig.net.entropica.item.CelestialJournalItem offJournal) {
                 ddraig.net.entropica.item.CelestialJournalItem.updateClientBookmark(off, idx);
+                archiveJournalToCodexServer(player, offJournal.getVolumeNumber(), idx);
+            }
+        });
+    }
+
+    private static void archiveJournalToCodexServer(Player player, int volumeNumber, int entryIndex) {
+        if (player == null || player.level().isClientSide()) return;
+        ddraig.net.entropica.data.CodexPlayerData codexData = ddraig.net.entropica.data.CodexPlayerData.getServerData(player);
+        if (codexData.archiveLoreEntry(volumeNumber, entryIndex)) {
+            codexData.saveToPlayerEntity(player);
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                ddraig.net.entropica.data.CodexPlayerData.syncToClient(serverPlayer);
+                var vol = ddraig.net.entropica.data.CelestialJournalData.getVolume(volumeNumber);
+                String entryTitle = (entryIndex >= 0 && entryIndex < vol.entries().size())
+                        ? vol.entries().get(entryIndex).title()
+                        : ("Entry " + (entryIndex + 1));
+                serverPlayer.displayClientMessage(
+                        Component.literal("§6✦ Codex Lore Archived: §eVol. " + vol.roman() + " §7— §f" + entryTitle),
+                        true
+                );
+            }
+        }
+    }
+
+    public static void handleSyncCodexData(final SyncCodexDataPayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> ddraig.net.entropica.data.CodexPlayerData.CLIENT_DATA.applySyncPayload(data));
+    }
+
+    public static void handleUpdateCodexState(final UpdateCodexStatePayload data, final NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            Player player = context.getPlayer();
+            if (player == null || player.level().isClientSide()) return;
+            String target = data.targetId();
+            if (target == null || target.length() > 128) return;
+
+            ddraig.net.entropica.data.CodexPlayerData codexData = ddraig.net.entropica.data.CodexPlayerData.getServerData(player);
+            boolean changed = false;
+
+            switch (data.action()) {
+                case UpdateCodexStatePayload.ACTION_READ_STAR -> changed = codexData.tryIgniteStarOnRead(target);
+                case UpdateCodexStatePayload.ACTION_TOGGLE_BOOKMARK -> {
+                    codexData.toggleBookmark(target);
+                    changed = true;
+                }
+                case UpdateCodexStatePayload.ACTION_ARCHIVE_LORE -> changed = codexData.archiveLoreKey(target);
+                default -> {
+                }
+            }
+
+            if (changed) {
+                codexData.saveToPlayerEntity(player);
             }
         });
     }

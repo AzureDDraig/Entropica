@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:bone_meal",
+    "minecraft:bone_meal",
+    "entropica:rime_cap_spores"
+  ],
+  "result": {
+    "id": "entropica:bleached_bone_meal",
+    "count": 3
+  }
+}

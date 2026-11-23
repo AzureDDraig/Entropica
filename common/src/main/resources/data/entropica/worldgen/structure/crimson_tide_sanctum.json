@@ -1,0 +1,7 @@
+{
+  "type": "entropica:crimson_tide_sanctum",
+  "biomes": "#entropica:has_structure/crimson_tide_sanctum",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "none"
+}

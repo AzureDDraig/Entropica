@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "LSL",
+    "FFF",
+    " F "
+  ],
+  "key": {
+    "L": "minecraft:leather",
+    "S": "minecraft:string",
+    "F": "entropica:mist_veil_frond"
+  },
+  "result": {
+    "id": "entropica:camouflage_cloak",
+    "count": 1
+  }
+}

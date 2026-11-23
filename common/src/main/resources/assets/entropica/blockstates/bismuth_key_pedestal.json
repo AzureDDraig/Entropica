@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "unlocked=false": {
+      "model": "entropica:block/bismuth_key_pedestal"
+    },
+    "unlocked=true": {
+      "model": "entropica:block/bismuth_key_pedestal_unlocked"
+    }
+  }
+}

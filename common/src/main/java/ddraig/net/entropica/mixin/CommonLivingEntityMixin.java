@@ -1,25 +1,39 @@
 package ddraig.net.entropica.mixin;
 
+import ddraig.net.entropica.spell.engine.SpellCombatReactionEngine;
 import ddraig.net.entropica.spell.engine.SpellLingeringZoneManager;
 import ddraig.net.entropica.util.EntityHelper;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.List;
+
 /**
- * Stealth &amp; Obscuration Mob Detection Mixin:
+ * Stealth &amp; Obscuration Mob Detection + Persistent Materia Hex Anti-Milk Mixin:
  * <ul>
  *     <li>Section 6.9 Umbral <i>Shroud of Silence &amp; Stealth</i>: cuts hostile mob AI detection range by an exact 60% (0.40x).</li>
  *     <li>Section 6.12 Arid <i>Sandstorm Veil</i>: cuts hostile mob AI detection range by an exact 50% (0.50x).</li>
+ *     <li>Section 5.6 Persistent Indefinite Curses (Anti-Milk Purge Rule): Milk Buckets clear normal non-hex potion effects
+ *         while preserving active Materia Hex debuffs on the same tick.</li>
  * </ul>
  */
 @Mixin(LivingEntity.class)
 public abstract class CommonLivingEntityMixin {
+
+    @Unique
+    private static final ThreadLocal<List<MobEffectInstance>> entropica$HEX_CLEAR_SNAPSHOT = new ThreadLocal<>();
+
+    @Unique
+    private static final ThreadLocal<List<MobEffectInstance>> entropica$HEX_MILK_USE_SNAPSHOT = new ThreadLocal<>();
 
     @Inject(method = "getVisibilityPercent", at = @At("RETURN"), cancellable = true)
     private void entropica$reduceUmbralShroudVisibility(@Nullable Entity lookingEntity, CallbackInfoReturnable<Double> cir) {
@@ -37,6 +51,57 @@ public abstract class CommonLivingEntityMixin {
             } else if (data.getLong(SpellLingeringZoneManager.TAG_ARID_VEIL_UNTIL).orElse(0L) > now) {
                 cir.setReturnValue(cir.getReturnValueD() * 0.50D);
             }
+        }
+    }
+
+    @Inject(method = "removeAllEffects", at = @At("HEAD"))
+    private void entropica$captureHexEffectsBeforeRemoveAll(CallbackInfoReturnable<Boolean> cir) {
+        LivingEntity self = (LivingEntity) (Object) this;
+        if (self.level() != null && !self.level().isClientSide() && self.isAlive()
+                && SpellCombatReactionEngine.hasAnyActivePersistentHex(self)) {
+            entropica$HEX_CLEAR_SNAPSHOT.set(SpellCombatReactionEngine.captureHexEffectsBeforeClear(self));
+        } else {
+            entropica$HEX_CLEAR_SNAPSHOT.remove();
+        }
+    }
+
+    @Inject(method = "removeAllEffects", at = @At("RETURN"))
+    private void entropica$restoreHexEffectsAfterRemoveAll(CallbackInfoReturnable<Boolean> cir) {
+        List<MobEffectInstance> snapshot = entropica$HEX_CLEAR_SNAPSHOT.get();
+        entropica$HEX_CLEAR_SNAPSHOT.remove();
+        if (snapshot == null) {
+            return;
+        }
+        LivingEntity self = (LivingEntity) (Object) this;
+        if (self.level() != null && !self.level().isClientSide() && self.isAlive()
+                && SpellCombatReactionEngine.hasAnyActivePersistentHex(self)) {
+            SpellCombatReactionEngine.restoreHexEffectsAfterClear(self, snapshot);
+        }
+    }
+
+    @Inject(method = "completeUsingItem", at = @At("HEAD"))
+    private void entropica$captureHexEffectsBeforeMilkUse(CallbackInfo ci) {
+        LivingEntity self = (LivingEntity) (Object) this;
+        if (self.level() != null && !self.level().isClientSide() && self.isAlive()
+                && self.getUseItem().is(Items.MILK_BUCKET)
+                && SpellCombatReactionEngine.hasAnyActivePersistentHex(self)) {
+            entropica$HEX_MILK_USE_SNAPSHOT.set(SpellCombatReactionEngine.captureHexEffectsBeforeClear(self));
+        } else {
+            entropica$HEX_MILK_USE_SNAPSHOT.remove();
+        }
+    }
+
+    @Inject(method = "completeUsingItem", at = @At("RETURN"))
+    private void entropica$restoreHexEffectsAfterMilkUse(CallbackInfo ci) {
+        List<MobEffectInstance> snapshot = entropica$HEX_MILK_USE_SNAPSHOT.get();
+        entropica$HEX_MILK_USE_SNAPSHOT.remove();
+        if (snapshot == null) {
+            return;
+        }
+        LivingEntity self = (LivingEntity) (Object) this;
+        if (self.level() != null && !self.level().isClientSide() && self.isAlive()
+                && SpellCombatReactionEngine.hasAnyActivePersistentHex(self)) {
+            SpellCombatReactionEngine.restoreHexEffectsAfterClear(self, snapshot);
         }
     }
 

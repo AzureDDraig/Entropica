@@ -81,12 +81,14 @@ public final class RimeSpellMutationHandler implements MateriaPartMutationHandle
 
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Crystalline Hoarfrost Spiral Flow";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE ? "Crystalline Hoarfrost Spiral Flow" : null;
     }
 
     @Override
     public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "4 razor-sharp crystalline hoarfrost icicles and sub-zero winds (#6395B1 / #DCF0FF) grant +5 Armor, +2 Toughness, Freeze/Powder-Snow/Slowness immunity, arrow frost-shattering, -30% attacker chill, and 2.0s-rooting homing frost darts on melee or spell hit.";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE
+                ? "4 razor-sharp crystalline hoarfrost icicles and sub-zero winds (#6395B1 / #DCF0FF) grant +5 Armor, +2 Toughness, Freeze/Powder-Snow/Slowness immunity, arrow frost-shattering, -30% attacker chill, and 2.0s-rooting homing frost darts on melee or spell hit."
+                : null;
     }
 
     @Override
@@ -280,10 +282,23 @@ public final class RimeSpellMutationHandler implements MateriaPartMutationHandle
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Section 6.42 Glacial Absolute-Zero Jetstream Beam:
-        // Continuously crystallizes caught targets with Rime Materia damage, rapid freezing, and stacking Slowness
-        // (up to Slowness IV); REQUIRES 5.0s (100t / 5 pulses) sustained continuous channeling to trigger Deep Freeze
-        // Shatter, flash-freezing caught hostiles solid for 2.5s (50t) and detonating a massive frost-shockwave!
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         int tier = spell.getEffectiveTier();
         boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
         long now = level.getGameTime();
@@ -292,11 +307,20 @@ public final class RimeSpellMutationHandler implements MateriaPartMutationHandle
             if (SpellExecutionEngine.isFriendlyAllyForOasis(caster, hit)) continue;
             if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, wardSafe)) continue;
 
+            if (!slot.hasHarmVerb()) {
+                float beamDmg = (1.60F + tier * 0.45F) * Math.max(0.5F, apparatusPotency);
+                SpellCombatReactionEngine.hurtWithRimeMateriaAdvantage(level, hit, caster, beamDmg, false, true);
+            }
+
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_RIME_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) {
+                continue;
+            }
             long delta = now - last;
-            int stepTicks = (delta > 0L && delta <= 8L) ? (int) Math.max(4L, delta) : 20;
-            int contactTicks = (delta <= 45L) ? data.getInt(TAG_RIME_BEAM_TICKS).orElse(0) + stepTicks : stepTicks;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt(TAG_RIME_BEAM_TICKS).orElse(0) + (int) delta : 4);
             data.putLong(TAG_RIME_BEAM_LAST_TICK, now);
             data.putInt(TAG_RIME_BEAM_TICKS, contactTicks);
 
@@ -304,12 +328,7 @@ public final class RimeSpellMutationHandler implements MateriaPartMutationHandle
             hit.setTicksFrozen(hit.getTicksRequiredToFreeze() + 70);
             hit.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 45, slowAmp));
 
-            if (!slot.hasHarmVerb()) {
-                float beamDmg = (1.60F + tier * 0.45F) * Math.max(0.5F, apparatusPotency);
-                SpellCombatReactionEngine.hurtWithRimeMateriaAdvantage(level, hit, caster, beamDmg, false, true);
-            }
-
-            if (contactTicks >= 100) {
+            if (heldTicks > 0 && contactTicks >= 100) {
                 data.putInt(TAG_RIME_BEAM_TICKS, 0);
                 SpellWorldVfxManager.broadcastRadialNova(
                         level, hit.position(), 3.8D, EssenceType.RIME, EssenceType.FROZEN, tier
@@ -729,16 +748,21 @@ public final class RimeSpellMutationHandler implements MateriaPartMutationHandle
         }
 
         final boolean[] landed = new boolean[stalactiteCount];
-        Map<BlockPos, BlockState> savedPermafrost = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 520, level.getGameTime(), spell, slot, EssenceType.RIME, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedPermafrost.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.PACKED_ICE) || cur.is(Blocks.BLUE_ICE) || cur.is(Blocks.SNOW)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int mIdx = 0; mIdx < stalactiteCount; mIdx++) {
+                                boolean tallStalactite = (mIdx % 2 == 0);
+                                BlockState pseudoState = tallStalactite
+                                        ? Blocks.BLUE_ICE.defaultBlockState()
+                                        : Blocks.PACKED_ICE.defaultBlockState();
+                                int colHeight = tallStalactite ? 2 : 1;
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, stalactiteTargets[mIdx], pseudoState, colHeight);
                             }
                         }
                         return false;
@@ -758,7 +782,7 @@ public final class RimeSpellMutationHandler implements MateriaPartMutationHandle
                             int colHeight = tallStalactite ? 2 : 1;
 
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 360 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -805,36 +829,16 @@ public final class RimeSpellMutationHandler implements MateriaPartMutationHandle
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 0.90F, 0.72F);
                             }
-                            if (landed[mIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, colHeight, false);
-                            }
                         }
                     } else if (elapsed == 360) {
-                        // Storm complete: materialize real temporary permafrost sheets & spires for the 8.0s (160t) after-chill!
                         SpellWorldVfxManager.broadcastArcaneSeal(
                                 srv, zone.center.add(0.0D, 0.04D, 0.0D), zone.radius,
                                 EssenceType.RIME, EssenceType.FROZEN, 160, zTier
                         );
-                        for (int mIdx = 0; mIdx < stalactiteCount; mIdx++) {
-                            BlockPos strikePos = stalactiteTargets[mIdx];
-                            BlockPos ground = strikePos.below();
-                            BlockState gs = srv.getBlockState(ground);
-                            if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE) || gs.is(Blocks.WATER) || gs.is(Blocks.SAND))
-                                    && !savedPermafrost.containsKey(ground)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, ground, gs)) {
-                                savedPermafrost.put(ground.immutable(), gs);
-                                srv.setBlockAndUpdate(ground, (mIdx % 2 == 0 ? Blocks.BLUE_ICE : Blocks.PACKED_ICE).defaultBlockState());
-                            }
-                            for (BlockPos p : BlockPos.betweenClosed(strikePos.offset(-2, 0, -2), strikePos.offset(2, 0, 2))) {
-                                BlockState cur = srv.getBlockState(p);
-                                if (cur.isAir()
-                                        && Blocks.SNOW.defaultBlockState().canSurvive(srv, p)
-                                        && !savedPermafrost.containsKey(p)
-                                        && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, p, cur)) {
-                                    savedPermafrost.put(p.immutable(), cur);
-                                    srv.setBlockAndUpdate(p, Blocks.SNOW.defaultBlockState());
-                                }
-                            }
+                    }
+                    for (int mIdx = 0; mIdx < stalactiteCount; mIdx++) {
+                        if (landed[mIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, stalactiteTargets[mIdx], (mIdx % 2 == 0) ? 2 : 1, false);
                         }
                     }
 
@@ -964,20 +968,14 @@ public final class RimeSpellMutationHandler implements MateriaPartMutationHandle
 
     @Override
     public boolean onTransmuteBlock(ServerLevel level, @Nullable LivingEntity caster, BlockPos pos, BlockState state, int potencyTier) {
-        // Section 6.42 Glacial Cryo-Crystallization Transmute:
-        // Freezes water & flowing water into Packed Ice or Blue Ice; converts lava into Obsidian or Cryo-Magma Slag
-        // (Crying Obsidian); freezes dirt/grass into Permafrost (Packed Ice / Coarse Dirt); turns mud into Clay;
-        // crystallizes sand into Frosted Quartz / Calcite; and condenses atmospheric water vapor directly into
-        // drinkable water or ice blocks!
-        boolean didAny = false;
-        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2.5D), ItemEntity::isAlive)) {
-            if (onTransmuteDroppedItem(level, caster, item, potencyTier)) {
-                didAny = true;
-            }
+        // Section 6.42 Glacial Cryo-Crystallization Transmute [2.5s Continuous Held Right-Click Channel]:
+        if (ApexEschatonSingularityHelper.beginOrExecuteChanneledTransmute(
+                level, caster, pos, 5, potencyTier, EssenceType.RIME, "Glacial Cryo-Crystallization Transmute", null)) {
+            return true;
         }
-        if (SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
-            if (didAny) refundBatchDiscount(level, caster, potencyTier);
-            return didAny;
+        boolean didAny = false;
+        if (!state.isAir() && SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
+            return false;
         }
         if (state.is(Blocks.WATER)) {
             level.setBlockAndUpdate(pos, level.random.nextBoolean() ? Blocks.PACKED_ICE.defaultBlockState() : Blocks.BLUE_ICE.defaultBlockState());

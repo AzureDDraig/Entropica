@@ -80,12 +80,14 @@ public final class PyreSpellMutationHandler implements MateriaPartMutationHandle
 
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Cremating Wildfire Orbit Flow";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE ? "Cremating Wildfire Orbit Flow" : null;
     }
 
     @Override
     public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "Swirling rings of incandescent coal embers and burning cedar chunks (#773214 / #FF4500) grant +3 Armor, burn melee attackers for 4s, melt incoming wooden arrows into ash, and launch burning coal darts on melee hits.";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE
+                ? "Swirling rings of incandescent coal embers and burning cedar chunks (#773214 / #FF4500) grant +3 Armor, burn melee attackers for 4s, melt incoming wooden arrows into ash, and launch burning coal darts on melee hits."
+                : null;
     }
 
     @Override
@@ -306,6 +308,23 @@ public final class PyreSpellMutationHandler implements MateriaPartMutationHandle
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         // Section 6.40 Cremating Wildfire Jetstream Beam:
         // Continuously cremates caught targets with Pyre Materia damage, melts enemy armor (-1 armor per 1.5s),
         // and disintegrates non-flameproof incoming projectiles; sustained channeling for 3.0s (60t) triggers
@@ -338,9 +357,17 @@ public final class PyreSpellMutationHandler implements MateriaPartMutationHandle
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_PYRE_BEAM_LAST_TICK).orElse(-100L);
+            if (!slot.hasHarmVerb()) {
+                float jetDmg = (1.50F + tier * 0.42F) * Math.max(0.5F, apparatusPotency);
+                SpellCombatReactionEngine.hurtWithPyreMateriaAdvantage(level, hit, caster, jetDmg, false, true);
+            }
+            if (last == now) {
+                continue;
+            }
             long delta = now - last;
-            int stepTicks = (delta > 0L && delta <= 8L) ? (int) Math.max(4L, delta) : 20;
-            int contactTicks = (delta <= 45L) ? data.getInt(TAG_PYRE_BEAM_TICKS).orElse(0) + stepTicks : stepTicks;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt(TAG_PYRE_BEAM_TICKS).orElse(0) + (int) delta : 4);
             data.putLong(TAG_PYRE_BEAM_LAST_TICK, now);
             data.putInt(TAG_PYRE_BEAM_TICKS, contactTicks);
 
@@ -348,12 +375,7 @@ public final class PyreSpellMutationHandler implements MateriaPartMutationHandle
             double meltedArmor = Math.min(6.0D, Math.max(1.0D, contactTicks / 30.0D));
             SpellCombatReactionEngine.applyTimedAttributeShred(hit, level, meltedArmor, 0.0D, 100L);
 
-            if (!slot.hasHarmVerb()) {
-                float jetDmg = (1.50F + tier * 0.42F) * Math.max(0.5F, apparatusPotency);
-                SpellCombatReactionEngine.hurtWithPyreMateriaAdvantage(level, hit, caster, jetDmg, false, true);
-            }
-
-            if (contactTicks >= 60) {
+            if (heldTicks > 0 && contactTicks >= 60) {
                 data.putInt(TAG_PYRE_BEAM_TICKS, 0);
                 SpellWorldVfxManager.broadcastRadialNova(
                         level, hit.position(), 4.5D, EssenceType.PYRE, EssenceType.NETHER, tier
@@ -781,18 +803,21 @@ public final class PyreSpellMutationHandler implements MateriaPartMutationHandle
         }
 
         final boolean[] landed = new boolean[8];
-        Map<BlockPos, BlockState> savedCraters = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 280, level.getGameTime(), spell, slot, EssenceType.PYRE, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedCraters.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.MAGMA_BLOCK)
-                                    || cur.is(Blocks.COAL_BLOCK)
-                                    || cur.is(ModBlocks.PYRE_ASH_CEDAR_LOG.get())) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int mIdx = 0; mIdx < 8; mIdx++) {
+                                boolean timberMeteor = (mIdx % 2 == 0);
+                                BlockState pseudoState = timberMeteor
+                                        ? ModBlocks.PYRE_ASH_CEDAR_LOG.get().defaultBlockState()
+                                        : Blocks.COAL_BLOCK.defaultBlockState();
+                                int colHeight = timberMeteor ? 2 : 1;
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, meteorTargets[mIdx], pseudoState, colHeight);
                             }
                         }
                         return false;
@@ -810,7 +835,7 @@ public final class PyreSpellMutationHandler implements MateriaPartMutationHandle
                             int colHeight = timberMeteor ? 2 : 1;
 
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 200 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -865,32 +890,11 @@ public final class PyreSpellMutationHandler implements MateriaPartMutationHandle
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 0.85F, 0.92F);
                             }
-                            if (landed[mIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, colHeight, false);
-                            }
                         }
-                    } else if (elapsed == 200) {
-                        // Skyfall complete: materialize real temporary fiery magma craters & charred hearth logs for 4.0s (80t)!
-                        for (int mIdx = 0; mIdx < 8; mIdx++) {
-                            BlockPos strikePos = meteorTargets[mIdx];
-                            BlockPos ground = strikePos.below();
-                            BlockState gs = srv.getBlockState(ground);
-                            if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE) || gs.is(Blocks.COBBLESTONE) || gs.is(Blocks.GRAVEL))
-                                    && !savedCraters.containsKey(ground)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, ground, gs)) {
-                                savedCraters.put(ground.immutable(), gs);
-                                srv.setBlockAndUpdate(ground, Blocks.MAGMA_BLOCK.defaultBlockState());
-                            }
-                            BlockState aboveState = srv.getBlockState(strikePos);
-                            if (aboveState.isAir()
-                                    && !savedCraters.containsKey(strikePos)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, strikePos, aboveState)
-                                    && srv.getEntitiesOfClass(LivingEntity.class, new AABB(strikePos)).isEmpty()) {
-                                savedCraters.put(strikePos.immutable(), aboveState);
-                                srv.setBlockAndUpdate(strikePos, (mIdx % 2 == 0)
-                                        ? ModBlocks.PYRE_ASH_CEDAR_LOG.get().defaultBlockState()
-                                        : Blocks.COAL_BLOCK.defaultBlockState());
-                            }
+                    }
+                    for (int mIdx = 0; mIdx < 8; mIdx++) {
+                        if (landed[mIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, meteorTargets[mIdx], (mIdx % 2 == 0) ? 2 : 1, false);
                         }
                     }
                     return true;

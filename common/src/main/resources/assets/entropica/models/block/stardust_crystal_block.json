@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "entropica:block/stardust_crystal_block"
+  }
+}

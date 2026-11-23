@@ -1,0 +1,60 @@
+{
+  "type": "minecraft:random_patch",
+  "config": {
+    "tries": 36,
+    "xz_spread": 5,
+    "y_spread": 2,
+    "feature": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "config": {
+          "to_place": {
+            "type": "minecraft:simple_state_provider",
+            "state": {
+              "Name": "entropica:mist_veil_fern"
+            }
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air",
+                  "minecraft:snow"
+                ]
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "entropica:coarse_gravel",
+                  "minecraft:gravel",
+                  "entropica:steaming_spring_stone",
+                  "entropica:vitae_spring_stone",
+                  "minecraft:stone",
+                  "minecraft:basalt",
+                  "minecraft:smooth_basalt",
+                  "minecraft:snow_block",
+                  "entropica:radiant_snow_block",
+                  "minecraft:grass_block",
+                  "minecraft:dirt",
+                  "minecraft:coarse_dirt"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

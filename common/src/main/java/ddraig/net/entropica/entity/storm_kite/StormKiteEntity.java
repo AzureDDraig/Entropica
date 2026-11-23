@@ -1,12 +1,16 @@
 package ddraig.net.entropica.entity.storm_kite;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -23,6 +27,7 @@ import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 
@@ -49,12 +54,29 @@ public class StormKiteEntity extends Monster implements FlyingAnimal {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 70.0D)
+                .add(Attributes.MAX_HEALTH, 210.0D)
                 .add(Attributes.FLYING_SPEED, 1.15D)
                 .add(Attributes.MOVEMENT_SPEED, 0.40D)
                 .add(Attributes.ATTACK_DAMAGE, 12.0D)
                 .add(Attributes.ARMOR, 6.0D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D);
+    }
+
+    public static boolean checkStormKiteSpawnRules(
+            EntityType<StormKiteEntity> type,
+            ServerLevelAccessor level,
+            EntitySpawnReason reason,
+            BlockPos pos,
+            RandomSource random
+    ) {
+        if (EntitySpawnReason.isSpawner(reason)
+                || reason == EntitySpawnReason.SPAWN_ITEM_USE
+                || reason == EntitySpawnReason.COMMAND) {
+            return true;
+        }
+        return level.getDifficulty() != Difficulty.PEACEFUL
+                && pos.getY() >= 62
+                && level.getBlockState(pos).isAir();
     }
 
     @Override

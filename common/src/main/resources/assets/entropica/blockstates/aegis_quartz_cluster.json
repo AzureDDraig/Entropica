@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "entropica:block/aegis_quartz_cluster",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "entropica:block/aegis_quartz_cluster",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "entropica:block/aegis_quartz_cluster",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "entropica:block/aegis_quartz_cluster",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "entropica:block/aegis_quartz_cluster"
+    },
+    "facing=west": {
+      "model": "entropica:block/aegis_quartz_cluster",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

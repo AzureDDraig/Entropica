@@ -17,7 +17,7 @@ public class PatinaGalvanicOvisEntity extends AbstractOvisEntity {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 32.0D)
+                .add(Attributes.MAX_HEALTH, 64.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.23D)
                 .add(Attributes.ATTACK_DAMAGE, 5.0D)
                 .add(Attributes.ARMOR, 6.0D);
@@ -26,5 +26,10 @@ public class PatinaGalvanicOvisEntity extends AbstractOvisEntity {
     @Override
     public Item getPlateItem() {
         return ModItems.PATINA_AEGIS_PLATE.get();
+    }
+
+    @Override
+    public ddraig.net.entropica.api.EssenceType getSecondaryEssenceType() {
+        return ddraig.net.entropica.api.EssenceType.STATIC;
     }
 }

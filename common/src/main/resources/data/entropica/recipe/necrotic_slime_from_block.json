@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:necrotic_slime_block"
+  ],
+  "result": {
+    "id": "entropica:necrotic_slime",
+    "count": 9
+  }
+}

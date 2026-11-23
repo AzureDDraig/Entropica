@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "GB",
+    "BG"
+  ],
+  "key": {
+    "G": "minecraft:gravel",
+    "B": "minecraft:basalt"
+  },
+  "result": {
+    "id": "entropica:coarse_gravel",
+    "count": 4
+  }
+}

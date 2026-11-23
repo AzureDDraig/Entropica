@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:radiant_spring_pavilion",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 583920417,
+    "spacing": 22,
+    "separation": 8
+  }
+}

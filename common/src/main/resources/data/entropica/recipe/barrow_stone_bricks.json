@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "SSS",
+    "SBS",
+    "SSS"
+  ],
+  "key": {
+    "S": "minecraft:stone_bricks",
+    "B": "entropica:bleached_bone_meal"
+  },
+  "result": {
+    "id": "entropica:barrow_stone_bricks",
+    "count": 8
+  }
+}

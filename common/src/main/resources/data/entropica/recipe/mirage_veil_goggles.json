@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "NLN",
+    "PCP",
+    " L "
+  ],
+  "key": {
+    "N": "entropica:vitreous_needle",
+    "L": "minecraft:leather",
+    "P": "entropica:silica_glass_plate",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "entropica:mirage_veil_goggles",
+    "count": 1
+  }
+}

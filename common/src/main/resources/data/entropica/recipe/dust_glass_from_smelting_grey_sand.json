@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "blocks",
+  "group": "dust_glass",
+  "ingredient": "entropica:grey_sand",
+  "result": {
+    "id": "entropica:dust_glass"
+  },
+  "experience": 0.1,
+  "cookingtime": 200
+}

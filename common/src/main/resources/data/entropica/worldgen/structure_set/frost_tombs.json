@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:frost_tomb_of_the_aegis_wardens",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 839204719,
+    "spacing": 26,
+    "separation": 10
+  }
+}

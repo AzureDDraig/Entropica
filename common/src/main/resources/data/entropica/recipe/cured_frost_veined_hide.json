@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:frost_veined_hide",
+    "entropica:sea_salt_crystals",
+    "entropica:sea_salt_crystals"
+  ],
+  "result": {
+    "id": "entropica:cured_frost_veined_hide",
+    "count": 1
+  }
+}

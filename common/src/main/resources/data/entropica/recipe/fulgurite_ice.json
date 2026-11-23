@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " F ",
+    "FPF",
+    " F "
+  ],
+  "key": {
+    "F": "entropica:static_frost_powder",
+    "P": "minecraft:packed_ice"
+  },
+  "result": {
+    "id": "entropica:fulgurite_ice",
+    "count": 2
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:icebound_blight_wreck",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 318472905,
+    "spacing": 20,
+    "separation": 7
+  }
+}

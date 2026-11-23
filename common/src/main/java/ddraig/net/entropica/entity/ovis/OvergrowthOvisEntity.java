@@ -17,7 +17,7 @@ public class OvergrowthOvisEntity extends AbstractOvisEntity {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 30.0D)
+                .add(Attributes.MAX_HEALTH, 60.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.23D)
                 .add(Attributes.ATTACK_DAMAGE, 4.0D);
     }
@@ -25,5 +25,10 @@ public class OvergrowthOvisEntity extends AbstractOvisEntity {
     @Override
     public Item getPlateItem() {
         return ModItems.MOSSY_AEGIS_PLATE.get();
+    }
+
+    @Override
+    public ddraig.net.entropica.api.EssenceType getSecondaryEssenceType() {
+        return ddraig.net.entropica.api.EssenceType.OVERGROWTH;
     }
 }

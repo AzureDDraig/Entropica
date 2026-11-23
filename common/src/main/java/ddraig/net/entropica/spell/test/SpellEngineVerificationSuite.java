@@ -769,12 +769,14 @@ public final class SpellEngineVerificationSuite {
                         EssenceType.CHIMERA, SpellEidolonEntity.TriadArchetype.AGENT, true, "WATER"))
                 && "Hell-Chimera".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
                         EssenceType.CHIMERA, SpellEidolonEntity.TriadArchetype.AGENT, true, "NETHER"))
+                && SpellEidolonSpecs.isLifecycleRefreshMateria(EssenceType.PYRE)
                 && SpellEidolonSpecs.isLifecycleRefreshMateria(EssenceType.PENUMBRA)
                 && SpellEidolonSpecs.isLifecycleRefreshMateria(EssenceType.OBLIVION)
                 && SpellEidolonSpecs.isLifecycleRefreshMateria(EssenceType.CHIMERA)
-                && !SpellEidolonSpecs.isLifecycleRefreshMateria(EssenceType.PYRE)
                 && !SpellEidolonSpecs.isLifecycleRefreshMateria(EssenceType.UMBRAL)
                 && !SpellEidolonSpecs.isLifecycleRefreshMateria(EssenceType.REGULAR)
+                && SpellEidolonSpecs.resolveCanonicalLifecycleBaseHp(EssenceType.PYRE, SpellEidolonEntity.TriadArchetype.AGENT) == 70.0D
+                && SpellEidolonSpecs.resolveCanonicalLifecycleBaseHp(EssenceType.PYRE, SpellEidolonEntity.TriadArchetype.SENTRY) == 85.0D
                 && SpellEidolonSpecs.resolveCanonicalLifecycleBaseHp(EssenceType.PENUMBRA, SpellEidolonEntity.TriadArchetype.AGENT) == 60.0D
                 && SpellEidolonSpecs.resolveCanonicalLifecycleBaseHp(EssenceType.PENUMBRA, SpellEidolonEntity.TriadArchetype.SENTRY) == 80.0D
                 && SpellEidolonSpecs.resolveCanonicalLifecycleBaseHp(EssenceType.RIME, SpellEidolonEntity.TriadArchetype.AGENT) == 65.0D
@@ -812,7 +814,7 @@ public final class SpellEngineVerificationSuite {
                 EssenceType.ESCHATON, EssenceType.APOTHEOSIS, EssenceType.ENTROPICA
         );
 
-        boolean allFiftyEightRegisteredAndIsolated = SpellMutationHandlerRegistry.getAllRegistered().size() == 58;
+        boolean allFiftyEightRegisteredAndIsolated = SpellMutationHandlerRegistry.getAllRegistered().size() == 63;
         for (EssenceType apexType : finalTenMateria) {
             var activeHandler = SpellMutationHandlerRegistry.resolveActive(apexType, true);
             var disabledHandler = SpellMutationHandlerRegistry.resolveActive(apexType, false);
@@ -1127,22 +1129,28 @@ public final class SpellEngineVerificationSuite {
             int aRgb = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveVibrantAccentRgb(et, null, 40.0D);
             byte arch = ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(et, false, false);
             if (pRgb <= 0 || pRgb > 0xFFFFFF || aRgb <= 0 || aRgb > 0xFFFFFF
-                    || arch < 0 || arch > ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_HOLY_SOLAR_SINGULARITY_DART) {
+                    || arch < 0 || arch > ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_SINGULARITY_EQUILIBRIUM_LANCE) {
                 vfxPalettesAndArchetypesOk = false;
                 break;
             }
         }
         boolean archetypeSpotChecksOk =
-                ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.PRISMATIC, false, false)
+                ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.ENTROPICA, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_SINGULARITY_EQUILIBRIUM_LANCE
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.CATACLYSM, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_HELLFIRE_RAILGUN_SLUG
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.EMPYREAN, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_WORLD_TREE_SEED_POD
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.PRISMATIC, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_PRISMATIC_CHAKRAM
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.ESCHATON, false, false)
-                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_SINGULARITY_ORB
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_BLACK_HOLE_RAILGUN_DART
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.TERMINUS, false, false)
-                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_CRYSTALLINE_LANCE
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_PERMAFROST_LANCE
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.LIGHTNING, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_BALL_LIGHTNING
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.APOTHEOSIS, false, false)
-                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_SOLAR_CROWN
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_SEEKING_CROWN_OF_DAWN
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.MAGMA, false, false)
                         == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_MOLTEN_METEOR
                 && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.BLOOD, false, false)
@@ -1268,7 +1276,1238 @@ public final class SpellEngineVerificationSuite {
         check(counts, lines, "Arcane 3D Wings Client Lifecycle (Unfurl/Materia Sync/Fold) & Open-Air Utility/Misc Spell Dispatch",
                 wingsInitialOk && wingsUnfurledOk && wingsFoldingOk && wingsExpiredCleanlyOk && openAirVerbsOk);
 
+        // 35. Re-entrant Lingering Zone Mutation Safety (Water Whirlpool Geyser & Two-Stage Skyfall Child Zone Spawning)
+        net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> testDim = net.minecraft.resources.ResourceKey.create(
+                net.minecraft.core.registries.Registries.DIMENSION,
+                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("entropica", "spell_zone_verify_dim")
+        );
+        SpellLingeringZoneManager.clearDimensionZones(testDim);
+        boolean reentrantZonesOk = true;
+        try {
+            // Case A: Armed Water Whirlpool Geyser Glyph spawns a 60t Vortex Zone mid-tick AND returns false (self-removes)
+            SpellLingeringZoneManager.registerDimensionZoneRaw(testDim, new SpellLingeringZoneManager.ActiveSpellZone(
+                    null, new net.minecraft.world.phys.Vec3(0.0D, 64.0D, 0.0D), 3.0D, 100, 1000L,
+                    null, null, EssenceType.WATER, 1.0F,
+                    (srv, zone, elapsed) -> {
+                        SpellLingeringZoneManager.registerDimensionZoneRaw(testDim, new SpellLingeringZoneManager.ActiveSpellZone(
+                                null, zone.center, 3.0D, 5, 1025L,
+                                null, null, EssenceType.WATER, 1.0F,
+                                (csrv, czone, celapsed) -> celapsed <= czone.maxDurationTicks
+                        ));
+                        return false;
+                    }
+            ));
+            // Case B: Expiring Two-Stage Skyfall spawns a lingering aftermath pool during final expiry cleanup (elapsed > maxDurationTicks)
+            SpellLingeringZoneManager.registerDimensionZoneRaw(testDim, new SpellLingeringZoneManager.ActiveSpellZone(
+                    null, new net.minecraft.world.phys.Vec3(12.0D, 64.0D, 0.0D), 6.0D, 20, 1000L,
+                    null, null, EssenceType.SPRING, 1.0F,
+                    (srv, zone, elapsed) -> {
+                        if (elapsed > zone.maxDurationTicks) {
+                            SpellLingeringZoneManager.registerDimensionZoneRaw(testDim, new SpellLingeringZoneManager.ActiveSpellZone(
+                                    null, zone.center, 6.0D, 5, 1025L,
+                                    null, null, EssenceType.SPRING, 1.0F,
+                                    (csrv, czone, celapsed) -> celapsed <= czone.maxDurationTicks
+                            ));
+                        }
+                        return true;
+                    }
+            ));
+            SpellLingeringZoneManager.tickDimensionZones(null, testDim, 1025L);
+            reentrantZonesOk = SpellLingeringZoneManager.getActiveZoneCount(testDim) == 2;
+            SpellLingeringZoneManager.tickDimensionZones(null, testDim, 1035L);
+            reentrantZonesOk = reentrantZonesOk && SpellLingeringZoneManager.getActiveZoneCount(testDim) == 0;
+        } catch (Throwable ex) {
+            reentrantZonesOk = false;
+        } finally {
+            SpellLingeringZoneManager.clearDimensionZones(testDim);
+        }
+        check(counts, lines, "Re-entrant Lingering Zone Tick Safety (Water Whirlpool Geyser & Two-Stage Skyfall Child Spawns)",
+                reentrantZonesOk);
+
+        // 36. Prismatic (#51 — Section 6.53) Complete Refractive Spectrum Overhaul Audit
+        boolean prismatic51Ok = EssenceType.PRISMATIC.isDynamic()
+                && "Prismatic Oscillating Light-Disc".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Bifurcated Rainbow Spectrum Ray & Prismatic Meltdown".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Rainbow Bloom Shockwave".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Prismatic Crystalline Palm-Shatter".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Chromatic Dispersion Aura".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.AURA, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Refractive Prism-Vault Glyph".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Chromatic Prismatic Deluge Cone".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Chromatic Star-Shower".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.PRISMATIC, true).signatureTitle())
+                && !SpellMutationRegistry.resolveForm(SpellDeliveryForm.SUMMON_AGENT, EssenceType.PRISMATIC, true).signatureTitle().isBlank()
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.PRISMATIC, true).armorShredPoints() == 4
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.PRISMATIC, true).armorShredPoints() == 5
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.PRISMATIC, true).armorShredPoints() == 5
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.PRISMATIC, true).armorShredPoints() == 5
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.PRISMATIC, true).armorShredPoints() == 6
+                && "Prismatic Kaleidoscope Orbit Flow".equals(
+                        SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Prismatic Refractive Phase-Step".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BLINK, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Prismatic Ore Metamorphosis Transmutation".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BREAK, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Prismatic Refractive Dyschromia / Chromatic Overload Hex".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.PRISMATIC, true).signatureTitle())
+                && "Prismatic Valkyrie".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.PRISMATIC, SpellEidolonEntity.TriadArchetype.AGENT, true, null))
+                && !SpellLingeringZoneManager.TAG_PRISMATIC_SHROUD_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_PRISMATIC_ORBIT_UNTIL.isBlank();
+        check(counts, lines, "Prismatic (#51 — Section 6.53): 9 Refractive Forms, Kaleidoscope Orbit, Phase-Step, Ore Metamorphosis & Diamond Archon Triad",
+                prismatic51Ok);
+
+        // 37. Empyrean (#52 — Section 6.54) Complete World-Tree Eschaton Overhaul Audit
+        boolean empyrean52Ok = "World-Tree Siphoning Seed-Pod".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.EMPYREAN, true).signatureTitle())
+                && "Sustained Root-Lance Sunbeam & Canopy Cataclysm".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.EMPYREAN, true).signatureTitle())
+                && "World-Tree Heartwood Bastion Nova".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.EMPYREAN, true).signatureTitle())
+                && "Siphoning World-Tree Root-Cleave".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.EMPYREAN, true).signatureTitle())
+                && "Living Titan Bark & Canopy Mantle".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.AURA, EssenceType.EMPYREAN, true).signatureTitle())
+                && "World-Tree Siphoning Root-Vault Sigil".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.EMPYREAN, true).signatureTitle())
+                && "Solar-Verdant Spore-Web Deluge".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.EMPYREAN, true).signatureTitle())
+                && "Cataclysmic World-Tree Canopy Skyfall".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.EMPYREAN, true).signatureTitle())
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.EMPYREAN, true).bonusPierceTargets() == 8
+                && Math.abs(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.EMPYREAN, true).armorBypassFraction() - 0.60F) < 1.0E-4F
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.EMPYREAN, true).armorShredPoints() == 2
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.EMPYREAN, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.EMPYREAN, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.EMPYREAN, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.EMPYREAN, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.EMPYREAN, true).armorShredPoints() == 7
+                && "World-Tree Siphoning Root-Web Orbit Flow".equals(
+                        SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.EMPYREAN, true).signatureTitle())
+                && SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.EMPYREAN, true).wallPhasing()
+                && "Solar Slipstream Ascent".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BLINK, EssenceType.EMPYREAN, true).signatureTitle())
+                && "World-Tree Genesis & Vitality Consecration".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.TRANSMUTE, EssenceType.EMPYREAN, true).signatureTitle())
+                && "Radiant Empyrean Brand Hex".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.EMPYREAN, true).signatureTitle())
+                && "Yggdrasil Arboreal Juggernaut".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.EMPYREAN, SpellEidolonEntity.TriadArchetype.AGENT, true, null))
+                && "Heartwood Canopy Obelisk".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.EMPYREAN, SpellEidolonEntity.TriadArchetype.SENTRY, true, null))
+                && "Golden Willow Effigy".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.EMPYREAN, SpellEidolonEntity.TriadArchetype.DECOY, true, null))
+                && !SpellLingeringZoneManager.TAG_EMPYREAN_SHROUD_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_EMPYREAN_AEGIS_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_EMPYREAN_ORBIT_UNTIL.isBlank();
+        check(counts, lines, "Empyrean (#52 — Section 6.54): 9 World-Tree Eschaton Forms, Siphoning Root-Web Orbit, Slipstream Ascent, Dew Consecration & Yggdrasil Triad",
+                empyrean52Ok);
+
+        // 38. Cataclysm (#53 — Section 6.55) Complete World-Breaker Eschaton Overhaul Audit
+        boolean cataclysm53Ok = "Catastrophic Hellfire Railgun Slug".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.CATACLYSM, true).signatureTitle())
+                && "Tectonic Magma Fissure Ray & Seismic Cataclysm".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.CATACLYSM, true).signatureTitle())
+                && "World-Breaker Seismic Nova".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.CATACLYSM, true).signatureTitle())
+                && "Tectonic Calamity Sunder".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.CATACLYSM, true).signatureTitle())
+                && "Mantle of the World-Breaker".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.AURA, EssenceType.CATACLYSM, true).signatureTitle())
+                && "Abyssal Calamity Caldera Sigil".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.CATACLYSM, true).signatureTitle())
+                && "Cataclysmic Magma-Ash Deluge".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.CATACLYSM, true).signatureTitle())
+                && "Cataclysmic World-Breaker Skyfall".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.CATACLYSM, true).signatureTitle())
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.CATACLYSM, true).bonusPierceTargets() == 10
+                && Math.abs(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.CATACLYSM, true).armorBypassFraction() - 0.60F) < 1.0E-4F
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.CATACLYSM, true).wallPhasing()
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.CATACLYSM, true).armorShredPoints() == 2
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.CATACLYSM, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.CATACLYSM, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.CATACLYSM, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.CATACLYSM, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.CATACLYSM, true).armorShredPoints() == 7
+                && "Singularity Orbit Flow".equals(
+                        SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.CATACLYSM, true).signatureTitle())
+                && SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.CATACLYSM, true).wallPhasing()
+                && "Gravitational Void-Warp Collapse".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BLINK, EssenceType.CATACLYSM, true).signatureTitle())
+                && "Tectonic Subduction & Magma Vitrification".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.TRANSMUTE, EssenceType.CATACLYSM, true).signatureTitle())
+                && SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BREAK, EssenceType.CATACLYSM, true).autoSmeltInherited()
+                && "Abyssal World-Breaker Singularity Hex".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.CATACLYSM, true).signatureTitle())
+                && SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.CATACLYSM, true).spawnLureHex()
+                && "Stygian Magma-Void Serpent".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.CATACLYSM, SpellEidolonEntity.TriadArchetype.AGENT, true, null))
+                && "Volcanic Eruption Spire".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.CATACLYSM, SpellEidolonEntity.TriadArchetype.SENTRY, true, null))
+                && "Molten Core Beacon".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.CATACLYSM, SpellEidolonEntity.TriadArchetype.DECOY, true, null))
+                && !SpellLingeringZoneManager.TAG_CATACLYSM_SHROUD_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_CATACLYSM_ORBIT_UNTIL.isBlank();
+        check(counts, lines, "Cataclysm (#53 — Section 6.55): 9 World-Breaker Eschaton Forms, Singularity Orbit, Silent Void-Warp, Void Slag Subduction & Stygian Leviathan Triad",
+                cataclysm53Ok);
+
+        // 39. Terminus (#54 — Section 6.56) Complete Absolute-Zero Eschaton Overhaul Audit
+        var termStrong = ddraig.net.entropica.combat.VisInteractionManager.getInstance().getStrongAgainst(EssenceType.TERMINUS);
+        var termWeak = ddraig.net.entropica.combat.VisInteractionManager.getInstance().getWeakAgainst(EssenceType.TERMINUS);
+        boolean terminus54Ok = termStrong.size() == 9
+                && termStrong.containsAll(List.of(
+                        EssenceType.NETHER, EssenceType.ARID, EssenceType.EARTH, EssenceType.WATER, EssenceType.MAGMA,
+                        EssenceType.PYRE, EssenceType.BLIGHT, EssenceType.SOULFIRE, EssenceType.MIASMA))
+                && termWeak.size() == 1
+                && termWeak.contains(EssenceType.UNDEAD)
+                && "Absolute-Zero Permafrost Lance".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.TERMINUS, true).signatureTitle())
+                && "Sustained Cryogenic Vortex Ray & Zero-Point Shockwave".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.TERMINUS, true).signatureTitle())
+                && "Absolute-Zero Cryo-Nova".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.TERMINUS, true).signatureTitle())
+                && "Absolute-Zero Glacier Cleave".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.TERMINUS, true).signatureTitle())
+                && "Zero-Point Kinetic Stasis Shield".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.AURA, EssenceType.TERMINUS, true).signatureTitle())
+                && "Permafrost Glacial Abyss Sigil".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.TERMINUS, true).signatureTitle())
+                && "Cryogenic Blizzard Deluge".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.TERMINUS, true).signatureTitle())
+                && "Continuous Cryo-Stasis Hailstorm".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.TERMINUS, true).signatureTitle())
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.TERMINUS, true).bonusPierceTargets() == 8
+                && Math.abs(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.TERMINUS, true).armorBypassFraction() - 0.60F) < 1.0E-4F
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.TERMINUS, true).wallPhasing()
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.TERMINUS, true).armorShredPoints() == 2
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.TERMINUS, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.TERMINUS, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.TERMINUS, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.TERMINUS, true).armorShredPoints() == 6
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.TERMINUS, true).armorShredPoints() == 7
+                && "Cryogenic Polar Vortex Orbit Flow".equals(
+                        SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.TERMINUS, true).signatureTitle())
+                && SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.TERMINUS, true).wallPhasing()
+                && "Glacial Slipstream Flash-Slide".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BLINK, EssenceType.TERMINUS, true).signatureTitle())
+                && "Zero-Point Crystallization & Permafrost Synthesis".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.TRANSMUTE, EssenceType.TERMINUS, true).signatureTitle())
+                && SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BREAK, EssenceType.TERMINUS, true).silkTouchInherited()
+                && "Absolute Zero Molecular Cessation Hex".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.TERMINUS, true).signatureTitle())
+                && SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.TERMINUS, true).monsterEmpowermentHex()
+                && "Titanic Glacial Elemental".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.TERMINUS, SpellEidolonEntity.TriadArchetype.AGENT, true, null))
+                && "Anchored Permafrost Elemental Spire".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.TERMINUS, SpellEidolonEntity.TriadArchetype.SENTRY, true, null))
+                && "Unstable Cryogenic Elemental Effigy".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.TERMINUS, SpellEidolonEntity.TriadArchetype.DECOY, true, null))
+                && !SpellLingeringZoneManager.TAG_TERMINUS_SHROUD_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_TERMINUS_MANTLE_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_TERMINUS_ELIXIR_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_TERMINUS_FLASH_SLIDE_FALL_IMMUNE_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_TERMINUS_ORBIT_UNTIL.isBlank();
+        check(counts, lines, "Terminus (#54 — Section 6.56): 9 Absolute-Zero Eschaton Forms, Polar Vortex Orbit, Slipstream Flash-Slide, Glacial Frost Elixirs & Titanic Glacial Triad",
+                terminus54Ok);
+
+        // 40. Eschaton (#55 — Section 6.57) Complete Omega Singularity Overhaul Audit
+        var eschStrong = ddraig.net.entropica.combat.VisInteractionManager.getInstance().getStrongAgainst(EssenceType.ESCHATON);
+        var eschWeak = ddraig.net.entropica.combat.VisInteractionManager.getInstance().getWeakAgainst(EssenceType.ESCHATON);
+        var eschOmegaEssence = ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.createOmegaHorizonEssenceStack(1);
+        var eschStasisElixir = ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.createGravitationalStasisElixir();
+        boolean eschaton55Ok = "§5".equals(EssenceType.ESCHATON.getColorCode())
+                && EssenceType.ESCHATON.getColorCycle().length == 3
+                && EssenceType.ESCHATON.getColorCycle()[0][0] == 11
+                && EssenceType.ESCHATON.getColorCycle()[1][0] == 112
+                && EssenceType.ESCHATON.getColorCycle()[2][0] == 212
+                && eschStrong.containsAll(List.of(
+                        EssenceType.AIR, EssenceType.WATER, EssenceType.NATURE, EssenceType.EARTH,
+                        EssenceType.FROZEN, EssenceType.NETHER, EssenceType.RADIANT, EssenceType.UMBRAL,
+                        EssenceType.UNDEAD, EssenceType.VOID, EssenceType.ARID, EssenceType.LIGHTNING,
+                        EssenceType.AETHER, EssenceType.ENTROPIC, EssenceType.CELESTIAL, EssenceType.PRISMATIC,
+                        EssenceType.EMPYREAN, EssenceType.CATACLYSM, EssenceType.TERMINUS))
+                && !eschStrong.contains(EssenceType.ESCHATON)
+                && !eschStrong.contains(EssenceType.APOTHEOSIS)
+                && !eschStrong.contains(EssenceType.ENTROPICA)
+                && eschWeak.size() == 1
+                && eschWeak.contains(EssenceType.APOTHEOSIS)
+                && ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isOmegaHorizonBrewingIngredient(eschOmegaEssence)
+                && "ESCHATON_STASIS".equals(ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.getElixirType(eschStasisElixir))
+                && ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.canBrewGravitationalStasisPotion(
+                        new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.POTION))
+                && !ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.canBrewGravitationalStasisPotion(eschStasisElixir)
+                && "Black-Hole Railgun Dart".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.ESCHATON, true).signatureTitle())
+                && "Dimensional Void-Fissure Beam & Omega Collapse".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.ESCHATON, true).signatureTitle())
+                && "Cosmic Event-Horizon Nova".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.ESCHATON, true).signatureTitle())
+                && "Reality-Cleaving Scythe".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.ESCHATON, true).signatureTitle())
+                && "Mantle of the Omega Singularity".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.AURA, EssenceType.ESCHATON, true).signatureTitle())
+                && "Singularity Anchor Sigil".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.ESCHATON, true).signatureTitle())
+                && "Accretion Singularity Torrent".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.ESCHATON, true).signatureTitle())
+                && "Dimensional Inversion Starfall".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.ESCHATON, true).signatureTitle())
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.ESCHATON, true).bonusPierceTargets() == 12
+                && Math.abs(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.ESCHATON, true).armorBypassFraction() - 0.75F) < 1.0E-4F
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.ESCHATON, true).wallPhasing()
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.ESCHATON, true).armorShredPoints() == 3
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.ESCHATON, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.ESCHATON, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.ESCHATON, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.ESCHATON, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.ESCHATON, true).armorShredPoints() == 8
+                && "Event Horizon Orbit Flow".equals(
+                        SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.ESCHATON, true).signatureTitle())
+                && SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.ESCHATON, true).wallPhasing()
+                && "Spacetime Fold Slip".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BLINK, EssenceType.ESCHATON, true).signatureTitle())
+                && "Dimensional Event Horizon Transmutation & Accretion Compression".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.TRANSMUTE, EssenceType.ESCHATON, true).signatureTitle())
+                && "Omega Event Horizon Dissolution Hex".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.ESCHATON, true).signatureTitle())
+                && SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.ESCHATON, true).spawnLureHex()
+                && "Event-Horizon Leviathan".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.ESCHATON, SpellEidolonEntity.TriadArchetype.AGENT, true, null))
+                && "Accretion Disk Singularity Spire".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.ESCHATON, SpellEidolonEntity.TriadArchetype.SENTRY, true, null))
+                && "Collapsing Micro-Nova Effigy".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.ESCHATON, SpellEidolonEntity.TriadArchetype.DECOY, true, null))
+                && !SpellLingeringZoneManager.TAG_ESCHATON_SHROUD_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_ESCHATON_ORBIT_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_ESCHATON_STASIS_ELIXIR_UNTIL.isBlank();
+        check(counts, lines, "Eschaton (#55 — Section 6.57): 9 Omega Singularity Forms, Event Horizon Orbit, Silent 24m Spacetime Fold Slip, Omega Horizon Brewing & Leviathan Triad",
+                eschaton55Ok);
+
+        // 41. Apotheosis (#56 — Section 6.58) Complete Alpha Genesis Singularity Overhaul Audit
+        var apoStrong = ddraig.net.entropica.combat.VisInteractionManager.getInstance().getStrongAgainst(EssenceType.APOTHEOSIS);
+        var apoWeak = ddraig.net.entropica.combat.VisInteractionManager.getInstance().getWeakAgainst(EssenceType.APOTHEOSIS);
+        var apoNectar = ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.createTransmutedElixirStack(
+                net.minecraft.util.RandomSource.create(56L), EssenceType.APOTHEOSIS);
+        boolean apotheosis56Ok = "§e".equals(EssenceType.APOTHEOSIS.getColorCode())
+                && EssenceType.APOTHEOSIS.getColorCycle().length == 3
+                && EssenceType.APOTHEOSIS.getColorCycle()[0][0] == 255 && EssenceType.APOTHEOSIS.getColorCycle()[0][1] == 255 && EssenceType.APOTHEOSIS.getColorCycle()[0][2] == 255
+                && EssenceType.APOTHEOSIS.getColorCycle()[1][0] == 255 && EssenceType.APOTHEOSIS.getColorCycle()[1][1] == 228 && EssenceType.APOTHEOSIS.getColorCycle()[1][2] == 132
+                && EssenceType.APOTHEOSIS.getColorCycle()[2][0] == 114 && EssenceType.APOTHEOSIS.getColorCycle()[2][1] == 246 && EssenceType.APOTHEOSIS.getColorCycle()[2][2] == 255
+                && apoStrong.containsAll(List.of(
+                        EssenceType.AIR, EssenceType.WATER, EssenceType.NATURE, EssenceType.EARTH,
+                        EssenceType.FROZEN, EssenceType.NETHER, EssenceType.RADIANT, EssenceType.UMBRAL,
+                        EssenceType.UNDEAD, EssenceType.VOID, EssenceType.ARID, EssenceType.LIGHTNING,
+                        EssenceType.AETHER, EssenceType.ENTROPIC, EssenceType.CELESTIAL, EssenceType.PRISMATIC,
+                        EssenceType.EMPYREAN, EssenceType.CATACLYSM, EssenceType.TERMINUS))
+                && !apoStrong.contains(EssenceType.APOTHEOSIS)
+                && !apoStrong.contains(EssenceType.ESCHATON)
+                && !apoStrong.contains(EssenceType.ENTROPICA)
+                && apoWeak.size() == 1
+                && apoWeak.contains(EssenceType.ESCHATON)
+                && "APOTHEOSIS_NECTAR".equals(ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.getElixirType(apoNectar))
+                && "Seeking Crown of Dawn".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && "Sustained Holy White-Hole Ray & Genesis Cataclysm".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && "Supernova Genesis Nova".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && "Ascendant Solar Genesis Cleave".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && "Mantle of the Alpha Singularity".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.AURA, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && "White-Hole Genesis Sanctuary Sigil".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && "Prismatic Solar Fan".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && "Cataclysmic White-Hole Genesis Starfall".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.APOTHEOSIS, true).bonusPierceTargets() == 10
+                && Math.abs(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.APOTHEOSIS, true).armorBypassFraction() - 0.75F) < 1.0E-4F
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.APOTHEOSIS, true).wallPhasing()
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.APOTHEOSIS, true).armorShredPoints() == 3
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.APOTHEOSIS, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.APOTHEOSIS, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.APOTHEOSIS, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.APOTHEOSIS, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.APOTHEOSIS, true).armorShredPoints() == 8
+                && "White-Hole Star-Orbit Flow".equals(
+                        SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.APOTHEOSIS, true).wallPhasing()
+                && "Ascendant Solar Genesis Step".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BLINK, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && "Alpha Genesis Transmutation & Universal Consecration".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.TRANSMUTE, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && "Divine Genesis Brand Hex".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.APOTHEOSIS, true).signatureTitle())
+                && SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.APOTHEOSIS, true).monsterEmpowermentHex()
+                && "Celestial Seraph-Titan".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.APOTHEOSIS, SpellEidolonEntity.TriadArchetype.AGENT, true, null))
+                && "White-Hole Dawn Obelisk".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.APOTHEOSIS, SpellEidolonEntity.TriadArchetype.SENTRY, true, null))
+                && "Radiant Ascendance Mirage".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.APOTHEOSIS, SpellEidolonEntity.TriadArchetype.DECOY, true, null))
+                && !SpellLingeringZoneManager.TAG_APOTHEOSIS_SHROUD_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_APOTHEOSIS_ORBIT_UNTIL.isBlank();
+        check(counts, lines, "Apotheosis (#56 — Section 6.58): 9 Alpha Genesis Singularity Forms, White-Hole Star-Orbit, 24m Solar Genesis Step, Nectar of the Alpha Genesis & Seraph-Titan Triad",
+                apotheosis56Ok);
+
+        // 42. Entropica (#57 — Section 6.59): Grand Cosmic Equilibrium Singularity, Universal +1 Affinity, 9 Forms, Flow, +5 Enchant Transmute, Dual Paradox Hex & Primordial Demiurge Triad
+        var entStrong = ddraig.net.entropica.combat.VisInteractionManager.getInstance().getStrongAgainst(EssenceType.ENTROPICA);
+        var entWeak = ddraig.net.entropica.combat.VisInteractionManager.getInstance().getWeakAgainst(EssenceType.ENTROPICA);
+        boolean entStrongAgainstAllNonRegular = true;
+        for (EssenceType et : EssenceType.values()) {
+            if (et == EssenceType.REGULAR) {
+                if (entStrong.contains(et)) {
+                    entStrongAgainstAllNonRegular = false;
+                    break;
+                }
+            } else if (!entStrong.contains(et)) {
+                entStrongAgainstAllNonRegular = false;
+                break;
+            }
+        }
+        boolean entropica57Ok =
+                "§b".equals(EssenceType.ENTROPICA.getColorCode())
+                && EssenceType.ENTROPICA.isDynamic()
+                && entStrongAgainstAllNonRegular
+                && entStrong.contains(EssenceType.ESCHATON)
+                && entStrong.contains(EssenceType.APOTHEOSIS)
+                && entStrong.contains(EssenceType.ENTROPICA)
+                && entWeak.isEmpty()
+                && ddraig.net.entropica.spell.mutation.element.EntropicaSpellMutationHandler.ENTROPICA_CHRONO_SILVER_HEX_COLOR == 0xE0E5EC
+                && ddraig.net.entropica.spell.mutation.element.EntropicaSpellMutationHandler.ENTROPICA_EVENT_HORIZON_INDIGO_HEX_COLOR == 0x1A153B
+                && ddraig.net.entropica.spell.mutation.element.EntropicaSpellMutationHandler.ENTROPICA_GENESIS_GOLD_HEX_COLOR == 0xFAD02C
+                && "Singularity Equilibrium Lance".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.ENTROPICA, true).signatureTitle())
+                && "Twin Helix Singularity Stream & Annihilation Blast".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.ENTROPICA, true).signatureTitle())
+                && "Cosmic Equilibrium Nova".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.ENTROPICA, true).signatureTitle())
+                && "Blade of the Grand Paradox".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.ENTROPICA, true).signatureTitle())
+                && "Mantle of Entropica".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.AURA, EssenceType.ENTROPICA, true).signatureTitle())
+                && "Singularity Horizon Mandala".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.ENTROPICA, true).signatureTitle())
+                && "Thermodynamic Heat-Death Wave".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.ENTROPICA, true).signatureTitle())
+                && "Cataclysmic Singularity Equilibrium Starfall".equals(
+                        SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.ENTROPICA, true).signatureTitle())
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.ENTROPICA, true).bonusPierceTargets() == 12
+                && Math.abs(SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.ENTROPICA, true).armorBypassFraction() - 0.75F) < 1.0E-4F
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.ENTROPICA, true).wallPhasing()
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.ENTROPICA, true).armorShredPoints() == 3
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.RADIAL_BURST, EssenceType.ENTROPICA, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.TOUCH_STRIKE, EssenceType.ENTROPICA, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.ENTROPICA, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.CONE, EssenceType.ENTROPICA, true).armorShredPoints() == 8
+                && SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.ENTROPICA, true).armorShredPoints() == 8
+                && Math.abs(SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.HARM, EssenceType.ENTROPICA, true).lifestealFraction() - 0.50F) < 1.0E-4F
+                && "Cosmic Parallax Singularity Orbit Flow".equals(
+                        SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.ENTROPICA, true).signatureTitle())
+                && SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.ENTROPICA, true).wallPhasing()
+                && "Parallax Event-Horizon Fold".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.BLINK, EssenceType.ENTROPICA, true).signatureTitle())
+                && "Grand Cosmic Equilibrium Transmutation".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.TRANSMUTE, EssenceType.ENTROPICA, true).signatureTitle())
+                && "Grand Equilibrium Paradox Hex".equals(
+                        SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.ENTROPICA, true).signatureTitle())
+                && SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.ENTROPICA, true).spawnLureHex()
+                && SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.ENTROPICA, true).monsterEmpowermentHex()
+                && "Avatar of Entropica".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.ENTROPICA, SpellEidolonEntity.TriadArchetype.AGENT, true, null))
+                && "Altar of the Horizon".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.ENTROPICA, SpellEidolonEntity.TriadArchetype.SENTRY, true, null))
+                && "Fractured Paradox Core".equals(SpellEidolonSpecs.resolveCanonicalConstructName(
+                        EssenceType.ENTROPICA, SpellEidolonEntity.TriadArchetype.DECOY, true, null))
+                && !SpellLingeringZoneManager.TAG_ENTROPICA_SHROUD_UNTIL.isBlank()
+                && !SpellLingeringZoneManager.TAG_ENTROPICA_ORBIT_UNTIL.isBlank();
+        check(counts, lines, "Entropica (#57 — Section 6.59): 9 Grand Cosmic Equilibrium Forms, Parallax Orbit, 24m Fold, +5 Enchant Transmute, Dual Paradox Hex & Demiurge Triad",
+                entropica57Ok);
+
+        // 43. Defender Parent-Tree Lineage Expansion & Mutual Volatile Clash (+1 Both Ways) Audit (S1/S2, A1 & A3)
+        var advMgr = ddraig.net.entropica.combat.VisInteractionManager.getInstance();
+        var pyreLineage = advMgr.getExpandedLineage(EssenceType.PYRE);
+        var aetherLineage = advMgr.getExpandedLineage(EssenceType.AETHER);
+        var equinoxLineage = advMgr.getExpandedLineage(EssenceType.EQUINOX);
+        boolean defenderLineageAndClashesOk =
+                pyreLineage.containsAll(List.of(EssenceType.PYRE, EssenceType.EARTH, EssenceType.NETHER, EssenceType.NATURE))
+                && aetherLineage.containsAll(List.of(EssenceType.AETHER, EssenceType.AIR, EssenceType.EARTH, EssenceType.WATER, EssenceType.NETHER, EssenceType.CHIMERA))
+                && equinoxLineage.containsAll(List.of(EssenceType.EQUINOX, EssenceType.RADIANT_FIRE, EssenceType.UMBRAL_WATER, EssenceType.RADIANT, EssenceType.NETHER, EssenceType.UMBRAL, EssenceType.WATER))
+                // Defender lineage stacking: Water -> Magma [MAGMA(+1), EARTH(0), NETHER(+1)] = +2 (2.0x); Air -> Pyre [PYRE(+1), EARTH(+1)] = +2 (2.0x); Frozen -> Magma = -2 (0.25x)
+                && advMgr.calculateLineageAdvantageScore(EssenceType.WATER, List.of(EssenceType.MAGMA)) == 2
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.WATER, List.of(EssenceType.MAGMA)) - 2.0F) < 1.0E-4F
+                && advMgr.calculateLineageAdvantageScore(EssenceType.AIR, List.of(EssenceType.PYRE)) == 2
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.AIR, List.of(EssenceType.PYRE)) - 2.0F) < 1.0E-4F
+                && advMgr.calculateLineageAdvantageScore(EssenceType.FROZEN, List.of(EssenceType.MAGMA)) == -2
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.FROZEN, List.of(EssenceType.MAGMA)) - 0.25F) < 1.0E-4F
+                // Mutual volatile clashes deal +1 both ways instead of cancelling to 0
+                && advMgr.getSingleNodeAdvantage(EssenceType.WATER, EssenceType.ARID) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.ARID, EssenceType.WATER) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.GLACIAL, EssenceType.NETHER) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.NETHER, EssenceType.GLACIAL) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.VAPOR, EssenceType.ARID) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.ARID, EssenceType.VAPOR) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.NULL_R, EssenceType.UMBRAL) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.UMBRAL, EssenceType.NULL_R) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.AETHER, EssenceType.VOID) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.VOID, EssenceType.AETHER) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.ENTROPIC, EssenceType.RADIANT) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.RADIANT, EssenceType.ENTROPIC) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.LIGHTNING, EssenceType.WATER) == 1
+                && advMgr.getSingleNodeAdvantage(EssenceType.WATER, EssenceType.LIGHTNING) == 1;
+        check(counts, lines, "Defender Parent-Tree Lineage Multiplication (+2->2.0x / -2->0.25x) & Mutual Volatile Clashes (+1 Both Ways)",
+                defenderLineageAndClashesOk);
+
+        // 44. Universal Scale, Mob->Player Survival Bounds, Tier 5 Divine Override (4.0x) & Tier 6 Absolute Overrides (0.0x / 5.0x) (A2)
+        boolean overridesAndUniversalScaleOk =
+                // Mob->Player bounds: 3.2x standard cap (2.5x Omega), 0.10x standard floor (0.0x Alpha)
+                Math.abs(advMgr.calculateDamageMultiplier(EssenceType.WATER, List.of(EssenceType.NETHER), true, 8.0F, false, false) - 3.2F) < 1.0E-4F
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.WATER, List.of(EssenceType.NETHER), true, 8.0F, false, true) - 2.5F) < 1.0E-4F
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.FROZEN, List.of(EssenceType.MAGMA), true, -3.0F, false, false) - 0.10F) < 1.0E-4F
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.FROZEN, List.of(EssenceType.MAGMA), false, -2.0F, false, false) - 0.0625F) < 1.0E-4F
+                // Tier 5 Divine Override = 4.0x directly (even on Mob->Player!)
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.UMBRAL, List.of(EssenceType.EMPYREAN), false, 0.0F) - 4.0F) < 1.0E-4F
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.UMBRAL, List.of(EssenceType.EMPYREAN), true, 0.0F) - 4.0F) < 1.0E-4F
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.VITAE, List.of(EssenceType.CATACLYSM), false, 0.0F) - 4.0F) < 1.0E-4F
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.UNDEAD, List.of(EssenceType.TERMINUS), false, 0.0F) - 4.0F) < 1.0E-4F
+                // Tier 5 non-vulnerability dilution: sub-parents do not leak +1 weakness against non-override attackers
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.NETHER, List.of(EssenceType.EMPYREAN), false, 0.0F) - 0.5F) < 1.0E-4F
+                // Tier 6 Absolute Immunity vs Tiers 1-5 = 0.0x (bypassing 0.10x player floor!)
+                && advMgr.calculateDamageMultiplier(EssenceType.AIR, List.of(EssenceType.ESCHATON), true, 0.0F) == 0.0F
+                && advMgr.calculateDamageMultiplier(EssenceType.PYRE, List.of(EssenceType.APOTHEOSIS), true, 0.0F) == 0.0F
+                && advMgr.calculateDamageMultiplier(EssenceType.EMPYREAN, List.of(EssenceType.ESCHATON), false, 0.0F) == 0.0F
+                && advMgr.calculateDamageMultiplier(EssenceType.CATACLYSM, List.of(EssenceType.APOTHEOSIS), false, 0.0F) == 0.0F
+                && advMgr.calculateDamageMultiplier(EssenceType.TERMINUS, List.of(EssenceType.ENTROPICA), false, 0.0F) == 0.0F
+                // Tier 6 Mirror Clash (Eschaton <-> Apotheosis) & Entropica -> T6 = 5.0x
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.ESCHATON, List.of(EssenceType.APOTHEOSIS), true, 0.0F) - 5.0F) < 1.0E-4F
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.APOTHEOSIS, List.of(EssenceType.ESCHATON), true, 0.0F) - 5.0F) < 1.0E-4F
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.ENTROPICA, List.of(EssenceType.ESCHATON), true, 0.0F) - 5.0F) < 1.0E-4F
+                && Math.abs(advMgr.calculateDamageMultiplier(EssenceType.ENTROPICA, List.of(EssenceType.APOTHEOSIS), true, 0.0F) - 5.0F) < 1.0E-4F
+                // Entropica True Absolute Immunity defense = 0.0x even against Eschaton, Apotheosis & Entropica
+                && advMgr.calculateDamageMultiplier(EssenceType.ESCHATON, List.of(EssenceType.ENTROPICA), true, 0.0F) == 0.0F
+                && advMgr.calculateDamageMultiplier(EssenceType.APOTHEOSIS, List.of(EssenceType.ENTROPICA), true, 0.0F) == 0.0F
+                && advMgr.calculateDamageMultiplier(EssenceType.ENTROPICA, List.of(EssenceType.ENTROPICA), true, 0.0F) == 0.0F;
+        check(counts, lines, "Universal Scale, Mob->Player [0.10x, 3.2x] Bounds, Tier 5 Divine 4.0x & Tier 6 Singularity 0.0x / 5.0x Overrides",
+                overridesAndUniversalScaleOk);
+
+        // 45. Caprine Secret (RADIANT_FIRE, UMBRAL_WATER, EQUINOX) & Ethereal (AUREOLE, VESPER) Handlers + Chimera Matchups (S1 & A3)
+        List<EssenceType> caprineAndEtherealExtras = List.of(
+                EssenceType.RADIANT_FIRE, EssenceType.UMBRAL_WATER, EssenceType.EQUINOX,
+                EssenceType.AUREOLE, EssenceType.VESPER
+        );
+        boolean caprineHandlersOk = SpellMutationHandlerRegistry.getAllRegistered().size() == 63;
+        for (EssenceType secType : caprineAndEtherealExtras) {
+            var activeH = SpellMutationHandlerRegistry.resolveActive(secType, true);
+            var offH = SpellMutationHandlerRegistry.resolveActive(secType, false);
+            if (activeH == null || activeH.materiaType() != secType || offH != null) {
+                caprineHandlersOk = false;
+                break;
+            }
+            for (SpellDeliveryForm form : SpellDeliveryForm.values()) {
+                var mf = SpellMutationRegistry.resolveForm(form, secType, true);
+                var uf = SpellMutationRegistry.resolveForm(form, secType, false);
+                if (!mf.mutated() || mf.signatureTitle().isBlank() || !uf.isUnmutated()) {
+                    caprineHandlersOk = false;
+                    break;
+                }
+            }
+            for (SpellCoreEffect eff : List.of(SpellCoreEffect.BLINK, SpellCoreEffect.TRANSMUTE, SpellCoreEffect.AFFLICTION)) {
+                var me = SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, eff, secType, true);
+                var ue = SpellMutationRegistry.resolveEffect(SpellPartSlotType.CORE_EFFECT, eff, secType, false);
+                if (!me.mutated() || me.signatureTitle().isBlank() || !ue.isUnmutated()) {
+                    caprineHandlersOk = false;
+                    break;
+                }
+            }
+        }
+        boolean caprineAndChimeraRulesOk = caprineHandlersOk
+                && ddraig.net.entropica.spell.mutation.MateriaFamilyTier.of(EssenceType.RADIANT_FIRE)
+                        == ddraig.net.entropica.spell.mutation.MateriaFamilyTier.SECRET_FUSION
+                && Math.abs(ddraig.net.entropica.spell.mutation.MateriaFamilyTier.SECRET_FUSION.getBaseArmorBypass() - 0.35F) < 1.0E-4F
+                && ddraig.net.entropica.spell.mutation.MateriaFamilyTier.SECRET_FUSION.getBaseArmorShred() == 3
+                && advMgr.getStrongAgainst(EssenceType.CHIMERA).containsAll(List.of(
+                        EssenceType.UNDEAD, EssenceType.BLIGHT, EssenceType.SOULFIRE, EssenceType.BLOOD))
+                && advMgr.getWeakAgainst(EssenceType.CHIMERA).contains(EssenceType.UMBRAL)
+                && advMgr.getStrongAgainst(EssenceType.RADIANT_FIRE).containsAll(List.of(
+                        EssenceType.UNDEAD, EssenceType.FROZEN, EssenceType.NATURE))
+                && advMgr.getWeakAgainst(EssenceType.RADIANT_FIRE).containsAll(List.of(EssenceType.UMBRAL, EssenceType.WATER))
+                && advMgr.getStrongAgainst(EssenceType.UMBRAL_WATER).containsAll(List.of(
+                        EssenceType.RADIANT, EssenceType.NATURE, EssenceType.NETHER))
+                && advMgr.getWeakAgainst(EssenceType.UMBRAL_WATER).containsAll(List.of(EssenceType.VOID, EssenceType.FROZEN))
+                && advMgr.getStrongAgainst(EssenceType.EQUINOX).containsAll(List.of(
+                        EssenceType.UNDEAD, EssenceType.FROZEN, EssenceType.NATURE, EssenceType.NETHER, EssenceType.RADIANT))
+                && advMgr.getWeakAgainst(EssenceType.EQUINOX).containsAll(List.of(EssenceType.VOID, EssenceType.UMBRAL))
+                && advMgr.getStrongAgainst(EssenceType.ENTROPIC).containsAll(List.of(EssenceType.AEGIS, EssenceType.AURORA))
+                && advMgr.getWeakAgainst(EssenceType.ENTROPIC).containsAll(List.of(EssenceType.NETHER, EssenceType.UMBRAL));
+        check(counts, lines, "Caprine Secret & Extra Ethereal Handlers (63 Total) + Chimera / Entropic Canonical Outgoing Matchups",
+                caprineAndChimeraRulesOk);
+
+        // 46. FAST_DART Strict 0-Pierce Rule, ORBIT_SATELLITE Flow Gating & Persistent Orbit Duration (S7 & A5)
+        boolean zeroFlowPierceOk = true;
+        for (EssenceType et : SpellMutationHandlerRegistry.getAllRegistered().keySet()) {
+            for (SpellFlowModifier fl : SpellFlowModifier.values()) {
+                if (SpellMutationRegistry.resolveFlow(fl, et, true).bonusPierceTargets() != 0) {
+                    zeroFlowPierceOk = false;
+                    break;
+                }
+            }
+            if (!zeroFlowPierceOk) break;
+        }
+        List<EssenceType> orbitSignatureTypes = List.of(
+                EssenceType.PYRE, EssenceType.PENUMBRA, EssenceType.RIME, EssenceType.SPRING,
+                EssenceType.STATIC, EssenceType.SYLVAN, EssenceType.GENESIS,
+                EssenceType.AETHER, EssenceType.CELESTIAL, EssenceType.PRISMATIC,
+                EssenceType.EMPYREAN, EssenceType.CATACLYSM, EssenceType.TERMINUS,
+                EssenceType.ESCHATON, EssenceType.APOTHEOSIS, EssenceType.ENTROPICA
+        );
+        boolean orbitFlowGatedOk = true;
+        for (EssenceType ot : orbitSignatureTypes) {
+            String satTitle = SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, ot, true).signatureTitle();
+            String singleTitle = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SINGLE, ot, true).signatureTitle();
+            String dartTitle = SpellMutationRegistry.resolveFlow(SpellFlowModifier.FAST_DART, ot, true).signatureTitle();
+            boolean satIsOrbitalSignature = satTitle.contains("Orbit") || satTitle.contains("Spiral");
+            boolean nonOrbitClean = !singleTitle.equals(satTitle)
+                    && !dartTitle.equals(satTitle)
+                    && !singleTitle.contains("Orbit")
+                    && !dartTitle.contains("Orbit")
+                    && SpellMutationRegistry.isHandlerFlowMutationApplicable(ot, SpellFlowModifier.ORBIT_SATELLITE)
+                    && !SpellMutationRegistry.isHandlerFlowMutationApplicable(ot, SpellFlowModifier.SINGLE)
+                    && !SpellMutationRegistry.isHandlerFlowMutationApplicable(ot, SpellFlowModifier.FAST_DART);
+            if (!satIsOrbitalSignature || !nonOrbitClean) {
+                orbitFlowGatedOk = false;
+                break;
+            }
+        }
+        boolean persistentOrbitTicksOk =
+                ddraig.net.entropica.entity.projectile.SpellProjectileEntity.resolveCanonicalOrbitDurationTicks(1) == 180
+                && ddraig.net.entropica.entity.projectile.SpellProjectileEntity.resolveCanonicalOrbitDurationTicks(10) == 360;
+        check(counts, lines, "Flow Strict 0-Pierce Rule (FAST_DART), ORBIT_SATELLITE Title/Hook Gating & Persistent Orbit Duration (180-360t)",
+                zeroFlowPierceOk && orbitFlowGatedOk && persistentOrbitTicksOk);
+
+        // 47. Eidolon PYRE (#39) Lifecycle Refresh, Tier 8-10 Summon Cap (8) & 15s (300t) 25%/100% Fuel Upkeep (S10 & A4)
+        long t4BaseMfum = MateriaStageTable.getBaseMfumCastCost(4);
+        boolean eidolonUpkeepAndCapOk =
+                SpellEidolonSpecs.isLifecycleRefreshMateria(EssenceType.PYRE)
+                && SpellEidolonSpecs.resolveCanonicalLifecycleBaseHp(EssenceType.PYRE, SpellEidolonEntity.TriadArchetype.AGENT) == 70.0D
+                && SpellEidolonSpecs.resolveCanonicalLifecycleBaseHp(EssenceType.PYRE, SpellEidolonEntity.TriadArchetype.SENTRY) == 85.0D
+                && SpellEidolonSpecs.UPKEEP_INTERVAL_TICKS == 300
+                && SpellEidolonSpecs.resolveUpkeepCostMfum(4, false) == Math.max(1L, t4BaseMfum / 4L)
+                && SpellEidolonSpecs.resolveUpkeepCostMfum(4, true) == t4BaseMfum
+                && SpellEidolonSpecs.resolveMaxConcurrentSummons(1) == 1
+                && SpellEidolonSpecs.resolveMaxConcurrentSummons(2) == 2
+                && SpellEidolonSpecs.resolveMaxConcurrentSummons(5) == 4
+                && SpellEidolonSpecs.resolveMaxConcurrentSummons(7) == 6
+                && SpellEidolonSpecs.resolveMaxConcurrentSummons(8) == 8
+                && SpellEidolonSpecs.resolveMaxConcurrentSummons(10) == 8;
+        check(counts, lines, "Eidolon Pyre (#39) Lifecycle Refresh, Tier 8-10 Cap (8) & 15s (300t) 25%/100% Materia Upkeep Scaling",
+                eidolonUpkeepAndCapOk);
+
+        // 48. 2.5s (50-Tick) Continuous Held TRANSMUTE & Held Stream CONE Channel Gating (S4, S5, S8, A4 & A5)
+        SpellAssembly transmuteHoldSpell = new SpellAssembly(
+                "Held Rime Transmute",
+                List.of(),
+                true,
+                SpellPrefix.UTILITY,
+                6,
+                new FlowPartBinding(SpellFlowModifier.SINGLE, EssenceType.RIME, true, 1, 0.0F),
+                List.of(SubSpellSlot.of(
+                        FormPartBinding.of(SpellDeliveryForm.PROJECTILE, EssenceType.RIME, true),
+                        EffectPartBinding.of(SpellCoreEffect.TRANSMUTE, EssenceType.RIME, true)
+                )),
+                SpellFlawProfile.PERFECT,
+                0
+        );
+        SpellAssembly streamConeSpell = new SpellAssembly(
+                "Channeled Stream Cone",
+                List.of(),
+                true,
+                SpellPrefix.COMBAT,
+                5,
+                new FlowPartBinding(SpellFlowModifier.SINGLE, EssenceType.NETHER, true, 1, 0.0F),
+                List.of(SubSpellSlot.of(
+                        new FormPartBinding(SpellDeliveryForm.CONE, EssenceType.NETHER, true, "stream"),
+                        EffectPartBinding.of(SpellCoreEffect.HARM, EssenceType.NETHER, true)
+                )),
+                SpellFlawProfile.PERFECT,
+                0
+        );
+        SpellAssembly fanConeSpell = new SpellAssembly(
+                "Instant Fan Cone",
+                List.of(),
+                true,
+                SpellPrefix.COMBAT,
+                5,
+                new FlowPartBinding(SpellFlowModifier.SINGLE, EssenceType.NETHER, true, 1, 0.0F),
+                List.of(SubSpellSlot.of(
+                        new FormPartBinding(SpellDeliveryForm.CONE, EssenceType.NETHER, true, "fan"),
+                        EffectPartBinding.of(SpellCoreEffect.HARM, EssenceType.NETHER, true)
+                )),
+                SpellFlawProfile.PERFECT,
+                0
+        );
+        boolean channelGatesOk =
+                ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.TRANSMUTE_CHANNEL_DURATION_TICKS == 50
+                && !ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.isTransmuteChannelSatisfied(null, null)
+                && transmuteHoldSpell.hasTransmuteVerb()
+                && !transmuteHoldSpell.isChanneledHoldBeam()
+                && transmuteHoldSpell.requiresContinuousHoldUse()
+                && SpellDeliveryForm.CONE.isChanneled("stream")
+                && !SpellDeliveryForm.CONE.isChanneled("fan")
+                && streamConeSpell.isChanneledHoldCone()
+                && streamConeSpell.requiresContinuousHoldUse()
+                && !fanConeSpell.isChanneledHoldCone()
+                && !fanConeSpell.requiresContinuousHoldUse();
+        check(counts, lines, "2.5s (50-Tick) Held Right-Click TRANSMUTE Gate & Held Channeled Stream vs Fan CONE Sub-Modes",
+                channelGatesOk);
+
+        // 49. Boss Hex Level I->III Stacking, Post-Expiry 10s (200t) Immunity, Death Contagion Gate & Max-HP Cut Flags (S9 & A6)
+        net.minecraft.nbt.CompoundTag bossHexData = new net.minecraft.nbt.CompoundTag();
+        boolean bossNotImmuneOnCast = !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isBossImmuneToHex(bossHexData, 1000L, EssenceType.OBLIVION);
+        int bossStack1 = ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.computeNextHexStackLevel(bossHexData, 1000L, EssenceType.OBLIVION, true);
+        bossHexData.putString(ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.TAG_HEX_TYPE, EssenceType.OBLIVION.name());
+        bossHexData.putInt(ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.TAG_HEX_STACK, bossStack1);
+        bossHexData.putLong(ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.TAG_HEX_UNTIL, 1600L); // 30s (600t) boss window
+        int bossStack2 = ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.computeNextHexStackLevel(bossHexData, 1200L, EssenceType.OBLIVION, true);
+        bossHexData.putInt(ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.TAG_HEX_STACK, bossStack2);
+        int bossStack3 = ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.computeNextHexStackLevel(bossHexData, 1400L, EssenceType.OBLIVION, true);
+        bossHexData.putInt(ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.TAG_HEX_STACK, bossStack3);
+        int contagionAlwaysLevelOne = ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.computeNextHexStackLevel(bossHexData, 1450L, EssenceType.OBLIVION, false);
+        ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.stampBossPostHexImmunity(bossHexData, 1600L, EssenceType.OBLIVION.name(), 1600L);
+        boolean bossImmuneDuringPostWindow = ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isBossImmuneToHex(bossHexData, 1799L, EssenceType.OBLIVION)
+                && !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isBossImmuneToHex(bossHexData, 1799L, EssenceType.FROZEN)
+                && !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isBossImmuneToHex(bossHexData, 1800L, EssenceType.OBLIVION);
+
+        net.minecraft.nbt.CompoundTag dyingData = new net.minecraft.nbt.CompoundTag();
+        net.minecraft.nbt.CompoundTag casterData = new net.minecraft.nbt.CompoundTag();
+        dyingData.putString(ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.TAG_HEX_TYPE, EssenceType.UNDEAD.name());
+        dyingData.putLong(ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.TAG_HEX_UNTIL, 999999L);
+        dyingData.putLong(ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.TAG_HEX_INITIAL_WINDOW, 2200L);
+        boolean spreadsInWindow = ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.canSpreadHexOnDeath(dyingData, casterData, 2150L);
+        boolean blockedOutsideWindow = !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.canSpreadHexOnDeath(dyingData, casterData, 2500L);
+        casterData.putLong(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL, 2520L);
+        boolean spreadsWhileChanneled = ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.canSpreadHexOnDeath(dyingData, casterData, 2500L);
+
+        boolean maxHpCutFlagsOk =
+                ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.usesHexMaxHealthCut(EssenceType.MIASMA, true)
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.usesHexMaxHealthCut(EssenceType.GENESIS, true)
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.usesHexMaxHealthCut(EssenceType.OBLIVION, true)
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.usesHexMaxHealthCut(EssenceType.CHIMERA, true)
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.usesHexMaxHealthCut(EssenceType.ENTROPIC, true)
+                && !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.usesHexMaxHealthCut(EssenceType.ENTROPIC, false)
+                && !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.usesHexMaxHealthCut(EssenceType.NETHER, true);
+
+        check(counts, lines, "Boss Hex Level I->III Stacking, Post-Expiry 10s Immunity, Active-Channel Contagion Gate & Max-HP Cut Cleanup",
+                bossNotImmuneOnCast && bossStack1 == 1 && bossStack2 == 2 && bossStack3 == 3
+                        && contagionAlwaysLevelOne == 1 && bossImmuneDuringPostWindow
+                        && spreadsInWindow && blockedOutsideWindow && spreadsWhileChanneled && maxHpCutFlagsOk);
+
+        // 50. Air (#1) Section 6.2 Conformance: Beam 8-Pierce, Deliberate Slow Flow Exemption, Flow Titles & Zephyr Constructs
+        SpellMutationProfile airBeamMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.AIR, true);
+        SpellMutationProfile airBeamOff = SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.AIR, false);
+        SpellMutationProfile airProjMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.AIR, true);
+        SpellMutationProfile airSkyfallMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.AIR, true);
+        SpellMutationProfile airSentryMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.SUMMON_SENTRY, EssenceType.AIR, true);
+
+        SpellMutationProfile airSlowFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SLOW_HEAVY, EssenceType.AIR, true);
+        SpellMutationProfile airSingleFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SINGLE, EssenceType.AIR, true);
+        SpellMutationProfile airFastFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.FAST_DART, EssenceType.AIR, true);
+        SpellMutationProfile airChainFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.CHAIN_LEAP, EssenceType.AIR, true);
+        SpellMutationProfile airOrbitFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.AIR, true);
+
+        boolean airPierceAndArchetypeOk =
+                airBeamMut.bonusPierceTargets() == 8
+                && airBeamOff.bonusPierceTargets() == 0
+                && airProjMut.bonusPierceTargets() == 0
+                && airProjMut.velocityMultiplier() == 1.25F
+                && ddraig.net.entropica.spell.vfx.SpellParticleHelper.resolveProjectileArchetype(EssenceType.AIR, false, false)
+                        == ddraig.net.entropica.spell.vfx.SpellParticleHelper.ARCHETYPE_WIND_SPIRAL;
+
+        boolean airSlowAndFlowTitlesOk =
+                !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.AIR, SpellFlowModifier.SLOW_HEAVY)
+                && SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.AIR, SpellFlowModifier.SINGLE)
+                && SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.AIR, SpellFlowModifier.CHAIN_LEAP)
+                && SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.AIR, SpellFlowModifier.ORBIT_SATELLITE)
+                && airSlowFlow.velocityMultiplier() == 1.0F
+                && airSlowFlow.bonusPierceTargets() == 0
+                && SpellFlowModifier.SLOW_HEAVY.getDisplayName().equals(airSlowFlow.signatureTitle())
+                && airSingleFlow.velocityMultiplier() == 1.35F
+                && "Aerodynamic Slipstream Flow".equals(airSingleFlow.signatureTitle())
+                && airFastFlow.velocityMultiplier() == 1.35F
+                && airFastFlow.bonusPierceTargets() == 0
+                && airChainFlow.velocityMultiplier() == 1.35F
+                && "Sonic Leap Chains".equals(airChainFlow.signatureTitle())
+                && airOrbitFlow.velocityMultiplier() == 1.35F
+                && "Zephyr Gale Orbit".equals(airOrbitFlow.signatureTitle());
+
+        boolean airConstructAndZoneInvariantsOk =
+                ddraig.net.entropica.spell.mutation.element.AirSpellMutationHandler.ZEPHYR_EIDOLON_HEX_COLOR == 0xA88654
+                && SpellEidolonSpecs.isPureAuraOrFieldSentry(EssenceType.AIR)
+                && "Zephyr Eidolon".equals(SpellEidolonSpecs.resolveCanonicalBlueprintTitle(EssenceType.AIR, SpellEidolonEntity.TriadArchetype.AGENT))
+                && "Zephyr Updraft Sentry".equals(SpellEidolonSpecs.resolveCanonicalBlueprintTitle(EssenceType.AIR, SpellEidolonEntity.TriadArchetype.SENTRY))
+                && "Zephyr Cyclone Decoy".equals(SpellEidolonSpecs.resolveCanonicalBlueprintTitle(EssenceType.AIR, SpellEidolonEntity.TriadArchetype.DECOY))
+                && airSentryMut.mutationDescription() != null && airSentryMut.mutationDescription().contains("updraft gusts")
+                && airSkyfallMut.mutationDescription() != null && airSkyfallMut.mutationDescription().contains("9s") && airSkyfallMut.mutationDescription().contains("45s")
+                && !SpellLingeringZoneManager.TAG_AIR_TRAMPOLINE_CUSHION_UNTIL.isBlank()
+                && !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.TAG_AIR_HYPOXIA_MELEE_CD_UNTIL.isBlank();
+
+        check(counts, lines, "Air (#1) Sec 6.2 Invariants: Beam 8-Pierce, Deliberate Slow 1.0x Exemption, Flow Titles & Zephyr Constructs",
+                airPierceAndArchetypeOk && airSlowAndFlowTitlesOk && airConstructAndZoneInvariantsOk);
+
+        // 51. Water (#2) Section 6.3 Conformance: Flow Gating (SLOW_HEAVY & CHAIN_LEAP Only), Water <-> Arid +1 Clash & Aqueous Constructs
+        var visMgr = ddraig.net.entropica.combat.VisInteractionManager.getInstance();
+        boolean waterAridClashOk =
+                visMgr.getSingleNodeAdvantage(EssenceType.WATER, EssenceType.ARID) == 1
+                && visMgr.getSingleNodeAdvantage(EssenceType.ARID, EssenceType.WATER) == 1
+                && visMgr.calculateLineageAdvantageScore(EssenceType.WATER, List.of(EssenceType.ARID)) == 1
+                && visMgr.calculateLineageAdvantageScore(EssenceType.ARID, List.of(EssenceType.WATER)) == 1
+                && visMgr.getSingleNodeAdvantage(EssenceType.WATER, EssenceType.NETHER) == 1
+                && visMgr.getSingleNodeAdvantage(EssenceType.WATER, EssenceType.FROZEN) == -1
+                && visMgr.getSingleNodeAdvantage(EssenceType.WATER, EssenceType.NATURE) == -1;
+
+        SpellMutationProfile waterSlowFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SLOW_HEAVY, EssenceType.WATER, true);
+        SpellMutationProfile waterChainFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.CHAIN_LEAP, EssenceType.WATER, true);
+        SpellMutationProfile waterSingleFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SINGLE, EssenceType.WATER, true);
+        SpellMutationProfile waterFastFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.FAST_DART, EssenceType.WATER, true);
+        SpellMutationProfile waterOrbitFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.WATER, true);
+
+        boolean waterFlowGatingOk =
+                SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.WATER, SpellFlowModifier.SLOW_HEAVY)
+                && SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.WATER, SpellFlowModifier.CHAIN_LEAP)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.WATER, SpellFlowModifier.SINGLE)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.WATER, SpellFlowModifier.FAST_DART)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.WATER, SpellFlowModifier.DOUBLE_BIFURCATE)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.WATER, SpellFlowModifier.TRIPLE_TRIFURCATE)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.WATER, SpellFlowModifier.OCTUPLE_DOME)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.WATER, SpellFlowModifier.ORBIT_SATELLITE)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.WATER, SpellFlowModifier.VOID_WARP)
+                && "Viscous Fluid Mass".equals(waterSlowFlow.signatureTitle())
+                && waterSlowFlow.mutationDescription() != null
+                && "Riptide Undertow Chains".equals(waterChainFlow.signatureTitle())
+                && waterChainFlow.mutationDescription() != null
+                && ("Riptide Torrent " + SpellFlowModifier.SINGLE.getDisplayName()).equals(waterSingleFlow.signatureTitle())
+                && waterSingleFlow.mutationDescription() == null
+                && ("Riptide Torrent " + SpellFlowModifier.FAST_DART.getDisplayName()).equals(waterFastFlow.signatureTitle())
+                && waterFastFlow.mutationDescription() == null
+                && ("Riptide Torrent " + SpellFlowModifier.ORBIT_SATELLITE.getDisplayName()).equals(waterOrbitFlow.signatureTitle())
+                && waterOrbitFlow.mutationDescription() == null
+                && waterSlowFlow.bonusPierceTargets() == 0
+                && waterFastFlow.bonusPierceTargets() == 0;
+
+        SpellMutationProfile waterBeamMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.WATER, true);
+        SpellMutationProfile waterProjMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.WATER, true);
+        SpellMutationProfile waterSkyfallMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.WATER, true);
+        SpellMutationProfile waterSentryMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.SUMMON_SENTRY, EssenceType.WATER, true);
+        SpellMutationProfile waterDecoyMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.SUMMON_DECOY, EssenceType.WATER, true);
+
+        boolean waterConstructsAndFormsOk =
+                waterBeamMut.bonusPierceTargets() == 8
+                && waterProjMut.bonusPierceTargets() == 0
+                && ddraig.net.entropica.spell.mutation.element.WaterSpellMutationHandler.AQUEOUS_EIDOLON_HEX_COLOR == 0x225C7C
+                && !ddraig.net.entropica.spell.mutation.element.WaterSpellMutationHandler.isTrueNetherOrFireEntity(null)
+                && "Aqueous Eidolon".equals(SpellEidolonSpecs.resolveCanonicalBlueprintTitle(EssenceType.WATER, SpellEidolonEntity.TriadArchetype.AGENT))
+                && "Aqueous Orb Sentry".equals(SpellEidolonSpecs.resolveCanonicalBlueprintTitle(EssenceType.WATER, SpellEidolonEntity.TriadArchetype.SENTRY))
+                && "Aqueous Mirage Decoy".equals(SpellEidolonSpecs.resolveCanonicalBlueprintTitle(EssenceType.WATER, SpellEidolonEntity.TriadArchetype.DECOY))
+                && waterSkyfallMut.mutationDescription() != null
+                && waterSkyfallMut.mutationDescription().contains("8s") && waterSkyfallMut.mutationDescription().contains("36s")
+                && waterSentryMut.mutationDescription() != null && waterSentryMut.mutationDescription().contains("passively dousing")
+                && waterDecoyMut.mutationDescription() != null && waterDecoyMut.mutationDescription().contains("3.5s")
+                && !SpellLingeringZoneManager.TAG_WATER_SHROUD_UNTIL.isBlank();
+
+        check(counts, lines, "Water (#2) Sec 6.3 Invariants: Flow Gating (SLOW_HEAVY & CHAIN_LEAP), Water <-> Arid +1 Clash & Aqueous Constructs",
+                waterAridClashOk && waterFlowGatingOk && waterConstructsAndFormsOk);
+
+        // 52. Nature (#3) Section 6.4 Conformance: Beam 8-Pierce, CHAIN_LEAP-Only Flow Gating, Advantage & Sylvan Constructs
+        boolean natureAdvantageOk =
+                visMgr.getSingleNodeAdvantage(EssenceType.NATURE, EssenceType.WATER) == 1
+                && visMgr.getSingleNodeAdvantage(EssenceType.NATURE, EssenceType.EARTH) == 1
+                && visMgr.getSingleNodeAdvantage(EssenceType.NATURE, EssenceType.NETHER) == -1
+                && visMgr.getSingleNodeAdvantage(EssenceType.NATURE, EssenceType.FROZEN) == -1
+                && visMgr.getSingleNodeAdvantage(EssenceType.NATURE, EssenceType.UMBRAL) == -1;
+
+        SpellMutationProfile natureChainFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.CHAIN_LEAP, EssenceType.NATURE, true);
+        SpellMutationProfile natureSingleFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SINGLE, EssenceType.NATURE, true);
+        SpellMutationProfile natureFastFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.FAST_DART, EssenceType.NATURE, true);
+        SpellMutationProfile natureSlowFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SLOW_HEAVY, EssenceType.NATURE, true);
+        SpellMutationProfile natureOrbitFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.ORBIT_SATELLITE, EssenceType.NATURE, true);
+
+        boolean natureFlowGatingOk =
+                SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.NATURE, SpellFlowModifier.CHAIN_LEAP)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.NATURE, SpellFlowModifier.SINGLE)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.NATURE, SpellFlowModifier.FAST_DART)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.NATURE, SpellFlowModifier.SLOW_HEAVY)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.NATURE, SpellFlowModifier.DOUBLE_BIFURCATE)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.NATURE, SpellFlowModifier.TRIPLE_TRIFURCATE)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.NATURE, SpellFlowModifier.OCTUPLE_DOME)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.NATURE, SpellFlowModifier.ORBIT_SATELLITE)
+                && !SpellMutationRegistry.isHandlerFlowMutationApplicable(EssenceType.NATURE, SpellFlowModifier.VOID_WARP)
+                && "Entangling Briar Chains".equals(natureChainFlow.signatureTitle())
+                && natureChainFlow.mutationDescription() != null
+                && ("Verdant Briar " + SpellFlowModifier.SINGLE.getDisplayName()).equals(natureSingleFlow.signatureTitle())
+                && natureSingleFlow.mutationDescription() == null
+                && ("Verdant Briar " + SpellFlowModifier.FAST_DART.getDisplayName()).equals(natureFastFlow.signatureTitle())
+                && natureFastFlow.mutationDescription() == null
+                && ("Verdant Briar " + SpellFlowModifier.SLOW_HEAVY.getDisplayName()).equals(natureSlowFlow.signatureTitle())
+                && natureSlowFlow.mutationDescription() == null
+                && ("Verdant Briar " + SpellFlowModifier.ORBIT_SATELLITE.getDisplayName()).equals(natureOrbitFlow.signatureTitle())
+                && natureOrbitFlow.mutationDescription() == null
+                && natureChainFlow.bonusPierceTargets() == 0
+                && natureFastFlow.bonusPierceTargets() == 0;
+
+        SpellMutationProfile natureBeamMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.BEAM, EssenceType.NATURE, true);
+        SpellMutationProfile natureProjMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.NATURE, true);
+        SpellMutationProfile natureSkyfallMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.SKYFALL, EssenceType.NATURE, true);
+        SpellMutationProfile natureSentryMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.SUMMON_SENTRY, EssenceType.NATURE, true);
+        SpellMutationProfile natureDecoyMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.SUMMON_DECOY, EssenceType.NATURE, true);
+        SpellMutationProfile natureTransmuteMut = SpellMutationRegistry.resolveEffect(
+                SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.TRANSMUTE, EssenceType.NATURE, true);
+        SpellMutationProfile natureHexMut = SpellMutationRegistry.resolveEffect(
+                SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.NATURE, true);
+
+        boolean natureConstructsAndFormsOk =
+                natureBeamMut.bonusPierceTargets() == 8
+                && natureProjMut.bonusPierceTargets() == 0
+                && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.SYLVAN_EIDOLON_HEX_COLOR == 0x1A5923
+                && !ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(null, null)
+                && "Sylvan Eidolon".equals(SpellEidolonSpecs.resolveCanonicalBlueprintTitle(EssenceType.NATURE, SpellEidolonEntity.TriadArchetype.AGENT))
+                && "Sylvan Thorn Sentry".equals(SpellEidolonSpecs.resolveCanonicalBlueprintTitle(EssenceType.NATURE, SpellEidolonEntity.TriadArchetype.SENTRY))
+                && "Sylvan Pollen Effigy".equals(SpellEidolonSpecs.resolveCanonicalBlueprintTitle(EssenceType.NATURE, SpellEidolonEntity.TriadArchetype.DECOY))
+                && natureSkyfallMut.mutationDescription() != null
+                && natureSkyfallMut.mutationDescription().contains("6s") && natureSkyfallMut.mutationDescription().contains("30s")
+                && natureSentryMut.mutationDescription() != null && natureSentryMut.mutationDescription().contains("1.0s")
+                && natureDecoyMut.mutationDescription() != null && natureDecoyMut.mutationDescription().contains("35%")
+                && natureTransmuteMut.mutationDescription() != null && natureTransmuteMut.mutationDescription().contains("oak wood")
+                && natureHexMut.mutationDescription() != null && natureHexMut.mutationDescription().contains("0 tick damage")
+                && !SpellLingeringZoneManager.TAG_NATURE_MANTLE_UNTIL.isBlank();
+
+        check(counts, lines, "Nature (#3) Sec 6.4 Invariants: Beam 8-Pierce, CHAIN_LEAP-Only Flow Gating, Advantage & Sylvan Constructs",
+                natureAdvantageOk && natureFlowGatingOk && natureConstructsAndFormsOk);
+
+        // Bind minimal vanilla block tags in headless Bootstrap mode so tag-driven block predicates execute live
+        ensureHeadlessVanillaBlockTagsBound();
+
+        // 53. Earth (#4) Section 6.5 Conformance: Magnetite Ore Config, 1.0x Non-Slow Flow, Exact 0.50x/1.50x Shroud, T1-3 Burrow Step & Sundering Hex
+        net.minecraft.world.level.block.state.BlockState ironOreState = net.minecraft.world.level.block.Blocks.IRON_ORE.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState deepslateIronState = net.minecraft.world.level.block.Blocks.DEEPSLATE_IRON_ORE.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState deepslateCopperState = net.minecraft.world.level.block.Blocks.DEEPSLATE_COPPER_ORE.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState diamondOreState = net.minecraft.world.level.block.Blocks.DIAMOND_ORE.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState goldOreState = net.minecraft.world.level.block.Blocks.GOLD_ORE.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState stoneState = net.minecraft.world.level.block.Blocks.STONE.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState dirtState = net.minecraft.world.level.block.Blocks.DIRT.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState grassState = net.minecraft.world.level.block.Blocks.GRASS_BLOCK.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState oakPlanksState = net.minecraft.world.level.block.Blocks.OAK_PLANKS.defaultBlockState();
+
+        boolean magnetiteConfigOk;
+        try {
+            ddraig.net.entropica.config.EntropicaConfig.clearMagnetiteBeamOreFilterTestOverride();
+            boolean defaultOk = ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(ironOreState)
+                    && ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(diamondOreState)
+                    && !ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(stoneState)
+                    && !ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
+
+            ddraig.net.entropica.config.EntropicaConfig.setMagnetiteBeamOreFilterTestOverride(
+                    List.of("minecraft:iron_ore", "#c:ores/copper"), List.of());
+            boolean whitelistOk = ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(ironOreState)
+                    && ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(deepslateCopperState)
+                    && !ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(diamondOreState);
+
+            ddraig.net.entropica.config.EntropicaConfig.setMagnetiteBeamOreFilterTestOverride(
+                    List.of(), List.of("minecraft:diamond_ore", "#c:ores/gold"));
+            boolean blacklistOk = ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(ironOreState)
+                    && !ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(diamondOreState)
+                    && !ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(goldOreState);
+
+            ddraig.net.entropica.config.EntropicaConfig.setMagnetiteBeamOreFilterTestOverride(
+                    List.of("#c:ores/iron"), List.of("minecraft:deepslate_iron_ore"));
+            boolean precedenceOk = ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(ironOreState)
+                    && !ddraig.net.entropica.config.EntropicaConfig.isOreAllowedForMagnetiteBeam(deepslateIronState);
+
+            magnetiteConfigOk = defaultOk && whitelistOk && blacklistOk && precedenceOk;
+        } finally {
+            ddraig.net.entropica.config.EntropicaConfig.clearMagnetiteBeamOreFilterTestOverride();
+        }
+
+        SpellMutationProfile earthFastFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.FAST_DART, EssenceType.EARTH, true);
+        SpellMutationProfile earthSingleFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SINGLE, EssenceType.EARTH, true);
+        SpellMutationProfile earthSlowFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SLOW_HEAVY, EssenceType.EARTH, true);
+        SpellMutationProfile earthHexMut = SpellMutationRegistry.resolveEffect(
+                SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.EARTH, true);
+
+        boolean earthFlowAndShroudOk =
+                earthFastFlow.velocityMultiplier() == 1.0F
+                && earthSingleFlow.velocityMultiplier() == 1.0F
+                && earthSlowFlow.velocityMultiplier() == 1.0F
+                && "Dense Tectonic Mass".equals(earthSlowFlow.signatureTitle())
+                && earthSlowFlow.mutationDescription() != null
+                && earthFastFlow.mutationDescription() == null
+                && earthSingleFlow.mutationDescription() == null
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.calculateSpellAdvantageDamageMultiplier(
+                        EssenceType.VOID, null, null, List.of(EssenceType.EARTH), 0.0F) == 0.50F
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.calculateSpellAdvantageDamageMultiplier(
+                        EssenceType.AIR, null, null, List.of(EssenceType.EARTH), 0.0F) == 1.50F
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveConvertedTouchAttackMateria(
+                        EssenceType.WATER, EssenceType.EARTH, true) == EssenceType.EARTH;
+
+        boolean earthBurrowOk =
+                ddraig.net.entropica.spell.engine.SpellExecutionEngine.canBlinkPhaseWalls(
+                        null, net.minecraft.world.phys.Vec3.ZERO, net.minecraft.core.BlockPos.ZERO, 1, EssenceType.EARTH, true)
+                && ddraig.net.entropica.spell.engine.SpellExecutionEngine.canBlinkPhaseWalls(
+                        null, net.minecraft.world.phys.Vec3.ZERO, net.minecraft.core.BlockPos.ZERO, 2, EssenceType.EARTH, true)
+                && ddraig.net.entropica.spell.engine.SpellExecutionEngine.canBlinkPhaseWalls(
+                        null, net.minecraft.world.phys.Vec3.ZERO, net.minecraft.core.BlockPos.ZERO, 3, EssenceType.EARTH, true)
+                && !ddraig.net.entropica.spell.engine.SpellExecutionEngine.canBlinkPhaseWalls(
+                        null, net.minecraft.world.phys.Vec3.ZERO, net.minecraft.core.BlockPos.ZERO, 1, EssenceType.EARTH, false)
+                && ddraig.net.entropica.spell.engine.SpellExecutionEngine.isStoneOrSoilStrata(stoneState)
+                && ddraig.net.entropica.spell.engine.SpellExecutionEngine.isStoneOrSoilStrata(dirtState)
+                && !ddraig.net.entropica.spell.engine.SpellExecutionEngine.isStoneOrSoilStrata(oakPlanksState)
+                && Math.abs(ddraig.net.entropica.spell.engine.SpellExecutionEngine.resolveBurrowStepRangeBlocks(1, false, 1.0F) - 16.0D) < 1.0E-4D
+                && Math.abs(ddraig.net.entropica.spell.engine.SpellExecutionEngine.resolveBurrowStepRangeBlocks(1, true, 1.0F) - 20.0D) < 1.0E-4D;
+
+        String combatSrc = readRepoSource("src/main/java/ddraig/net/entropica/spell/engine/SpellCombatReactionEngine.java");
+        String earthHandlerSrc = readRepoSource("src/main/java/ddraig/net/entropica/spell/mutation/element/EarthSpellMutationHandler.java");
+        boolean earthHexAndSkyfallOk =
+                ddraig.net.entropica.spell.mutation.element.EarthSpellMutationHandler.resolveSunderingHexArmorShred(1) == 5.0D
+                && ddraig.net.entropica.spell.mutation.element.EarthSpellMutationHandler.resolveSunderingHexArmorShred(2) == 7.5D
+                && ddraig.net.entropica.spell.mutation.element.EarthSpellMutationHandler.resolveSunderingHexArmorShred(3) == 10.0D
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveSunderingHexArmorShred(1) == 5.0D
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveSunderingHexArmorShred(2) == 7.5D
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveSunderingHexArmorShred(3) == 10.0D
+                && earthHexMut.mutationDescription() != null && earthHexMut.mutationDescription().contains("0 tick damage")
+                && combatSrc.contains("if (!sunderingHexActive && now <= targetData.getLong(TAG_ARMOR_SHRED_UNTIL)")
+                && !combatSrc.contains("TAG_EARTH_DEFENSE_UNTIL).orElse(0L))\n                && MateriaFamilyTier.isVoidLineage")
+                && !extractMethodWindow(earthHandlerSrc, "public void onPersistentHexTick", 25).contains("hurtWithPureMateria")
+                && ddraig.net.entropica.spell.mutation.element.EarthSpellMutationHandler.resolveMeteoriteBarrageDurationTicks(1) == 120
+                && ddraig.net.entropica.spell.mutation.element.EarthSpellMutationHandler.resolveMeteoriteBarrageDurationTicks(10) == 264
+                && ddraig.net.entropica.spell.mutation.element.EarthSpellMutationHandler.isLooseExcavatableSediment(dirtState)
+                && !ddraig.net.entropica.spell.mutation.element.EarthSpellMutationHandler.isLooseExcavatableSediment(grassState)
+                && SpellEidolonEntity.shouldTriggerEarthShrapnelBurst(EssenceType.EARTH, SpellEidolonEntity.TriadArchetype.DECOY)
+                && !SpellEidolonEntity.shouldTriggerEarthShrapnelBurst(EssenceType.EARTH, SpellEidolonEntity.TriadArchetype.AGENT)
+                && !SpellEidolonEntity.shouldTriggerEarthShrapnelBurst(EssenceType.EARTH, SpellEidolonEntity.TriadArchetype.SENTRY);
+
+        check(counts, lines, "Earth (#4) Sec 6.5 Invariants: Magnetite Ore Config, 1.0x Non-Slow Flow, 0.50x/1.50x Shroud, T1-3 Burrow Step & Sundering Hex",
+                magnetiteConfigOk && earthFlowAndShroudOk && earthBurrowOk && earthHexAndSkyfallOk);
+
+        // 54. Frozen (#5) Section 6.6 Conformance: Glacial Pitfall Rename, Non-Compounded 60% Slow, 30% Spikes Debuff, Shatter Hex & Decoy Shatter Gate
+        SpellMutationProfile frozenGlyphMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.GLYPH, EssenceType.FROZEN, true);
+        SpellMutationProfile frozenHexMut = SpellMutationRegistry.resolveEffect(
+                SpellPartSlotType.CORE_EFFECT, SpellCoreEffect.AFFLICTION, EssenceType.FROZEN, true);
+        SpellMutationProfile frozenSlowFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.SLOW_HEAVY, EssenceType.FROZEN, true);
+        SpellMutationProfile frozenFastFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.FAST_DART, EssenceType.FROZEN, true);
+
+        String frozenHandlerSrc = readRepoSource("src/main/java/ddraig/net/entropica/spell/mutation/element/FrozenSpellMutationHandler.java");
+        String projEntitySrc = readRepoSource("src/main/java/ddraig/net/entropica/entity/projectile/SpellProjectileEntity.java");
+
+        boolean frozenRenameAndSlowOk =
+                "Glacial Pitfall".equals(frozenGlyphMut.signatureTitle())
+                && frozenGlyphMut.mutationDescription() != null
+                && frozenGlyphMut.mutationDescription().contains("Glacial Pitfall")
+                && !frozenGlyphMut.mutationDescription().contains("Rime Pitfall")
+                && !frozenHandlerSrc.contains("Rime Pitfall")
+                && !frozenHandlerSrc.contains("new MobEffectInstance(MobEffects.SLOWNESS")
+                && !extractMethodWindow(frozenHandlerSrc, "public void onPersistentHexTick", 25).contains("hurtWithFrozenMateriaAdvantage")
+                && !extractMethodWindow(projEntitySrc, "case FROZEN ->", 35).contains("MobEffects.SLOWNESS")
+                && "Permafrost Creep".equals(frozenSlowFlow.signatureTitle())
+                && frozenSlowFlow.mutationDescription() != null
+                && frozenFastFlow.mutationDescription() == null
+                && "entropica_frozen_ice_stasis_until".equals(
+                        ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.TAG_FROZEN_ICE_STASIS_UNTIL);
+
+        boolean frozenSpikesOk =
+                ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveChilledMobSwingCooldownTicks(20L) == 26L
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveChilledMobSwingCooldownTicks(10L) == 13L
+                && !extractMethodWindow(combatSrc, "TAG_FROZEN_SPIKES_UNTIL", 40).contains("DIG_SLOWDOWN")
+                && !extractMethodWindow(combatSrc, "TAG_FROZEN_SPIKES_UNTIL", 40).contains("MINING_FATIGUE");
+
+        boolean frozenHexAndDecoyOk =
+                frozenHexMut.mutationDescription() != null && frozenHexMut.mutationDescription().contains("0 tick damage")
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveFrozenHexShatterMultiplier(1) == 1.50F
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveFrozenHexShatterMultiplier(2) == 1.75F
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveFrozenHexShatterMultiplier(3) == 2.00F
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterDamageType(net.minecraft.world.damagesource.DamageTypes.PLAYER_ATTACK)
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterDamageType(net.minecraft.world.damagesource.DamageTypes.MOB_ATTACK)
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterDamageType(net.minecraft.world.damagesource.DamageTypes.MACE_SMASH)
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterDamageType(net.minecraft.world.damagesource.DamageTypes.FALL)
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterDamageType(net.minecraft.world.damagesource.DamageTypes.FALLING_ANVIL)
+                && !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterDamageType(net.minecraft.world.damagesource.DamageTypes.ARROW)
+                && !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterDamageType(net.minecraft.world.damagesource.DamageTypes.TRIDENT)
+                && !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterDamageType(net.minecraft.world.damagesource.DamageTypes.DROWN)
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterMateria(EssenceType.EARTH)
+                && !ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.isFrozenHexShatterMateria(EssenceType.AIR)
+                && SpellEidolonEntity.shouldTriggerFrozenShatterNova(EssenceType.FROZEN, SpellEidolonEntity.TriadArchetype.DECOY, true)
+                && !SpellEidolonEntity.shouldTriggerFrozenShatterNova(EssenceType.FROZEN, SpellEidolonEntity.TriadArchetype.DECOY, false)
+                && !SpellEidolonEntity.shouldTriggerFrozenShatterNova(EssenceType.FROZEN, SpellEidolonEntity.TriadArchetype.AGENT, true)
+                && !SpellEidolonEntity.shouldTriggerFrozenShatterNova(EssenceType.FROZEN, SpellEidolonEntity.TriadArchetype.SENTRY, true);
+
+        check(counts, lines, "Frozen (#5) Sec 6.6 Invariants: Glacial Pitfall Rename, Exact 60% Slow, 30% Spikes Debuff, Blunt Shatter Hex & Decoy Shatter Gate",
+                frozenRenameAndSlowOk && frozenSpikesOk && frozenHexAndDecoyOk);
+
+        // 55. Nether (#6) Section 6.7 Conformance: Immolation Shroud 0.50x/1.50x, PLANKS Charring, Hellfire Sear Hex & Brimstone 120t T1 Scaling
+        net.minecraft.world.level.block.state.BlockState sprucePlanksState = net.minecraft.world.level.block.Blocks.SPRUCE_PLANKS.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState crimsonPlanksState = net.minecraft.world.level.block.Blocks.CRIMSON_PLANKS.defaultBlockState();
+        SpellMutationProfile netherChainFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.CHAIN_LEAP, EssenceType.NETHER, true);
+        SpellMutationProfile netherFastFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.FAST_DART, EssenceType.NETHER, true);
+        String netherHandlerSrc = readRepoSource("src/main/java/ddraig/net/entropica/spell/mutation/element/NetherSpellMutationHandler.java");
+
+        boolean netherShroudAndPlanksOk =
+                ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.calculateSpellAdvantageDamageMultiplier(
+                        EssenceType.FROZEN, null, null, List.of(EssenceType.NETHER), 0.0F) == 0.50F
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.calculateSpellAdvantageDamageMultiplier(
+                        EssenceType.WATER, null, null, List.of(EssenceType.NETHER), 0.0F) == 1.50F
+                && !extractMethodWindow(combatSrc, "hurtWithFrozenMateriaAdvantage(", 70).contains("0.67F")
+                && ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.isCharableOrganicBlock(oakPlanksState)
+                && ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.isCharableOrganicBlock(sprucePlanksState)
+                && ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.isCharableOrganicBlock(crimsonPlanksState)
+                && !ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.isCharableOrganicBlock(stoneState);
+
+        String counterCleanseWindow = extractMethodWindow(combatSrc, "public static boolean checkElementalHexCounterCleanse(", 30);
+        boolean netherHexAndStormOk =
+                ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.resolveHellfireSearArmorMeltFraction(1) == 0.30D
+                && ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.resolveHellfireSearArmorMeltFraction(2) == 0.45D
+                && ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.resolveHellfireSearArmorMeltFraction(3) == 0.60D
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveHellfireSearArmorMeltFraction(1) == 0.30D
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveHellfireSearArmorMeltFraction(2) == 0.45D
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveHellfireSearArmorMeltFraction(3) == 0.60D
+                && combatSrc.contains("else if (mutated && resolved == EssenceType.NETHER)")
+                && counterCleanseWindow.contains("case \"NETHER\" -> isWaterLine(incomingElement) || incomingElement == EssenceType.VITAE;")
+                && !counterCleanseWindow.contains("case \"NETHER\", \"ARID\"")
+                && ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.computeBrimstoneStormDurationTicks(1) == 120
+                && ddraig.net.entropica.spell.mutation.element.NetherSpellMutationHandler.computeBrimstoneStormDurationTicks(10) == 264
+                && "Arcing Fire-Whip Chains".equals(netherChainFlow.signatureTitle())
+                && netherChainFlow.mutationDescription() != null
+                && netherFastFlow.mutationDescription() == null
+                && !netherHandlerSrc.contains("caster.heal(");
+
+        check(counts, lines, "Nether (#6) Sec 6.7 Invariants: Immolation Shroud 0.50x/1.50x, PLANKS Charring, Hellfire Sear Hex & Brimstone 120t Scaling",
+                netherShroudAndPlanksOk && netherHexAndStormOk);
+
+        // 56. Radiant (#7) Section 6.8 Conformance: #FFE278 Palette, 0-Pierce Dawn Star, 0.50x/1.50x Shroud, 45%-Absorb Decoy, 4/6/8 Hex & Pseudoblock Pillar
+        SpellMutationProfile radiantProjMut = SpellMutationRegistry.resolveForm(SpellDeliveryForm.PROJECTILE, EssenceType.RADIANT, true);
+        SpellMutationProfile radiantChainFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.CHAIN_LEAP, EssenceType.RADIANT, true);
+        SpellMutationProfile radiantFastFlow = SpellMutationRegistry.resolveFlow(SpellFlowModifier.FAST_DART, EssenceType.RADIANT, true);
+        String radiantHandlerSrc = readRepoSource("src/main/java/ddraig/net/entropica/spell/mutation/element/RadiantSpellMutationHandler.java");
+        String eidolonEntitySrc = readRepoSource("src/main/java/ddraig/net/entropica/entity/SpellEidolonEntity.java");
+
+        boolean radiantColorAndPierceOk =
+                EssenceType.RADIANT.getR() == 255
+                && EssenceType.RADIANT.getG() == 226
+                && EssenceType.RADIANT.getB() == 120
+                && ((EssenceType.RADIANT.getR() << 16) | (EssenceType.RADIANT.getG() << 8) | EssenceType.RADIANT.getB()) == 0xFFE278
+                && "Homing Dawn Star".equals(radiantProjMut.signatureTitle())
+                && radiantProjMut.bonusPierceTargets() == 0
+                && "Prismatic Starlight Chains".equals(radiantChainFlow.signatureTitle())
+                && radiantChainFlow.mutationDescription() != null
+                && radiantFastFlow.mutationDescription() == null;
+
+        boolean radiantShroudAndTouchOk =
+                ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.calculateSpellAdvantageDamageMultiplier(
+                        EssenceType.UNDEAD, null, null, List.of(EssenceType.RADIANT), 0.0F) == 0.50F
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.calculateSpellAdvantageDamageMultiplier(
+                        EssenceType.UMBRAL, null, null, List.of(EssenceType.RADIANT), 0.0F) == 1.50F
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveConvertedTouchAttackMateria(
+                        EssenceType.WATER, EssenceType.RADIANT, true) == EssenceType.RADIANT
+                && combatSrc.contains("TAG_RADIANT_SHROUD_UNTIL")
+                && !extractMethodWindow(combatSrc, "hurtWithUndeadMateriaAdvantage(", 70).contains("0.67F");
+
+        String radiantSummonWindow = extractMethodWindow(radiantHandlerSrc, "public void onSummonFormSpawned", 40);
+        boolean radiantSeraphSuiteOk =
+                !radiantSummonWindow.contains("caster.heal(")
+                && Math.abs(SpellEidolonEntity.resolveSolarSeraphDecoyDamageTaken(20.0F) - 11.0F) < 1.0E-4F
+                && Math.abs(SpellEidolonEntity.resolveSolarSeraphDecoyAbsorbedHeal(20.0F) - 9.0F) < 1.0E-4F
+                && !SpellEidolonEntity.shouldTriggerRadiantDeathSmiteNova(EssenceType.RADIANT, SpellEidolonEntity.TriadArchetype.DECOY)
+                && !SpellEidolonEntity.shouldTriggerRadiantDeathSmiteNova(EssenceType.RADIANT, SpellEidolonEntity.TriadArchetype.AGENT)
+                && !SpellEidolonEntity.shouldTriggerRadiantDeathSmiteNova(EssenceType.RADIANT, SpellEidolonEntity.TriadArchetype.SENTRY)
+                && (eidolonEntitySrc.contains("56.25") || eidolonEntitySrc.contains("7.5D * 7.5D"))
+                && (eidolonEntitySrc.contains("64.0") || eidolonEntitySrc.contains("8.0D * 8.0D"));
+
+        String radiantSkyfallWindow = extractMethodWindow(radiantHandlerSrc, "public boolean onSkyfallFormCast", 215);
+        String radiantExcavateWindow = extractMethodWindow(radiantHandlerSrc, "public static void onRadiantLineageExcavateBlock", 55);
+        List<int[]> t1QuartzPlan = ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.buildTierScaledCelestialQuartzColumns(1, 5);
+        List<int[]> t10QuartzPlan = ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.buildTierScaledCelestialQuartzColumns(10, 14);
+        boolean radiantSkyfallBreakAndHexOk =
+                t1QuartzPlan.size() >= 13
+                && t10QuartzPlan.size() > t1QuartzPlan.size()
+                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.resolveCelestialQuartzColumnState(2).is(net.minecraft.world.level.block.Blocks.QUARTZ_PILLAR)
+                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.resolveCelestialQuartzColumnState(1).is(net.minecraft.world.level.block.Blocks.CHISELED_QUARTZ_BLOCK)
+                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.resolveCelestialQuartzColumnState(0).is(net.minecraft.world.level.block.Blocks.SMOOTH_QUARTZ)
+                && radiantSkyfallWindow.contains("broadcastSkyfallPseudoblockColumn")
+                && radiantSkyfallWindow.contains("repelEntitiesFromPseudoblockColumn")
+                && radiantHandlerSrc.contains("materializeSkyfallPseudoblockColumn")
+                && !radiantHandlerSrc.contains("Blocks.LIGHT")
+                && !radiantExcavateWindow.contains("Blocks.LIGHT")
+                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.resolveSunScorchedArmorMelt(1) == 4.0F
+                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.resolveSunScorchedArmorMelt(2) == 6.0F
+                && ddraig.net.entropica.spell.mutation.element.RadiantSpellMutationHandler.resolveSunScorchedArmorMelt(3) == 8.0F
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveSunScorchedHexArmorMelt(1) == 4.0D
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveSunScorchedHexArmorMelt(2) == 6.0D
+                && ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.resolveSunScorchedHexArmorMelt(3) == 8.0D
+                && combatSrc.contains("else if (mutated && resolved == EssenceType.RADIANT)");
+
+        check(counts, lines, "Radiant (#7) Sec 6.8 Invariants: #FFE278 Palette, 0-Pierce Dawn Star, 0.50x/1.50x Shroud, 45%-Absorb Decoy, 4/6/8 Hex & Pseudoblock Pillar",
+                radiantColorAndPierceOk && radiantShroudAndTouchOk && radiantSeraphSuiteOk && radiantSkyfallBreakAndHexOk);
+
         return new VerificationReport(counts[0], counts[1], List.copyOf(lines));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void ensureHeadlessVanillaBlockTagsBound() {
+        if (net.minecraft.world.level.block.Blocks.OAK_PLANKS.defaultBlockState().is(net.minecraft.tags.BlockTags.PLANKS)) {
+            return;
+        }
+        try {
+            java.lang.reflect.Method bindTags = net.minecraft.core.Holder.Reference.class
+                    .getDeclaredMethod("bindTags", java.util.Collection.class);
+            bindTags.setAccessible(true);
+            bindTags.invoke(net.minecraft.world.level.block.Blocks.OAK_PLANKS.builtInRegistryHolder(),
+                    java.util.Set.of(net.minecraft.tags.BlockTags.PLANKS));
+            bindTags.invoke(net.minecraft.world.level.block.Blocks.SPRUCE_PLANKS.builtInRegistryHolder(),
+                    java.util.Set.of(net.minecraft.tags.BlockTags.PLANKS));
+            bindTags.invoke(net.minecraft.world.level.block.Blocks.CRIMSON_PLANKS.builtInRegistryHolder(),
+                    java.util.Set.of(net.minecraft.tags.BlockTags.PLANKS));
+            bindTags.invoke(net.minecraft.world.level.block.Blocks.STONE.builtInRegistryHolder(),
+                    java.util.Set.of(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD, net.minecraft.tags.BlockTags.STONE_ORE_REPLACEABLES));
+            bindTags.invoke(net.minecraft.world.level.block.Blocks.DIRT.builtInRegistryHolder(),
+                    java.util.Set.of(net.minecraft.tags.BlockTags.DIRT));
+            bindTags.invoke(net.minecraft.world.level.block.Blocks.GRASS_BLOCK.builtInRegistryHolder(),
+                    java.util.Set.of(net.minecraft.tags.BlockTags.DIRT));
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to bind headless block tags for verification suite", ex);
+        }
+    }
+
+    private static String readRepoSource(String relativeFromCommon) {
+        try {
+            java.nio.file.Path direct = java.nio.file.Path.of(relativeFromCommon);
+            if (java.nio.file.Files.exists(direct)) {
+                return java.nio.file.Files.readString(direct);
+            }
+            java.nio.file.Path fromRoot = java.nio.file.Path.of("common").resolve(relativeFromCommon);
+            if (java.nio.file.Files.exists(fromRoot)) {
+                return java.nio.file.Files.readString(fromRoot);
+            }
+        } catch (Exception ignored) {
+        }
+        return "";
+    }
+
+    private static String extractMethodWindow(String source, String anchor, int maxLines) {
+        int idx = source.indexOf(anchor);
+        if (idx < 0) {
+            return "";
+        }
+        String tail = source.substring(idx);
+        String[] lines = tail.split("\\R", maxLines + 1);
+        StringBuilder sb = new StringBuilder();
+        int count = Math.min(lines.length, maxLines);
+        for (int i = 0; i < count; i++) {
+            sb.append(lines[i]).append('\n');
+        }
+        return sb.toString();
     }
 
     private static boolean verifyClasspathModelsAndTextures() {

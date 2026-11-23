@@ -1,0 +1,194 @@
+{
+  "has_precipitation": true,
+  "temperature": 0.25,
+  "downfall": 0.6,
+  "creature_spawn_probability": 0.14,
+  "carvers": [
+    "minecraft:cave",
+    "minecraft:cave_extra_underground",
+    "minecraft:canyon"
+  ],
+  "effects": {
+    "sky_color": 11893308,
+    "fog_color": 15255194,
+    "water_color": 2276548,
+    "water_fog_color": 999240,
+    "grass_color": 5679178,
+    "foliage_color": 5679178,
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "music_volume": 1.0
+  },
+  "features": [
+    [],
+    [
+      "minecraft:lake_lava_underground"
+    ],
+    [
+      "minecraft:amethyst_geode",
+      "entropica:astral_geode"
+    ],
+    [
+      "minecraft:monster_room",
+      "minecraft:monster_room_deep"
+    ],
+    [
+      "entropica:oasis_amber_spring"
+    ],
+    [],
+    [
+      "minecraft:ore_dirt",
+      "minecraft:ore_gravel",
+      "minecraft:ore_granite_upper",
+      "minecraft:ore_granite_lower",
+      "minecraft:ore_diorite_upper",
+      "minecraft:ore_diorite_lower",
+      "minecraft:ore_andesite_upper",
+      "minecraft:ore_andesite_lower",
+      "minecraft:ore_tuff",
+      "minecraft:ore_coal_upper",
+      "minecraft:ore_coal_lower",
+      "minecraft:ore_iron_upper",
+      "minecraft:ore_iron_middle",
+      "minecraft:ore_iron_small",
+      "minecraft:ore_gold",
+      "minecraft:ore_gold_lower",
+      "minecraft:ore_redstone",
+      "minecraft:ore_redstone_lower",
+      "minecraft:ore_diamond",
+      "minecraft:ore_diamond_medium",
+      "minecraft:ore_diamond_large",
+      "minecraft:ore_diamond_buried",
+      "minecraft:ore_lapis",
+      "minecraft:ore_lapis_buried",
+      "minecraft:ore_copper",
+      "minecraft:ore_copper_large",
+      "minecraft:underwater_magma",
+      "minecraft:disk_sand",
+      "minecraft:disk_clay",
+      "minecraft:disk_gravel"
+    ],
+    [],
+    [
+      "minecraft:spring_water",
+      "minecraft:spring_lava"
+    ],
+    [
+      "minecraft:glow_lichen",
+      "entropica:amber_weeping_willow",
+      "entropica:oasis_silver_pine",
+      "entropica:patch_oasis_floes_flora"
+    ],
+    []
+  ],
+  "spawn_costs": {},
+  "spawners": {
+    "ambient": [
+      {
+        "type": "minecraft:bat",
+        "weight": 6,
+        "minCount": 1,
+        "maxCount": 3
+      }
+    ],
+    "axolotls": [],
+    "creature": [
+      {
+        "type": "entropica:mud_lurker_salamander",
+        "weight": 14,
+        "minCount": 2,
+        "maxCount": 4
+      },
+      {
+        "type": "entropica:amber_weeping_stag",
+        "weight": 12,
+        "minCount": 2,
+        "maxCount": 4
+      },
+      {
+        "type": "entropica:vapor_bellows_crab",
+        "weight": 10,
+        "minCount": 1,
+        "maxCount": 3
+      },
+      {
+        "type": "entropica:aurorafowl",
+        "weight": 14,
+        "minCount": 2,
+        "maxCount": 5
+      },
+      {
+        "type": "entropica:grot",
+        "weight": 12,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ],
+    "misc": [],
+    "monster": [
+      {
+        "type": "minecraft:stray",
+        "weight": 18,
+        "minCount": 1,
+        "maxCount": 3
+      },
+      {
+        "type": "minecraft:skeleton",
+        "weight": 14,
+        "minCount": 1,
+        "maxCount": 3
+      },
+      {
+        "type": "minecraft:zombie",
+        "weight": 16,
+        "minCount": 1,
+        "maxCount": 3
+      },
+      {
+        "type": "minecraft:spider",
+        "weight": 16,
+        "minCount": 1,
+        "maxCount": 3
+      },
+      {
+        "type": "minecraft:creeper",
+        "weight": 12,
+        "minCount": 1,
+        "maxCount": 2
+      },
+      {
+        "type": "minecraft:enderman",
+        "weight": 6,
+        "minCount": 1,
+        "maxCount": 2
+      },
+      {
+        "type": "minecraft:witch",
+        "weight": 3,
+        "minCount": 1,
+        "maxCount": 1
+      }
+    ],
+    "underground_water_creature": [
+      {
+        "type": "minecraft:glow_squid",
+        "weight": 10,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ],
+    "water_ambient": [
+      {
+        "type": "minecraft:salmon",
+        "weight": 10,
+        "minCount": 2,
+        "maxCount": 5
+      }
+    ],
+    "water_creature": []
+  }
+}

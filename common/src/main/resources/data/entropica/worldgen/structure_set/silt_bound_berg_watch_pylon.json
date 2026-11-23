@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:silt_bound_berg_watch_pylon",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 674829153,
+    "spacing": 22,
+    "separation": 9
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "  B",
+    "CG ",
+    "S  "
+  ],
+  "key": {
+    "B": "entropica:blood_glass",
+    "G": "entropica:sanguine_heart_gel",
+    "C": "minecraft:copper_ingot",
+    "S": "minecraft:bone"
+  },
+  "result": {
+    "id": "entropica:sanguine_ice_lancet",
+    "count": 1
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "entropica:block/blue_frozen_moss_carpet"
+      },
+      {
+        "model": "entropica:block/blue_frozen_moss_carpet",
+        "y": 90
+      },
+      {
+        "model": "entropica:block/blue_frozen_moss_carpet",
+        "y": 180
+      },
+      {
+        "model": "entropica:block/blue_frozen_moss_carpet",
+        "y": 270
+      }
+    ]
+  }
+}

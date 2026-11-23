@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "B B",
+    "PRP",
+    "PPP"
+  ],
+  "key": {
+    "P": "entropica:aegis_plated_stone",
+    "B": "entropica:bismuth_ingot",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "entropica:bismuth_key_pedestal",
+    "count": 1
+  }
+}

@@ -18,5 +18,7 @@ public enum SkyPhenomenonType {
     /** High-altitude dimensional violet rift fractures pulsing softly overhead (Null-Fringe Bay, Void-Cracked biomes). */
     VOID_RIFT_FRACTURES,
     /** Warm shimmering golden-amber horizon wave bands (Mirage Glacier, Mirage Crags, Shimmering Glade). */
-    MIRAGE_HEAT_SHIMMER
+    MIRAGE_HEAT_SHIMMER,
+    /** High-altitude static lightning arcs jumping intermittently across charged clouds overhead (Static Ice-Plains, Lightning Peak, Storm-Swept biomes). */
+    CLOUD_LIGHTNING_ARCS
 }

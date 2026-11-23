@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "wooden_stairs",
+  "pattern": [
+    "#  ",
+    "## ",
+    "###"
+  ],
+  "key": {
+    "#": "entropica:spore_wood_planks"
+  },
+  "result": {
+    "id": "entropica:spore_wood_stairs",
+    "count": 4
+  }
+}

@@ -655,36 +655,42 @@ public final class AbyssSpellMutationHandler implements MateriaPartMutationHandl
 
         // Falling 3D pseudoblock monolith of compacted abyssal black ice & deep-sea dark prismarine!
         int monoHeight = Math.clamp(3 + tier / 3, 3, 6);
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                if (Math.abs(dx) == 1 && Math.abs(dz) == 1) continue;
-                BlockPos colBase = centerPos.offset(dx, 0, dz);
-                BlockState pseudoState = (dx == 0 && dz == 0)
-                        ? Blocks.BLUE_ICE.defaultBlockState()
-                        : Blocks.DARK_PRISMARINE.defaultBlockState();
-                int colH = (dx == 0 && dz == 0) ? monoHeight : Math.max(2, monoHeight - 1);
-                SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
-                        level,
-                        new Vec3(colBase.getX() + 0.5D, impactCenter.y + skyH, colBase.getZ() + 0.5D),
-                        colBase,
-                        pseudoState,
-                        colH,
-                        40,
-                        18,
-                        EssenceType.ABYSS,
-                        tier
-                );
-            }
+        int baseDuration = 120;
+        int effectiveDuration = SpellWorldVfxManager.resolveEffectiveZoneDurationTicks(spell, EssenceType.ABYSS, baseDuration);
+        int[][] cross = {{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        BlockPos[] colBases = new BlockPos[cross.length];
+        BlockState[] colStates = new BlockState[cross.length];
+        int[] colHeights = new int[cross.length];
+        for (int i = 0; i < cross.length; i++) {
+            int dx = cross[i][0];
+            int dz = cross[i][1];
+            colBases[i] = SpellWorldVfxManager.findSkyfallSurfaceBase(level, centerPos.offset(dx, 0, dz));
+            colStates[i] = (dx == 0 && dz == 0)
+                    ? Blocks.BLUE_ICE.defaultBlockState()
+                    : Blocks.DARK_PRISMARINE.defaultBlockState();
+            colHeights[i] = (dx == 0 && dz == 0) ? monoHeight : Math.max(2, monoHeight - 1);
+            SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
+                    level,
+                    new Vec3(colBases[i].getX() + 0.5D, colBases[i].getY() + skyH, colBases[i].getZ() + 0.5D),
+                    colBases[i],
+                    colStates[i],
+                    colHeights[i],
+                    40,
+                    Math.max(4, effectiveDuration - 40),
+                    EssenceType.ABYSS,
+                    tier
+            );
         }
 
-        Map<BlockPos, BlockState> savedBlocks = new HashMap<>();
+        final boolean[] materialized = {false};
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                caster, impactCenter, r, 120, level.getGameTime(), spell, slot, EssenceType.ABYSS, apparatusPotency,
+                caster, impactCenter, r, baseDuration, level.getGameTime(), spell, slot, EssenceType.ABYSS, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> entry : savedBlocks.entrySet()) {
-                            if (srv.getBlockState(entry.getKey()).is(Blocks.WATER)) {
-                                srv.setBlockAndUpdate(entry.getKey(), entry.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int i = 0; i < cross.length; i++) {
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, colBases[i], colStates[i], colHeights[i]);
                             }
                         }
                         return false;
@@ -699,6 +705,9 @@ public final class AbyssSpellMutationHandler implements MateriaPartMutationHandl
                                     10, 0.9D, 0.5D, 0.9D, 0.02D);
                         }
                         return true;
+                    }
+                    for (int i = 0; i < cross.length; i++) {
+                        SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, colBases[i], colHeights[i], elapsed == 40);
                     }
                     if (elapsed == 40) {
                         LivingEntity owner = zone.resolveCaster(srv);
@@ -740,15 +749,6 @@ public final class AbyssSpellMutationHandler implements MateriaPartMutationHandl
                         }
 
                         BlockPos cPos = BlockPos.containing(zone.center);
-                        for (BlockPos p : BlockPos.betweenClosed(cPos.offset(-1, 0, -1), cPos.offset(1, 0, 1))) {
-                            BlockState cur = srv.getBlockState(p);
-                            if (cur.isAir() && srv.getBlockState(p.below()).isSolidRender()
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, p, cur)) {
-                                savedBlocks.put(p.immutable(), cur);
-                                srv.setBlockAndUpdate(p, Blocks.WATER.defaultBlockState());
-                            }
-                        }
-
                         srv.sendParticles(ParticleTypes.SQUID_INK, zone.center.x, zone.center.y + 1.0D, zone.center.z,
                                 42, 2.2D, 0.8D, 2.2D, 0.07D);
                         srv.sendParticles(ParticleTypes.SPLASH, zone.center.x, zone.center.y + 1.0D, zone.center.z,

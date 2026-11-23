@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:stardust_fragment",
+    "minecraft:glass_bottle"
+  ],
+  "result": {
+    "id": "entropica:spectral_dye_stardust",
+    "count": 1
+  }
+}

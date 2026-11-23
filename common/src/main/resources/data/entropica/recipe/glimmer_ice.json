@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " D ",
+    "DID",
+    " D "
+  ],
+  "key": {
+    "D": "entropica:aurora_dust",
+    "I": "minecraft:packed_ice"
+  },
+  "result": {
+    "id": "entropica:glimmer_ice",
+    "count": 1
+  }
+}

@@ -3,11 +3,14 @@ package ddraig.net.entropica.spell.mutation.element;
 import ddraig.net.entropica.api.EssenceType;
 import ddraig.net.entropica.client.particle.TimedTintableParticleOption;
 import ddraig.net.entropica.entity.projectile.SpellProjectileEntity;
+import ddraig.net.entropica.item.CastingApparatusItem;
+import ddraig.net.entropica.registry.ModDataComponents;
 import ddraig.net.entropica.registry.ModEffects;
 import ddraig.net.entropica.registry.ModParticles;
 import ddraig.net.entropica.spell.SpellCoreEffect;
 import ddraig.net.entropica.spell.SpellDeliveryForm;
 import ddraig.net.entropica.spell.SpellFlowModifier;
+import ddraig.net.entropica.spell.apparatus.CastingApparatusState;
 import ddraig.net.entropica.spell.assembly.SpellAssembly;
 import ddraig.net.entropica.spell.assembly.SubSpellSlot;
 import ddraig.net.entropica.spell.engine.SpellCombatReactionEngine;
@@ -27,12 +30,16 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.NeutralMob;
+import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Dolphin;
 import net.minecraft.world.entity.animal.Turtle;
 import net.minecraft.world.entity.animal.WaterAnimal;
@@ -40,6 +47,7 @@ import net.minecraft.world.entity.animal.axolotl.Axolotl;
 import net.minecraft.world.entity.animal.frog.Tadpole;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Blaze;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.MagmaCube;
 import net.minecraft.world.entity.monster.Monster;
@@ -49,10 +57,14 @@ import net.minecraft.world.entity.monster.Zoglin;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.monster.hoglin.Hoglin;
 import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.MaceItem;
+import net.minecraft.world.item.TridentItem;
 import net.minecraft.world.level.block.AbstractCandleBlock;
 import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.block.Block;
@@ -68,25 +80,40 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Complete per-part Signature Mutation implementation for <b>Water Materia (Base Type #2)</b>
  * (Spellcrafting System Guide Section 6.3):
  * <ul>
- *     <li><b>Flow (Slow)</b>: <i>Viscous Fluid Mass</i> — heavy fluid volume adding +0.6 Materia Advantage vs fire/magma targets.</li>
- *     <li><b>Projectile</b>: <i>Hydro-Cannon Slug</i> — fluid-dense 3D water orb with a slight gravity arc, 3m splash, fire-dousing, and heavy soak.</li>
- *     <li><b>Beam</b>: <i>High-Pressure Hydro-Cutter</i> — piercing pressurized water jet dealing 2x knockback to wet/swimming foes, washing cobwebs/fire, hydrating farmland.</li>
- *     <li><b>Radial Burst</b>: <i>Tidal Nova</i> — circular 3D curling tsunami wave flushing mobs back, clearing surface weeds &amp; lava crusts, leaving foes dripping wet.</li>
- *     <li><b>Touch / Strike</b>: <i>Crashing Breaker</i> — hydrostatic shockwave stunning for 1.0s, drenching, and dealing +50% bonus damage vs burning/Nether targets.</li>
- *     <li><b>Aura / Self</b>: <i>Oceanic Shroud</i> — Water Breathing, Dolphin's Grace, instant fire-extinguishing, and 40% physical explosion damage dampening.</li>
- *     <li><b>Glyph / Trap</b>: <i>Whirlpool Geyser</i> — 1s arm, 10m/indefinite persistence, 50% disarm refund; traps victims in a 3s upward spinning drowning water vortex.</li>
- *     <li><b>Cone / Spray</b>: <i>Deluge Torrent</i> — wide 12-block foaming surge sweeping mobs back, soaking entities, extinguishing fire, and hydrating all tilled farmland.</li>
- *     <li><b>Rain / Skyfall</b>: <i>Monsoon Cloudburst</i> — dense 16-block downpour drenching the area, extinguishing fires, hydrating soil, healing aquatic pets, drowning Nether/Fire mobs.</li>
- *     <li><b>Summon / Eidolon</b>: <i>Aqueous Eidolon</i> — deep azure (#225C7C) Agent (water tendrils), Sentry (arcing soaking orbs), or Decoy (blinding splash mirage).</li>
- *     <li><b>Blink / Step</b>: <i>Fluid Dissolution</i> — dissolves into a high-speed water droplet teleporting forward and splashing upon reform.</li>
- *     <li><b>Transmute</b>: <i>Aqueous Elutriation</i> — washes dirt into clay, sand into mud, and cleans oxidized/rusted metal blocks.</li>
- *     <li><b>Affliction</b>: <i>Waterlogged Drowning Hex</i> — persistent anti-milk soaking curse dealing land drowning damage, 2x Lightning damage, and 3x Frozen freeze rates.</li>
+ *     <li><b>Flow (Slow / Chain)</b>: <i>Viscous Fluid Mass</i> (+0.6 Materia Advantage vs burning/Nether/fire/magma targets)
+ *         &amp; <i>Riptide Undertow Chains</i> (drenches chained targets and quenches flames).</li>
+ *     <li><b>Projectile</b>: <i>Hydro-Cannon Slug</i> — fluid-dense 3D water orb with a slight gravity arc and an exact 3m impact splash
+ *         (30% Harm splash damage, knockback, fire dousing, farmland hydration, and heavy soak).</li>
+ *     <li><b>Beam</b>: <i>High-Pressure Hydro-Cutter</i> — piercing pressurized water jet dealing 2x horizontal and vertical knockback
+ *         to pre-soaked/swimming foes, washing away cobwebs, fire, and surface weeds, and hydrating farmland.</li>
+ *     <li><b>Radial Burst</b>: <i>Tidal Nova</i> — uncapped circular tsunami wave flushing non-boss mobs back, solidifying lava into obsidian/cobblestone,
+ *         clearing surface flora/weeds, hydrating farmland, and leaving foes dripping wet.</li>
+ *     <li><b>Touch / Strike</b>: <i>Crashing Breaker</i> — hydrostatic shockwave stunning the primary non-boss foe for 1.0s, drenching targets,
+ *         and dealing +50% combat bonus damage vs burning or true Nether/Fire foes.</li>
+ *     <li><b>Aura / Self</b>: <i>Oceanic Shroud</i> — Water Breathing, Dolphin's Grace, Water defending affinity, fire/lava immunity,
+ *         and 40% explosion damage dampening.</li>
+ *     <li><b>Glyph / Trap</b>: <i>Whirlpool Geyser</i> — 1s arm, 10m/indefinite persistence, 50% disarm refund; circular upward spinning
+ *         3s drowning water vortex immobilizing non-boss victims.</li>
+ *     <li><b>Cone / Spray</b>: <i>Deluge Torrent</i> — exact 60-degree foaming surge (12m+ reach) sweeping non-boss mobs and incoming physical projectiles back,
+ *         soaking entities, extinguishing fires/campfires/candles, and hydrating tilled farmland across the full cone.</li>
+ *     <li><b>Rain / Skyfall</b>: <i>Monsoon Cloudburst</i> — 8s–36s torrential downpour scaling from 8m to 16m circular radius across Tiers 1–10,
+ *         extinguishing fires, hydrating soil, healing friendly aquatic creatures, and drowning true Nether/Fire mobs.</li>
+ *     <li><b>Summon / Eidolon</b>: <i>Aqueous Eidolon</i> — deep azure (#225C7C) Agent (water tendrils), Sentry (arcing soaking orbs + passive fire/soil care),
+ *         or Decoy (pops immediately when struck into a 3.5s blinding splash).</li>
+ *     <li><b>Blink / Step</b>: <i>Fluid Dissolution</i> — dissolves into a high-speed water droplet (2m departure + 3m arrival splashes, open-water landing).</li>
+ *     <li><b>Transmute</b>: <i>Aqueous Elutriation</i> — washes dirt/grass into clay (4 clay balls = 1 clay on dropped dirt), sand into mud,
+ *         sponge into wet sponge, concrete powder into concrete, magma into cobblestone, and cleans oxidized copper across any namespace.</li>
+ *     <li><b>Affliction</b>: <i>Waterlogged Drowning Hex</i> — persistent anti-milk soaking curse immediately quenching flames and dealing
+ *         continuous land drowning damage, 2x Lightning damage, and 3x Frozen freeze rates.</li>
  * </ul>
  */
 public final class WaterSpellMutationHandler implements MateriaPartMutationHandler {
@@ -95,6 +122,11 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
     private static final int WATER_AZURE_RGB = 0x225C7C;
     private static final int WATER_CERULEAN_RGB = 0x24B6FF;
     private static final int WATER_SEAFOAM_RGB = 0xB8FAFF;
+
+    /** cos(30 deg) — exact 60-degree full cone half-angle cosine. */
+    private static final double CONE_HALF_ANGLE_COS = 0.8660254D;
+    /** tan(30 deg) — exact 60-degree full cone half-angle tangent. */
+    private static final double CONE_HALF_ANGLE_TAN = 0.57735027D;
 
     @Override
     public EssenceType materiaType() {
@@ -106,20 +138,20 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
     // =========================================================================
 
     @Override
-    public String resolveFlowTitle(SpellFlowModifier flow) {
+    public @Nullable String resolveFlowTitle(SpellFlowModifier flow) {
         return switch (flow) {
             case SLOW_HEAVY -> "Viscous Fluid Mass";
             case CHAIN_LEAP -> "Riptide Undertow Chains";
-            default -> "Riptide Torrent " + flow.getDisplayName();
+            default -> null;
         };
     }
 
     @Override
     public @Nullable String resolveFlowDescription(SpellFlowModifier flow) {
         return switch (flow) {
-            case SLOW_HEAVY -> "Viscous Fluid Mass: Travels slowly with heavy fluid volume, adding +0.6 Materia Advantage score against fire and magma targets.";
+            case SLOW_HEAVY -> "Viscous Fluid Mass: Travels slowly with heavy fluid volume, adding +0.6 Materia Advantage score against burning, Nether, and fire/magma targets.";
             case CHAIN_LEAP -> "Riptide Undertow Chains: Pressurized water streams arc between targets, drenching chained foes and quenching flames.";
-            default -> "Riptide Torrent Flow: Channels spell delivery through cohesive pressurized water currents.";
+            default -> null;
         };
     }
 
@@ -142,17 +174,17 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
     @Override
     public @Nullable String resolveFormDescription(SpellDeliveryForm form) {
         return switch (form) {
-            case PROJECTILE -> "Hydro-Cannon Slug: Heavy, fluid-dense water orb flying with a slight gravity arc; splashes in a 3m radius, douses fires, and inflicts heavy soaking wetness.";
-            case BEAM -> "High-Pressure Hydro-Cutter: Continuous piercing water jet pushing wet or swimming enemies with 2x knockback, washing away cobwebs/fire, and hydrating farmland.";
-            case RADIAL_BURST -> "Tidal Nova: Expanding circular tsunami wave flushing mobs backward, clearing surface weeds and lava crusts, and leaving foes dripping wet.";
-            case TOUCH_STRIKE -> "Crashing Breaker: Discharges a hydrostatic shockwave on weapon strike that stuns for 1.0s, drenches the target, and deals +50% bonus damage vs burning or Nether foes.";
-            case AURA -> "Oceanic Shroud: Grants underwater breathing, Dolphin's Grace swim speed, instant fire-extinguishing, and 40% physical explosion damage dampening.";
-            case GLYPH -> "Whirlpool Geyser: Arms in 1s, lasts 10m (indefinite at Tier 5+); traps entering victims in an upward spinning water vortex, immobilizing and drowning for 3s.";
-            case CONE -> "Deluge Torrent: Wide 12-block surge of foaming water sweeping mobs back, soaking entities, extinguishing fire blocks, and hydrating all tilled farmland.";
-            case SKYFALL -> "Monsoon Cloudburst: Dense 16-block downpour drenching the area, extinguishing fires, hydrating soil, healing friendly aquatic pets, and drowning Nether/Fire mobs.";
+            case PROJECTILE -> "Hydro-Cannon Slug: Heavy, fluid-dense water orb flying with a slight gravity arc; impacts burst in a 3m splash (30% Harm splash damage, knockback, fire dousing, farmland hydration, and heavy soak).";
+            case BEAM -> "High-Pressure Hydro-Cutter: Piercing pressurized water jet dealing 2x horizontal and vertical knockback to pre-soaked or swimming foes, washing away cobwebs, fire, and weeds, and hydrating farmland.";
+            case RADIAL_BURST -> "Tidal Nova: Expanding circular tsunami wave flushing foes backward, cooling lava into obsidian/cobblestone, clearing surface flora, hydrating soil, and leaving foes soaked.";
+            case TOUCH_STRIKE -> "Crashing Breaker: Hydrostatic strike stunning the primary non-boss foe for 1.0s, drenching cleave targets, and dealing +50% combat bonus damage vs burning or Nether/Fire foes.";
+            case AURA -> "Oceanic Shroud: Grants underwater breathing, Dolphin's Grace swim speed, fire/lava immunity, and 40% explosion damage dampening (with Water affinity).";
+            case GLYPH -> "Whirlpool Geyser: Arms in 1s, lasts 10m (indefinite at Tier 5+); erupts into a circular 3s upward spinning water vortex immobilizing and drowning non-boss victims.";
+            case CONE -> "Deluge Torrent: 60° foaming water surge (12m+ reach) sweeping foes and incoming physical projectiles back, soaking targets, extinguishing fires, and hydrating farmland.";
+            case SKYFALL -> "Monsoon Cloudburst: 8s–36s torrential downpour (8m–16m circular radius) extinguishing fires, hydrating soil, healing friendly aquatic creatures, and drowning Nether/Fire mobs.";
             case SUMMON_AGENT -> "Aqueous Agent: Deep azure (#225C7C) water-hunter that lashes and drenches targets with pressurized water tendrils.";
-            case SUMMON_SENTRY -> "Aqueous Sentry: Anchored deep azure (#225C7C) hydro-spire launching arcing soaking water orbs at range while quenching nearby flames.";
-            case SUMMON_DECOY -> "Aqueous Decoy: Shimmering deep azure (#225C7C) aquatic mirage that bursts into a blinding splash when struck and on collapse.";
+            case SUMMON_SENTRY -> "Aqueous Sentry: Anchored deep azure (#225C7C) hydro-spire launching arcing soaking water orbs while passively dousing nearby flames and hydrating farmland.";
+            case SUMMON_DECOY -> "Aqueous Decoy: Shimmering deep azure (#225C7C) aquatic mirage that pops immediately when struck into a 3.5s blinding, soaking splash.";
         };
     }
 
@@ -172,9 +204,9 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
     @Override
     public @Nullable String resolveEffectDescription(SpellCoreEffect effect) {
         return switch (effect) {
-            case BLINK -> "Fluid Dissolution: Dissolves you into a high-speed water droplet that teleports forward and splashes upon reform.";
-            case TRANSMUTE, BREAK -> "Aqueous Elutriation: Washes dirt into clay, sand into mud, and cleans oxidized or rusted metal blocks.";
-            case AFFLICTION -> "Waterlogged Drowning Hex: Persistent anti-milk soaking curse dealing continuous drowning damage on land, 2x Lightning damage, and 3x Frozen freeze rates.";
+            case BLINK -> "Fluid Dissolution: Dissolves you into a high-speed water droplet (splashing 2m on departure and 3m on reform, and able to land atop open water).";
+            case TRANSMUTE, BREAK -> "Aqueous Elutriation: Washes dirt/grass into clay (4 clay balls = 1 clay for dropped dirt), sand into mud, sponge into wet sponge, concrete powder into concrete, magma into cobblestone, and cleans oxidized copper.";
+            case AFFLICTION -> "Waterlogged Drowning Hex: Persistent anti-milk soaking curse immediately quenching flames and dealing continuous drowning damage on land, 2x Lightning damage, and 3x Frozen freeze rates.";
             case HARM -> "Hydrostatic Surge: Pure Water Materia concussion (+1 vs Nether & Arid, -1 vs Frozen & Nature) soaking struck foes.";
             case WARD -> "Tidal Bulwark: Wraps the Arcane Ward in pressurized ocean currents that quench flames and cushion blast shockwaves.";
             case RESTORATION -> "Springwater Cleansing: Washes away burning and negative ailments while restoring vitality.";
@@ -188,8 +220,8 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
 
     @Override
     public float getFlowBonusAdvantageScore(SpellFlowModifier flow, LivingEntity target) {
-        // Viscous Fluid Mass: +0.6 Materia Advantage score against fire/magma targets
-        if (flow == SpellFlowModifier.SLOW_HEAVY && (target.isOnFire() || isNetherFireEntity(target))) {
+        // Viscous Fluid Mass: +0.6 Materia Advantage score strictly against burning or true Nether/Fire/Magma targets
+        if (flow == SpellFlowModifier.SLOW_HEAVY && (target.isOnFire() || isTrueNetherOrFireEntity(target))) {
             return 0.6F;
         }
         return 0.0F;
@@ -304,10 +336,12 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             SpellAssembly spell,
             SubSpellSlot slot
     ) {
-        triggerHydroSplash(level, projectile.position(), new Vec3(0.0D, 1.0D, 0.0D), caster, null, spell, slot, 3.0D);
+        // Hydro-Cannon Slug splashes ONLY on actual entity impact or block collision — never explode in mid-air on max-range timeout!
+        level.sendParticles(ParticleTypes.DRIPPING_WATER, projectile.getX(), projectile.getY(), projectile.getZ(),
+                5, 0.12D, 0.12D, 0.12D, 0.02D);
     }
 
-    private void triggerHydroSplash(
+    public void triggerHydroSplash(
             ServerLevel level,
             Vec3 pos,
             Vec3 normal,
@@ -322,11 +356,12 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
 
         douseAndHydrateCircularArea(level, pos, rad, false, caster);
 
-        double radSq = (rad + 0.35D) * (rad + 0.35D);
+        // Exact circular/spherical 3.0m splash radius (distSq <= rad * rad = 9.0D, with no +0.35D inflation)
+        double radSq = rad * rad;
         float splashDmg = 0.30F * MateriaStageTable.getBaseCombatDamageHp(tier);
-        AABB box = new AABB(pos.x - rad - 0.5D, pos.y - 1.75D, pos.z - rad - 0.5D, pos.x + rad + 0.5D, pos.y + 2.25D, pos.z + rad + 0.5D);
+        AABB box = new AABB(pos.x - rad, pos.y - rad, pos.z - rad, pos.x + rad, pos.y + rad, pos.z + rad);
         for (LivingEntity nearby : level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
-            if (nearby.getBoundingBox().getCenter().distanceToSqr(pos) > radSq && nearby != directHit) {
+            if (nearby != directHit && nearby.getBoundingBox().getCenter().distanceToSqr(pos) > radSq) {
                 continue;
             }
             // Douse burning status on everyone (including allies) in the 3-block splash!
@@ -349,7 +384,7 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             if (!SpellCombatReactionEngine.isBossEntity(level, nearby)) {
                 Vec3 delta = nearby.position().subtract(pos);
                 Vec3 horiz = new Vec3(delta.x, 0.0D, delta.z);
-                Vec3 pushDir = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : new Vec3(0.0D, 0.0D, 0.0D);
+                Vec3 pushDir = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : Vec3.ZERO;
                 SpellExecutionEngine.applySyncedMotion(nearby, new Vec3(pushDir.x * 0.52D, 0.24D, pushDir.z * 0.52D));
             }
         }
@@ -375,26 +410,28 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // High-Pressure Hydro-Cutter: cuts through mobs, pushes swimming or wet enemies with 2x knockback,
-        // washes away cobwebs/fire, and hydrates farmland!
+        // High-Pressure Hydro-Cutter: cuts through mobs, pushes pre-soaked or swimming enemies with exact 2.0x horizontal + vertical knockback,
+        // washes away cobwebs, fire, campfires/candles, and surface weeds, and hydrates farmland!
         boolean continuousPulse = apparatusPotency <= 0.45F;
         double baseKb = continuousPulse ? 0.50D : 0.88D;
+        double baseLiftY = Math.max(0.18D, direction.y * baseKb * 0.55D + 0.16D);
 
         for (LivingEntity hit : hitEntities) {
-            if (!hit.isAlive()) continue;
+            if (!hit.isAlive() || hit == caster) continue;
             hit.clearFire();
             if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, spell.hasWardFriendlyFireSafeguard())) {
                 continue;
             }
-            // Check swimming / already-wet state BEFORE soaking so the first hydro-pulse still respects current wetness
-            // and subsequent sustained cutter ticks push soaked or swimming enemies at full 2.0x knockback!
-            boolean swimmingOrWet = hit.isInWaterOrRain() || SpellLingeringZoneManager.isEntityWetOrSoaked(hit);
+            // Check already-wet / swimming state BEFORE applying this pulse's soak!
+            boolean wasSoakedBeforePulse = SpellLingeringZoneManager.isEntityWetOrSoaked(hit);
+            boolean alreadyWetOrSwimming = hit.isInWaterOrRain() || wasSoakedBeforePulse;
             SpellLingeringZoneManager.applySoaked(hit, 200);
 
             if (!SpellCombatReactionEngine.isBossEntity(level, hit)) {
-                double kb = swimmingOrWet ? (baseKb * 2.0D) : baseKb;
-                double liftY = Math.max(0.18D, direction.y * kb * 0.55D + (swimmingOrWet ? 0.28D : 0.16D));
-                SpellExecutionEngine.applySyncedMotion(hit, new Vec3(direction.x * kb, liftY, direction.z * kb));
+                double kbMult = alreadyWetOrSwimming ? 2.0D : 1.0D;
+                double horizKb = baseKb * kbMult;
+                double liftY = baseLiftY * kbMult;
+                SpellExecutionEngine.applySyncedMotion(hit, new Vec3(direction.x * horizKb, liftY, direction.z * horizKb));
             }
             level.sendParticles(ParticleTypes.SPLASH, hit.getX(), hit.getY(0.65D), hit.getZ(),
                     continuousPulse ? 6 : 14, 0.25D, 0.3D, 0.25D, 0.10D);
@@ -406,7 +443,7 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             effectiveReach = Math.min(maxReach, eye.distanceTo(blockHit.getLocation()) + 0.65D);
         }
 
-        for (double d = 0.8D; d <= effectiveReach; d += 0.85D) {
+        for (double d = 0.5D; d <= effectiveReach; d += 0.75D) {
             BlockPos p = BlockPos.containing(eye.add(direction.scale(d)));
             douseAndHydrateArea(level, p, 1, true, caster);
         }
@@ -428,10 +465,21 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Crashing Breaker: hydrostatic shockwave stunning for 1.0s (20t), drenching target,
-        // and dealing +50% bonus damage if target is burning or from the Nether!
+        if (hitEntities == null || hitEntities.isEmpty()) {
+            return;
+        }
+        // Crashing Breaker: 1.0s (20t) hydrostatic stun (skipping bosses) and +50% combat bonus damage vs burning or true Nether/Fire foes
+        // strictly on hitEntities.getFirst() (i == 0), while secondary cleave bystanders receive soaking + minor push only!
         int tier = spell.getEffectiveTier();
-        float bonusDmg = Math.max(2.5F, 0.50F * MateriaStageTable.getBaseCombatDamageHp(tier) * Math.max(0.5F, apparatusPotency));
+        boolean safeguard = spell.hasWardFriendlyFireSafeguard();
+        boolean meleeStrike = isMeleeWeaponStrike(caster);
+        boolean combatTouch = slot.hasHarmVerb() || (meleeStrike && isCombatCompatibleTouchSlot(slot));
+
+        float harmBase = slot.hasHarmVerb()
+                ? MateriaStageTable.getBaseCombatDamageHp(tier) * Math.max(0.5F, apparatusPotency) * spell.flawProfile().getPotencyMultiplier()
+                : 0.0F;
+        float weaponBase = meleeStrike ? (float) Math.max(0.0D, caster.getAttributeValue(Attributes.ATTACK_DAMAGE)) : 0.0F;
+        float bonusDmg = Math.max(2.0F, 0.50F * (harmBase + weaponBase));
 
         SpellWorldVfxManager.broadcastCrescentSlash(
                 level,
@@ -443,38 +491,60 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
                 tier
         );
 
+        LivingEntity primaryRef = hitEntities.getFirst();
         boolean hitAny = false;
-        for (LivingEntity hit : hitEntities) {
-            if (!hit.isAlive()) continue;
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, spell.hasWardFriendlyFireSafeguard())) {
+        for (int i = 0; i < hitEntities.size(); i++) {
+            LivingEntity hit = hitEntities.get(i);
+            if (hit == null || !hit.isAlive() || hit == caster) continue;
+            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, safeguard)) {
                 hit.clearFire();
                 continue;
             }
             hitAny = true;
-            boolean bonusVsFire = hit.isOnFire() || isNetherFireEntity(hit);
-            hit.clearFire();
-            SpellLingeringZoneManager.applySoaked(hit, 220);
 
-            // 1.0-second (20-tick) hydrostatic stun
-            hit.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 20, 0));
-            if (hit instanceof Mob mob) {
-                mob.getNavigation().stop();
-            }
+            if (i == 0) {
+                boolean bonusVsFire = combatTouch && (hit.isOnFire() || isTrueNetherOrFireEntity(hit));
+                hit.clearFire();
+                SpellLingeringZoneManager.applySoaked(hit, 220);
 
-            Vec3 hitCenter = hit.position().add(0.0D, hit.getBbHeight() * 0.5D, 0.0D);
-            SpellWorldVfxManager.broadcastProjectileImpact(level, hitCenter, direction, EssenceType.WATER, null, 2.4F, tier);
-            level.sendParticles(ParticleTypes.SPLASH, hitCenter.x, hitCenter.y, hitCenter.z, 22, 0.45D, 0.4D, 0.45D, 0.14D);
+                // 1.0-second (20-tick) hydrostatic stun on the primary non-boss target only
+                if (!SpellCombatReactionEngine.isBossEntity(level, hit)) {
+                    hit.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 20, 0));
+                    if (hit instanceof Mob mob) {
+                        mob.getNavigation().stop();
+                    }
+                }
 
-            if (bonusVsFire) {
-                hit.invulnerableTime = 0;
-                SpellCombatReactionEngine.hurtWithPureMateria(
-                        level,
-                        hit,
-                        level.damageSources().indirectMagic(caster, caster),
-                        bonusDmg
-                );
-                level.sendParticles(ParticleTypes.CLOUD, hitCenter.x, hitCenter.y, hitCenter.z, 12, 0.35D, 0.35D, 0.35D, 0.06D);
-                level.playSound(null, hit.blockPosition(), SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.75F, 1.15F);
+                Vec3 hitCenter = hit.position().add(0.0D, hit.getBbHeight() * 0.5D, 0.0D);
+                SpellWorldVfxManager.broadcastProjectileImpact(level, hitCenter, direction, EssenceType.WATER, null, 2.4F, tier);
+                level.sendParticles(ParticleTypes.SPLASH, hitCenter.x, hitCenter.y, hitCenter.z, 22, 0.45D, 0.4D, 0.45D, 0.14D);
+
+                if (bonusVsFire) {
+                    hit.invulnerableTime = 0;
+                    SpellCombatReactionEngine.hurtWithPureMateria(
+                            level,
+                            hit,
+                            level.damageSources().indirectMagic(caster, caster),
+                            bonusDmg
+                    );
+                    level.sendParticles(ParticleTypes.CLOUD, hitCenter.x, hitCenter.y, hitCenter.z, 12, 0.35D, 0.35D, 0.35D, 0.06D);
+                    level.playSound(null, hit.blockPosition(), SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.75F, 1.15F);
+                }
+            } else {
+                // Secondary cleave bystanders (i > 0): douse, soak, and minor non-boss push only (no stun, no +50% bonus hit)
+                hit.clearFire();
+                SpellLingeringZoneManager.applySoaked(hit, 160);
+                if (!SpellCombatReactionEngine.isBossEntity(level, hit)) {
+                    Vec3 cur = hit.getDeltaMovement();
+                    Vec3 away = primaryRef != null ? hit.position().subtract(primaryRef.position()) : direction;
+                    Vec3 horiz = new Vec3(away.x, 0.0D, away.z);
+                    Vec3 pushDir = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : new Vec3(direction.x, 0.0D, direction.z);
+                    SpellExecutionEngine.applySyncedMotion(
+                            hit,
+                            new Vec3(cur.x * 0.40D + pushDir.x * 0.32D, Math.max(cur.y, 0.18D), cur.z * 0.40D + pushDir.z * 0.32D)
+                    );
+                }
+                level.sendParticles(ParticleTypes.SPLASH, hit.getX(), hit.getY(0.5D), hit.getZ(), 8, 0.25D, 0.25D, 0.25D, 0.08D);
             }
         }
 
@@ -495,16 +565,17 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Tidal Nova: expanding circular tsunami wave flushing mobs backward, clearing surface weeds & lava crusts,
-        // and leaving enemies dripping wet (vulnerable to 2x Lightning & 3x Ice)!
+        // Tidal Nova: uncapped expanding circular tsunami wave flushing non-boss mobs backward, cooling source lava -> obsidian
+        // & flowing lava / magma blocks -> cobblestone, clearing surface flora/weeds, hydrating farmland, and soaking foes!
         double waveRad = Math.max(5.5D, radius);
-        double waveRadSq = (waveRad + 0.4D) * (waveRad + 0.4D);
+        double waveRadSq = waveRad * waveRad;
 
         AABB box = new AABB(center.x - waveRad, center.y - 2.0D, center.z - waveRad,
                 center.x + waveRad, center.y + 2.75D, center.z + waveRad);
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
-            Vec3 delta = entity.position().subtract(center);
-            if (delta.x * delta.x + delta.z * delta.z > waveRadSq) continue;
+            double dx = entity.getX() - center.x;
+            double dz = entity.getZ() - center.z;
+            if (dx * dx + dz * dz > waveRadSq) continue;
             entity.clearFire();
             if (entity == caster) continue;
             if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(entity, caster, spell.hasWardFriendlyFireSafeguard())) {
@@ -512,23 +583,22 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             }
             SpellLingeringZoneManager.applySoaked(entity, 240);
             if (!SpellCombatReactionEngine.isBossEntity(level, entity)) {
-                Vec3 horiz = new Vec3(delta.x, 0.0D, delta.z);
+                Vec3 horiz = new Vec3(dx, 0.0D, dz);
                 Vec3 away = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : direction;
                 SpellExecutionEngine.applySyncedMotion(entity, new Vec3(away.x * 1.45D, 0.38D, away.z * 1.45D));
             }
         }
 
-        int r = Math.min(8, (int) Math.ceil(waveRad));
-        double blockRadSq = (waveRad + 0.5D) * (waveRad + 0.5D);
+        int r = (int) Math.ceil(waveRad);
         BlockPos cPos = BlockPos.containing(center);
         boolean cooledLava = false;
-        for (BlockPos p : BlockPos.betweenClosed(cPos.offset(-r, -1, -r), cPos.offset(r, 1, r))) {
+        for (BlockPos p : BlockPos.betweenClosed(cPos.offset(-r, -1, -r), cPos.offset(r, 2, r))) {
             double dx = (p.getX() + 0.5D) - center.x;
             double dz = (p.getZ() + 0.5D) - center.z;
-            if (dx * dx + dz * dz > blockRadSq) continue;
+            if (dx * dx + dz * dz > waveRadSq) continue;
 
             BlockState bs = level.getBlockState(p);
-            if (isSurfaceWeed(bs)) {
+            if (isSurfaceWeed(bs) && !SpellExecutionEngine.isProtectedBlockOrContainer(level, p, bs)) {
                 level.destroyBlock(p, true, caster);
             } else if (bs.is(Blocks.LAVA)) {
                 BlockState cooled = bs.getFluidState().isSource()
@@ -565,8 +635,8 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Oceanic Shroud: underwater breathing, Dolphin's Grace swimming speed, instant auto-extinguishing of fire/burn,
-        // and 40% physical explosion damage dampening (rendered as a persistent 3D azure shroud that flares on hit)!
+        // Oceanic Shroud: underwater breathing, Dolphin's Grace swimming speed, Water defending affinity,
+        // 100% fire/lava immunity, and 40% explosion damage dampening (rendered as a persistent 3D azure shroud)!
         int tier = spell.getEffectiveTier();
         int dur = 200 + tier * 40;
         long now = level.getGameTime();
@@ -604,11 +674,12 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
     ) {
         // Whirlpool Geyser (Section 4.6 + Section 6.3):
         // 1.0s (20t) arming delay, 10m persistence (indefinite at Tier 5+), 50% Sneak-Right-Click disarm refund;
-        // erupts into a 3.0s (60t) upward spinning water vortex holding entering victims immobilized and drowning!
+        // circular detection & circular 3.0s (60t) upward spinning water vortex immobilizing non-boss victims and drowning!
         final int tier = spell.getEffectiveTier();
         final int armingTicks = 20;
         final int maxWaitTicks = tier >= 5 ? 72_000_000 : 12_000;
         final double triggerRad = Math.max(2.6D, Math.min(4.0D, radius));
+        final double triggerRadSq = triggerRad * triggerRad;
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster,
@@ -637,15 +708,18 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
                     }
 
                     LivingEntity owner = zone.resolveCaster(srv);
+                    boolean safeguard = zone.spell.hasWardFriendlyFireSafeguard();
                     AABB detectBox = new AABB(
                             zone.center.x - triggerRad, zone.center.y - 1.0D, zone.center.z - triggerRad,
                             zone.center.x + triggerRad, zone.center.y + 2.6D, zone.center.z + triggerRad
                     );
-                    List<LivingEntity> entering = srv.getEntitiesOfClass(LivingEntity.class, detectBox,
-                            e -> e.isAlive()
-                                    && e != owner
-                                    && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                                            e, owner, zone.spell.hasWardFriendlyFireSafeguard()));
+                    List<LivingEntity> entering = srv.getEntitiesOfClass(LivingEntity.class, detectBox, e -> {
+                        if (!e.isAlive() || e == owner) return false;
+                        double dx = e.getX() - zone.center.x;
+                        double dz = e.getZ() - zone.center.z;
+                        if (dx * dx + dz * dz > triggerRadSq) return false;
+                        return !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(e, owner, safeguard);
+                    });
                     if (entering.isEmpty()) {
                         return true;
                     }
@@ -653,6 +727,7 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
                     // Erupt into a 3-second (60-tick) upward spinning 3D Whirlpool Geyser vortex (+ smooth 16t visual subside)!
                     final int vortexDuration = 60;
                     final double vortexRad = Math.max(2.8D, triggerRad);
+                    final double vortexRadSq = vortexRad * vortexRad;
                     SpellWorldVfxManager.broadcastGeyserPlume(srv, zone.center, vortexRad, 4.4D, EssenceType.WATER, null, vortexDuration + 16, tier);
                     srv.playSound(null, BlockPos.containing(zone.center), SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.PLAYERS, 1.05F, 0.85F);
 
@@ -669,6 +744,7 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
                             (wsrv, wzone, welapsed) -> {
                                 if (welapsed > wzone.maxDurationTicks) return false;
                                 LivingEntity wOwner = wzone.resolveCaster(wsrv);
+                                boolean wSafeguard = wzone.spell.hasWardFriendlyFireSafeguard();
 
                                 if (welapsed % 3 == 0) {
                                     wsrv.sendParticles(
@@ -689,24 +765,26 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
                                         wzone.center.x - vortexRad, wzone.center.y - 1.0D, wzone.center.z - vortexRad,
                                         wzone.center.x + vortexRad, wzone.center.y + 4.2D, wzone.center.z + vortexRad
                                 );
-                                for (LivingEntity v : wsrv.getEntitiesOfClass(LivingEntity.class, trapBox,
-                                        e -> e.isAlive()
-                                                && e != wOwner
-                                                && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
-                                                        e, wOwner, wzone.spell.hasWardFriendlyFireSafeguard()))) {
+                                for (LivingEntity v : wsrv.getEntitiesOfClass(LivingEntity.class, trapBox, LivingEntity::isAlive)) {
+                                    if (v == wOwner) continue;
+                                    double dx = wzone.center.x - v.getX();
+                                    double dz = wzone.center.z - v.getZ();
+                                    if (dx * dx + dz * dz > vortexRadSq) continue;
+                                    if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(v, wOwner, wSafeguard)) {
+                                        v.clearFire();
+                                        continue;
+                                    }
                                     v.clearFire();
                                     SpellLingeringZoneManager.applySoaked(v, 140);
 
-                                    // Hold victims immobilized & suspended inside the upward spinning vortex as a stationary target!
-                                    v.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 10, 6, false, false));
-                                    v.addEffect(new MobEffectInstance(
-                                            BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 10, 0, false, false));
-                                    if (v instanceof Mob mob) {
-                                        mob.getNavigation().stop();
-                                    }
+                                    // Hold non-boss victims immobilized & suspended inside the upward spinning vortex!
                                     if (!SpellCombatReactionEngine.isBossEntity(wsrv, v)) {
-                                        double dx = wzone.center.x - v.getX();
-                                        double dz = wzone.center.z - v.getZ();
+                                        v.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 10, 6, false, false));
+                                        v.addEffect(new MobEffectInstance(
+                                                BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 10, 0, false, false));
+                                        if (v instanceof Mob mob) {
+                                            mob.getNavigation().stop();
+                                        }
                                         double targetHoverY = wzone.center.y + 0.85D;
                                         double vy = Mth.clamp((targetHoverY - v.getY()) * 0.35D, -0.06D, 0.24D);
                                         SpellExecutionEngine.applySyncedMotion(v, new Vec3(dx * 0.38D, vy, dz * 0.38D));
@@ -747,68 +825,140 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Deluge Torrent: wide 12-block surge of foaming water sweeping mobs back, soaking entities,
-        // extinguishing fire blocks, and instantly hydrating all tilled farmland in the cone!
+        // Deluge Torrent: exact 60-degree foaming surge (12m+ reach) sweeping non-boss mobs and incoming physical projectiles back,
+        // soaking entities, extinguishing fire/campfires/candles, and hydrating all tilled farmland across the full cone!
+        Vec3 dir = direction.lengthSqr() > 1.0E-6D ? direction.normalize() : caster.getLookAngle().normalize();
         double delugeReach = Math.max(12.0D, coneRange);
+        double rangeSq = delugeReach * delugeReach;
         Vec3 origin = caster.getEyePosition();
-        AABB delugeBox = caster.getBoundingBox().expandTowards(direction.scale(delugeReach)).inflate(delugeReach * 0.58D);
+        double maxConeWidth = delugeReach * CONE_HALF_ANGLE_TAN + 1.25D;
+        AABB delugeBox = new AABB(origin, origin.add(dir.scale(delugeReach))).inflate(maxConeWidth);
+        boolean safeguard = spell.hasWardFriendlyFireSafeguard();
 
         for (LivingEntity cand : level.getEntitiesOfClass(LivingEntity.class, delugeBox, LivingEntity::isAlive)) {
             if (cand == caster) continue;
-            Vec3 toCand = cand.getBoundingBox().getCenter().subtract(origin);
-            double dist = toCand.length();
-            if (dist < 0.05D || dist > delugeReach + 0.75D) continue;
-            if (toCand.scale(1.0D / dist).dot(direction) < 0.50D) continue;
+            Vec3 toBody = cand.getBoundingBox().getCenter().subtract(origin);
+            Vec3 toEye = cand.getEyePosition().subtract(origin);
+            if (toBody.lengthSqr() > rangeSq && toEye.lengthSqr() > rangeSq) continue;
+            boolean inCone = (toBody.lengthSqr() > 1.0E-6D && toBody.normalize().dot(dir) >= CONE_HALF_ANGLE_COS)
+                    || (toEye.lengthSqr() > 1.0E-6D && toEye.normalize().dot(dir) >= CONE_HALF_ANGLE_COS);
+            if (!inCone) continue;
 
             cand.clearFire();
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(cand, caster, spell.hasWardFriendlyFireSafeguard())) {
+            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(cand, caster, safeguard)) {
                 continue;
             }
             if (!hitTargets.contains(cand)) {
-                SpellExecutionEngine.deliverSubSpellOnEntity(level, caster, cand, direction, spell, slot, fallbackMateria, apparatusPotency);
+                SpellExecutionEngine.deliverSubSpellOnEntity(level, caster, cand, dir, spell, slot, fallbackMateria, apparatusPotency);
             }
             SpellLingeringZoneManager.applySoaked(cand, 220);
             if (!SpellCombatReactionEngine.isBossEntity(level, cand)) {
                 SpellExecutionEngine.applySyncedMotion(
                         cand,
-                        new Vec3(direction.x * 1.55D, Math.max(0.32D, direction.y * 0.55D + 0.28D), direction.z * 1.55D)
+                        new Vec3(dir.x * 1.55D, Math.max(0.32D, dir.y * 0.55D + 0.28D), dir.z * 1.55D)
                 );
             }
         }
 
-        // Sweep hostile physical projectiles away in the foaming torrent
+        // Push ONLY incoming non-allied physical projectiles inside the 60-degree cone
         for (Projectile proj : level.getEntitiesOfClass(Projectile.class, delugeBox)) {
-            if (proj.getOwner() == caster) continue;
+            if (!proj.isAlive()) continue;
+            if (proj instanceof SpellProjectileEntity || proj instanceof FishingHook) continue;
+            if (isGroundedArrow(proj)) continue;
+
+            Entity pOwner = proj.getOwner();
+            if (pOwner == caster) continue;
+            if (pOwner instanceof LivingEntity livingOwner
+                    && (ApexEschatonSingularityHelper.isFriendly(livingOwner, caster)
+                            || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(livingOwner, caster, true))) {
+                continue;
+            }
+
             Vec3 toProj = proj.position().subtract(origin);
-            if (toProj.lengthSqr() > 0.01D && toProj.normalize().dot(direction) >= 0.50D) {
-                SpellExecutionEngine.applySyncedMotion(proj, new Vec3(direction.x * 1.65D, 0.28D, direction.z * 1.65D));
-            }
+            if (toProj.lengthSqr() <= 1.0E-6D || toProj.lengthSqr() > rangeSq) continue;
+            if (toProj.normalize().dot(dir) < CONE_HALF_ANGLE_COS) continue;
+
+            Vec3 pVel = proj.getDeltaMovement();
+            if (pVel.lengthSqr() <= 1.0E-6D || pVel.dot(dir) > 0.15D) continue;
+
+            SpellExecutionEngine.applySyncedMotion(
+                    proj,
+                    new Vec3(dir.x * 1.65D, Math.max(0.28D, dir.y * 1.15D), dir.z * 1.65D)
+            );
+            level.sendParticles(ParticleTypes.SPLASH, proj.getX(), proj.getY(), proj.getZ(), 4, 0.12D, 0.12D, 0.12D, 0.05D);
         }
 
-        // Full widening 60° cone scan out to 12+ blocks so EVERY fire block & tilled FarmBlock in the cone is extinguished/hydrated!
-        int steps = Math.max(12, (int) Math.ceil(delugeReach));
-        for (int s = 1; s <= steps; s++) {
-            Vec3 sliceCenter = origin.add(direction.scale(s));
-            int halfWidth = Math.min(8, (int) Math.ceil(s * 0.60D) + 1);
-            BlockPos scPos = BlockPos.containing(sliceCenter);
-            for (BlockPos p : BlockPos.betweenClosed(scPos.offset(-halfWidth, -2, -halfWidth), scPos.offset(halfWidth, 2, halfWidth))) {
-                Vec3 toBlock = Vec3.atCenterOf(p).subtract(origin);
-                double bDist = toBlock.length();
-                if (bDist > delugeReach + 1.0D) continue;
-                if (bDist > 1.25D && toBlock.scale(1.0D / bDist).dot(direction) < 0.46D) continue;
-                douseAndHydrateSingleBlock(level, p, false, caster);
-            }
-        }
+        // Uncapped 60-degree cone block scan out to full delugeReach for fire, campfires, candles, and tilled farmland!
+        douseAndHydrateAcrossFullCone(level, caster, origin, dir, delugeReach);
 
-        for (int burst = 2; burst <= 10; burst += 4) {
-            Vec3 sp = origin.add(direction.scale(burst));
-            level.sendParticles(ParticleTypes.SPLASH, sp.x, sp.y, sp.z, 24, burst * 0.22D, 0.35D, burst * 0.22D, 0.16D);
+        // Uncapped splash & seafoam bubble bursts along the full delugeReach & 60-degree cone spread
+        for (double burst = 2.0D; burst <= delugeReach; burst += 3.5D) {
+            Vec3 sp = origin.add(dir.scale(burst));
+            double spread = burst * CONE_HALF_ANGLE_TAN * 0.42D;
+            level.sendParticles(ParticleTypes.SPLASH, sp.x, sp.y, sp.z, 24, spread, 0.35D, spread, 0.16D);
             level.sendParticles(
                     TimedTintableParticleOption.linear(ModParticles.TINTABLE_BUBBLE.get(), WATER_SEAFOAM_RGB, 16, 0.26F, 0.05F),
-                    sp.x, sp.y, sp.z, 10, burst * 0.20D, 0.28D, burst * 0.20D, 0.05D
+                    sp.x, sp.y, sp.z, 10, spread * 0.90D, 0.28D, spread * 0.90D, 0.05D
             );
         }
         level.playSound(null, caster.blockPosition(), SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.PLAYERS, 1.0F, 0.92F);
+    }
+
+    private static void douseAndHydrateAcrossFullCone(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 origin,
+            Vec3 dir,
+            double delugeReach
+    ) {
+        Vec3 tipEnd = origin.add(dir.scale(delugeReach));
+        double endRadius = delugeReach * CONE_HALF_ANGLE_TAN + 0.85D;
+
+        int minX = (int) Math.floor(Math.min(origin.x - 1.0D, tipEnd.x - endRadius));
+        int maxX = (int) Math.ceil(Math.max(origin.x + 1.0D, tipEnd.x + endRadius));
+        int minY = (int) Math.floor(Math.min(origin.y - 3.0D, tipEnd.y - endRadius - 1.5D));
+        int maxY = (int) Math.ceil(Math.max(origin.y + 1.5D, tipEnd.y + endRadius));
+        int minZ = (int) Math.floor(Math.min(origin.z - 1.0D, tipEnd.z - endRadius));
+        int maxZ = (int) Math.ceil(Math.max(origin.z + 1.0D, tipEnd.z + endRadius));
+
+        double maxRangeSq = (delugeReach + 0.75D) * (delugeReach + 0.75D);
+        Vec3 horizDir = new Vec3(dir.x, 0.0D, dir.z);
+        boolean hasHorizAim = horizDir.lengthSqr() > 0.12D;
+        Vec3 normHorizDir = hasHorizAim ? horizDir.normalize() : Vec3.ZERO;
+
+        for (BlockPos p : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
+            Vec3 rel = Vec3.atCenterOf(p).subtract(origin);
+            double distSq = rel.lengthSqr();
+            if (distSq > maxRangeSq) continue;
+
+            if (distSq > 1.5625D) {
+                double axial3D = rel.dot(dir);
+                boolean in3DCone = false;
+                if (axial3D > 0.0D && axial3D <= delugeReach + 0.75D) {
+                    double radialSq3D = Math.max(0.0D, distSq - axial3D * axial3D);
+                    double allowed3D = axial3D * CONE_HALF_ANGLE_TAN + 0.55D;
+                    in3DCone = radialSq3D <= allowed3D * allowed3D;
+                }
+                // Also match ground/farmland blocks directly beneath a horizontal 60-degree cone sheet (within 2.8m below ray centerline)
+                boolean inGroundConeSheet = false;
+                if (!in3DCone && hasHorizAim) {
+                    double hAxial = rel.x * normHorizDir.x + rel.z * normHorizDir.z;
+                    if (hAxial > 0.0D && hAxial <= delugeReach + 0.65D) {
+                        double hDistSq = rel.x * rel.x + rel.z * rel.z;
+                        double hRadialSq = Math.max(0.0D, hDistSq - hAxial * hAxial);
+                        double allowedHoriz = hAxial * CONE_HALF_ANGLE_TAN + 0.55D;
+                        double rayCenterY = origin.y + dir.y * (hAxial / horizDir.length());
+                        double dyFromRay = (p.getY() + 0.5D) - rayCenterY;
+                        inGroundConeSheet = hRadialSq <= allowedHoriz * allowedHoriz && dyFromRay >= -2.85D && dyFromRay <= 1.25D;
+                    }
+                }
+                if (!in3DCone && !inGroundConeSheet) {
+                    continue;
+                }
+            }
+
+            douseAndHydrateSingleBlock(level, p, false, caster);
+        }
     }
 
     @Override
@@ -822,11 +972,12 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Monsoon Cloudburst: dense 16-block diameter (8m radius) downpour drenching the area, extinguishing fires,
-        // hydrating soil, healing friendly aquatic pets (axolotls/turtles/dolphins), and drowning Nether/Fire mobs!
-        final double stormRad = Math.max(8.0D, radius);
-        final int tier = spell.getEffectiveTier();
-        final int totalTicks = 200 + (tier * 12);
+        // Monsoon Cloudburst: scales BOTH circular radius (8.0m at T1 -> 16.0m at T10)
+        // AND duration (8.0s / 160t at T1 -> 36.0s / 720t at T10), uncapped dousing/hydration,
+        // friendly aquatic creature healing, and continuous drowning on true Nether/Fire mobs!
+        final int tier = Math.clamp(spell.getEffectiveTier(), 1, 10);
+        final double stormRad = Math.max(radius, 8.0D + (tier - 1) * (8.0D / 9.0D));
+        final int totalTicks = tier == 10 ? 720 : 160 + (tier - 1) * 62;
 
         douseAndHydrateCircularArea(level, impactCenter, stormRad, false, caster);
         // Single uninterrupted full-storm 3D Monsoon Cloudburst canopy, rain sheets, and overhead hydro seal!
@@ -862,9 +1013,9 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
                     }
 
                     if (elapsed == 1 || elapsed % 20 == 0) {
-                        douseAndHydrateCircularArea(srv, zone.center, zone.radius, false, zone.resolveCaster(srv));
                         LivingEntity owner = zone.resolveCaster(srv);
-                        double radSq = (zone.radius + 0.35D) * (zone.radius + 0.35D);
+                        douseAndHydrateCircularArea(srv, zone.center, zone.radius, false, owner);
+                        double radSq = zone.radius * zone.radius;
                         AABB area = new AABB(
                                 zone.center.x - zone.radius, zone.center.y - 2.0D, zone.center.z - zone.radius,
                                 zone.center.x + zone.radius, zone.center.y + 8.0D, zone.center.z + zone.radius
@@ -876,7 +1027,7 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
 
                             e.clearFire();
 
-                            // Heal friendly aquatic pets & creatures (Axolotls, Turtles, Dolphins, Tadpoles, friendly WaterAnimals)
+                            // Heal friendly aquatic pets & non-hostile aquatic creatures (excluding hostile-owned pets & entities targeting allies)
                             if (isFriendlyAquaticPet(e, owner)) {
                                 float healAmt = 3.5F + tier * 0.45F;
                                 SpellCombatReactionEngine.notifyMagicalHeal(e, healAmt);
@@ -892,7 +1043,7 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
                             }
 
                             SpellLingeringZoneManager.applySoaked(e, 200);
-                            if (isNetherFireEntity(e)) {
+                            if (isTrueNetherOrFireEntity(e)) {
                                 e.hurtServer(srv, srv.damageSources().drown(), 4.0F + tier * 0.9F);
                                 srv.sendParticles(ParticleTypes.CLOUD, e.getX(), e.getY(0.7D), e.getZ(), 8, 0.25D, 0.3D, 0.25D, 0.04D);
                             }
@@ -921,7 +1072,13 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
         CompoundTag tag = EntityHelper.getPersistentData(summonEntity);
         tag.putString("SpellEidolonMateria", EssenceType.WATER.name());
         tag.putInt("SpellEidolonTintRGB", AQUEOUS_EIDOLON_HEX_COLOR);
-        triggerHydroSplash(level, spawnPos, new Vec3(0.0D, 1.0D, 0.0D), caster, summonEntity, spell, slot, Math.max(3.0D, radius));
+        // Gentle non-damaging spawn coalescence droplets (no explosive spawn hydro-splash!)
+        level.sendParticles(ParticleTypes.SPLASH, spawnPos.x, spawnPos.y + 0.9D, spawnPos.z,
+                14, 0.35D, 0.45D, 0.35D, 0.06D);
+        level.sendParticles(
+                TimedTintableParticleOption.linear(ModParticles.TINTABLE_BUBBLE.get(), WATER_CERULEAN_RGB, 16, 0.24F, 0.04F),
+                spawnPos.x, spawnPos.y + 0.9D, spawnPos.z, 8, 0.30D, 0.40D, 0.30D, 0.03D
+        );
     }
 
     // =========================================================================
@@ -930,10 +1087,11 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
 
     @Override
     public void onBlinkCast(ServerLevel level, LivingEntity caster, Vec3 departurePos, Vec3 arrivalPos, int potencyTier) {
-        // Fluid Dissolution: caster dissolves into a high-speed water droplet that teleports forward and splashes upon reform!
+        // Fluid Dissolution: caster dissolves into a high-speed water droplet (2.0m departure splash + 3.0m arrival splash)!
         caster.clearFire();
+        boolean wardSafeguard = resolveActiveCasterWardSafeguard(caster);
 
-        // 1. Dissolve at departure spot into collapsing azure droplets
+        // 1. Dissolve at departure spot into collapsing azure droplets (2.0m splash)
         douseAndHydrateCircularArea(level, departurePos, 2.0D, false, caster);
         SpellWorldVfxManager.broadcastArcaneSeal(level, departurePos, 1.6D, EssenceType.WATER, null, 18, potencyTier);
         level.sendParticles(ParticleTypes.SPLASH, departurePos.x, departurePos.y + 0.8D, departurePos.z, 20, 0.35D, 0.45D, 0.35D, 0.10D);
@@ -959,19 +1117,27 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             }
         }
 
-        // 3. Reform splash at arrival spot
-        douseAndHydrateCircularArea(level, arrivalPos, 3.0D, false, caster);
+        // 3. Reform splash at arrival spot (exact 3.0m circular radius, dynamic Ward safeguard & boss knockback guard)
+        final double arrivalRad = 3.0D;
+        final double arrivalRadSq = arrivalRad * arrivalRad;
+        douseAndHydrateCircularArea(level, arrivalPos, arrivalRad, false, caster);
         SpellWorldVfxManager.broadcastProjectileImpact(
                 level, arrivalPos.add(0.0D, 0.15D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D), EssenceType.WATER, null, 2.8F, potencyTier
         );
-        for (LivingEntity nearby : level.getEntitiesOfClass(LivingEntity.class, caster.getBoundingBox().inflate(3.0D), LivingEntity::isAlive)) {
+        AABB arrivalBox = new AABB(
+                arrivalPos.x - arrivalRad, arrivalPos.y - 1.5D, arrivalPos.z - arrivalRad,
+                arrivalPos.x + arrivalRad, arrivalPos.y + 2.6D, arrivalPos.z + arrivalRad
+        );
+        for (LivingEntity nearby : level.getEntitiesOfClass(LivingEntity.class, arrivalBox, LivingEntity::isAlive)) {
+            double dx = nearby.getX() - arrivalPos.x;
+            double dz = nearby.getZ() - arrivalPos.z;
+            if (dx * dx + dz * dz > arrivalRadSq) continue;
             nearby.clearFire();
             if (nearby == caster) continue;
-            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(nearby, caster, true)) continue;
+            if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(nearby, caster, wardSafeguard)) continue;
             SpellLingeringZoneManager.applySoaked(nearby, 180);
             if (!SpellCombatReactionEngine.isBossEntity(level, nearby)) {
-                Vec3 away = nearby.position().subtract(arrivalPos);
-                Vec3 horiz = new Vec3(away.x, 0.0D, away.z);
+                Vec3 horiz = new Vec3(dx, 0.0D, dz);
                 Vec3 push = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : Vec3.ZERO;
                 SpellExecutionEngine.applySyncedMotion(nearby, new Vec3(push.x * 0.55D, 0.22D, push.z * 0.55D));
             }
@@ -982,8 +1148,12 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
 
     @Override
     public boolean onTransmuteBlock(ServerLevel level, @Nullable LivingEntity caster, BlockPos pos, BlockState state, int potencyTier) {
-        // Aqueous Elutriation: washes dirt into clay, sand into mud, and cleans rusted/oxidized metal blocks!
-        if (state.is(Blocks.DIRT) || state.is(Blocks.COARSE_DIRT) || state.is(Blocks.ROOTED_DIRT)) {
+        // Aqueous Elutriation: washes dirt/grass into clay, sand into mud, sponge into wet sponge,
+        // magma into cobblestone, concrete powder into concrete, and cleans oxidized copper across any namespace!
+        if (state.is(Blocks.DIRT)
+                || state.is(Blocks.GRASS_BLOCK)
+                || state.is(Blocks.COARSE_DIRT)
+                || state.is(Blocks.ROOTED_DIRT)) {
             level.setBlockAndUpdate(pos, Blocks.CLAY.defaultBlockState());
             emitElutriationFeedback(level, pos, false);
             return true;
@@ -1004,7 +1174,7 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             return true;
         }
 
-        // Clean unwaxed OR waxed oxidized / weathered / exposed copper family blocks completely clean!
+        // Clean unwaxed OR waxed oxidized / weathered / exposed copper family blocks across any namespace!
         BlockState cleanedMetal = cleanOxidizedMetalBlockState(state);
         if (cleanedMetal != null) {
             level.setBlockAndUpdate(pos, cleanedMetal);
@@ -1013,11 +1183,12 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
         }
 
         if (state.getBlock() instanceof ConcretePowderBlock powder) {
-            String id = BuiltInRegistries.BLOCK.getKey(powder).getPath();
-            if (id.endsWith("_concrete_powder")) {
-                ResourceLocation solidKey = ResourceLocation.withDefaultNamespace(id.substring(0, id.length() - "_powder".length()));
-                Block solid = BuiltInRegistries.BLOCK.getValue(solidKey);
-                if (solid != Blocks.AIR) {
+            ResourceLocation powderKey = BuiltInRegistries.BLOCK.getKey(powder);
+            String path = powderKey.getPath();
+            if (path.endsWith("_concrete_powder")) {
+                String solidPath = path.substring(0, path.length() - "_powder".length());
+                Block solid = resolveBlockAcrossNamespace(powderKey.getNamespace(), solidPath);
+                if (solid != null && solid != Blocks.AIR) {
                     level.setBlockAndUpdate(pos, solid.defaultBlockState());
                     emitElutriationFeedback(level, pos, false);
                     return true;
@@ -1035,8 +1206,16 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             int potencyTier
     ) {
         ItemStack stack = itemEntity.getItem();
+        if (stack.isEmpty()) {
+            return false;
+        }
         int count = stack.getCount();
-        if (stack.is(Items.DIRT) || stack.is(Items.COARSE_DIRT) || stack.is(Items.ROOTED_DIRT)) {
+
+        // Dirt / Grass Block / Coarse Dirt / Rooted Dirt -> 4 Clay Balls per block (4 Clay Balls = 1 Clay)
+        if (stack.is(Items.DIRT)
+                || stack.is(Items.GRASS_BLOCK)
+                || stack.is(Items.COARSE_DIRT)
+                || stack.is(Items.ROOTED_DIRT)) {
             int totalClayBalls = count * 4;
             itemEntity.setItem(new ItemStack(Items.CLAY_BALL, Math.min(64, totalClayBalls)));
             int rem = totalClayBalls - 64;
@@ -1049,7 +1228,7 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             level.sendParticles(ParticleTypes.SPLASH, itemEntity.getX(), itemEntity.getY(0.5D), itemEntity.getZ(), 10, 0.2D, 0.2D, 0.2D, 0.06D);
             return true;
         }
-        if (stack.is(Items.SAND) || stack.is(Items.RED_SAND)) {
+        if (stack.is(ItemTags.SAND) || stack.is(Items.SAND) || stack.is(Items.RED_SAND)) {
             itemEntity.setItem(new ItemStack(Items.MUD, count));
             level.sendParticles(ParticleTypes.SPLASH, itemEntity.getX(), itemEntity.getY(0.5D), itemEntity.getZ(), 10, 0.2D, 0.2D, 0.2D, 0.06D);
             return true;
@@ -1059,27 +1238,31 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             level.sendParticles(ParticleTypes.SPLASH, itemEntity.getX(), itemEntity.getY(0.5D), itemEntity.getZ(), 10, 0.2D, 0.2D, 0.2D, 0.06D);
             return true;
         }
+        if (stack.is(Items.MAGMA_BLOCK)) {
+            itemEntity.setItem(new ItemStack(Items.COBBLESTONE, count));
+            level.sendParticles(ParticleTypes.SPLASH, itemEntity.getX(), itemEntity.getY(0.5D), itemEntity.getZ(), 10, 0.2D, 0.2D, 0.2D, 0.06D);
+            return true;
+        }
 
         ResourceLocation itemKey = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if ("minecraft".equals(itemKey.getNamespace())) {
-            String path = itemKey.getPath();
-            String cleanedCopperPath = stripOxidationPrefix(path);
-            if (cleanedCopperPath != null) {
-                Item cleanItem = BuiltInRegistries.ITEM.getValue(ResourceLocation.withDefaultNamespace(cleanedCopperPath));
-                if (cleanItem != Items.AIR && cleanItem != stack.getItem()) {
-                    itemEntity.setItem(new ItemStack(cleanItem, count));
-                    level.sendParticles(ParticleTypes.SPLASH, itemEntity.getX(), itemEntity.getY(0.5D), itemEntity.getZ(), 10, 0.2D, 0.2D, 0.2D, 0.06D);
-                    return true;
-                }
-            }
-            if (path.endsWith("_concrete_powder")) {
-                Item solidItem = BuiltInRegistries.ITEM.getValue(
-                        ResourceLocation.withDefaultNamespace(path.substring(0, path.length() - "_powder".length())));
-                if (solidItem != Items.AIR) {
-                    itemEntity.setItem(new ItemStack(solidItem, count));
-                    level.sendParticles(ParticleTypes.SPLASH, itemEntity.getX(), itemEntity.getY(0.5D), itemEntity.getZ(), 10, 0.2D, 0.2D, 0.2D, 0.06D);
-                    return true;
-                }
+        String namespace = itemKey.getNamespace();
+        String path = itemKey.getPath();
+
+        // Cross-namespace oxidized / weathered / exposed copper item cleaning (same namespace checked first!)
+        Item cleanCopperItem = cleanOxidizedMetalItem(stack.getItem(), namespace, path);
+        if (cleanCopperItem != null) {
+            itemEntity.setItem(new ItemStack(cleanCopperItem, count));
+            level.sendParticles(ParticleTypes.SPLASH, itemEntity.getX(), itemEntity.getY(0.5D), itemEntity.getZ(), 10, 0.2D, 0.2D, 0.2D, 0.06D);
+            return true;
+        }
+
+        if (path.endsWith("_concrete_powder")) {
+            String solidPath = path.substring(0, path.length() - "_powder".length());
+            Item solidItem = resolveItemAcrossNamespace(namespace, solidPath);
+            if (solidItem != null && solidItem != Items.AIR && solidItem != stack.getItem()) {
+                itemEntity.setItem(new ItemStack(solidItem, count));
+                level.sendParticles(ParticleTypes.SPLASH, itemEntity.getX(), itemEntity.getY(0.5D), itemEntity.getZ(), 10, 0.2D, 0.2D, 0.2D, 0.06D);
+                return true;
             }
         }
         return false;
@@ -1113,31 +1296,137 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
     }
 
     // =========================================================================
-    // INTERNAL HELPERS
+    // PUBLIC & INTERNAL HELPERS
     // =========================================================================
 
-    public static boolean isNetherFireEntity(LivingEntity e) {
-        if (e.fireImmune()
-                || e instanceof Blaze
+    /**
+     * Strictly identifies genuine Nether, Fire, Magma, Pyre, Soulfire, Cataclysm, or Radiant-Fire creatures
+     * (never matching Overworld fire-immune entities such as Wardens, Withers, Ender Dragons, or Fire-Resistance players).
+     */
+    public static boolean isTrueNetherOrFireEntity(@Nullable LivingEntity e) {
+        if (e == null) {
+            return false;
+        }
+        if (e instanceof Blaze
                 || e instanceof MagmaCube
                 || e instanceof Ghast
-                || e instanceof WitherSkeleton
+                || e instanceof Strider
                 || e instanceof Hoglin
                 || e instanceof Zoglin
                 || e instanceof AbstractPiglin
                 || e instanceof ZombifiedPiglin
-                || e instanceof Strider) {
+                || e instanceof WitherSkeleton) {
             return true;
         }
-        return SpellCombatReactionEngine.resolveEntityAffinities(e).contains(EssenceType.NETHER);
+
+        Set<EssenceType> affinities = SpellCombatReactionEngine.resolveEntityAffinities(e);
+        if (affinities.contains(EssenceType.NETHER)
+                || affinities.contains(EssenceType.MAGMA)
+                || affinities.contains(EssenceType.PYRE)
+                || affinities.contains(EssenceType.SOULFIRE)
+                || affinities.contains(EssenceType.CATACLYSM)
+                || affinities.contains(EssenceType.RADIANT_FIRE)) {
+            return true;
+        }
+
+        ResourceLocation typeKey = BuiltInRegistries.ENTITY_TYPE.getKey(e.getType());
+        if (typeKey != null) {
+            String path = typeKey.getPath();
+            return "brimstone_wyvern".equals(path)
+                    || "brimstone_chimera".equals(path)
+                    || "soulfire_djinn".equals(path)
+                    || "soulfire_phenex".equals(path)
+                    || "obsidian_golem".equals(path)
+                    || "obsidian_scorpioid".equals(path)
+                    || "obsidian_wendigo".equals(path)
+                    || "ashen_stalker".equals(path)
+                    || "ash_cinder_wisp".equals(path)
+                    || "magma_cherufe".equals(path)
+                    || "orthrus_magma_beast".equals(path)
+                    || "soul_sand_hydra".equals(path);
+        }
+        return false;
+    }
+
+    public static boolean isNetherFireEntity(@Nullable LivingEntity e) {
+        return isTrueNetherOrFireEntity(e);
+    }
+
+    private static boolean isMeleeWeaponStrike(LivingEntity caster) {
+        ItemStack mainHand = caster.getMainHandItem();
+        if (mainHand.isEmpty() || mainHand.getItem() instanceof CastingApparatusItem) {
+            return false;
+        }
+        return mainHand.is(ItemTags.SWORDS)
+                || mainHand.is(ItemTags.AXES)
+                || mainHand.getItem() instanceof TridentItem
+                || mainHand.getItem() instanceof MaceItem
+                || caster.getAttributeValue(Attributes.ATTACK_DAMAGE) > 1.5D;
+    }
+
+    private static boolean isCombatCompatibleTouchSlot(SubSpellSlot slot) {
+        SpellCoreEffect primary = slot.primaryEffect().effect();
+        return primary != SpellCoreEffect.RESTORATION
+                && primary != SpellCoreEffect.DIAGNOSTIC
+                && primary != SpellCoreEffect.SONAR
+                && primary != SpellCoreEffect.LOGISTICS;
+    }
+
+    private static boolean resolveActiveCasterWardSafeguard(@Nullable LivingEntity caster) {
+        if (caster == null) {
+            return false;
+        }
+        CompoundTag data = EntityHelper.getPersistentData(caster);
+        if (data.contains(SpellLingeringZoneManager.TAG_AIR_BLINK_WARD_SAFE)) {
+            return data.getBoolean(SpellLingeringZoneManager.TAG_AIR_BLINK_WARD_SAFE).orElse(false);
+        }
+        for (ItemStack held : List.of(caster.getMainHandItem(), caster.getOffhandItem())) {
+            if (held.isEmpty()) continue;
+            CastingApparatusState appState = held.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+            if (appState != null) {
+                Optional<SpellAssembly> active = appState.getActiveSpell();
+                if (active.isPresent()) {
+                    return active.get().hasWardFriendlyFireSafeguard();
+                }
+            }
+            SpellAssembly directSpell = held.get(ModDataComponents.SPELL_ASSEMBLY.get());
+            if (directSpell != null) {
+                return directSpell.hasWardFriendlyFireSafeguard();
+            }
+        }
+        return false;
+    }
+
+    private static boolean isGroundedArrow(Projectile proj) {
+        return proj instanceof AbstractArrow arrow
+                && (arrow.onGround() || arrow.getDeltaMovement().lengthSqr() <= 1.0E-5D);
     }
 
     private static boolean isFriendlyAquaticPet(LivingEntity entity, @Nullable LivingEntity owner) {
-        if (entity instanceof Monster) {
+        if (entity instanceof Monster || entity instanceof Enemy) {
             return false;
         }
-        if (owner != null && entity instanceof Mob mob && mob.getTarget() == owner) {
-            return false;
+        if (entity instanceof OwnableEntity ownable) {
+            LivingEntity petOwner = ownable.getOwner();
+            if (petOwner != null && owner != null && petOwner != owner
+                    && !ApexEschatonSingularityHelper.isFriendly(petOwner, owner)
+                    && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(petOwner, owner, true)) {
+                return false;
+            }
+        }
+        if (owner != null) {
+            if (entity instanceof Mob mob) {
+                LivingEntity target = mob.getTarget();
+                if (target != null
+                        && (target == owner
+                                || ApexEschatonSingularityHelper.isFriendly(target, owner)
+                                || SpellCombatReactionEngine.isProtectedFromOffensiveSpell(target, owner, true))) {
+                    return false;
+                }
+            }
+            if (entity instanceof NeutralMob neutral && owner.getUUID().equals(neutral.getPersistentAngerTarget())) {
+                return false;
+            }
         }
         return entity instanceof Axolotl
                 || entity instanceof Turtle
@@ -1154,7 +1443,21 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
                 || bs.is(Blocks.DEAD_BUSH)
                 || bs.is(Blocks.CRIMSON_ROOTS)
                 || bs.is(Blocks.WARPED_ROOTS)
-                || bs.is(Blocks.NETHER_SPROUTS);
+                || bs.is(Blocks.NETHER_SPROUTS)
+                || bs.is(BlockTags.FLOWERS)
+                || bs.is(Blocks.BROWN_MUSHROOM)
+                || bs.is(Blocks.RED_MUSHROOM)
+                || bs.is(Blocks.CRIMSON_FUNGUS)
+                || bs.is(Blocks.WARPED_FUNGUS)
+                || bs.is(Blocks.VINE)
+                || bs.is(Blocks.CAVE_VINES)
+                || bs.is(Blocks.CAVE_VINES_PLANT)
+                || bs.is(Blocks.WEEPING_VINES)
+                || bs.is(Blocks.WEEPING_VINES_PLANT)
+                || bs.is(Blocks.TWISTING_VINES)
+                || bs.is(Blocks.TWISTING_VINES_PLANT)
+                || bs.is(Blocks.MOSS_CARPET)
+                || bs.is(Blocks.SWEET_BERRY_BUSH);
     }
 
     @Nullable
@@ -1168,20 +1471,58 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             return cur;
         }
         ResourceLocation key = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-        if ("minecraft".equals(key.getNamespace())) {
-            String cleanPath = stripOxidationPrefix(key.getPath());
-            if (cleanPath != null) {
-                Block cleanBlock = BuiltInRegistries.BLOCK.getValue(ResourceLocation.withDefaultNamespace(cleanPath));
-                if (cleanBlock != Blocks.AIR && cleanBlock != state.getBlock()) {
-                    return cleanBlock.withPropertiesOf(state);
-                }
+        String namespace = key.getNamespace();
+        for (String cleanPath : stripOxidationPrefixCandidates(key.getPath())) {
+            Block cleanBlock = resolveBlockAcrossNamespace(namespace, cleanPath);
+            if (cleanBlock != null && cleanBlock != Blocks.AIR && cleanBlock != state.getBlock()) {
+                return cleanBlock.withPropertiesOf(state);
             }
         }
         return null;
     }
 
     @Nullable
-    private static String stripOxidationPrefix(String path) {
+    private static Item cleanOxidizedMetalItem(Item original, String namespace, String path) {
+        for (String cleanPath : stripOxidationPrefixCandidates(path)) {
+            Item cleanItem = resolveItemAcrossNamespace(namespace, cleanPath);
+            if (cleanItem != null && cleanItem != Items.AIR && cleanItem != original) {
+                return cleanItem;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Block resolveBlockAcrossNamespace(String namespace, String path) {
+        Optional<Block> sameNamespace = BuiltInRegistries.BLOCK.getOptional(ResourceLocation.fromNamespaceAndPath(namespace, path));
+        if (sameNamespace.isPresent() && sameNamespace.get() != Blocks.AIR) {
+            return sameNamespace.get();
+        }
+        if (!ResourceLocation.DEFAULT_NAMESPACE.equals(namespace)) {
+            Optional<Block> fallback = BuiltInRegistries.BLOCK.getOptional(ResourceLocation.withDefaultNamespace(path));
+            if (fallback.isPresent() && fallback.get() != Blocks.AIR) {
+                return fallback.get();
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Item resolveItemAcrossNamespace(String namespace, String path) {
+        Optional<Item> sameNamespace = BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath(namespace, path));
+        if (sameNamespace.isPresent() && sameNamespace.get() != Items.AIR) {
+            return sameNamespace.get();
+        }
+        if (!ResourceLocation.DEFAULT_NAMESPACE.equals(namespace)) {
+            Optional<Item> fallback = BuiltInRegistries.ITEM.getOptional(ResourceLocation.withDefaultNamespace(path));
+            if (fallback.isPresent() && fallback.get() != Items.AIR) {
+                return fallback.get();
+            }
+        }
+        return null;
+    }
+
+    private static List<String> stripOxidationPrefixCandidates(String path) {
         boolean waxed = path.startsWith("waxed_");
         String core = waxed ? path.substring("waxed_".length()) : path;
         String stripped = null;
@@ -1191,14 +1532,20 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             stripped = core.substring("weathered_".length());
         } else if (core.startsWith("exposed_")) {
             stripped = core.substring("exposed_".length());
+        } else if (core.startsWith("rusted_")) {
+            stripped = core.substring("rusted_".length());
         }
-        if (stripped == null) {
-            return null;
+        if (stripped == null || stripped.isEmpty()) {
+            return List.of();
         }
+        List<String> candidates = new ArrayList<>(2);
         if ("copper".equals(stripped)) {
-            stripped = "copper_block";
+            candidates.add(waxed ? "waxed_copper_block" : "copper_block");
+            candidates.add(waxed ? "waxed_copper" : "copper");
+        } else {
+            candidates.add(waxed ? ("waxed_" + stripped) : stripped);
         }
-        return waxed ? ("waxed_" + stripped) : stripped;
+        return candidates;
     }
 
     private static void emitElutriationFeedback(ServerLevel level, BlockPos pos, boolean scrapedMetal) {
@@ -1215,17 +1562,17 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             ServerLevel level,
             Vec3 center,
             double rad,
-            boolean clearCobwebs,
+            boolean clearCobwebsAndWeeds,
             @Nullable LivingEntity caster
     ) {
-        int r = Math.min(10, (int) Math.ceil(rad));
-        double radSq = (rad + 0.5D) * (rad + 0.5D);
+        int r = (int) Math.ceil(rad);
+        double radSq = rad * rad;
         BlockPos cPos = BlockPos.containing(center);
         for (BlockPos p : BlockPos.betweenClosed(cPos.offset(-r, -1, -r), cPos.offset(r, 2, r))) {
             double dx = (p.getX() + 0.5D) - center.x;
             double dz = (p.getZ() + 0.5D) - center.z;
             if (dx * dx + dz * dz > radSq) continue;
-            douseAndHydrateSingleBlock(level, p, clearCobwebs, caster);
+            douseAndHydrateSingleBlock(level, p, clearCobwebsAndWeeds, caster);
         }
     }
 
@@ -1233,30 +1580,36 @@ public final class WaterSpellMutationHandler implements MateriaPartMutationHandl
             ServerLevel level,
             BlockPos center,
             int rad,
-            boolean clearCobwebs,
+            boolean clearCobwebsAndWeeds,
             @Nullable LivingEntity caster
     ) {
         for (BlockPos p : BlockPos.betweenClosed(center.offset(-rad, -1, -rad), center.offset(rad, 1, rad))) {
-            douseAndHydrateSingleBlock(level, p, clearCobwebs, caster);
+            douseAndHydrateSingleBlock(level, p, clearCobwebsAndWeeds, caster);
         }
     }
 
     private static void douseAndHydrateSingleBlock(
             ServerLevel level,
             BlockPos p,
-            boolean clearCobwebs,
+            boolean clearCobwebsAndWeeds,
             @Nullable LivingEntity caster
     ) {
         BlockState bs = level.getBlockState(p);
+        if (bs.isAir()) {
+            return;
+        }
         if (bs.getBlock() instanceof BaseFireBlock) {
             level.removeBlock(p, false);
         } else if (bs.getBlock() instanceof CampfireBlock && bs.getValue(CampfireBlock.LIT)) {
+            CampfireBlock.dowse(caster, level, p, bs);
             level.setBlockAndUpdate(p, bs.setValue(CampfireBlock.LIT, false));
         } else if (bs.getBlock() instanceof AbstractCandleBlock && AbstractCandleBlock.isLit(bs)) {
             AbstractCandleBlock.extinguish(null, bs, level, p);
         } else if (bs.getBlock() instanceof FarmBlock && bs.getValue(FarmBlock.MOISTURE) < 7) {
             level.setBlockAndUpdate(p, bs.setValue(FarmBlock.MOISTURE, 7));
-        } else if (clearCobwebs && bs.is(Blocks.COBWEB)) {
+        } else if (clearCobwebsAndWeeds
+                && (bs.is(Blocks.COBWEB) || isSurfaceWeed(bs))
+                && !SpellExecutionEngine.isProtectedBlockOrContainer(level, p, bs)) {
             level.destroyBlock(p, true, caster);
         }
     }

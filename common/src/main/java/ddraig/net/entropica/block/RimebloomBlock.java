@@ -2,6 +2,8 @@ package ddraig.net.entropica.block;
 
 import com.mojang.serialization.MapCodec;
 import ddraig.net.entropica.client.particle.TimedTintableParticleOption;
+import ddraig.net.entropica.item.biome3.CryoInsulatedArmorItem;
+import ddraig.net.entropica.registry.ModBlocks;
 import ddraig.net.entropica.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -26,12 +28,16 @@ public class RimebloomBlock extends FlowerBlock {
                 || state.is(Blocks.BLUE_ICE)
                 || state.is(Blocks.PACKED_ICE)
                 || state.is(Blocks.ICE)
-                || state.is(Blocks.SNOW_BLOCK);
+                || state.is(Blocks.SNOW_BLOCK)
+                || (ModBlocks.ROTTEN_ICE.isBound() && state.is(ModBlocks.ROTTEN_ICE.get()))
+                || (ModBlocks.BLIGHTED_PACKED_ICE.isBound() && state.is(ModBlocks.BLIGHTED_PACKED_ICE.get()))
+                || (ModBlocks.GLIMMER_ICE.isBound() && state.is(ModBlocks.GLIMMER_ICE.get()))
+                || (ModBlocks.AEGIS_QUARTZ_BLOCK.isBound() && state.is(ModBlocks.AEGIS_QUARTZ_BLOCK.get()));
     }
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isInside) {
         super.entityInside(state, level, pos, entity, effectApplier, isInside);
-        if (!level.isClientSide() && entity instanceof LivingEntity living) {
+        if (!level.isClientSide() && entity instanceof LivingEntity living && !CryoInsulatedArmorItem.hasFullCryoInsulation(living)) {
             living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 0, false, true, true));
         }
     }

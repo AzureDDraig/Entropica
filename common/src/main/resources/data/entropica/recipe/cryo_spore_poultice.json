@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:frozen_spore_moss",
+    "minecraft:snowball",
+    "entropica:living_spores"
+  ],
+  "result": {
+    "id": "entropica:cryo_spore_poultice",
+    "count": 2
+  }
+}

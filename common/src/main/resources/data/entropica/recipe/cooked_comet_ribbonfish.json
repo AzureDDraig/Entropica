@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "ingredient": "entropica:comet_ribbonfish",
+  "result": {
+    "id": "entropica:cooked_comet_ribbonfish"
+  },
+  "experience": 0.35,
+  "cookingtime": 200
+}

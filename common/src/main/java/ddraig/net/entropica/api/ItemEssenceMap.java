@@ -51,7 +51,12 @@ public class ItemEssenceMap {
         if (modDefaultsInitialized) {
             return;
         }
-        if (!ModItems.AEGIS_CRYSTAL_SHARD.isBound()) {
+        if (!ModItems.AEGIS_CRYSTAL_SHARD.isBound()
+                || !ModItems.AURORA_DUST.isBound()
+                || !ModItems.ROT_POWDER.isBound()
+                || !ModItems.AEGIS_QUARTZ.isBound()
+                || !ModItems.FROZEN_MOSS_CLUMP.isBound()
+                || !ModItems.VAPOR_CONDENSER_SPORE.isBound()) {
             return;
         }
         synchronized (ItemEssenceMap.class) {
@@ -68,6 +73,7 @@ public class ItemEssenceMap {
             // Biome 1: Aegis Crystals
             registerIfBound(ModItems.AEGIS_CRYSTAL_SHARD, new EssenceValue(EssenceType.AEGIS, 1.0f));
             registerIfBound(ModItems.AEGIS_CRYSTAL_BLOCK_ITEM, new EssenceValue(EssenceType.AEGIS, 4.0f));
+            registerIfBound(ModItems.AEGIS_CRYSTAL_BUD_ITEM, new EssenceValue(EssenceType.AEGIS, 1.0f));
             registerIfBound(ModItems.AEGIS_CRYSTAL_CLUSTER_ITEM, new EssenceValue(EssenceType.AEGIS, 2.0f));
 
             // Biome 1: Fauna Drops & Spire Relics
@@ -85,6 +91,674 @@ public class ItemEssenceMap {
             registerIfBound(ModItems.PATINA_AEGIS_PLATE,
                     new EssenceValue(EssenceType.AEGIS, 1.0f),
                     new EssenceValue(EssenceType.LIGHTNING, 0.5f));
+
+            // Biome 2 (2.2 Auroral Skerries): Natural Terrain & Flora Blocks
+            registerIfBound(ModItems.AURORAL_LILY_PAD_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 1.0f),
+                    new EssenceValue(EssenceType.VAPOR, 1.0f));
+            registerIfBound(ModItems.GLIMMER_ICE_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 2.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.COARSE_GRAVEL_ITEM,
+                    new EssenceValue(EssenceType.VAPOR, 0.5f),
+                    new EssenceValue(EssenceType.EARTH, 0.5f));
+            registerIfBound(ModItems.AURORAL_FEATHER_MOSS_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 1.0f),
+                    new EssenceValue(EssenceType.VAPOR, 0.5f));
+            registerIfBound(ModItems.MIST_VEIL_FERN_ITEM,
+                    new EssenceValue(EssenceType.VAPOR, 1.0f),
+                    new EssenceValue(EssenceType.AURORA, 0.5f));
+
+            // Biome 2: Crafted Devices & Wellspring Architecture
+            registerIfBound(ModItems.AURORAL_LANTERN_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 2.0f),
+                    new EssenceValue(EssenceType.VAPOR, 0.5f));
+            registerIfBound(ModItems.THERMAL_HEAT_LAMP_ITEM,
+                    new EssenceValue(EssenceType.VAPOR, 2.0f),
+                    new EssenceValue(EssenceType.AURORA, 1.5f));
+            registerIfBound(ModItems.GLOW_GEL_PATHING_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 1.0f),
+                    new EssenceValue(EssenceType.VAPOR, 0.5f));
+            registerIfBound(ModItems.STATIC_REDSTONE_COUPLER_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 1.5f),
+                    new EssenceValue(EssenceType.VAPOR, 0.5f),
+                    new EssenceValue(EssenceType.LIGHTNING, 1.0f));
+            registerIfBound(ModItems.AURORAL_LENS_BLOCK_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 4.0f),
+                    new EssenceValue(EssenceType.VAPOR, 4.0f));
+
+            // Biome 2: Botanicals, Fauna Reagents, Equipment & Relics
+            registerIfBound(ModItems.AURORA_DUST,
+                    new EssenceValue(EssenceType.AURORA, 1.0f));
+            registerIfBound(ModItems.GLOWING_AURORAL_FIBER,
+                    new EssenceValue(EssenceType.AURORA, 1.0f),
+                    new EssenceValue(EssenceType.VAPOR, 0.25f));
+            registerIfBound(ModItems.MIST_VEIL_FROND,
+                    new EssenceValue(EssenceType.VAPOR, 1.0f));
+            registerIfBound(ModItems.WARM_AURORA_PETAL,
+                    new EssenceValue(EssenceType.VAPOR, 1.0f),
+                    new EssenceValue(EssenceType.AURORA, 0.5f));
+            registerIfBound(ModItems.CAMOUFLAGE_CLOAK,
+                    new EssenceValue(EssenceType.VAPOR, 4.0f),
+                    new EssenceValue(EssenceType.AURORA, 1.0f));
+            registerIfBound(ModItems.AURORAL_GELATIN,
+                    new EssenceValue(EssenceType.AURORA, 1.0f),
+                    new EssenceValue(EssenceType.VAPOR, 0.5f));
+            registerIfBound(ModItems.CHARGED_GLOW_TENTACLE,
+                    new EssenceValue(EssenceType.AURORA, 1.5f),
+                    new EssenceValue(EssenceType.VAPOR, 0.5f));
+            registerIfBound(ModItems.AURORAL_WAND,
+                    new EssenceValue(EssenceType.AURORA, 3.0f),
+                    new EssenceValue(EssenceType.VAPOR, 1.0f));
+            registerIfBound(ModItems.VAPOR_CONDENSATE_CRYSTALS,
+                    new EssenceValue(EssenceType.VAPOR, 4.0f),
+                    new EssenceValue(EssenceType.AURORA, 2.0f));
+
+            // Biome 3 (2.3 Frost-Bite Floes): Natural Terrain & Flora Blocks
+            registerIfBound(ModItems.ROTTEN_ICE_ITEM,
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f),
+                    new EssenceValue(EssenceType.BLIGHT, 1.0f));
+            registerIfBound(ModItems.BLIGHTED_PACKED_ICE_ITEM,
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f),
+                    new EssenceValue(EssenceType.BLIGHT, 1.0f),
+                    new EssenceValue(EssenceType.FROZEN, 0.5f));
+            registerIfBound(ModItems.NECROTIC_SLIME_PATCH_ITEM,
+                    new EssenceValue(EssenceType.BLIGHT, 0.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.25f));
+            registerIfBound(ModItems.NECROTIC_SLIME_BLOCK_ITEM,
+                    new EssenceValue(EssenceType.BLIGHT, 4.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f));
+            registerIfBound(ModItems.FROZEN_SPRUCE_BRANCH_ITEM,
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f),
+                    new EssenceValue(EssenceType.FROZEN, 0.5f));
+            registerIfBound(ModItems.CURED_FROST_HIDE_BLOCK_ITEM,
+                    new EssenceValue(EssenceType.GLACIAL, 6.0f),
+                    new EssenceValue(EssenceType.FROZEN, 3.0f));
+
+            // Biome 3: Fauna Drops, Reagents, Frost-Bite Dagger & Cryo-Insulated Armor
+            registerIfBound(ModItems.CRYO_CRYSTALLINE_FANG,
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f),
+                    new EssenceValue(EssenceType.FROZEN, 1.0f));
+            registerIfBound(ModItems.FROST_VEINED_HIDE,
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f),
+                    new EssenceValue(EssenceType.FROZEN, 0.5f));
+            registerIfBound(ModItems.ROT_POWDER,
+                    new EssenceValue(EssenceType.BLIGHT, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.25f));
+            registerIfBound(ModItems.NECROTIC_SLIME,
+                    new EssenceValue(EssenceType.BLIGHT, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.NECROTIC_SLIME_BUCKET,
+                    new EssenceValue(EssenceType.BLIGHT, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.SEA_SALT_CRYSTALS,
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f),
+                    new EssenceValue(EssenceType.FROZEN, 0.5f));
+            registerIfBound(ModItems.CURED_FROST_VEINED_HIDE,
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f),
+                    new EssenceValue(EssenceType.FROZEN, 1.0f));
+            registerIfBound(ModItems.FROST_BITE_DAGGER,
+                    new EssenceValue(EssenceType.GLACIAL, 4.0f),
+                    new EssenceValue(EssenceType.FROZEN, 2.0f),
+                    new EssenceValue(EssenceType.BLIGHT, 1.0f));
+            registerIfBound(ModItems.CRYO_INSULATED_HELMET,
+                    new EssenceValue(EssenceType.GLACIAL, 5.0f),
+                    new EssenceValue(EssenceType.FROZEN, 2.5f));
+            registerIfBound(ModItems.CRYO_INSULATED_CHESTPLATE,
+                    new EssenceValue(EssenceType.GLACIAL, 8.0f),
+                    new EssenceValue(EssenceType.FROZEN, 4.0f));
+            registerIfBound(ModItems.CRYO_INSULATED_LEGGINGS,
+                    new EssenceValue(EssenceType.GLACIAL, 7.0f),
+                    new EssenceValue(EssenceType.FROZEN, 3.5f));
+            registerIfBound(ModItems.CRYO_INSULATED_BOOTS,
+                    new EssenceValue(EssenceType.GLACIAL, 4.0f),
+                    new EssenceValue(EssenceType.FROZEN, 2.0f));
+
+            // Biome 4 (2.4 Crystalline Pack-Ice & Aegis Shielding Monolith): Blocks & Items
+            registerIfBound(ModItems.AEGIS_QUARTZ,
+                    new EssenceValue(EssenceType.AEGIS, 1.5f),
+                    new EssenceValue(EssenceType.AURORA, 0.5f));
+            registerIfBound(ModItems.AEGIS_QUARTZ_BLOCK_ITEM,
+                    new EssenceValue(EssenceType.AEGIS, 6.0f),
+                    new EssenceValue(EssenceType.AURORA, 2.0f));
+            registerIfBound(ModItems.AEGIS_QUARTZ_CLUSTER_ITEM,
+                    new EssenceValue(EssenceType.AEGIS, 3.0f),
+                    new EssenceValue(EssenceType.AURORA, 1.0f));
+            registerIfBound(ModItems.BISMUTH_ORE_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 2.0f),
+                    new EssenceValue(EssenceType.AEGIS, 1.0f));
+            registerIfBound(ModItems.RAW_BISMUTH,
+                    new EssenceValue(EssenceType.AURORA, 1.5f),
+                    new EssenceValue(EssenceType.AEGIS, 0.5f));
+            registerIfBound(ModItems.BISMUTH_INGOT,
+                    new EssenceValue(EssenceType.AURORA, 2.0f),
+                    new EssenceValue(EssenceType.AEGIS, 1.0f));
+            registerIfBound(ModItems.BISMUTH_BLOCK_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 18.0f),
+                    new EssenceValue(EssenceType.AEGIS, 9.0f));
+            registerIfBound(ModItems.AEGIS_PLATED_STONE_ITEM,
+                    new EssenceValue(EssenceType.AEGIS, 4.0f),
+                    new EssenceValue(EssenceType.AURORA, 1.0f));
+            registerIfBound(ModItems.BISMUTH_KEY_PEDESTAL_ITEM,
+                    new EssenceValue(EssenceType.AURORA, 4.0f),
+                    new EssenceValue(EssenceType.AEGIS, 4.0f));
+            registerIfBound(ModItems.AEGIS_WARDING_EMBLEM,
+                    new EssenceValue(EssenceType.AEGIS, 6.0f),
+                    new EssenceValue(EssenceType.AURORA, 2.0f));
+            registerIfBound(ModItems.AEGIS_SHIELDING_CHARM,
+                    new EssenceValue(EssenceType.AEGIS, 8.0f),
+                    new EssenceValue(EssenceType.AURORA, 4.0f));
+            registerIfBound(ModItems.AEGIS_SPIRE_ORCHID_ITEM,
+                    new EssenceValue(EssenceType.AEGIS, 1.0f),
+                    new EssenceValue(EssenceType.AURORA, 0.25f));
+            registerIfBound(ModItems.TALL_AEGIS_SPIRE_ORCHID_ITEM,
+                    new EssenceValue(EssenceType.AEGIS, 2.0f),
+                    new EssenceValue(EssenceType.AURORA, 0.5f));
+            registerIfBound(ModItems.AEGIS_SPIRE_PETAL,
+                    new EssenceValue(EssenceType.AEGIS, 0.5f));
+
+            // Biome 5 (2.5 Silent Fjord): Natural Terrain, Flora, Reagents & Stealth Gear
+            registerIfBound(ModItems.BASALT_COLUMN_ITEM,
+                    new EssenceValue(EssenceType.ECLIPSE, 0.5f),
+                    new EssenceValue(EssenceType.EARTH, 0.5f));
+            registerIfBound(ModItems.CHISELED_ECLIPSE_BASALT_ITEM,
+                    new EssenceValue(EssenceType.ECLIPSE, 2.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.BLUE_FROZEN_MOSS_ITEM,
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f),
+                    new EssenceValue(EssenceType.ECLIPSE, 0.5f));
+            registerIfBound(ModItems.BLUE_FROZEN_MOSS_CARPET_ITEM,
+                    new EssenceValue(EssenceType.GLACIAL, 0.75f),
+                    new EssenceValue(EssenceType.ECLIPSE, 0.25f));
+            registerIfBound(ModItems.SHADOWED_ECLIPSE_MOSS_ITEM,
+                    new EssenceValue(EssenceType.ECLIPSE, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.FROZEN_MOSS_CLUMP,
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f),
+                    new EssenceValue(EssenceType.ECLIPSE, 0.25f));
+            registerIfBound(ModItems.CRYO_GRENADE,
+                    new EssenceValue(EssenceType.GLACIAL, 3.0f),
+                    new EssenceValue(EssenceType.FROZEN, 1.5f));
+            registerIfBound(ModItems.SILENT_STRIDERS,
+                    new EssenceValue(EssenceType.ECLIPSE, 6.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f));
+            registerIfBound(ModItems.BASALT_PICKAXE,
+                    new EssenceValue(EssenceType.ECLIPSE, 1.5f),
+                    new EssenceValue(EssenceType.EARTH, 1.5f));
+
+            // Biome 6 (2.6 Steaming Skerries & Vaporous Grotto): Geothermal Blocks, Flora & Vapor Materia Gear
+            registerIfBound(ModItems.STEAMING_ICE_ITEM,
+                    new EssenceValue(EssenceType.VAPOR, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f));
+            registerIfBound(ModItems.STEAMING_SPRING_STONE_ITEM,
+                    new EssenceValue(EssenceType.VAPOR, 1.5f),
+                    new EssenceValue(EssenceType.EARTH, 0.5f));
+            registerIfBound(ModItems.VAPOR_WEAVER_LICHEN_ITEM,
+                    new EssenceValue(EssenceType.VAPOR, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.STEAM_VENT_ITEM,
+                    new EssenceValue(EssenceType.VAPOR, 2.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.VAPOR_LIFT_MAT_ITEM,
+                    new EssenceValue(EssenceType.VAPOR, 3.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.VAPOR_CONDENSER_ITEM,
+                    new EssenceValue(EssenceType.VAPOR, 4.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f));
+            registerIfBound(ModItems.VAPOR_CONDENSER_SPORE,
+                    new EssenceValue(EssenceType.VAPOR, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.25f));
+            registerIfBound(ModItems.VAPOR_SHROUD_CLOAK,
+                    new EssenceValue(EssenceType.VAPOR, 5.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f));
+            registerIfBound(ModItems.POROUS_BASALT_SHELL,
+                    new EssenceValue(EssenceType.VAPOR, 2.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+
+            // Biome 7 (2.7 Static Ice-Plains & Fulgurite Cryo-Relay): Fulgurite Blocks, Flora & Lightning-Glacial Gear
+            registerIfBound(ModItems.FULGURITE_ICE_ITEM,
+                    new EssenceValue(EssenceType.LIGHTNING, 2.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f));
+            registerIfBound(ModItems.FULGURITE_PINE_LOG_ITEM,
+                    new EssenceValue(EssenceType.LIGHTNING, 1.0f),
+                    new EssenceValue(EssenceType.NATURE, 1.0f));
+            registerIfBound(ModItems.FULGURITE_PINE_LEAVES_ITEM,
+                    new EssenceValue(EssenceType.LIGHTNING, 0.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.STATIC_FROST_POWDER,
+                    new EssenceValue(EssenceType.LIGHTNING, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.75f));
+            registerIfBound(ModItems.CHARGED_STATIC_NEEDLE,
+                    new EssenceValue(EssenceType.LIGHTNING, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.75f));
+            registerIfBound(ModItems.STATIC_QUILL,
+                    new EssenceValue(EssenceType.LIGHTNING, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.GROUNDING_COIL,
+                    new EssenceValue(EssenceType.LIGHTNING, 5.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.5f));
+            registerIfBound(ModItems.STATIC_CONDUCTIVE_MAT_ITEM,
+                    new EssenceValue(EssenceType.LIGHTNING, 2.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.BIOMASS_CAPACITOR_ITEM,
+                    new EssenceValue(EssenceType.LIGHTNING, 4.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f));
+
+            // Biome 10 (2.10 Sun-Glazed Sanctuary): Vitae, Radiant, Aurora & Glacial Materia Mappings
+            registerIfBound(ModItems.RADIANT_SNOW_BLOCK_ITEM,
+                    new EssenceValue(EssenceType.RADIANT, 1.0f),
+                    new EssenceValue(EssenceType.VITAE, 0.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.RADIANT_GLAZE_ICE_ITEM,
+                    new EssenceValue(EssenceType.RADIANT, 1.5f),
+                    new EssenceValue(EssenceType.AURORA, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.GLAZED_AMBER_LEAVES_ITEM,
+                    new EssenceValue(EssenceType.VITAE, 0.75f),
+                    new EssenceValue(EssenceType.AMBER, 0.75f),
+                    new EssenceValue(EssenceType.RADIANT, 0.5f));
+            registerIfBound(ModItems.GOLDEN_LICHEN_ITEM,
+                    new EssenceValue(EssenceType.VITAE, 1.0f),
+                    new EssenceValue(EssenceType.RADIANT, 0.75f));
+            registerIfBound(ModItems.VITAE_SPRING_STONE_ITEM,
+                    new EssenceValue(EssenceType.VITAE, 2.0f),
+                    new EssenceValue(EssenceType.RADIANT, 1.0f),
+                    new EssenceValue(EssenceType.AURORA, 0.5f));
+            registerIfBound(ModItems.QILIN_LIGHT_REFRACTOR_ITEM,
+                    new EssenceValue(EssenceType.RADIANT, 6.0f),
+                    new EssenceValue(EssenceType.VITAE, 4.0f),
+                    new EssenceValue(EssenceType.AURORA, 3.0f));
+            registerIfBound(ModItems.SUN_GLAZED_LANTERN_ITEM,
+                    new EssenceValue(EssenceType.RADIANT, 3.0f),
+                    new EssenceValue(EssenceType.VITAE, 1.5f),
+                    new EssenceValue(EssenceType.AURORA, 1.0f));
+            registerIfBound(ModItems.RADIANT_SNOWBALL,
+                    new EssenceValue(EssenceType.RADIANT, 0.25f),
+                    new EssenceValue(EssenceType.VITAE, 0.125f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.125f));
+            registerIfBound(ModItems.JADE_QILIN_SCALE,
+                    new EssenceValue(EssenceType.VITAE, 3.5f),
+                    new EssenceValue(EssenceType.RADIANT, 3.0f),
+                    new EssenceValue(EssenceType.AURORA, 2.0f));
+            registerIfBound(ModItems.LIQUID_VITAE_RESIN,
+                    new EssenceValue(EssenceType.VITAE, 4.0f),
+                    new EssenceValue(EssenceType.AMBER, 2.0f),
+                    new EssenceValue(EssenceType.RADIANT, 1.5f));
+            registerIfBound(ModItems.VITAE_FERTILIZER,
+                    new EssenceValue(EssenceType.VITAE, 1.5f),
+                    new EssenceValue(EssenceType.RADIANT, 0.5f));
+            registerIfBound(ModItems.QILIN_PRISM_CIRCLET,
+                    new EssenceValue(EssenceType.VITAE, 12.0f),
+                    new EssenceValue(EssenceType.RADIANT, 10.0f),
+                    new EssenceValue(EssenceType.AURORA, 6.0f));
+            registerIfBound(ModItems.SUN_GLAZED_TALISMAN,
+                    new EssenceValue(EssenceType.VITAE, 12.0f),
+                    new EssenceValue(EssenceType.RADIANT, 10.0f),
+                    new EssenceValue(EssenceType.AURORA, 4.0f));
+            registerIfBound(ModItems.WEEPING_AMBER_TEAR,
+                    new EssenceValue(EssenceType.VITAE, 2.0f),
+                    new EssenceValue(EssenceType.AMBER, 2.0f),
+                    new EssenceValue(EssenceType.RADIANT, 1.0f));
+            registerIfBound(ModItems.LUMINOTH_DUST,
+                    new EssenceValue(EssenceType.RADIANT, 1.5f),
+                    new EssenceValue(EssenceType.AURORA, 1.5f));
+            registerIfBound(ModItems.AURORAFOWL_FEATHER,
+                    new EssenceValue(EssenceType.AURORA, 1.5f),
+                    new EssenceValue(EssenceType.AIR, 0.5f));
+            registerIfBound(ModItems.RAW_AURORAFOWL,
+                    new EssenceValue(EssenceType.VITAE, 0.75f),
+                    new EssenceValue(EssenceType.AURORA, 0.75f));
+            registerIfBound(ModItems.COOKED_AURORAFOWL,
+                    new EssenceValue(EssenceType.VITAE, 1.25f),
+                    new EssenceValue(EssenceType.AURORA, 1.0f));
+
+            // Biome 11 (2.11 Storm-Swept Icebergs): Storm, Glacial, Air & Lightning Materia Mappings
+            registerIfBound(ModItems.FULGURITE_BLOCK_ITEM,
+                    new EssenceValue(EssenceType.STORM, 1.5f),
+                    new EssenceValue(EssenceType.LIGHTNING, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.ZEPHYR_ICE_ITEM,
+                    new EssenceValue(EssenceType.STORM, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f),
+                    new EssenceValue(EssenceType.AIR, 1.0f));
+            registerIfBound(ModItems.ZEPHYR_GLASS_GRASS_ITEM,
+                    new EssenceValue(EssenceType.STORM, 1.0f),
+                    new EssenceValue(EssenceType.AIR, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.ZEPHYR_UPDRAFT_GRATE_ITEM,
+                    new EssenceValue(EssenceType.STORM, 4.0f),
+                    new EssenceValue(EssenceType.AIR, 3.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f));
+            registerIfBound(ModItems.SIMURGH_WIND_TURBINE_ITEM,
+                    new EssenceValue(EssenceType.STORM, 8.0f),
+                    new EssenceValue(EssenceType.AIR, 5.0f),
+                    new EssenceValue(EssenceType.LIGHTNING, 3.0f));
+            registerIfBound(ModItems.ZEPHYR_GLASS_FIBER,
+                    new EssenceValue(EssenceType.STORM, 1.0f),
+                    new EssenceValue(EssenceType.AIR, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.25f));
+            registerIfBound(ModItems.STORM_KITE_MEMBRANE,
+                    new EssenceValue(EssenceType.STORM, 2.5f),
+                    new EssenceValue(EssenceType.AIR, 1.5f),
+                    new EssenceValue(EssenceType.LIGHTNING, 1.0f));
+            registerIfBound(ModItems.HYDRA_GLACIAL_HORN,
+                    new EssenceValue(EssenceType.GLACIAL, 3.5f),
+                    new EssenceValue(EssenceType.STORM, 2.5f),
+                    new EssenceValue(EssenceType.FROZEN, 1.5f));
+            registerIfBound(ModItems.STORM_KITE_GLIDER,
+                    new EssenceValue(EssenceType.STORM, 10.0f),
+                    new EssenceValue(EssenceType.AIR, 6.0f),
+                    new EssenceValue(EssenceType.LIGHTNING, 3.0f));
+            registerIfBound(ModItems.CRYO_TEMPEST_HORN,
+                    new EssenceValue(EssenceType.GLACIAL, 8.0f),
+                    new EssenceValue(EssenceType.STORM, 6.0f),
+                    new EssenceValue(EssenceType.AIR, 3.0f));
+            registerIfBound(ModItems.TEMPEST_BOTTLE,
+                    new EssenceValue(EssenceType.STORM, 2.5f),
+                    new EssenceValue(EssenceType.AIR, 2.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+
+            // Fauna Bestiary Pass: Materia Mappings
+            registerIfBound(ModItems.HARD_SANDSTONE_SHARD,
+                    new EssenceValue(EssenceType.DUST, 4.0f),
+                    new EssenceValue(EssenceType.EARTH, 2.5f),
+                    new EssenceValue(EssenceType.ARID, 2.0f));
+            registerIfBound(ModItems.KELPIE_WATER_PELT,
+                    new EssenceValue(EssenceType.ABYSS, 4.0f),
+                    new EssenceValue(EssenceType.WATER, 2.5f),
+                    new EssenceValue(EssenceType.UMBRAL, 2.0f));
+            registerIfBound(ModItems.SPHINX_SAND_STONE,
+                    new EssenceValue(EssenceType.BARROW, 4.5f),
+                    new EssenceValue(EssenceType.EARTH, 2.5f),
+                    new EssenceValue(EssenceType.ARID, 2.0f));
+            registerIfBound(ModItems.SIMURGH_FEATHER,
+                    new EssenceValue(EssenceType.STORM, 4.5f),
+                    new EssenceValue(EssenceType.AIR, 2.5f),
+                    new EssenceValue(EssenceType.LIGHTNING, 2.0f));
+            registerIfBound(ModItems.SHIMMERING_MIRAGE_AURA,
+                    new EssenceValue(EssenceType.MIRAGE, 4.5f),
+                    new EssenceValue(EssenceType.RADIANT, 2.5f),
+                    new EssenceValue(EssenceType.ARID, 2.0f));
+            registerIfBound(ModItems.CHERUFE_BASALT_CRUST,
+                    new EssenceValue(EssenceType.MAGMA, 4.5f),
+                    new EssenceValue(EssenceType.NETHER, 2.5f),
+                    new EssenceValue(EssenceType.EARTH, 2.0f));
+            registerIfBound(ModItems.PHENEX_EMBER_FEATHER,
+                    new EssenceValue(EssenceType.SOULFIRE, 4.5f),
+                    new EssenceValue(EssenceType.NETHER, 2.5f),
+                    new EssenceValue(EssenceType.UNDEAD, 2.0f));
+            registerIfBound(ModItems.VOID_WEB_SPINDLE,
+                    new EssenceValue(EssenceType.VOID, 4.5f),
+                    new EssenceValue(EssenceType.NETHER, 2.5f),
+                    new EssenceValue(EssenceType.UMBRAL, 2.0f));
+            registerIfBound(ModItems.BARROW_RUNE_STONE,
+                    new EssenceValue(EssenceType.BARROW, 4.5f),
+                    new EssenceValue(EssenceType.EARTH, 2.5f),
+                    new EssenceValue(EssenceType.UNDEAD, 2.0f));
+            registerIfBound(ModItems.MAGMA_ORTHRUS_PELT,
+                    new EssenceValue(EssenceType.MAGMA, 4.5f),
+                    new EssenceValue(EssenceType.NETHER, 2.5f),
+                    new EssenceValue(EssenceType.EARTH, 2.0f));
+            registerIfBound(ModItems.CINDER_WISP_CORE,
+                    new EssenceValue(EssenceType.MAGMA, 4.5f),
+                    new EssenceValue(EssenceType.NETHER, 2.5f),
+                    new EssenceValue(EssenceType.RADIANT, 2.0f));
+            registerIfBound(ModItems.HYDRA_SOUL_GLAND,
+                    new EssenceValue(EssenceType.SOULFIRE, 5.0f),
+                    new EssenceValue(EssenceType.NETHER, 3.0f),
+                    new EssenceValue(EssenceType.UNDEAD, 2.0f));
+            registerIfBound(ModItems.OBSIDIAN_GARGOYLE_WING,
+                    new EssenceValue(EssenceType.VOID, 4.5f),
+                    new EssenceValue(EssenceType.EARTH, 2.5f),
+                    new EssenceValue(EssenceType.UMBRAL, 2.0f));
+            registerIfBound(ModItems.RUNIC_CRYPT_STONE,
+                    new EssenceValue(EssenceType.SOULFIRE, 4.5f),
+                    new EssenceValue(EssenceType.BARROW, 3.0f),
+                    new EssenceValue(EssenceType.EARTH, 2.5f));
+            registerIfBound(ModItems.SCORPIOID_TAIL_SPIKE,
+                    new EssenceValue(EssenceType.MAGMA, 4.5f),
+                    new EssenceValue(EssenceType.VOID, 2.5f),
+                    new EssenceValue(EssenceType.NETHER, 2.0f));
+            registerIfBound(ModItems.WYVERN_SCALE,
+                    new EssenceValue(EssenceType.MAGMA, 5.0f),
+                    new EssenceValue(EssenceType.NETHER, 2.5f),
+                    new EssenceValue(EssenceType.AIR, 2.0f));
+            registerIfBound(ModItems.OBSIDIAN_CORE,
+                    new EssenceValue(EssenceType.VOID, 5.5f),
+                    new EssenceValue(EssenceType.NETHER, 3.0f),
+                    new EssenceValue(EssenceType.EARTH, 2.5f));
+            registerIfBound(ModItems.BRASS_DJINN_COLLAR,
+                    new EssenceValue(EssenceType.SOULFIRE, 5.0f),
+                    new EssenceValue(EssenceType.ARID, 2.5f),
+                    new EssenceValue(EssenceType.NETHER, 2.0f));
+            registerIfBound(ModItems.CHIMERA_VENOM_GLAND,
+                    new EssenceValue(EssenceType.MAGMA, 4.5f),
+                    new EssenceValue(EssenceType.CHIMERA, 3.5f),
+                    new EssenceValue(EssenceType.BLIGHT, 2.0f));
+            registerIfBound(ModItems.WENDIGO_SKULL_PLATE,
+                    new EssenceValue(EssenceType.BARROW, 5.0f),
+                    new EssenceValue(EssenceType.VOID, 2.5f),
+                    new EssenceValue(EssenceType.UNDEAD, 2.0f));
+
+            // Biome 12 (2.12 Spore-Glazed Pack): Spore, Glacial & Overgrowth Materia Mappings
+            registerIfBound(ModItems.LIVING_SPORES,
+                    new EssenceValue(EssenceType.SPORE, 1.5f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 0.75f));
+            registerIfBound(ModItems.MOSSY_AEGIS_PLATE,
+                    new EssenceValue(EssenceType.OVERGROWTH, 1.5f),
+                    new EssenceValue(EssenceType.AEGIS, 1.5f),
+                    new EssenceValue(EssenceType.SPORE, 0.5f));
+            registerIfBound(ModItems.FROZEN_SPORE_MOSS_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.FROZEN_SPORE_MOSS_CARPET_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.SPORE_GLAZED_ICE_ITEM,
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f),
+                    new EssenceValue(EssenceType.SPORE, 1.5f));
+            registerIfBound(ModItems.SPORE_WOOD_LOG_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 1.5f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.SPORE_WOOD_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 2.0f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 1.25f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.75f));
+            registerIfBound(ModItems.SPORE_WOOD_PLANKS_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 0.5f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 0.25f));
+            registerIfBound(ModItems.SPORE_WOOD_STAIRS_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 0.75f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 0.375f));
+            registerIfBound(ModItems.SPORE_WOOD_SLAB_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 0.25f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 0.125f));
+            registerIfBound(ModItems.SPORE_WOOD_FENCE_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 0.75f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 0.375f));
+            registerIfBound(ModItems.FROZEN_SPORE_LEAVES_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 0.5f));
+            registerIfBound(ModItems.GLAZE_CAP_MUSHROOM_BLOCK_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 0.5f));
+            registerIfBound(ModItems.MYCELIAL_SPORE_CAP,
+                    new EssenceValue(EssenceType.SPORE, 2.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 1.0f));
+            registerIfBound(ModItems.SPORE_BELLOWS_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 5.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 1.5f));
+            registerIfBound(ModItems.CRYO_SPORE_CENSER_ITEM,
+                    new EssenceValue(EssenceType.SPORE, 6.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 5.0f));
+            registerIfBound(ModItems.SPORE_FILTER_MASK,
+                    new EssenceValue(EssenceType.SPORE, 5.0f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 3.0f),
+                    new EssenceValue(EssenceType.AEGIS, 2.5f));
+            registerIfBound(ModItems.CRYO_SPORE_POULTICE,
+                    new EssenceValue(EssenceType.SPORE, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f),
+                    new EssenceValue(EssenceType.OVERGROWTH, 0.5f));
+            registerIfBound(ModItems.GLAZED_SPORE_BOMB,
+                    new EssenceValue(EssenceType.SPORE, 2.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f));
+
+            // Biome 13 (2.13 Mirage Glacier): Mirage, Glacial & Arid Materia Mappings
+            registerIfBound(ModItems.VITREOUS_NEEDLE,
+                    new EssenceValue(EssenceType.MIRAGE, 1.0f),
+                    new EssenceValue(EssenceType.ARID, 1.0f));
+            registerIfBound(ModItems.GLASS_SAND_ITEM,
+                    new EssenceValue(EssenceType.MIRAGE, 0.75f),
+                    new EssenceValue(EssenceType.ARID, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.25f));
+            registerIfBound(ModItems.GLASS_SANDSTONE_ITEM,
+                    new EssenceValue(EssenceType.MIRAGE, 3.0f),
+                    new EssenceValue(EssenceType.ARID, 3.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.GLASS_SANDSTONE_STAIRS_ITEM,
+                    new EssenceValue(EssenceType.MIRAGE, 2.25f),
+                    new EssenceValue(EssenceType.ARID, 2.25f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.75f));
+            registerIfBound(ModItems.GLASS_SANDSTONE_SLAB_ITEM,
+                    new EssenceValue(EssenceType.MIRAGE, 1.5f),
+                    new EssenceValue(EssenceType.ARID, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.MIRAGE_ICE_ITEM,
+                    new EssenceValue(EssenceType.MIRAGE, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f));
+            registerIfBound(ModItems.MIRAGE_PRISM_LANTERN_ITEM,
+                    new EssenceValue(EssenceType.MIRAGE, 6.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 3.0f),
+                    new EssenceValue(EssenceType.ARID, 2.0f));
+            registerIfBound(ModItems.SILICA_GLASS_PLATE,
+                    new EssenceValue(EssenceType.MIRAGE, 2.5f),
+                    new EssenceValue(EssenceType.ARID, 2.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.MIRAGE_VEIL_GOGGLES,
+                    new EssenceValue(EssenceType.MIRAGE, 6.0f),
+                    new EssenceValue(EssenceType.ARID, 4.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f));
+            registerIfBound(ModItems.MIRAGE_DECOY_PRISM,
+                    new EssenceValue(EssenceType.MIRAGE, 3.0f),
+                    new EssenceValue(EssenceType.ARID, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.SHIMMERING_FOCUS,
+                    new EssenceValue(EssenceType.MIRAGE, 8.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 3.0f),
+                    new EssenceValue(EssenceType.ARID, 3.0f));
+
+            // Biome 14 (2.14 Oasis Floes): Oasis, Glacial, Vapor & Amber Materia Mappings
+            registerIfBound(ModItems.AMBER_CHUNK,
+                    new EssenceValue(EssenceType.AMBER, 2.0f),
+                    new EssenceValue(EssenceType.OASIS, 1.0f));
+            registerIfBound(ModItems.AMBER_NECTAR_BOTTLE,
+                    new EssenceValue(EssenceType.AMBER, 3.0f),
+                    new EssenceValue(EssenceType.OASIS, 2.5f),
+                    new EssenceValue(EssenceType.VAPOR, 1.0f));
+            registerIfBound(ModItems.FROST_WILLOW_LEAVES_ITEM,
+                    new EssenceValue(EssenceType.OASIS, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.FROST_WILLOW_VINES_ITEM,
+                    new EssenceValue(EssenceType.OASIS, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.75f),
+                    new EssenceValue(EssenceType.VAPOR, 0.5f));
+            registerIfBound(ModItems.AMBER_RESIN_BLOCK_ITEM,
+                    new EssenceValue(EssenceType.AMBER, 8.0f),
+                    new EssenceValue(EssenceType.OASIS, 4.0f));
+            registerIfBound(ModItems.AMBER_TORCH_ITEM,
+                    new EssenceValue(EssenceType.AMBER, 0.75f),
+                    new EssenceValue(EssenceType.OASIS, 0.5f));
+            registerIfBound(ModItems.OASIS_DEW_BASIN_ITEM,
+                    new EssenceValue(EssenceType.OASIS, 6.0f),
+                    new EssenceValue(EssenceType.VAPOR, 4.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f),
+                    new EssenceValue(EssenceType.AMBER, 3.0f));
+            registerIfBound(ModItems.AMBER_ADHESIVE,
+                    new EssenceValue(EssenceType.AMBER, 2.0f),
+                    new EssenceValue(EssenceType.OASIS, 1.5f));
+            registerIfBound(ModItems.WATERPROOF_SALAMANDER_SKIN,
+                    new EssenceValue(EssenceType.OASIS, 2.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f),
+                    new EssenceValue(EssenceType.VAPOR, 1.5f));
+            registerIfBound(ModItems.SALAMANDER_WADER_HOOD,
+                    new EssenceValue(EssenceType.OASIS, 8.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 4.0f),
+                    new EssenceValue(EssenceType.VAPOR, 4.0f),
+                    new EssenceValue(EssenceType.AMBER, 2.0f));
+
+            // Biome 15 (2.15 Dust-Crusted Bergs): Dust, Glacial & Arid Materia Mappings
+            registerIfBound(ModItems.DUST_CRUSTED_ICE_ITEM,
+                    new EssenceValue(EssenceType.DUST, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f));
+            registerIfBound(ModItems.GREY_SAND_ITEM,
+                    new EssenceValue(EssenceType.DUST, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f),
+                    new EssenceValue(EssenceType.ARID, 0.25f));
+            registerIfBound(ModItems.WIND_BLOWN_DUST_SCRUB_ITEM,
+                    new EssenceValue(EssenceType.DUST, 1.0f),
+                    new EssenceValue(EssenceType.ARID, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.25f));
+            registerIfBound(ModItems.TOUGH_FIBER_ROPE_ITEM,
+                    new EssenceValue(EssenceType.DUST, 1.0f),
+                    new EssenceValue(EssenceType.ARID, 0.75f));
+            registerIfBound(ModItems.WIND_BAFFLE_LANTERN_ITEM,
+                    new EssenceValue(EssenceType.DUST, 6.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 4.0f),
+                    new EssenceValue(EssenceType.ARID, 2.0f));
+            registerIfBound(ModItems.DRY_FIBERS,
+                    new EssenceValue(EssenceType.DUST, 0.5f),
+                    new EssenceValue(EssenceType.ARID, 0.5f));
+            registerIfBound(ModItems.DUST_CORE_SHARD,
+                    new EssenceValue(EssenceType.DUST, 4.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.5f),
+                    new EssenceValue(EssenceType.ARID, 1.5f));
+            registerIfBound(ModItems.COPPER_SILT_SIEVE,
+                    new EssenceValue(EssenceType.DUST, 3.0f),
+                    new EssenceValue(EssenceType.ARID, 2.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.0f));
+            registerIfBound(ModItems.DUST_DEVIL_AMPOULE,
+                    new EssenceValue(EssenceType.DUST, 4.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f),
+                    new EssenceValue(EssenceType.ARID, 2.0f));
+
+            // Biome 16 (2.16 Blood-Ice Shallows): Blood, Glacial & Vitae Materia Mappings
+            registerIfBound(ModItems.SANGUINE_ICE_ITEM,
+                    new EssenceValue(EssenceType.BLOOD, 1.5f),
+                    new EssenceValue(EssenceType.GLACIAL, 1.5f));
+            registerIfBound(ModItems.RED_CLAY_SAND_ITEM,
+                    new EssenceValue(EssenceType.BLOOD, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.SANGUINE_CLAY_BRICKS_ITEM,
+                    new EssenceValue(EssenceType.BLOOD, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.SANGUINE_CLAY_BRICK_STAIRS_ITEM,
+                    new EssenceValue(EssenceType.BLOOD, 0.75f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f));
+            registerIfBound(ModItems.SANGUINE_CLAY_BRICK_SLAB_ITEM,
+                    new EssenceValue(EssenceType.BLOOD, 0.375f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.25f));
+            registerIfBound(ModItems.RED_ALGAE_ITEM,
+                    new EssenceValue(EssenceType.BLOOD, 1.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 0.5f),
+                    new EssenceValue(EssenceType.VITAE, 0.75f));
+            registerIfBound(ModItems.CRIMSON_TIDE_LANTERN_ITEM,
+                    new EssenceValue(EssenceType.BLOOD, 6.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 4.0f));
+            registerIfBound(ModItems.SANGUINE_DRAUGHT_AMPOULE,
+                    new EssenceValue(EssenceType.BLOOD, 4.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.0f),
+                    new EssenceValue(EssenceType.VITAE, 2.5f));
+            registerIfBound(ModItems.SANGUINE_ICE_LANCET,
+                    new EssenceValue(EssenceType.BLOOD, 6.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 3.0f));
+            registerIfBound(ModItems.SANGUINE_HEART_GEL,
+                    new EssenceValue(EssenceType.BLOOD, 4.0f),
+                    new EssenceValue(EssenceType.GLACIAL, 2.5f));
 
             modDefaultsInitialized = true;
         }

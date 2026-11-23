@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GPG",
+    "CRC"
+  ],
+  "key": {
+    "G": "minecraft:glass",
+    "P": "entropica:warm_aurora_petal",
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "entropica:thermal_heat_lamp",
+    "count": 1
+  }
+}

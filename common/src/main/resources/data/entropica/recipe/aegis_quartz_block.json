@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": "entropica:aegis_quartz"
+  },
+  "result": {
+    "id": "entropica:aegis_quartz_block",
+    "count": 1
+  }
+}

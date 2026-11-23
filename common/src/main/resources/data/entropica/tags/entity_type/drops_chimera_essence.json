@@ -72,6 +72,10 @@
     {
       "id": "enderzoology:concussion_creeper",
       "required": false
+    },
+    {
+      "id": "entropica:brimstone_chimera",
+      "required": false
     }
   ]
 }

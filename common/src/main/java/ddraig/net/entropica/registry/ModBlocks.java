@@ -332,8 +332,8 @@ public class ModBlocks {
     public static final RegistrySupplier<Block> FULGURITE_REED = BLOCKS.register("fulgurite_reed", name -> new ddraig.net.entropica.block.FulguriteReedBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_CYAN).noCollision().randomTicks().instabreak().sound(SoundType.GRASS).lightLevel(state -> 6).noOcclusion()));
     public static final RegistrySupplier<Block> GALE_THISTLE = BLOCKS.register("gale_thistle", name -> new ddraig.net.entropica.block.GaleThistleBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_GRAY).noCollision().instabreak().sound(SoundType.GRASS).noOcclusion()));
     public static final RegistrySupplier<Block> MIST_VEIL_MARSHMALLOW = BLOCKS.register("mist_veil_marshmallow", name -> new ddraig.net.entropica.block.MistVeilMarshmallowBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).noCollision().instabreak().sound(SoundType.WOOL).noOcclusion()));
-    public static final RegistrySupplier<Block> AEGIS_SPIRE_ORCHID = BLOCKS.register("aegis_spire_orchid", name -> new ddraig.net.entropica.block.EntropicaFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLUE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 6).noOcclusion()));
-    public static final RegistrySupplier<Block> TALL_AEGIS_SPIRE_ORCHID = BLOCKS.register("tall_aegis_spire_orchid", name -> new ddraig.net.entropica.block.AegisSpireOrchidBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLUE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).noOcclusion()));
+    public static final RegistrySupplier<Block> AEGIS_SPIRE_ORCHID = BLOCKS.register("aegis_spire_orchid", name -> new ddraig.net.entropica.block.EntropicaFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLUE).noCollision().randomTicks().instabreak().sound(SoundType.GRASS).lightLevel(state -> 7).noOcclusion()));
+    public static final RegistrySupplier<Block> TALL_AEGIS_SPIRE_ORCHID = BLOCKS.register("tall_aegis_spire_orchid", name -> new ddraig.net.entropica.block.AegisSpireOrchidBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLUE).noCollision().randomTicks().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).noOcclusion()));
     public static final RegistrySupplier<Block> PYRE_SPROUT = BLOCKS.register("pyre_sprout", name -> new ddraig.net.entropica.block.PyreSproutBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_ORANGE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 10).noOcclusion()));
     public static final RegistrySupplier<Block> AURA_DRIFT_SEDGE = BLOCKS.register("aura_drift_sedge", name -> new ddraig.net.entropica.block.AuraDriftSedgeBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PINK).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).noOcclusion()));
     public static final RegistrySupplier<Block> SPECTRAL_LANTERN_FLOWER = BLOCKS.register("spectral_lantern_flower", name -> new ddraig.net.entropica.block.SpectralLanternFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_BLUE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 12).noOcclusion()));
@@ -346,7 +346,7 @@ public class ModBlocks {
     public static final RegistrySupplier<Block> TALL_VITAE_ORCHID = BLOCKS.register("tall_vitae_orchid", name -> new net.minecraft.world.level.block.TallFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_YELLOW).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 10).noOcclusion()));
     public static final RegistrySupplier<Block> TALL_VOID_STALKER_ORCHID = BLOCKS.register("tall_void_stalker_orchid", name -> new net.minecraft.world.level.block.TallFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PURPLE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).noOcclusion()));
     public static final RegistrySupplier<Block> TALL_AEGIS_ROSE = BLOCKS.register("tall_aegis_rose", name -> new net.minecraft.world.level.block.TallFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_PINK).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).noOcclusion()));
-    public static final RegistrySupplier<Block> AURORAL_LILY_PAD = BLOCKS.register("auroral_lily_pad", name -> new ddraig.net.entropica.block.AuroralLilyPadBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_GREEN).sound(SoundType.LILY_PAD).instabreak().noOcclusion()));
+    public static final RegistrySupplier<Block> AURORAL_LILY_PAD = BLOCKS.register("auroral_lily_pad", name -> new ddraig.net.entropica.block.AuroralLilyPadBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_LIGHT_GREEN).sound(SoundType.LILY_PAD).instabreak().lightLevel(state -> 11).randomTicks().noOcclusion()));
     public static final RegistrySupplier<Block> TALL_NECROTIC_ROSE_OF_JERICHO = BLOCKS.register("tall_necrotic_rose_of_jericho", name -> new net.minecraft.world.level.block.TallFlowerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLACK).noCollision().instabreak().sound(SoundType.GRASS).noOcclusion()));
     public static final RegistrySupplier<Block> CINDER_GRIP_LICHEN = BLOCKS.register("cinder_grip_lichen", name -> new ddraig.net.entropica.block.CinderGripLichenBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_ORANGE).noCollision().instabreak().sound(SoundType.GLOW_LICHEN).lightLevel(net.minecraft.world.level.block.GlowLichenBlock.emission(7)).noOcclusion()));
     public static final RegistrySupplier<Block> SOOT_SHROUD_FUNGI = BLOCKS.register("soot_shroud_fungi", name -> new ddraig.net.entropica.block.SootShroudFungiBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name)).mapColor(MapColor.COLOR_BLACK).noCollision().instabreak().sound(SoundType.FUNGUS).lightLevel(state -> 8).noOcclusion()));
@@ -806,17 +806,31 @@ public class ModBlocks {
     // BIOME 1: 2.1 BLUE-GLACIER SHELF & RUNIC SPIRE
     // ==========================================
     public static final RegistrySupplier<Block> AEGIS_CRYSTAL_BLOCK = BLOCKS.register("aegis_crystal_block",
-            name -> new AmethystBlock(BlockBehaviour.Properties.of()
+            name -> new ddraig.net.entropica.block.biome1.AegisCrystalBlock(BlockBehaviour.Properties.of()
                     .setId(ResourceKey.create(Registries.BLOCK, name))
                     .mapColor(MapColor.DIAMOND)
+                    .randomTicks()
                     .destroyTime(3.0f)
                     .explosionResistance(12.0f)
                     .requiresCorrectToolForDrops()
                     .sound(SoundType.AMETHYST)
                     .lightLevel(s -> 6)));
 
+    public static final RegistrySupplier<Block> AEGIS_CRYSTAL_BUD = BLOCKS.register("aegis_crystal_bud",
+            name -> new ddraig.net.entropica.block.biome1.AegisCrystalBudBlock(7.0F, 3.0F, BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DIAMOND)
+                    .forceSolidOn()
+                    .noOcclusion()
+                    .randomTicks()
+                    .destroyTime(1.5f)
+                    .explosionResistance(4.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST_CLUSTER)
+                    .lightLevel(s -> 3)));
+
     public static final RegistrySupplier<Block> AEGIS_CRYSTAL_CLUSTER = BLOCKS.register("aegis_crystal_cluster",
-            name -> new AmethystClusterBlock(7.0F, 3.0F, BlockBehaviour.Properties.of()
+            name -> new AmethystClusterBlock(12.0F, 1.5F, BlockBehaviour.Properties.of()
                     .setId(ResourceKey.create(Registries.BLOCK, name))
                     .mapColor(MapColor.DIAMOND)
                     .forceSolidOn()
@@ -849,6 +863,7 @@ public class ModBlocks {
             name -> new ddraig.net.entropica.block.biome1.GlacialHeartRootBlock(BlockBehaviour.Properties.of()
                     .setId(ResourceKey.create(Registries.BLOCK, name))
                     .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                    .randomTicks()
                     .noCollision()
                     .instabreak()
                     .sound(SoundType.HANGING_ROOTS)
@@ -906,21 +921,1152 @@ public class ModBlocks {
                     .sound(SoundType.STONE)
                     .lightLevel(s -> 3)));
 
-    public static final RegistrySupplier<ddraig.net.entropica.block.biome1.GlacialLifeForceAnchorBlock> GLACIAL_LIFE_FORCE_ANCHOR = BLOCKS.register("glacial_life_force_anchor",
-            name -> new ddraig.net.entropica.block.biome1.GlacialLifeForceAnchorBlock(BlockBehaviour.Properties.of()
-                    .setId(ResourceKey.create(Registries.BLOCK, name))
-                    .mapColor(MapColor.DIAMOND)
-                    .destroyTime(4.0f)
-                    .explosionResistance(24.0f)
-                    .requiresCorrectToolForDrops()
-                    .sound(SoundType.AMETHYST)
-                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome1.GlacialLifeForceAnchorBlock.ACTIVE) ? 15 : 6)));
-
     public static final RegistrySupplier<Block> AUTOCAST_PEDESTAL_ASTRAL_SLATE = BLOCKS.register("autocast_pedestal_astral_slate",
             name -> new ddraig.net.entropica.block.AutocastPedestalBlock(
                     ddraig.net.entropica.block.AutocastPedestalBlock.PedestalVariant.ASTRAL_SLATE,
                     BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, name))
                             .mapColor(MapColor.COLOR_GRAY).destroyTime(2.5f).requiresCorrectToolForDrops()
                             .sound(SoundType.STONE).lightLevel(s -> 5).noOcclusion()));
+
+    // ==========================================
+    // BIOME 2: 2.2 AURORAL SKERRIES & AURORAL WELLSPRING
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome2.GlimmerIceBlock> GLIMMER_ICE = BLOCKS.register("glimmer_ice",
+            name -> new ddraig.net.entropica.block.biome2.GlimmerIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.98f)
+                    .destroyTime(0.5f)
+                    .sound(SoundType.GLASS)
+                    .lightLevel(s -> 10)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<net.minecraft.world.level.block.ColoredFallingBlock> COARSE_GRAVEL = BLOCKS.register("coarse_gravel",
+            name -> new net.minecraft.world.level.block.ColoredFallingBlock(
+                    new net.minecraft.util.ColorRGBA(0x23262B),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, name))
+                            .mapColor(MapColor.COLOR_BLACK)
+                            .destroyTime(0.6f)
+                            .sound(SoundType.GRAVEL)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome2.AuroralFeatherMossBlock> AURORAL_FEATHER_MOSS = BLOCKS.register("auroral_feather_moss",
+            name -> new ddraig.net.entropica.block.biome2.AuroralFeatherMossBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.EMERALD)
+                    .destroyTime(0.1f)
+                    .sound(SoundType.MOSS_CARPET)
+                    .lightLevel(s -> 9)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome2.MistVeilFernBlock> MIST_VEIL_FERN = BLOCKS.register("mist_veil_fern",
+            name -> new ddraig.net.entropica.block.biome2.MistVeilFernBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.PLANT)
+                    .noCollision()
+                    .instabreak()
+                    .noOcclusion()
+                    .sound(SoundType.GRASS)
+                    .lightLevel(s -> 4)));
+
+    public static final RegistrySupplier<Block> POTTED_MIST_VEIL_FERN = BLOCKS.register("potted_mist_veil_fern",
+            name -> new FlowerPotBlock(ModBlocks.MIST_VEIL_FERN.get(),
+                    BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_POPPY)
+                            .setId(ResourceKey.create(Registries.BLOCK, name))
+                            .lightLevel(s -> 4)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome2.AuroralLanternBlock> AURORAL_LANTERN = BLOCKS.register("auroral_lantern",
+            name -> new ddraig.net.entropica.block.biome2.AuroralLanternBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.METAL)
+                    .lightLevel(s -> 15)
+                    .destroyTime(2.5f)
+                    .sound(SoundType.LANTERN)
+                    .randomTicks()
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome2.ThermalHeatLampBlock> THERMAL_HEAT_LAMP = BLOCKS.register("thermal_heat_lamp",
+            name -> new ddraig.net.entropica.block.biome2.ThermalHeatLampBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .lightLevel(s -> 14)
+                    .destroyTime(2.5f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER)
+                    .randomTicks()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome2.GlowGelPathingBlock> GLOW_GEL_PATHING = BLOCKS.register("glow_gel_pathing",
+            name -> new ddraig.net.entropica.block.biome2.GlowGelPathingBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome2.GlowGelPathingBlock.LIT) ? 13 : 6)
+                    .destroyTime(0.8f)
+                    .sound(SoundType.SLIME_BLOCK)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome2.StaticRedstoneCouplerBlock> STATIC_REDSTONE_COUPLER = BLOCKS.register("static_redstone_coupler",
+            name -> new ddraig.net.entropica.block.biome2.StaticRedstoneCouplerBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .destroyTime(1.5f)
+                    .sound(SoundType.COPPER)
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome2.StaticRedstoneCouplerBlock.POWERED) ? 10 : 2)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome2.AuroralLensBlock> AURORAL_LENS_BLOCK = BLOCKS.register("auroral_lens_block",
+            name -> new ddraig.net.entropica.block.biome2.AuroralLensBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DIAMOND)
+                    .lightLevel(s -> 12)
+                    .destroyTime(3.0f)
+                    .explosionResistance(12.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome2.AuroralMoteLightBlock> AURORAL_MOTE_LIGHT = BLOCKS.register("auroral_mote_light",
+            name -> new ddraig.net.entropica.block.biome2.AuroralMoteLightBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .lightLevel(s -> 14)
+                    .noCollision()
+                    .replaceable()
+                    .noOcclusion()
+                    .instabreak()
+                    .sound(SoundType.AMETHYST)));
+
+    // ==========================================
+    // BIOME 3: 2.3 FROST-BITE FLOES
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome3.RottenIceBlock> ROTTEN_ICE = BLOCKS.register("rotten_ice",
+            name -> new ddraig.net.entropica.block.biome3.RottenIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_LIGHT_GREEN)
+                    .friction(0.98f)
+                    .destroyTime(0.35f)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome3.BlightedPackedIceBlock> BLIGHTED_PACKED_ICE = BLOCKS.register("blighted_packed_ice",
+            name -> new ddraig.net.entropica.block.biome3.BlightedPackedIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_GREEN)
+                    .friction(0.98f)
+                    .destroyTime(0.6f)
+                    .sound(SoundType.GLASS)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome3.NecroticSlimePatchBlock> NECROTIC_SLIME_PATCH = BLOCKS.register("necrotic_slime_patch",
+            name -> new ddraig.net.entropica.block.biome3.NecroticSlimePatchBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_GREEN)
+                    .noCollision()
+                    .noOcclusion()
+                    .destroyTime(0.2f)
+                    .sound(SoundType.SLIME_BLOCK)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome3.NecroticSlimeBlock> NECROTIC_SLIME_BLOCK = BLOCKS.register("necrotic_slime_block",
+            name -> new ddraig.net.entropica.block.biome3.NecroticSlimeBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_GREEN)
+                    .friction(0.8f)
+                    .destroyTime(0.5f)
+                    .sound(SoundType.SLIME_BLOCK)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome3.FrozenSpruceBranchBlock> FROZEN_SPRUCE_BRANCH = BLOCKS.register("frozen_spruce_branch",
+            name -> new ddraig.net.entropica.block.biome3.FrozenSpruceBranchBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.WOOD)
+                    .destroyTime(1.2f)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<Block> CURED_FROST_HIDE_BLOCK = BLOCKS.register("cured_frost_hide_block",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .destroyTime(1.2f)
+                    .sound(SoundType.WOOL)));
+
+    // ==========================================
+    // BIOME 4: 2.4 CRYSTALLINE PACK-ICE & AEGIS SHIELDING MONOLITH
+    // ==========================================
+    public static final RegistrySupplier<Block> AEGIS_QUARTZ_BLOCK = BLOCKS.register("aegis_quartz_block",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.QUARTZ)
+                    .destroyTime(1.5f)
+                    .explosionResistance(8.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(s -> 6)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome4.AegisQuartzClusterBlock> AEGIS_QUARTZ_CLUSTER = BLOCKS.register("aegis_quartz_cluster",
+            name -> new ddraig.net.entropica.block.biome4.AegisQuartzClusterBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.QUARTZ)
+                    .forceSolidOn()
+                    .noOcclusion()
+                    .destroyTime(1.5f)
+                    .explosionResistance(6.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(s -> 7)));
+
+    public static final RegistrySupplier<net.minecraft.world.level.block.DropExperienceBlock> BISMUTH_ORE = BLOCKS.register("bismuth_ore",
+            name -> new net.minecraft.world.level.block.DropExperienceBlock(
+                    net.minecraft.util.valueproviders.UniformInt.of(2, 5),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, name))
+                            .mapColor(MapColor.STONE)
+                            .destroyTime(3.0f)
+                            .explosionResistance(6.0f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.STONE)));
+
+    public static final RegistrySupplier<Block> BISMUTH_BLOCK = BLOCKS.register("bismuth_block",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_MAGENTA)
+                    .destroyTime(4.0f)
+                    .explosionResistance(12.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.METAL)));
+
+    public static final RegistrySupplier<Block> AEGIS_PLATED_STONE = BLOCKS.register("aegis_plated_stone",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .destroyTime(100.0f)
+                    .explosionResistance(2400.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.NETHERITE_BLOCK)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome4.BismuthKeyPedestalBlock> BISMUTH_KEY_PEDESTAL = BLOCKS.register("bismuth_key_pedestal",
+            name -> new ddraig.net.entropica.block.biome4.BismuthKeyPedestalBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.STONE)
+                    .noOcclusion()
+                    .destroyTime(3.5f)
+                    .explosionResistance(600.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.STONE)
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome4.BismuthKeyPedestalBlock.UNLOCKED) ? 11 : 3)));
+
+    // ==========================================
+    // BIOME 5: 2.5 SILENT FJORD
+    // ==========================================
+    public static final RegistrySupplier<RotatedPillarBlock> BASALT_COLUMN = BLOCKS.register("basalt_column",
+            name -> new RotatedPillarBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .destroyTime(1.25f)
+                    .explosionResistance(4.2f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.BASALT)));
+
+    public static final RegistrySupplier<Block> CHISELED_ECLIPSE_BASALT = BLOCKS.register("chiseled_eclipse_basalt",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .destroyTime(1.5f)
+                    .explosionResistance(6.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.BASALT)
+                    .lightLevel(s -> 3)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome5.BlueFrozenMossBlock> BLUE_FROZEN_MOSS = BLOCKS.register("blue_frozen_moss",
+            name -> new ddraig.net.entropica.block.biome5.BlueFrozenMossBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .destroyTime(0.2f)
+                    .sound(SoundType.MOSS)
+                    .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome5.BlueFrozenMossCarpetBlock> BLUE_FROZEN_MOSS_CARPET = BLOCKS.register("blue_frozen_moss_carpet",
+            name -> new ddraig.net.entropica.block.biome5.BlueFrozenMossCarpetBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .destroyTime(0.1f)
+                    .noOcclusion()
+                    .sound(SoundType.MOSS_CARPET)
+                    .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome5.ShadowedEclipseMossBlock> SHADOWED_ECLIPSE_MOSS = BLOCKS.register("shadowed_eclipse_moss",
+            name -> new ddraig.net.entropica.block.biome5.ShadowedEclipseMossBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .randomTicks()
+                    .destroyTime(0.15f)
+                    .noOcclusion()
+                    .sound(SoundType.MOSS_CARPET)));
+
+    // ==========================================
+    // BIOME 6: 2.6 STEAMING SKERRIES & VAPOROUS GROTTO
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome6.SteamingIceBlock> STEAMING_ICE = BLOCKS.register("steaming_ice",
+            name -> new ddraig.net.entropica.block.biome6.SteamingIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.985f)
+                    .destroyTime(0.5f)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome6.SteamingSpringStoneBlock> STEAMING_SPRING_STONE = BLOCKS.register("steaming_spring_stone",
+            name -> new ddraig.net.entropica.block.biome6.SteamingSpringStoneBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .destroyTime(1.5f)
+                    .explosionResistance(6.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.BASALT)
+                    .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome6.VaporWeaverLichenBlock> VAPOR_WEAVER_LICHEN = BLOCKS.register("vapor_weaver_lichen",
+            name -> new ddraig.net.entropica.block.biome6.VaporWeaverLichenBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .noCollision()
+                    .noOcclusion()
+                    .randomTicks()
+                    .destroyTime(0.2f)
+                    .sound(SoundType.GLOW_LICHEN)
+                    .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome6.SteamVentBlock> STEAM_VENT = BLOCKS.register("steam_vent",
+            name -> new ddraig.net.entropica.block.biome6.SteamVentBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .randomTicks()
+                    .destroyTime(2.0f)
+                    .explosionResistance(8.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.BASALT)
+                    .lightLevel(s -> 3)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome6.VaporLiftMatBlock> VAPOR_LIFT_MAT = BLOCKS.register("vapor_lift_mat",
+            name -> new ddraig.net.entropica.block.biome6.VaporLiftMatBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .destroyTime(0.8f)
+                    .sound(SoundType.WOOL)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome6.VaporCondenserBlock> VAPOR_CONDENSER = BLOCKS.register("vapor_condenser",
+            name -> new ddraig.net.entropica.block.biome6.VaporCondenserBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .randomTicks()
+                    .noOcclusion()
+                    .destroyTime(2.5f)
+                    .explosionResistance(8.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER)
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome6.VaporCondenserBlock.POWERED) ? 7 : 2)));
+
+    // ==========================================
+    // BIOME 7: 2.7 STATIC ICE-PLAINS
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome7.FulguriteIceBlock> FULGURITE_ICE = BLOCKS.register("fulgurite_ice",
+            name -> new ddraig.net.entropica.block.biome7.FulguriteIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.98f)
+                    .destroyTime(0.6f)
+                    .sound(SoundType.GLASS)
+                    .lightLevel(s -> 4)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<RotatedPillarBlock> FULGURITE_PINE_LOG = BLOCKS.register("fulgurite_pine_log",
+            name -> new RotatedPillarBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .destroyTime(2.0f)
+                    .sound(SoundType.WOOD)
+                    .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome7.FulguritePineLeavesBlock> FULGURITE_PINE_LEAVES = BLOCKS.register("fulgurite_pine_leaves",
+            name -> new ddraig.net.entropica.block.biome7.FulguritePineLeavesBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .destroyTime(0.2f)
+                    .sound(SoundType.GRASS)
+                    .lightLevel(s -> 1)
+                    .noOcclusion()
+                    .isSuffocating((state, level, pos) -> false)
+                    .isViewBlocking((state, level, pos) -> false)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome7.StaticConductiveMatBlock> STATIC_CONDUCTIVE_MAT = BLOCKS.register("static_conductive_mat",
+            name -> new ddraig.net.entropica.block.biome7.StaticConductiveMatBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .destroyTime(0.8f)
+                    .sound(SoundType.COPPER)
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome7.StaticConductiveMatBlock.POWERED) ? 6 : 2)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome7.BiomassCapacitorBlock> BIOMASS_CAPACITOR = BLOCKS.register("biomass_capacitor",
+            name -> new ddraig.net.entropica.block.biome7.BiomassCapacitorBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DEEPSLATE)
+                    .noOcclusion()
+                    .destroyTime(2.5f)
+                    .explosionResistance(8.0f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER)
+                    .lightLevel(s -> (s.getValue(ddraig.net.entropica.block.biome7.BiomassCapacitorBlock.CHARGED)
+                            || s.getValue(ddraig.net.entropica.block.biome7.BiomassCapacitorBlock.DISCHARGING)) ? 12 : 3)));
+
+    // ==========================================
+    // BIOME 8: 2.8 BARROW-MOUND TUNDRA
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome8.NecroticSoilBlock> NECROTIC_SOIL = BLOCKS.register("necrotic_soil",
+            name -> new ddraig.net.entropica.block.biome8.NecroticSoilBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .strength(0.65F)
+                    .sound(SoundType.ROOTED_DIRT)
+                    .randomTicks()));
+
+    public static final RegistrySupplier<Block> BARROW_STONE_BRICKS = BLOCKS.register("barrow_stone_bricks",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DEEPSLATE)
+                    .requiresCorrectToolForDrops()
+                    .strength(2.0F, 6.0F)
+                    .sound(SoundType.DEEPSLATE_BRICKS)));
+
+    public static final RegistrySupplier<Block> CRACKED_BARROW_BRICKS = BLOCKS.register("cracked_barrow_bricks",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DEEPSLATE)
+                    .requiresCorrectToolForDrops()
+                    .strength(1.8F, 5.0F)
+                    .sound(SoundType.DEEPSLATE_BRICKS)));
+
+    public static final RegistrySupplier<Block> MOSSY_BARROW_BRICKS = BLOCKS.register("mossy_barrow_bricks",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DEEPSLATE)
+                    .requiresCorrectToolForDrops()
+                    .strength(2.0F, 6.0F)
+                    .sound(SoundType.DEEPSLATE_BRICKS)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome8.GraveMossBlock> GRAVE_MOSS = BLOCKS.register("grave_moss",
+            name -> new ddraig.net.entropica.block.biome8.GraveMossBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_GREEN)
+                    .strength(0.1F)
+                    .sound(SoundType.MOSS_CARPET)
+                    .lightLevel(s -> 1)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome8.CryptGraveRootBlock> CRYPT_GRAVE_ROOT = BLOCKS.register("crypt_grave_root",
+            name -> new ddraig.net.entropica.block.biome8.CryptGraveRootBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_BROWN)
+                    .strength(0.8F)
+                    .sound(SoundType.ROOTS)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome8.RimeCapMushroomBlock> RIME_CAP_MUSHROOM = BLOCKS.register("rime_cap_mushroom",
+            name -> new ddraig.net.entropica.block.biome8.RimeCapMushroomBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                    .noCollision()
+                    .instabreak()
+                    .noOcclusion()
+                    .sound(SoundType.FUNGUS)
+                    .lightLevel(s -> 6)));
+
+    public static final RegistrySupplier<Block> POTTED_RIME_CAP_MUSHROOM = BLOCKS.register("potted_rime_cap_mushroom",
+            name -> new FlowerPotBlock(ModBlocks.RIME_CAP_MUSHROOM.get(),
+                    BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_POPPY)
+                            .setId(ResourceKey.create(Registries.BLOCK, name))
+                            .lightLevel(s -> 6)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome8.RunedBrazierBlock> RUNED_BRAZIER = BLOCKS.register("runed_brazier",
+            name -> new ddraig.net.entropica.block.biome8.RunedBrazierBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DEEPSLATE)
+                    .strength(2.5F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.LANTERN)
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome8.RunedBrazierBlock.LIT) ? 14 : 0)
+                    .noOcclusion()
+                    .randomTicks()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome8.CryptSiphonLanternBlock> CRYPT_SIPHON_LANTERN = BLOCKS.register("crypt_siphon_lantern",
+            name -> new ddraig.net.entropica.block.biome8.CryptSiphonLanternBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DEEPSLATE)
+                    .strength(3.5F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.LANTERN)
+                    .lightLevel(s -> 13)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome8.BarrowSentinelTotemBlock> BARROW_SENTINEL_TOTEM = BLOCKS.register("barrow_sentinel_totem",
+            name -> new ddraig.net.entropica.block.biome8.BarrowSentinelTotemBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DEEPSLATE)
+                    .strength(2.5F, 8.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.DEEPSLATE_BRICKS)
+                    .lightLevel(s -> 6)
+                    .noOcclusion()
+                    .randomTicks()));
+
+    // ==========================================
+    // BIOME 9: 2.9 NULL-FRINGE BAY
+    // ==========================================
+    public static final RegistrySupplier<net.minecraft.world.level.block.ColoredFallingBlock> VOID_SAND = BLOCKS.register("void_sand",
+            name -> new net.minecraft.world.level.block.ColoredFallingBlock(
+                    new net.minecraft.util.ColorRGBA(0x2E1065),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, name))
+                            .mapColor(MapColor.COLOR_PURPLE)
+                            .strength(0.5F)
+                            .sound(SoundType.SAND)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome9.VoidSandTurfBlock> VOID_SAND_TURF = BLOCKS.register("void_sand_turf",
+            name -> new ddraig.net.entropica.block.biome9.VoidSandTurfBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .strength(0.65F)
+                    .sound(SoundType.SAND)));
+
+    public static final RegistrySupplier<Block> VOID_STONE = BLOCKS.register("void_stone",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DEEPSLATE)
+                    .requiresCorrectToolForDrops()
+                    .strength(2.5F, 8.0F)
+                    .sound(SoundType.DEEPSLATE)));
+
+    public static final RegistrySupplier<Block> OBSIDIAN_BRICKS = BLOCKS.register("obsidian_bricks",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .requiresCorrectToolForDrops()
+                    .strength(25.0F, 600.0F)
+                    .sound(SoundType.DEEPSLATE_BRICKS)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome9.VoidCrystalBlock> VOID_CRYSTAL_BLOCK = BLOCKS.register("void_crystal_block",
+            name -> new ddraig.net.entropica.block.biome9.VoidCrystalBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .requiresCorrectToolForDrops()
+                    .strength(1.8F, 6.0F)
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(s -> 9)
+                    .randomTicks()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome9.VoidCrystalClusterBlock> VOID_CRYSTAL_BUD = BLOCKS.register("void_crystal_bud",
+            name -> new ddraig.net.entropica.block.biome9.VoidCrystalClusterBlock(4.0F, 3.0F, BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .forceSolidOn()
+                    .noOcclusion()
+                    .strength(1.5F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(s -> 6)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome9.VoidCrystalClusterBlock> VOID_CRYSTAL_CLUSTER = BLOCKS.register("void_crystal_cluster",
+            name -> new ddraig.net.entropica.block.biome9.VoidCrystalClusterBlock(7.0F, 3.0F, BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .forceSolidOn()
+                    .noOcclusion()
+                    .strength(1.5F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(s -> 12)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome9.NullFringeTussockBlock> NULL_FRINGE_TUSSOCK = BLOCKS.register("null_fringe_tussock",
+            name -> new ddraig.net.entropica.block.biome9.NullFringeTussockBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .noCollision()
+                    .instabreak()
+                    .sound(SoundType.GRASS)
+                    .lightLevel(s -> 2)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<Block> POTTED_NULL_FRINGE_TUSSOCK = BLOCKS.register("potted_null_fringe_tussock",
+            name -> new FlowerPotBlock(ModBlocks.NULL_FRINGE_TUSSOCK.get(),
+                    BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_POPPY)
+                            .setId(ResourceKey.create(Registries.BLOCK, name))
+                            .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome9.SpatialPhaseAnchorBlock> SPATIAL_PHASE_ANCHOR = BLOCKS.register("spatial_phase_anchor",
+            name -> new ddraig.net.entropica.block.biome9.SpatialPhaseAnchorBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .strength(3.5F, 50.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.LODESTONE)
+                    .lightLevel(s -> 11)
+                    .noOcclusion()));
+
+    // ==========================================
+    // BIOME 10: 2.10 SUN-GLAZED SANCTUARY
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome10.RadiantSnowBlock> RADIANT_SNOW_BLOCK = BLOCKS.register("radiant_snow_block",
+            name -> new ddraig.net.entropica.block.biome10.RadiantSnowBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.SNOW)
+                    .strength(0.3F)
+                    .sound(SoundType.SNOW)
+                    .lightLevel(s -> 4)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome10.RadiantGlazeIceBlock> RADIANT_GLAZE_ICE = BLOCKS.register("radiant_glaze_ice",
+            name -> new ddraig.net.entropica.block.biome10.RadiantGlazeIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.96F)
+                    .strength(0.6F)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()
+                    .lightLevel(s -> 6)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome10.GlazedAmberLeavesBlock> GLAZED_AMBER_LEAVES = BLOCKS.register("glazed_amber_leaves",
+            name -> new ddraig.net.entropica.block.biome10.GlazedAmberLeavesBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.GOLD)
+                    .strength(0.2F)
+                    .randomTicks()
+                    .sound(SoundType.GRASS)
+                    .noOcclusion()
+                    .lightLevel(s -> 3)
+                    .isSuffocating((state, level, pos) -> false)
+                    .isViewBlocking((state, level, pos) -> false)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome10.GoldenLichenBlock> GOLDEN_LICHEN = BLOCKS.register("golden_lichen",
+            name -> new ddraig.net.entropica.block.biome10.GoldenLichenBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.GOLD)
+                    .noCollision()
+                    .instabreak()
+                    .sound(SoundType.GLOW_LICHEN)
+                    .lightLevel(net.minecraft.world.level.block.GlowLichenBlock.emission(7))
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome10.VitaeSpringStoneBlock> VITAE_SPRING_STONE = BLOCKS.register("vitae_spring_stone",
+            name -> new ddraig.net.entropica.block.biome10.VitaeSpringStoneBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.QUARTZ)
+                    .requiresCorrectToolForDrops()
+                    .strength(1.6F, 6.0F)
+                    .sound(SoundType.CALCITE)
+                    .lightLevel(s -> 5)
+                    .randomTicks()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome10.QilinLightRefractorBlock> QILIN_LIGHT_REFRACTOR = BLOCKS.register("qilin_light_refractor",
+            name -> new ddraig.net.entropica.block.biome10.QilinLightRefractorBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.EMERALD)
+                    .requiresCorrectToolForDrops()
+                    .strength(2.5F, 8.0F)
+                    .sound(SoundType.AMETHYST)
+                    .noOcclusion()
+                    .lightLevel(s -> 14)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome10.SunGlazedLanternBlock> SUN_GLAZED_LANTERN = BLOCKS.register("sun_glazed_lantern",
+            name -> new ddraig.net.entropica.block.biome10.SunGlazedLanternBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.GOLD)
+                    .requiresCorrectToolForDrops()
+                    .strength(2.0F, 6.0F)
+                    .sound(SoundType.LANTERN)
+                    .noOcclusion()
+                    .lightLevel(s -> 15)));
+
+    // ==========================================
+    // BIOME 11: 2.11 STORM-SWEPT ICEBERGS
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome11.FulguriteBlock> FULGURITE_BLOCK = BLOCKS.register("fulgurite_block",
+            name -> new ddraig.net.entropica.block.biome11.FulguriteBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .requiresCorrectToolForDrops()
+                    .strength(2.2F, 12.0F)
+                    .sound(SoundType.BASALT)
+                    .lightLevel(s -> 3)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome11.ZephyrIceBlock> ZEPHYR_ICE = BLOCKS.register("zephyr_ice",
+            name -> new ddraig.net.entropica.block.biome11.ZephyrIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.985F)
+                    .strength(0.5F)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()
+                    .lightLevel(s -> 3)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome11.ZephyrGlassGrassBlock> ZEPHYR_GLASS_GRASS = BLOCKS.register("zephyr_glass_grass",
+            name -> new ddraig.net.entropica.block.biome11.ZephyrGlassGrassBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DIAMOND)
+                    .noCollision()
+                    .instabreak()
+                    .sound(SoundType.GLASS)
+                    .lightLevel(s -> 2)
+                    .noOcclusion()
+                    .offsetType(BlockBehaviour.OffsetType.XZ)));
+
+    public static final RegistrySupplier<Block> POTTED_ZEPHYR_GLASS_GRASS = BLOCKS.register("potted_zephyr_glass_grass",
+            name -> new FlowerPotBlock(ModBlocks.ZEPHYR_GLASS_GRASS.get(),
+                    BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_POPPY)
+                            .setId(ResourceKey.create(Registries.BLOCK, name))
+                            .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome11.ZephyrUpdraftGrateBlock> ZEPHYR_UPDRAFT_GRATE = BLOCKS.register("zephyr_updraft_grate",
+            name -> new ddraig.net.entropica.block.biome11.ZephyrUpdraftGrateBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .noOcclusion()
+                    .strength(2.5F, 8.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER_GRATE)
+                    .randomTicks()
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome11.ZephyrUpdraftGrateBlock.POWERED) ? 11 : 6)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome11.SimurghWindTurbineBlock> SIMURGH_WIND_TURBINE = BLOCKS.register("simurgh_wind_turbine",
+            name -> new ddraig.net.entropica.block.biome11.SimurghWindTurbineBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.GOLD)
+                    .noOcclusion()
+                    .strength(2.2F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER)
+                    .randomTicks()
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome11.SimurghWindTurbineBlock.POWER) >= 12 ? 7 : 4)));
+
+    // ==========================================
+    // BIOME 12: 2.12 SPORE-GLAZED PACK
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome12.FrozenSporeMossBlock> FROZEN_SPORE_MOSS = BLOCKS.register("frozen_spore_moss",
+            name -> new ddraig.net.entropica.block.biome12.FrozenSporeMossBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_YELLOW)
+                    .strength(0.3F)
+                    .sound(SoundType.MOSS)
+                    .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome12.FrozenSporeMossCarpetBlock> FROZEN_SPORE_MOSS_CARPET = BLOCKS.register("frozen_spore_moss_carpet",
+            name -> new ddraig.net.entropica.block.biome12.FrozenSporeMossCarpetBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_YELLOW)
+                    .strength(0.1F)
+                    .sound(SoundType.MOSS)
+                    .lightLevel(s -> 1)
+                    .noOcclusion()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome12.SporeGlazedIceBlock> SPORE_GLAZED_ICE = BLOCKS.register("spore_glazed_ice",
+            name -> new ddraig.net.entropica.block.biome12.SporeGlazedIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.98F)
+                    .strength(0.5F)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()
+                    .lightLevel(s -> 3)));
+
+    public static final RegistrySupplier<RotatedPillarBlock> SPORE_WOOD_LOG = BLOCKS.register("spore_wood_log",
+            name -> new RotatedPillarBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_YELLOW)
+                    .destroyTime(2.0F)
+                    .sound(SoundType.WOOD)));
+
+    public static final RegistrySupplier<RotatedPillarBlock> SPORE_WOOD = BLOCKS.register("spore_wood",
+            name -> new RotatedPillarBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.WOOD)
+                    .destroyTime(2.0F)
+                    .sound(SoundType.WOOD)));
+
+    public static final RegistrySupplier<Block> SPORE_WOOD_PLANKS = BLOCKS.register("spore_wood_planks",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_YELLOW)
+                    .strength(2.0F, 3.0F)
+                    .sound(SoundType.WOOD)));
+
+    public static final RegistrySupplier<StairBlock> SPORE_WOOD_STAIRS = BLOCKS.register("spore_wood_stairs",
+            name -> new StairBlock(ModBlocks.SPORE_WOOD_PLANKS.get().defaultBlockState(), BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_YELLOW)
+                    .strength(2.0F, 3.0F)
+                    .sound(SoundType.WOOD)));
+
+    public static final RegistrySupplier<SlabBlock> SPORE_WOOD_SLAB = BLOCKS.register("spore_wood_slab",
+            name -> new SlabBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_YELLOW)
+                    .strength(2.0F, 3.0F)
+                    .sound(SoundType.WOOD)));
+
+    public static final RegistrySupplier<FenceBlock> SPORE_WOOD_FENCE = BLOCKS.register("spore_wood_fence",
+            name -> new FenceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_YELLOW)
+                    .strength(2.0F, 3.0F)
+                    .sound(SoundType.WOOD)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome12.FrozenSporeLeavesBlock> FROZEN_SPORE_LEAVES = BLOCKS.register("frozen_spore_leaves",
+            name -> new ddraig.net.entropica.block.biome12.FrozenSporeLeavesBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_LIGHT_GREEN)
+                    .strength(0.2F)
+                    .sound(SoundType.GRASS)
+                    .noOcclusion()
+                    .isSuffocating((s, l, p) -> false)
+                    .isViewBlocking((s, l, p) -> false)
+                    .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome12.GlazeCapMushroomBlock> GLAZE_CAP_MUSHROOM_BLOCK = BLOCKS.register("glaze_cap_mushroom_block",
+            name -> new ddraig.net.entropica.block.biome12.GlazeCapMushroomBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.GOLD)
+                    .strength(0.4F)
+                    .sound(SoundType.WOOD)
+                    .lightLevel(s -> 4)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome12.SporeBellowsBlock> SPORE_BELLOWS = BLOCKS.register("spore_bellows",
+            name -> new ddraig.net.entropica.block.biome12.SporeBellowsBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.WOOD)
+                    .noOcclusion()
+                    .strength(2.0F, 5.0F)
+                    .sound(SoundType.WOOD)
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome12.SporeBellowsBlock.TRIGGERED) ? 6 : 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome12.CryoSporeCenserBlock> CRYO_SPORE_CENSER = BLOCKS.register("cryo_spore_censer",
+            name -> new ddraig.net.entropica.block.biome12.CryoSporeCenserBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .noOcclusion()
+                    .strength(2.2F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.LANTERN)
+                    .randomTicks()
+                    .lightLevel(s -> 13)));
+
+    // ==========================================
+    // BIOME 13: 2.13 MIRAGE GLACIER
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome13.GlassSandBlock> GLASS_SAND = BLOCKS.register("glass_sand",
+            name -> new ddraig.net.entropica.block.biome13.GlassSandBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.TERRACOTTA_ORANGE)
+                    .strength(0.5F)
+                    .sound(SoundType.SAND)));
+
+    public static final RegistrySupplier<Block> GLASS_SANDSTONE = BLOCKS.register("glass_sandstone",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.TERRACOTTA_ORANGE)
+                    .requiresCorrectToolForDrops()
+                    .strength(1.2F, 4.0F)
+                    .sound(SoundType.STONE)));
+
+    public static final RegistrySupplier<StairBlock> GLASS_SANDSTONE_STAIRS = BLOCKS.register("glass_sandstone_stairs",
+            name -> new StairBlock(ModBlocks.GLASS_SANDSTONE.get().defaultBlockState(), BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.TERRACOTTA_ORANGE)
+                    .requiresCorrectToolForDrops()
+                    .strength(1.2F, 4.0F)
+                    .sound(SoundType.STONE)));
+
+    public static final RegistrySupplier<SlabBlock> GLASS_SANDSTONE_SLAB = BLOCKS.register("glass_sandstone_slab",
+            name -> new SlabBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.TERRACOTTA_ORANGE)
+                    .requiresCorrectToolForDrops()
+                    .strength(1.2F, 4.0F)
+                    .sound(SoundType.STONE)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome13.MirageIceBlock> MIRAGE_ICE = BLOCKS.register("mirage_ice",
+            name -> new ddraig.net.entropica.block.biome13.MirageIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.985F)
+                    .strength(0.5F)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome13.MirageIceBlock.PHASED) ? 3 : 6)
+                    .isSuffocating((s, l, p) -> !s.getValue(ddraig.net.entropica.block.biome13.MirageIceBlock.PHASED))
+                    .isViewBlocking((s, l, p) -> !s.getValue(ddraig.net.entropica.block.biome13.MirageIceBlock.PHASED))));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome13.MiragePrismLanternBlock> MIRAGE_PRISM_LANTERN = BLOCKS.register("mirage_prism_lantern",
+            name -> new ddraig.net.entropica.block.biome13.MiragePrismLanternBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.GOLD)
+                    .noOcclusion()
+                    .strength(2.2F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.LANTERN)
+                    .randomTicks()
+                    .lightLevel(s -> 15)));
+
+    // ==========================================
+    // BIOME 14: 2.14 OASIS FLOES
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome14.FrostWillowLeavesBlock> FROST_WILLOW_LEAVES = BLOCKS.register("frost_willow_leaves",
+            name -> new ddraig.net.entropica.block.biome14.FrostWillowLeavesBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.PLANT)
+                    .strength(0.2F)
+                    .sound(SoundType.GRASS)
+                    .noOcclusion()
+                    .ignitedByLava()
+                    .isSuffocating((s, l, p) -> false)
+                    .isViewBlocking((s, l, p) -> false)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome14.FrostWillowVinesBlock> FROST_WILLOW_VINES = BLOCKS.register("frost_willow_vines",
+            name -> new ddraig.net.entropica.block.biome14.FrostWillowVinesBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.PLANT)
+                    .replaceable()
+                    .noCollision()
+                    .noOcclusion()
+                    .randomTicks()
+                    .strength(0.2F)
+                    .sound(SoundType.VINE)
+                    .ignitedByLava()
+                    .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                    .lightLevel(s -> 2)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome14.AmberResinBlock> AMBER_RESIN_BLOCK = BLOCKS.register("amber_resin_block",
+            name -> new ddraig.net.entropica.block.biome14.AmberResinBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .friction(0.8F)
+                    .strength(0.6F)
+                    .sound(SoundType.HONEY_BLOCK)
+                    .noOcclusion()
+                    .lightLevel(s -> 4)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome14.AmberTorchBlock> AMBER_TORCH = BLOCKS.register("amber_torch",
+            name -> new ddraig.net.entropica.block.biome14.AmberTorchBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .noCollision()
+                    .instabreak()
+                    .lightLevel(s -> 14)
+                    .sound(SoundType.WOOD)
+                    .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                    .randomTicks()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome14.WallAmberTorchBlock> WALL_AMBER_TORCH = BLOCKS.register("wall_amber_torch",
+            name -> new ddraig.net.entropica.block.biome14.WallAmberTorchBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .overrideDescription(AMBER_TORCH.get().getDescriptionId())
+                    .noCollision()
+                    .instabreak()
+                    .lightLevel(s -> 14)
+                    .sound(SoundType.WOOD)
+                    .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                    .randomTicks()));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome14.OasisDewBasinBlock> OASIS_DEW_BASIN = BLOCKS.register("oasis_dew_basin",
+            name -> new ddraig.net.entropica.block.biome14.OasisDewBasinBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.QUARTZ)
+                    .noOcclusion()
+                    .strength(2.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.STONE)
+                    .randomTicks()
+                    .lightLevel(s -> s.getValue(ddraig.net.entropica.block.biome14.OasisDewBasinBlock.INFUSED) ? 14 : 12)));
+
+    // ==========================================
+    // BIOME 15: 2.15 DUST-CRUSTED BERGS
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome15.DustCrustedIceBlock> DUST_CRUSTED_ICE = BLOCKS.register("dust_crusted_ice",
+            name -> new ddraig.net.entropica.block.biome15.DustCrustedIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.96F)
+                    .strength(0.6F)
+                    .sound(SoundType.GLASS)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome15.GreySandBlock> GREY_SAND = BLOCKS.register("grey_sand",
+            name -> new ddraig.net.entropica.block.biome15.GreySandBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_LIGHT_GRAY)
+                    .instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.SNARE)
+                    .strength(0.5F)
+                    .sound(SoundType.SAND)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome15.WindBlownDustScrubBlock> WIND_BLOWN_DUST_SCRUB = BLOCKS.register("wind_blown_dust_scrub",
+            name -> new ddraig.net.entropica.block.biome15.WindBlownDustScrubBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.WOOD)
+                    .noCollision()
+                    .noOcclusion()
+                    .instabreak()
+                    .randomTicks()
+                    .ignitedByLava()
+                    .sound(SoundType.GRASS)
+                    .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                    .offsetType(BlockBehaviour.OffsetType.XZ)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome15.ToughFiberRopeBlock> TOUGH_FIBER_ROPE = BLOCKS.register("tough_fiber_rope",
+            name -> new ddraig.net.entropica.block.biome15.ToughFiberRopeBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.SAND)
+                    .noOcclusion()
+                    .strength(0.4F)
+                    .sound(SoundType.LADDER)
+                    .ignitedByLava()
+                    .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome15.WindBaffleLanternBlock> WIND_BAFFLE_LANTERN = BLOCKS.register("wind_baffle_lantern",
+            name -> new ddraig.net.entropica.block.biome15.WindBaffleLanternBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.GOLD)
+                    .noOcclusion()
+                    .strength(2.2F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.LANTERN)
+                    .randomTicks()
+                    .lightLevel(s -> 14)));
+
+    // ==========================================
+    // BIOME 16: 2.16 BLOOD-ICE SHALLOWS
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome16.SanguineIceBlock> SANGUINE_ICE = BLOCKS.register("sanguine_ice",
+            name -> new ddraig.net.entropica.block.biome16.SanguineIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.CRIMSON_NYLIUM)
+                    .friction(0.98F)
+                    .strength(0.5F)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()
+                    .lightLevel(s -> 3)
+                    .isValidSpawn((s, g, p, e) -> true)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome16.RedClaySandBlock> RED_CLAY_SAND = BLOCKS.register("red_clay_sand",
+            name -> new ddraig.net.entropica.block.biome16.RedClaySandBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.TERRACOTTA_RED)
+                    .instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.SNARE)
+                    .strength(0.6F)
+                    .sound(SoundType.SAND)));
+
+    public static final RegistrySupplier<Block> SANGUINE_CLAY_BRICKS = BLOCKS.register("sanguine_clay_bricks",
+            name -> new Block(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.TERRACOTTA_RED)
+                    .instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM)
+                    .strength(2.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.DEEPSLATE_BRICKS)));
+
+    public static final RegistrySupplier<StairBlock> SANGUINE_CLAY_BRICK_STAIRS = BLOCKS.register("sanguine_clay_brick_stairs",
+            name -> new StairBlock(ModBlocks.SANGUINE_CLAY_BRICKS.get().defaultBlockState(), BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.TERRACOTTA_RED)
+                    .instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM)
+                    .strength(2.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.DEEPSLATE_BRICKS)));
+
+    public static final RegistrySupplier<SlabBlock> SANGUINE_CLAY_BRICK_SLAB = BLOCKS.register("sanguine_clay_brick_slab",
+            name -> new SlabBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.TERRACOTTA_RED)
+                    .instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM)
+                    .strength(2.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.DEEPSLATE_BRICKS)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome16.RedAlgaeBlock> RED_ALGAE = BLOCKS.register("red_algae",
+            name -> new ddraig.net.entropica.block.biome16.RedAlgaeBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.CRIMSON_NYLIUM)
+                    .noCollision()
+                    .noOcclusion()
+                    .instabreak()
+                    .sound(SoundType.WET_GRASS)
+                    .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome16.CrimsonTideLanternBlock> CRIMSON_TIDE_LANTERN = BLOCKS.register("crimson_tide_lantern",
+            name -> new ddraig.net.entropica.block.biome16.CrimsonTideLanternBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.CRIMSON_NYLIUM)
+                    .noOcclusion()
+                    .strength(2.5F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.LANTERN)
+                    .randomTicks()
+                    .lightLevel(s -> 15)));
+
+    // ==========================================
+    // BIOME 17: 2.17 ASTRAL SKERRIES
+    // ==========================================
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome17.StarlightIceBlock> STARLIGHT_ICE = BLOCKS.register("starlight_ice",
+            name -> new ddraig.net.entropica.block.biome17.StarlightIceBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.ICE)
+                    .friction(0.985F)
+                    .strength(0.6F)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()
+                    .lightLevel(s -> 5)
+                    .isValidSpawn((s, g, p, e) -> true)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome17.StardustCrystalBlock> STARDUST_CRYSTAL_BLOCK = BLOCKS.register("stardust_crystal_block",
+            name -> new ddraig.net.entropica.block.biome17.StardustCrystalBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DIAMOND)
+                    .strength(1.5F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(s -> 9)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome17.StardustCrystalClusterBlock> STARDUST_CRYSTAL_CLUSTER = BLOCKS.register("stardust_crystal_cluster",
+            name -> new ddraig.net.entropica.block.biome17.StardustCrystalClusterBlock(7.0F, 3.0F, BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.DIAMOND)
+                    .forceSolidOn()
+                    .noOcclusion()
+                    .strength(1.5F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.AMETHYST_CLUSTER)
+                    .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                    .lightLevel(s -> 12)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome17.RimeStarTussockBlock> RIME_STAR_TUSSOCK = BLOCKS.register("rime_star_tussock",
+            name -> new ddraig.net.entropica.block.biome17.RimeStarTussockBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                    .noCollision()
+                    .noOcclusion()
+                    .instabreak()
+                    .sound(SoundType.GRASS)
+                    .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                    .lightLevel(s -> 3)));
+
+    public static final RegistrySupplier<Block> POTTED_RIME_STAR_TUSSOCK = BLOCKS.register("potted_rime_star_tussock",
+            name -> new FlowerPotBlock(ModBlocks.RIME_STAR_TUSSOCK.get(),
+                    BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_POPPY)
+                            .setId(ResourceKey.create(Registries.BLOCK, name))
+                            .lightLevel(s -> 3)));
+
+    public static final RegistrySupplier<ddraig.net.entropica.block.biome17.CelestialOrreryLanternBlock> CELESTIAL_ORRERY_LANTERN = BLOCKS.register("celestial_orrery_lantern",
+            name -> new ddraig.net.entropica.block.biome17.CelestialOrreryLanternBlock(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, name))
+                    .mapColor(MapColor.GOLD)
+                    .noOcclusion()
+                    .strength(2.5F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.LANTERN)
+                    .randomTicks()
+                    .lightLevel(s -> 15)));
 }
 

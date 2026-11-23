@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " C ",
+    "CRC",
+    " C "
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "R": "entropica:tough_fiber_rope"
+  },
+  "result": {
+    "id": "entropica:copper_silt_sieve",
+    "count": 1
+  }
+}

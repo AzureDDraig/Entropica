@@ -1,0 +1,109 @@
+{
+  "ambientocclusion": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "mote": "entropica:block/auroral_mote_light",
+    "particle": "entropica:block/auroral_mote_light"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        3,
+        8
+      ],
+      "to": [
+        13,
+        13,
+        8
+      ],
+      "shade": false,
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#mote"
+        },
+        "south": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#mote"
+        }
+      }
+    },
+    {
+      "from": [
+        8,
+        3,
+        3
+      ],
+      "to": [
+        8,
+        13,
+        13
+      ],
+      "shade": false,
+      "faces": {
+        "east": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#mote"
+        },
+        "west": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#mote"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        8,
+        3
+      ],
+      "to": [
+        13,
+        8,
+        13
+      ],
+      "shade": false,
+      "faces": {
+        "up": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#mote"
+        },
+        "down": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#mote"
+        }
+      }
+    }
+  ]
+}

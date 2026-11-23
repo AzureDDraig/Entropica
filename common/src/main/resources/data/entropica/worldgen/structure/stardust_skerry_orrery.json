@@ -1,0 +1,7 @@
+{
+  "type": "entropica:stardust_skerry_orrery",
+  "biomes": "#entropica:has_structure/stardust_skerry_orrery",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "none"
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###"
+  ],
+  "key": {
+    "#": "entropica:necrotic_slime"
+  },
+  "result": {
+    "id": "entropica:necrotic_slime_patch",
+    "count": 6
+  }
+}

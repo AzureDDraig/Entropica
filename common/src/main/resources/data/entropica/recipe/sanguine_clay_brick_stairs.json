@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "#  ",
+    "## ",
+    "###"
+  ],
+  "key": {
+    "#": "entropica:sanguine_clay_bricks"
+  },
+  "result": {
+    "id": "entropica:sanguine_clay_brick_stairs",
+    "count": 4
+  }
+}

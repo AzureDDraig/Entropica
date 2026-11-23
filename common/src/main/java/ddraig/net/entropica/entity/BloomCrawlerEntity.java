@@ -55,7 +55,7 @@ public class BloomCrawlerEntity extends Animal {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 10.0D)
+                .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.22D)
                 .add(Attributes.TEMPT_RANGE, 8.0D);
     }
@@ -313,6 +313,10 @@ public class BloomCrawlerEntity extends Animal {
             else if (roll < 0.66f) flower = Items.SPORE_BLOSSOM;
             this.spawnAtLocation(serverLevel, new ItemStack(flower, 1));
         }
+
+        ItemStack overgrowthEssence = new ItemStack(ModItems.AVERAGE_ESSENCE.get(), 2 + this.random.nextInt(2));
+        ddraig.net.entropica.item.EssenceItem.setEssenceType(overgrowthEssence, ddraig.net.entropica.api.EssenceType.OVERGROWTH);
+        this.spawnAtLocation(serverLevel, overgrowthEssence);
     }
 
     public void triggerFlee() {

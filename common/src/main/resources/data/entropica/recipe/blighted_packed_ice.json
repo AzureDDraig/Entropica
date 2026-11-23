@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "minecraft:packed_ice",
+    "minecraft:packed_ice",
+    "minecraft:packed_ice",
+    "minecraft:packed_ice",
+    "entropica:rot_powder",
+    "entropica:necrotic_slime"
+  ],
+  "result": {
+    "id": "entropica:blighted_packed_ice",
+    "count": 4
+  }
+}

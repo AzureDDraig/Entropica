@@ -1,10 +1,17 @@
 package ddraig.net.entropica.entity;
 
+import ddraig.net.entropica.Entropica;
+import ddraig.net.entropica.block.EntropicaFloraGroundHelper;
+import ddraig.net.entropica.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -15,7 +22,9 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ambient.AmbientCreature;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec3;
@@ -55,7 +64,7 @@ public class SporeDrifterEntity extends AmbientCreature {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 12.0D)
+                .add(Attributes.MAX_HEALTH, 24.0D)
                 .add(Attributes.FLYING_SPEED, 0.15D)
                 .add(Attributes.MOVEMENT_SPEED, 0.12D);
     }
@@ -148,17 +157,79 @@ public class SporeDrifterEntity extends AmbientCreature {
         }
     }
 
+    private static final ResourceLocation FROZEN_SPORE_MOSS_ID =
+            ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "frozen_spore_moss");
+    private static final ResourceLocation SPORE_GLAZED_ICE_ID =
+            ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "spore_glazed_ice");
+
+    public static boolean checkSporeDrifterSpawnRules(
+            EntityType<? extends Mob> type,
+            ServerLevelAccessor level,
+            EntitySpawnReason spawnReason,
+            BlockPos pos,
+            RandomSource random
+    ) {
+        if (EntitySpawnReason.isSpawner(spawnReason)
+                || spawnReason == EntitySpawnReason.SPAWN_ITEM_USE
+                || spawnReason == EntitySpawnReason.COMMAND) {
+            return true;
+        }
+        BlockState atPos = level.getBlockState(pos);
+        if (!atPos.getFluidState().isEmpty() || atPos.blocksMotion()) {
+            return false;
+        }
+        BlockState below = level.getBlockState(pos.below());
+        return below.getFluidState().isEmpty();
+    }
+
+    private static boolean isDisallowedIceSubstrate(BlockState state) {
+        if (EntropicaFloraGroundHelper.isAnyIce(state)) {
+            return true;
+        }
+        return SPORE_GLAZED_ICE_ID.equals(BuiltInRegistries.BLOCK.getKey(state.getBlock()));
+    }
+
     private void seedMushroomsBelow() {
         BlockPos below = this.blockPosition().below();
-        while (below.getY() > this.level().getMinY() && this.level().isEmptyBlock(below)) {
+        while (below.getY() > this.level().getMinY()
+                && (this.level().isEmptyBlock(below)
+                    || this.level().getBlockState(below).is(Blocks.SNOW)
+                    || this.level().getBlockState(below).getBlock() instanceof SnowLayerBlock)) {
             below = below.below();
         }
         BlockPos groundPos = below.above();
-        if (this.level().isEmptyBlock(groundPos)) {
+        BlockState groundAt = this.level().getBlockState(groundPos);
+        if (groundAt.isAir() || groundAt.is(Blocks.SNOW) || groundAt.getBlock() instanceof SnowLayerBlock) {
             BlockState underState = this.level().getBlockState(below);
-            if (underState.is(Blocks.MYCELIUM) || underState.is(Blocks.MOSS_BLOCK) || underState.is(Blocks.GRASS_BLOCK) || underState.is(Blocks.DIRT)) {
-                BlockState mushroom = this.random.nextBoolean() ? Blocks.BROWN_MUSHROOM.defaultBlockState() : Blocks.RED_MUSHROOM.defaultBlockState();
-                this.level().setBlockAndUpdate(groundPos, mushroom);
+            if (isDisallowedIceSubstrate(underState)) {
+                return;
+            }
+            boolean isFrozenSporeOrSnow = underState.is(Blocks.SNOW_BLOCK)
+                    || FROZEN_SPORE_MOSS_ID.equals(BuiltInRegistries.BLOCK.getKey(underState.getBlock()));
+            if (isFrozenSporeOrSnow) {
+                BlockState seeded;
+                if (this.random.nextFloat() < 0.40F && ModBlocks.SPORE_BURST_PUFFBALL.isPresent()) {
+                    seeded = ModBlocks.SPORE_BURST_PUFFBALL.get().defaultBlockState();
+                } else {
+                    seeded = this.random.nextBoolean()
+                            ? Blocks.BROWN_MUSHROOM.defaultBlockState()
+                            : Blocks.RED_MUSHROOM.defaultBlockState();
+                }
+                if (seeded.canSurvive(this.level(), groundPos)) {
+                    this.level().setBlockAndUpdate(groundPos, seeded);
+                } else {
+                    this.level().setBlock(groundPos, seeded, 2);
+                }
+            } else if (underState.is(Blocks.MYCELIUM)
+                    || underState.is(Blocks.MOSS_BLOCK)
+                    || underState.is(Blocks.GRASS_BLOCK)
+                    || underState.is(Blocks.DIRT)) {
+                BlockState mushroom = this.random.nextBoolean()
+                        ? Blocks.BROWN_MUSHROOM.defaultBlockState()
+                        : Blocks.RED_MUSHROOM.defaultBlockState();
+                if (mushroom.canSurvive(this.level(), groundPos)) {
+                    this.level().setBlockAndUpdate(groundPos, mushroom);
+                }
             }
         }
     }

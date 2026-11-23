@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " R ",
+    "QCQ",
+    " S "
+  ],
+  "key": {
+    "R": "minecraft:redstone",
+    "Q": "entropica:static_quill",
+    "C": "minecraft:copper_ingot",
+    "S": "minecraft:smooth_stone_slab"
+  },
+  "result": {
+    "id": "entropica:static_redstone_coupler",
+    "count": 1
+  }
+}

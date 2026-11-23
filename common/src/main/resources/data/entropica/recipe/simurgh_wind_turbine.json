@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "FCF",
+    "SGS",
+    "DPD"
+  ],
+  "key": {
+    "F": "entropica:zephyr_glass_fiber",
+    "C": "minecraft:copper_ingot",
+    "S": "entropica:simurgh_feather",
+    "G": "minecraft:gold_ingot",
+    "D": "minecraft:deepslate_bricks",
+    "P": "entropica:static_frost_powder"
+  },
+  "result": {
+    "id": "entropica:simurgh_wind_turbine",
+    "count": 1
+  }
+}

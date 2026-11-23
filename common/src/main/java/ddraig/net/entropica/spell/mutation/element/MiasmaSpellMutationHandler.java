@@ -88,12 +88,14 @@ public final class MiasmaSpellMutationHandler implements MateriaPartMutationHand
 
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Virulent Contagion-Chain Flow";
+        return flow == SpellFlowModifier.CHAIN_LEAP ? "Virulent Contagion-Chain Flow" : null;
     }
 
     @Override
     public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "Modifies projectile and strike spells so caustic tendrils of stagnant swamp bile (#1A5923 / #4D6453 / #225C7C) leap to up to 4 nearby hostiles within 6m; each chained target takes 60% initial damage, suffers Slowness II, and loses 25% armor toughness for 5.0s.";
+        return flow == SpellFlowModifier.CHAIN_LEAP
+                ? "Modifies projectile and strike spells so caustic tendrils of stagnant swamp bile (#1A5923 / #4D6453 / #225C7C) leap to up to 4 nearby hostiles within 6m; each chained target takes 60% initial damage, suffers Slowness II, and loses 25% armor toughness for 5.0s."
+                : null;
     }
 
     @Override
@@ -326,11 +328,23 @@ public final class MiasmaSpellMutationHandler implements MateriaPartMutationHand
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Section 6.46 Decomposing Quagmire Siphon Ray & Sinkhole:
-        // Drains health back to the caster (restoring 1 heart / 2.0 HP every 1.5s / 30t) while dragging the victim
-        // 1.5m/s closer through murky swamp slipstreams;
-        // REQUIRES 5.0s (100 contact ticks) continuous channeling to trigger Swamp Quagmire Collapse
-        // (drags target & all nearby hostiles downward into the ground, roots 4.0s / 80t & inflicts Wither II)!
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         int tier = spell.getEffectiveTier();
         boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
         long now = level.getGameTime();
@@ -363,13 +377,17 @@ public final class MiasmaSpellMutationHandler implements MateriaPartMutationHand
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_MIASMA_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) {
+                continue;
+            }
             long delta = now - last;
-            int stepTicks = (delta > 0L && delta <= 8L) ? (int) Math.max(4L, delta) : 20;
-            int contactTicks = (delta <= 45L) ? data.getInt(TAG_MIASMA_BEAM_TICKS).orElse(0) + stepTicks : stepTicks;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt(TAG_MIASMA_BEAM_TICKS).orElse(0) + (int) delta : 4);
             data.putLong(TAG_MIASMA_BEAM_LAST_TICK, now);
             data.putInt(TAG_MIASMA_BEAM_TICKS, contactTicks);
 
-            if (contactTicks >= 100) {
+            if (heldTicks > 0 && contactTicks >= 100) {
                 data.putInt(TAG_MIASMA_BEAM_TICKS, 0);
                 SpellWorldVfxManager.broadcastRadialNova(level, hit.position(), 3.8D, EssenceType.MIASMA, EssenceType.UNDEAD, tier);
                 SpellWorldVfxManager.broadcastArcaneSeal(level, hit.position().add(0.0D, 0.04D, 0.0D), 3.8D, EssenceType.MIASMA, EssenceType.EARTH, 80, tier);
@@ -762,16 +780,21 @@ public final class MiasmaSpellMutationHandler implements MateriaPartMutationHand
         }
 
         final boolean[] landed = new boolean[boulderCount];
-        Map<BlockPos, BlockState> savedBogTurf = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 520, level.getGameTime(), spell, slot, EssenceType.MIASMA, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedBogTurf.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.MUD) || cur.is(Blocks.MUDDY_MANGROVE_ROOTS) || cur.is(Blocks.MOSS_CARPET)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
+                                boolean peatCore = (mIdx % 2 == 0);
+                                BlockState pseudoState = peatCore
+                                        ? Blocks.MUDDY_MANGROVE_ROOTS.defaultBlockState()
+                                        : Blocks.MUD.defaultBlockState();
+                                int colHeight = peatCore ? 2 : 1;
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, boulderTargets[mIdx], pseudoState, colHeight);
                             }
                         }
                         return false;
@@ -792,7 +815,7 @@ public final class MiasmaSpellMutationHandler implements MateriaPartMutationHand
                             int colHeight = peatCore ? 2 : 1;
 
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 360 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -817,9 +840,6 @@ public final class MiasmaSpellMutationHandler implements MateriaPartMutationHand
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.MUD_BREAK, SoundSource.PLAYERS, 0.90F, 0.68F);
                             }
-                            if (landed[mIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, colHeight, false);
-                            }
                         }
 
                         // 2. Torrential putrid bog-water & virulent smog bursts!
@@ -833,28 +853,10 @@ public final class MiasmaSpellMutationHandler implements MateriaPartMutationHand
                             );
                             srv.sendParticles(ParticleTypes.SNEEZE, strike.x, strike.y + 0.8D, strike.z, 8, 0.7D, 0.6D, 0.7D, 0.04D);
                         }
-                    } else if (elapsed == 360) {
-                        // Downpour complete: materialize real temporary bubbling quagmire turf for the 8.0s (160t) mire!
-                        for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
-                            BlockPos strikePos = boulderTargets[mIdx];
-                            BlockPos ground = strikePos.below();
-                            BlockState gs = srv.getBlockState(ground);
-                            if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE) || gs.is(Blocks.COBBLESTONE))
-                                    && !savedBogTurf.containsKey(ground)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, ground, gs)) {
-                                savedBogTurf.put(ground.immutable(), gs);
-                                srv.setBlockAndUpdate(ground, (mIdx % 2 == 0)
-                                        ? Blocks.MUDDY_MANGROVE_ROOTS.defaultBlockState()
-                                        : Blocks.MUD.defaultBlockState());
-                            }
-                            BlockState above = srv.getBlockState(strikePos);
-                            if (above.isAir()
-                                    && Blocks.MOSS_CARPET.defaultBlockState().canSurvive(srv, strikePos)
-                                    && !savedBogTurf.containsKey(strikePos)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, strikePos, above)) {
-                                savedBogTurf.put(strikePos.immutable(), above);
-                                srv.setBlockAndUpdate(strikePos, Blocks.MOSS_CARPET.defaultBlockState());
-                            }
+                    }
+                    for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
+                        if (landed[mIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, boulderTargets[mIdx], (mIdx % 2 == 0) ? 2 : 1, false);
                         }
                     }
 

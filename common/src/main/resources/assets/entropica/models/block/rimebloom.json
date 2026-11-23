@@ -36,8 +36,7 @@
             16,
             16
           ],
-          "texture": "#stem",
-          "tintindex": 0
+          "texture": "#stem"
         },
         "south": {
           "uv": [
@@ -46,8 +45,7 @@
             16,
             16
           ],
-          "texture": "#stem",
-          "tintindex": 0
+          "texture": "#stem"
         }
       }
     },
@@ -81,8 +79,7 @@
             16,
             16
           ],
-          "texture": "#stem",
-          "tintindex": 0
+          "texture": "#stem"
         },
         "west": {
           "uv": [
@@ -91,8 +88,7 @@
             16,
             16
           ],
-          "texture": "#stem",
-          "tintindex": 0
+          "texture": "#stem"
         }
       }
     },

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " F",
+    "NF",
+    "S "
+  ],
+  "key": {
+    "F": "entropica:cryo_crystalline_fang",
+    "N": "entropica:necrotic_slime",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "entropica:frost_bite_dagger",
+    "count": 1
+  }
+}

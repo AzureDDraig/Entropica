@@ -7,6 +7,7 @@ import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
@@ -40,8 +41,13 @@ public class MobObservationHandler {
 
             if (entityHit != null && entityHit.getEntity() instanceof LivingEntity targetMob) {
                 String mobId = BuiltInRegistries.ENTITY_TYPE.getKey(targetMob.getType()).toString();
-                if (!CodexPlayerData.CLIENT_DATA.isMobObserved(mobId)) {
-                    CodexPlayerData.CLIENT_DATA.observeMob(mobId);
+                CodexPlayerData data = CodexPlayerData.getServerData(player);
+                if (!data.isMobObserved(mobId)) {
+                    data.observeMob(mobId);
+                    data.saveToPlayerEntity(player);
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        CodexPlayerData.syncToClient(serverPlayer);
+                    }
                     player.displayClientMessage(
                             Component.literal("§dCodex Entry Updated: §f" + targetMob.getDisplayName().getString() + " §7(Partial)"),
                             true
@@ -54,8 +60,13 @@ public class MobObservationHandler {
         EntityEvent.LIVING_DEATH.register((entity, source) -> {
             if (source.getEntity() instanceof Player player && !player.level().isClientSide()) {
                 String mobId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
-                if (!CodexPlayerData.CLIENT_DATA.isMobFullyUnlocked(mobId)) {
-                    CodexPlayerData.CLIENT_DATA.fullyUnlockMob(mobId);
+                CodexPlayerData data = CodexPlayerData.getServerData(player);
+                if (!data.isMobFullyUnlocked(mobId)) {
+                    data.fullyUnlockMob(mobId);
+                    data.saveToPlayerEntity(player);
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        CodexPlayerData.syncToClient(serverPlayer);
+                    }
                     player.displayClientMessage(
                             Component.literal("§dCodex Entry Updated: §f" + entity.getDisplayName().getString() + " §7(Complete)"),
                             true
@@ -70,8 +81,13 @@ public class MobObservationHandler {
             if (!player.level().isClientSide() && entity instanceof TamableAnimal tamable) {
                 if (tamable.isTame() && tamable.getOwner() == player) {
                     String mobId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
-                    if (!CodexPlayerData.CLIENT_DATA.isMobFullyUnlocked(mobId)) {
-                        CodexPlayerData.CLIENT_DATA.fullyUnlockMob(mobId);
+                    CodexPlayerData data = CodexPlayerData.getServerData(player);
+                    if (!data.isMobFullyUnlocked(mobId)) {
+                        data.fullyUnlockMob(mobId);
+                        data.saveToPlayerEntity(player);
+                        if (player instanceof ServerPlayer serverPlayer) {
+                            CodexPlayerData.syncToClient(serverPlayer);
+                        }
                         player.displayClientMessage(
                                 Component.literal("§dCodex Entry Updated: §f" + entity.getDisplayName().getString() + " §7(Complete)"),
                                 true

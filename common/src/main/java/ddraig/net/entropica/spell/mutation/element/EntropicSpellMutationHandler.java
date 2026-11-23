@@ -89,13 +89,15 @@ public final class EntropicSpellMutationHandler implements MateriaPartMutationHa
     // =========================================================================
 
     @Override
-    public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Abyssal Sanguine-Void Chain Flow";
+    public @Nullable String resolveFlowTitle(SpellFlowModifier flow) {
+        return flow == SpellFlowModifier.CHAIN_LEAP ? "Abyssal Sanguine-Void Chain Flow" : null;
     }
 
     @Override
-    public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "Modifies projectile and strike spells so tendrils of dark matter, necrotic shadow & boiling blood (#41304E / #211A21 / #4D6453 / #8A0303) leap through solid walls to up to 5 nearby hostiles within 8m; each chained target takes 70% initial damage, loses 3 armor, has healing suppressed, and siphons health back to the caster.";
+    public @Nullable String resolveFlowDescription(SpellFlowModifier flow) {
+        return flow == SpellFlowModifier.CHAIN_LEAP
+                ? "Modifies projectile and strike spells so tendrils of dark matter, necrotic shadow & boiling blood (#41304E / #211A21 / #4D6453 / #8A0303) leap through solid walls to up to 5 nearby hostiles within 8m; each chained target takes 70% initial damage, loses 3 armor, has healing suppressed, and siphons health back to the caster."
+                : null;
     }
 
     @Override
@@ -356,6 +358,23 @@ public final class EntropicSpellMutationHandler implements MateriaPartMutationHa
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         // Section 6.51 Entropic Oblivion-Siphon Ray & Event Horizon Cataclysm:
         // Melts 2 armor/s, siphons 1 heart/s (2.0 HP/s) back to caster, disintegrates incoming arrows;
         // 5.0s continuous (100t) -> Apex Event Horizon Cataclysm (12m KB, -6 armor, purges buffs, Blindness + Wither III + Slowness IV 5.0s)!
@@ -375,12 +394,16 @@ public final class EntropicSpellMutationHandler implements MateriaPartMutationHa
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_ENTROPIC_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) continue;
             long gap = now - last;
-            int accumTicks = (gap >= 0L && gap <= 32L)
-                    ? data.getInt(TAG_ENTROPIC_BEAM_TICKS).orElse(0) + (int) Math.max(4L, Math.min(20L, gap == 0L ? 20L : gap))
-                    : 20;
+            int step = heldTicks > 0
+                    ? ((last >= 0L && gap <= 32L) ? (int) Math.max(1L, Math.min(20L, gap)) : Math.min(heldTicks, 4))
+                    : 0;
+            int accumTicks = heldTicks > 0
+                    ? ((gap >= 0L && gap <= 32L) ? data.getInt(TAG_ENTROPIC_BEAM_TICKS).orElse(0) + step : step)
+                    : 0;
             int armorStacks = (gap >= 0L && gap <= 32L)
-                    ? Math.min(10, data.getInt(TAG_ENTROPIC_BEAM_ARMOR_STACKS).orElse(0) + 2)
+                    ? Math.min(10, Math.max(2, (accumTicks / 20) * 2 + 2))
                     : 2;
             data.putLong(TAG_ENTROPIC_BEAM_LAST_TICK, now);
             data.putInt(TAG_ENTROPIC_BEAM_ARMOR_STACKS, armorStacks);
@@ -395,7 +418,7 @@ public final class EntropicSpellMutationHandler implements MateriaPartMutationHa
                 }
             }
 
-            if (accumTicks >= 100) {
+            if (heldTicks >= 100 && accumTicks >= 100) {
                 data.putInt(TAG_ENTROPIC_BEAM_TICKS, 0);
                 data.putInt(TAG_ENTROPIC_BEAM_ARMOR_STACKS, 0);
                 Vec3 novaPos = hit.position();
@@ -820,17 +843,23 @@ public final class EntropicSpellMutationHandler implements MateriaPartMutationHa
         }
 
         final boolean[] landed = new boolean[monolithCount];
-        Map<BlockPos, BlockState> savedCraterBlocks = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 600, level.getGameTime(), spell, slot, EssenceType.ENTROPIC, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedCraterBlocks.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.CRYING_OBSIDIAN) || cur.is(Blocks.BLACKSTONE)
-                                    || cur.is(Blocks.SCULK) || cur.is(Blocks.NETHER_WART_BLOCK)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int mIdx = 0; mIdx < monolithCount; mIdx++) {
+                                BlockState pseudoState = switch (mIdx & 3) {
+                                    case 0 -> Blocks.CRYING_OBSIDIAN.defaultBlockState();
+                                    case 1 -> Blocks.BLACKSTONE.defaultBlockState();
+                                    case 2 -> Blocks.SCULK.defaultBlockState();
+                                    default -> Blocks.NETHER_WART_BLOCK.defaultBlockState();
+                                };
+                                int colHeight = (mIdx % 2 == 0) ? 2 : 1;
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, monolithTargets[mIdx], pseudoState, colHeight);
                             }
                         }
                         return false;
@@ -853,7 +882,7 @@ public final class EntropicSpellMutationHandler implements MateriaPartMutationHa
                             int colHeight = (mIdx % 2 == 0) ? 2 : 1;
 
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 400 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -884,9 +913,6 @@ public final class EntropicSpellMutationHandler implements MateriaPartMutationHa
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 0.85F, 0.62F);
                             }
-                            if (landed[mIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, colHeight, false);
-                            }
                         }
 
                         if (elapsed % 8 == 0) {
@@ -898,23 +924,10 @@ public final class EntropicSpellMutationHandler implements MateriaPartMutationHa
                                     EssenceType.ENTROPIC, EssenceType.BLOOD, 1.60F, zTier
                             );
                         }
-                    } else if (elapsed == 400) {
-                        // Bombardment finished: materialize temporary abyssal blood-slag & sculk veins for 10.0s!
-                        for (int mIdx = 0; mIdx < monolithCount; mIdx++) {
-                            BlockPos ground = monolithTargets[mIdx].below();
-                            BlockState gs = srv.getBlockState(ground);
-                            if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE) || gs.is(Blocks.COBBLESTONE) || gs.is(Blocks.DEEPSLATE))
-                                    && !savedCraterBlocks.containsKey(ground)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, ground, gs)) {
-                                savedCraterBlocks.put(ground.immutable(), gs);
-                                BlockState vein = switch (mIdx & 3) {
-                                    case 0 -> Blocks.CRYING_OBSIDIAN.defaultBlockState();
-                                    case 1 -> Blocks.BLACKSTONE.defaultBlockState();
-                                    case 2 -> Blocks.SCULK.defaultBlockState();
-                                    default -> Blocks.NETHER_WART_BLOCK.defaultBlockState();
-                                };
-                                srv.setBlockAndUpdate(ground, vein);
-                            }
+                    }
+                    for (int mIdx = 0; mIdx < monolithCount; mIdx++) {
+                        if (landed[mIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, monolithTargets[mIdx], (mIdx % 2 == 0) ? 2 : 1, false);
                         }
                     }
 

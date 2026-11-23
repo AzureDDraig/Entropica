@@ -54,7 +54,7 @@ public class RimeShepherdEntity extends PathfinderMob {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 45.0D)
+                .add(Attributes.MAX_HEALTH, 135.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.ATTACK_DAMAGE, 6.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.5D);
@@ -209,6 +209,9 @@ public class RimeShepherdEntity extends PathfinderMob {
         super.dropCustomDeathLoot(serverLevel, damageSource, recentlyHit);
         this.spawnAtLocation(serverLevel, new ItemStack(ModItems.RIME_ANTLER_FRAGMENT.get(), 1 + this.random.nextInt(2)));
         this.spawnAtLocation(serverLevel, new ItemStack(ModItems.SHEPHERDS_FROST.get(), 1));
+        ItemStack rimeEssence = new ItemStack(ModItems.STRONG_ESSENCE.get(), 3 + this.random.nextInt(3));
+        ddraig.net.entropica.item.EssenceItem.setEssenceType(rimeEssence, ddraig.net.entropica.api.EssenceType.RIME);
+        this.spawnAtLocation(serverLevel, rimeEssence);
     }
 
     // --- GOALS ---

@@ -1512,8 +1512,8 @@ public final class VoidSpellMutationHandler implements MateriaPartMutationHandle
             return spongedFluid;
         }
 
-        // If Abyssal Disintegration mutation is toggled ON and matches an organic transmutation target, apply it first!
-        if (effectMutated && effHandler != null && effHandler.onTransmuteBlock(level, caster, pos, refreshed, potencyTier)) {
+        // If mutated BREAK excavation handler provides custom block mining behavior, apply it without transmuting in place!
+        if (effectMutated && effHandler != null && effHandler.onBreakBlock(level, caster, pos, refreshed, potencyTier)) {
             spongeAdjacentFloodPockets(level, caster, pos);
             return true;
         }

@@ -150,21 +150,44 @@ public final class ChimeraSpellMutationHandler implements MateriaPartMutationHan
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         // Prismatic-Chimeric Flux Ray & Discordant Meltdown: melts 1 armor/s;
-        // REQUIRES 5.0s sustained (stacks >= 5) -> Cataclysmic Discordant Meltdown (8m KB, melts 5 armor, Burn + Freeze + Paralyze 5.0s / 100t)!
+        // REQUIRES 5.0s sustained (100 ticks) -> Cataclysmic Discordant Meltdown (8m KB, melts 5 armor, Burn + Freeze + Paralyze 5.0s / 100t)!
         long now = level.getGameTime();
         for (LivingEntity hit : hitEntities) {
             if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(hit, caster, spell.hasWardFriendlyFireSafeguard())) continue;
             SpellCombatReactionEngine.applyTimedAttributeShred(hit, level, 1.0D, 0.0D, 80L);
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
-            long last = data.getLong("ChimeraBeamLastTick").orElse(0L);
-            int stacks = (now - last <= 45L) ? data.getInt("ChimeraBeamStacks").orElse(0) + 1 : 1;
+            long last = data.getLong("ChimeraBeamLastTick").orElse(-100L);
+            if (last == now) {
+                continue;
+            }
+            long delta = now - last;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt("ChimeraBeamTicks").orElse(0) + (int) delta : 4);
             data.putLong("ChimeraBeamLastTick", now);
-            data.putInt("ChimeraBeamStacks", stacks);
+            data.putInt("ChimeraBeamTicks", contactTicks);
 
-            if (stacks >= 5) {
-                data.putInt("ChimeraBeamStacks", 0);
+            if (heldTicks > 0 && contactTicks >= 100) {
+                data.putInt("ChimeraBeamTicks", 0);
                 Vec3 away = direction.lengthSqr() > 1.0E-4D ? direction.normalize().scale(1.85D) : caster.getLookAngle().scale(1.85D);
                 hit.setDeltaMovement(away.x, 0.42D, away.z);
                 hit.hasImpulse = true;
@@ -267,15 +290,16 @@ public final class ChimeraSpellMutationHandler implements MateriaPartMutationHan
             float apparatusPotency
     ) {
         // Discordant Spore-Geyser Trap: launches hostiles 8m high, shatters 3 armor, lingering cloud blinding 5.0s (100t)!
+        int maxGlyphTicks = spell.getEffectiveTier() >= 5 ? Integer.MAX_VALUE : 12_000;
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                caster, glyphCenter, 3.0D, 300, level.getGameTime(), spell, slot, fallbackMateria, apparatusPotency,
+                caster, glyphCenter, Math.max(3.0D, radius), maxGlyphTicks, level.getGameTime(), spell, slot, fallbackMateria, apparatusPotency,
                 (srv, zone, elapsed) -> {
                     if (elapsed > zone.maxDurationTicks) return false;
                     LivingEntity owner = zone.resolveCaster(srv);
                     if (elapsed % 10 == 0) {
                         srv.sendParticles(ParticleTypes.ENCHANTED_HIT, zone.center.x, zone.center.y + 0.1D, zone.center.z, 4, 0.7D, 0.05D, 0.7D, 0.02D);
                     }
-                    if (elapsed < 10) return true;
+                    if (elapsed < 20) return true;
 
                     AABB trigger = new AABB(zone.center.x - 2.4D, zone.center.y - 1.0D, zone.center.z - 2.4D,
                             zone.center.x + 2.4D, zone.center.y + 2.0D, zone.center.z + 2.4D);
@@ -294,7 +318,7 @@ public final class ChimeraSpellMutationHandler implements MateriaPartMutationHan
                     srv.sendParticles(ParticleTypes.SPORE_BLOSSOM_AIR, zone.center.x, zone.center.y + 0.6D, zone.center.z, 24, 1.3D, 0.5D, 1.3D, 0.04D);
                     return false;
                 }
-        ));
+        ).markDisarmableGlyph());
         return true;
     }
 
@@ -425,11 +449,15 @@ public final class ChimeraSpellMutationHandler implements MateriaPartMutationHan
 
     @Override
     public boolean onTransmuteBlock(ServerLevel level, @Nullable LivingEntity caster, BlockPos pos, BlockState state, int potencyTier) {
-        // Chimeric Catalytic Metamorphosis: mutates stone/dirt randomly across Base-4 (sandstone, granite, mud, netherrack/magma),
+        // Chimeric Catalytic Metamorphosis [2.5s Continuous Held Right-Click Channel]:
+        // mutates stone/dirt randomly across Base-4 (sandstone, granite, mud, netherrack/magma),
         // transmutes mob drops into Chimera Essence + Slag Nuggets, strips enchantments for raw crystals!
-        boolean didItem = false;
-        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2.5D))) {
-            if (onTransmuteDroppedItem(level, caster, item, potencyTier)) didItem = true;
+        if (ApexEschatonSingularityHelper.beginOrExecuteChanneledTransmute(
+                level, caster, pos, 5, potencyTier, EssenceType.CHIMERA, "Chimeric Catalytic Metamorphosis", null)) {
+            return true;
+        }
+        if (SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
+            return false;
         }
         if (state.is(Blocks.STONE) || state.is(Blocks.COBBLESTONE) || state.is(BlockTags.DIRT)) {
             BlockState out = switch (level.random.nextInt(4)) {
@@ -441,7 +469,7 @@ public final class ChimeraSpellMutationHandler implements MateriaPartMutationHan
             level.setBlockAndUpdate(pos, out);
             return true;
         }
-        return didItem;
+        return false;
     }
 
     @Override

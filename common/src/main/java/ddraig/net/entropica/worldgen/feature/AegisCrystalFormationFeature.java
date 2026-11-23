@@ -123,7 +123,8 @@ public class AegisCrystalFormationFeature extends Feature<NoneFeatureConfigurati
             return false;
         }
 
-        // Stud exposed crystal faces with directional Aegis Crystal Clusters
+        // Stud exposed crystal faces with 2-stage Aegis Crystal Buds (Stage 1) and Mature Clusters (Stage 2)
+        BlockState baseBud = ModBlocks.AEGIS_CRYSTAL_BUD.get().defaultBlockState();
         BlockState baseCluster = ModBlocks.AEGIS_CRYSTAL_CLUSTER.get().defaultBlockState();
         for (BlockPos cPos : placedCrystals) {
             for (Direction face : Direction.values()) {
@@ -134,7 +135,8 @@ public class AegisCrystalFormationFeature extends Feature<NoneFeatureConfigurati
                 BlockState target = level.getBlockState(budPos);
                 if (target.isAir() || target.is(Blocks.SNOW) || target.is(Blocks.WATER)) {
                     boolean waterlogged = target.getFluidState().getType() == Fluids.WATER;
-                    BlockState clusterState = baseCluster
+                    BlockState chosenBase = random.nextFloat() < 0.42F ? baseBud : baseCluster;
+                    BlockState clusterState = chosenBase
                             .setValue(AmethystClusterBlock.FACING, face)
                             .setValue(AmethystClusterBlock.WATERLOGGED, waterlogged);
                     if (clusterState.canSurvive(level, budPos)) {

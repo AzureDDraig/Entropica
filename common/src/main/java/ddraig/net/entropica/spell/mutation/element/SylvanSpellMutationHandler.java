@@ -92,12 +92,14 @@ public final class SylvanSpellMutationHandler implements MateriaPartMutationHand
 
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Photosynthetic Sun-Canopy Orbit Flow";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE ? "Photosynthetic Sun-Canopy Orbit Flow" : null;
     }
 
     @Override
     public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "4 golden solar prisms and petrified leaves (#1A5923 / #773214 / #FFEA78) focus ambient sunlight to boost spell damage by +20%, grant +5 Armor, +2 Toughness, complete Poison/Wither immunity, passive Sylvan Materia regeneration in direct sunlight, 1.5s melee attacker rooting, and 2.0s-rooting Undead-smiting solar darts.";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE
+                ? "4 golden solar prisms and petrified leaves (#1A5923 / #773214 / #FFEA78) focus ambient sunlight to boost spell damage by +20%, grant +5 Armor, +2 Toughness, complete Poison/Wither immunity, passive Sylvan Materia regeneration in direct sunlight, 1.5s melee attacker rooting, and 2.0s-rooting Undead-smiting solar darts."
+                : null;
     }
 
     @Override
@@ -291,11 +293,23 @@ public final class SylvanSpellMutationHandler implements MateriaPartMutationHand
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Section 6.45 Canopy Solar-Root Tether Beam:
-        // Sears hostiles with Sylvan Materia damage, drags caught enemies 2m/s closer to caster, smites Undead
-        // with solar combustion, and heals friendly allies (1 heart / 2.0 HP per second);
-        // REQUIRES 5.0s (100 contact ticks) sustained channeling to trigger Primeval Arbor Overgrowth
-        // (8m knockback + 3.0s / 60t wooden root cages)!
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         int tier = spell.getEffectiveTier();
         boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
         long now = level.getGameTime();
@@ -329,13 +343,17 @@ public final class SylvanSpellMutationHandler implements MateriaPartMutationHand
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_SYLVAN_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) {
+                continue;
+            }
             long delta = now - last;
-            int stepTicks = (delta > 0L && delta <= 8L) ? (int) Math.max(4L, delta) : 20;
-            int contactTicks = (delta <= 45L) ? data.getInt(TAG_SYLVAN_BEAM_TICKS).orElse(0) + stepTicks : stepTicks;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt(TAG_SYLVAN_BEAM_TICKS).orElse(0) + (int) delta : 4);
             data.putLong(TAG_SYLVAN_BEAM_LAST_TICK, now);
             data.putInt(TAG_SYLVAN_BEAM_TICKS, contactTicks);
 
-            if (contactTicks >= 100) {
+            if (heldTicks > 0 && contactTicks >= 100) {
                 data.putInt(TAG_SYLVAN_BEAM_TICKS, 0);
                 SpellWorldVfxManager.broadcastRadialNova(level, hit.position(), 4.5D, EssenceType.SYLVAN, EssenceType.RADIANT, tier);
                 float burstDmg = (10.5F + tier * 2.50F) * Math.max(0.5F, apparatusPotency);
@@ -709,16 +727,21 @@ public final class SylvanSpellMutationHandler implements MateriaPartMutationHand
         }
 
         final boolean[] landed = new boolean[boulderCount];
-        Map<BlockPos, BlockState> savedRootTurf = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 480, level.getGameTime(), spell, slot, EssenceType.SYLVAN, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedRootTurf.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.MOSS_BLOCK) || cur.is(Blocks.FERN) || cur.is(ModBlocks.AMBER_LOG.get())) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
+                                boolean ironwood = (mIdx % 2 == 0);
+                                BlockState pseudoState = ironwood
+                                        ? ModBlocks.AMBER_LOG.get().defaultBlockState()
+                                        : Blocks.MOSSY_COBBLESTONE.defaultBlockState();
+                                int colHeight = ironwood ? 2 : 1;
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, boulderTargets[mIdx], pseudoState, colHeight);
                             }
                         }
                         return false;
@@ -739,7 +762,7 @@ public final class SylvanSpellMutationHandler implements MateriaPartMutationHand
                             int colHeight = ironwood ? 2 : 1;
 
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 320 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -764,9 +787,6 @@ public final class SylvanSpellMutationHandler implements MateriaPartMutationHand
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.WOOD_BREAK, SoundSource.PLAYERS, 0.85F, 0.72F);
                             }
-                            if (landed[mIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, colHeight, false);
-                            }
                         }
 
                         // 2. Solar meteoritic seed strikes every 0.4s (8 ticks)!
@@ -780,26 +800,10 @@ public final class SylvanSpellMutationHandler implements MateriaPartMutationHand
                             );
                             srv.sendParticles(ParticleTypes.END_ROD, strike.x, strike.y + 1.0D, strike.z, 10, 0.7D, 0.8D, 0.7D, 0.05D);
                         }
-                    } else if (elapsed == 320) {
-                        // Barrage complete: materialize real temporary entangled moss/fern turf for the 8.0s (160t) root field!
-                        for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
-                            BlockPos strikePos = boulderTargets[mIdx];
-                            BlockPos ground = strikePos.below();
-                            BlockState gs = srv.getBlockState(ground);
-                            if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE) || gs.is(Blocks.COBBLESTONE))
-                                    && !savedRootTurf.containsKey(ground)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, ground, gs)) {
-                                savedRootTurf.put(ground.immutable(), gs);
-                                srv.setBlockAndUpdate(ground, Blocks.MOSS_BLOCK.defaultBlockState());
-                            }
-                            BlockState above = srv.getBlockState(strikePos);
-                            if (above.isAir()
-                                    && Blocks.FERN.defaultBlockState().canSurvive(srv, strikePos)
-                                    && !savedRootTurf.containsKey(strikePos)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, strikePos, above)) {
-                                savedRootTurf.put(strikePos.immutable(), above);
-                                srv.setBlockAndUpdate(strikePos, Blocks.FERN.defaultBlockState());
-                            }
+                    }
+                    for (int mIdx = 0; mIdx < boulderCount; mIdx++) {
+                        if (landed[mIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, boulderTargets[mIdx], (mIdx % 2 == 0) ? 2 : 1, false);
                         }
                     }
 
@@ -897,20 +901,16 @@ public final class SylvanSpellMutationHandler implements MateriaPartMutationHand
 
     @Override
     public boolean onTransmuteBlock(ServerLevel level, @Nullable LivingEntity caster, BlockPos pos, BlockState state, int potencyTier) {
-        // Section 6.45 Petrified Amber-Bark Fusion:
-        // Converts ordinary wood logs into amber-encrusted Petrified Wood (Amber-Wood); turns clay into floral
-        // Terracotta; accelerates crops & saplings across a 6m radius; purifies Netherrack/Soul Sand into Moss & Ferns!
-        boolean didAny = false;
-        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2.5D), ItemEntity::isAlive)) {
-            if (onTransmuteDroppedItem(level, caster, item, potencyTier)) {
-                didAny = true;
-            }
+        // Section 6.45 Petrified Amber-Bark Fusion [2.5s Continuous Held Right-Click Channel]:
+        if (ApexEschatonSingularityHelper.beginOrExecuteChanneledTransmute(
+                level, caster, pos, 6, potencyTier, EssenceType.SYLVAN, "Petrified Amber-Bark Fusion",
+                () -> SpringSpellMutationHandler.matureCropsInRadius(level, pos, 6))) {
+            return true;
         }
-        SpringSpellMutationHandler.matureCropsInRadius(level, pos, 6);
+        boolean didAny = false;
 
         if (SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
-            if (didAny) refundBatchDiscount(level, caster, potencyTier);
-            return didAny;
+            return false;
         }
 
         if (state.is(BlockTags.LOGS) && !state.is(ModBlocks.AMBER_LOG.get()) && !state.is(ModBlocks.AMBER_WOOD.get())) {

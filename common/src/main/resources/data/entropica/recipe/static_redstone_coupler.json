@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " T ",
+    " C ",
+    "SSS"
+  ],
+  "key": {
+    "T": "entropica:charged_glow_tentacle",
+    "C": "minecraft:copper_ingot",
+    "S": "minecraft:smooth_stone_slab"
+  },
+  "result": {
+    "id": "entropica:static_redstone_coupler",
+    "count": 2
+  }
+}

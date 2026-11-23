@@ -49,7 +49,12 @@ public class SporeBearingPitcherPlumpBlock extends EntropicaFlowerBlock {
         Direction face = context.getClickedFace();
         BlockPos supportPos = context.getClickedPos().relative(face.getOpposite());
         BlockState supportState = context.getLevel().getBlockState(supportPos);
-        if (isNetherGround(supportState) || supportState.isFaceSturdy(context.getLevel(), supportPos, face)) {
+        if (face == Direction.UP && EntropicaFloraGroundHelper.isIceOrSnowLayer(supportState)) {
+            return null;
+        }
+        if (isNetherGround(supportState)
+                || supportState.isFaceSturdy(context.getLevel(), supportPos, face)
+                || (face == Direction.UP && EntropicaFloraGroundHelper.isSolidSnowBlock(supportState))) {
             return this.defaultBlockState().setValue(FACING, face);
         }
         return null;
@@ -60,7 +65,12 @@ public class SporeBearingPitcherPlumpBlock extends EntropicaFlowerBlock {
         Direction facing = state.hasProperty(FACING) ? state.getValue(FACING) : Direction.UP;
         BlockPos supportPos = pos.relative(facing.getOpposite());
         BlockState supportState = level.getBlockState(supportPos);
-        return isNetherGround(supportState) || supportState.isFaceSturdy(level, supportPos, facing);
+        if (facing == Direction.UP && EntropicaFloraGroundHelper.isIceOrSnowLayer(supportState)) {
+            return false;
+        }
+        return isNetherGround(supportState)
+                || supportState.isFaceSturdy(level, supportPos, facing)
+                || (facing == Direction.UP && EntropicaFloraGroundHelper.isSolidSnowBlock(supportState));
     }
 
     @Override

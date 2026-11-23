@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:amber_willow_bathhouse",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 842917365,
+    "spacing": 26,
+    "separation": 10
+  }
+}

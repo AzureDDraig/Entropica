@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": "entropica:bismuth_ingot"
+  },
+  "result": {
+    "id": "entropica:bismuth_block",
+    "count": 1
+  }
+}

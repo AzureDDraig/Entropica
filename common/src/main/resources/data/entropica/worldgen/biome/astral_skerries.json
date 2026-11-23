@@ -1,0 +1,169 @@
+{
+  "has_precipitation": true,
+  "temperature": -0.65,
+  "downfall": 0.35,
+  "creature_spawn_probability": 0.12,
+  "carvers": [
+    "minecraft:cave",
+    "minecraft:cave_extra_underground",
+    "minecraft:canyon"
+  ],
+  "effects": {
+    "sky_color": 1841720,
+    "fog_color": 3286108,
+    "water_color": 1779796,
+    "water_fog_color": 1054262,
+    "grass_color": 6187934,
+    "foliage_color": 6187934,
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "music_volume": 1.0,
+    "particle": {
+      "options": {
+        "type": "minecraft:end_rod"
+      },
+      "probability": 0.0035
+    }
+  },
+  "features": [
+    [],
+    [
+      "minecraft:lake_lava_underground"
+    ],
+    [
+      "minecraft:amethyst_geode",
+      "entropica:astral_geode",
+      "entropica:astral_skerry_impactite_outcrop"
+    ],
+    [
+      "minecraft:monster_room",
+      "minecraft:monster_room_deep"
+    ],
+    [
+      "entropica:narrow_starlight_ice_pillar",
+      "entropica:stardust_crystal_spire"
+    ],
+    [],
+    [
+      "minecraft:ore_gravel",
+      "minecraft:ore_granite_upper",
+      "minecraft:ore_granite_lower",
+      "minecraft:ore_diorite_upper",
+      "minecraft:ore_diorite_lower",
+      "minecraft:ore_andesite_upper",
+      "minecraft:ore_andesite_lower",
+      "minecraft:ore_tuff",
+      "minecraft:ore_coal_upper",
+      "minecraft:ore_coal_lower",
+      "minecraft:ore_iron_upper",
+      "minecraft:ore_iron_middle",
+      "minecraft:ore_iron_small",
+      "minecraft:ore_gold",
+      "minecraft:ore_gold_lower",
+      "minecraft:ore_redstone",
+      "minecraft:ore_redstone_lower",
+      "minecraft:ore_diamond",
+      "minecraft:ore_diamond_medium",
+      "minecraft:ore_diamond_large",
+      "minecraft:ore_diamond_buried",
+      "minecraft:ore_lapis",
+      "minecraft:ore_lapis_buried",
+      "minecraft:ore_copper",
+      "minecraft:ore_copper_large",
+      "minecraft:underwater_magma",
+      "minecraft:disk_clay",
+      "minecraft:disk_gravel"
+    ],
+    [],
+    [
+      "minecraft:spring_water",
+      "minecraft:spring_lava"
+    ],
+    [
+      "entropica:astral_skerry_crystal_clusters",
+      "entropica:patch_rime_star_tussock"
+    ],
+    []
+  ],
+  "spawn_costs": {},
+  "spawners": {
+    "ambient": [
+      {
+        "type": "entropica:luminoth",
+        "weight": 8,
+        "minCount": 2,
+        "maxCount": 3
+      }
+    ],
+    "axolotls": [],
+    "creature": [
+      {
+        "type": "entropica:starlight_nautilus",
+        "weight": 12,
+        "minCount": 2,
+        "maxCount": 4
+      },
+      {
+        "type": "entropica:aurora_jelly",
+        "weight": 10,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ],
+    "misc": [],
+    "monster": [
+      {
+        "type": "entropica:glacial_frost_core",
+        "weight": 15,
+        "minCount": 1,
+        "maxCount": 2
+      },
+      {
+        "type": "minecraft:stray",
+        "weight": 16,
+        "minCount": 1,
+        "maxCount": 2
+      },
+      {
+        "type": "minecraft:skeleton",
+        "weight": 8,
+        "minCount": 1,
+        "maxCount": 2
+      }
+    ],
+    "underground_water_creature": [
+      {
+        "type": "minecraft:glow_squid",
+        "weight": 12,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ],
+    "water_ambient": [
+      {
+        "type": "minecraft:cod",
+        "weight": 8,
+        "minCount": 2,
+        "maxCount": 4
+      },
+      {
+        "type": "minecraft:salmon",
+        "weight": 8,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ],
+    "water_creature": [
+      {
+        "type": "minecraft:glow_squid",
+        "weight": 8,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ]
+  }
+}

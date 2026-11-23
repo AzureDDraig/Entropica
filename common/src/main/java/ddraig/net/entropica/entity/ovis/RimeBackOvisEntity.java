@@ -24,7 +24,7 @@ public class RimeBackOvisEntity extends AbstractOvisEntity {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 30.0D)
+                .add(Attributes.MAX_HEALTH, 60.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.23D)
                 .add(Attributes.ATTACK_DAMAGE, 4.0D);
     }
@@ -58,5 +58,10 @@ public class RimeBackOvisEntity extends AbstractOvisEntity {
     @Override
     public Item getPlateItem() {
         return this.getVariant() == 1 ? ModItems.PATINA_AEGIS_PLATE.get() : ModItems.GLACIAL_AEGIS_PLATE.get();
+    }
+
+    @Override
+    public ddraig.net.entropica.api.EssenceType getSecondaryEssenceType() {
+        return this.getVariant() == 1 ? ddraig.net.entropica.api.EssenceType.STATIC : ddraig.net.entropica.api.EssenceType.GLACIAL;
     }
 }

@@ -448,4 +448,107 @@ public final class SpellWorldVfxManager {
             }
         }
     }
+
+    /**
+     * Computes the exact zone duration ticks after accounting for Amber's +50% Viscous Linger Flow extension,
+     * keeping 3D Skyfall Pseudoblock {@code holdTicks} synchronized with {@code zone.maxDurationTicks}.
+     */
+    public static int resolveEffectiveZoneDurationTicks(
+            @Nullable ddraig.net.entropica.spell.assembly.SpellAssembly spell,
+            @Nullable EssenceType fallbackMateria,
+            int baseDurationTicks
+    ) {
+        if (spell != null
+                && spell.flowPart().mutationEnabled()
+                && spell.flowPart().resolveEffectiveMateria(spell.materiaSpecific(), fallbackMateria) == EssenceType.AMBER
+                && baseDurationTicks < 1_000_000_000) {
+            return Math.max(baseDurationTicks + 10, (int) Math.ceil(baseDurationTicks * 1.5D));
+        }
+        return baseDurationTicks;
+    }
+
+    /**
+     * Resolves the first air/replaceable block directly atop solid ground near {@code nearPos},
+     * ensuring Skyfall Pseudoblocks land cleanly on top of terrain rather than buried inside stone/dirt.
+     */
+    public static net.minecraft.core.BlockPos findSkyfallSurfaceBase(
+            ServerLevel level,
+            net.minecraft.core.BlockPos nearPos
+    ) {
+        net.minecraft.core.BlockPos cursor = nearPos;
+        if (level.getBlockState(cursor).isSolidRender()) {
+            for (int up = 1; up <= 8; up++) {
+                net.minecraft.core.BlockPos above = nearPos.above(up);
+                if (!level.getBlockState(above).isSolidRender()) {
+                    return above;
+                }
+            }
+            return nearPos.above();
+        }
+        for (int down = 0; down <= 8; down++) {
+            net.minecraft.core.BlockPos candidate = nearPos.below(down);
+            if (!level.getBlockState(candidate).isSolidRender()
+                    && level.getBlockState(candidate.below()).isSolidRender()) {
+                return candidate;
+            }
+        }
+        return nearPos;
+    }
+
+    /**
+     * Permanently places the exact {@code blockState} column ({@code basePos .. basePos.above(columnHeight - 1)})
+     * represented by a 3D Skyfall Pseudoblock once the Skyfall spell finishes, safely pushing overlapping
+     * entities clear and skipping protected blocks or containers.
+     */
+    public static void materializeSkyfallPseudoblockColumn(
+            ServerLevel level,
+            net.minecraft.core.BlockPos basePos,
+            net.minecraft.world.level.block.state.BlockState blockState,
+            int columnHeight
+    ) {
+        int h = Math.max(1, columnHeight);
+        repelEntitiesFromPseudoblockColumn(level, basePos, h, true);
+        boolean placedAny = false;
+        for (int y = 0; y < h; y++) {
+            net.minecraft.core.BlockPos p = basePos.above(y);
+            net.minecraft.world.level.block.state.BlockState cur = level.getBlockState(p);
+            if (ddraig.net.entropica.spell.engine.SpellExecutionEngine.isProtectedBlockOrContainer(level, p, cur)) {
+                if (y > 0) {
+                    break;
+                }
+                continue;
+            }
+            if (cur.isAir()
+                    || cur.canBeReplaced()
+                    || cur.is(net.minecraft.world.level.block.Blocks.WATER)
+                    || cur.is(net.minecraft.world.level.block.Blocks.LAVA)
+                    || cur.is(net.minecraft.world.level.block.Blocks.SNOW)
+                    || cur.is(net.minecraft.world.level.block.Blocks.MOSS_CARPET)
+                    || cur.is(net.minecraft.world.level.block.Blocks.FERN)
+                    || cur.is(net.minecraft.world.level.block.Blocks.SHORT_GRASS)
+                    || cur.is(net.minecraft.world.level.block.Blocks.TALL_GRASS)
+                    || cur.is(net.minecraft.world.level.block.Blocks.DEAD_BUSH)
+                    || cur.is(net.minecraft.world.level.block.Blocks.AZALEA)
+                    || cur.is(net.minecraft.world.level.block.Blocks.FLOWERING_AZALEA)
+                    || cur.is(net.minecraft.world.level.block.Blocks.ICE)
+                    || cur.is(net.minecraft.world.level.block.Blocks.PACKED_ICE)
+                    || cur.is(net.minecraft.world.level.block.Blocks.FROSTED_ICE)) {
+                level.setBlockAndUpdate(p, blockState);
+                placedAny = true;
+            } else if (y > 0) {
+                break;
+            }
+        }
+        if (placedAny) {
+            net.minecraft.world.level.block.SoundType soundType = blockState.getSoundType();
+            level.playSound(
+                    null,
+                    basePos,
+                    soundType.getPlaceSound(),
+                    net.minecraft.sounds.SoundSource.BLOCKS,
+                    (soundType.getVolume() + 1.0F) * 0.45F,
+                    soundType.getPitch() * 0.90F
+            );
+        }
+    }
 }

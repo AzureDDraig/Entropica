@@ -83,24 +83,69 @@ import java.util.List;
  */
 public final class ApexEschatonSingularityHelper {
 
+    public static final int TRANSMUTE_CHANNEL_DURATION_TICKS = 50; // 2.5 seconds (50 ticks) continuous Right-Click channel!
     public static final String TAG_TRANSMUTE_CHANNEL_BYPASS = "SpellApexTransmuteBypass";
     public static final String TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL = "SpellApexTransmuteActiveUntil";
+    public static final String TAG_TRANSMUTE_CHANNEL_COMPLETED_UNTIL = "SpellApexTransmuteCompletedUntil";
+    public static final String TAG_TRANSMUTE_MASS_EXECUTED_TICK = "SpellApexTransmuteMassTick";
+    public static final String TAG_PEDESTAL_PROXY = "SpellPedestalProxy";
     public static final String TAG_ELIXIR_TYPE = "SpellApexElixirType";
+
+    private static final ThreadLocal<Boolean> PEDESTAL_TRANSMUTE_BYPASS = ThreadLocal.withInitial(() -> false);
+    private static final java.util.Map<String, Long> ACTIVE_PEDESTAL_TRANSMUTES = new java.util.concurrent.ConcurrentHashMap<>();
 
     private ApexEschatonSingularityHelper() {
     }
 
     // =========================================================================
-    // 1. 5.0-Second (100-Tick) Continuous Transmute Channeling
+    // 1. 2.5-Second (50-Tick) Continuous Right-Click Transmute Channeling
     // =========================================================================
 
+    public static boolean isPedestalOrNullCaster(@Nullable LivingEntity caster) {
+        if (caster == null) {
+            return true;
+        }
+        if (caster instanceof net.minecraft.world.entity.decoration.ArmorStand) {
+            if (EntityHelper.getPersistentData(caster).getBoolean(TAG_PEDESTAL_PROXY).orElse(false)) {
+                return true;
+            }
+            if (caster.level() instanceof ServerLevel srv && srv.getEntity(caster.getUUID()) == null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isTransmuteChannelSatisfied(ServerLevel level, @Nullable LivingEntity caster) {
+        if (PEDESTAL_TRANSMUTE_BYPASS.get()) {
+            return true;
+        }
+        if (isPedestalOrNullCaster(caster)) {
+            return false;
+        }
+        CompoundTag casterData = EntityHelper.getPersistentData(caster);
+        if (casterData.getBoolean(TAG_TRANSMUTE_CHANNEL_BYPASS).orElse(false)) {
+            return true;
+        }
+        return level.getGameTime() <= casterData.getLong(TAG_TRANSMUTE_CHANNEL_COMPLETED_UNTIL).orElse(0L);
+    }
+
+    public static boolean isActivelyHoldingRightClickChannel(ServerLevel level, LivingEntity caster) {
+        if (caster instanceof Player player && player.isUsingItem()) {
+            return true;
+        }
+        long now = level.getGameTime();
+        return now <= EntityHelper.getPersistentData(caster)
+                .getLong(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL).orElse(0L);
+    }
+
     /**
-     * Enforces the canonical 5.0-second (100-tick) continuous channeling requirement on
-     * Tier 4 Apex, Prismatic, Tier 5 Eschaton, and Tier 6 Singularity {@code TRANSMUTE} spells.
+     * Enforces the canonical 2.5-second (50-tick) continuous Right-Click channeling requirement on
+     * {@code TRANSMUTE} spells (and 50-tick in-zone charging for Autocast Pedestals with {@code caster == null}).
      *
-     * @return {@code true} if a 5.0s channel has been started (or is already active), meaning the caller
-     *         should NOT immediately transmute; {@code false} if {@code caster == null} or channel bypass
-     *         is active so the caller should execute its per-block transmutation immediately.
+     * @return {@code true} if a 2.5s channel has been started (or was just mass-completed), meaning the caller
+     *         should NOT run duplicate per-block transmutation; {@code false} if channel bypass is active so
+     *         the caller should execute its per-block transmutation immediately.
      */
     public static boolean beginOrExecuteChanneledTransmute(
             ServerLevel level,
@@ -112,29 +157,100 @@ public final class ApexEschatonSingularityHelper {
             String title,
             @Nullable Runnable onChannelCompletedExtra
     ) {
-        if (caster == null) {
+        if (PEDESTAL_TRANSMUTE_BYPASS.get()) {
             return false;
         }
+        long now = level.getGameTime();
+        BlockPos targetOrigin = origin.immutable();
+        int safeRadius = Math.max(1, radius);
+
+        // 1. Autocast Pedestal / Non-Entity Cast: charge in-zone for 50 ticks (2.5s) before transmuting!
+        if (isPedestalOrNullCaster(caster)) {
+            String key = level.dimension().location() + "|" + targetOrigin.asLong();
+            Long activeUntil = ACTIVE_PEDESTAL_TRANSMUTES.get(key);
+            if (activeUntil != null && activeUntil > now) {
+                return true;
+            }
+            ACTIVE_PEDESTAL_TRANSMUTES.put(key, now + TRANSMUTE_CHANNEL_DURATION_TICKS + 4L);
+            level.playSound(null, targetOrigin, SoundEvents.BEACON_AMBIENT, SoundSource.BLOCKS, 0.75F, 1.25F);
+
+            SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                    null, Vec3.atCenterOf(targetOrigin), safeRadius, TRANSMUTE_CHANNEL_DURATION_TICKS, now, null, null, materia, 1.0F,
+                    (srv, zone, elapsed) -> {
+                        if (elapsed < TRANSMUTE_CHANNEL_DURATION_TICKS) {
+                            if (elapsed % 8 == 0) {
+                                srv.sendParticles(ParticleTypes.ENCHANT, zone.center.x, zone.center.y + 0.55D, zone.center.z,
+                                        10, Math.min(3.5D, safeRadius * 0.35D), 0.35D, Math.min(3.5D, safeRadius * 0.35D), 0.12D);
+                                srv.sendParticles(ParticleTypes.END_ROD, zone.center.x, zone.center.y + 0.6D, zone.center.z,
+                                        8, Math.min(3.5D, safeRadius * 0.35D), 0.35D, Math.min(3.5D, safeRadius * 0.35D), 0.03D);
+                            }
+                            return true;
+                        }
+                        PEDESTAL_TRANSMUTE_BYPASS.set(true);
+                        try {
+                            if (onChannelCompletedExtra != null) {
+                                onChannelCompletedExtra.run();
+                            }
+                            runCompletedTransmuteSweep(srv, null, targetOrigin, safeRadius, potencyTier, materia);
+                        } finally {
+                            PEDESTAL_TRANSMUTE_BYPASS.set(false);
+                            ACTIVE_PEDESTAL_TRANSMUTES.remove(key);
+                        }
+                        srv.playSound(null, targetOrigin, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.95F, 1.15F);
+                        srv.sendParticles(ParticleTypes.END_ROD, zone.center.x, zone.center.y + 0.8D, zone.center.z,
+                                28, Math.min(4.5D, safeRadius * 0.4D), 0.7D, Math.min(4.5D, safeRadius * 0.4D), 0.05D);
+                        return false;
+                    }
+            ));
+            return true;
+        }
+
         CompoundTag casterData = EntityHelper.getPersistentData(caster);
         if (casterData.getBoolean(TAG_TRANSMUTE_CHANNEL_BYPASS).orElse(false)) {
             return false;
         }
-        long now = level.getGameTime();
+
+        // 2. Caster already completed the full 50-tick (2.5s) Right-Click hold channel!
+        if (now <= casterData.getLong(TAG_TRANSMUTE_CHANNEL_COMPLETED_UNTIL).orElse(0L)) {
+            if (casterData.getLong(TAG_TRANSMUTE_MASS_EXECUTED_TICK).orElse(-10L) == now) {
+                return true;
+            }
+            casterData.putLong(TAG_TRANSMUTE_MASS_EXECUTED_TICK, now);
+            casterData.putBoolean(TAG_TRANSMUTE_CHANNEL_BYPASS, true);
+            try {
+                if (onChannelCompletedExtra != null) {
+                    onChannelCompletedExtra.run();
+                }
+                runCompletedTransmuteSweep(level, caster, targetOrigin, safeRadius, potencyTier, materia);
+            } finally {
+                casterData.remove(TAG_TRANSMUTE_CHANNEL_BYPASS);
+                casterData.remove(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL);
+            }
+            level.playSound(null, targetOrigin, SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.0F, 1.15F);
+            level.sendParticles(ParticleTypes.END_ROD, targetOrigin.getX() + 0.5D, targetOrigin.getY() + 0.8D, targetOrigin.getZ() + 0.5D,
+                    36, Math.min(5.0D, safeRadius * 0.4D), 0.8D, Math.min(5.0D, safeRadius * 0.4D), 0.06D);
+            if (caster instanceof ServerPlayer sp) {
+                sp.displayClientMessage(Component.literal("§a✦ " + title + " completed!"), true);
+            }
+            return true;
+        }
+
         if (casterData.getLong(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL).orElse(0L) > now) {
             return true;
         }
 
-        casterData.putLong(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL, now + 104L);
+        // 3. Start an active 50-tick (2.5s) Right-Click-validated channel!
+        casterData.putLong(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL, now + TRANSMUTE_CHANNEL_DURATION_TICKS + 4L);
+        casterData.putLong(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL, now + 8L);
         Vec3 anchor = caster.position();
-        BlockPos targetOrigin = origin.immutable();
 
         if (caster instanceof ServerPlayer sp) {
-            sp.displayClientMessage(Component.literal("§e✦ Channeling " + title + " (5.0s — remain steady)..."), true);
+            sp.displayClientMessage(Component.literal("§e✦ Channeling " + title + " (2.5s — hold Right-Click)..."), true);
         }
         level.playSound(null, caster.blockPosition(), SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, 0.85F, 1.25F);
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
-                caster, Vec3.atCenterOf(targetOrigin), radius, 100, now, null, null, materia, 1.0F,
+                caster, Vec3.atCenterOf(targetOrigin), safeRadius, TRANSMUTE_CHANNEL_DURATION_TICKS, now, null, null, materia, 1.0F,
                 (srv, zone, elapsed) -> {
                     LivingEntity owner = zone.resolveCaster(srv);
                     if (owner == null || !owner.isAlive()) {
@@ -143,24 +259,30 @@ public final class ApexEschatonSingularityHelper {
 
                     double dx = owner.getX() - anchor.x;
                     double dz = owner.getZ() - anchor.z;
-                    if ((dx * dx + dz * dz) > 1.5625D) {
-                        EntityHelper.getPersistentData(owner).remove(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL);
+                    boolean movedTooFar = (dx * dx + dz * dz) > 1.5625D;
+                    boolean releasedRightClick = elapsed > 0 && (owner instanceof Player) && !isActivelyHoldingRightClickChannel(srv, owner);
+                    if (movedTooFar || releasedRightClick) {
+                        CompoundTag od = EntityHelper.getPersistentData(owner);
+                        od.remove(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL);
+                        od.remove(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL);
                         if (owner instanceof ServerPlayer sp) {
-                            sp.displayClientMessage(Component.literal("§c✖ " + title + " channel interrupted!"), true);
+                            sp.displayClientMessage(Component.literal(releasedRightClick
+                                    ? "§c✖ " + title + " cancelled (released Right-Click early)!"
+                                    : "§c✖ " + title + " channel interrupted!"), true);
                         }
                         srv.playSound(null, owner.blockPosition(), SoundEvents.BEACON_DEACTIVATE, SoundSource.PLAYERS, 0.75F, 0.9F);
                         return false;
                     }
 
-                    if (elapsed < 100) {
+                    if (elapsed < TRANSMUTE_CHANNEL_DURATION_TICKS) {
                         if (elapsed % 8 == 0) {
                             srv.sendParticles(ParticleTypes.ENCHANT, owner.getX(), owner.getY(1.1D), owner.getZ(),
                                     12, 0.45D, 0.55D, 0.45D, 0.15D);
                             srv.sendParticles(ParticleTypes.END_ROD, zone.center.x, zone.center.y + 0.6D, zone.center.z,
-                                    10, Math.min(4.0D, radius * 0.35D), 0.4D, Math.min(4.0D, radius * 0.35D), 0.03D);
+                                    10, Math.min(4.0D, safeRadius * 0.35D), 0.4D, Math.min(4.0D, safeRadius * 0.35D), 0.03D);
                         }
-                        if (elapsed % 20 == 0 && owner instanceof ServerPlayer sp) {
-                            float secsLeft = Math.max(0.0F, (100 - elapsed) / 20.0F);
+                        if (elapsed % 10 == 0 && owner instanceof ServerPlayer sp) {
+                            float secsLeft = Math.max(0.0F, (TRANSMUTE_CHANNEL_DURATION_TICKS - elapsed) / 20.0F);
                             sp.displayClientMessage(Component.literal(String.format("§e✦ Channeling %s (%.1fs)...", title, secsLeft)), true);
                         }
                         return true;
@@ -172,30 +294,7 @@ public final class ApexEschatonSingularityHelper {
                         if (onChannelCompletedExtra != null) {
                             onChannelCompletedExtra.run();
                         }
-                        MateriaPartMutationHandler handler = SpellMutationHandlerRegistry.get(materia);
-                        if (handler != null) {
-                            int rSq = radius * radius;
-                            for (BlockPos p : BlockPos.betweenClosed(
-                                    targetOrigin.offset(-radius, -3, -radius),
-                                    targetOrigin.offset(radius, 3, radius))) {
-                                if (targetOrigin.distSqr(p) > (double) rSq) continue;
-                                BlockState bs = srv.getBlockState(p);
-                                if (bs.isAir()) {
-                                    if (p.equals(targetOrigin)) {
-                                        handler.onTransmuteBlock(srv, owner, p.immutable(), bs, potencyTier);
-                                    }
-                                    continue;
-                                }
-                                if (!SpellExecutionEngine.isProtectedBlockOrContainer(srv, p, bs)) {
-                                    handler.onTransmuteBlock(srv, owner, p.immutable(), bs, potencyTier);
-                                }
-                            }
-                            for (ItemEntity item : srv.getEntitiesOfClass(ItemEntity.class, new AABB(targetOrigin).inflate(radius))) {
-                                if (item.isAlive()) {
-                                    handler.onTransmuteDroppedItem(srv, owner, item, potencyTier);
-                                }
-                            }
-                        }
+                        runCompletedTransmuteSweep(srv, owner, targetOrigin, safeRadius, potencyTier, materia);
                     } finally {
                         d.remove(TAG_TRANSMUTE_CHANNEL_BYPASS);
                         d.remove(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL);
@@ -203,9 +302,157 @@ public final class ApexEschatonSingularityHelper {
 
                     srv.playSound(null, targetOrigin, SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.0F, 1.15F);
                     srv.sendParticles(ParticleTypes.END_ROD, zone.center.x, zone.center.y + 0.8D, zone.center.z,
-                            36, Math.min(5.0D, radius * 0.4D), 0.8D, Math.min(5.0D, radius * 0.4D), 0.06D);
+                            36, Math.min(5.0D, safeRadius * 0.4D), 0.8D, Math.min(5.0D, safeRadius * 0.4D), 0.06D);
                     if (owner instanceof ServerPlayer sp) {
                         sp.displayClientMessage(Component.literal("§a✦ " + title + " completed!"), true);
+                    }
+                    return false;
+                }
+        ));
+        return true;
+    }
+
+    private static void runCompletedTransmuteSweep(
+            ServerLevel srv,
+            @Nullable LivingEntity owner,
+            BlockPos targetOrigin,
+            int radius,
+            int potencyTier,
+            EssenceType materia
+    ) {
+        MateriaPartMutationHandler handler = SpellMutationHandlerRegistry.get(materia);
+        if (handler != null) {
+            int rSq = radius * radius;
+            for (BlockPos p : BlockPos.betweenClosed(
+                    targetOrigin.offset(-radius, -3, -radius),
+                    targetOrigin.offset(radius, 3, radius))) {
+                if (targetOrigin.distSqr(p) > (double) rSq) continue;
+                BlockState bs = srv.getBlockState(p);
+                if (bs.isAir()) {
+                    if (p.equals(targetOrigin)) {
+                        handler.onTransmuteBlock(srv, owner, p.immutable(), bs, potencyTier);
+                    }
+                    continue;
+                }
+                if (!SpellExecutionEngine.isProtectedBlockOrContainer(srv, p, bs)) {
+                    handler.onTransmuteBlock(srv, owner, p.immutable(), bs, potencyTier);
+                }
+            }
+            for (ItemEntity item : srv.getEntitiesOfClass(ItemEntity.class, new AABB(targetOrigin).inflate(radius))) {
+                if (item.isAlive()) {
+                    SpellExecutionEngine.transmuteDroppedItemDirectAfterChannel(srv, owner, item, potencyTier, materia, handler);
+                }
+            }
+        }
+    }
+
+    /**
+     * Generic 2.5-second (50-tick) channel gate for baseline / Tier 1–2 / item-entity {@code TRANSMUTE}
+     * invocations when the caster has not already completed a 50-tick Right-Click apparatus channel.
+     */
+    public static boolean beginOrExecuteGenericTransmuteChannel(
+            ServerLevel level,
+            @Nullable LivingEntity caster,
+            BlockPos origin,
+            EssenceType materia,
+            Runnable onCompleted
+    ) {
+        if (isTransmuteChannelSatisfied(level, caster)) {
+            return false;
+        }
+        long now = level.getGameTime();
+        BlockPos targetOrigin = origin.immutable();
+        EssenceType vMat = materia != null ? materia : EssenceType.REGULAR;
+
+        if (isPedestalOrNullCaster(caster)) {
+            String key = level.dimension().location() + "|gen|" + targetOrigin.asLong();
+            Long activeUntil = ACTIVE_PEDESTAL_TRANSMUTES.get(key);
+            if (activeUntil != null && activeUntil > now) {
+                return true;
+            }
+            ACTIVE_PEDESTAL_TRANSMUTES.put(key, now + TRANSMUTE_CHANNEL_DURATION_TICKS + 4L);
+            level.playSound(null, targetOrigin, SoundEvents.BEACON_AMBIENT, SoundSource.BLOCKS, 0.70F, 1.30F);
+            SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                    null, Vec3.atCenterOf(targetOrigin), 2.0D, TRANSMUTE_CHANNEL_DURATION_TICKS, now, null, null, vMat, 1.0F,
+                    (srv, zone, elapsed) -> {
+                        if (elapsed < TRANSMUTE_CHANNEL_DURATION_TICKS) {
+                            if (elapsed % 8 == 0) {
+                                srv.sendParticles(ParticleTypes.ENCHANT, zone.center.x, zone.center.y + 0.5D, zone.center.z,
+                                        8, 0.4D, 0.35D, 0.4D, 0.10D);
+                            }
+                            return true;
+                        }
+                        PEDESTAL_TRANSMUTE_BYPASS.set(true);
+                        try {
+                            onCompleted.run();
+                        } finally {
+                            PEDESTAL_TRANSMUTE_BYPASS.set(false);
+                            ACTIVE_PEDESTAL_TRANSMUTES.remove(key);
+                        }
+                        srv.playSound(null, targetOrigin, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.85F, 1.25F);
+                        return false;
+                    }
+            ));
+            return true;
+        }
+
+        CompoundTag casterData = EntityHelper.getPersistentData(caster);
+        if (casterData.getLong(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL).orElse(0L) > now) {
+            return true;
+        }
+        casterData.putLong(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL, now + TRANSMUTE_CHANNEL_DURATION_TICKS + 4L);
+        casterData.putLong(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL, now + 8L);
+        Vec3 anchor = caster.position();
+        if (caster instanceof ServerPlayer sp) {
+            sp.displayClientMessage(Component.literal("§e✦ Channeling Transmutation (2.5s — hold Right-Click)..."), true);
+        }
+        level.playSound(null, caster.blockPosition(), SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, 0.75F, 1.30F);
+
+        SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
+                caster, Vec3.atCenterOf(targetOrigin), 2.0D, TRANSMUTE_CHANNEL_DURATION_TICKS, now, null, null, vMat, 1.0F,
+                (srv, zone, elapsed) -> {
+                    LivingEntity owner = zone.resolveCaster(srv);
+                    if (owner == null || !owner.isAlive()) {
+                        return false;
+                    }
+                    double dx = owner.getX() - anchor.x;
+                    double dz = owner.getZ() - anchor.z;
+                    boolean movedTooFar = (dx * dx + dz * dz) > 1.5625D;
+                    boolean releasedRightClick = elapsed > 0 && (owner instanceof Player) && !isActivelyHoldingRightClickChannel(srv, owner);
+                    if (movedTooFar || releasedRightClick) {
+                        CompoundTag od = EntityHelper.getPersistentData(owner);
+                        od.remove(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL);
+                        od.remove(SpellLingeringZoneManager.TAG_ACTIVE_SPELL_CHANNEL_UNTIL);
+                        if (owner instanceof ServerPlayer sp) {
+                            sp.displayClientMessage(Component.literal(releasedRightClick
+                                    ? "§c✖ Transmutation cancelled (released Right-Click early)!"
+                                    : "§c✖ Transmutation channel interrupted!"), true);
+                        }
+                        srv.playSound(null, owner.blockPosition(), SoundEvents.BEACON_DEACTIVATE, SoundSource.PLAYERS, 0.70F, 0.9F);
+                        return false;
+                    }
+                    if (elapsed < TRANSMUTE_CHANNEL_DURATION_TICKS) {
+                        if (elapsed % 8 == 0) {
+                            srv.sendParticles(ParticleTypes.ENCHANT, owner.getX(), owner.getY(1.05D), owner.getZ(),
+                                    10, 0.35D, 0.45D, 0.35D, 0.12D);
+                        }
+                        if (elapsed % 10 == 0 && owner instanceof ServerPlayer sp) {
+                            float secsLeft = Math.max(0.0F, (TRANSMUTE_CHANNEL_DURATION_TICKS - elapsed) / 20.0F);
+                            sp.displayClientMessage(Component.literal(String.format("§e✦ Channeling Transmutation (%.1fs)...", secsLeft)), true);
+                        }
+                        return true;
+                    }
+                    CompoundTag d = EntityHelper.getPersistentData(owner);
+                    d.putBoolean(TAG_TRANSMUTE_CHANNEL_BYPASS, true);
+                    try {
+                        onCompleted.run();
+                    } finally {
+                        d.remove(TAG_TRANSMUTE_CHANNEL_BYPASS);
+                        d.remove(TAG_TRANSMUTE_CHANNEL_ACTIVE_UNTIL);
+                    }
+                    srv.playSound(null, targetOrigin, SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.90F, 1.20F);
+                    if (owner instanceof ServerPlayer sp) {
+                        sp.displayClientMessage(Component.literal("§a✦ Transmutation completed!"), true);
                     }
                     return false;
                 }
@@ -409,21 +656,53 @@ public final class ApexEschatonSingularityHelper {
             );
             case ESCHATON -> {
                 if (rand.nextBoolean()) {
-                    yield makeNamedElixir(
-                            "§5Gravitational Stasis Elixir",
-                            "ESCHATON_STASIS"
-                    );
+                    yield createGravitationalStasisElixir();
                 }
-                ItemStack omegaEssence = new ItemStack(ModItems.STRONG_ESSENCE.get(), 1);
-                EssenceItem.setEssenceType(omegaEssence, EssenceType.ESCHATON);
-                omegaEssence.set(DataComponents.CUSTOM_NAME, Component.literal("§5Essence of the Omega Horizon"));
-                CompoundTag tag = omegaEssence.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-                tag.putString("SpellApexBrewingIngredient", "OMEGA_HORIZON");
-                omegaEssence.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-                yield omegaEssence;
+                yield createOmegaHorizonEssenceStack(1);
             }
             default -> ItemStack.EMPTY;
         };
+    }
+
+    public static ItemStack createGravitationalStasisElixir() {
+        return makeNamedElixir(
+                "§5Gravitational Stasis Elixir",
+                "ESCHATON_STASIS"
+        );
+    }
+
+    public static ItemStack createOmegaHorizonEssenceStack(int count) {
+        Item baseItem = ModItems.STRONG_ESSENCE.isPresent() ? ModItems.STRONG_ESSENCE.get() : Items.DRAGON_BREATH;
+        ItemStack omegaEssence = new ItemStack(baseItem, Math.clamp(count, 1, 64));
+        if (baseItem instanceof EssenceItem) {
+            EssenceItem.setEssenceType(omegaEssence, EssenceType.ESCHATON);
+        }
+        omegaEssence.set(DataComponents.CUSTOM_NAME, Component.literal("§5Essence of the Omega Horizon"));
+        CompoundTag tag = omegaEssence.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        tag.putString("SpellApexBrewingIngredient", "OMEGA_HORIZON");
+        omegaEssence.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        return omegaEssence;
+    }
+
+    public static String getElixirType(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return "";
+        CustomData cd = stack.get(DataComponents.CUSTOM_DATA);
+        return cd != null ? cd.copyTag().getString(TAG_ELIXIR_TYPE).orElse("") : "";
+    }
+
+    public static boolean isOmegaHorizonBrewingIngredient(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        CustomData cd = stack.get(DataComponents.CUSTOM_DATA);
+        return cd != null && "OMEGA_HORIZON".equals(cd.copyTag().getString("SpellApexBrewingIngredient").orElse(""));
+    }
+
+    public static boolean canBrewGravitationalStasisPotion(ItemStack containerStack) {
+        if (containerStack == null || !containerStack.is(Items.POTION)) return false;
+        CustomData cd = containerStack.get(DataComponents.CUSTOM_DATA);
+        if (cd != null && !cd.copyTag().getString(TAG_ELIXIR_TYPE).orElse("").isEmpty()) {
+            return false; // Already a transmuted/brewed elixir!
+        }
+        return true;
     }
 
     private static ItemStack makeNamedElixir(String displayName, String elixirId) {
@@ -464,9 +743,9 @@ public final class ApexEschatonSingularityHelper {
                 SpellLingeringZoneManager.grantArcane3DFlight(player, 1200);
             }
             case "APOTHEOSIS_NECTAR" -> {
-                // Nectar of the Alpha Genesis: Regeneration V, Saturation, +14 Absorption hearts (28.0 HP), 3D flight for 90s
-                player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 900, 4));
-                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 400, 1));
+                // Nectar of the Alpha Genesis: Regeneration V, Saturation, +14 Absorption hearts (28.0 HP), 3D flight for 90s (1800t)
+                player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 1800, 4));
+                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 1800, 1));
                 player.setAbsorptionAmount(Math.max(player.getAbsorptionAmount(), 28.0F));
                 SpellLingeringZoneManager.grantArcane3DFlight(player, 1800);
             }

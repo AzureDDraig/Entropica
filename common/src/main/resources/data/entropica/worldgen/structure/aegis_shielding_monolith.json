@@ -1,0 +1,6 @@
+{
+  "type": "entropica:aegis_shielding_monolith",
+  "biomes": "#entropica:has_structure/aegis_shielding_monolith",
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}

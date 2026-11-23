@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "blocks",
+  "ingredient": "entropica:void_sand",
+  "result": {
+    "id": "entropica:void_glass"
+  },
+  "experience": 0.1,
+  "cookingtime": 200
+}

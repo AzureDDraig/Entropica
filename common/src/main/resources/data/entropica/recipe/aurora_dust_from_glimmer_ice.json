@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:glimmer_ice"
+  ],
+  "result": {
+    "id": "entropica:aurora_dust",
+    "count": 2
+  }
+}

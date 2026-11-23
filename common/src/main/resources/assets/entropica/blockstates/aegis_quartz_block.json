@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "": [
+      { "model": "entropica:block/aegis_quartz_block" },
+      { "model": "entropica:block/aegis_quartz_block", "y": 90 },
+      { "model": "entropica:block/aegis_quartz_block", "y": 180 },
+      { "model": "entropica:block/aegis_quartz_block", "y": 270 }
+    ]
+  }
+}

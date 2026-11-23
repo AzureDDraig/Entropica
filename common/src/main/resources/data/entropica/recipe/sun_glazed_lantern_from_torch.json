@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NGN",
+    "GLG",
+    "NGN"
+  ],
+  "key": {
+    "N": "minecraft:gold_nugget",
+    "G": "entropica:radiant_glass",
+    "L": "minecraft:torch"
+  },
+  "result": {
+    "id": "entropica:sun_glazed_lantern",
+    "count": 2
+  }
+}

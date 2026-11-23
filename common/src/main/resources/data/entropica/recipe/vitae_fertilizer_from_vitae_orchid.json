@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:bone_meal",
+    "entropica:golden_lichen",
+    "entropica:vitae_orchid"
+  ],
+  "result": {
+    "id": "entropica:vitae_fertilizer",
+    "count": 4
+  }
+}

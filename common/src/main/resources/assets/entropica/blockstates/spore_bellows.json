@@ -1,0 +1,36 @@
+{
+  "variants": {
+    "facing=north,triggered=false": {
+      "model": "entropica:block/spore_bellows",
+      "y": 0
+    },
+    "facing=north,triggered=true": {
+      "model": "entropica:block/spore_bellows_triggered",
+      "y": 0
+    },
+    "facing=east,triggered=false": {
+      "model": "entropica:block/spore_bellows",
+      "y": 90
+    },
+    "facing=east,triggered=true": {
+      "model": "entropica:block/spore_bellows_triggered",
+      "y": 90
+    },
+    "facing=south,triggered=false": {
+      "model": "entropica:block/spore_bellows",
+      "y": 180
+    },
+    "facing=south,triggered=true": {
+      "model": "entropica:block/spore_bellows_triggered",
+      "y": 180
+    },
+    "facing=west,triggered=false": {
+      "model": "entropica:block/spore_bellows",
+      "y": 270
+    },
+    "facing=west,triggered=true": {
+      "model": "entropica:block/spore_bellows_triggered",
+      "y": 270
+    }
+  }
+}

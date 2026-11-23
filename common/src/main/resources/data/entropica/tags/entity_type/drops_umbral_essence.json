@@ -44,6 +44,18 @@
     {
       "id": "enderzoology:dire_wolf",
       "required": false
+    },
+    {
+      "id": "entropica:peat_mud_kelpie",
+      "required": false
+    },
+    {
+      "id": "entropica:void_shadow_gargoyle",
+      "required": false
+    },
+    {
+      "id": "entropica:obsidian_wendigo",
+      "required": false
     }
   ]
 }

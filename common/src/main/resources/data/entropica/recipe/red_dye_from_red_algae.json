@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "red_dye",
+  "ingredients": [
+    "entropica:red_algae"
+  ],
+  "result": {
+    "id": "minecraft:red_dye",
+    "count": 1
+  }
+}

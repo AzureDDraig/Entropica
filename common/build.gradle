@@ -157,9 +157,17 @@ task runBiomeInjectorVerification(type: JavaExec) {
     mainClass = "ddraig.net.entropica.worldgen.test.BiomeInjectorVerificationSuite"
 }
 
+task runCodexWikiVerification(type: JavaExec) {
+    group = "verification"
+    description = "Runs the standalone deterministic Entropic Codex Constellation & Wiki Verification Suite"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "ddraig.net.entropica.codex.test.CodexWikiVerificationSuite"
+}
+
 test {
     dependsOn runForcefieldTests
     dependsOn runSpellEngineVerification
+    dependsOn runCodexWikiVerification
     dependsOn runM2Challenger1Verification
     dependsOn runM2Challenger2Verification
     dependsOn runMilestone3Verification

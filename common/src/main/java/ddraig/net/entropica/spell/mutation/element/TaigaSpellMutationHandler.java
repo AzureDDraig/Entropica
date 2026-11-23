@@ -957,7 +957,7 @@ public final class TaigaSpellMutationHandler implements MateriaPartMutationHandl
                                     colBase.getY() + Math.max(2.5D, localClearance - colH * 0.4D),
                                     colBase.getZ() + 0.5D
                             );
-                            int holdTicks = Math.max(2, totalTicks - elapsed - fallTicks);
+                            int holdTicks = Math.max(2, zone.maxDurationTicks - elapsed - fallTicks);
                             SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                     srv, skyOrigin, colBase, colState, colH, fallTicks, holdTicks, EssenceType.TAIGA, tier
                             );

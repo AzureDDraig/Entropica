@@ -28,6 +28,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -38,12 +39,21 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.AbstractSkeleton;
+import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Phantom;
+import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.monster.Shulker;
+import net.minecraft.world.entity.monster.Witch;
+import net.minecraft.world.entity.monster.breeze.Breeze;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.MaceItem;
+import net.minecraft.world.item.TridentItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.block.Block;
@@ -136,8 +146,12 @@ public class SpellEidolonEntity extends PathfinderMob {
     @Nullable
     private EssenceType fallbackMateria = EssenceType.REGULAR;
     private float apparatusPotency = 1.0F;
+    public static final int UPKEEP_INTERVAL_TICKS = ddraig.net.entropica.spell.engine.SpellEidolonSpecs.UPKEEP_INTERVAL_TICKS;
+
     private int maxLifetimeTicks = 600;
     private int ageTicks = 0;
+    private int upkeepTicks = 0;
+    private boolean sustainedPastCycleOne = false;
     private int actionCooldown = 0;
     private int meleeHitCounter = 0;
     @Nullable
@@ -313,9 +327,9 @@ public class SpellEidolonEntity extends PathfinderMob {
         this.setSilent(mutated && (formMateria == EssenceType.UMBRAL || formMateria == EssenceType.NULL_U));
 
         if (mutated && (formMateria == EssenceType.UMBRAL || formMateria == EssenceType.MIRAGE
-                || formMateria == EssenceType.WATER || formMateria == EssenceType.DUST)
+                || formMateria == EssenceType.DUST)
                 && archetype == TriadArchetype.DECOY && caster != null) {
-            // Umbral Phantom Decoy, Mirage Phantom Mirror Effigy & Water Aquatic Mirage visually copy caster's held weapons & armor!
+            // Umbral Phantom Decoy, Mirage Phantom Mirror Effigy & Dust Silhouette visually copy caster's held weapons & armor!
             this.entityData.set(DATA_DISPLAY_ITEM, caster.getMainHandItem().copy());
             this.setItemSlot(EquipmentSlot.OFFHAND, caster.getOffhandItem().copy());
             this.setDropChance(EquipmentSlot.OFFHAND, 0.0F);
@@ -448,9 +462,13 @@ public class SpellEidolonEntity extends PathfinderMob {
         return ddraig.net.entropica.spell.engine.SpellEidolonSpecs.resolveCanonicalConstructName(type, archetype, mutated, chimeraElement);
     }
 
+    public static int resolveMaxConcurrentSummons(int tier) {
+        return ddraig.net.entropica.spell.engine.SpellEidolonSpecs.resolveMaxConcurrentSummons(tier);
+    }
+
     /**
-     * Lifecycle Refresh Engine (Sections 6.41–6.49): Re-casting Summon when at cap refreshes an existing
-     * matching Agent or Sentry's 45.0s timer and restores 50% of its maximum health instead of evicting it!
+     * Lifecycle Refresh Engine (Sections 6.40–6.59): Re-casting Summon when at cap refreshes an existing
+     * matching Agent or Sentry's lifecycle timer and restores 50% of its maximum health instead of evicting it!
      */
     public static boolean tryRefreshLifecycleConstruct(
             ServerLevel level,
@@ -460,7 +478,7 @@ public class SpellEidolonEntity extends PathfinderMob {
             int tier,
             Vec3 spawnPos
     ) {
-        int cap = Math.min(4, 1 + (tier / 3));
+        int cap = resolveMaxConcurrentSummons(tier);
         List<SpellEidolonEntity> owned = level.getEntitiesOfClass(
                 SpellEidolonEntity.class,
                 caster.getBoundingBox().inflate(64.0D),
@@ -474,6 +492,7 @@ public class SpellEidolonEntity extends PathfinderMob {
                     && candidate.getEffectiveMateria() == materia
                     && candidate.getArchetype() == archetype) {
                 candidate.ageTicks = 0;
+                candidate.upkeepTicks = 0;
                 float restored = candidate.getMaxHealth() * 0.50F;
                 SpellCombatReactionEngine.notifyMagicalHeal(candidate, restored);
                 candidate.heal(restored);
@@ -558,10 +577,11 @@ public class SpellEidolonEntity extends PathfinderMob {
     }
 
     /**
-     * Enforces active summon cap per caster (Section 4.9) so older constructs cleanly dissipate when exceeded.
+     * Enforces active summon cap per caster (Sections 1.8 & 4.9, scaling up to 8 at Tiers 8–10)
+     * so older constructs cleanly dissipate when exceeded.
      */
     public static void enforceSummonCap(ServerLevel level, LivingEntity caster, int tier) {
-        int cap = Math.min(4, 1 + (tier / 3));
+        int cap = resolveMaxConcurrentSummons(tier);
         List<SpellEidolonEntity> existing = level.getEntitiesOfClass(
                 SpellEidolonEntity.class,
                 caster.getBoundingBox().inflate(64.0D),
@@ -665,6 +685,29 @@ public class SpellEidolonEntity extends PathfinderMob {
         return super.isAlliedTo(other);
     }
 
+    private boolean isHostileTargetForSentryField(@Nullable LivingEntity owner, LivingEntity candidate) {
+        if (candidate == this || candidate == owner || !candidate.isAlive() || this.isFriendlyTo(candidate)) {
+            return false;
+        }
+        boolean wardSafeguard = this.spell != null && this.spell.hasWardFriendlyFireSafeguard();
+        if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(candidate, owner, wardSafeguard)) {
+            return false;
+        }
+        if (candidate instanceof Enemy || candidate instanceof Monster) {
+            return true;
+        }
+        if (candidate instanceof Mob mob && (mob.getTarget() == this || (owner != null && mob.getTarget() == owner))) {
+            return true;
+        }
+        if (candidate instanceof Player player && !player.isCreative() && !player.isSpectator()) {
+            if (!wardSafeguard) {
+                return true;
+            }
+            return owner != null && (player == owner.getLastHurtMob() || player == owner.getLastHurtByMob());
+        }
+        return owner != null && (candidate == owner.getLastHurtMob() || candidate == owner.getLastHurtByMob());
+    }
+
     public EssenceType getEffectiveMateria() {
         try {
             return EssenceType.valueOf(this.entityData.get(DATA_MATERIA));
@@ -725,14 +768,23 @@ public class SpellEidolonEntity extends PathfinderMob {
         if (player.isShiftKeyDown() && isOwnedBy(player) && this.getHealth() < this.getMaxHealth()) {
             if (!this.level().isClientSide() && this.level() instanceof ServerLevel srv) {
                 int tier = this.spell.getEffectiveTier();
-                EssenceType reqType = getEffectiveMateria();
-                long healCostMfum = 20L * MateriaStageTable.getMfumPerNativeUnit(Math.max(1, tier - 1));
-                SpellFuelService.FuelCheckResult res = SpellFuelService.consumePlayerSpellFuel(
+                EssenceType reqType = resolveUpkeepMateria();
+                long healCostMfum = Math.max(16L, (20L * MateriaStageTable.getMfumPerNativeUnit(Math.max(1, tier - 1))) / 8L);
+                SpellFuelService.FuelCheckResult res = SpellFuelService.consumeOrbisCellUpkeepFuel(
                         player,
                         tier,
-                        Map.of(reqType, Math.max(16L, healCostMfum / 8L)),
+                        reqType,
+                        healCostMfum,
                         false
                 );
+                if (!res.success()) {
+                    res = SpellFuelService.consumePlayerSpellFuel(
+                            player,
+                            tier,
+                            Map.of(reqType, healCostMfum),
+                            false
+                    );
+                }
                 if (res.success()) {
                     float restored = this.getMaxHealth() * 0.35F;
                     this.heal(restored);
@@ -773,43 +825,48 @@ public class SpellEidolonEntity extends PathfinderMob {
             this.actionCooldown--;
         }
 
-        if (isMutated() && (getEffectiveMateria() == EssenceType.CHIMERA || getEffectiveMateria() == EssenceType.PRISMATIC) && this.ageTicks % 6 == 0) {
-            int[] rainbow = getEffectiveMateria() == EssenceType.PRISMATIC
-                    ? new int[]{0xFF5555, 0xFFAA00, 0xFFFF55, 0x55FF55, 0x55FFFF, 0xAA55FF, 0xFFFFFF}
-                    : new int[]{0xA88654, 0x773214, 0x225C7C, 0xB83C08, 0xFF55FF, 0x55FFFF};
-            this.entityData.set(DATA_TINT_RGB, rainbow[(this.ageTicks / 6) % rainbow.length]);
+        EssenceType currentMat = getEffectiveMateria();
+        if (isMutated() && currentMat != EssenceType.REGULAR && currentMat.isDynamic() && this.ageTicks % 6 == 0) {
+            int nextRgb;
+            if (currentMat == EssenceType.ENTROPICA) {
+                int[] entropicaCycle = new int[]{0xE0E5EC, 0xFAD02C, 0x1A153B};
+                nextRgb = entropicaCycle[(this.ageTicks / 6) % entropicaCycle.length];
+            } else if (currentMat == EssenceType.PRISMATIC) {
+                int[] prismaticCycle = new int[]{0xFF5555, 0xFFAA00, 0xFFFF55, 0x55FF55, 0x55FFFF, 0xAA55FF, 0xFFFFFF};
+                nextRgb = prismaticCycle[(this.ageTicks / 6) % prismaticCycle.length];
+            } else if (currentMat == EssenceType.CHIMERA) {
+                int[] chimeraCycle = new int[]{0xA88654, 0x773214, 0x225C7C, 0xB83C08, 0xFF55FF, 0x55FFFF};
+                nextRgb = chimeraCycle[(this.ageTicks / 6) % chimeraCycle.length];
+            } else {
+                int[] rgb = currentMat.getCurrentRGB(serverLevel.getGameTime());
+                nextRgb = ((rgb[0] & 0xFF) << 16) | ((rgb[1] & 0xFF) << 8) | (rgb[2] & 0xFF);
+            }
+            this.entityData.set(DATA_TINT_RGB, nextRgb);
+        }
+
+        // Section 4.9 Continuous 15-Second (300-Tick) Materia Fuel Upkeep:
+        // Cycle 1 is paid by the initial summon cast cost. Every 300 ticks thereafter, autonomous Agents & Sentries
+        // owned by a Player drain 25% base cost (if HP >= 50%) or 100% full base cost + full heal (if HP < 50%)
+        // from the player's equipped Orbis Cell first, then inventory Orbis Cells (Creative players bypass drain).
+        if (!this.shortLivedIllusion && getArchetype() != TriadArchetype.DECOY) {
+            this.upkeepTicks++;
+            if (this.upkeepTicks >= UPKEEP_INTERVAL_TICKS) {
+                this.upkeepTicks = 0;
+                if (!tryPerformPlayerUpkeepRefresh(serverLevel) && this.sustainedPastCycleOne) {
+                    expireAndDiscard(serverLevel);
+                    return;
+                }
+            }
         }
 
         if (this.ageTicks >= this.maxLifetimeTicks) {
             if (!this.shortLivedIllusion
-                    && isMutated()
                     && getArchetype() != TriadArchetype.DECOY
-                    && isLifecycleRefreshMateria(getEffectiveMateria())) {
-                LivingEntity owner = resolveSummoner(serverLevel);
-                if (owner instanceof Player player && player.isAlive()) {
-                    int tier = this.spell.getEffectiveTier();
-                    long upkeepMfum = Math.max(8L, MateriaStageTable.getBaseMfumCastCost(tier) / 6L);
-                    SpellFuelService.FuelCheckResult fed = SpellFuelService.consumePlayerSpellFuel(
-                            player,
-                            tier,
-                            Map.of(getEffectiveMateria(), upkeepMfum),
-                            false
-                    );
-                    if (fed.success()) {
-                        this.ageTicks = 0;
-                        this.heal(this.getMaxHealth() * 0.25F);
-                        serverLevel.sendParticles(ParticleTypes.ENCHANT, this.getX(), this.getY(1.1D), this.getZ(),
-                                14, 0.35D, 0.45D, 0.35D, 0.08D);
-                        return;
-                    }
-                }
+                    && tryPerformPlayerUpkeepRefresh(serverLevel)) {
+                this.upkeepTicks = 0;
+                return;
             }
-            if (getArchetype() == TriadArchetype.DECOY
-                    || getEffectiveMateria() == EssenceType.RADIANT
-                    || (getArchetype() == TriadArchetype.AGENT && getEffectiveMateria() == EssenceType.NETHER)) {
-                triggerElementalDeathBurst(serverLevel);
-            }
-            this.discard();
+            expireAndDiscard(serverLevel);
             return;
         }
 
@@ -1415,7 +1472,9 @@ public class SpellEidolonEntity extends PathfinderMob {
                     || mat == EssenceType.DAWN || mat == EssenceType.MIRAGE || mat == EssenceType.ECLIPSE
                     || mat == EssenceType.WRAITH || mat == EssenceType.PENUMBRA
                     || mat == EssenceType.SPRING || mat == EssenceType.STATIC || mat == EssenceType.GENESIS
-                    || mat == EssenceType.AETHER || mat == EssenceType.ENTROPIC || mat == EssenceType.CELESTIAL || mat == EssenceType.APOTHEOSIS || mat == EssenceType.ENTROPICA);
+                    || mat == EssenceType.AETHER || mat == EssenceType.ENTROPIC || mat == EssenceType.CELESTIAL
+                    || mat == EssenceType.CATACLYSM || mat == EssenceType.TERMINUS || mat == EssenceType.ESCHATON
+                    || mat == EssenceType.APOTHEOSIS || mat == EssenceType.ENTROPICA);
             this.getNavigation().moveTo(target, swiftPursuit ? 1.45D : 1.2D);
             // True wall-phasing step-through for Void-Stalker, Astral, Null_R, Null_U, Wraith Stalkers & Tier 4–6 Apex/Eschaton/Singularity Agents!
             if (mutated && (mat == EssenceType.VOID || mat == EssenceType.WRAITH || mat == EssenceType.ASTRAL
@@ -1438,12 +1497,81 @@ public class SpellEidolonEntity extends PathfinderMob {
                             if (level.getBlockState(pPos).isAir() && level.getBlockState(pPos.above()).isAir()) {
                                 this.teleportTo(probe.x, probe.y, probe.z);
                                 level.sendParticles(mat == EssenceType.NULL_R ? ParticleTypes.END_ROD
-                                                : (mat == EssenceType.NULL_U ? ParticleTypes.SQUID_INK : ParticleTypes.SOUL),
+                                                : (mat == EssenceType.CATACLYSM ? ParticleTypes.LAVA
+                                                : (mat == EssenceType.ESCHATON ? ParticleTypes.REVERSE_PORTAL
+                                                : (mat == EssenceType.NULL_U ? ParticleTypes.SQUID_INK : ParticleTypes.SOUL))),
                                         this.getX(), this.getY(0.8D), this.getZ(), 6, 0.2D, 0.3D, 0.2D, 0.02D);
                                 break;
                             }
                         }
                     }
+                }
+            }
+            // Section 6.55 Stygian Magma-Void Serpent: pulls distant enemies within 12m directly into its molten jaws while burrowing/closing!
+            if (mutated && mat == EssenceType.CATACLYSM && distSq >= 9.0D && distSq <= 144.0D && this.ageTicks % 24 == 0) {
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(12.0D))) {
+                    if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
+                    Vec3 pull = this.position().subtract(foe.position());
+                    if (pull.lengthSqr() > 1.0E-4D) {
+                        Vec3 v = pull.normalize().scale(0.68D);
+                        foe.setDeltaMovement(foe.getDeltaMovement().add(v.x, 0.16D, v.z));
+                        foe.hasImpulse = true;
+                    }
+                }
+                level.sendParticles(ParticleTypes.LAVA, this.getX(), this.getY(0.5D), this.getZ(), 6, 0.35D, 0.25D, 0.35D, 0.03D);
+            } else if (mutated && mat == EssenceType.ESCHATON && distSq >= 9.0D && distSq <= 196.0D && this.ageTicks % 20 == 0) {
+                // Section 6.57 Event-Horizon Leviathan: drags nearby mobs and loose matter inward while gliding through terrain!
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(14.0D))) {
+                    if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
+                    Vec3 pull = this.position().subtract(foe.position());
+                    if (pull.lengthSqr() > 1.0E-4D) {
+                        Vec3 v = pull.normalize().scale(0.75D);
+                        foe.setDeltaMovement(foe.getDeltaMovement().add(v.x, 0.18D, v.z));
+                        foe.hasImpulse = true;
+                    }
+                }
+                for (net.minecraft.world.entity.item.ItemEntity item : level.getEntitiesOfClass(
+                        net.minecraft.world.entity.item.ItemEntity.class, this.getBoundingBox().inflate(10.0D))) {
+                    if (!item.isAlive()) continue;
+                    Vec3 pull = this.position().add(0.0D, 0.6D, 0.0D).subtract(item.position());
+                    if (pull.lengthSqr() > 1.0E-4D) {
+                        Vec3 v = pull.normalize().scale(0.55D);
+                        item.setDeltaMovement(item.getDeltaMovement().scale(0.35D).add(v));
+                        item.hasImpulse = true;
+                    }
+                }
+                level.sendParticles(ParticleTypes.REVERSE_PORTAL, this.getX(), this.getY(0.7D), this.getZ(), 10, 0.45D, 0.35D, 0.45D, 0.04D);
+            } else if (mutated && mat == EssenceType.ENTROPICA && distSq >= 9.0D && distSq <= 400.0D && this.ageTicks % 22 == 0) {
+                // Section 6.59 Avatar of Entropica (90s / 140 HP): pulls distant foes into its aura & hurls alternating void/radiant orbs
+                // (75% armor bypass, -5 armor per strike, wall-phasing)!
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(14.0D))) {
+                    if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
+                    Vec3 pull = this.position().subtract(foe.position());
+                    if (pull.lengthSqr() > 1.0E-4D) {
+                        Vec3 v = pull.normalize().scale(0.72D);
+                        foe.setDeltaMovement(foe.getDeltaMovement().add(v.x, 0.16D, v.z));
+                        foe.hasImpulse = true;
+                    }
+                }
+                Vec3 aim = target.getEyePosition().subtract(this.getEyePosition());
+                if (aim.lengthSqr() > 1.0E-4D) {
+                    Vec3 orbDir = aim.normalize();
+                    boolean radiantPhase = ((this.ageTicks / 22) & 1) == 0;
+                    SpellProjectileEntity orb = new SpellProjectileEntity(level, owner != null ? owner : this);
+                    orb.setPos(this.getX() + orbDir.x * 0.75D, this.getEyeY() - 0.1D + orbDir.y * 0.75D, this.getZ() + orbDir.z * 0.75D);
+                    orb.configurePayload(this.spell, this.slotIndex, this.fallbackMateria, this.apparatusPotency * 0.75F);
+                    orb.setSentryBoltMateria(EssenceType.ENTROPICA);
+                    orb.setWallPhasing(true);
+                    orb.setNoGravity(true);
+                    orb.addBonusPierces(3);
+                    ddraig.net.entropica.util.EntityHelper.getPersistentData(orb).putBoolean("SpellAvatarAlternatingOrb", true);
+                    orb.shoot(orbDir.x, orbDir.y, orbDir.z, 2.15F, 0.0F);
+                    level.addFreshEntity(orb);
+                    level.sendParticles(radiantPhase ? ParticleTypes.END_ROD : ParticleTypes.REVERSE_PORTAL,
+                            this.getX(), this.getY(1.1D), this.getZ(), 10, 0.35D, 0.35D, 0.35D, 0.05D);
+                    level.playSound(null, this.blockPosition(),
+                            radiantPhase ? SoundEvents.AMETHYST_BLOCK_CHIME : SoundEvents.CHORUS_FRUIT_TELEPORT,
+                            SoundSource.PLAYERS, 0.65F, 1.48F);
                 }
             }
         }
@@ -1547,8 +1675,9 @@ public class SpellEidolonEntity extends PathfinderMob {
 
         switch (mat) {
             case AIR -> {
-                target.setDeltaMovement(dir.x * 0.72D, 0.62D, dir.z * 0.72D);
-                target.hasImpulse = true;
+                if (!SpellCombatReactionEngine.isBossEntity(level, target)) {
+                    SpellExecutionEngine.applySyncedMotion(target, new Vec3(dir.x * 0.72D, 0.62D, dir.z * 0.72D));
+                }
                 ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
                         level, this.getEyePosition().subtract(0.0D, 0.3D, 0.0D), dir, 2.2D, EssenceType.AIR, null, tier
                 );
@@ -1593,12 +1722,14 @@ public class SpellEidolonEntity extends PathfinderMob {
                         level, target.position().add(0.0D, 0.12D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D),
                         EssenceType.NATURE, null, 1.15F, tier
                 );
-                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 6));
-                target.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 40, 0));
-                ddraig.net.entropica.util.EntityHelper.getPersistentData(target)
-                        .putLong(SpellLingeringZoneManager.TAG_NO_JUMP_UNTIL, level.getGameTime() + 40L);
-                target.setDeltaMovement(0.0D, Math.min(0.0D, target.getDeltaMovement().y), 0.0D);
-                target.hasImpulse = true;
+                if (!SpellCombatReactionEngine.isBossEntity(target)) {
+                    target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 6));
+                    target.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 40, 0));
+                    ddraig.net.entropica.util.EntityHelper.getPersistentData(target)
+                            .putLong(SpellLingeringZoneManager.TAG_NO_JUMP_UNTIL, level.getGameTime() + 40L);
+                    target.setDeltaMovement(0.0D, Math.min(0.0D, target.getDeltaMovement().y), 0.0D);
+                    target.hasImpulse = true;
+                }
                 level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_LEAF.get(), 0x1A5923, 28, 1.0F, 0.08F),
                         target.getX(), target.getY(0.5D), target.getZ(), 10, 0.3D, 0.3D, 0.3D, 0.04D);
                 level.playSound(null, target.blockPosition(), SoundEvents.SWEET_BERRY_BUSH_PLACE, SoundSource.PLAYERS, 0.70F, 0.90F);
@@ -1634,17 +1765,18 @@ public class SpellEidolonEntity extends PathfinderMob {
                             level, target, owner != null ? owner : this, 2.6F + tier * 0.80F, false, false, true
                     );
                     SpellCombatReactionEngine.applyPercentageArmorShred(target, level, 0.0D, 0.30D, 60L);
+                    int freezeGain = SpellLingeringZoneManager.isEntityWetOrSoaked(target) ? 120 : 45;
+                    target.setTicksFrozen(Math.min(target.getTicksRequiredToFreeze() + 80, target.getTicksFrozen() + freezeGain));
+                    SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, 0.45D, 50L);
+                    target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 2));
                 } else {
                     SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(
                             level, target, owner != null ? owner : this, 2.4F + tier * 0.75F, false, true
                     );
+                    SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, 0.45D, 50L);
                 }
-                int freezeGain = SpellLingeringZoneManager.isEntityWetOrSoaked(target) ? 120 : 45;
-                target.setTicksFrozen(Math.min(target.getTicksRequiredToFreeze() + 80, target.getTicksFrozen() + freezeGain));
-                SpellCombatReactionEngine.applyTimedMovementSpeedSap(target, level, 0.45D, 50L);
-                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 2));
                 level.sendParticles(ParticleTypes.SNOWFLAKE, target.getX(), target.getY(0.65D), target.getZ(), 12, 0.30D, 0.30D, 0.30D, 0.04D);
-                // 3 consecutive hits on the same target freeze them solid inside an entity-tracked 3D crystalline ice block!
+                // 3 consecutive hits on the same target freeze them solid inside temporary solid ice!
                 if (this.consecutiveTargetHits >= 3 && this.consecutiveTargetHits % 3 == 0) {
                     ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(
                             level, owner != null ? owner : this, target, 40, this.spell, null
@@ -2433,74 +2565,205 @@ public class SpellEidolonEntity extends PathfinderMob {
                 }
             }
             case PRISMATIC -> {
+                // Section 6.53 Prismatic Valkyrie (100 HP, 45s): bypasses 50% armor, heavy Prismatic damage & smites Undead/Blight!
                 target.invulnerableTime = 0;
-                float smiteMult = target.getType().is(EntityTypeTags.UNDEAD) ? 1.50F : 1.0F;
-                target.hurtServer(level, level.damageSources().magic(), (3.2F + tier * 0.85F) * smiteMult);
+                SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 3.0D, 0.0D, 140L);
+                target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 80, 0));
+                SpellCombatReactionEngine.hurtWithPrismaticMateriaAdvantage(
+                        level, target, owner != null ? owner : this, 4.2F + tier * 1.05F, false, true, 1.75F
+                );
             }
             case EMPYREAN -> {
+                // Section 6.54 Yggdrasil Arboreal Juggernaut (110 HP, 60s): sweeping root cleaves bypassing 60% armor,
+                // dealing heavy Empyrean damage, shattering 4 armor per strike, rooting 3.0s (60t) & siphoning 40% into party absorption!
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, this.getEyePosition().subtract(0.0D, 0.35D, 0.0D), dir, 4.1F, EssenceType.EMPYREAN, EssenceType.NATURE, tier
+                );
                 target.invulnerableTime = 0;
-                float hitDmg = 4.5F + tier * 1.05F;
-                target.hurtServer(level, level.damageSources().magic(), hitDmg);
                 SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 4.0D, 0.0D, 160L);
                 target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 6));
                 target.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 60, 0));
-                SpellLingeringZoneManager.grantPartyAbsorption(level, owner != null ? owner : this, hitDmg * 0.40F, 24.0F, 12.0D);
+                float dealt = SpellCombatReactionEngine.hurtWithEmpyreanMateriaAdvantage(
+                        level, target, owner != null ? owner : this, 5.60F + tier * 1.35F, false, true, false, true
+                );
+                float totalDealt = dealt;
+                for (LivingEntity splash : level.getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(2.6D))) {
+                    if (splash == this || splash == owner || splash == target || !splash.isAlive() || this.isFriendlyTo(splash)) continue;
+                    SpellCombatReactionEngine.applyTimedAttributeShred(splash, level, 4.0D, 0.0D, 140L);
+                    splash.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 5));
+                    splash.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 60, 0));
+                    totalDealt += SpellCombatReactionEngine.hurtWithEmpyreanMateriaAdvantage(
+                            level, splash, owner != null ? owner : this, 3.40F + tier * 0.85F, false, true, false, true
+                    );
+                }
+                SpellLingeringZoneManager.grantPartyAbsorption(level, owner != null ? owner : this, Math.max(2.0F, totalDealt * 0.40F), 32.0F, 16.0D);
             }
             case CATACLYSM -> {
+                // Section 6.55 Stygian Magma-Void Serpent (110 HP, 60s): burrows/phases to coil & crush hostiles,
+                // bypassing 60% armor, dealing heavy Cataclysm damage, shattering 4 armor per strike, & pulling distant foes into its molten jaws!
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, this.getEyePosition().subtract(0.0D, 0.35D, 0.0D), dir, 4.2F, EssenceType.CATACLYSM, EssenceType.NETHER, tier
+                );
                 target.invulnerableTime = 0;
-                target.hurtServer(level, level.damageSources().magic(), 4.5F + tier * 1.05F);
                 SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 4.0D, 0.0D, 160L);
                 target.igniteForSeconds(6);
-                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(10.0D))) {
-                    if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
-                    Vec3 pull = this.position().subtract(foe.position()).normalize().scale(0.65D);
-                    foe.setDeltaMovement(pull.x, 0.18D, pull.z);
-                    foe.hasImpulse = true;
+                ddraig.net.entropica.util.EntityHelper.getPersistentData(target)
+                        .putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, level.getGameTime() + 120L);
+                SpellCombatReactionEngine.hurtWithCataclysmMateriaAdvantage(
+                        level, target, owner != null ? owner : this, 5.80F + tier * 1.40F, false, true, false
+                );
+                for (LivingEntity splash : level.getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(2.6D))) {
+                    if (splash == this || splash == owner || splash == target || !splash.isAlive() || this.isFriendlyTo(splash)) continue;
+                    SpellCombatReactionEngine.applyTimedAttributeShred(splash, level, 4.0D, 0.0D, 140L);
+                    splash.igniteForSeconds(5);
+                    ddraig.net.entropica.util.EntityHelper.getPersistentData(splash)
+                            .putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, level.getGameTime() + 100L);
+                    SpellCombatReactionEngine.hurtWithCataclysmMateriaAdvantage(
+                            level, splash, owner != null ? owner : this, 3.50F + tier * 0.90F, false, true, false
+                    );
                 }
-            }
-            case TERMINUS -> {
-                target.invulnerableTime = 0;
-                target.hurtServer(level, level.damageSources().magic(), 4.5F + tier * 1.05F);
-                SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 4.0D, 0.0D, 160L);
-                target.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 60, 0));
-                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 6));
-                target.setTicksFrozen(target.getTicksRequiredToFreeze() + 60);
-            }
-            case ESCHATON -> {
-                target.invulnerableTime = 0;
-                target.hurtServer(level, level.damageSources().fellOutOfWorld(), 6.0F + tier * 1.25F);
-                SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 5.0D, 0.0D, 180L);
                 for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(12.0D))) {
                     if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
-                    Vec3 pull = this.position().subtract(foe.position()).normalize().scale(0.75D);
-                    foe.setDeltaMovement(pull.x, 0.18D, pull.z);
-                    foe.hasImpulse = true;
-                }
-            }
-            case APOTHEOSIS -> {
-                target.invulnerableTime = 0;
-                float smite = target.getType().is(EntityTypeTags.UNDEAD) ? 2.0F : 1.0F;
-                float hitDmg = (6.0F + tier * 1.25F) * smite;
-                target.hurtServer(level, level.damageSources().magic(), hitDmg);
-                SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 5.0D, 0.0D, 180L);
-                target.igniteForSeconds(5);
-                for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(12.0D))) {
-                    if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
-                        SpellCombatReactionEngine.notifyMagicalHeal(ally, hitDmg * 0.25F);
-                        ally.heal(hitDmg * 0.25F);
+                    Vec3 pull = this.position().subtract(foe.position());
+                    if (pull.lengthSqr() > 1.0E-4D) {
+                        Vec3 v = pull.normalize().scale(0.75D);
+                        foe.setDeltaMovement(v.x, 0.20D, v.z);
+                        foe.hasImpulse = true;
                     }
                 }
+                level.sendParticles(ParticleTypes.LAVA, target.getX(), target.getY(0.6D), target.getZ(), 10, 0.35D, 0.30D, 0.35D, 0.04D);
+            }
+            case TERMINUS -> {
+                // Section 6.56 Titanic Glacial Elemental (110 HP / 60s): sweeping glacial slams bypassing 60% of enemy armor,
+                // dealing heavy Terminus damage, shattering 4 armor points per strike, & freezing targets solid for 3.0s!
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, this.getEyePosition().add(this.getLookAngle().scale(1.2D)),
+                        this.getLookAngle(), 4.8D, EssenceType.TERMINUS, EssenceType.FROZEN, tier
+                );
+                SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 4.0D, 0.0D, 160L);
+                SpellCombatReactionEngine.hurtWithTerminusMateriaAdvantage(
+                        level, target, owner != null ? owner : this, 5.80F + tier * 1.40F, false, true, false
+                );
+                if (target.isAlive()) {
+                    ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(
+                            level, owner != null ? owner : this, target, 60, 0, null, null
+                    );
+                }
+                for (LivingEntity splash : level.getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(3.5D))) {
+                    if (splash == this || splash == owner || splash == target || !splash.isAlive() || this.isFriendlyTo(splash) || !(splash instanceof Monster)) continue;
+                    SpellCombatReactionEngine.applyTimedAttributeShred(splash, level, 4.0D, 0.0D, 160L);
+                    SpellCombatReactionEngine.hurtWithTerminusMateriaAdvantage(
+                            level, splash, owner != null ? owner : this, 3.60F + tier * 0.90F, false, true, false
+                    );
+                    if (splash.isAlive()) {
+                        ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(
+                                level, owner != null ? owner : this, splash, 60, 0, null, null
+                        );
+                    }
+                }
+                level.sendParticles(ParticleTypes.SNOWFLAKE, target.getX(), target.getY(0.6D), target.getZ(), 14, 0.40D, 0.35D, 0.40D, 0.04D);
+                level.playSound(null, target.blockPosition(), SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 0.85F, 0.72F);
+            }
+            case ESCHATON -> {
+                // Section 6.57 Event-Horizon Leviathan (90s / 140 HP): sweeping singularity cleaves bypassing 75% armor,
+                // shattering 5 armor points per strike, and pulling distant enemies directly into its crushing jaws!
+                target.invulnerableTime = 0;
+                Vec3 slashDir = target.position().subtract(this.position());
+                Vec3 normDir = slashDir.horizontalDistanceSqr() > 1.0E-4D
+                        ? new Vec3(slashDir.x, 0.0D, slashDir.z).normalize()
+                        : this.getLookAngle();
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, this.getEyePosition().add(normDir.scale(1.2D)), normDir, 5.6D,
+                        EssenceType.ESCHATON, EssenceType.VOID, tier
+                );
+                SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 5.0D, 0.0D, 180L);
+                SpellCombatReactionEngine.hurtWithEschatonMateriaAdvantage(
+                        level, target, owner != null ? owner : this, 7.20F + tier * 1.55F, false, true, false
+                );
+                for (LivingEntity splash : level.getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(4.0D))) {
+                    if (splash == this || splash == owner || splash == target || !splash.isAlive() || this.isFriendlyTo(splash) || !(splash instanceof Monster)) continue;
+                    SpellCombatReactionEngine.applyTimedAttributeShred(splash, level, 5.0D, 0.0D, 180L);
+                    SpellCombatReactionEngine.hurtWithEschatonMateriaAdvantage(
+                            level, splash, owner != null ? owner : this, 4.80F + tier * 1.15F, false, true, false
+                    );
+                }
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(14.0D))) {
+                    if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
+                    Vec3 diff = this.position().subtract(foe.position());
+                    if (diff.lengthSqr() > 1.0E-4D) {
+                        Vec3 pull = diff.normalize().scale(0.78D);
+                        foe.setDeltaMovement(pull.x, 0.18D, pull.z);
+                        foe.hasImpulse = true;
+                    }
+                }
+                level.sendParticles(ParticleTypes.REVERSE_PORTAL, target.getX(), target.getY(0.7D), target.getZ(), 16, 0.45D, 0.35D, 0.45D, 0.05D);
+                level.playSound(null, target.blockPosition(), SoundEvents.WARDEN_SONIC_BOOM, SoundSource.PLAYERS, 0.55F, 1.35F);
+            }
+            case APOTHEOSIS -> {
+                // Section 6.58 Celestial Seraph-Titan (90s / 140 HP): sweeping divine cleaves (75% armor bypass, -5 armor/strike,
+                // smite undead & dark entities with holy fire, and heal nearby friendly players for 25% of damage dealt)!
+                Vec3 slashDir = target.position().subtract(this.position());
+                Vec3 normDir = slashDir.horizontalDistanceSqr() > 1.0E-4D
+                        ? new Vec3(slashDir.x, 0.0D, slashDir.z).normalize()
+                        : this.getLookAngle();
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, this.getEyePosition().add(normDir.scale(1.2D)), normDir, 5.6D,
+                        EssenceType.APOTHEOSIS, EssenceType.RADIANT, tier
+                );
+                SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 5.0D, 0.0D, 180L);
+                target.igniteForSeconds(5);
+                float totalDealt = SpellCombatReactionEngine.hurtWithApotheosisMateriaAdvantage(
+                        level, target, owner != null ? owner : this, 7.20F + tier * 1.55F, false, true, true, false
+                );
+                for (LivingEntity splash : level.getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(4.0D))) {
+                    if (splash == this || splash == owner || splash == target || !splash.isAlive() || this.isFriendlyTo(splash) || !(splash instanceof Monster)) continue;
+                    SpellCombatReactionEngine.applyTimedAttributeShred(splash, level, 5.0D, 0.0D, 180L);
+                    splash.igniteForSeconds(5);
+                    totalDealt += SpellCombatReactionEngine.hurtWithApotheosisMateriaAdvantage(
+                            level, splash, owner != null ? owner : this, 4.80F + tier * 1.15F, false, true, true, false
+                    );
+                }
+                float healAmt = Math.max(2.0F, totalDealt * 0.25F);
+                for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(14.0D))) {
+                    if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
+                        SpellCombatReactionEngine.notifyMagicalHeal(ally, healAmt);
+                        ally.heal(healAmt);
+                        level.sendParticles(ParticleTypes.HEART, ally.getX(), ally.getY(1.0D), ally.getZ(), 3, 0.25D, 0.25D, 0.25D, 0.02D);
+                    }
+                }
+                level.sendParticles(ParticleTypes.END_ROD, target.getX(), target.getY(0.7D), target.getZ(), 18, 0.45D, 0.35D, 0.45D, 0.05D);
+                level.playSound(null, target.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 0.65F, 1.55F);
             }
             case ENTROPICA -> {
-                target.invulnerableTime = 0;
-                target.hurtServer(level, level.damageSources().fellOutOfWorld(), 6.5F + tier * 1.3F);
+                // Section 6.59 Avatar of Entropica (90s / 140 HP): dual-elemental sweeping cleaves (75% armor bypass,
+                // -5 armor points per strike, and pulls distant foes into its aura)!
+                Vec3 look = this.getLookAngle();
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastCrescentSlash(
+                        level, this.getEyePosition().add(look.scale(1.2D)), look, 4.6D, EssenceType.ENTROPICA, EssenceType.ASTRAL, tier
+                );
                 SpellCombatReactionEngine.applyTimedAttributeShred(target, level, 5.0D, 0.0D, 180L);
-                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(12.0D))) {
-                    if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
-                    Vec3 pull = this.position().subtract(foe.position()).normalize().scale(0.70D);
-                    foe.setDeltaMovement(pull.x, 0.16D, pull.z);
-                    foe.hasImpulse = true;
+                SpellCombatReactionEngine.hurtWithEntropicaMateriaAdvantage(
+                        level, target, owner != null ? owner : this, 6.80F + tier * 1.55F, false, true, false
+                );
+                for (LivingEntity splash : level.getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(4.0D))) {
+                    if (splash == this || splash == owner || splash == target || !splash.isAlive() || this.isFriendlyTo(splash) || !(splash instanceof Monster)) continue;
+                    SpellCombatReactionEngine.applyTimedAttributeShred(splash, level, 5.0D, 0.0D, 180L);
+                    SpellCombatReactionEngine.hurtWithEntropicaMateriaAdvantage(
+                            level, splash, owner != null ? owner : this, 5.00F + tier * 1.20F, false, true, false
+                    );
                 }
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(14.0D))) {
+                    if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
+                    Vec3 diff = this.position().subtract(foe.position());
+                    if (diff.lengthSqr() > 1.0E-4D) {
+                        Vec3 pull = diff.normalize().scale(0.75D);
+                        foe.setDeltaMovement(pull.x, 0.18D, pull.z);
+                        foe.hasImpulse = true;
+                    }
+                }
+                level.sendParticles(ParticleTypes.END_ROD, target.getX(), target.getY(0.7D), target.getZ(), 10, 0.45D, 0.35D, 0.45D, 0.05D);
+                level.sendParticles(ParticleTypes.REVERSE_PORTAL, target.getX(), target.getY(0.7D), target.getZ(), 10, 0.45D, 0.35D, 0.45D, 0.05D);
+                level.playSound(null, target.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 0.65F, 1.52F);
             }
             default -> {
             }
@@ -2521,11 +2784,11 @@ public class SpellEidolonEntity extends PathfinderMob {
 
         if (mutated) {
             // Element-specific passive sentry field behaviors
-            if (mat == EssenceType.AIR && this.ageTicks % 15 == 0) {
+            if (mat == EssenceType.AIR && (this.ageTicks == 1 || this.ageTicks % 15 == 0)) {
                 for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.0D))) {
-                    if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
-                    foe.setDeltaMovement(foe.getDeltaMovement().x, 0.85D, foe.getDeltaMovement().z);
-                    foe.hasImpulse = true;
+                    if (!isHostileTargetForSentryField(owner, foe)) continue;
+                    if (SpellCombatReactionEngine.isBossEntity(level, foe)) continue;
+                    SpellExecutionEngine.applySyncedMotion(foe, new Vec3(foe.getDeltaMovement().x, 0.85D, foe.getDeltaMovement().z));
                     level.sendParticles(ParticleTypes.GUST, foe.getX(), foe.getY(0.2D), foe.getZ(), 2, 0.2D, 0.1D, 0.2D, 0.02D);
                 }
             } else if ((mat == EssenceType.WATER || mat == EssenceType.STORM) && this.ageTicks % 20 == 0) {
@@ -2591,9 +2854,9 @@ public class SpellEidolonEntity extends PathfinderMob {
                             10, 2.2D, 0.5D, 2.2D, 0.02D);
                 }
             } else if (mat == EssenceType.RADIANT) {
-                // Section 6.8 Solar Seraph Sentry: 4 orbiting mirror-shields reflect incoming hostile projectiles back at foes!
+                // Section 6.8 Solar Seraph Sentry: 4 orbiting mirror-shields reflect incoming hostile projectiles within a 7.5-block sphere!
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, this.getBoundingBox().inflate(7.5D))) {
-                    if (!proj.isAlive() || proj.getDeltaMovement().lengthSqr() < 0.02D) continue;
+                    if (!proj.isAlive() || !(this.distanceToSqr(proj) <= 56.25D) || proj.getDeltaMovement().lengthSqr() < 0.02D) continue;
                     Entity pOwner = proj.getOwner();
                     if (pOwner == owner || pOwner == this) continue;
                     if (pOwner instanceof LivingEntity livOwner && this.isFriendlyTo(livOwner)) continue;
@@ -3424,7 +3687,13 @@ public class SpellEidolonEntity extends PathfinderMob {
                     level.sendParticles(ParticleTypes.END_ROD, proj.getX(), proj.getY(), proj.getZ(), 4, 0.1D, 0.1D, 0.1D, 0.03D);
                 }
             } else if (mat == EssenceType.EMPYREAN && this.ageTicks % 20 == 0) {
-                // Heartwood Canopy Obelisk: 16m Sanctuary Field granting +8 Armor, +4 Toughness, and continuous absorption up to 10.0 HP!
+                // Section 6.54 Heartwood Canopy Obelisk: 16m Sanctuary Field granting +8 Armor, +4 Toughness, and continuous absorption up to 10.0 HP!
+                int sTier = this.spell != null ? Math.max(1, this.spell.getEffectiveTier()) : 8;
+                if (this.ageTicks % 40 == 0) {
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                            level, this.position().add(0.0D, 0.04D, 0.0D), 16.0D, EssenceType.EMPYREAN, EssenceType.VITAE, 24, sTier
+                    );
+                }
                 for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(16.0D))) {
                     if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
                         SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, level, 8.0D, 4.0D, 0.0D, 0.0D, 35L);
@@ -3434,49 +3703,78 @@ public class SpellEidolonEntity extends PathfinderMob {
                     }
                 }
             } else if (mat == EssenceType.CATACLYSM && this.ageTicks % 20 == 0) {
-                // Volcanic Eruption Spire: 16m Gravitational Caldera Field dragging hostiles inward, -1 armor/s, burning 1.5 hearts/s (3.0 HP)!
+                // Section 6.55 Volcanic Eruption Spire: 16m Gravitational Caldera Field dragging hostiles inward, melting 1 armor/s, & burning 1.5 hearts/s (3.0 HP)!
+                int sTier = this.spell != null ? Math.max(1, this.spell.getEffectiveTier()) : 8;
+                if (this.ageTicks % 40 == 0) {
+                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                            level, this.position().add(0.0D, 0.04D, 0.0D), 16.0D, EssenceType.CATACLYSM, EssenceType.NETHER, 24, sTier
+                    );
+                }
                 long now = level.getGameTime();
                 for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(16.0D))) {
                     if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
-                    Vec3 inward = this.position().subtract(foe.position()).normalize().scale(0.42D);
-                    foe.setDeltaMovement(foe.getDeltaMovement().add(inward.x, 0.08D, inward.z));
-                    foe.hasImpulse = true;
+                    Vec3 delta = this.position().subtract(foe.position());
+                    if (delta.lengthSqr() > 1.0E-4D) {
+                        Vec3 inward = delta.normalize().scale(0.45D);
+                        foe.setDeltaMovement(foe.getDeltaMovement().add(inward.x, 0.08D, inward.z));
+                        foe.hasImpulse = true;
+                    }
                     foe.igniteForSeconds(4);
-                    foe.hurtServer(level, level.damageSources().onFire(), 3.0F);
                     var fData = ddraig.net.entropica.util.EntityHelper.getPersistentData(foe);
+                    fData.putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, now + 50L);
                     long last = fData.getLong("SpellCataclysmSentryLastTick").orElse(0L);
                     int stacks = (now - last <= 35L) ? Math.min(10, fData.getInt("SpellCataclysmSentryStacks").orElse(0) + 1) : 1;
                     fData.putLong("SpellCataclysmSentryLastTick", now);
                     fData.putInt("SpellCataclysmSentryStacks", stacks);
                     SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, stacks, 0.0D, 45L);
+                    SpellCombatReactionEngine.hurtWithCataclysmMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, 3.0F, false, false, true
+                    );
                 }
             } else if (mat == EssenceType.TERMINUS && this.ageTicks % 20 == 0) {
-                // Anchored Permafrost Elemental Spire: 16m Polar Freeze Field cutting hostile speed 50% and continuously freezing water!
+                // Section 6.56 Anchored Permafrost Elemental Spire (120 HP / 60s): 16m Polar Freeze Field cutting hostile speed
+                // by exact 50% and continuously freezing water across the 16-block perimeter!
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                        level, this.position().add(0.0D, 0.06D, 0.0D), 16.0D, EssenceType.TERMINUS, EssenceType.FROZEN,
+                        24, Math.max(1, this.spell.getEffectiveTier())
+                );
                 for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(16.0D))) {
                     if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
-                    foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 2, true, true));
-                    foe.setTicksFrozen(Math.min(foe.getTicksRequiredToFreeze() + 40, foe.getTicksFrozen() + 25));
+                    SpellCombatReactionEngine.applyTimedMovementSpeedSap(foe, level, 0.50D, 35L);
+                    foe.clearFire();
+                    foe.setTicksFrozen(Math.min(foe.getTicksRequiredToFreeze() + 50, foe.getTicksFrozen() + 30));
                 }
                 BlockPos c = this.blockPosition();
-                for (BlockPos p : BlockPos.betweenClosed(c.offset(-8, -1, -8), c.offset(8, 1, 8))) {
+                for (BlockPos p : BlockPos.betweenClosed(c.offset(-16, -1, -16), c.offset(16, 1, 16))) {
+                    if (p.distSqr(c) > 256.0D) continue;
                     if (level.getBlockState(p).is(Blocks.WATER) && level.getBlockState(p.above()).isAir() && level.random.nextFloat() < 0.35F) {
                         level.setBlockAndUpdate(p, Blocks.PACKED_ICE.defaultBlockState());
                     }
                 }
             } else if (mat == EssenceType.ESCHATON && this.ageTicks % 20 == 0) {
-                // Accretion Disk Singularity Spire: 20m Gravitational Accretion Field dragging hostiles & projectiles inward, melting 1.5 armor/s!
+                // Section 6.57 Accretion Disk Singularity Spire (90s / 150 HP): 20m Gravitational Accretion Field dragging hostiles & projectiles inward, melting 1.5 armor/s!
                 long now = level.getGameTime();
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                        level, this.position().add(0.0D, 0.04D, 0.0D), 20.0D,
+                        EssenceType.ESCHATON, EssenceType.VOID, 26, Math.max(1, this.spell.getEffectiveTier())
+                );
                 for (Projectile proj : level.getEntitiesOfClass(Projectile.class, this.getBoundingBox().inflate(20.0D))) {
                     if (proj.getOwner() == owner || proj.getOwner() == this || proj instanceof SpellProjectileEntity) continue;
-                    Vec3 pull = this.position().add(0.0D, 1.0D, 0.0D).subtract(proj.position()).normalize().scale(0.65D);
-                    proj.setDeltaMovement(proj.getDeltaMovement().scale(0.35D).add(pull));
-                    proj.hasImpulse = true;
+                    Vec3 diff = this.position().add(0.0D, 1.0D, 0.0D).subtract(proj.position());
+                    if (diff.lengthSqr() > 1.0E-4D) {
+                        Vec3 pull = diff.normalize().scale(0.65D);
+                        proj.setDeltaMovement(proj.getDeltaMovement().scale(0.35D).add(pull));
+                        proj.hasImpulse = true;
+                    }
                 }
                 for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(20.0D))) {
                     if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
-                    Vec3 inward = this.position().subtract(foe.position()).normalize().scale(0.50D);
-                    foe.setDeltaMovement(foe.getDeltaMovement().add(inward.x, 0.08D, inward.z));
-                    foe.hasImpulse = true;
+                    Vec3 diff = this.position().subtract(foe.position());
+                    if (diff.lengthSqr() > 1.0E-4D) {
+                        Vec3 inward = diff.normalize().scale(0.50D);
+                        foe.setDeltaMovement(foe.getDeltaMovement().add(inward.x, 0.08D, inward.z));
+                        foe.hasImpulse = true;
+                    }
                     var fData = ddraig.net.entropica.util.EntityHelper.getPersistentData(foe);
                     long last = fData.getLong("SpellEschatonSentryLastTick").orElse(0L);
                     double stacks = (now - last <= 35L) ? Math.min(12.0D, fData.getDouble("SpellEschatonSentryStacks").orElse(0.0D) + 1.5D) : 1.5D;
@@ -3484,27 +3782,42 @@ public class SpellEidolonEntity extends PathfinderMob {
                     fData.putDouble("SpellEschatonSentryStacks", stacks);
                     SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, stacks, 0.0D, 45L);
                 }
+                level.sendParticles(ParticleTypes.REVERSE_PORTAL, this.getX(), this.getY(1.2D), this.getZ(), 18, 2.5D, 0.8D, 2.5D, 0.05D);
             } else if (mat == EssenceType.APOTHEOSIS && this.ageTicks % 20 == 0) {
-                // White-Hole Dawn Obelisk: 20m Sanctuary Field granting allies +10 Armor, +6 Toughness, and absorption up to 15.0 HP!
+                // Section 6.58 White-Hole Dawn Obelisk (90s / 150 HP): 20m Sanctuary Field granting allies +10 Armor, +6 Toughness, and continuous absorption up to 15.0 HP!
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                        level, this.position().add(0.0D, 0.04D, 0.0D), 20.0D,
+                        EssenceType.APOTHEOSIS, EssenceType.RADIANT, 26, Math.max(1, this.spell.getEffectiveTier())
+                );
                 for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(20.0D))) {
                     if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
                         SpellCombatReactionEngine.applyTimedArmorAndToughnessBuff(ally, level, 10.0D, 6.0D, 0.0D, 0.0D, 35L);
                         if (ally.getAbsorptionAmount() < 15.0F) {
-                            ally.setAbsorptionAmount(Math.min(15.0F, ally.getAbsorptionAmount() + 3.5F));
+                            ally.setAbsorptionAmount(Math.min(15.0F, ally.getAbsorptionAmount() + 5.0F));
                         }
                     }
                 }
+                level.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY(1.2D), this.getZ(), 18, 2.5D, 0.8D, 2.5D, 0.05D);
             } else if (mat == EssenceType.ENTROPICA && this.ageTicks % 20 == 0) {
-                // Altar of the Horizon: 20m Equilibrium Field dealing 2 hearts/s (4.0 HP) true damage to hostiles & +2 hearts/s (4.0 HP) healing to allies!
+                // Section 6.59 Altar of the Horizon (90s / 150 HP): 20m Equilibrium Field dealing 2 hearts/s (4.0 HP)
+                // true damage to hostiles AND pulsing +2 hearts/s (4.0 HP) continuous healing to allies!
+                ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
+                        level, this.position().add(0.0D, 0.04D, 0.0D), 20.0D,
+                        EssenceType.ENTROPICA, EssenceType.ASTRAL, 26, Math.max(1, this.spell.getEffectiveTier())
+                );
                 for (LivingEntity ent : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(20.0D))) {
                     if (ent == this || !ent.isAlive()) continue;
                     if (ent == owner || this.isFriendlyTo(ent)) {
                         SpellCombatReactionEngine.notifyMagicalHeal(ent, 4.0F);
                         ent.heal(4.0F);
                     } else if (ent instanceof Monster) {
-                        ent.hurtServer(level, level.damageSources().fellOutOfWorld(), 4.0F);
+                        SpellCombatReactionEngine.hurtWithEntropicaMateriaAdvantage(
+                                level, ent, owner != null ? owner : this, 4.0F, false, false, true
+                        );
                     }
                 }
+                level.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY(1.2D), this.getZ(), 10, 2.5D, 0.8D, 2.5D, 0.05D);
+                level.sendParticles(ParticleTypes.REVERSE_PORTAL, this.getX(), this.getY(1.2D), this.getZ(), 10, 2.5D, 0.8D, 2.5D, 0.05D);
             }
         }
 
@@ -3635,8 +3948,10 @@ public class SpellEidolonEntity extends PathfinderMob {
             }
             if (mat == EssenceType.OVERGROWTH || mat == EssenceType.TAIGA || mat == EssenceType.BLIGHT
                     || mat == EssenceType.NULL_R || mat == EssenceType.DAWN || mat == EssenceType.AURORA
-                    || mat == EssenceType.RIME || mat == EssenceType.SPRING || mat == EssenceType.PRISMATIC) {
-                bolt.addBonusPierces((mat == EssenceType.AURORA || mat == EssenceType.DAWN || mat == EssenceType.RIME || mat == EssenceType.PRISMATIC) ? 3 : 2);
+                    || mat == EssenceType.RIME || mat == EssenceType.SPRING || mat == EssenceType.PRISMATIC
+                    || mat == EssenceType.ESCHATON || mat == EssenceType.APOTHEOSIS || mat == EssenceType.ENTROPICA) {
+                bolt.addBonusPierces((mat == EssenceType.ESCHATON || mat == EssenceType.APOTHEOSIS || mat == EssenceType.ENTROPICA) ? 4
+                        : ((mat == EssenceType.AURORA || mat == EssenceType.DAWN || mat == EssenceType.RIME || mat == EssenceType.PRISMATIC) ? 3 : 2));
             }
         }
         if (isMutated() && mat == EssenceType.WATER) {
@@ -3656,10 +3971,10 @@ public class SpellEidolonEntity extends PathfinderMob {
         } else if (isMutated() && mat == EssenceType.EARTH) {
             // Section 6.5 Tectonic Plinth Sentry fires heavy Quake Spire stone bolts!
             bolt.shoot(dir.x, dir.y, dir.z, 1.65F, 0.0F);
-        } else if (isMutated() && mat == EssenceType.RADIANT) {
-            // Section 6.8 Solar Seraph Agent: rains high-speed straight golden light arrows down on foes!
+        } else if (isMutated() && (mat == EssenceType.RADIANT || mat == EssenceType.PRISMATIC)) {
+            // Section 6.8 Solar Seraph & Section 6.53 Prismatic Valkyrie: rain high-speed piercing light arrows/javelins!
             bolt.setNoGravity(true);
-            bolt.shoot(dir.x, dir.y, dir.z, 1.98F, 0.0F);
+            bolt.shoot(dir.x, dir.y, dir.z, mat == EssenceType.PRISMATIC ? 2.08F : 1.98F, 0.0F);
             level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.65F, 1.55F);
         } else if (isMutated() && mat == EssenceType.UNDEAD) {
             // Section 6.10 Cryptguard Ossuary Totem: launches floating seeking cursed skulls at living targets!
@@ -3671,6 +3986,36 @@ public class SpellEidolonEntity extends PathfinderMob {
             bolt.setNoGravity(true);
             bolt.shoot(dir.x, dir.y, dir.z, 1.65F, 0.0F);
             level.playSound(null, this.blockPosition(), SoundEvents.CHORUS_FRUIT_TELEPORT, SoundSource.PLAYERS, 0.55F, 1.42F);
+        } else if (isMutated() && mat == EssenceType.CATACLYSM) {
+            // Section 6.55 Volcanic Eruption Spire: fires ultra-high-velocity wall-penetrating railgun magma spikes (#41304E / #211A21 / #B83C08)!
+            bolt.setNoGravity(true);
+            bolt.shoot(dir.x, dir.y, dir.z, 2.15F, 0.0F);
+            level.playSound(null, this.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.70F, 0.78F);
+            level.playSound(null, this.blockPosition(), SoundEvents.TRIDENT_RETURN, SoundSource.PLAYERS, 0.55F, 1.55F);
+        } else if (isMutated() && mat == EssenceType.TERMINUS) {
+            // Section 6.56 Anchored Permafrost Elemental Spire: fires wall-penetrating cryogenic lances (#A88654 / #98DCF2 / #225C7C)!
+            bolt.setNoGravity(true);
+            bolt.shoot(dir.x, dir.y, dir.z, 2.05F, 0.0F);
+            level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_CLUSTER_HIT, SoundSource.PLAYERS, 0.70F, 1.58F);
+            level.playSound(null, this.blockPosition(), SoundEvents.GLASS_HIT, SoundSource.PLAYERS, 0.50F, 1.68F);
+        } else if (isMutated() && mat == EssenceType.ESCHATON) {
+            // Section 6.57 Accretion Disk Singularity Spire: fires wall-penetrating singularity lances (#0B0813 / #7012A5 / #D4C2FC)!
+            bolt.setNoGravity(true);
+            bolt.shoot(dir.x, dir.y, dir.z, 2.25F, 0.0F);
+            level.playSound(null, this.blockPosition(), SoundEvents.CHORUS_FRUIT_TELEPORT, SoundSource.PLAYERS, 0.65F, 1.38F);
+            level.playSound(null, this.blockPosition(), SoundEvents.TRIDENT_RETURN, SoundSource.PLAYERS, 0.55F, 1.62F);
+        } else if (isMutated() && mat == EssenceType.APOTHEOSIS) {
+            // Section 6.58 White-Hole Dawn Obelisk: fires wall-penetrating holy supernova lances (#FFFFFF / #FFE484 / #72F6FF)!
+            bolt.setNoGravity(true);
+            bolt.shoot(dir.x, dir.y, dir.z, 2.25F, 0.0F);
+            level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.75F, 1.52F);
+            level.playSound(null, this.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 0.50F, 1.65F);
+        } else if (isMutated() && mat == EssenceType.ENTROPICA) {
+            // Section 6.59 Altar of the Horizon: fires wall-penetrating balance rays (#E0E5EC / #1A153B / #FAD02C)!
+            bolt.setNoGravity(true);
+            bolt.shoot(dir.x, dir.y, dir.z, 2.30F, 0.0F);
+            level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.75F, 1.48F);
+            level.playSound(null, this.blockPosition(), SoundEvents.CHORUS_FRUIT_TELEPORT, SoundSource.PLAYERS, 0.55F, 1.55F);
         } else if (isMutated() && mat == EssenceType.NULL_R) {
             // Section 6.31 Event Horizon Spire: fires piercing zero-gravity antimatter lances (#FFFFFF / #41304E)!
             bolt.setNoGravity(true);
@@ -3733,21 +4078,40 @@ public class SpellEidolonEntity extends PathfinderMob {
                 case ESCHATON, APOTHEOSIS, ENTROPICA -> 20.0D;
                 case AETHER, ENTROPIC, CELESTIAL, PRISMATIC, EMPYREAN, CATACLYSM, TERMINUS -> 16.0D;
                 case PENUMBRA, RIME, SPRING, STATIC, SYLVAN, GENESIS, OBLIVION, CHIMERA, UMBRAL, SPORE, TAIGA, OASIS, VITAE, BLOOD, AURA, AMBER -> 14.0D;
-                case ARID, DUST, MIRAGE, MIASMA, NATURE, EARTH, UNDEAD, VOID, MAGMA, STORM, GLACIAL, OVERGROWTH -> 12.0D;
+                case AIR, ARID, DUST, MIRAGE, MIASMA, NATURE, EARTH, UNDEAD, VOID, MAGMA, STORM, GLACIAL, OVERGROWTH -> 12.0D;
                 default -> 9.0D;
             };
             for (Mob mob : level.getEntitiesOfClass(Mob.class, this.getBoundingBox().inflate(tauntRad))) {
                 if (!mob.isAlive() || this.isFriendlyTo(mob)) continue;
                 // Section 6.10 Bone-Nova Effigy taunts LIVING mobs!
                 if (mutated && mat == EssenceType.UNDEAD && mob.getType().is(EntityTypeTags.UNDEAD)) continue;
-                if (mob instanceof Enemy || mob.getTarget() == owner) {
+                // Section 6.5 Granite Effigy Decoy taunts strictly melee-capable mobs (skipping pure ranged mobs unless holding a melee weapon)!
+                if (mutated && mat == EssenceType.EARTH && !isMeleeCapableMobForEarthDecoy(mob)) continue;
+                if (mob instanceof Enemy || mob instanceof Monster || mob.getTarget() == owner
+                        || (owner != null && mob.getLastHurtByMob() == owner)) {
                     mob.setTarget(this);
+                    mob.getBrain().setMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.ATTACK_TARGET, this);
                 }
             }
         }
-        if (mutated && mat == EssenceType.VOID && this.ageTicks % 6 == 0) {
+        if (mutated && (mat == EssenceType.VOID || mat == EssenceType.ESCHATON) && this.ageTicks % 6 == 0) {
             level.sendParticles(ParticleTypes.REVERSE_PORTAL, this.getX(), this.getY(0.95D), this.getZ(),
-                    4, 0.28D, 0.55D, 0.28D, 0.04D);
+                    mat == EssenceType.ESCHATON ? 7 : 4, 0.34D, 0.55D, 0.34D, 0.04D);
+        } else if (mutated && mat == EssenceType.ENTROPICA && this.ageTicks % 6 == 0) {
+            level.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY(0.95D), this.getZ(), 4, 0.35D, 0.55D, 0.35D, 0.03D);
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, this.getX(), this.getY(0.95D), this.getZ(), 4, 0.35D, 0.55D, 0.35D, 0.04D);
+            // Section 6.59 Parallax Event-Horizon Fold departure decoy: taunts AND pulls pursuers for 4.0s before exploding!
+            if (this.shortLivedIllusion) {
+                for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(10.0D))) {
+                    if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe) || !(foe instanceof Monster)) continue;
+                    Vec3 pull = this.position().subtract(foe.position());
+                    if (pull.lengthSqr() > 1.0E-4D) {
+                        Vec3 v = pull.normalize().scale(0.58D);
+                        foe.setDeltaMovement(foe.getDeltaMovement().scale(0.35D).add(v.x, 0.14D, v.z));
+                        foe.hasImpulse = true;
+                    }
+                }
+            }
         }
 
         if (this.illusionRunVelocity != null) {
@@ -3854,12 +4218,27 @@ public class SpellEidolonEntity extends PathfinderMob {
         }
     }
 
+    public static float resolveSolarSeraphDecoyDamageTaken(float incomingDamage) {
+        return Math.max(0.0F, incomingDamage * 0.55F);
+    }
+
+    public static float resolveSolarSeraphDecoyAbsorbedHeal(float incomingDamage) {
+        return Math.max(0.5F, incomingDamage * 0.45F);
+    }
+
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() != null && isOwnedBy(source.getEntity())) {
             return false;
         }
-        boolean hurt = super.hurtServer(level, source, amount);
+        float rawHitAmount = amount;
+        boolean radiantDecoyMitigation = isMutated()
+                && getArchetype() == TriadArchetype.DECOY
+                && getEffectiveMateria() == EssenceType.RADIANT
+                && !source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)
+                && !source.is(net.minecraft.world.damagesource.DamageTypes.GENERIC_KILL);
+        float effectiveAmount = radiantDecoyMitigation ? resolveSolarSeraphDecoyDamageTaken(amount) : amount;
+        boolean hurt = super.hurtServer(level, source, effectiveAmount);
         if (!hurt || !isMutated()) {
             return hurt;
         }
@@ -3871,25 +4250,12 @@ public class SpellEidolonEntity extends PathfinderMob {
         if (getArchetype() == TriadArchetype.DECOY) {
             switch (mat) {
                 case WATER -> {
-                    // Section 6.3 Aqueous Decoy: aquatic mirage that bursts into a blinding splash when struck!
-                    ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastProjectileImpact(
-                            level, this.position().add(0.0D, 0.8D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D),
-                            EssenceType.WATER, null, 3.2F, this.spell.getEffectiveTier()
-                    );
-                    for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(3.5D))) {
-                        if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe)) continue;
-                        foe.clearFire();
-                        foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 60, 0));
-                        SpellLingeringZoneManager.applySoaked(foe, 160);
-                        if (!SpellCombatReactionEngine.isBossEntity(level, foe)) {
-                            Vec3 away = foe.position().subtract(this.position());
-                            Vec3 horiz = new Vec3(away.x, 0.0D, away.z);
-                            Vec3 push = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : Vec3.ZERO;
-                            SpellExecutionEngine.applySyncedMotion(foe, new Vec3(push.x * 0.65D, 0.24D, push.z * 0.65D));
-                        }
+                    // Section 6.3 Aqueous Decoy: aquatic mirage that bursts immediately into a single 4.0m blinding splash when struck!
+                    triggerWaterDecoyStruckSplash(level);
+                    if (!this.isRemoved()) {
+                        this.discard();
                     }
-                    level.sendParticles(ParticleTypes.SPLASH, this.getX(), this.getY(0.85D), this.getZ(), 28, 0.65D, 0.45D, 0.65D, 0.14D);
-                    level.playSound(null, this.blockPosition(), SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.PLAYERS, 0.85F, 1.15F);
+                    return true;
                 }
                 case NETHER, MAGMA -> {
                     // Section 6.7 Blazing Wicker Effigy & Section 6.14 Caldera Nova Effigy: burns attackers who strike it!
@@ -3931,22 +4297,26 @@ public class SpellEidolonEntity extends PathfinderMob {
                         return true;
                     }
                     if (directAttacker instanceof LivingEntity attacker) {
-                        attacker.setTicksFrozen(attacker.getTicksFrozen() + 60);
-                        attacker.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 2));
-                        if (mat == EssenceType.GLACIAL) {
-                            SpellCombatReactionEngine.applyTimedMovementSpeedSap(attacker, level, 0.40D, 50L);
+                        if (mat == EssenceType.FROZEN) {
+                            SpellCombatReactionEngine.applyTimedMovementSpeedSap(attacker, level, 0.45D, 50L);
+                        } else {
+                            attacker.setTicksFrozen(attacker.getTicksFrozen() + 60);
+                            attacker.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 50, 2));
+                            if (mat == EssenceType.GLACIAL) {
+                                SpellCombatReactionEngine.applyTimedMovementSpeedSap(attacker, level, 0.40D, 50L);
+                            }
                         }
                     }
                 }
                 case RADIANT -> {
-                    // Section 6.8 Solar Seraph Decoy: absorbs damage and converts it into golden healing pulses!
-                    float pulseHeal = Math.max(1.8F, amount * 0.65F);
+                    // Section 6.8 Solar Seraph Decoy: absorbs 45% of incoming hit damage (taking 0.55x) and converts it into a circular 8m healing & 1-debuff/hex cleansing pulse!
+                    float pulseHeal = resolveSolarSeraphDecoyAbsorbedHeal(rawHitAmount);
                     ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastArcaneSeal(
                             level, this.position().add(0.0D, 0.12D, 0.0D), 3.8D, EssenceType.RADIANT, null, 52, this.spell.getEffectiveTier()
                     );
                     level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.90F, 1.38F);
                     for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(8.0D))) {
-                        if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
+                        if (ally != this && ally.isAlive() && this.distanceToSqr(ally) <= 64.0D && (ally == owner || this.isFriendlyTo(ally))) {
                             SpellCombatReactionEngine.cleanseSingleNegativeEffectOrHex(ally);
                             SpellCombatReactionEngine.notifyMagicalHeal(ally, pulseHeal);
                             ally.heal(pulseHeal);
@@ -4001,10 +4371,16 @@ public class SpellEidolonEntity extends PathfinderMob {
                     }
                 }
                 case NATURE -> {
-                    // Section 6.4 Sylvan Pollen Effigy: briar thorns prick melee attackers & puff sweet golden pollen!
+                    // Section 6.4 Sylvan Pollen Effigy (A3): briar thorns reflect 35% melee damage + 1.5s Slowness II & puff golden pollen!
                     level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_SPORE.get(), 0xFFD83D, 32, 1.05F, 0.05F),
                             this.getX(), this.getY(1.0D), this.getZ(), 14, 0.65D, 0.45D, 0.65D, 0.04D);
-                    if (directAttacker instanceof LivingEntity attacker && attacker != this && !this.isFriendlyTo(attacker)) {
+                    boolean wardSafe = this.spell != null && this.spell.hasWardFriendlyFireSafeguard();
+                    if (directAttacker instanceof LivingEntity attacker
+                            && attacker != this
+                            && !source.is(DamageTypeTags.IS_PROJECTILE)
+                            && !this.isFriendlyTo(attacker)
+                            && !SpellCombatReactionEngine.isProtectedFromOffensiveSpell(attacker, owner, wardSafe)
+                            && !(wardSafe && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(attacker, owner))) {
                         attacker.hurtServer(level, level.damageSources().thorns(this), Math.max(1.5F, amount * 0.35F));
                         attacker.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, 1));
                     }
@@ -4064,15 +4440,79 @@ public class SpellEidolonEntity extends PathfinderMob {
                         );
                     }
                 }
-                case EMPYREAN, CATACLYSM, TERMINUS -> {
-                    if (directAttacker instanceof LivingEntity attacker && attacker != this && !this.isFriendlyTo(attacker)) {
-                        attacker.hurtServer(level, level.damageSources().thorns(this), Math.max(2.0F, amount * 0.45F));
+                case PRISMATIC -> {
+                    if (this.shortLivedIllusion) {
+                        // Section 6.53 Prismatic Mirror Decoy (Blink): flashes & explodes immediately in a blinding flashbang if struck!
+                        int dTier = this.spell != null ? Math.max(1, this.spell.getEffectiveTier()) : 5;
+                        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                                level, this.position(), 6.0D, EssenceType.PRISMATIC, EssenceType.RADIANT, dTier
+                        );
+                        for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.0D))) {
+                            if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe)) continue;
+                            foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 100, 0));
+                            foe.addEffect(new MobEffectInstance(MobEffects.GLOWING, 120, 0));
+                            Vec3 diff = foe.position().subtract(this.position());
+                            Vec3 out = (diff.lengthSqr() > 1.0E-4D ? diff.normalize() : new Vec3(0.0D, 0.3D, 1.0D)).scale(1.20D);
+                            foe.setDeltaMovement(out.x, 0.32D, out.z);
+                            foe.hasImpulse = true;
+                            SpellCombatReactionEngine.hurtWithPrismaticMateriaAdvantage(
+                                    level, foe, owner != null ? owner : this, 4.4F + dTier * 0.90F, false, true
+                            );
+                        }
+                        level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_CLUSTER_BREAK, SoundSource.PLAYERS, 1.0F, 1.45F);
+                        this.discard();
+                        return true;
                     }
                 }
-                case ESCHATON, APOTHEOSIS, ENTROPICA -> {
+                case EMPYREAN -> {
+                    if (directAttacker instanceof LivingEntity attacker && attacker != this && !this.isFriendlyTo(attacker)) {
+                        SpellCombatReactionEngine.hurtWithEmpyreanMateriaAdvantage(
+                                level, attacker, owner != null ? owner : this, Math.max(2.0F, amount * 0.45F), false, true, false, false
+                        );
+                    }
+                }
+                case CATACLYSM -> {
+                    if (directAttacker instanceof LivingEntity attacker && attacker != this && !this.isFriendlyTo(attacker)) {
+                        attacker.igniteForSeconds(4);
+                        ddraig.net.entropica.util.EntityHelper.getPersistentData(attacker)
+                                .putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, level.getGameTime() + 80L);
+                        SpellCombatReactionEngine.hurtWithCataclysmMateriaAdvantage(
+                                level, attacker, owner != null ? owner : this, Math.max(2.0F, amount * 0.45F), false, true, false
+                        );
+                    }
+                }
+                case TERMINUS -> {
+                    if (directAttacker instanceof LivingEntity attacker && attacker != this && !this.isFriendlyTo(attacker)
+                            && !source.is(DamageTypeTags.IS_PROJECTILE)) {
+                        attacker.clearFire();
+                        attacker.setTicksFrozen(Math.min(attacker.getTicksRequiredToFreeze() + 60, attacker.getTicksFrozen() + 50));
+                        SpellCombatReactionEngine.hurtWithTerminusMateriaAdvantage(
+                                level, attacker, owner != null ? owner : this, Math.max(2.0F, amount * 0.45F), false, true, false
+                        );
+                    }
+                }
+                case ESCHATON -> {
                     Entity attackerEnt = source.getEntity() != null ? source.getEntity() : directAttacker;
                     if (attackerEnt instanceof LivingEntity attacker && attacker != this && !this.isFriendlyTo(attacker)) {
-                        attacker.hurtServer(level, level.damageSources().thorns(this), Math.max(2.5F, amount * 0.50F));
+                        SpellCombatReactionEngine.hurtWithEschatonMateriaAdvantage(
+                                level, attacker, owner != null ? owner : this, Math.max(2.5F, amount * 0.50F), false, true, false
+                        );
+                    }
+                }
+                case APOTHEOSIS -> {
+                    Entity attackerEnt = source.getEntity() != null ? source.getEntity() : directAttacker;
+                    if (attackerEnt instanceof LivingEntity attacker && attacker != this && !this.isFriendlyTo(attacker)) {
+                        SpellCombatReactionEngine.hurtWithApotheosisMateriaAdvantage(
+                                level, attacker, owner != null ? owner : this, Math.max(2.5F, amount * 0.50F), false, true, true, false
+                        );
+                    }
+                }
+                case ENTROPICA -> {
+                    Entity attackerEnt = source.getEntity() != null ? source.getEntity() : directAttacker;
+                    if (attackerEnt instanceof LivingEntity attacker && attacker != this && !this.isFriendlyTo(attacker)) {
+                        SpellCombatReactionEngine.hurtWithEntropicaMateriaAdvantage(
+                                level, attacker, owner != null ? owner : this, Math.max(2.5F, amount * 0.50F), false, true, false
+                        );
                     }
                 }
                 default -> {
@@ -4085,13 +4525,90 @@ public class SpellEidolonEntity extends PathfinderMob {
     @Override
     public void die(DamageSource damageSource) {
         if (!this.level().isClientSide() && this.level() instanceof ServerLevel srv) {
-            triggerElementalDeathBurst(srv);
+            if (isMutated() && getEffectiveMateria() == EssenceType.WATER && getArchetype() == TriadArchetype.DECOY) {
+                triggerWaterDecoyStruckSplash(srv);
+            } else {
+                triggerElementalDeathBurst(srv);
+            }
         }
         super.die(damageSource);
     }
 
+    private void triggerWaterDecoyStruckSplash(ServerLevel level) {
+        if (this.deathBurstTriggered) return;
+        this.deathBurstTriggered = true;
+
+        LivingEntity owner = resolveSummoner(level);
+        int tier = this.spell.getEffectiveTier();
+        boolean wardSafeguard = this.spell != null && this.spell.hasWardFriendlyFireSafeguard();
+
+        ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastProjectileImpact(
+                level, this.position().add(0.0D, 0.55D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D),
+                EssenceType.WATER, null, 4.0F, tier
+        );
+        BlockPos c = this.blockPosition();
+        for (BlockPos p : BlockPos.betweenClosed(c.offset(-4, -1, -4), c.offset(4, 2, 4))) {
+            if (level.getBlockState(p).getBlock() instanceof BaseFireBlock) {
+                level.removeBlock(p, false);
+            }
+        }
+        for (LivingEntity foe : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(4.0D))) {
+            if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe)) continue;
+            if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, owner, wardSafeguard)) continue;
+            double dx = foe.getX() - this.getX();
+            double dz = foe.getZ() - this.getZ();
+            if (dx * dx + dz * dz > 16.0D) continue;
+            foe.clearFire();
+            foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 70, 0));
+            SpellLingeringZoneManager.applySoaked(foe, 160);
+            if (!SpellCombatReactionEngine.isBossEntity(level, foe)) {
+                Vec3 horiz = new Vec3(dx, 0.0D, dz);
+                Vec3 push = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : Vec3.ZERO;
+                SpellExecutionEngine.applySyncedMotion(foe, new Vec3(push.x * 0.85D, 0.28D, push.z * 0.85D));
+            }
+        }
+        level.sendParticles(ParticleTypes.SPLASH, this.getX(), this.getY(0.85D), this.getZ(), 36, 1.05D, 0.50D, 1.05D, 0.16D);
+        level.playSound(null, this.blockPosition(), SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.PLAYERS, 0.95F, 1.12F);
+    }
+
     public static double resolveCanonicalDeathBurstRadius(EssenceType mat) {
         return ddraig.net.entropica.spell.engine.SpellEidolonSpecs.resolveCanonicalDeathBurstRadius(mat);
+    }
+
+    public static boolean isMeleeCapableMobForEarthDecoy(@Nullable Mob mob) {
+        if (mob == null) {
+            return false;
+        }
+        boolean isPureRangedType = mob instanceof AbstractSkeleton
+                || mob instanceof Pillager
+                || mob instanceof Blaze
+                || mob instanceof Ghast
+                || mob instanceof Witch
+                || mob instanceof Shulker
+                || mob instanceof Breeze;
+        if (!isPureRangedType) {
+            return true;
+        }
+        ItemStack held = mob.getMainHandItem();
+        return !held.isEmpty() && (held.is(ItemTags.SWORDS)
+                || held.is(ItemTags.AXES)
+                || held.is(ItemTags.PICKAXES)
+                || held.is(ItemTags.SHOVELS)
+                || held.is(ItemTags.HOES)
+                || held.getItem() instanceof TridentItem
+                || held.getItem() instanceof MaceItem);
+    }
+
+    public static boolean shouldTriggerEarthShrapnelBurst(EssenceType materia, TriadArchetype archetype) {
+        return materia == EssenceType.EARTH && archetype == TriadArchetype.DECOY;
+    }
+
+    public static boolean shouldTriggerFrozenShatterNova(EssenceType materia, TriadArchetype archetype, boolean destroyedInCombat) {
+        return materia == EssenceType.FROZEN && archetype == TriadArchetype.DECOY && destroyedInCombat;
+    }
+
+    public static boolean shouldTriggerRadiantDeathSmiteNova(EssenceType materia, TriadArchetype archetype) {
+        return false;
     }
 
     private void triggerElementalDeathBurst(ServerLevel level) {
@@ -4100,13 +4617,50 @@ public class SpellEidolonEntity extends PathfinderMob {
         if (!isMutated()) return;
 
         EssenceType mat = getEffectiveMateria();
+        // Section 6.2 Zephyr Eidolon Agent & Sentry do NOT emit damaging death explosions (only Decoy emits a 0-damage cyclone gust)!
+        if (mat == EssenceType.AIR && getArchetype() != TriadArchetype.DECOY) {
+            level.sendParticles(ParticleTypes.POOF, this.getX(), this.getY(0.8D), this.getZ(), 16, 0.45D, 0.45D, 0.45D, 0.04D);
+            return;
+        }
+        // Section 6.3 Aqueous Eidolon Agent & Sentry (and un-struck Decoy on peaceful expiry) dissolve gently into a water puddle puff without Blindness!
+        if (mat == EssenceType.WATER) {
+            level.sendParticles(ParticleTypes.SPLASH, this.getX(), this.getY(0.45D), this.getZ(), 18, 0.50D, 0.30D, 0.50D, 0.06D);
+            level.sendParticles(ParticleTypes.DRIPPING_WATER, this.getX(), this.getY(0.65D), this.getZ(), 10, 0.40D, 0.35D, 0.40D, 0.0D);
+            level.playSound(null, this.blockPosition(), SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.55F, 1.25F);
+            return;
+        }
+        // Section 6.5 Tectonic Eidolon Agent & Sentry crumble peacefully without stone shrapnel detonation (Decoy-only)!
+        if (mat == EssenceType.EARTH && !shouldTriggerEarthShrapnelBurst(mat, getArchetype())) {
+            level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.GRANITE.defaultBlockState()),
+                    this.getX(), this.getY(0.65D), this.getZ(), 16, 0.45D, 0.35D, 0.45D, 0.06D);
+            level.playSound(null, this.blockPosition(), SoundEvents.STONE_BREAK, SoundSource.PLAYERS, 0.65F, 0.80F);
+            return;
+        }
+        // Section 6.6 Glacial Eidolon Agent & Sentry dissipate gently without 4-block Frost Nova shatter (Decoy-only)!
+        if (mat == EssenceType.FROZEN && !shouldTriggerFrozenShatterNova(mat, getArchetype(), true)) {
+            level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY(0.75D), this.getZ(), 16, 0.45D, 0.40D, 0.45D, 0.03D);
+            level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.65F, 1.35F);
+            return;
+        }
+        // Section 6.8 Solar Seraph Suite: dissipates peacefully into solar starlight without any offensive death smite nova!
+        if (mat == EssenceType.RADIANT) {
+            level.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY(0.85D), this.getZ(), 16, 0.45D, 0.45D, 0.45D, 0.04D);
+            level.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.65F, 1.42F);
+            return;
+        }
         LivingEntity owner = resolveSummoner(level);
         int tier = this.spell.getEffectiveTier();
         double burstRad = resolveCanonicalDeathBurstRadius(mat);
         AABB box = this.getBoundingBox().inflate(burstRad);
 
-        // Beneficial ally death-burst effects
-        if (mat == EssenceType.VITAE || mat == EssenceType.GENESIS) {
+        // Beneficial ally death-burst effects & Air Decoy non-damaging cyclone gust VFX
+        if (mat == EssenceType.AIR && getArchetype() == TriadArchetype.DECOY) {
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVacuumSphere(
+                    level, this.position().add(0.0D, 0.8D, 0.0D), Math.max(4.5D, burstRad), false, EssenceType.AIR, null, 24, tier
+            );
+            level.sendParticles(ParticleTypes.GUST_EMITTER_LARGE, this.getX(), this.getY(0.6D), this.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            level.playSound(null, this.blockPosition(), SoundEvents.WIND_CHARGE_BURST.value(), SoundSource.PLAYERS, 0.95F, 1.05F);
+        } else if (mat == EssenceType.VITAE || mat == EssenceType.GENESIS) {
             if (mat == EssenceType.VITAE) {
                 ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
                         level, this.position().add(0.0D, 0.40D, 0.0D), burstRad, EssenceType.VITAE, EssenceType.NATURE, tier
@@ -4167,21 +4721,6 @@ public class SpellEidolonEntity extends PathfinderMob {
             );
             level.sendParticles(ParticleTypes.LARGE_SMOKE, this.getX(), this.getY(0.8D), this.getZ(), 32, 3.0D, 0.8D, 3.0D, 0.06D);
             level.playSound(null, this.blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 0.95F, 0.68F);
-        } else if (mat == EssenceType.RADIANT) {
-            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcast(
-                    level, ddraig.net.entropica.network.SpellVfxEventPayload.VFX_RADIAL_NOVA,
-                    this.position().add(0.0D, 0.45D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D),
-                    EssenceType.RADIANT, null, (float) Math.max(4.2D, burstRad), 62, tier
-            );
-            level.playSound(null, this.blockPosition(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.90F, 1.45F);
-            for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, box)) {
-                if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
-                    SpellCombatReactionEngine.cleanseSingleNegativeEffectOrHex(ally);
-                    SpellCombatReactionEngine.notifyMagicalHeal(ally, 5.0F + tier * 0.65F);
-                    ally.heal(5.0F + tier * 0.65F);
-                    level.sendParticles(ParticleTypes.HEART, ally.getX(), ally.getY(1.0D), ally.getZ(), 4, 0.25D, 0.25D, 0.25D, 0.03D);
-                }
-            }
         } else if (mat == EssenceType.UMBRAL) {
             // Section 6.9 Shadow Stalker Death Burst: silent Smoke Veil dome that wipes mob aggro & cloaks the summoner!
             ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcast(
@@ -4312,33 +4851,102 @@ public class SpellEidolonEntity extends PathfinderMob {
                 }
             }
         } else if (mat == EssenceType.PRISMATIC) {
-            // Sacrificial Solar Relic: grants nearby party members 15.0s (300t) of complete damage invulnerability!
-            long invulnUntil = level.getGameTime() + 300L;
-            for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(16.0D))) {
-                if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
-                    ddraig.net.entropica.util.EntityHelper.getPersistentData(ally)
-                            .putLong(SpellLingeringZoneManager.TAG_COMPLETE_INVULNERABILITY_UNTIL, invulnUntil);
-                    level.sendParticles(ParticleTypes.END_ROD, ally.getX(), ally.getY(1.0D), ally.getZ(), 10, 0.35D, 0.45D, 0.35D, 0.04D);
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                    level, this.position(), this.shortLivedIllusion ? 6.0D : 10.0D, EssenceType.PRISMATIC, EssenceType.RADIANT, tier
+            );
+            if (!this.shortLivedIllusion) {
+                // Section 6.53 Sacrificial Solar Relic: grants nearby party members 15.0s (300t) of complete damage invulnerability!
+                long invulnUntil = level.getGameTime() + 300L;
+                for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(16.0D))) {
+                    if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
+                        ddraig.net.entropica.util.EntityHelper.getPersistentData(ally)
+                                .putLong(SpellLingeringZoneManager.TAG_COMPLETE_INVULNERABILITY_UNTIL, invulnUntil);
+                        SpellCombatReactionEngine.syncEntityBarrierState(level, ally, 1.15F, this.position());
+                        level.sendParticles(ParticleTypes.END_ROD, ally.getX(), ally.getY(1.0D), ally.getZ(), 14, 0.35D, 0.45D, 0.35D, 0.04D);
+                    }
                 }
             }
         } else if (mat == EssenceType.EMPYREAN) {
-            for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, box)) {
-                if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
-                    SpellCombatReactionEngine.notifyMagicalHeal(ally, 16.0F); // 8 full hearts!
-                    ally.heal(16.0F);
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                    level, this.position(), this.shortLivedIllusion ? 6.0D : 14.0D, EssenceType.EMPYREAN, EssenceType.VITAE, tier
+            );
+            if (!this.shortLivedIllusion) {
+                for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, box)) {
+                    if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
+                        SpellCombatReactionEngine.notifyMagicalHeal(ally, 16.0F); // 8 full hearts!
+                        ally.heal(16.0F);
+                        level.sendParticles(ParticleTypes.HEART, ally.getX(), ally.getY(1.0D), ally.getZ(), 5, 0.3D, 0.3D, 0.3D, 0.03D);
+                    }
                 }
             }
+        } else if (mat == EssenceType.CATACLYSM) {
+            // Section 6.55 Molten Core Beacon: 14m burst of stygian hellfire & compressed dark matter!
+            double catRad = this.shortLivedIllusion ? 6.0D : Math.max(14.0D, burstRad);
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                    level, this.position().add(0.0D, 0.25D, 0.0D), catRad, EssenceType.CATACLYSM, EssenceType.NETHER, tier
+            );
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVacuumSphere(
+                    level, this.position().add(0.0D, 0.75D, 0.0D), catRad, true, EssenceType.CATACLYSM, EssenceType.VOID, 46, tier
+            );
+            level.sendParticles(ParticleTypes.LAVA, this.getX(), this.getY(0.8D), this.getZ(), 36, 3.2D, 0.8D, 3.2D, 0.06D);
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, this.getX(), this.getY(0.9D), this.getZ(), 32, 3.0D, 0.8D, 3.0D, 0.06D);
+            level.playSound(null, this.blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 1.1F, 0.68F);
+        } else if (mat == EssenceType.TERMINUS) {
+            // Section 6.56 Unstable Cryogenic Elemental Effigy: 14m cataclysmic burst of absolute-zero frost!
+            double termRad = this.shortLivedIllusion ? 6.0D : Math.max(14.0D, burstRad);
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                    level, this.position().add(0.0D, 0.25D, 0.0D), termRad, EssenceType.TERMINUS, EssenceType.FROZEN, tier
+            );
+            level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY(0.8D), this.getZ(), 42, 3.2D, 0.8D, 3.2D, 0.06D);
+            level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.BLUE_ICE.defaultBlockState()),
+                    this.getX(), this.getY(0.8D), this.getZ(), 30, 2.8D, 0.7D, 2.8D, 0.08D);
+            level.playSound(null, this.blockPosition(), SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1.25F, 0.62F);
+            level.playSound(null, this.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 0.65F, 1.55F);
         } else if (mat == EssenceType.ESCHATON) {
+            // Section 6.57 Collapsing Micro-Nova Effigy (20s / 20m taunt): apocalyptic 20m reality tear!
+            double eschRad = this.shortLivedIllusion ? 8.0D : Math.max(20.0D, burstRad);
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                    level, this.position().add(0.0D, 0.25D, 0.0D), eschRad, EssenceType.ESCHATON, EssenceType.VOID, tier
+            );
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVacuumSphere(
+                    level, this.position().add(0.0D, 0.85D, 0.0D), eschRad, true, EssenceType.ESCHATON, EssenceType.UMBRAL, 52, tier
+            );
             ddraig.net.entropica.spell.mutation.element.ApexEschatonSingularityHelper.dissolveNonProtectedBlocksIntoFuel(
                     level, owner, this.blockPosition(), 6, EssenceType.ESCHATON, 32L);
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, this.getX(), this.getY(0.9D), this.getZ(), 54, 4.2D, 0.9D, 4.2D, 0.08D);
+            level.playSound(null, this.blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 1.25F, 0.58F);
+            level.playSound(null, this.blockPosition(), SoundEvents.BEACON_DEACTIVATE, SoundSource.PLAYERS, 1.10F, 0.65F);
         } else if (mat == EssenceType.APOTHEOSIS) {
+            // Section 6.58 Radiant Ascendance Mirage (20s / 20m taunt): apocalyptic 20m healing supernova burst!
+            double apoRad = this.shortLivedIllusion ? 8.0D : Math.max(20.0D, burstRad);
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                    level, this.position().add(0.0D, 0.25D, 0.0D), apoRad, EssenceType.APOTHEOSIS, EssenceType.RADIANT, tier
+            );
             for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, box)) {
                 if (ally != this && ally.isAlive() && (ally == owner || this.isFriendlyTo(ally))) {
                     SpellCombatReactionEngine.notifyMagicalHeal(ally, 24.0F); // 12 full hearts!
                     ally.heal(24.0F);
+                    level.sendParticles(ParticleTypes.HEART, ally.getX(), ally.getY(1.0D), ally.getZ(), 8, 0.35D, 0.35D, 0.35D, 0.03D);
                 }
             }
             SpellLingeringZoneManager.spawnTypedEssenceOrb(level, this.position(), EssenceType.RADIANT, 3);
+            level.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY(0.9D), this.getZ(), 56, 4.2D, 0.9D, 4.2D, 0.09D);
+            level.playSound(null, this.blockPosition(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.25F, 1.32F);
+            level.playSound(null, this.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 0.95F, 1.48F);
+        } else if (mat == EssenceType.ENTROPICA) {
+            // Section 6.59 Fractured Paradox Core (20s / 20m reality rupture) & Parallax Event-Horizon Decoy (4s / 8m balanced stasis nova)!
+            double entRad = this.shortLivedIllusion ? 8.0D : Math.max(20.0D, burstRad);
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
+                    level, this.position().add(0.0D, 0.25D, 0.0D), entRad, EssenceType.ENTROPICA, EssenceType.ASTRAL, tier
+            );
+            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastVacuumSphere(
+                    level, this.position().add(0.0D, 0.85D, 0.0D), Math.min(7.0D, entRad * 0.45D), true, EssenceType.ENTROPICA, EssenceType.ASTRAL, 36, tier
+            );
+            SpellLingeringZoneManager.spawnTypedEssenceOrb(level, this.position(), EssenceType.ENTROPICA, this.shortLivedIllusion ? 1 : 3);
+            level.sendParticles(ParticleTypes.END_ROD, this.getX(), this.getY(0.9D), this.getZ(), 36, 3.8D, 0.9D, 3.8D, 0.08D);
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, this.getX(), this.getY(0.9D), this.getZ(), 36, 3.8D, 0.9D, 3.8D, 0.08D);
+            level.playSound(null, this.blockPosition(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.20F, 1.30F);
+            level.playSound(null, this.blockPosition(), SoundEvents.RESPAWN_ANCHOR_DEPLETE.value(), SoundSource.PLAYERS, 1.10F, 1.18F);
         }
 
         // Environmental death-burst effects (Magma Caldera Nova crust, Storm fire extinguish + projectile deflect, Dust torch snuff, Soulfire soul sand, Astral EMP, Blood crimson mist)
@@ -4592,21 +5200,8 @@ public class SpellEidolonEntity extends PathfinderMob {
                         return el < z.maxDurationTicks;
                     }
             ));
-        } else if (mat == EssenceType.WATER) {
-            ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastProjectileImpact(
-                    level, this.position().add(0.0D, 0.35D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D),
-                    EssenceType.WATER, null, (float) Math.max(3.5D, burstRad), tier
-            );
-            level.sendParticles(ParticleTypes.SPLASH, this.getX(), this.getY(0.75D), this.getZ(), 36, 1.1D, 0.55D, 1.1D, 0.16D);
-            level.playSound(null, this.blockPosition(), SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.PLAYERS, 0.95F, 1.05F);
-            BlockPos c = this.blockPosition();
-            for (BlockPos p : BlockPos.betweenClosed(c.offset(-4, -1, -4), c.offset(4, 2, 4))) {
-                if (level.getBlockState(p).getBlock() instanceof BaseFireBlock) {
-                    level.removeBlock(p, false);
-                }
-            }
-        } else if (mat == EssenceType.NATURE) {
-            // Section 6.4 Sylvan Pollen Effigy: bursts into a 3D toxic spore nova on collapse!
+        } else if (mat == EssenceType.NATURE && getArchetype() == TriadArchetype.DECOY) {
+            // Section 6.4 Sylvan Pollen Effigy (A3): only the Decoy bursts into a 3D toxic spore nova on collapse!
             ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
                     level, this.position().add(0.0D, 0.1D, 0.0D), Math.max(4.0D, burstRad), EssenceType.NATURE, null, tier
             );
@@ -4616,7 +5211,7 @@ public class SpellEidolonEntity extends PathfinderMob {
                     this.getX(), this.getY(0.95D), this.getZ(), 28, 1.4D, 0.65D, 1.4D, 0.05D);
             level.sendParticles(ParticleTypes.SPORE_BLOSSOM_AIR, this.getX(), this.getY(0.9D), this.getZ(), 24, 1.4D, 0.6D, 1.4D, 0.03D);
             level.playSound(null, this.blockPosition(), SoundEvents.SPORE_BLOSSOM_PLACE, SoundSource.PLAYERS, 0.95F, 0.78F);
-        } else if (mat == EssenceType.EARTH) {
+        } else if (mat == EssenceType.EARTH && getArchetype() == TriadArchetype.DECOY) {
             // Section 6.5 Granite Effigy Decoy: violently shatters into a 3D ring of stone shrapnel & granite monoliths on collapse!
             ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcastRadialNova(
                     level, this.position().add(0.0D, 0.08D, 0.0D), Math.max(4.2D, burstRad), EssenceType.EARTH, null, tier
@@ -4628,21 +5223,23 @@ public class SpellEidolonEntity extends PathfinderMob {
             level.sendParticles(TimedTintableParticleOption.linear(ModParticles.TINTABLE_CRYSTAL.get(), 0xFFC278, 42, 1.15F, 0.14F),
                     this.getX(), this.getY(0.85D), this.getZ(), 22, 1.4D, 0.6D, 1.4D, 0.07D);
             level.playSound(null, this.blockPosition(), SoundEvents.DRIPSTONE_BLOCK_BREAK, SoundSource.PLAYERS, 1.0F, 0.68F);
-        } else if (mat == EssenceType.FROZEN || mat == EssenceType.GLACIAL) {
-            // Section 6.6 Glacial Ice Effigy & Section 6.16 Crystalline Freeze-Nova Effigy / Ice Statue Blink:
-            // shatters into a 4-block Freeze-Nova, freezing surface water/lava and encasing attackers in solid 3D ice!
+        } else if ((mat == EssenceType.FROZEN && getArchetype() == TriadArchetype.DECOY) || mat == EssenceType.GLACIAL) {
+            // Section 6.6 Glacial Ice Effigy (Decoy-only combat destruction) & Section 6.16 Crystalline Freeze-Nova Effigy:
+            // shatters into an exact 4.0-block spherical Freeze-Nova!
+            double novaVisualRad = mat == EssenceType.FROZEN ? 4.0D : Math.max(4.0D, burstRad);
             ddraig.net.entropica.spell.vfx.SpellWorldVfxManager.broadcast(
                     level, ddraig.net.entropica.network.SpellVfxEventPayload.VFX_RADIAL_NOVA,
                     this.position().add(0.0D, 0.08D, 0.0D), new Vec3(0.0D, 1.0D, 0.0D),
-                    mat, EssenceType.STASIS, (float) Math.max(4.0D, burstRad), 64, tier
+                    mat, EssenceType.STASIS, (float) novaVisualRad, 64, tier
             );
             BlockPos c = this.blockPosition();
+            Vec3 burstCenter = this.position();
             for (BlockPos p : BlockPos.betweenClosed(c.offset(-4, -2, -4), c.offset(4, 1, 4))) {
-                if (p.distSqr(c) > 17.0D) continue;
+                if (p.distToCenterSqr(burstCenter) > 16.0D) continue;
                 BlockState bs = level.getBlockState(p);
                 if (bs.is(Blocks.WATER)) {
                     level.setBlockAndUpdate(p, Blocks.PACKED_ICE.defaultBlockState());
-                } else if (bs.is(Blocks.LAVA)) {
+                } else if (mat == EssenceType.GLACIAL && bs.is(Blocks.LAVA)) {
                     level.setBlockAndUpdate(p, Blocks.OBSIDIAN.defaultBlockState());
                 } else if (bs.getBlock() instanceof BaseFireBlock) {
                     level.removeBlock(p, false);
@@ -4698,38 +5295,43 @@ public class SpellEidolonEntity extends PathfinderMob {
             if (foe == this || foe == owner || !foe.isAlive() || this.isFriendlyTo(foe)) continue;
             switch (mat) {
                 case AIR -> {
-                    Vec3 away = foe.position().subtract(this.position()).normalize().scale(1.45D);
-                    foe.setDeltaMovement(away.x, 0.72D, away.z);
-                    foe.hasImpulse = true;
-                    float airBurstDmg = Math.max(4.0F + tier * 1.25F, ddraig.net.entropica.spell.fuel.MateriaStageTable.getBaseCombatDamageHp(tier) * 0.55F);
-                    SpellCombatReactionEngine.hurtWithPureMateria(
-                            level,
-                            foe,
-                            owner != null ? level.damageSources().indirectMagic(owner, owner) : level.damageSources().magic(),
-                            airBurstDmg
-                    );
-                }
-                case WATER -> {
-                    foe.clearFire();
-                    SpellLingeringZoneManager.applySoaked(foe, 200);
-                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 70, 0));
-                    if (!SpellCombatReactionEngine.isBossEntity(level, foe)) {
-                        Vec3 away = foe.position().subtract(this.position()).normalize().scale(0.95D);
-                        SpellExecutionEngine.applySyncedMotion(foe, new Vec3(away.x, 0.32D, away.z));
+                    // Section 6.2 Zephyr Eidolon Decoy: non-damaging (0 HP) cyclone knockback gust skipping bosses!
+                    if (getArchetype() == TriadArchetype.DECOY && !SpellCombatReactionEngine.isBossEntity(level, foe)) {
+                        if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(
+                                foe, owner, this.spell != null && this.spell.hasWardFriendlyFireSafeguard())) {
+                            continue;
+                        }
+                        Vec3 diff = foe.position().subtract(this.position());
+                        Vec3 horiz = new Vec3(diff.x, 0.0D, diff.z);
+                        Vec3 away = (horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : new Vec3(1.0D, 0.0D, 0.0D)).scale(1.45D);
+                        SpellExecutionEngine.applySyncedMotion(foe, new Vec3(away.x, 0.72D, away.z));
                     }
                 }
                 case NATURE -> {
-                    foe.addEffect(new MobEffectInstance(MobEffects.POISON, 120, 1));
-                    foe.addEffect(new MobEffectInstance(MobEffects.NAUSEA, 120, 0));
-                    float sporeBurstDmg = Math.max(3.5F + tier * 1.10F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.45F);
-                    SpellCombatReactionEngine.hurtWithPureMateria(
-                            level,
-                            foe,
-                            owner != null ? level.damageSources().indirectMagic(owner, owner) : level.damageSources().magic(),
-                            sporeBurstDmg
-                    );
+                    if (getArchetype() == TriadArchetype.DECOY) {
+                        double maxR = Math.max(4.0D, burstRad);
+                        double dx = foe.getX() - this.getX();
+                        double dz = foe.getZ() - this.getZ();
+                        if (dx * dx + dz * dz > maxR * maxR) {
+                            continue;
+                        }
+                        boolean wardSafe = this.spell != null && this.spell.hasWardFriendlyFireSafeguard();
+                        if (SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, owner, wardSafe)
+                                || (wardSafe && ddraig.net.entropica.spell.mutation.element.NatureSpellMutationHandler.isFriendlyOrWoodlandAlly(foe, owner))) {
+                            continue;
+                        }
+                        foe.addEffect(new MobEffectInstance(MobEffects.POISON, 120, 1));
+                        foe.addEffect(new MobEffectInstance(MobEffects.NAUSEA, 120, 0));
+                        float sporeBurstDmg = Math.max(3.5F + tier * 1.10F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.45F);
+                        SpellCombatReactionEngine.hurtWithNatureMateriaAdvantage(
+                                level, foe, owner != null ? owner : this, sporeBurstDmg
+                        );
+                    }
                 }
                 case EARTH -> {
+                    if (getArchetype() != TriadArchetype.DECOY) break;
+                    boolean wardSafe = this.spell != null && this.spell.hasWardFriendlyFireSafeguard();
+                    if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, owner, wardSafe)) break;
                     float shrapnelDmg = Math.max(4.5F + tier * 1.25F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.55F);
                     SpellCombatReactionEngine.hurtWithEarthMateriaAdvantage(
                             level, foe, owner != null ? owner : this, shrapnelDmg, false, false
@@ -4743,19 +5345,26 @@ public class SpellEidolonEntity extends PathfinderMob {
                     }
                 }
                 case FROZEN, GLACIAL -> {
+                    if (mat == EssenceType.FROZEN && getArchetype() != TriadArchetype.DECOY) break;
+                    if (mat == EssenceType.FROZEN && this.distanceToSqr(foe) > 16.0D) break;
+                    boolean wardSafe = this.spell != null && this.spell.hasWardFriendlyFireSafeguard();
+                    if (owner != null && SpellCombatReactionEngine.isProtectedFromOffensiveSpell(foe, owner, wardSafe)) break;
                     float frostNovaDmg = Math.max(4.0F + tier * 1.15F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.50F);
                     if (mat == EssenceType.GLACIAL) {
                         SpellCombatReactionEngine.hurtWithGlacialMateriaAdvantage(
                                 level, foe, owner != null ? owner : this, frostNovaDmg, false, false, false
                         );
+                        ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(
+                                level, owner != null ? owner : this, foe, 50, this.spell, null
+                        );
                     } else {
                         SpellCombatReactionEngine.hurtWithFrozenMateriaAdvantage(
                                 level, foe, owner != null ? owner : this, frostNovaDmg, false, false
                         );
+                        ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(
+                                level, owner != null ? owner : this, foe, 40, this.spell, null
+                        );
                     }
-                    ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(
-                            level, owner != null ? owner : this, foe, 50, this.spell, null
-                    );
                 }
                 case NETHER -> {
                     if (getArchetype() == TriadArchetype.SENTRY) break;
@@ -4770,18 +5379,6 @@ public class SpellEidolonEntity extends PathfinderMob {
                         Vec3 push = horiz.lengthSqr() > 1.0E-4D ? horiz.normalize() : Vec3.ZERO;
                         SpellExecutionEngine.applySyncedMotion(foe, new Vec3(push.x * 1.15D, 0.38D, push.z * 1.15D));
                     }
-                }
-                case RADIANT -> {
-                    foe.removeEffect(MobEffects.INVISIBILITY);
-                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 70, 0));
-                    foe.addEffect(new MobEffectInstance(MobEffects.GLOWING, 80, 0));
-                    if (foe.getType().is(EntityTypeTags.UNDEAD) || foe instanceof Phantom) {
-                        foe.igniteForSeconds(5);
-                    }
-                    float seraphBurstDmg = Math.max(4.0F + tier * 1.15F, MateriaStageTable.getBaseCombatDamageHp(tier) * 0.50F);
-                    SpellCombatReactionEngine.hurtWithRadiantMateriaAdvantage(
-                            level, foe, owner != null ? owner : this, seraphBurstDmg, false
-                    );
                 }
                 case UMBRAL -> {
                     foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
@@ -5355,51 +5952,87 @@ public class SpellEidolonEntity extends PathfinderMob {
                     );
                 }
                 case PRISMATIC -> {
-                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 100, 0));
-                    foe.hurtServer(level, level.damageSources().magic(), 7.0F + tier * 1.6F);
+                    // Section 6.53 Sacrificial Solar Relic / Prismatic Mirror Decoy: blinding dawn-burst + Prismatic smite!
+                    foe.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 120, 0));
+                    foe.addEffect(new MobEffectInstance(MobEffects.GLOWING, 120, 0));
+                    SpellCombatReactionEngine.hurtWithPrismaticMateriaAdvantage(
+                            level, foe, owner != null ? owner : this,
+                            this.shortLivedIllusion ? (4.4F + tier * 0.90F) : (7.8F + tier * 1.75F), false, true
+                    );
                 }
                 case EMPYREAN -> {
+                    // Section 6.54 Golden Willow Effigy: 14m burst of healing dew & titan root snares,
+                    // massive TRUE damage, -6 armor shred, & 5.0s (100t) root!
                     SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 6.0D, 0.0D, 180L);
                     foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 6));
                     foe.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.INERTIAL_ANCHOR.get()), 100, 0));
-                    foe.hurtServer(level, level.damageSources().magic(), 10.0F + tier * 2.1F);
+                    SpellCombatReactionEngine.hurtWithEmpyreanMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, 10.5F + tier * 2.15F, false, false, true, true
+                    );
                 }
                 case CATACLYSM -> {
+                    // Section 6.55 Molten Core Beacon: 14m burst of stygian hellfire & compressed dark matter,
+                    // massive TRUE damage, -6 armor shred, & pulling all surviving hostiles into its collapsing singularity epicenter!
                     SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 6.0D, 0.0D, 180L);
-                    Vec3 inward = this.position().subtract(foe.position()).normalize().scale(1.55D);
-                    foe.setDeltaMovement(inward.x, 0.35D, inward.z);
-                    foe.hasImpulse = true;
+                    Vec3 diff = this.position().subtract(foe.position());
+                    if (diff.lengthSqr() > 1.0E-4D) {
+                        Vec3 inward = diff.normalize().scale(1.65D);
+                        foe.setDeltaMovement(inward.x, 0.35D, inward.z);
+                        foe.hasImpulse = true;
+                    }
                     foe.igniteForSeconds(6);
                     ddraig.net.entropica.util.EntityHelper.getPersistentData(foe)
                             .putLong(SpellLingeringZoneManager.TAG_UNQUENCHABLE_FIRE_UNTIL, level.getGameTime() + 120L);
-                    foe.hurtServer(level, level.damageSources().fellOutOfWorld(), 10.0F + tier * 2.1F);
+                    SpellCombatReactionEngine.hurtWithCataclysmMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, 10.8F + tier * 2.20F, false, false, true
+                    );
                 }
                 case TERMINUS -> {
+                    // Section 6.56 Unstable Cryogenic Elemental Effigy (14m burst): massive TRUE damage, -6 armor shred,
+                    // & freezing all surviving hostiles solid in ice for 5.0 seconds!
                     SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 6.0D, 0.0D, 180L);
-                    foe.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 100, 0));
-                    foe.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 6));
-                    foe.setTicksFrozen(foe.getTicksRequiredToFreeze() + 100);
-                    foe.hurtServer(level, level.damageSources().fellOutOfWorld(), 10.0F + tier * 2.1F);
+                    SpellCombatReactionEngine.hurtWithTerminusMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, 10.5F + tier * 2.15F, false, false, true
+                    );
+                    if (foe.isAlive()) {
+                        ddraig.net.entropica.spell.mutation.element.FrozenSpellMutationHandler.applyIceStasis(
+                                level, owner != null ? owner : this, foe, 100, 0, null, null
+                        );
+                    }
                 }
                 case ESCHATON -> {
-                    SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 8.0D, 0.0D, 200L);
-                    Vec3 inward = this.position().subtract(foe.position()).normalize().scale(1.85D);
-                    foe.setDeltaMovement(inward.x, 0.38D, inward.z);
-                    foe.hasImpulse = true;
-                    foe.hurtServer(level, level.damageSources().fellOutOfWorld(), 14.0F + tier * 2.5F);
+                    // Section 6.57 Collapsing Micro-Nova Effigy (20m reality tear): massive TRUE Eschaton damage,
+                    // -8 armor shred, and pulls all surviving hostiles into its collapsing singularity epicenter!
+                    SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 8.0D, 0.0D, 220L);
+                    Vec3 diff = this.position().subtract(foe.position());
+                    if (diff.lengthSqr() > 1.0E-4D) {
+                        Vec3 inward = diff.normalize().scale(1.85D);
+                        foe.setDeltaMovement(inward.x, 0.38D, inward.z);
+                        foe.hasImpulse = true;
+                    }
+                    SpellCombatReactionEngine.hurtWithEschatonMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, 14.5F + tier * 2.65F, false, false, true
+                    );
                 }
                 case APOTHEOSIS -> {
-                    SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 8.0D, 0.0D, 200L);
-                    float smite = foe.getType().is(EntityTypeTags.UNDEAD) ? 2.0F : 1.0F;
-                    foe.hurtServer(level, level.damageSources().magic(), (14.0F + tier * 2.5F) * smite);
+                    SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 8.0D, 0.0D, 220L);
+                    foe.igniteForSeconds(5);
+                    SpellCombatReactionEngine.hurtWithApotheosisMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, 14.5F + tier * 2.65F, false, false, true, true
+                    );
                 }
                 case ENTROPICA -> {
-                    SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 8.0D, 0.0D, 200L);
-                    Vec3 inward = this.position().subtract(foe.position()).normalize().scale(1.85D);
-                    foe.setDeltaMovement(inward.x, 0.35D, inward.z);
-                    foe.hasImpulse = true;
-                    foe.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 100, 0));
-                    foe.hurtServer(level, level.damageSources().fellOutOfWorld(), 15.0F + tier * 2.6F);
+                    SpellCombatReactionEngine.applyTimedAttributeShred(foe, level, 8.0D, 0.0D, 220L);
+                    Vec3 diff = this.position().subtract(foe.position());
+                    if (diff.lengthSqr() > 1.0E-4D) {
+                        Vec3 inward = diff.normalize().scale(1.85D);
+                        foe.setDeltaMovement(inward.x, 0.35D, inward.z);
+                        foe.hasImpulse = true;
+                    }
+                    foe.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(ModEffects.PARALYZED.get()), 100, 0)); // 5.0s stun!
+                    SpellCombatReactionEngine.hurtWithEntropicaMateriaAdvantage(
+                            level, foe, owner != null ? owner : this, 15.5F + tier * 2.75F, false, false, true
+                    );
                 }
                 default -> {
                 }
@@ -5522,6 +6155,78 @@ public class SpellEidolonEntity extends PathfinderMob {
         return list.get(0);
     }
 
+    private EssenceType resolveUpkeepMateria() {
+        EssenceType mat = getEffectiveMateria();
+        if (mat != EssenceType.REGULAR) {
+            return mat;
+        }
+        if (!this.spell.subSpells().isEmpty()) {
+            SubSpellSlot slot = this.spell.subSpells().get(Math.clamp(this.slotIndex, 0, this.spell.subSpells().size() - 1));
+            EssenceType formMat = slot.formPart().resolveEffectiveMateria(this.spell.materiaSpecific(), this.fallbackMateria);
+            if (formMat != EssenceType.REGULAR) {
+                return formMat;
+            }
+        }
+        return this.fallbackMateria != null ? this.fallbackMateria : EssenceType.REGULAR;
+    }
+
+    private boolean tryPerformPlayerUpkeepRefresh(ServerLevel serverLevel) {
+        LivingEntity owner = resolveSummoner(serverLevel);
+        if (!(owner instanceof Player player) || !player.isAlive()) {
+            return false;
+        }
+
+        boolean damagedBeyondHalf = this.getHealth() < (this.getMaxHealth() * 0.5F);
+        if (!player.isCreative()) {
+            int tier = this.spell.getEffectiveTier();
+            EssenceType fuelMat = resolveUpkeepMateria();
+            long upkeepMfum = ddraig.net.entropica.spell.engine.SpellEidolonSpecs.resolveUpkeepCostMfum(tier, damagedBeyondHalf);
+            SpellFuelService.FuelCheckResult fed = SpellFuelService.consumeOrbisCellUpkeepFuel(
+                    player,
+                    tier,
+                    fuelMat,
+                    upkeepMfum,
+                    false
+            );
+            if (!fed.success()) {
+                return false;
+            }
+        }
+
+        this.ageTicks = 0;
+        this.sustainedPastCycleOne = true;
+        if (damagedBeyondHalf) {
+            float missing = this.getMaxHealth() - this.getHealth();
+            if (missing > 0.0F) {
+                SpellCombatReactionEngine.notifyMagicalHeal(this, missing);
+            }
+            this.setHealth(this.getMaxHealth());
+            serverLevel.sendParticles(ParticleTypes.HEART, this.getX(), this.getY(1.15D), this.getZ(),
+                    6, 0.30D, 0.30D, 0.30D, 0.04D);
+        }
+        serverLevel.sendParticles(ParticleTypes.ENCHANT, this.getX(), this.getY(1.1D), this.getZ(),
+                12, 0.35D, 0.45D, 0.35D, 0.08D);
+        return true;
+    }
+
+    private void expireAndDiscard(ServerLevel serverLevel) {
+        EssenceType mat = getEffectiveMateria();
+        // Section 6.6 Glacial Eidolon Decoy & Frostwalker Statue: shatter nova triggers ONLY on combat destruction, NOT natural lifetime expiry!
+        if (mat == EssenceType.FROZEN) {
+            if (isMutated()) {
+                serverLevel.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY(0.8D), this.getZ(), 18, 0.45D, 0.45D, 0.45D, 0.03D);
+                serverLevel.playSound(null, this.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.65F, 1.38F);
+            }
+            this.discard();
+            return;
+        }
+        if (getArchetype() == TriadArchetype.DECOY
+                || (getArchetype() == TriadArchetype.AGENT && mat == EssenceType.NETHER)) {
+            triggerElementalDeathBurst(serverLevel);
+        }
+        this.discard();
+    }
+
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
@@ -5536,6 +6241,8 @@ public class SpellEidolonEntity extends PathfinderMob {
         output.store("ApparatusPotency", Codec.FLOAT, this.apparatusPotency);
         output.store("MaxLifetimeTicks", Codec.INT, this.maxLifetimeTicks);
         output.store("AgeTicks", Codec.INT, this.ageTicks);
+        output.store("UpkeepTicks", Codec.INT, this.upkeepTicks);
+        output.store("SustainedPastCycleOne", Codec.BOOL, this.sustainedPastCycleOne);
         output.store("AnchorX", Codec.DOUBLE, this.anchorPos.x);
         output.store("AnchorY", Codec.DOUBLE, this.anchorPos.y);
         output.store("AnchorZ", Codec.DOUBLE, this.anchorPos.z);
@@ -5561,6 +6268,8 @@ public class SpellEidolonEntity extends PathfinderMob {
         this.apparatusPotency = input.read("ApparatusPotency", Codec.FLOAT).orElse(1.0F);
         this.maxLifetimeTicks = input.read("MaxLifetimeTicks", Codec.INT).orElse(600);
         this.ageTicks = input.read("AgeTicks", Codec.INT).orElse(0);
+        this.upkeepTicks = input.read("UpkeepTicks", Codec.INT).orElse(0);
+        this.sustainedPastCycleOne = input.read("SustainedPastCycleOne", Codec.BOOL).orElse(false);
         double ax = input.read("AnchorX", Codec.DOUBLE).orElse(this.getX());
         double ay = input.read("AnchorY", Codec.DOUBLE).orElse(this.getY());
         double az = input.read("AnchorZ", Codec.DOUBLE).orElse(this.getZ());

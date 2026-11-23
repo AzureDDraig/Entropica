@@ -1,0 +1,7 @@
+{
+  "type": "entropica:amber_willow_bathhouse",
+  "biomes": "#entropica:has_structure/amber_willow_bathhouse",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin"
+}

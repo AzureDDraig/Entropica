@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "hanging=false": {
+      "model": "entropica:block/mirage_prism_lantern"
+    },
+    "hanging=true": {
+      "model": "entropica:block/mirage_prism_lantern_hanging"
+    }
+  }
+}

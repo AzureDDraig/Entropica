@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:auroral_wellspring",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 472918365,
+    "spacing": 22,
+    "separation": 8
+  }
+}

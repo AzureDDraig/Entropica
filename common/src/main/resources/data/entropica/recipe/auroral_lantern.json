@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NNN",
+    "NFN",
+    "NNN"
+  ],
+  "key": {
+    "N": "minecraft:iron_nugget",
+    "F": "entropica:glowing_auroral_fiber"
+  },
+  "result": {
+    "id": "entropica:auroral_lantern",
+    "count": 1
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "entropica:vitreous_needle",
+    "entropica:vitreous_needle",
+    "entropica:shimmering_mirage_aura",
+    "minecraft:amethyst_shard"
+  ],
+  "result": {
+    "id": "entropica:mirage_decoy_prism",
+    "count": 2
+  }
+}

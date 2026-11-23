@@ -1,0 +1,7 @@
+{
+  "type": "entropica:radiant_spring_pavilion",
+  "biomes": "#entropica:has_structure/radiant_spring_pavilion",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "none"
+}

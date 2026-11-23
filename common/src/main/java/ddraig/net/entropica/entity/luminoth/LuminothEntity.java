@@ -2,9 +2,13 @@ package ddraig.net.entropica.entity.luminoth;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -19,6 +23,10 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 
@@ -37,7 +45,7 @@ public class LuminothEntity extends PathfinderMob implements FlyingAnimal {
 
     public static AttributeSupplier.Builder createAttributes() {
         return PathfinderMob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 16.0D)
+                .add(Attributes.MAX_HEALTH, 32.0D)
                 .add(Attributes.FLYING_SPEED, 0.6D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.FOLLOW_RANGE, 16.0D);
@@ -62,6 +70,46 @@ public class LuminothEntity extends PathfinderMob implements FlyingAnimal {
     @Override
     public boolean isFlying() {
         return !this.onGround();
+    }
+
+    @Override
+    public boolean canFreeze() {
+        return false;
+    }
+
+    @Override
+    public boolean causeFallDamage(double fallDistance, float multiplier, DamageSource source) {
+        return false;
+    }
+
+    @Override
+    protected void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) {
+    }
+
+    @Override
+    public float getWalkTargetValue(BlockPos pos, LevelReader level) {
+        if (level.getBlockState(pos).isAir()) {
+            return 8.0F;
+        }
+        return 0.0F;
+    }
+
+    @Override
+    public boolean checkSpawnRules(LevelAccessor level, EntitySpawnReason spawnReason) {
+        BlockState below = level.getBlockState(this.blockPosition().below());
+        String path = BuiltInRegistries.BLOCK.getKey(below.getBlock()).getPath();
+        if (below.is(Blocks.GRASS_BLOCK)
+                || below.is(Blocks.SNOW_BLOCK)
+                || below.is(BlockTags.LEAVES)
+                || below.is(BlockTags.LOGS)
+                || below.is(BlockTags.ANIMALS_SPAWNABLE_ON)
+                || "radiant_snow_block".equals(path)
+                || "vitae_spring_stone".equals(path)
+                || "radiant_glaze_ice".equals(path)
+                || "glazed_amber_leaves".equals(path)) {
+            return true;
+        }
+        return super.checkSpawnRules(level, spawnReason);
     }
 
     @Override

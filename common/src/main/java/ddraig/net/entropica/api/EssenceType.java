@@ -26,7 +26,7 @@ public enum EssenceType implements StringRepresentable {
     EARTH(new int[][]{{119, 50, 20}}),
     FROZEN(new int[][]{{152, 220, 242}}),
     NETHER(new int[][]{{184, 60, 8}}),
-    RADIANT(new int[][]{{255, 234, 120}}),
+    RADIANT(new int[][]{{255, 226, 120}}),
     UMBRAL(new int[][]{{33, 26, 33}}),
     UNDEAD(new int[][]{{77, 100, 83}}),
     VOID(new int[][]{{65, 48, 78}}),
@@ -89,8 +89,8 @@ public enum EssenceType implements StringRepresentable {
     TERMINUS(new int[][]{{168, 134, 84}, {152, 220, 242}, {34, 92, 124}}), // Air + Frozen + Water
 
     // Singularity Fusions (Tier 6)
-    ESCHATON(new int[][]{{0, 0, 0}, {33, 26, 33}, {184, 60, 8}, {65, 48, 78}}), // Apocalyptic Dark Cycle
-    APOTHEOSIS(new int[][]{{255, 255, 255}, {255, 234, 120}, {255, 107, 157}, {152, 220, 242}}), // Rebirth Light Cycle
+    ESCHATON(new int[][]{{11, 8, 19}, {112, 18, 165}, {212, 194, 252}}), // Event Horizon Void Black (#0B0813), Accretion Violet (#7012A5), Chrono-Silver (#D4C2FC)
+    APOTHEOSIS(new int[][]{{255, 255, 255}, {255, 228, 132}, {114, 246, 255}}), // Supernova Brilliant White (#FFFFFF), Celestial Astral Gold (#FFE484), Ascendant Prismatic Cyan (#72F6FF)
     ENTROPICA(new int[][]{}), // True Equilibrium - Empty array triggers isDynamic() for full prismatic shifting!
 
     // Sub-Materia (Conceptual Fragments)
@@ -220,9 +220,9 @@ public enum EssenceType implements StringRepresentable {
             // Pinks / Magentas
             case REGULAR, VITAE, SPRING, AURA, GENESIS -> "§d";
             // Yellows
-            case AIR, STATIC, LIGHTNING, ETHER, KINETIC, VOLT, DAWN, EMPYREAN, AUREOLE -> "§e";
+            case AIR, STATIC, LIGHTNING, ETHER, KINETIC, VOLT, DAWN, EMPYREAN, APOTHEOSIS, AUREOLE -> "§e";
             // Aquas / Cyans
-            case WATER, FROZEN, GLACIAL, STORM, FLOW, STASIS, TAIGA, AURORA, TERMINUS, VESPER -> "§b";
+            case WATER, FROZEN, GLACIAL, STORM, FLOW, STASIS, TAIGA, AURORA, TERMINUS, ENTROPICA, VESPER -> "§b";
             // Greens
             case NATURE, OVERGROWTH, GROWTH, MEMORY, ECTO, SPORE, OASIS, SYLVAN -> "§a";
             // Dark Greens
@@ -232,11 +232,11 @@ public enum EssenceType implements StringRepresentable {
             // Reds
             case NETHER, MAGMA, BLOOD, PYRE, IGNIS, CATACLYSM -> "§c";
             // Whites / Light Grays
-            case RADIANT, CELESTIAL, COHESION, FROST, APOTHEOSIS -> "§f";
+            case RADIANT, CELESTIAL, COHESION, FROST -> "§f";
             // Dark Grays / Blacks
-            case UMBRAL, VOID, ENTROPIC, ECLIPSE, DENSITY, OBLIVION, VACUUM, SILENCE, SHADOW, CONCEALMENT, DESOLATION, ABYSS, WRAITH, OBLIVIATE, ESCHATON, UMBRAL_WATER -> "§8";
+            case UMBRAL, VOID, ENTROPIC, ECLIPSE, DENSITY, OBLIVION, VACUUM, SILENCE, SHADOW, CONCEALMENT, DESOLATION, ABYSS, WRAITH, OBLIVIATE, UMBRAL_WATER -> "§8";
             // Purples
-            case ASTRAL, PENUMBRA, AETHER, AXIOM, ECHO, CHRONOS, SINGULARITY, PHOTON, ENTROPICA, EQUINOX -> "§5";
+            case ASTRAL, PENUMBRA, AETHER, AXIOM, ECHO, CHRONOS, SINGULARITY, PHOTON, ESCHATON, EQUINOX -> "§5";
             default -> "§r";
         };
     }

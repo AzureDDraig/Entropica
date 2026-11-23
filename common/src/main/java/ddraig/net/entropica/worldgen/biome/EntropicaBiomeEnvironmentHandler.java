@@ -1,18 +1,36 @@
 package ddraig.net.entropica.worldgen.biome;
 
+import ddraig.net.entropica.Entropica;
 import ddraig.net.entropica.config.EntropicaConfig;
+import ddraig.net.entropica.worldgen.structure.AmberWillowBathhouseStructure;
+import ddraig.net.entropica.worldgen.structure.AuroralWellspringStructure;
+import ddraig.net.entropica.worldgen.structure.RadiantSpringPavilionStructure;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -52,6 +70,17 @@ public final class EntropicaBiomeEnvironmentHandler {
     private static final ThreadLocal<BlockPos.MutableBlockPos> SCRATCH_POS =
             ThreadLocal.withInitial(BlockPos.MutableBlockPos::new);
 
+    private static final ResourceLocation MIRAGE_ICE_ID =
+            ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "mirage_ice");
+    private static final ResourceLocation MIRAGE_VEIL_GOGGLES_ID =
+            ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "mirage_veil_goggles");
+    private static final ResourceLocation MIRAGE_PRISM_LANTERN_ID =
+            ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "mirage_prism_lantern");
+    private static final ResourceLocation DOUBLE_VISION_ID =
+            ResourceLocation.fromNamespaceAndPath(Entropica.MODID, "double_vision");
+
+    private static final Map<UUID, Long> LAST_MIRAGE_ICE_EYE_TICK = new ConcurrentHashMap<>();
+
     private EntropicaBiomeEnvironmentHandler() {}
 
     public static void tickLivingEntity(LivingEntity entity) {
@@ -70,6 +99,18 @@ public final class EntropicaBiomeEnvironmentHandler {
         // Fast-path 1: Client entities that are not actively descending require zero biome lookups.
         if (!needsGravity && !isServer) {
             return;
+        }
+
+        if (isServer) {
+            tickMirageIceHeadHazard((ServerLevel) level, entity);
+            if (entity.getTicksFrozen() > 0 && EntropicaBiomeAtmospheres.hasRadiantFreezeImmunity(entity)) {
+                entity.setTicksFrozen(0);
+            }
+            if (entity instanceof ServerPlayer serverPlayer) {
+                AuroralWellspringStructure.tickWellspringThermalEffects(serverPlayer);
+                RadiantSpringPavilionStructure.tickSpringPavilionEffects(serverPlayer);
+                AmberWillowBathhouseStructure.tickBathhouseThermalEffects(serverPlayer);
+            }
         }
 
         BlockPos.MutableBlockPos scratchPos = SCRATCH_POS.get();
@@ -188,13 +229,18 @@ public final class EntropicaBiomeEnvironmentHandler {
                         p02, p12, p22, p32, p03, p13, p23, p33,
                         wx0, wx1, wx2, wx3, wz0, wz1, wz2, wz3);
                 if (regenPresence >= BUFF_PRESENCE_THRESHOLD) {
+                    if (entity.getTicksFrozen() > 0) {
+                        entity.setTicksFrozen(0);
+                    }
                     double weightedInterval = accumulateWeightedRegenInterval(
                             p00, p10, p20, p30, p01, p11, p21, p31,
                             p02, p12, p22, p32, p03, p13, p23, p33,
                             wx0, wx1, wx2, wx3, wz0, wz1, wz2, wz3);
                     int effectiveInterval = Math.max(1, (int) Math.round(weightedInterval / regenPresence));
-                    if (entity.tickCount % effectiveInterval == 0 && entity.getHealth() < entity.getMaxHealth()) {
+                    boolean notStarving = !(entity instanceof Player p) || p.getFoodData().getFoodLevel() > 0;
+                    if (entity.tickCount % effectiveInterval == 0 && notStarving && entity.getHealth() < entity.getMaxHealth()) {
                         entity.heal(1.0F);
+                        entity.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 80, 0, true, false, true));
                     }
                 }
             }
@@ -583,5 +629,113 @@ public final class EntropicaBiomeEnvironmentHandler {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Universal server-side head-in-{@code entropica:mirage_ice} check (active across ALL biomes):
+     * <ul>
+     *   <li>If {@code !phased} (solid {@code Mirage Ice} enclosing the entity's eye position), applies
+     *       immediate {@code inWall} suffocation ({@code 2.0F}) with zero air-supply wait.</li>
+     *   <li>In both solid and phased states, unless protected by {@code entropica:mirage_veil_goggles}
+     *       on {@link EquipmentSlot#HEAD} or a {@code entropica:mirage_prism_lantern} within {@code 12}
+     *       blocks (checked on initial entry and every {@code 10} ticks), applies
+     *       {@code entropica:double_vision} ({@code 200} ticks, amplifier {@code 0}).</li>
+     * </ul>
+     */
+    private static void tickMirageIceHeadHazard(ServerLevel level, LivingEntity entity) {
+        BlockPos eyePos = BlockPos.containing(entity.getX(), entity.getEyeY(), entity.getZ());
+        BlockState eyeState = level.getBlockState(eyePos);
+        if (eyeState.isAir() || !MIRAGE_ICE_ID.equals(BuiltInRegistries.BLOCK.getKey(eyeState.getBlock()))) {
+            if (!LAST_MIRAGE_ICE_EYE_TICK.isEmpty()) {
+                LAST_MIRAGE_ICE_EYE_TICK.remove(entity.getUUID());
+            }
+            return;
+        }
+
+        boolean phased = isMirageIcePhased(eyeState);
+        if (!phased) {
+            entity.hurtServer(level, level.damageSources().inWall(), 2.0F);
+        }
+
+        long gameTime = level.getGameTime();
+        Long prevTick = LAST_MIRAGE_ICE_EYE_TICK.put(entity.getUUID(), gameTime);
+        boolean initialEntry = (prevTick == null || gameTime - prevTick > 1L);
+
+        if (isWearingMirageVeilGoggles(entity)) {
+            return;
+        }
+
+        Optional<MobEffect> doubleVisionOpt = BuiltInRegistries.MOB_EFFECT.getOptional(DOUBLE_VISION_ID);
+        if (doubleVisionOpt.isEmpty()) {
+            return;
+        }
+
+        if (initialEntry || entity.tickCount % 10 == 0) {
+            if (!isNearMiragePrismLantern(level, eyePos, 12)) {
+                entity.addEffect(new MobEffectInstance(
+                        BuiltInRegistries.MOB_EFFECT.wrapAsHolder(doubleVisionOpt.get()),
+                        200,
+                        0,
+                        true,
+                        true,
+                        true
+                ));
+            }
+        }
+    }
+
+    private static boolean isMirageIcePhased(BlockState state) {
+        for (Property<?> prop : state.getProperties()) {
+            if ("phased".equals(prop.getName()) && prop instanceof BooleanProperty boolProp) {
+                return Boolean.TRUE.equals(state.getValue(boolProp));
+            }
+        }
+        return false;
+    }
+
+    public static boolean isWearingMirageVeilGoggles(LivingEntity entity) {
+        ItemStack headStack = entity.getItemBySlot(EquipmentSlot.HEAD);
+        return !headStack.isEmpty()
+                && MIRAGE_VEIL_GOGGLES_ID.equals(BuiltInRegistries.ITEM.getKey(headStack.getItem()));
+    }
+
+    public static boolean isNearMiragePrismLantern(ServerLevel level, BlockPos center, int radius) {
+        Optional<Block> lanternOpt = BuiltInRegistries.BLOCK.getOptional(MIRAGE_PRISM_LANTERN_ID);
+        if (lanternOpt.isEmpty()) {
+            return false;
+        }
+        Block lanternBlock = lanternOpt.get();
+        int radiusSqr = radius * radius;
+        int cx = center.getX();
+        int cy = center.getY();
+        int cz = center.getZ();
+        int minY = Math.max(level.getMinY(), cy - radius);
+        int maxY = Math.min(level.getMaxY() - 1, cy + radius);
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            int dx2 = dx * dx;
+            int bx = cx + dx;
+            for (int dz = -radius; dz <= radius; dz++) {
+                int horizSqr = dx2 + dz * dz;
+                if (horizSqr > radiusSqr) {
+                    continue;
+                }
+                int bz = cz + dz;
+                if (!level.hasChunk(bx >> 4, bz >> 4)) {
+                    continue;
+                }
+                int maxDy = (int) Math.floor(Math.sqrt(radiusSqr - horizSqr));
+                int y0 = Math.max(minY, cy - maxDy);
+                int y1 = Math.min(maxY, cy + maxDy);
+                for (int by = y0; by <= y1; by++) {
+                    cursor.set(bx, by, bz);
+                    if (level.getBlockState(cursor).is(lanternBlock)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

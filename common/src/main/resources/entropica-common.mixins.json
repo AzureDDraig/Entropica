@@ -11,7 +11,9 @@
     "ChunkGeneratorAccessor",
     "MultiNoiseBiomeSourceMixin",
     "NoiseGeneratorSettingsMixin",
-    "MinecraftServerBiomeInjectorMixin"
+    "MinecraftServerBiomeInjectorMixin",
+    "PotionBrewingMixin",
+    "FishingHookAstralMixin"
   ],
   "client": [
     "EntityRendererMixin",

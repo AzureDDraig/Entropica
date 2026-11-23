@@ -80,6 +80,25 @@ public enum SpellDeliveryForm implements StringRepresentable {
         return this.channeled;
     }
 
+    /**
+     * True when this Delivery Form operates as a continuous held channel under {@code subMode}
+     * (including Held Channeled Stream {@link #CONE} sub-modes alongside Beams and Auras).
+     */
+    public boolean isChanneled(@Nullable String subMode) {
+        return this.channeled || (this == CONE && isHeldStreamConeSubMode(subMode));
+    }
+
+    public static boolean isHeldStreamConeSubMode(@Nullable String subMode) {
+        if (subMode == null || subMode.isBlank()) {
+            return false;
+        }
+        String lower = subMode.toLowerCase(java.util.Locale.ROOT);
+        return lower.equals("stream")
+                || lower.equals("channeled")
+                || lower.contains("stream")
+                || lower.contains("channel");
+    }
+
     public boolean isStarterUnlocked() {
         return this.starterUnlocked;
     }

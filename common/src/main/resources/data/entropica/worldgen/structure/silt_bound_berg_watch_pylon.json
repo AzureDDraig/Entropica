@@ -1,0 +1,7 @@
+{
+  "type": "entropica:silt_bound_berg_watch_pylon",
+  "biomes": "#entropica:has_structure/silt_bound_berg_watch_pylon",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "none"
+}

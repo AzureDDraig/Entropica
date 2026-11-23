@@ -1,0 +1,6 @@
+{
+  "type": "entropica:icebound_blight_wreck",
+  "biomes": "#entropica:has_structure/icebound_blight_wreck",
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}

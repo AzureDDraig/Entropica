@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "": [
+      { "model": "entropica:block/blighted_packed_ice" },
+      { "model": "entropica:block/blighted_packed_ice", "y": 90 },
+      { "model": "entropica:block/blighted_packed_ice", "y": 180 },
+      { "model": "entropica:block/blighted_packed_ice", "y": 270 }
+    ]
+  }
+}

@@ -3,6 +3,7 @@ package ddraig.net.entropica.entity.aurorafowl;
 import com.mojang.serialization.Codec;
 import ddraig.net.entropica.registry.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -10,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -17,6 +19,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -31,6 +34,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.storage.ValueInput;
@@ -78,7 +85,7 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createAnimalAttributes()
-                .add(Attributes.MAX_HEALTH, 16.0D)
+                .add(Attributes.MAX_HEALTH, 32.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.22D)
                 .add(Attributes.FLYING_SPEED, 0.40D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
@@ -194,6 +201,48 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
     @Override
     protected void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) {
         // Aurorafowl glides on thermals and does not take fall damage
+    }
+
+    @Override
+    public boolean canFreeze() {
+        return false;
+    }
+
+    @Override
+    public float getWalkTargetValue(BlockPos pos, LevelReader level) {
+        BlockState below = level.getBlockState(pos.below());
+        String path = BuiltInRegistries.BLOCK.getKey(below.getBlock()).getPath();
+        if (below.is(Blocks.GRASS_BLOCK)
+                || below.is(Blocks.SNOW_BLOCK)
+                || "radiant_snow_block".equals(path)
+                || "vitae_spring_stone".equals(path)
+                || "radiant_glaze_ice".equals(path)
+                || "glimmer_ice".equals(path)) {
+            return 10.0F;
+        }
+        return super.getWalkTargetValue(pos, level);
+    }
+
+    @Override
+    public boolean checkSpawnRules(LevelAccessor level, EntitySpawnReason spawnReason) {
+        BlockPos belowPos = this.blockPosition().below();
+        BlockState below = level.getBlockState(belowPos);
+        if ((below.is(Blocks.SNOW) || below.getBlock() instanceof SnowLayerBlock)
+                && level.getBlockState(belowPos.below()).blocksMotion()) {
+            belowPos = belowPos.below();
+            below = level.getBlockState(belowPos);
+        }
+        String path = BuiltInRegistries.BLOCK.getKey(below.getBlock()).getPath();
+        if (below.is(Blocks.GRASS_BLOCK)
+                || below.is(Blocks.SNOW_BLOCK)
+                || below.is(BlockTags.ANIMALS_SPAWNABLE_ON)
+                || "radiant_snow_block".equals(path)
+                || "vitae_spring_stone".equals(path)
+                || "radiant_glaze_ice".equals(path)
+                || "glimmer_ice".equals(path)) {
+            return true;
+        }
+        return super.checkSpawnRules(level, spawnReason);
     }
 
     @Override
@@ -366,20 +415,6 @@ public class AurorafowlEntity extends Animal implements FlyingAnimal {
             return InteractionResult.SUCCESS;
         }
         return super.mobInteract(player, hand);
-    }
-
-    @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
-        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
-        int feathers = 1 + this.random.nextInt(3);
-        this.spawnAtLocation(level, new ItemStack(ModItems.AURORAFOWL_FEATHER.get(), feathers));
-
-        int meat = 1 + this.random.nextInt(2);
-        if (this.isOnFire()) {
-            this.spawnAtLocation(level, new ItemStack(ModItems.COOKED_AURORAFOWL.get(), meat));
-        } else {
-            this.spawnAtLocation(level, new ItemStack(ModItems.RAW_AURORAFOWL.get(), meat));
-        }
     }
 
     @Override

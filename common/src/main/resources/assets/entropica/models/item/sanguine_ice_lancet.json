@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "entropica:item/sanguine_ice_lancet"
+  }
+}

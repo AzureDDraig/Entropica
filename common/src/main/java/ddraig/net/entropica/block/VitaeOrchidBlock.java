@@ -37,6 +37,17 @@ public class VitaeOrchidBlock extends DoublePlantBlock implements BonemealableBl
         this.registerDefaultState(this.stateDefinition.any().setValue(HALF, net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER).setValue(HAS_NECTAR, true));
     }
 
+    @Override
+    protected boolean mayPlaceOn(BlockState state, net.minecraft.world.level.BlockGetter level, BlockPos pos) {
+        if (EntropicaFloraGroundHelper.isIceOrSnowLayer(state)) {
+            return false;
+        }
+        return super.mayPlaceOn(state, level, pos)
+                || EntropicaFloraGroundHelper.isSolidSnowBlock(state)
+                || (ddraig.net.entropica.registry.ModBlocks.VITAE_SPRING_STONE.isBound()
+                && state.is(ddraig.net.entropica.registry.ModBlocks.VITAE_SPRING_STONE.get()));
+    }
+
 
     @Override
     public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {

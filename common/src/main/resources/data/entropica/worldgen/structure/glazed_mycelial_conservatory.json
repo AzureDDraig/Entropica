@@ -1,0 +1,7 @@
+{
+  "type": "entropica:glazed_mycelial_conservatory",
+  "biomes": "#entropica:has_structure/glazed_mycelial_conservatory",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin"
+}

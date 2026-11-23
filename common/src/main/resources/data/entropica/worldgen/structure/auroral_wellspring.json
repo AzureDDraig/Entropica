@@ -1,0 +1,6 @@
+{
+  "type": "entropica:auroral_wellspring",
+  "biomes": "#entropica:has_structure/auroral_wellspring",
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}

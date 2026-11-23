@@ -15,4 +15,6 @@ public class CryoStalkerRenderState extends LivingEntityRenderState {
     public boolean isStalking;
     public boolean isAttacking;
     public boolean isLeaping;
+    public boolean isSwiping;
+    public float stealthAlpha = 1.0F;
 }

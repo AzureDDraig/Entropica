@@ -24,14 +24,47 @@
               "type": "minecraft:item",
               "conditions": [
                 {
+                  "condition": "minecraft:match_tool",
+                  "predicate": {
+                    "predicates": {
+                      "minecraft:enchantments": [
+                        {
+                          "enchantments": "minecraft:silk_touch",
+                          "levels": {
+                            "min": 1
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
+              "name": "entropica:glacial_heart_root"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "minecraft:match_tool",
+                  "predicate": {
+                    "items": "#minecraft:axes"
+                  }
+                }
+              ],
+              "name": "entropica:glacial_heart_root"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
                   "condition": "minecraft:survives_explosion"
                 },
                 {
                   "condition": "minecraft:random_chance",
-                  "chance": 0.5
+                  "chance": 0.35
                 }
               ],
-              "name": "entropica:glacial_heart_root"
+              "name": "entropica:rimebloom_petal"
             }
           ]
         }

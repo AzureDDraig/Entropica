@@ -30,7 +30,7 @@ public class DynamicVisWeaponItem extends Item {
     @Override
     public int getUseDuration(ItemStack stack, net.minecraft.world.entity.LivingEntity entity) {
         if (stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())
-                && (CastingApparatusItem.isActiveSpellChanneledBeam(stack)
+                && (CastingApparatusItem.isActiveSpellContinuousHoldUse(stack)
                 || CastingApparatusItem.isActiveSpellOnReleaseStatic(stack))) {
             return 72000;
         }
@@ -40,7 +40,7 @@ public class DynamicVisWeaponItem extends Item {
     @Override
     public net.minecraft.world.item.ItemUseAnimation getUseAnimation(ItemStack stack) {
         if (stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())
-                && (CastingApparatusItem.isActiveSpellChanneledBeam(stack)
+                && (CastingApparatusItem.isActiveSpellContinuousHoldUse(stack)
                 || CastingApparatusItem.isActiveSpellOnReleaseStatic(stack))) {
             return net.minecraft.world.item.ItemUseAnimation.BOW;
         }
@@ -51,7 +51,7 @@ public class DynamicVisWeaponItem extends Item {
     public void onUseTick(Level level, net.minecraft.world.entity.LivingEntity livingEntity, ItemStack stack, int remainingUseDuration) {
         if (!stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())) return;
         int heldTicks = this.getUseDuration(stack, livingEntity) - remainingUseDuration;
-        if (CastingApparatusItem.isActiveSpellChanneledBeam(stack) && heldTicks > 0
+        if (CastingApparatusItem.isActiveSpellContinuousHoldUse(stack) && heldTicks > 0
                 && level instanceof net.minecraft.server.level.ServerLevel serverLevel
                 && livingEntity instanceof Player player) {
             boolean keepChanneling = ddraig.net.entropica.spell.engine.SpellExecutionEngine.tickChanneledBeam(
@@ -67,7 +67,13 @@ public class DynamicVisWeaponItem extends Item {
     @Override
     public boolean releaseUsing(ItemStack stack, Level level, net.minecraft.world.entity.LivingEntity entity, int timeLeft) {
         if (entity instanceof Player player && stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())) {
-            if (CastingApparatusItem.isActiveSpellChanneledBeam(stack)) {
+            if (CastingApparatusItem.isActiveSpellContinuousHoldUse(stack)) {
+                int heldTicks = this.getUseDuration(stack, entity) - timeLeft;
+                if (!level.isClientSide() && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    ddraig.net.entropica.spell.engine.SpellExecutionEngine.onContinuousHoldReleased(
+                            serverLevel, player, player.getUsedItemHand(), stack, heldTicks
+                    );
+                }
                 player.getCooldowns().addCooldown(stack, 4);
                 return true;
             }
@@ -90,8 +96,13 @@ public class DynamicVisWeaponItem extends Item {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (stack.has(ModDataComponents.CASTING_APPARATUS_STATE.get())) {
-            if (CastingApparatusItem.isActiveSpellChanneledBeam(stack)) {
+            if (CastingApparatusItem.isActiveSpellContinuousHoldUse(stack)) {
                 if (!level.isClientSide() && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    if (player.isShiftKeyDown()
+                            && ddraig.net.entropica.spell.engine.SpellLingeringZoneManager.tryDisarmCasterGlyph(serverLevel, player)) {
+                        player.getCooldowns().addCooldown(stack, 6);
+                        return InteractionResult.SUCCESS;
+                    }
                     if (ddraig.net.entropica.spell.engine.SpellExecutionEngine.tryBeginChanneledBeam(serverLevel, player, hand, stack)) {
                         player.startUsingItem(hand);
                         return InteractionResult.CONSUME;

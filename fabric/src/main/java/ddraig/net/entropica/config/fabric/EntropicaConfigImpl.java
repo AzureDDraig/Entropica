@@ -2,6 +2,7 @@ package ddraig.net.entropica.config.fabric;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 import ddraig.net.entropica.config.EntropicaBiome;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -9,6 +10,9 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.LinkedHashMap;
 
 public class EntropicaConfigImpl {
@@ -180,6 +184,14 @@ public class EntropicaConfigImpl {
         public IntOption astralCollectorTransferRate = new IntOption("Materia collection rate for Astral Collector under focused beam (Materia per second). Min: 1, Max: 100, Default: 8", 1, 100, 8);
         public IntOption spellMutationUnlockMode = new IntOption("Controls how elemental Spell Mutations unlock (1 = PER_COMBO, 2 = AUTO_BY_NODE [Default], 3 = BY_FAMILY_TIER). Min: 1, Max: 3, Default: 2", 1, 3, 2);
         public BooleanOption enableSpellMutationOpJoinNotice = new BooleanOption("If true, notifies OP players on their first join that Spell Mutation Unlock Mode defaults to Mode 2 (AUTO_BY_NODE). Default: true", true);
+        public StringListOption magnetiteBeamOreWhitelist = new StringListOption(
+                "Optional ore whitelist for Earth Magnetite Tractor Beam Tier 2+ mining (supports block IDs like 'minecraft:iron_ore' and tags like '#c:ores/iron'). Empty list allows all detected ores unless blacklisted. Default: []",
+                List.of()
+        );
+        public StringListOption magnetiteBeamOreBlacklist = new StringListOption(
+                "Optional ore blacklist for Earth Magnetite Tractor Beam Tier 2+ mining (supports block IDs like 'minecraft:diamond_ore' and tags like '#c:ores/diamond'). Matching blocks are never mined by the beam. Default: []",
+                List.of()
+        );
 
         // Biome Generation Settings (Master Switch + All 108 Biomes grouped by Climate Zone)
         public BiomeSettingsCategory biomeSettings = new BiomeSettingsCategory();
@@ -267,6 +279,20 @@ public class EntropicaConfigImpl {
             extractionNodeCooldown.validate();
             spellMutationUnlockMode.validate();
             enableSpellMutationOpJoinNotice.validate();
+            if (magnetiteBeamOreWhitelist == null) {
+                magnetiteBeamOreWhitelist = new StringListOption(
+                        "Optional ore whitelist for Earth Magnetite Tractor Beam Tier 2+ mining (supports block IDs like 'minecraft:iron_ore' and tags like '#c:ores/iron'). Empty list allows all detected ores unless blacklisted. Default: []",
+                        List.of()
+                );
+            }
+            magnetiteBeamOreWhitelist.validate();
+            if (magnetiteBeamOreBlacklist == null) {
+                magnetiteBeamOreBlacklist = new StringListOption(
+                        "Optional ore blacklist for Earth Magnetite Tractor Beam Tier 2+ mining (supports block IDs like 'minecraft:diamond_ore' and tags like '#c:ores/diamond'). Matching blocks are never mined by the beam. Default: []",
+                        List.of()
+                );
+            }
+            magnetiteBeamOreBlacklist.validate();
             if (biomeSettings == null) {
                 biomeSettings = new BiomeSettingsCategory();
             }
@@ -410,8 +436,47 @@ public class EntropicaConfigImpl {
     public static boolean getEnableAstralMirrorNebulae() { return data.enableAstralMirrorNebulae.value; }
     public static boolean getEnableAstralMirrorConstellationLines() { return data.enableAstralMirrorConstellationLines.value; }
     public static int getAstralCollectorTransferRate() { return data.astralCollectorTransferRate.value; }
+    public static class StringListOption {
+        public String description;
+        public List<String> defaultValue;
+        public List<String> value;
+
+        public StringListOption(String description, List<String> defaultValue) {
+            this.description = description;
+            this.defaultValue = defaultValue == null ? List.of() : List.copyOf(defaultValue);
+            this.value = new ArrayList<>(this.defaultValue);
+        }
+
+        public void validate() {
+            if (defaultValue == null) {
+                defaultValue = List.of();
+            }
+            if (value == null) {
+                value = new ArrayList<>(defaultValue);
+            } else {
+                List<String> cleaned = new ArrayList<>();
+                for (String s : value) {
+                    if (s != null && !s.isBlank()) {
+                        cleaned.add(s.trim());
+                    }
+                }
+                value = cleaned;
+            }
+        }
+    }
+
     public static int getSpellMutationUnlockMode() { return data.spellMutationUnlockMode.value; }
     public static boolean getEnableSpellMutationOpJoinNotice() { return data.enableSpellMutationOpJoinNotice.value; }
+    public static List<String> getMagnetiteBeamOreWhitelist() {
+        return data != null && data.magnetiteBeamOreWhitelist != null && data.magnetiteBeamOreWhitelist.value != null
+                ? Collections.unmodifiableList(data.magnetiteBeamOreWhitelist.value)
+                : List.of();
+    }
+    public static List<String> getMagnetiteBeamOreBlacklist() {
+        return data != null && data.magnetiteBeamOreBlacklist != null && data.magnetiteBeamOreBlacklist.value != null
+                ? Collections.unmodifiableList(data.magnetiteBeamOreBlacklist.value)
+                : List.of();
+    }
     public static boolean getEnableAllBiomes() {
         return data.biomeSettings == null || data.biomeSettings.enableAllBiomes == null || data.biomeSettings.enableAllBiomes.value;
     }
@@ -435,6 +500,24 @@ public class EntropicaConfigImpl {
     }
     public static boolean getEnableBiomeEnvironmentalEffects() {
         return data.biomeSettings == null || data.biomeSettings.enableBiomeEnvironmentalEffects == null || data.biomeSettings.enableBiomeEnvironmentalEffects.value;
+    }
+    public static boolean getEnableEnhancedBiomeFogAndWater() {
+        return data.biomeSettings == null || data.biomeSettings.enable_enhanced_biome_fog_and_water == null || data.biomeSettings.enable_enhanced_biome_fog_and_water.value;
+    }
+    public static boolean getEnableBiomeVolumetricFog() {
+        if (!getEnableEnhancedBiomeFogAndWater()) {
+            return false;
+        }
+        return data.biomeSettings == null || data.biomeSettings.enableBiomeVolumetricFog == null || data.biomeSettings.enableBiomeVolumetricFog.value;
+    }
+    public static boolean getEnableBiomeWaterEffects() {
+        if (!getEnableEnhancedBiomeFogAndWater()) {
+            return false;
+        }
+        return data.biomeSettings == null || data.biomeSettings.enableBiomeWaterEffects == null || data.biomeSettings.enableBiomeWaterEffects.value;
+    }
+    public static boolean getEnableShaderpackAdaptiveAttenuation() {
+        return data.biomeSettings == null || data.biomeSettings.enableShaderpackAdaptiveAttenuation == null || data.biomeSettings.enableShaderpackAdaptiveAttenuation.value;
     }
     public static boolean getBiomeEnabled(EntropicaBiome biome) {
         if (biome == null) return false;
@@ -472,6 +555,23 @@ public class EntropicaConfigImpl {
         );
         public BooleanOption enableBiomeEnvironmentalEffects = new BooleanOption(
                 "If true, enables biome environmental physics, ambient drifting particles, and regional hazards/blessings. Default: true",
+                true
+        );
+        @SerializedName(value = "enable_enhanced_biome_fog_and_water", alternate = {"enableEnhancedBiomeFogAndWater"})
+        public BooleanOption enable_enhanced_biome_fog_and_water = new BooleanOption(
+                "Master visual toggle: if true, enables enhanced volumetric mist strata and water-surface reflections / sub-surface Starlight Parallax in Entropica biomes. Set to false to revert cleanly to classic distance fog and vanilla water while keeping standard biome sky/fog colors. Default: true",
+                true
+        );
+        public BooleanOption enableBiomeVolumetricFog = new BooleanOption(
+                "If true (and enable_enhanced_biome_fog_and_water is true), enables low-lying undulating volumetric mist strata hovering over water channels, ice shelves, and barrow hollows in Entropica biomes (Sodium & Iris shader compatible). Default: true",
+                true
+        );
+        public BooleanOption enableBiomeWaterEffects = new BooleanOption(
+                "If true (and enable_enhanced_biome_fog_and_water is true), enables custom biome water-surface optical reflections and 3D sub-surface Starlight Parallax effects (Sodium & Iris shader compatible). Default: true",
+                true
+        );
+        public BooleanOption enableShaderpackAdaptiveAttenuation = new BooleanOption(
+                "If true, automatically attenuates volumetric mist and water reflection/parallax alpha when an Iris or Oculus shaderpack is active so shader SSR water and HDR bloom never double-brighten. Default: true",
                 true
         );
         public LinkedHashMap<String, BooleanOption> polar_frozen = createZoneMap(EntropicaBiome.ClimateZone.POLAR_FROZEN);
@@ -576,6 +676,34 @@ public class EntropicaConfigImpl {
                 );
             }
             enableBiomeEnvironmentalEffects.validate();
+            if (enable_enhanced_biome_fog_and_water == null) {
+                enable_enhanced_biome_fog_and_water = new BooleanOption(
+                        "Master visual toggle: if true, enables enhanced volumetric mist strata and water-surface reflections / sub-surface Starlight Parallax in Entropica biomes. Set to false to revert cleanly to classic distance fog and vanilla water while keeping standard biome sky/fog colors. Default: true",
+                        true
+                );
+            }
+            enable_enhanced_biome_fog_and_water.validate();
+            if (enableBiomeVolumetricFog == null) {
+                enableBiomeVolumetricFog = new BooleanOption(
+                        "If true, enables low-lying undulating volumetric mist strata hovering over water channels, ice shelves, and barrow hollows in Entropica biomes (Sodium & Iris shader compatible). Default: true",
+                        true
+                );
+            }
+            enableBiomeVolumetricFog.validate();
+            if (enableBiomeWaterEffects == null) {
+                enableBiomeWaterEffects = new BooleanOption(
+                        "If true, enables custom biome water-surface optical reflections and 3D sub-surface Starlight Parallax effects (Sodium & Iris shader compatible). Default: true",
+                        true
+                );
+            }
+            enableBiomeWaterEffects.validate();
+            if (enableShaderpackAdaptiveAttenuation == null) {
+                enableShaderpackAdaptiveAttenuation = new BooleanOption(
+                        "If true, automatically attenuates volumetric mist and water reflection/parallax alpha when an Iris or Oculus shaderpack is active so shader SSR water and HDR bloom never double-brighten. Default: true",
+                        true
+                );
+            }
+            enableShaderpackAdaptiveAttenuation.validate();
             polar_frozen = validateZoneMap(polar_frozen, EntropicaBiome.ClimateZone.POLAR_FROZEN);
             cold_alpine_boreal = validateZoneMap(cold_alpine_boreal, EntropicaBiome.ClimateZone.COLD_ALPINE_BOREAL);
             temperate_plains_forests = validateZoneMap(temperate_plains_forests, EntropicaBiome.ClimateZone.TEMPERATE_PLAINS_FORESTS);

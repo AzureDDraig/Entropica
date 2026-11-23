@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "": [
+      { "model": "entropica:block/rotten_ice" },
+      { "model": "entropica:block/rotten_ice", "y": 90 },
+      { "model": "entropica:block/rotten_ice", "y": 180 },
+      { "model": "entropica:block/rotten_ice", "y": 270 }
+    ]
+  }
+}

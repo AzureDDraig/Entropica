@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "FCF",
+    "MSM",
+    "T T"
+  ],
+  "key": {
+    "F": "entropica:zephyr_glass_fiber",
+    "C": "minecraft:copper_ingot",
+    "M": "entropica:storm_kite_membrane",
+    "S": "entropica:simurgh_feather",
+    "T": "minecraft:stick"
+  },
+  "result": {
+    "id": "entropica:storm_kite_glider",
+    "count": 1
+  }
+}

@@ -80,12 +80,14 @@ public final class PenumbraSpellMutationHandler implements MateriaPartMutationHa
 
     @Override
     public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Penumbral Corona-Umbra Binary Orbit Flow";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE ? "Penumbral Corona-Umbra Binary Orbit Flow" : null;
     }
 
     @Override
     public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "4 oscillating twin-spheres of radiant corona gold (#FFEA78) and deep indigo twilight (#281E3C) grant +5 Armor, +2 Toughness, Blindness/Darkness immunity, arrow dissolution, contact Penumbra burn, and 3s-blinding homing darts on melee or spell hit.";
+        return flow == SpellFlowModifier.ORBIT_SATELLITE
+                ? "4 oscillating twin-spheres of radiant corona gold (#FFEA78) and deep indigo twilight (#281E3C) grant +5 Armor, +2 Toughness, Blindness/Darkness immunity, arrow dissolution, contact Penumbra burn, and 3s-blinding homing darts on melee or spell hit."
+                : null;
     }
 
     @Override
@@ -274,10 +276,23 @@ public final class PenumbraSpellMutationHandler implements MateriaPartMutationHa
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
-        // Section 6.41 Penumbral Event-Lensing Ray:
-        // Continuously sears caught targets with Penumbra Materia damage while warping target vision between extreme
-        // contrast streaks; REQUIRES 5.0s (100t / 5 pulses) sustained continuous channeling to trigger Penumbral
-        // Convergence Flash (massive burst Penumbra damage + 4m inward pull)!
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         int tier = spell.getEffectiveTier();
         boolean wardSafe = spell.hasWardFriendlyFireSafeguard();
         long now = level.getGameTime();
@@ -288,20 +303,24 @@ public final class PenumbraSpellMutationHandler implements MateriaPartMutationHa
 
             hit.addEffect(new MobEffectInstance((now % 40L < 20L) ? MobEffects.BLINDNESS : MobEffects.DARKNESS, 40, 0));
 
-            CompoundTag data = EntityHelper.getPersistentData(hit);
-            long last = data.getLong(TAG_PENUMBRA_BEAM_LAST_TICK).orElse(-100L);
-            long delta = now - last;
-            int stepTicks = (delta > 0L && delta <= 8L) ? (int) Math.max(4L, delta) : 20;
-            int contactTicks = (delta <= 45L) ? data.getInt(TAG_PENUMBRA_BEAM_TICKS).orElse(0) + stepTicks : stepTicks;
-            data.putLong(TAG_PENUMBRA_BEAM_LAST_TICK, now);
-            data.putInt(TAG_PENUMBRA_BEAM_TICKS, contactTicks);
-
             if (!slot.hasHarmVerb()) {
                 float rayDmg = (1.55F + tier * 0.44F) * Math.max(0.5F, apparatusPotency);
                 SpellCombatReactionEngine.hurtWithPenumbraMateriaAdvantage(level, hit, caster, rayDmg, false, true);
             }
 
-            if (contactTicks >= 100) {
+            CompoundTag data = EntityHelper.getPersistentData(hit);
+            long last = data.getLong(TAG_PENUMBRA_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) {
+                continue;
+            }
+            long delta = now - last;
+            int contactTicks = heldTicks <= 0
+                    ? 0
+                    : ((delta > 0L && delta <= 16L) ? data.getInt(TAG_PENUMBRA_BEAM_TICKS).orElse(0) + (int) delta : 4);
+            data.putLong(TAG_PENUMBRA_BEAM_LAST_TICK, now);
+            data.putInt(TAG_PENUMBRA_BEAM_TICKS, contactTicks);
+
+            if (heldTicks > 0 && contactTicks >= 100) {
                 data.putInt(TAG_PENUMBRA_BEAM_TICKS, 0);
                 SpellWorldVfxManager.broadcastRadialNova(
                         level, hit.position(), 4.2D, EssenceType.PENUMBRA, EssenceType.RADIANT, tier
@@ -822,25 +841,23 @@ public final class PenumbraSpellMutationHandler implements MateriaPartMutationHa
 
     @Override
     public boolean onTransmuteBlock(ServerLevel level, @Nullable LivingEntity caster, BlockPos pos, BlockState state, int potencyTier) {
-        // Section 6.41 Penumbral Eclipse Transmutation:
+        // Section 6.41 Penumbral Eclipse Transmutation [2.5s Continuous Held Right-Click Channel]:
         // Obsidian / Crying Obsidian <-> End Stone / Sculk; Glowstone <-> Sea Lantern / Shroomlight;
         // purges negative curses (Curse of Binding, Curse of Vanishing) from equipment; Rotten Flesh -> Penumbra Essence!
+        if (ApexEschatonSingularityHelper.beginOrExecuteChanneledTransmute(
+                level, caster, pos, 5, potencyTier, EssenceType.PENUMBRA, "Penumbral Eclipse Transmutation",
+                () -> {
+                    if (caster != null) {
+                        for (EquipmentSlot eq : EquipmentSlot.values()) {
+                            purgeCursesFromStack(caster.getItemBySlot(eq));
+                        }
+                    }
+                })) {
+            return true;
+        }
         boolean didAny = false;
-        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2.5D), ItemEntity::isAlive)) {
-            if (onTransmuteDroppedItem(level, caster, item, potencyTier)) {
-                didAny = true;
-            }
-        }
-        if (caster != null) {
-            for (EquipmentSlot eq : EquipmentSlot.values()) {
-                if (purgeCursesFromStack(caster.getItemBySlot(eq))) {
-                    didAny = true;
-                }
-            }
-        }
         if (SpellExecutionEngine.isProtectedBlockOrContainer(level, pos, state)) {
-            if (didAny) refundBatchDiscount(level, caster, potencyTier);
-            return didAny;
+            return false;
         }
         if (state.is(Blocks.OBSIDIAN) || state.is(Blocks.CRYING_OBSIDIAN)) {
             level.setBlockAndUpdate(pos, level.random.nextBoolean() ? Blocks.END_STONE.defaultBlockState() : Blocks.SCULK.defaultBlockState());

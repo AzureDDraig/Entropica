@@ -203,13 +203,22 @@ public class CastingApparatusItem extends Item {
                 && active.spell().get().isChanneledHoldBeam();
     }
 
+    public static boolean isActiveSpellContinuousHoldUse(ItemStack stack) {
+        CastingApparatusState state = stack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
+        if (state == null) return false;
+        SocketedSpellgem active = state.getActiveSocket();
+        return !active.isEmpty()
+                && active.spell().isPresent()
+                && active.spell().get().requiresContinuousHoldUse();
+    }
+
     public static boolean isActiveSpellOnReleaseStatic(ItemStack stack) {
         CastingApparatusState state = stack.get(ModDataComponents.CASTING_APPARATUS_STATE.get());
         if (state == null) return false;
         SocketedSpellgem active = state.getActiveSocket();
         return !active.isEmpty()
                 && active.spell().isPresent()
-                && !active.spell().get().isChanneledHoldBeam()
+                && !active.spell().get().requiresContinuousHoldUse()
                 && active.spell().get().flowPart().trigger() == SpellTriggerType.ON_RELEASE;
     }
 
@@ -230,12 +239,12 @@ public class CastingApparatusItem extends Item {
 
     @Override
     public int getUseDuration(ItemStack stack, LivingEntity entity) {
-        return (isActiveSpellChanneledBeam(stack) || isActiveSpellOnRelease(stack)) ? 72000 : 0;
+        return (isActiveSpellContinuousHoldUse(stack) || isActiveSpellOnRelease(stack)) ? 72000 : 0;
     }
 
     @Override
     public ItemUseAnimation getUseAnimation(ItemStack stack) {
-        return (isActiveSpellChanneledBeam(stack) || isActiveSpellOnRelease(stack))
+        return (isActiveSpellContinuousHoldUse(stack) || isActiveSpellOnRelease(stack))
                 ? ItemUseAnimation.BOW
                 : ItemUseAnimation.NONE;
     }
@@ -243,7 +252,7 @@ public class CastingApparatusItem extends Item {
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int remainingUseDuration) {
         int heldTicks = this.getUseDuration(stack, livingEntity) - remainingUseDuration;
-        if (isActiveSpellChanneledBeam(stack)) {
+        if (isActiveSpellContinuousHoldUse(stack)) {
             if (heldTicks > 0 && level instanceof ServerLevel serverLevel && livingEntity instanceof Player player) {
                 boolean keepChanneling = SpellExecutionEngine.tickChanneledBeam(
                         serverLevel,
@@ -280,7 +289,17 @@ public class CastingApparatusItem extends Item {
 
     @Override
     public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
-        if (entity instanceof Player player && isActiveSpellChanneledBeam(stack)) {
+        if (entity instanceof Player player && isActiveSpellContinuousHoldUse(stack)) {
+            int heldTicks = this.getUseDuration(stack, entity) - timeLeft;
+            if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
+                SpellExecutionEngine.onContinuousHoldReleased(
+                        serverLevel,
+                        player,
+                        player.getUsedItemHand(),
+                        stack,
+                        heldTicks
+                );
+            }
             player.getCooldowns().addCooldown(stack, 4);
             return true;
         }
@@ -308,7 +327,7 @@ public class CastingApparatusItem extends Item {
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (isActiveSpellChanneledBeam(stack)) {
+        if (isActiveSpellContinuousHoldUse(stack)) {
             if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
                 if (player.isShiftKeyDown()
                         && ddraig.net.entropica.spell.engine.SpellLingeringZoneManager.tryDisarmCasterGlyph(serverLevel, player)) {

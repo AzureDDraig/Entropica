@@ -1,0 +1,7 @@
+{
+  "type": "entropica:null_fringe_rift_bastion",
+  "biomes": "#entropica:has_structure/null_fringe_rift_bastion",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "terrain_adaptation": "none"
+}

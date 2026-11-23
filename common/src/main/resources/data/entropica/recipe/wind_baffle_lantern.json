@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DCD",
+    "GSG",
+    "DCD"
+  ],
+  "key": {
+    "D": "entropica:dust_glass",
+    "C": "minecraft:cut_copper",
+    "G": "minecraft:gold_ingot",
+    "S": "entropica:dust_core_shard"
+  },
+  "result": {
+    "id": "entropica:wind_baffle_lantern",
+    "count": 1
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:amber_resin_block"
+  ],
+  "result": {
+    "id": "entropica:amber_chunk",
+    "count": 4
+  }
+}

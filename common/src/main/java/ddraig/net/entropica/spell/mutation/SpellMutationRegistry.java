@@ -112,25 +112,30 @@ public final class SpellMutationRegistry {
         boolean wallPhase = MateriaFamilyTier.isVoidPhasingLineage(materiaType);
         float velMult = switch (materiaType) {
             case CATACLYSM -> 1.50F;
-            case LIGHTNING, STATIC, ASTRAL, AIR, STORM, DAWN -> 1.35F;
+            case AIR -> (flow == SpellFlowModifier.SLOW_HEAVY ? 1.0F : 1.35F);
+            case LIGHTNING, STATIC, ASTRAL, STORM, DAWN -> 1.35F;
             case PRISMATIC, ESCHATON, ENTROPICA -> 1.25F;
             case ECLIPSE, MIRAGE, AURORA -> 1.15F;
-            case EARTH, MAGMA, GLACIAL, BARROW, AMBER, AEGIS -> 0.85F;
+            case MAGMA, GLACIAL, BARROW, AMBER, AEGIS -> 0.85F;
             default -> 1.0F;
         };
         float rangeMult = (materiaType == EssenceType.STORM || materiaType == EssenceType.LIGHTNING
                 || materiaType == EssenceType.ASTRAL || family.getFusionTier() >= 5) ? 1.25F : 1.0F;
-        int bonusPierce = materiaType == EssenceType.PRISMATIC ? 0
-                : (family.getFusionTier() >= 4 ? 2
-                : (materiaType == EssenceType.GLACIAL || materiaType == EssenceType.LIGHTNING
-                || materiaType == EssenceType.DAWN || materiaType == EssenceType.AURORA ? 1 : 0));
+        // Section 3.3 Strict No-Default-Pierce Rule: Flow modifiers (including FAST_DART) never grant entity pierce by default;
+        // entity piercing comes strictly from piercing Form mutations!
+        int bonusPierce = 0;
 
-        MateriaPartMutationHandler handler = SpellMutationHandlerRegistry.resolveActive(materiaType, true);
+        boolean handlerFlowApplies = isHandlerFlowMutationApplicable(materiaType, flow);
+        MateriaPartMutationHandler handler = handlerFlowApplies
+                ? SpellMutationHandlerRegistry.resolveActive(materiaType, true)
+                : null;
         String customTitle = handler != null ? handler.resolveFlowTitle(flow) : null;
         String customDesc = handler != null ? handler.resolveFlowDescription(flow) : null;
-        String title = (customTitle != null && !customTitle.isBlank())
-                ? customTitle
-                : (getEpithet(materiaType) + " " + flow.getDisplayName());
+        String title = (materiaType == EssenceType.AIR && flow == SpellFlowModifier.SLOW_HEAVY)
+                ? flow.getDisplayName()
+                : ((customTitle != null && !customTitle.isBlank())
+                        ? customTitle
+                        : (getEpithet(materiaType) + " " + flow.getDisplayName()));
         return new SpellMutationProfile(
                 SpellPartSlotType.FLOW,
                 id,
@@ -153,6 +158,35 @@ public final class SpellMutationRegistry {
                 false,
                 false
         );
+    }
+
+    /**
+     * Returns {@code true} when a Materia handler's signature Flow mutation applies to the selected {@link SpellFlowModifier}.
+     * Ensures Orbit-signature elements only activate "Orbit Flow" titles/descriptions/mechanics when {@code flow == ORBIT_SATELLITE},
+     * Chain-signature elements only when {@code flow == CHAIN_LEAP}, Slow-signature when {@code flow == SLOW_HEAVY},
+     * and Split-signature when bifurcating/trifurcating/omnication (while {@code CHIMERA} and multi-flow handlers apply broadly).
+     */
+    public static boolean isHandlerFlowMutationApplicable(EssenceType materiaType, SpellFlowModifier flow) {
+        if (materiaType == null || flow == null) {
+            return false;
+        }
+        return switch (materiaType) {
+            case NULL_R, NULL_U, DAWN, ABYSS, AEGIS, AURORA, MIRAGE, WRAITH, BARROW,
+                    PYRE, PENUMBRA, RIME, SPRING, STATIC, SYLVAN, GENESIS,
+                    AETHER, CELESTIAL, PRISMATIC,
+                    EMPYREAN, CATACLYSM, TERMINUS,
+                    ESCHATON, APOTHEOSIS, ENTROPICA -> flow == SpellFlowModifier.ORBIT_SATELLITE;
+            case BLIGHT, SOULFIRE, MIASMA, OBLIVION, ENTROPIC -> flow == SpellFlowModifier.CHAIN_LEAP;
+            case NATURE, RADIANT -> flow == SpellFlowModifier.CHAIN_LEAP;
+            case ASTRAL -> flow == SpellFlowModifier.CHAIN_LEAP || flow == SpellFlowModifier.VOID_WARP;
+            case AIR -> flow != SpellFlowModifier.SLOW_HEAVY;
+            case WATER -> flow == SpellFlowModifier.SLOW_HEAVY || flow == SpellFlowModifier.CHAIN_LEAP;
+            case AMBER -> flow == SpellFlowModifier.SLOW_HEAVY;
+            case ECLIPSE, VAPOR -> flow == SpellFlowModifier.DOUBLE_BIFURCATE
+                    || flow == SpellFlowModifier.TRIPLE_TRIFURCATE
+                    || flow == SpellFlowModifier.OCTUPLE_DOME;
+            default -> true;
+        };
     }
 
     public static SpellMutationProfile resolveForm(SpellDeliveryForm form, EssenceType materiaType, boolean mutationEnabled) {
@@ -197,10 +231,10 @@ public final class SpellMutationRegistry {
                 case ESCHATON_FUSION -> 6;
                 case APEX_FUSION -> 4;
                 default -> switch (materiaType) {
-                    case WATER -> (form == SpellDeliveryForm.BEAM ? 8 : 0);
+                    case AIR, WATER, NATURE -> (form == SpellDeliveryForm.BEAM ? 8 : 0);
                     case VOID -> (form == SpellDeliveryForm.BEAM ? 4 : 0);
                     case DAWN, AURORA, RIME -> 3;
-                    case GLACIAL, TAIGA, BLOOD, AURA, RADIANT, ASTRAL, WRAITH -> 2;
+                    case GLACIAL, TAIGA, BLOOD, AURA, ASTRAL, WRAITH -> 2;
                     case ECLIPSE, NULL_R, NULL_U -> 1;
                     default -> 0;
                 };
@@ -239,6 +273,14 @@ public final class SpellMutationRegistry {
         MateriaPartMutationHandler handler = SpellMutationHandlerRegistry.resolveActive(materiaType, true);
         String customTitle = handler != null ? handler.resolveFormTitle(form) : null;
         String customDesc = handler != null ? handler.resolveFormDescription(form) : null;
+        if (materiaType == EssenceType.FROZEN && form == SpellDeliveryForm.GLYPH) {
+            if (customTitle == null || customTitle.isBlank() || "Rime Pitfall".equals(customTitle)) {
+                customTitle = "Glacial Pitfall";
+            }
+            if (customDesc != null && customDesc.contains("Rime Pitfall")) {
+                customDesc = customDesc.replace("Rime Pitfall", "Glacial Pitfall");
+            }
+        }
         String title = (customTitle != null && !customTitle.isBlank())
                 ? customTitle
                 : (getEpithet(materiaType) + " " + formNoun);

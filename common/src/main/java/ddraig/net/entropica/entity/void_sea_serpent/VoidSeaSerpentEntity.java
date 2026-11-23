@@ -1,14 +1,19 @@
 package ddraig.net.entropica.entity.void_sea_serpent;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
@@ -26,6 +31,7 @@ import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 
@@ -65,12 +71,36 @@ public class VoidSeaSerpentEntity extends WaterAnimal implements Enemy {
 
     public static AttributeSupplier.Builder createAttributes() {
         return WaterAnimal.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 140.0D)
+                .add(Attributes.MAX_HEALTH, 420.0D)
                 .add(Attributes.MOVEMENT_SPEED, 1.35D)
                 .add(Attributes.ATTACK_DAMAGE, 14.0D)
                 .add(Attributes.ARMOR, 10.0D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
+    }
+
+    public static boolean checkVoidSeaSerpentSpawnRules(
+            EntityType<VoidSeaSerpentEntity> type,
+            ServerLevelAccessor level,
+            EntitySpawnReason reason,
+            BlockPos pos,
+            RandomSource random
+    ) {
+        if (level.getDifficulty() == Difficulty.PEACEFUL) {
+            return false;
+        }
+        if (EntitySpawnReason.isSpawner(reason)
+                || reason == EntitySpawnReason.SPAWN_ITEM_USE
+                || reason == EntitySpawnReason.COMMAND) {
+            return true;
+        }
+        return level.getFluidState(pos).is(FluidTags.WATER)
+                && level.getFluidState(pos.below()).is(FluidTags.WATER);
+    }
+
+    @Override
+    public boolean canFreeze() {
+        return false;
     }
 
     @Override

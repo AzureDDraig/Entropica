@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "CCC",
+    "CSC",
+    "CCC"
+  ],
+  "key": {
+    "C": "minecraft:cobblestone",
+    "S": "entropica:vapor_condenser_spore"
+  },
+  "result": {
+    "id": "entropica:steam_vent",
+    "count": 2
+  }
+}

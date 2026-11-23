@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SAS",
+    "OGO",
+    "S S"
+  ],
+  "key": {
+    "S": "entropica:waterproof_salamander_skin",
+    "A": "entropica:amber_adhesive",
+    "O": "minecraft:copper_ingot",
+    "G": "entropica:oasis_glass"
+  },
+  "result": {
+    "id": "entropica:salamander_wader_hood",
+    "count": 1
+  }
+}

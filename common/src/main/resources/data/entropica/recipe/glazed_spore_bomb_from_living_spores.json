@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "entropica:living_spores",
+    "entropica:spore_puff",
+    "minecraft:packed_ice"
+  ],
+  "result": {
+    "id": "entropica:glazed_spore_bomb",
+    "count": 2
+  }
+}

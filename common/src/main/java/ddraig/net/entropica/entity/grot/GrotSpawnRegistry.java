@@ -35,6 +35,86 @@ public class GrotSpawnRegistry {
             ResourceLocation.fromNamespaceAndPath("entropica", "blue_glacier_shelf")
     );
 
+    public static final ResourceKey<Biome> AURORAL_SKERRIES = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "auroral_skerries")
+    );
+
+    public static final ResourceKey<Biome> FROST_BITE_FLOES = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "frost_bite_floes")
+    );
+
+    public static final ResourceKey<Biome> CRYSTALLINE_PACK_ICE = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "crystalline_pack_ice")
+    );
+
+    public static final ResourceKey<Biome> SILENT_FJORD = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "silent_fjord")
+    );
+
+    public static final ResourceKey<Biome> STEAMING_SKERRIES = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "steaming_skerries")
+    );
+
+    public static final ResourceKey<Biome> STATIC_ICE_PLAINS = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "static_ice_plains")
+    );
+
+    public static final ResourceKey<Biome> BARROW_MOUND_TUNDRA = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "barrow_mound_tundra")
+    );
+
+    public static final ResourceKey<Biome> NULL_FRINGE_BAY = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "null_fringe_bay")
+    );
+
+    public static final ResourceKey<Biome> RADIANT_GLAZE_PLAINS = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "radiant_glaze_plains")
+    );
+
+    public static final ResourceKey<Biome> STORM_SWEPT_ICEBERGS = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "storm_swept_icebergs")
+    );
+
+    public static final ResourceKey<Biome> SPORE_GLAZED_PACK = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "spore_glazed_pack")
+    );
+
+    public static final ResourceKey<Biome> MIRAGE_GLACIER = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "mirage_glacier")
+    );
+
+    public static final ResourceKey<Biome> OASIS_FLOES = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "oasis_floes")
+    );
+
+    public static final ResourceKey<Biome> DUST_CRUSTED_BERGS = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "dust_crusted_bergs")
+    );
+
+    public static final ResourceKey<Biome> BLOOD_ICE_SHALLOWS = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "blood_ice_shallows")
+    );
+
+    public static final ResourceKey<Biome> ASTRAL_SKERRIES = ResourceKey.create(
+            Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath("entropica", "astral_skerries")
+    );
+
     // ==========================================
     // CUSTOM WEIGHTED LIST UTILITY
     // Bypasses 1.21.x Mojang mapping breakages!
@@ -83,9 +163,105 @@ public class GrotSpawnRegistry {
             .add(EssenceType.AEGIS, 30)
             .add(EssenceType.FROZEN, 10);
 
+    public static final WeightedList<EssenceType> AURORAL_SKERRIES_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.AURORA, 55)
+            .add(EssenceType.VAPOR, 35)
+            .add(EssenceType.GLACIAL, 10);
+
+    public static final WeightedList<EssenceType> FROST_BITE_FLOES_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.GLACIAL, 50)
+            .add(EssenceType.BLIGHT, 40)
+            .add(EssenceType.FROZEN, 10);
+
+    public static final WeightedList<EssenceType> CRYSTALLINE_PACK_ICE_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.AEGIS, 55)
+            .add(EssenceType.AURORA, 35)
+            .add(EssenceType.GLACIAL, 10);
+
+    public static final WeightedList<EssenceType> SILENT_FJORD_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.ECLIPSE, 55)
+            .add(EssenceType.GLACIAL, 35)
+            .add(EssenceType.FROZEN, 10);
+
+    public static final WeightedList<EssenceType> STEAMING_SKERRIES_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.VAPOR, 60)
+            .add(EssenceType.GLACIAL, 30)
+            .add(EssenceType.MAGMA, 10);
+
+    public static final WeightedList<EssenceType> STATIC_ICE_PLAINS_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.LIGHTNING, 55)
+            .add(EssenceType.GLACIAL, 35)
+            .add(EssenceType.AEGIS, 10);
+
+    public static final WeightedList<EssenceType> BARROW_MOUND_TUNDRA_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.BARROW, 55)
+            .add(EssenceType.GLACIAL, 35)
+            .add(EssenceType.AEGIS, 10);
+
+    public static final WeightedList<EssenceType> NULL_FRINGE_BAY_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.NULL_U, 60)
+            .add(EssenceType.GLACIAL, 30)
+            .add(EssenceType.VOID, 10);
+
+    public static final WeightedList<EssenceType> RADIANT_GLAZE_PLAINS_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.VITAE, 60)
+            .add(EssenceType.AURORA, 30)
+            .add(EssenceType.GLACIAL, 10);
+
+    public static final WeightedList<EssenceType> STORM_SWEPT_ICEBERGS_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.STORM, 60)
+            .add(EssenceType.GLACIAL, 30)
+            .add(EssenceType.AURORA, 10);
+
+    public static final WeightedList<EssenceType> SPORE_GLAZED_PACK_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.SPORE, 60)
+            .add(EssenceType.GLACIAL, 30)
+            .add(EssenceType.OVERGROWTH, 10);
+
+    public static final WeightedList<EssenceType> MIRAGE_GLACIER_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.MIRAGE, 60)
+            .add(EssenceType.GLACIAL, 30)
+            .add(EssenceType.ARID, 10);
+
+    public static final WeightedList<EssenceType> OASIS_FLOES_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.OASIS, 60)
+            .add(EssenceType.GLACIAL, 30)
+            .add(EssenceType.VAPOR, 10);
+
+    public static final WeightedList<EssenceType> DUST_CRUSTED_BERGS_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.DUST, 60)
+            .add(EssenceType.GLACIAL, 30)
+            .add(EssenceType.ARID, 10);
+
+    public static final WeightedList<EssenceType> BLOOD_ICE_SHALLOWS_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.BLOOD, 60)
+            .add(EssenceType.GLACIAL, 30)
+            .add(EssenceType.VITAE, 10);
+
+    public static final WeightedList<EssenceType> ASTRAL_SKERRIES_POOL = new WeightedList<EssenceType>()
+            .add(EssenceType.ASTRAL, 60)
+            .add(EssenceType.GLACIAL, 30)
+            .add(EssenceType.AURORA, 10);
+
     public static void initialize() {
         // --- ENTROPICA CUSTOM BIOMES ---
         BIOME_WEIGHTS.put(BLUE_GLACIER_SHELF, BLUE_GLACIER_SHELF_POOL);
+        BIOME_WEIGHTS.put(AURORAL_SKERRIES, AURORAL_SKERRIES_POOL);
+        BIOME_WEIGHTS.put(FROST_BITE_FLOES, FROST_BITE_FLOES_POOL);
+        BIOME_WEIGHTS.put(CRYSTALLINE_PACK_ICE, CRYSTALLINE_PACK_ICE_POOL);
+        BIOME_WEIGHTS.put(SILENT_FJORD, SILENT_FJORD_POOL);
+        BIOME_WEIGHTS.put(STEAMING_SKERRIES, STEAMING_SKERRIES_POOL);
+        BIOME_WEIGHTS.put(STATIC_ICE_PLAINS, STATIC_ICE_PLAINS_POOL);
+        BIOME_WEIGHTS.put(BARROW_MOUND_TUNDRA, BARROW_MOUND_TUNDRA_POOL);
+        BIOME_WEIGHTS.put(NULL_FRINGE_BAY, NULL_FRINGE_BAY_POOL);
+        BIOME_WEIGHTS.put(RADIANT_GLAZE_PLAINS, RADIANT_GLAZE_PLAINS_POOL);
+        BIOME_WEIGHTS.put(STORM_SWEPT_ICEBERGS, STORM_SWEPT_ICEBERGS_POOL);
+        BIOME_WEIGHTS.put(SPORE_GLAZED_PACK, SPORE_GLAZED_PACK_POOL);
+        BIOME_WEIGHTS.put(MIRAGE_GLACIER, MIRAGE_GLACIER_POOL);
+        BIOME_WEIGHTS.put(OASIS_FLOES, OASIS_FLOES_POOL);
+        BIOME_WEIGHTS.put(DUST_CRUSTED_BERGS, DUST_CRUSTED_BERGS_POOL);
+        BIOME_WEIGHTS.put(BLOOD_ICE_SHALLOWS, BLOOD_ICE_SHALLOWS_POOL);
+        BIOME_WEIGHTS.put(ASTRAL_SKERRIES, ASTRAL_SKERRIES_POOL);
         // --- SCORCHED & SANDY ---
         BIOME_WEIGHTS.put(BiomeTags.IS_NETHER, new WeightedList<EssenceType>()
                 .add(EssenceType.NETHER, 75).add(EssenceType.EARTH, 10).add(EssenceType.MAGMA, 10));
@@ -135,6 +311,10 @@ public class GrotSpawnRegistry {
                 .add(EssenceType.VOID, 95));
     }
 
+    public static EssenceType getEssenceForBiome(Holder<Biome> biomeHolder, RandomSource random) {
+        return rollEssenceForBiome(biomeHolder, random);
+    }
+
     public static EssenceType rollEssenceForBiome(Holder<Biome> biomeHolder, RandomSource random) {
         // 5% Anomaly Chance intercepts the spawn completely
         if (random.nextFloat() < 0.05f) {
@@ -144,6 +324,54 @@ public class GrotSpawnRegistry {
         // Dedicated Entropica Biome Pools (evaluated prior to broad climate tags)
         if (biomeHolder.is(BLUE_GLACIER_SHELF)) {
             return BIOME_WEIGHTS.getOrDefault(BLUE_GLACIER_SHELF, BLUE_GLACIER_SHELF_POOL).getRandomValue(random, EssenceType.GLACIAL);
+        }
+        if (biomeHolder.is(AURORAL_SKERRIES)) {
+            return BIOME_WEIGHTS.getOrDefault(AURORAL_SKERRIES, AURORAL_SKERRIES_POOL).getRandomValue(random, EssenceType.AURORA);
+        }
+        if (biomeHolder.is(FROST_BITE_FLOES)) {
+            return BIOME_WEIGHTS.getOrDefault(FROST_BITE_FLOES, FROST_BITE_FLOES_POOL).getRandomValue(random, EssenceType.GLACIAL);
+        }
+        if (biomeHolder.is(CRYSTALLINE_PACK_ICE)) {
+            return BIOME_WEIGHTS.getOrDefault(CRYSTALLINE_PACK_ICE, CRYSTALLINE_PACK_ICE_POOL).getRandomValue(random, EssenceType.AEGIS);
+        }
+        if (biomeHolder.is(SILENT_FJORD)) {
+            return BIOME_WEIGHTS.getOrDefault(SILENT_FJORD, SILENT_FJORD_POOL).getRandomValue(random, EssenceType.ECLIPSE);
+        }
+        if (biomeHolder.is(STEAMING_SKERRIES)) {
+            return BIOME_WEIGHTS.getOrDefault(STEAMING_SKERRIES, STEAMING_SKERRIES_POOL).getRandomValue(random, EssenceType.VAPOR);
+        }
+        if (biomeHolder.is(STATIC_ICE_PLAINS)) {
+            return BIOME_WEIGHTS.getOrDefault(STATIC_ICE_PLAINS, STATIC_ICE_PLAINS_POOL).getRandomValue(random, EssenceType.LIGHTNING);
+        }
+        if (biomeHolder.is(BARROW_MOUND_TUNDRA)) {
+            return BIOME_WEIGHTS.getOrDefault(BARROW_MOUND_TUNDRA, BARROW_MOUND_TUNDRA_POOL).getRandomValue(random, EssenceType.BARROW);
+        }
+        if (biomeHolder.is(NULL_FRINGE_BAY)) {
+            return BIOME_WEIGHTS.getOrDefault(NULL_FRINGE_BAY, NULL_FRINGE_BAY_POOL).getRandomValue(random, EssenceType.NULL_U);
+        }
+        if (biomeHolder.is(RADIANT_GLAZE_PLAINS)) {
+            return BIOME_WEIGHTS.getOrDefault(RADIANT_GLAZE_PLAINS, RADIANT_GLAZE_PLAINS_POOL).getRandomValue(random, EssenceType.VITAE);
+        }
+        if (biomeHolder.is(STORM_SWEPT_ICEBERGS)) {
+            return BIOME_WEIGHTS.getOrDefault(STORM_SWEPT_ICEBERGS, STORM_SWEPT_ICEBERGS_POOL).getRandomValue(random, EssenceType.STORM);
+        }
+        if (biomeHolder.is(SPORE_GLAZED_PACK)) {
+            return BIOME_WEIGHTS.getOrDefault(SPORE_GLAZED_PACK, SPORE_GLAZED_PACK_POOL).getRandomValue(random, EssenceType.SPORE);
+        }
+        if (biomeHolder.is(MIRAGE_GLACIER)) {
+            return BIOME_WEIGHTS.getOrDefault(MIRAGE_GLACIER, MIRAGE_GLACIER_POOL).getRandomValue(random, EssenceType.MIRAGE);
+        }
+        if (biomeHolder.is(OASIS_FLOES)) {
+            return BIOME_WEIGHTS.getOrDefault(OASIS_FLOES, OASIS_FLOES_POOL).getRandomValue(random, EssenceType.OASIS);
+        }
+        if (biomeHolder.is(DUST_CRUSTED_BERGS)) {
+            return BIOME_WEIGHTS.getOrDefault(DUST_CRUSTED_BERGS, DUST_CRUSTED_BERGS_POOL).getRandomValue(random, EssenceType.DUST);
+        }
+        if (biomeHolder.is(BLOOD_ICE_SHALLOWS)) {
+            return BIOME_WEIGHTS.getOrDefault(BLOOD_ICE_SHALLOWS, BLOOD_ICE_SHALLOWS_POOL).getRandomValue(random, EssenceType.BLOOD);
+        }
+        if (biomeHolder.is(ASTRAL_SKERRIES)) {
+            return BIOME_WEIGHTS.getOrDefault(ASTRAL_SKERRIES, ASTRAL_SKERRIES_POOL).getRandomValue(random, EssenceType.ASTRAL);
         }
 
         // Added .getOrDefault protections to ensure we never throw a NullPointerException if a map key is somehow missing

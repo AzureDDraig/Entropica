@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "entropica:block/steam_vent_top",
+    "bottom": "entropica:block/steam_vent_bottom",
+    "side": "entropica:block/steam_vent_side"
+  }
+}

@@ -44,6 +44,26 @@
     {
       "id": "enderzoology:enderminy",
       "required": false
+    },
+    {
+      "id": "entropica:void_arachne",
+      "required": false
+    },
+    {
+      "id": "entropica:void_shadow_gargoyle",
+      "required": false
+    },
+    {
+      "id": "entropica:obsidian_scorpioid",
+      "required": false
+    },
+    {
+      "id": "entropica:obsidian_golem",
+      "required": false
+    },
+    {
+      "id": "entropica:obsidian_wendigo",
+      "required": false
     }
   ]
 }

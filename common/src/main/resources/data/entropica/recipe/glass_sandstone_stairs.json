@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "#  ",
+    "## ",
+    "###"
+  ],
+  "key": {
+    "#": "entropica:glass_sandstone"
+  },
+  "result": {
+    "id": "entropica:glass_sandstone_stairs",
+    "count": 4
+  }
+}

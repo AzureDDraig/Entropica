@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "tough_fiber_rope",
+  "pattern": [
+    "FFF",
+    "FFF",
+    "FFF"
+  ],
+  "key": {
+    "F": "entropica:dry_fibers"
+  },
+  "result": {
+    "id": "entropica:tough_fiber_rope",
+    "count": 6
+  }
+}

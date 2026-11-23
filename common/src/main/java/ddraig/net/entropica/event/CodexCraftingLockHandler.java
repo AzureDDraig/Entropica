@@ -30,9 +30,10 @@ public class CodexCraftingLockHandler {
 
             CodexNode node = getRequiredNodeForStack(stack);
             if (node != null) {
-                boolean isLocked = CodexPlayerData.CLIENT_DATA.isNodeLocked(node.id)
-                        || node.requiredTier > CodexPlayerData.CLIENT_DATA.getResearchTierLevel()
-                        || (node.prerequisiteId != null && CodexPlayerData.CLIENT_DATA.isNodeLocked(node.prerequisiteId));
+                CodexPlayerData data = CodexPlayerData.getForPlayer(player);
+                boolean isLocked = data.isNodeLocked(node.id)
+                        || node.requiredTier > data.getResearchTierLevel()
+                        || (node.prerequisiteId != null && data.isNodeLocked(node.prerequisiteId));
 
                 if (isLocked) {
                     stack.setCount(0);

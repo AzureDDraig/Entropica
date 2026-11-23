@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "entropica:block/glow_gel_pathing"
+    },
+    "lit=true": {
+      "model": "entropica:block/glow_gel_pathing_lit"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "GLG",
+    "SRS",
+    "GSG"
+  ],
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "L": "entropica:luminoth_dust",
+    "S": "entropica:jade_qilin_scale",
+    "R": "entropica:liquid_vitae_resin"
+  },
+  "result": {
+    "id": "entropica:sun_glazed_talisman",
+    "count": 1
+  }
+}

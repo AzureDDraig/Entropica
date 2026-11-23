@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "NGN",
+    "CFC",
+    "DFD"
+  ],
+  "key": {
+    "N": "entropica:charged_static_needle",
+    "G": "minecraft:glass",
+    "C": "minecraft:copper_ingot",
+    "F": "entropica:static_frost_powder",
+    "D": "minecraft:deepslate_tiles"
+  },
+  "result": {
+    "id": "entropica:biomass_capacitor",
+    "count": 1
+  }
+}

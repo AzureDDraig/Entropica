@@ -49,6 +49,8 @@ public class FloraHarvestHelper {
             return ModItems.SPECTRAL_LANTERN_POD.get();
         } else if (block == ModBlocks.CINDER_GRIP_LICHEN.get()) {
             return ModItems.CINDER_LICHEN_FLAKES.get();
+        } else if (ModBlocks.GOLDEN_LICHEN.isBound() && block == ModBlocks.GOLDEN_LICHEN.get()) {
+            return ModItems.GOLDEN_LICHEN_ITEM.get();
         } else if (block == ModBlocks.SOOT_SHROUD_FUNGI.get()) {
             return ModItems.SOOT_SHROUD_CAP.get();
         }

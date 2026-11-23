@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:aurora_dust",
+    "minecraft:glow_ink_sac"
+  ],
+  "result": {
+    "id": "entropica:spectral_dye_auroral",
+    "count": 2
+  }
+}

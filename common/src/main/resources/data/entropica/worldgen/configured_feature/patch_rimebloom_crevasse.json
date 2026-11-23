@@ -24,7 +24,10 @@
             "predicates": [
               {
                 "type": "minecraft:matching_blocks",
-                "blocks": "minecraft:air"
+                "blocks": [
+                  "minecraft:air",
+                  "minecraft:snow"
+                ]
               },
               {
                 "type": "minecraft:matching_blocks",

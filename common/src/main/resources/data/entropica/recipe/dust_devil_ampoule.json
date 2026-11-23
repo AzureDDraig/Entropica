@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:medium_ampoule",
+    "entropica:dust_core_shard",
+    "entropica:grey_sand",
+    "entropica:dry_fibers"
+  ],
+  "result": {
+    "id": "entropica:dust_devil_ampoule",
+    "count": 1
+  }
+}

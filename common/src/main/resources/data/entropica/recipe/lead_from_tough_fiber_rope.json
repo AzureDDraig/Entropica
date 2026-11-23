@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "entropica:tough_fiber_rope",
+    "entropica:tough_fiber_rope",
+    [
+      "entropica:amber_adhesive",
+      "minecraft:slime_ball"
+    ]
+  ],
+  "result": {
+    "id": "minecraft:lead",
+    "count": 2
+  }
+}

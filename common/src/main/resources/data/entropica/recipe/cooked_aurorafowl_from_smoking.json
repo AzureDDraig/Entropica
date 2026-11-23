@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smoking",
+  "category": "food",
+  "ingredient": "entropica:raw_aurorafowl",
+  "result": {
+    "id": "entropica:cooked_aurorafowl"
+  },
+  "experience": 0.35,
+  "cookingtime": 100
+}

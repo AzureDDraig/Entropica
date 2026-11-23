@@ -735,18 +735,18 @@ public final class BarrowSpellMutationHandler implements MateriaPartMutationHand
         }
 
         final boolean[] landed = new boolean[6];
-        Map<BlockPos, BlockState> savedBlocks = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 200, level.getGameTime(), spell, slot, EssenceType.BARROW, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedBlocks.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.MOSSY_STONE_BRICKS)
-                                    || cur.is(Blocks.MOSSY_STONE_BRICK_WALL)
-                                    || cur.is(Blocks.COARSE_DIRT)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int mIdx = 0; mIdx < 6; mIdx++) {
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(
+                                        srv, megalithTargets[mIdx], Blocks.MOSSY_STONE_BRICKS.defaultBlockState(), 2
+                                );
                             }
                         }
                         return false;
@@ -758,7 +758,7 @@ public final class BarrowSpellMutationHandler implements MateriaPartMutationHand
                             int impactTick = 18 + mIdx * 20;
                             BlockPos strikePos = megalithTargets[mIdx];
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 120 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -811,36 +811,11 @@ public final class BarrowSpellMutationHandler implements MateriaPartMutationHand
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.ANVIL_LAND, SoundSource.PLAYERS, 0.80F, 0.72F);
                             }
-                            if (landed[mIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, 2, false);
-                            }
                         }
-                    } else if (elapsed == 120) {
-                        // Skyfall bombardment complete — materialize temporary petrified stone markers & coarse grave dirt!
-                        for (int mIdx = 0; mIdx < 6; mIdx++) {
-                            BlockPos strikePos = megalithTargets[mIdx];
-                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, 2, true);
-
-                            for (BlockPos gp : BlockPos.betweenClosed(strikePos.offset(-1, -1, -1), strikePos.offset(1, -1, 1))) {
-                                BlockState gs = srv.getBlockState(gp);
-                                if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE)) && !gs.is(Blocks.COARSE_DIRT)
-                                        && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, gp, gs)) {
-                                    savedBlocks.putIfAbsent(gp.immutable(), gs);
-                                    srv.setBlock(gp, Blocks.COARSE_DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
-                                }
-                            }
-
-                            BlockState baseCur = srv.getBlockState(strikePos);
-                            if (baseCur.isAir() && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, strikePos, baseCur)) {
-                                savedBlocks.putIfAbsent(strikePos.immutable(), baseCur);
-                                srv.setBlockAndUpdate(strikePos, Blocks.MOSSY_STONE_BRICKS.defaultBlockState());
-                                BlockPos finial = strikePos.above();
-                                BlockState finCur = srv.getBlockState(finial);
-                                if (finCur.isAir() && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, finial, finCur)) {
-                                    savedBlocks.putIfAbsent(finial.immutable(), finCur);
-                                    srv.setBlockAndUpdate(finial, Blocks.MOSSY_STONE_BRICK_WALL.defaultBlockState());
-                                }
-                            }
+                    }
+                    for (int mIdx = 0; mIdx < 6; mIdx++) {
+                        if (landed[mIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, megalithTargets[mIdx], 2, false);
                         }
                     }
                     return true;

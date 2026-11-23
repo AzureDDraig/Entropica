@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:stardust_skerry_orrery",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 717204953,
+    "spacing": 26,
+    "separation": 10
+  }
+}

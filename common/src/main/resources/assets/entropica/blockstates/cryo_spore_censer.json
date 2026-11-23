@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "hanging=false": {
+      "model": "entropica:block/cryo_spore_censer"
+    },
+    "hanging=true": {
+      "model": "entropica:block/cryo_spore_censer_hanging"
+    }
+  }
+}

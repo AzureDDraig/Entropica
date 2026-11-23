@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "entropica:item/mirage_fata_sprite_spawn_egg"
+  }
+}

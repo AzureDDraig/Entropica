@@ -90,7 +90,7 @@ public class GlacialFrostCoreEntity extends PathfinderMob implements FlyingAnima
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 20.0D)
+                .add(Attributes.MAX_HEALTH, 40.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.26D)
                 .add(Attributes.FLYING_SPEED, 0.32D)
                 .add(Attributes.ATTACK_DAMAGE, 4.0D)
@@ -457,6 +457,9 @@ public class GlacialFrostCoreEntity extends PathfinderMob implements FlyingAnima
         this.spawnAtLocation(serverLevel, new ItemStack(ModItems.FROST_CORE_SHARD.get(), 1));
         int iceCount = 1 + this.random.nextInt(2);
         this.spawnAtLocation(serverLevel, new ItemStack(Items.PACKED_ICE, iceCount));
+        ItemStack glacialEssence = new ItemStack(ModItems.AVERAGE_ESSENCE.get(), 2 + this.random.nextInt(3));
+        ddraig.net.entropica.item.EssenceItem.setEssenceType(glacialEssence, ddraig.net.entropica.api.EssenceType.GLACIAL);
+        this.spawnAtLocation(serverLevel, glacialEssence);
     }
 
     @Override

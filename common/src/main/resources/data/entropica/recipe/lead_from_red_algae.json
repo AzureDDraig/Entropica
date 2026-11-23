@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SS ",
+    "SA ",
+    "  S"
+  ],
+  "key": {
+    "S": "minecraft:string",
+    "A": "entropica:red_algae"
+  },
+  "result": {
+    "id": "minecraft:lead",
+    "count": 2
+  }
+}

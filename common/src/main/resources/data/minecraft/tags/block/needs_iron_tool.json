@@ -24,6 +24,13 @@
     "entropica:large_mortisite_bud",
     "entropica:mortisite_cluster",
     "entropica:aegis_crystal_block",
-    "entropica:aegis_crystal_cluster"
+    "entropica:aegis_crystal_bud",
+    "entropica:aegis_crystal_cluster",
+    "entropica:bismuth_ore",
+    "entropica:bismuth_block",
+    "entropica:aegis_plated_stone",
+    "entropica:bismuth_key_pedestal",
+    "entropica:obsidian_bricks",
+    "entropica:spatial_phase_anchor"
   ]
 }

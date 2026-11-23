@@ -1,0 +1,112 @@
+{
+  "parent": "minecraft:block/thin_block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "entropica:block/necrotic_slime_patch",
+    "slime": "entropica:block/necrotic_slime_patch"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0.1,
+        0
+      ],
+      "to": [
+        16,
+        0.1,
+        16
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#slime"
+        },
+        "down": {
+          "uv": [
+            0,
+            16,
+            16,
+            0
+          ],
+          "texture": "#slime",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        2,
+        14
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#slime"
+        },
+        "down": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#slime",
+          "cullface": "down"
+        },
+        "north": {
+          "uv": [
+            2,
+            12,
+            14,
+            14
+          ],
+          "texture": "#slime"
+        },
+        "south": {
+          "uv": [
+            2,
+            12,
+            14,
+            14
+          ],
+          "texture": "#slime"
+        },
+        "west": {
+          "uv": [
+            2,
+            12,
+            14,
+            14
+          ],
+          "texture": "#slime"
+        },
+        "east": {
+          "uv": [
+            2,
+            12,
+            14,
+            14
+          ],
+          "texture": "#slime"
+        }
+      }
+    }
+  ]
+}

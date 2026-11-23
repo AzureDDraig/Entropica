@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:bone_meal",
+    "entropica:golden_lichen",
+    "entropica:weeping_amber_tear"
+  ],
+  "result": {
+    "id": "entropica:vitae_fertilizer",
+    "count": 4
+  }
+}

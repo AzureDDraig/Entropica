@@ -38,6 +38,24 @@ public class Entropica {
             ddraig.net.entropica.worldgen.biome.EntropicaBiomePlacements.registerAll();
             ddraig.net.entropica.worldgen.biome.EntropicaBiomeAtmospheres.registerAll();
             ddraig.net.entropica.worldgen.biome.TerraBlenderCompatBridge.tryRegisterSurfaceRulesWithTerraBlender();
+
+            // Biome 15 (2.15 Dust-Crusted Bergs): Furnace Fuels & Compostable Flora
+            if (ModItems.DRY_FIBERS.isBound()) {
+                dev.architectury.registry.fuel.FuelRegistry.register(1600, ModItems.DRY_FIBERS.get());
+                net.minecraft.world.level.block.ComposterBlock.COMPOSTABLES.put(ModItems.DRY_FIBERS.get(), 0.3F);
+            }
+            if (ModItems.TOUGH_FIBER_ROPE_ITEM.isBound()) {
+                dev.architectury.registry.fuel.FuelRegistry.register(300, ModItems.TOUGH_FIBER_ROPE_ITEM.get());
+            }
+            if (ModItems.WIND_BLOWN_DUST_SCRUB_ITEM.isBound()) {
+                dev.architectury.registry.fuel.FuelRegistry.register(100, ModItems.WIND_BLOWN_DUST_SCRUB_ITEM.get());
+                net.minecraft.world.level.block.ComposterBlock.COMPOSTABLES.put(ModItems.WIND_BLOWN_DUST_SCRUB_ITEM.get(), 0.5F);
+            }
+
+            // Biome 16 (2.16 Blood-Ice Shallows): Compostable Red Algae
+            if (ModItems.RED_ALGAE_ITEM.isBound()) {
+                net.minecraft.world.level.block.ComposterBlock.COMPOSTABLES.put(ModItems.RED_ALGAE_ITEM.get(), 0.5F);
+            }
         });
 
         // --- Register Network Receiver and Commands ---
@@ -53,6 +71,10 @@ public class Entropica {
         ddraig.net.entropica.event.MobObservationHandler.register();
         ddraig.net.entropica.event.CodexCraftingLockHandler.register();
         ddraig.net.entropica.event.CelestialJournalLootHandler.register();
+        ddraig.net.entropica.event.StaticCombatHandler.register();
+        ddraig.net.entropica.event.BarrowCombatHandler.register();
+        ddraig.net.entropica.event.NullFringeCombatHandler.register();
+        ddraig.net.entropica.event.SanguineCombatHandler.register();
 
         // --- Gravity Field Tick Loop ---
         dev.architectury.event.events.common.TickEvent.SERVER_LEVEL_POST.register(level -> {
@@ -67,6 +89,7 @@ public class Entropica {
 
         // --- Graviton Soles Player Tick, Fall Damage Immunity & Barrier CCD ---
         dev.architectury.event.events.common.TickEvent.PLAYER_POST.register(player -> {
+            ddraig.net.entropica.item.biome11.StormKiteGliderItem.tickPlayerGliding(player);
             ddraig.net.entropica.gravity.GravityApi.tickGravitonSoles(player);
             if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
                 net.minecraft.world.phys.Vec3 prev = new net.minecraft.world.phys.Vec3(serverPlayer.xOld, serverPlayer.yOld, serverPlayer.zOld);
@@ -88,8 +111,11 @@ public class Entropica {
                     }
                 }
                 ddraig.net.entropica.worldgen.structure.FrostVeiledRunicSpireStructure.tickSpireHypothermiaHazard(serverPlayer);
+                ddraig.net.entropica.worldgen.structure.AuroralWellspringStructure.tickWellspringThermalEffects(serverPlayer);
+                ddraig.net.entropica.worldgen.structure.AegisShieldingMonolithStructure.tickMonolithFieldEffects(serverPlayer);
             }
         });
+
         dev.architectury.event.events.common.EntityEvent.LIVING_HURT.register((entity, source, amount) -> {
             if (entity instanceof net.minecraft.world.entity.LivingEntity livingTarget) {
                 var wardRes = ddraig.net.entropica.spell.engine.SpellCombatReactionEngine.interceptWardDamage(livingTarget, source, amount);

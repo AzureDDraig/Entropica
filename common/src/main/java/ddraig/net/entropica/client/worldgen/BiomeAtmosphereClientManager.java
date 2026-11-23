@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -21,6 +22,9 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 import java.lang.ref.WeakReference;
@@ -183,9 +187,10 @@ public final class BiomeAtmosphereClientManager {
         // 1. Update smoothed sky phenomenon targets & dual-slot cross-fade
         updateSkyPhenomenaTick(level, center);
 
-        // 2. Spawn Wind-Drifted Ambient Biome Particles (sampled at each candidate's own BlockPos)
+        // 2. Spawn Wind-Drifted Ambient Biome Particles & Water-Surface Steam Columns
         if (EntropicaConfig.ENABLE_BIOME_ENVIRONMENTAL_EFFECTS.get()) {
             spawnWindDriftedParticles(level, camPos);
+            spawnWaterSurfaceSteamColumns(level, camPos);
         }
     }
 
@@ -412,6 +417,121 @@ public final class BiomeAtmosphereClientManager {
                     px, py, pz,
                     jitterVx, jitterVy, jitterVz
             );
+        }
+    }
+
+    /**
+     * Emits genuine rising white steam columns directly from open water channels and
+     * underwater bubble-column geothermal vents in steaming-water biomes (such as {@code 2.2 Auroral Skerries}),
+     * without requiring any campfires or artificial smoke blocks in the world.
+     */
+    private static void spawnWaterSurfaceSteamColumns(ClientLevel level, Vec3 camPos) {
+        int maxColumns = 0;
+        for (int i = 0; i < BiomeTransitionMath.KERNEL_SAMPLE_COUNT; i++) {
+            BiomeAtmosphereProfile p = SAMPLE_PROFILES[i];
+            if (p != null && p.getWaterSurfaceSteamColumnsPerTick() > maxColumns) {
+                maxColumns = p.getWaterSurfaceSteamColumnsPerTick();
+            }
+        }
+        // Even if the camera stands just outside the 5x5 kernel, probe occasional nearby water columns
+        int candidateAttempts = Math.max(maxColumns, 2);
+
+        RandomSource random = level.random;
+        BlockPos.MutableBlockPos surfacePos = new BlockPos.MutableBlockPos();
+        BlockPos.MutableBlockPos abovePos = new BlockPos.MutableBlockPos();
+
+        for (int i = 0; i < candidateAttempts; i++) {
+            double px = camPos.x + (random.nextDouble() - 0.5D) * 44.0D;
+            double pz = camPos.z + (random.nextDouble() - 0.5D) * 44.0D;
+            int bx = Mth.floor(px);
+            int bz = Mth.floor(pz);
+            if (!level.hasChunk(bx >> 4, bz >> 4)) {
+                continue;
+            }
+
+            int topY = level.getHeight(Heightmap.Types.WORLD_SURFACE, bx, bz) - 1;
+            surfacePos.set(bx, topY, bz);
+            BlockState surfaceState = level.getBlockState(surfacePos);
+            boolean isBubbleVent = surfaceState.is(Blocks.BUBBLE_COLUMN);
+            if (!isBubbleVent && !surfaceState.is(Blocks.WATER)) {
+                continue;
+            }
+
+            abovePos.set(bx, topY + 1, bz);
+            if (!level.getBlockState(abovePos).isAir()) {
+                continue;
+            }
+
+            BiomeAtmosphereProfile profile = EntropicaBiomeAtmospheres.getForHolder(level.getBiome(abovePos));
+            if (profile == null || i >= profile.getWaterSurfaceSteamColumnsPerTick()) {
+                continue;
+            }
+
+            int rgb = profile.getWaterSurfaceSteamColorRgb();
+            float r = ((rgb >> 16) & 0xFF) / 255.0F;
+            float g = ((rgb >> 8) & 0xFF) / 255.0F;
+            float b = (rgb & 0xFF) / 255.0F;
+
+            double waterTopY = topY + 0.92D;
+            int plumePuffs = isBubbleVent ? 3 : 1;
+            for (int p = 0; p < plumePuffs; p++) {
+                double sx = bx + 0.2D + random.nextDouble() * 0.6D;
+                double sz = bz + 0.2D + random.nextDouble() * 0.6D;
+                double sy = waterTopY + p * (0.45D + random.nextDouble() * 0.35D);
+                float scale = isBubbleVent
+                        ? (2.1F + random.nextFloat() * 1.1F)
+                        : (1.55F + random.nextFloat() * 0.85F);
+                int lifetime = isBubbleVent ? (95 + random.nextInt(40)) : (75 + random.nextInt(35));
+                float vy = isBubbleVent
+                        ? (0.068F + random.nextFloat() * 0.036F)
+                        : (0.042F + random.nextFloat() * 0.026F);
+                float vx = (random.nextFloat() - 0.5F) * 0.012F;
+                float vz = (random.nextFloat() - 0.5F) * 0.012F;
+
+                level.addParticle(
+                        new TimedTintableParticleOption(
+                                ModParticles.TINTABLE_MIST.get(),
+                                r, g, b,
+                                lifetime,
+                                scale,
+                                (float) (random.nextDouble() * Math.PI * 2.0),
+                                0.010F,
+                                TimedTintableParticleOption.MODE_NOISE,
+                                vx, vy, vz
+                        ),
+                        sx, sy, sz,
+                        vx, vy, vz
+                );
+            }
+
+            if (isBubbleVent) {
+                level.addParticle(
+                        ParticleTypes.BUBBLE_POP,
+                        bx + 0.25D + random.nextDouble() * 0.5D,
+                        waterTopY + 0.04D,
+                        bz + 0.25D + random.nextDouble() * 0.5D,
+                        0.0D, 0.03D, 0.0D
+                );
+                level.addParticle(
+                        ParticleTypes.CLOUD,
+                        bx + 0.3D + random.nextDouble() * 0.4D,
+                        waterTopY + 0.25D,
+                        bz + 0.3D + random.nextDouble() * 0.4D,
+                        (random.nextDouble() - 0.5D) * 0.01D,
+                        0.065D + random.nextDouble() * 0.03D,
+                        (random.nextDouble() - 0.5D) * 0.01D
+                );
+            } else if (random.nextInt(3) == 0) {
+                level.addParticle(
+                        ParticleTypes.CLOUD,
+                        bx + 0.2D + random.nextDouble() * 0.6D,
+                        waterTopY + 0.12D,
+                        bz + 0.2D + random.nextDouble() * 0.6D,
+                        (random.nextDouble() - 0.5D) * 0.008D,
+                        0.038D + random.nextDouble() * 0.02D,
+                        (random.nextDouble() - 0.5D) * 0.008D
+                );
+            }
         }
     }
 

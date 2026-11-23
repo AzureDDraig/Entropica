@@ -8,6 +8,10 @@
     {
       "id": "twilightforest:lich",
       "required": false
+    },
+    {
+      "id": "entropica:zephyr_simurgh",
+      "required": false
     }
   ]
 }

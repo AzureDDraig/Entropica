@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:dry_fibers",
+    "entropica:dry_fibers"
+  ],
+  "result": {
+    "id": "minecraft:string",
+    "count": 2
+  }
+}

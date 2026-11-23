@@ -346,6 +346,10 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
 
     public abstract Item getPlateItem();
 
+    public ddraig.net.entropica.api.EssenceType getSecondaryEssenceType() {
+        return ddraig.net.entropica.api.EssenceType.GLACIAL;
+    }
+
     @Override
     protected void dropCustomDeathLoot(ServerLevel serverLevel, DamageSource damageSource, boolean recentlyHit) {
         super.dropCustomDeathLoot(serverLevel, damageSource, recentlyHit);
@@ -353,6 +357,13 @@ public abstract class AbstractOvisEntity extends PathfinderMob {
         if (!this.isSheared() || this.random.nextFloat() < 0.5F) {
             this.spawnAtLocation(serverLevel, new ItemStack(getPlateItem()));
         }
+        ItemStack aegisEssence = new ItemStack(ModItems.AVERAGE_ESSENCE.get(), 1 + this.random.nextInt(2));
+        ddraig.net.entropica.item.EssenceItem.setEssenceType(aegisEssence, ddraig.net.entropica.api.EssenceType.AEGIS);
+        this.spawnAtLocation(serverLevel, aegisEssence);
+
+        ItemStack secondaryEssence = new ItemStack(ModItems.AVERAGE_ESSENCE.get(), 1 + this.random.nextInt(2));
+        ddraig.net.entropica.item.EssenceItem.setEssenceType(secondaryEssence, getSecondaryEssenceType());
+        this.spawnAtLocation(serverLevel, secondaryEssence);
     }
 
     public static class OvisChargeGoal extends Goal {

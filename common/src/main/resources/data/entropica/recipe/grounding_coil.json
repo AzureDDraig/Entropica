@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "CQC",
+    "FIF",
+    "CLC"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "Q": "entropica:static_quill",
+    "F": "entropica:static_frost_powder",
+    "I": "entropica:fulgurite_ice",
+    "L": "minecraft:leather"
+  },
+  "result": {
+    "id": "entropica:grounding_coil",
+    "count": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "GSG",
+    "RSR",
+    "QQQ"
+  ],
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "S": "entropica:jade_qilin_scale",
+    "R": "entropica:radiant_glass",
+    "Q": "minecraft:smooth_quartz"
+  },
+  "result": {
+    "id": "entropica:qilin_light_refractor",
+    "count": 1
+  }
+}

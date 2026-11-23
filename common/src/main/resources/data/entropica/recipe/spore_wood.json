@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "bark",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": "entropica:spore_wood_log"
+  },
+  "result": {
+    "id": "entropica:spore_wood",
+    "count": 3
+  }
+}

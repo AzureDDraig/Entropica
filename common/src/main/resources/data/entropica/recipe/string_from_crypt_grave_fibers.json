@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:crypt_grave_fibers",
+    "entropica:crypt_grave_fibers"
+  ],
+  "result": {
+    "id": "minecraft:string",
+    "count": 2
+  }
+}

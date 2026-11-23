@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "entropica:block/glass_sandstone_top",
+    "bottom": "entropica:block/glass_sandstone_bottom",
+    "side": "entropica:block/glass_sandstone"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "chiseled_eclipse_basalt",
+  "pattern": [
+    " C ",
+    "CAC",
+    " C "
+  ],
+  "key": {
+    "C": "entropica:basalt_column",
+    "A": "minecraft:amethyst_shard"
+  },
+  "result": {
+    "id": "entropica:chiseled_eclipse_basalt",
+    "count": 4
+  }
+}

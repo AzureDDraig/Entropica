@@ -122,6 +122,7 @@ public class CelestialJournalScreen extends Screen {
 
     private void recordBookmark(int entryIdx) {
         CelestialJournalItem.updateClientBookmark(this.journalStack, entryIdx);
+        ddraig.net.entropica.data.CodexPlayerData.CLIENT_DATA.archiveLoreEntry(this.volume.volume(), entryIdx);
         try {
             NetworkManager.sendToServer(new JournalBookmarkPayload(entryIdx));
         } catch (Throwable ignored) {

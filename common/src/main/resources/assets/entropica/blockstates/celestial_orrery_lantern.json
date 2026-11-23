@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "hanging=false": {
+      "model": "entropica:block/celestial_orrery_lantern"
+    },
+    "hanging=true": {
+      "model": "entropica:block/celestial_orrery_lantern_hanging"
+    }
+  }
+}

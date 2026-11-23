@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "MMM",
+    "BCB"
+  ],
+  "key": {
+    "M": "entropica:vapor_vent_membrane",
+    "B": [
+      "minecraft:smooth_basalt",
+      "minecraft:basalt"
+    ],
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "entropica:vapor_lift_mat",
+    "count": 2
+  }
+}

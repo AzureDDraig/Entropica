@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "entropica:block/thermal_heat_lamp"
+    }
+  }
+}

@@ -136,6 +136,12 @@ public final class SpellParticleHelper {
     public static final byte ARCHETYPE_APEX_CELESTIAL_METEORITE = 52;
     public static final byte ARCHETYPE_ENTROPIC_SINGULARITY_SKULL_ORB = 53;
     public static final byte ARCHETYPE_HOLY_SOLAR_SINGULARITY_DART = 54;
+    public static final byte ARCHETYPE_WORLD_TREE_SEED_POD = 55;
+    public static final byte ARCHETYPE_HELLFIRE_RAILGUN_SLUG = 56;
+    public static final byte ARCHETYPE_PERMAFROST_LANCE = 57;
+    public static final byte ARCHETYPE_BLACK_HOLE_RAILGUN_DART = 58;
+    public static final byte ARCHETYPE_SEEKING_CROWN_OF_DAWN = 59;
+    public static final byte ARCHETYPE_SINGULARITY_EQUILIBRIUM_LANCE = 60;
 
     private SpellParticleHelper() {
     }
@@ -159,8 +165,10 @@ public final class SpellParticleHelper {
                     ARCHETYPE_STEAM_GEYSER_ORB;
             case WATER, FLOW, UMBRAL_WATER ->
                     ARCHETYPE_HYDRO_ORB;
-            case VOID, ESCHATON, SINGULARITY, VACUUM, OBLIVIATE ->
+            case VOID, SINGULARITY, VACUUM, OBLIVIATE ->
                     ARCHETYPE_SINGULARITY_ORB;
+            case ESCHATON ->
+                    ARCHETYPE_BLACK_HOLE_RAILGUN_DART;
             case ENTROPIC ->
                     ARCHETYPE_ENTROPIC_SINGULARITY_SKULL_ORB;
             case OBLIVION ->
@@ -183,7 +191,9 @@ public final class SpellParticleHelper {
                     ARCHETYPE_HOARFROST_RIME_JAVELIN;
             case AETHER ->
                     ARCHETYPE_APEX_CELESTIAL_METEORITE;
-            case TERMINUS, STASIS, FROST ->
+            case TERMINUS ->
+                    ARCHETYPE_PERMAFROST_LANCE;
+            case STASIS, FROST ->
                     ARCHETYPE_CRYSTALLINE_LANCE;
             case AMBER ->
                     ARCHETYPE_AMBER_BUBBLE_ORB;
@@ -223,7 +233,15 @@ public final class SpellParticleHelper {
                     ARCHETYPE_GILDED_PAVISE_SHIELD;
             case CELESTIAL ->
                     ARCHETYPE_HOLY_SOLAR_SINGULARITY_DART;
-            case AUREOLE, APOTHEOSIS, EMPYREAN, PHOTON ->
+            case EMPYREAN ->
+                    ARCHETYPE_WORLD_TREE_SEED_POD;
+            case CATACLYSM ->
+                    ARCHETYPE_HELLFIRE_RAILGUN_SLUG;
+            case APOTHEOSIS ->
+                    ARCHETYPE_SEEKING_CROWN_OF_DAWN;
+            case ENTROPICA ->
+                    ARCHETYPE_SINGULARITY_EQUILIBRIUM_LANCE;
+            case AUREOLE, PHOTON ->
                     fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_SOLAR_CROWN;
             case ASTRAL ->
                     ARCHETYPE_CELESTIAL_COMET;
@@ -233,7 +251,7 @@ public final class SpellParticleHelper {
                     ARCHETYPE_QUAKE_SPIRE;
             case NETHER ->
                     fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_NETHERFIRE_COMET;
-            case MAGMA, CATACLYSM, RADIANT_FIRE, IGNIS, FERVOR, HEAT ->
+            case MAGMA, RADIANT_FIRE, IGNIS, FERVOR, HEAT ->
                     fastLance ? ARCHETYPE_CRYSTALLINE_LANCE : ARCHETYPE_MOLTEN_METEOR;
             case NATURE ->
                     ARCHETYPE_BRIAR_SEED;
@@ -268,6 +286,18 @@ public final class SpellParticleHelper {
         if (type == null || type == EssenceType.REGULAR) {
             return 0x62E8FF; // Arcane starlight cyan-magenta blend
         }
+        if (type == EssenceType.ENTROPICA) {
+            // Section 6.59 Shifting Chrono-Silver (#E0E5EC), Deep Event-Horizon Indigo (#1A153B), & Transcendent Genesis Gold (#FAD02C)!
+            int[][] entCycle = {{0xE0, 0xE5, 0xEC}, {0xFA, 0xD0, 0x2C}, {0x1A, 0x15, 0x3B}};
+            double scaled = (((timeTicks % 60.0D) + 60.0D) % 60.0D) / 20.0D;
+            int idx0 = ((int) scaled) % 3;
+            int idx1 = (idx0 + 1) % 3;
+            double blend = scaled - Math.floor(scaled);
+            int r = (int) Math.round(entCycle[idx0][0] + (entCycle[idx1][0] - entCycle[idx0][0]) * blend);
+            int g = (int) Math.round(entCycle[idx0][1] + (entCycle[idx1][1] - entCycle[idx0][1]) * blend);
+            int b = (int) Math.round(entCycle[idx0][2] + (entCycle[idx1][2] - entCycle[idx0][2]) * blend);
+            return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
+        }
         if (type.isDynamic()) {
             float hue = (float) (((timeTicks * 0.025D) % 1.0D + 1.0D) % 1.0D);
             return Mth.hsvToRgb(hue, 0.72F, 1.0F) & 0xFFFFFF;
@@ -278,13 +308,15 @@ public final class SpellParticleHelper {
             case VOID -> 0x7E3BFF;
             case UMBRAL -> 0x3A2444; // Canonical Abyssal Shadow-Black (#211A21 family)
             case SHADOW, SILENCE, CONCEALMENT -> 0x6D4AFF;
-            case ESCHATON -> 0xD926FF;
+            case ESCHATON -> 0x7012A5; // Canonical Accretion Disk Searing Violet (#7012A5) + Void Black (#0B0813) + Chrono-Silver (#D4C2FC)
+            case APOTHEOSIS -> 0xFFE484; // Canonical Celestial Astral Gold (#FFE484) + Supernova White (#FFFFFF) + Ascendant Prismatic Cyan (#72F6FF)
             case NULL_U -> 0x110B17; // Canonical Abyssal Pitch Black (#110B17) + Cosmic Violet (#41304E)
             case ABYSS -> 0x211A21; // Canonical Pitch-Black Oceanic Ink (#211A21) + Deep Trench Navy (#225C7C)
             case UMBRAL_WATER -> 0x1E88E5;
             case OBLIVION -> 0xB83C08; // Canonical Nether Blazing Magma Rust (#B83C08) + Stygian Obsidian (#211A21) + Necrotic Grave Slate (#4D6453)
             case ENTROPIC -> 0x41304E; // Canonical Void Deep Indigo (#41304E) + Umbral Charcoal (#211A21) + Undead Slate (#4D6453) + Blood Crimson (#8A0303)
-            case CATACLYSM -> 0xFF3D1F;
+            case CATACLYSM -> 0xB83C08; // Canonical Nether Blazing Rust Crimson (#B83C08) + Void Deep Indigo (#41304E) + Umbral Shadow Charcoal (#211A21)
+            case TERMINUS -> 0x98DCF2; // Canonical Frozen Cyan/Frost (#98DCF2) + Air Golden-Buff (#A88654) + Water Deep Azure (#225C7C)
             case BLOOD -> 0xB80614; // Canonical Deep Venous Crimson (#8A0303 family)
             case NATURE, OVERGROWTH, GROWTH, PRIMAL -> 0x2CE668;
             case SPORE -> 0x248F34; // Canonical Symbiotic Fungal Nature Green (#1A5923 family)
@@ -337,6 +369,10 @@ public final class SpellParticleHelper {
         if (primary == null || primary == EssenceType.REGULAR) {
             return 0xDF78FF;
         }
+        if (primary == EssenceType.ENTROPICA) {
+            // Phase-shifted harmonic complement across Genesis Gold (#FAD02C), Event-Horizon Indigo (#1A153B), & Chrono-Silver (#E0E5EC)!
+            return resolveVibrantPrimaryRgb(EssenceType.ENTROPICA, timeTicks + 20.0D);
+        }
         if (primary.isDynamic()) {
             float hue = (float) ((((timeTicks * 0.025D) + 0.38D) % 1.0D + 1.0D) % 1.0D);
             return Mth.hsvToRgb(hue, 0.65F, 1.0F) & 0xFFFFFF;
@@ -352,20 +388,23 @@ public final class SpellParticleHelper {
             case VOID -> 0xC77DFF;
             case NULL_U -> 0x41304E; // Canonical Cosmic Event-Horizon Violet (#41304E)
             case ABYSS -> 0x225C7C; // Canonical Deep Trench Navy (#225C7C)
-            case ESCHATON -> 0xFF4518;
+            case ESCHATON -> 0xD4C2FC; // Canonical Event Edge Chrono-Silver (#D4C2FC)
             case RADIANT -> 0xFFFDF0; // Incandescent Daylight Ivory-White (#FFFDF0)
             case DAWN -> 0xA88654; // Canonical Atmospheric Buff Air Gold (#A88654)
             case AEGIS -> 0x773214; // Canonical Granite Brown (#773214)
             case AURORA -> 0x98DCF2; // Canonical Crystalline Cryo Cyan (#98DCF2)
             case MIRAGE -> 0xC2B28F; // Canonical Bleached Desert Sandstone (#C2B28F)
             case WRAITH -> 0x4D6453; // Canonical Necrotic Moss / Tombstone Ectoplasm (#4D6453)
-            case APOTHEOSIS, AUREOLE -> 0xFFF6C4;
+            case APOTHEOSIS -> 0x72F6FF; // Canonical Ascendant Prismatic Cyan (#72F6FF)
+            case AUREOLE -> 0xFFF6C4;
             case FROZEN -> 0xEBF9FF; // Diamond-white permafrost highlight (#EBF9FF)
             case RIME -> 0xDCF0FF; // Canonical Hoarfrost White (#DCF0FF)
             case SPRING -> 0x64C8FF; // Canonical Aquifer Springwater Cyan (#64C8FF)
-            case GLACIAL, TERMINUS -> 0xE0FFFF;
+            case GLACIAL -> 0xE0FFFF;
+            case TERMINUS -> 0x225C7C; // Canonical Water Deep Azure (#225C7C)
             case PYRE -> 0x773214; // Canonical Charred Cedar Timber & Granite Coal Brown (#773214)
-            case NETHER, MAGMA, CATACLYSM -> 0xFFD15C;
+            case NETHER, MAGMA -> 0xFFD15C;
+            case CATACLYSM -> 0x41304E; // Canonical Void Deep Indigo (#41304E)
             case LIGHTNING -> 0xB8F4FF;
             case STATIC -> 0x878DA2; // Canonical Galvanized Slate Gray (#878DA2)
             case STORM -> 0xD8FAFF; // Crisp Seafoam Gale-Slipstream Ivory (#D8FAFF)
@@ -1463,6 +1502,29 @@ public final class SpellParticleHelper {
                         -vel.z * 0.03D
                 );
             }
+        } else if (primary == EssenceType.EMPYREAN) {
+            // 3zd. Empyrean (#52) World-Tree Siphoning Seed-Pod wake: #FFEA78 living gold, #FF6B9D rose vitae & #1A5923 forest emerald petals!
+            int empColor = switch (tickCount % 3) {
+                case 0 -> 0xFFEA78;
+                case 1 -> 0xFF6B9D;
+                default -> 0x1A5923;
+            };
+            TimedTintableParticleOption worldTreeLeaf = TimedTintableParticleOption.linear(
+                    ModParticles.TINTABLE_LEAF.get(),
+                    empColor,
+                    24,
+                    0.88F * tierScale,
+                    0.05F
+            );
+            clientLevel.addParticle(
+                    worldTreeLeaf,
+                    pos.x - vel.x * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.y - vel.y * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    pos.z - vel.z * 0.12D + (rand.nextDouble() - 0.5D) * 0.24D,
+                    -vel.x * 0.03D,
+                    0.01D,
+                    -vel.z * 0.03D
+            );
         }
 
         // 4. Lingering glowing Elder Futhark rune glyph every 4 ticks on non-split projectiles

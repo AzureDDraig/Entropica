@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "A",
+    "P"
+  ],
+  "key": {
+    "A": "entropica:red_algae",
+    "P": "minecraft:piston"
+  },
+  "result": {
+    "id": "minecraft:sticky_piston",
+    "count": 1
+  }
+}

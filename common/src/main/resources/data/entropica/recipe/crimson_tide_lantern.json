@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DCD",
+    "BGB",
+    "DCD"
+  ],
+  "key": {
+    "D": "minecraft:deepslate_tiles",
+    "C": "minecraft:copper_ingot",
+    "B": "entropica:blood_glass",
+    "G": "entropica:sanguine_heart_gel"
+  },
+  "result": {
+    "id": "entropica:crimson_tide_lantern",
+    "count": 1
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "entropica:barrow_stone_bricks",
+    "entropica:grave_moss"
+  ],
+  "result": {
+    "id": "entropica:mossy_barrow_bricks",
+    "count": 1
+  }
+}

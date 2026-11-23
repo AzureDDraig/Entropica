@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "entropica:stardust_crystal_block"
+  ],
+  "result": {
+    "id": "entropica:stardust_fragment",
+    "count": 4
+  }
+}

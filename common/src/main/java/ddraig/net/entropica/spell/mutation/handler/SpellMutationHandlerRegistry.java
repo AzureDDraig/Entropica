@@ -59,6 +59,8 @@ public final class SpellMutationHandlerRegistry {
         register(new NullRSpellMutationHandler());      // #30 Null_R
         register(new NullUSpellMutationHandler());      // #31 Null_U
         register(new DawnSpellMutationHandler());       // #32 Dawn
+        register(new AureoleSpellMutationHandler());    // Ethereal Luminous Halo
+        register(new VesperSpellMutationHandler());     // Ethereal Eventide Twilight
         register(new AbyssSpellMutationHandler());      // #33 Abyss
         register(new AegisSpellMutationHandler());      // #34 Aegis
         register(new AuroraSpellMutationHandler());     // #35 Aurora
@@ -89,6 +91,11 @@ public final class SpellMutationHandlerRegistry {
         register(new EschatonSpellMutationHandler());   // #55 Eschaton
         register(new ApotheosisSpellMutationHandler()); // #56 Apotheosis
         register(new EntropicaSpellMutationHandler());  // #57 Entropica
+
+        // Caprine Secret Fusions (Radiant Fire, Umbral Water & Equinox Catalyst)
+        register(new RadiantFireSpellMutationHandler()); // Caprine Secret: Radiant Fire
+        register(new UmbralWaterSpellMutationHandler()); // Caprine Secret: Umbral Water
+        register(new EquinoxSpellMutationHandler());     // Caprine Secret: Equinox Catalyst
     }
 
     private SpellMutationHandlerRegistry() {

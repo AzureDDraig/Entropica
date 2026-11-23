@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "blocks",
+  "group": "blood_glass",
+  "ingredient": "entropica:red_clay_sand",
+  "result": {
+    "id": "entropica:blood_glass"
+  },
+  "experience": 0.2,
+  "cookingtime": 200
+}

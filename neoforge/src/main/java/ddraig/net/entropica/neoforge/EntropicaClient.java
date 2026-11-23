@@ -79,6 +79,11 @@ public class EntropicaClient {
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.STARLIGHT_AETHER_BIRCH_SAPLING.get(), ChunkSectionLayer.CUTOUT);
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.BLOOD_ROOT_IRON_OAK_LEAVES.get(), ChunkSectionLayer.CUTOUT);
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.BLOOD_ROOT_IRON_OAK_SAPLING.get(), ChunkSectionLayer.CUTOUT);
+
+            // Biome 16 (2.16 Crimson Tide-Skerries) Translucent & Cutout Render Layers
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SANGUINE_ICE.get(), ChunkSectionLayer.TRANSLUCENT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.RED_ALGAE.get(), ChunkSectionLayer.CUTOUT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.CRIMSON_TIDE_LANTERN.get(), ChunkSectionLayer.CUTOUT);
         });
     }
 

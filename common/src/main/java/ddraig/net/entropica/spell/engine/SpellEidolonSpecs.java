@@ -13,15 +13,48 @@ public final class SpellEidolonSpecs {
     private SpellEidolonSpecs() {
     }
 
+    /**
+     * Canonical upkeep interval for sustained Player-owned Agent and Sentry Eidolons: 15.0 seconds (300 ticks).
+     */
+    public static final int UPKEEP_INTERVAL_TICKS = 300;
+
     public static boolean isLifecycleRefreshMateria(@Nullable EssenceType type) {
         if (type == null) return false;
         return switch (type) {
-            case PENUMBRA, RIME, SPRING, STATIC, SYLVAN, MIASMA, GENESIS, OBLIVION, CHIMERA,
+            case PYRE, PENUMBRA, RIME, SPRING, STATIC, SYLVAN, MIASMA, GENESIS, OBLIVION, CHIMERA,
                     AETHER, ENTROPIC, CELESTIAL, PRISMATIC,
                     EMPYREAN, CATACLYSM, TERMINUS,
                     ESCHATON, APOTHEOSIS, ENTROPICA -> true;
             default -> false;
         };
+    }
+
+    /**
+     * Canonical concurrent Eidolon summon cap scaling across Potency Tiers 1–10 (Guide Section 1.8 & 4.9):
+     * Tier 1–2 -> 1–2, Tier 3–5 -> 3–4, Tier 6–7 -> 5–6, Tier 8–10 -> up to 8.
+     */
+    public static int resolveMaxConcurrentSummons(int tier) {
+        return switch (Math.clamp(tier, 1, 10)) {
+            case 1 -> 1;
+            case 2 -> 2;
+            case 3, 4 -> 3;
+            case 5 -> 4;
+            case 6 -> 5;
+            case 7 -> 6;
+            default -> 8;
+        };
+    }
+
+    /**
+     * Computes the 15-second (300-tick) Materia fuel upkeep cost in base Mfum for an active Eidolon:
+     * <ul>
+     *     <li>Not damaged beyond 50% ({@code HP >= 50% Max HP}): 25% of base tier cast cost.</li>
+     *     <li>Damaged beyond 50% ({@code HP < 50% Max HP}): 100% full base tier cast cost (and heals to 100% Max HP).</li>
+     * </ul>
+     */
+    public static long resolveUpkeepCostMfum(int tier, boolean damagedBeyondHalf) {
+        long baseCost = ddraig.net.entropica.spell.fuel.MateriaStageTable.getBaseMfumCastCost(tier);
+        return damagedBeyondHalf ? Math.max(1L, baseCost) : Math.max(1L, baseCost / 4L);
     }
 
     public static int resolveCanonicalLifecycleTicks(EssenceType formMateria, TriadArchetype archetype) {
@@ -42,6 +75,7 @@ public final class SpellEidolonSpecs {
 
     public static double resolveCanonicalLifecycleBaseHp(EssenceType formMateria, TriadArchetype archetype) {
         return switch (formMateria) {
+            case PYRE -> (archetype == TriadArchetype.SENTRY ? 85.0D : 70.0D);
             case PENUMBRA -> (archetype == TriadArchetype.SENTRY ? 80.0D : 60.0D);
             case RIME, SPRING, STATIC -> (archetype == TriadArchetype.SENTRY ? 85.0D : 65.0D);
             case SYLVAN -> (archetype == TriadArchetype.SENTRY ? 85.0D : 70.0D);
@@ -366,6 +400,31 @@ public final class SpellEidolonSpecs {
                 case AGENT -> "Avatar of Entropica";
                 case SENTRY -> "Altar of the Horizon";
                 case DECOY -> "Fractured Paradox Core";
+            };
+            case AUREOLE -> switch (archetype) {
+                case AGENT -> "Aureole Halo-Vanguard";
+                case SENTRY -> "Celestial Crown Spire";
+                case DECOY -> "Luminous Nimbus Effigy";
+            };
+            case VESPER -> switch (archetype) {
+                case AGENT -> "Eventide Vesper-Wraith";
+                case SENTRY -> "Nocturne Gale Obelisk";
+                case DECOY -> "Dusk-Whisper Silhouette";
+            };
+            case RADIANT_FIRE -> switch (archetype) {
+                case AGENT -> "Solar-Prominence Seraph";
+                case SENTRY -> "Helios Pyre Obelisk";
+                case DECOY -> "Incandescent Corona Effigy";
+            };
+            case UMBRAL_WATER -> switch (archetype) {
+                case AGENT -> "Cavitation Trench-Stalker";
+                case SENTRY -> "Umbral Undertow Spire";
+                case DECOY -> "Submerged Shadow Effigy";
+            };
+            case EQUINOX -> switch (archetype) {
+                case AGENT -> "Gemini Equinox Archon";
+                case SENTRY -> "Phase-Inversion Crucible Spire";
+                case DECOY -> "Twin-Polarity Mirage Effigy";
             };
             default -> type.getDisplayName() + " " + archetype.getDisplayName();
         };

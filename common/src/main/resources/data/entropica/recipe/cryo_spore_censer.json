@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "GSG",
+    "CIC"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "G": "entropica:spore_glass",
+    "S": "entropica:mycelial_spore_cap",
+    "I": "entropica:spore_glazed_ice"
+  },
+  "result": {
+    "id": "entropica:cryo_spore_censer",
+    "count": 1
+  }
+}

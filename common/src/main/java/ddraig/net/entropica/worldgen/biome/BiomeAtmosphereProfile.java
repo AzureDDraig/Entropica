@@ -40,6 +40,25 @@ public final class BiomeAtmosphereProfile {
     private final float particleWindVx;
     private final float particleWindVy;
     private final float particleWindVz;
+    private final int waterSurfaceSteamColumnsPerTick;
+    private final int waterSurfaceSteamColorRgb;
+
+    // --- Low-Lying Volumetric Mist Strata ---
+    private final boolean volumetricMist;
+    private final int volumetricMistDayRgb;
+    private final int volumetricMistNightRgb;
+    private final float volumetricMistBaseOffset;
+    private final float volumetricMistThickness;
+    private final float volumetricMistDensity;
+    private final boolean volumetricMistEmissive;
+    private final float volumetricMistDriftSpeed;
+
+    // --- Water-Surface Optical Reflections & Sub-Surface Parallax ---
+    private final WaterOpticalMode waterOpticalMode;
+    private final int waterPrimaryRgb;
+    private final int waterSecondaryRgb;
+    private final float waterOpticalIntensity;
+    private final float waterParallaxDepthScale;
 
     // --- Gameplay Environmental Physics & Regional Effects ---
     private final float descentSpeedMultiplier; // 1.0f = vanilla, 1.15f = +15% Aegis fall speed
@@ -72,6 +91,23 @@ public final class BiomeAtmosphereProfile {
         this.particleWindVx = b.particleWindVx;
         this.particleWindVy = b.particleWindVy;
         this.particleWindVz = b.particleWindVz;
+        this.waterSurfaceSteamColumnsPerTick = b.waterSurfaceSteamColumnsPerTick;
+        this.waterSurfaceSteamColorRgb = b.waterSurfaceSteamColorRgb;
+
+        this.volumetricMist = b.volumetricMist;
+        this.volumetricMistDayRgb = b.volumetricMistDayRgb;
+        this.volumetricMistNightRgb = b.volumetricMistNightRgb;
+        this.volumetricMistBaseOffset = b.volumetricMistBaseOffset;
+        this.volumetricMistThickness = b.volumetricMistThickness;
+        this.volumetricMistDensity = b.volumetricMistDensity;
+        this.volumetricMistEmissive = b.volumetricMistEmissive;
+        this.volumetricMistDriftSpeed = b.volumetricMistDriftSpeed;
+
+        this.waterOpticalMode = b.waterOpticalMode;
+        this.waterPrimaryRgb = b.waterPrimaryRgb;
+        this.waterSecondaryRgb = b.waterSecondaryRgb;
+        this.waterOpticalIntensity = b.waterOpticalIntensity;
+        this.waterParallaxDepthScale = b.waterParallaxDepthScale;
 
         this.descentSpeedMultiplier = b.descentSpeedMultiplier;
         this.jumpBoostAmplifier = b.jumpBoostAmplifier;
@@ -103,6 +139,23 @@ public final class BiomeAtmosphereProfile {
     public float getParticleWindVx() { return particleWindVx; }
     public float getParticleWindVy() { return particleWindVy; }
     public float getParticleWindVz() { return particleWindVz; }
+    public int getWaterSurfaceSteamColumnsPerTick() { return waterSurfaceSteamColumnsPerTick; }
+    public int getWaterSurfaceSteamColorRgb() { return waterSurfaceSteamColorRgb; }
+
+    public boolean hasVolumetricMist() { return volumetricMist; }
+    public int getVolumetricMistDayRgb() { return volumetricMistDayRgb; }
+    public int getVolumetricMistNightRgb() { return volumetricMistNightRgb; }
+    public float getVolumetricMistBaseOffset() { return volumetricMistBaseOffset; }
+    public float getVolumetricMistThickness() { return volumetricMistThickness; }
+    public float getVolumetricMistDensity() { return volumetricMistDensity; }
+    public boolean isVolumetricMistEmissive() { return volumetricMistEmissive; }
+    public float getVolumetricMistDriftSpeed() { return volumetricMistDriftSpeed; }
+
+    public WaterOpticalMode getWaterOpticalMode() { return waterOpticalMode; }
+    public int getWaterPrimaryRgb() { return waterPrimaryRgb; }
+    public int getWaterSecondaryRgb() { return waterSecondaryRgb; }
+    public float getWaterOpticalIntensity() { return waterOpticalIntensity; }
+    public float getWaterParallaxDepthScale() { return waterParallaxDepthScale; }
 
     public float getDescentSpeedMultiplier() { return descentSpeedMultiplier; }
     public int getJumpBoostAmplifier() { return jumpBoostAmplifier; }
@@ -138,6 +191,23 @@ public final class BiomeAtmosphereProfile {
         private float particleWindVx = 0.0F;
         private float particleWindVy = -0.02F;
         private float particleWindVz = 0.0F;
+        private int waterSurfaceSteamColumnsPerTick = 0;
+        private int waterSurfaceSteamColorRgb = 0xECFDFB;
+
+        private boolean volumetricMist = false;
+        private int volumetricMistDayRgb = 0xFFFFFF;
+        private int volumetricMistNightRgb = 0xFFFFFF;
+        private float volumetricMistBaseOffset = 0.0F;
+        private float volumetricMistThickness = 0.0F;
+        private float volumetricMistDensity = 0.0F;
+        private boolean volumetricMistEmissive = false;
+        private float volumetricMistDriftSpeed = 1.0F;
+
+        private WaterOpticalMode waterOpticalMode = WaterOpticalMode.NONE;
+        private int waterPrimaryRgb = 0xFFFFFF;
+        private int waterSecondaryRgb = 0xA5F3FC;
+        private float waterOpticalIntensity = 0.0F;
+        private float waterParallaxDepthScale = 1.0F;
 
         private float descentSpeedMultiplier = 1.0F;
         private int jumpBoostAmplifier = -1;
@@ -199,6 +269,37 @@ public final class BiomeAtmosphereProfile {
             this.particleWindVx = windVx;
             this.particleWindVy = windVy;
             this.particleWindVz = windVz;
+            return this;
+        }
+
+        public Builder waterSurfaceSteam(int columnsPerTick, int steamColorRgb) {
+            this.waterSurfaceSteamColumnsPerTick = Math.max(0, columnsPerTick);
+            this.waterSurfaceSteamColorRgb = steamColorRgb & 0xFFFFFF;
+            return this;
+        }
+
+        public Builder volumetricMist(int dayMistRgb, int nightMistRgb, float baseOffsetAboveSurface,
+                                      float thicknessBlocks, float density, boolean emissiveGlow, float driftSpeed) {
+            this.volumetricMist = density > 0.0F && thicknessBlocks > 0.0F;
+            this.volumetricMistDayRgb = dayMistRgb & 0xFFFFFF;
+            this.volumetricMistNightRgb = nightMistRgb & 0xFFFFFF;
+            this.volumetricMistBaseOffset = baseOffsetAboveSurface;
+            this.volumetricMistThickness = Math.max(0.25F, thicknessBlocks);
+            this.volumetricMistDensity = Math.max(0.0F, Math.min(1.0F, density));
+            this.volumetricMistEmissive = emissiveGlow;
+            this.volumetricMistDriftSpeed = Math.max(0.0F, driftSpeed);
+            return this;
+        }
+
+        public Builder waterOptics(WaterOpticalMode mode, int primaryRgb, int secondaryRgb,
+                                   float intensity, float parallaxDepthScale) {
+            this.waterOpticalMode = Objects.requireNonNull(mode, "mode");
+            this.waterPrimaryRgb = primaryRgb & 0xFFFFFF;
+            this.waterSecondaryRgb = secondaryRgb & 0xFFFFFF;
+            this.waterOpticalIntensity = mode == WaterOpticalMode.NONE
+                    ? 0.0F
+                    : Math.max(0.0F, Math.min(1.0F, intensity));
+            this.waterParallaxDepthScale = Math.max(0.1F, Math.min(4.0F, parallaxDepthScale));
             return this;
         }
 

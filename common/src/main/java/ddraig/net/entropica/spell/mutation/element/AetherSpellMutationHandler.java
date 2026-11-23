@@ -88,13 +88,15 @@ public final class AetherSpellMutationHandler implements MateriaPartMutationHand
     // =========================================================================
 
     @Override
-    public String resolveFlowTitle(SpellFlowModifier flow) {
-        return "Quintessential Quad-Harmonic Orbit Flow";
+    public @Nullable String resolveFlowTitle(SpellFlowModifier flow) {
+        return flow == SpellFlowModifier.ORBIT_SATELLITE ? "Quintessential Quad-Harmonic Orbit Flow" : null;
     }
 
     @Override
-    public String resolveFlowDescription(SpellFlowModifier flow) {
-        return "Manifests 4 persistent quintessential firmament orbs (Air #A88654, Earth #773214, Water #225C7C, Nether #B83C08) that phase through solid walls, vaporize 100% of incoming enemy projectiles, and discharge retaliatory quad-elemental homing darts dealing true Aether damage and shredding 2 armor per hit.";
+    public @Nullable String resolveFlowDescription(SpellFlowModifier flow) {
+        return flow == SpellFlowModifier.ORBIT_SATELLITE
+                ? "Manifests 4 persistent quintessential firmament orbs (Air #A88654, Earth #773214, Water #225C7C, Nether #B83C08) that phase through solid walls, vaporize 100% of incoming enemy projectiles, and discharge retaliatory quad-elemental homing darts dealing true Aether damage and shredding 2 armor per hit."
+                : null;
     }
 
     @Override
@@ -170,6 +172,9 @@ public final class AetherSpellMutationHandler implements MateriaPartMutationHand
 
     @Override
     public void onProjectileTickFromFlow(ServerLevel level, SpellProjectileEntity projectile, SpellFlowModifier flow) {
+        if (flow != SpellFlowModifier.ORBIT_SATELLITE) {
+            return;
+        }
         LivingEntity owner = projectile.getOwner() instanceof LivingEntity l ? l : null;
         ApexEschatonSingularityHelper.vaporizeHostileProjectiles(
                 level, owner, projectile.getBoundingBox().inflate(2.5D), null, 0L
@@ -347,6 +352,23 @@ public final class AetherSpellMutationHandler implements MateriaPartMutationHand
             @Nullable EssenceType fallbackMateria,
             float apparatusPotency
     ) {
+        onBeamFormCast(level, caster, direction, maxReach, hitEntities, blockHit, spell, slot, fallbackMateria, apparatusPotency, 0);
+    }
+
+    @Override
+    public void onBeamFormCast(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 direction,
+            double maxReach,
+            List<LivingEntity> hitEntities,
+            BlockHitResult blockHit,
+            SpellAssembly spell,
+            SubSpellSlot slot,
+            @Nullable EssenceType fallbackMateria,
+            float apparatusPotency,
+            int heldTicks
+    ) {
         // Section 6.50 Quintessential Firmament Ray & Celestial Supernova:
         // Melts 2 armor points/s, vaporizes incoming projectiles in mid-air, suspends targets in zero-g;
         // 5.0 continuous seconds (100t) -> Cataclysmic Firmament Supernova (12m KB, -6 armor, buff purge, Levitation + Stun 5.0s)!
@@ -366,12 +388,16 @@ public final class AetherSpellMutationHandler implements MateriaPartMutationHand
 
             CompoundTag data = EntityHelper.getPersistentData(hit);
             long last = data.getLong(TAG_AETHER_BEAM_LAST_TICK).orElse(-100L);
+            if (last == now) continue;
             long gap = now - last;
-            int accumTicks = (gap >= 0L && gap <= 32L)
-                    ? data.getInt(TAG_AETHER_BEAM_TICKS).orElse(0) + (int) Math.max(4L, Math.min(20L, gap == 0L ? 20L : gap))
-                    : 20;
+            int step = heldTicks > 0
+                    ? ((last >= 0L && gap <= 32L) ? (int) Math.max(1L, Math.min(20L, gap)) : Math.min(heldTicks, 4))
+                    : 0;
+            int accumTicks = heldTicks > 0
+                    ? ((gap >= 0L && gap <= 32L) ? data.getInt(TAG_AETHER_BEAM_TICKS).orElse(0) + step : step)
+                    : 0;
             int armorStacks = (gap >= 0L && gap <= 32L)
-                    ? Math.min(10, data.getInt(TAG_AETHER_BEAM_ARMOR_STACKS).orElse(0) + 2)
+                    ? Math.min(10, Math.max(2, (accumTicks / 20) * 2 + 2))
                     : 2;
             data.putLong(TAG_AETHER_BEAM_LAST_TICK, now);
             data.putInt(TAG_AETHER_BEAM_ARMOR_STACKS, armorStacks);
@@ -379,7 +405,7 @@ public final class AetherSpellMutationHandler implements MateriaPartMutationHand
             SpellCombatReactionEngine.applyTimedAttributeShred(hit, level, armorStacks, 0.0D, 90L);
             hit.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 32, 0));
 
-            if (accumTicks >= 100) {
+            if (heldTicks >= 100 && accumTicks >= 100) {
                 data.putInt(TAG_AETHER_BEAM_TICKS, 0);
                 data.putInt(TAG_AETHER_BEAM_ARMOR_STACKS, 0);
                 Vec3 novaPos = hit.position();
@@ -781,17 +807,23 @@ public final class AetherSpellMutationHandler implements MateriaPartMutationHand
         }
 
         final boolean[] landed = new boolean[spireCount];
-        Map<BlockPos, BlockState> savedCraterBlocks = new HashMap<>();
+        final boolean[] materialized = {false};
 
         SpellLingeringZoneManager.registerZone(level, new SpellLingeringZoneManager.ActiveSpellZone(
                 caster, impactCenter, r, 600, level.getGameTime(), spell, slot, EssenceType.AETHER, apparatusPotency,
                 (srv, zone, elapsed) -> {
-                    if (elapsed > zone.maxDurationTicks) {
-                        for (Map.Entry<BlockPos, BlockState> e : savedCraterBlocks.entrySet()) {
-                            BlockState cur = srv.getBlockState(e.getKey());
-                            if (cur.is(Blocks.QUARTZ_PILLAR) || cur.is(Blocks.AMETHYST_BLOCK)
-                                    || cur.is(Blocks.CALCITE) || cur.is(Blocks.GILDED_BLACKSTONE)) {
-                                srv.setBlockAndUpdate(e.getKey(), e.getValue());
+                    if (elapsed >= zone.maxDurationTicks) {
+                        if (!materialized[0]) {
+                            materialized[0] = true;
+                            for (int sIdx = 0; sIdx < spireCount; sIdx++) {
+                                BlockState pseudoState = switch (sIdx & 3) {
+                                    case 0 -> Blocks.QUARTZ_PILLAR.defaultBlockState();
+                                    case 1 -> Blocks.CALCITE.defaultBlockState();
+                                    case 2 -> Blocks.AMETHYST_BLOCK.defaultBlockState();
+                                    default -> Blocks.GILDED_BLACKSTONE.defaultBlockState();
+                                };
+                                int colHeight = (sIdx % 2 == 0) ? 2 : 1;
+                                SpellWorldVfxManager.materializeSkyfallPseudoblockColumn(srv, spireTargets[sIdx], pseudoState, colHeight);
                             }
                         }
                         return false;
@@ -814,7 +846,7 @@ public final class AetherSpellMutationHandler implements MateriaPartMutationHand
                             int colHeight = (sIdx % 2 == 0) ? 2 : 1;
 
                             if (elapsed == impactTick - 14) {
-                                int holdTicks = Math.max(8, 400 - impactTick);
+                                int holdTicks = Math.max(4, zone.maxDurationTicks - impactTick);
                                 SpellWorldVfxManager.broadcastSkyfallPseudoblockColumn(
                                         srv,
                                         new Vec3(strikePos.getX() + 0.5D, strikePos.getY() + skyH, strikePos.getZ() + 0.5D),
@@ -845,9 +877,6 @@ public final class AetherSpellMutationHandler implements MateriaPartMutationHand
                                 );
                                 srv.playSound(null, strikePos, SoundEvents.AMETHYST_CLUSTER_BREAK, SoundSource.PLAYERS, 0.95F, 0.85F);
                             }
-                            if (landed[sIdx]) {
-                                SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, strikePos, colHeight, false);
-                            }
                         }
 
                         if (elapsed % 8 == 0) {
@@ -859,23 +888,10 @@ public final class AetherSpellMutationHandler implements MateriaPartMutationHand
                                     EssenceType.AETHER, EssenceType.AIR, 1.60F, zTier
                             );
                         }
-                    } else if (elapsed == 400) {
-                        // Bombardment finished: materialize temporary crystalline firmament veins during the 10.0s pressure phase!
-                        for (int sIdx = 0; sIdx < spireCount; sIdx++) {
-                            BlockPos ground = spireTargets[sIdx].below();
-                            BlockState gs = srv.getBlockState(ground);
-                            if ((gs.is(BlockTags.DIRT) || gs.is(Blocks.STONE) || gs.is(Blocks.COBBLESTONE) || gs.is(Blocks.DEEPSLATE))
-                                    && !savedCraterBlocks.containsKey(ground)
-                                    && !SpellExecutionEngine.isProtectedBlockOrContainer(srv, ground, gs)) {
-                                savedCraterBlocks.put(ground.immutable(), gs);
-                                BlockState vein = switch (sIdx & 3) {
-                                    case 0 -> Blocks.QUARTZ_PILLAR.defaultBlockState();
-                                    case 1 -> Blocks.CALCITE.defaultBlockState();
-                                    case 2 -> Blocks.AMETHYST_BLOCK.defaultBlockState();
-                                    default -> Blocks.GILDED_BLACKSTONE.defaultBlockState();
-                                };
-                                srv.setBlockAndUpdate(ground, vein);
-                            }
+                    }
+                    for (int sIdx = 0; sIdx < spireCount; sIdx++) {
+                        if (landed[sIdx]) {
+                            SpellWorldVfxManager.repelEntitiesFromPseudoblockColumn(srv, spireTargets[sIdx], (sIdx % 2 == 0) ? 2 : 1, false);
                         }
                     }
 

@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "entropica:auroral_vapor_observatory",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 839104629,
+    "spacing": 26,
+    "separation": 10
+  }
+}

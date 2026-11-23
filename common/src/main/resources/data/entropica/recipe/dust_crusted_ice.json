@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "IS",
+    "SI"
+  ],
+  "key": {
+    "I": "minecraft:packed_ice",
+    "S": "entropica:grey_sand"
+  },
+  "result": {
+    "id": "entropica:dust_crusted_ice",
+    "count": 4
+  }
+}

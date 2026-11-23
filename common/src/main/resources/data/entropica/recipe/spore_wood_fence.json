@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "wooden_fence",
+  "pattern": [
+    "W#W",
+    "W#W"
+  ],
+  "key": {
+    "W": "entropica:spore_wood_planks",
+    "#": "minecraft:stick"
+  },
+  "result": {
+    "id": "entropica:spore_wood_fence",
+    "count": 3
+  }
+}
